@@ -1,21 +1,23 @@
 ---
-title: Volume downsize
+title: Volume Downsize
 weight: 2
 url: runbooks/volume-downsize
 description: Steps about how to perform a volume downsize
 showToc: true
 ---
 
-This runbook will show you how to perform a volume downsize. The normal operation is to extend a volume but in some cases you probably over-dimension your volumes and you might need to reduce cost and resource usage so you'll need to downsize your resources, in this case, your volumes.
+This runbook will show you how to perform a volume downsize.
+The usual operation is to extend a volume, but in some cases you might have over-dimensioned your volumes and might need to downsize your volumes, in order to reduce costs.
 
 
 ## Scenario
 
-Having a StackGres cluster with:
-  - Instances: `3`
-  - Namespace: `ongres-db`
-  - Cluster name: `ongres-db`
-  - Volume size: `20Gi`
+Assume you have a StackGres cluster with:
+
+- Instances: `3`
+- Namespace: `ongres-db`
+- Cluster name: `ongres-db`
+- Volume size: `20Gi`
 
 ```
 $ kubectl exec -it -n ongres-db ongres-db-2 -c patroni -- patronictl list
@@ -29,7 +31,7 @@ $ kubectl exec -it -n ongres-db ongres-db-2 -c patroni -- patronictl list
 +-------------+----------------+--------+---------+----+-----------+
 ```
 
-Verifying the PVC's:
+Verify the PVC's:
 
 ```
 $ kubectl get pvc -n ongres-db
@@ -43,7 +45,9 @@ ongres-db-data-ongres-db-2               Bound    pvc-5124b9d2-ec35-46d7-9eda-75
 
 Assuming the disk size is over-dimensioned, and you need to perform a downsize to `15Gi`.
 
-## Perform a switchover to the pod with higher index number ( ongres-db-2)
+## Performing a Switchover
+
+Perform a switchover to the pod with the higher index number (`ongres-db-2`).
 
 Execute:
 
@@ -77,7 +81,7 @@ Are you sure you want to switchover cluster ongres-db, demoting current master o
 +-------------+----------------+--------+---------+----+-----------+
 ```
 
-Now check the cluster state:
+Now, check the cluster state:
 
 ```
 $ kubectl exec -it -n ongres-db ongres-db-2 -c patroni -- patronictl list
@@ -90,21 +94,21 @@ $ kubectl exec -it -n ongres-db ongres-db-2 -c patroni -- patronictl list
 +-------------+----------------+--------+---------+----+-----------+
 ```
 
-## Edit the SGCluster definition with the new size
+## Editing the SGCluster Definition
 
-Update the volume size to with the new value:
+Now, edit the StackGres cluster volume definition to the new size:
 
 ```
 kubectl patch sgclusters -n ongres-db ongres-db --type='json' -p '[{ "op": "replace", "path": "/spec/pods/persistentVolume/size", "value": "10Gi" }]'
 ```
 
-You'll get the next message:
+You'll get the following message:
 
 ```
 sgcluster.stackgres.io/ongres-db patched
 ```
 
-Now if you check the events you will see an error like:
+Now, if you check the events you will see an error like:
 
 ```
 kubectl get events -n ongres-db
@@ -114,28 +118,34 @@ Failure executing: PATCH at: https://10.96.0.1/apis/apps/v1/namespaces/ongres-db
 ....
 ```
 
-This is expected because is forbidden to change the size value into a StatefulSet, so proceed to delete the statefulset and let the StackGres Operator recreate it.
+This is expected because is forbidden to change the spec of a stateful set.
+
+Delete the stateful set and let the StackGres operator recreate it:
 
 ```
 $ kubectl delete sts -n ongres-db ongres-db --cascade=orphan
 ```
 
-> Very important note: Do not forget the paramater `--cascade=orphan` because this will keep the existent pods.
+> **Important Note:** Do not forget the parameter `--cascade=orphan` because this will keep the existing pods.
 
-## Verify the StatefulSet has the new volume size:
+## Verifying the StatefulSet
+
+Verify that the stateful set now has the new volume size:
 
 ```
 $ kubectl describe sts -n ongres-db ongres-db | grep -i capacity
   Capacity:      15Gi
 ```
 
-## Edit the replica size to **1** (One)
+## Editing the replica size
+
+Edit the replica size to `1`:
 
 ```
 $ kubectl patch sgclusters -n ongres-db ongres-db --type='json' -p '[{ "op": "replace", "path": "/spec/instances", "value": 1 }]'
 ```
 
-Once you decrease the replicas you'll see something like:
+Once you decrease the replicas, you'll see something like:
 
 ```
 $ kubectl get pods -n ongres-db
@@ -144,9 +154,9 @@ distributedlogs-0   2/2     Running   0          3h4m
 ongres-db-2         6/6     Running   0          27m
 ```
 
-## Delete the non use PVCs and PVs
+## Deleting the Unused PVCs and PVs
 
-Proceed to delete the PVCs `ongres-db-data-ongres-db-0` and `ongres-db-data-ongres-db-1`:
+Proceed to delete the unused PVCs `ongres-db-data-ongres-db-0` and `ongres-db-data-ongres-db-1`:
 
 ```
 $ kubectl delete pvc -n ongres-db ongres-db-data-ongres-db-0
@@ -156,7 +166,7 @@ $ kubectl delete pvc -n ongres-db ongres-db-data-ongres-db-1
 persistentvolumeclaim "ongres-db-data-ongres-db-1" deleted
 ```
 
-This will release the PV and then you can proceed to delete them:
+This will release the persistent volumes and then you can proceed to delete them:
 
 ```
 $ kubectl get pv
@@ -167,29 +177,25 @@ pvc-a2aa5198-c553-4e0d-a1e1-914669abb69f   20Gi       RWO            Retain     
 pvc-c724b2bf-cf17-4f57-a882-3a5da6947f44   20Gi       RWO            Retain           Released   ongres-db/ongres-db-data-ongres-db-1               gp2-data                38m
 ```
 
-Delete the disks with `Released` state:
+Delete the disks with `Released` status:
 
 ```
 $ kubectl delete pv pvc-a2aa5198-c553-4e0d-a1e1-914669abb69f
-
 persistentvolume "pvc-a2aa5198-c553-4e0d-a1e1-914669abb69f" deleted
-```
 
-and
-
-```
 $ kubectl delete pv pvc-c724b2bf-cf17-4f57-a882-3a5da6947f44
-
 persistentvolume "pvc-c724b2bf-cf17-4f57-a882-3a5da6947f44" deleted
 ```
 
-## Increase the replica size to **2** (Two):
+## Increasing the Replica Size
+
+Increase the replica size to `2`:
 
 ```
 $ kubectl patch sgclusters -n ongres-db ongres-db --type='json' -p '[{ "op": "replace", "path": "/spec/instances", "value": 2 }]'
 ```
 
-Now you cluster will have 2 pods:
+Now, your cluster will have 2 pods:
 
 ```
 $ kubectl get pods -n ongres-db
@@ -222,7 +228,9 @@ ongres-db-data-ongres-db-0               Bound    pvc-37d96872-b132-4a89-a579-d8
 ongres-db-data-ongres-db-2               Bound    pvc-5124b9d2-ec35-46d7-9eda-7543d9ed7148   20Gi       RWO            gp2-data       39m
 ```
 
-## Perform a switchover to node **ongres-db-0**
+## Performing a Switchover
+
+Perform another switchover, this time to node `ongres-db-0`:
 
 ```
 $ kubectl exec -it -n ongres-db ongres-db-2 -c patroni -- patronictl switchover
@@ -261,16 +269,12 @@ You can proceed to delete the PVC and PV of `ongres-db-2`
 ```
 $ kubectl delete pvc -n ongres-db ongres-db-data-ongres-db-2
 persistentvolumeclaim "ongres-db-data-ongres-db-2" deleted
-```
 
-and
-
-```
 $ kubectl delete pv pvc-5124b9d2-ec35-46d7-9eda-7543d9ed7148
 persistentvolume "pvc-5124b9d2-ec35-46d7-9eda-7543d9ed7148" deleted
 ```
 
-Now your cluster will have the new reduce disk size:
+Now, your cluster will have the new, reduced disk size:
 
 ```
 $ kubectl get pvc -n ongres-db

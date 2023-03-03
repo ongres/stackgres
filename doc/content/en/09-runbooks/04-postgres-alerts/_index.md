@@ -1,18 +1,18 @@
 ---
-title: Add Postgres Alerts
+title: Postgres Alerts
 weight: 4
 url: runbooks/postgres-alerts
-description: How to add postgres alerts to your prometheus installation
+description: How to add Postgres alerts to your Prometheus installation
 showToc: true
 ---
 
-This runbook will show you how to add Postgres alerts to your Prometheus installation and give you some usefull ones.
+This runbook will show you how to add Postgres alerts to your Prometheus installation, and will give you examples of useful alerts.
 
 ## Environment
 
-This runbook will show you to add postgres alerts using a default Prometheus installation with [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack). 
+This runbook will show you how to add Postgres alerts using a default Prometheus installation with [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack). 
 
-The Prometheus installation will add to your K8s cluster some CRS's:
+The Prometheus installation will add some CRDs to your Kubernetes cluster:
 
 ```
 $ kubectl get crd -o name | grep monitoring
@@ -26,9 +26,11 @@ customresourcedefinition.apiextensions.k8s.io/servicemonitors.monitoring.coreos.
 customresourcedefinition.apiextensions.k8s.io/thanosrulers.monitoring.coreos.com
 ```
 
-## Defining your alerts
+## Defining Alerts
 
-The Prometheus resources allow you to add Prometheus instances and Prometheus rules. The prometheus rules are the resources to define your alerts using `promql` with some other required parameters. This is and example of a postgres rule:
+The Prometheus resources allow you to add Prometheus instances and Prometheus rules.
+The Prometheus rules define your alerts using `promql` with some other required parameters.
+This is an example rule:
 
 ```
 - alert: PostgresInstanceDown
@@ -43,11 +45,17 @@ The Prometheus resources allow you to add Prometheus instances and Prometheus ru
         title: "Postgres server instance {{ $labels.instance }} is down "
 ```
 
-The `expr` parameter is the prometheus query to retreive the data for the alert in this example `pg_up` metric return `0` is the instance is down and `1` if up. The `for` parameter is the threshold time to evaluate the query. Then you can also add labels and annotations to describe more precisely your alert. So the above example means `If the pg_up metric value is equal to zero for 1m then fire the alert`. Check the alerts section below for the full alerts description and the `yaml` file definition.
+The `expr` parameter defines the Prometheus query how to retrieve the data for the alert.
+The `pg_up` metric would return `0` if the instance is down and `1` if it is up.
+The `for` parameter defines the threshold time evaluating the query.
+You can also add labels and annotations to describe your alert more precisely.
+So, the above example means `If the pg_up metric value is equal to zero for 1m, then fire the alert`.
 
-## Alerts
+Check the alerts section below for the full alerts description and YAML definitions.
 
-These are some useful alerts you can add to your StackGres cluster.
+## Useful Alerts
+
+These are some useful alerts that you can add to your StackGres cluster.
 
 | Alert                                    | Severity | Threshod | Description                                                     |
 |------------------------------------------|----------|----------|-----------------------------------------------------------------|
@@ -68,8 +76,7 @@ These are some useful alerts you can add to your StackGres cluster.
 | DatabaseLowDiskAvailable                 | warning  |   15m    | Check the database available disk size <= 20%                   |
 
 
-With the default Prometheus stack installation use the next yaml description to create a file `stackgres-alerts.yaml`:
-
+For a default Prometheus stack installation, create the YAML file `stackgres-alerts.yaml`:
 
 ```
 apiVersion: monitoring.coreos.com/v1
@@ -235,19 +242,19 @@ spec:
       annotations:
         summary: Database disk is filling up currently have less than 20% available on {{ $labels.instance }} in cluster {{$labels.cluster_name}})
         description: "Database disk is filling up currently have less than 20%, currently occupied {{ $value }} %"
-
 ```
 
-and deploy it to kubernetes:
+and deploy it to Kubernetes:
 
 ```
 kubectl apply -f stackgres-alerts.yaml
 ```
 
+## Prometheus Alert Discovery
 
-## How Prometheus discover the alerts
+The following describes how Prometheus discovers the alerts.
 
-With the default prometheus installation some deployment will be added:
+The default Prometheus installation contains a few deployments:
 
 ```
 $ kubectl get deployments.apps -n monitoring
@@ -257,7 +264,7 @@ prometheus-operator-kube-p-operator      1/1     1            1           25d
 prometheus-operator-kube-state-metrics   1/1     1            1           25d
 ```
 
-This will create a Prometheus instance:
+and a Prometheus instance:
 
 ```
 $ kubectl get pods -n monitoring -l app=prometheus
@@ -265,7 +272,7 @@ NAME                                                 READY   STATUS    RESTARTS 
 prometheus-prometheus-operator-kube-p-prometheus-0   2/2     Running   0          25d
 ```
 
-This instance has defined a `ruleSelector` section with some labels:
+The instance defines a `ruleSelector` section with some labels:
 
 ```
 $ kubectl get -n monitoring prometheus prometheus-operator-kube-p-prometheus -o yaml | grep -A3 ruleSelector
@@ -275,8 +282,8 @@ $ kubectl get -n monitoring prometheus prometheus-operator-kube-p-prometheus -o 
       release: prometheus-operator
 ```
 
-
-You need to make sure the `metadata` labels from your `Prometheus Rule` match with the `ruleSelector` labels of your prometheus instance. In this case will be as is shown below:
+You need to make sure the `metadata` labels from your Prometheus rule match with the `ruleSelector` labels of your Prometheus instance.
+For our example:
 
 ```
 apiVersion: monitoring.coreos.com/v1
@@ -291,17 +298,22 @@ metadata:
   ...
   ```
 
-Prometheus will autodiscover the alerts according to the matching lables and add them to the instance:
+Prometheus will auto-discover the alerts according to the matching labels and add them to the instance:
 
 ![Alerts](prometheus_alerts.png "Postgres Alerts")
 
 
 
-## Email alerts with AlertManager
+## Email Alerts With Alert Manager
 
-Once you have configured the alerts on Prometheus, depending on your infrastructure you can create push messages in an alert is fire. You could use, email, [Slack](https://slack.com/), [Pagerduty](https://www.pagerduty.com/), [Opsgenie](https://www.atlassian.com/software/opsgenie) and others. Check [Alert Manager Configuration](https://prometheus.io/docs/alerting/latest/configuration/) for more details. In this example you'll see how to configure alerts with email messages.
+Once you have configured the alerts on Prometheus, depending on your infrastructure, you can send messages when an alert fires.
+You could use email, [Slack](https://slack.com/), [Pagerduty](https://www.pagerduty.com/), [Opsgenie](https://www.atlassian.com/software/opsgenie), and others.
+Check the [Alert Manager Configuration](https://prometheus.io/docs/alerting/latest/configuration/) for more details.
 
-The Prometheus stack installation include an installation of AlertManager:
+In this example, you'll see how to configure alerts with email messages.
+
+
+The Prometheus stack installation includes the Alert Manager:
 
 ```
 $ kubectl get pods -n monitoring -l app=alertmanager
@@ -309,7 +321,7 @@ NAME                                                     READY   STATUS    RESTA
 alertmanager-prometheus-operator-kube-p-alertmanager-0   2/2     Running   0          68m
 ```
 
-The alerting configuration is added using a secret::
+The alerting is configured using a secret:
 
 ```
 $ kubectl get secrets -n monitoring alertmanager-prometheus-operator-kube-p-alertmanager
@@ -317,7 +329,8 @@ NAME                                                   TYPE     DATA   AGE
 alertmanager-prometheus-operator-kube-p-alertmanager   Opaque   1      30d
 ```
 
-To update the configuration you need to first create a `yml` file `alertmanager.yaml` with the next content(Replace the users and credentials with your settings):
+To update the configuration, you need to first create a file `alertmanager.yaml` with the following content.
+Replace the users and credentials according to your needs:
 
 ```
 global:
@@ -344,49 +357,46 @@ receivers:
     auth_password: XXXXXXX
 ```
 
-Next you need to encrypt the content of the file running:
+Then, you need to encrypt the file contents:
 
 ```
 $ cat alertmanager.yaml | base64 -w0
 ```
 
-This will return a string like:
+This returns a string like:
 
 ```
 Z2xvYmFsOgogIHJlc29sdmVfdGltZW91dDogNW0Kcm91dGU6CiAgcmVjZWl2ZXI6ICdlbWFpbC1hbGVydCcK
 ```
 
-Edit the alertmanager secret with the string generated with the command above:
+Edit the Alert Manager secret with the string generated with the command above:
 
 ```
 $ kubectl patch secret -n monitoring alertmanager-prometheus-operator-kube-p-alertmanager -p='{"data":{"alertmanager.yaml": "Z2xvYmFsOgogIHJlc29sdmVfdGltZW91dDogNW0Kcm91dGU6CiAgcmVjZWl2ZXI6ICdlbWFpbC1hbGVydCcK"}}' -v=1
 ```
 
-After a few seconds, the new configuration will be applied, you can verify it by accessing the AlertManager console, with:
+After a few seconds, the new configuration will be applied.
+You can verify it by accessing the Alert Manager console, with:
 
 ```
 kubectl port-forward -n monitoring alertmanager-prometheus-operator-kube-p-alertmanager-0 9093:9093
 ```
 
-Then open your web browser and type:
-
-```
-http://localhost:9093
-```
+Then open your web browser at: [http://localhost:9093](http://localhost:9093)
 
 
 ![Alert Manager](alert_manager_home.png "Alert Manager")
 
 
-Now go to the `Status` section and verify your changes were applied:
+Now, go to the `Status` section and verify that your changes were applied:
 
 ![Alert Manager Conf](alertmanager_conf.png "Alert Manager Conf")
 
 
-If there's an active alert on your cluster you should see it in the alert manager console:
+If there's an active alert on your cluster, you should see it in the Alert Manager console:
 
 ![Alert Manager Alert](alertmanager_alert.png "Alert Manager Alert")
 
-And if the email configuration and credentials you provide are OK, you'll get the alert message:
+And if the email configuration and credentials you provide are OK, you'll receive an email:
 
 ![Alert Manager Message](alert_manager_message.png "Alert Manager Message")

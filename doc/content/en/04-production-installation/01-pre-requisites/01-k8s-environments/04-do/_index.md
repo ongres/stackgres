@@ -2,10 +2,10 @@
 title: "DigitalOcean"
 weight: 4
 url: install/prerequisites/k8s/do
-description: Digital Ocean Kuberenetses is a managed, production-ready environment for running containerized applications.
+description: Digital Ocean Kubernetes is a managed, production-ready environment for running containerized applications.
 ---
-[DigitalOcean Kubernetes](https://www.digitalocean.com/products/kubernetes/) can control and monitor your Control Plane to make sure you are always able to access and deploy to your cluster. To use it you will need to have the [doctl](https://docs.digitalocean.com/reference/doctl/how-to/install/)
-installed and configured, with the appropriate credentials to be able to create a Kuberentes cluster. 
+[DigitalOcean Kubernetes](https://www.digitalocean.com/products/kubernetes/) can control and monitor your control plane to make sure you are always able to access and deploy to your cluster.
+To use it you will need to have the [doctl](https://docs.digitalocean.com/reference/doctl/how-to/install/) installed and configured, with the appropriate credentials to be able to create a Kubernetes cluster. 
 
 To create a cluster, run the following commands, making any necessary adjustment to the variables:
 
@@ -37,7 +37,7 @@ ID                                      Name         Region    Version         A
 00a86a85-28e8-45f4-a118-e718a1f46609    stackgres    nyc1      1.18.14-do.0    false           running    stackgres-default-pool
 ```
 
-Once your cluster is created, you should have your `~/.kube/config` populated, being able to run:
+Once your cluster is created, you should have your `~/.kube/config` configured, being able to run:
 
 ```bash
 kubectl cluster-info
@@ -52,7 +52,7 @@ CoreDNS is running at https://00a86a85-28e8-45f4-a118-e718a1f46609.k8s.ondigital
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ```
 
-To cleanup the kubernetes cluster you may issue following command:
+To clean up the Kubernetes cluster you can run the following command:
 ```bash
 time doctl kubernetes cluster delete ${K8S_CLUSTER_NAME} \
 	--region ${DO_REGION} \

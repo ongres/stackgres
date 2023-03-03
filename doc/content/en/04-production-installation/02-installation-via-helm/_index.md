@@ -2,74 +2,64 @@
 title: Installation via Helm
 weight: 2
 url: install/helm
-description: Details about how to install the operator using helm.
+description: Details about how to install the StackGres operator using Helm.
 showToc: true
 ---
 
-StackGres operator and clusters can be installed using [Helm](https://helm.sh/) version >= `3.1.1`.
-As you may expect, a Production environment will require to install and setup additional components alongside your StackGres Operator and Cluster resources.
+The StackGres operator and clusters can be installed using [Helm](https://helm.sh/) version >= `3.1.1`.
+As you may expect, a production environment will require you to install and set up additional components alongside your StackGres operator and cluster resources.
 
-In this page, we are going through all the necessary steps to setup a Production like environment using Helm repositories and workflow.
+In this page, we are going through all the necessary steps to set up a production-grade environment using Helm.
 
-## Set up StackGres Helm repository
+## Set Up StackGres Helm Repository
 
-Add the StackGres helm repo:
+Add the StackGres Helm repository:
 
 ```bash
 helm repo add stackgres-charts https://stackgres.io/downloads/stackgres-k8s/stackgres/helm/
 ```
 
-## StackGres Operator installation
+## StackGres Operator Installation
 
-Now that we have configured a Backup storage place, as indicated in the pre-requisites, 
-we can proceed to the StackGres Operator itself!
-
-- Install the Operator: 
+Install the operator: 
 
 ```bash
 helm install --create-namespace --namespace stackgres stackgres-operator stackgres-charts/stackgres-operator
 ```
 
-> You can specify the version adding `--version 1.0.0` to the Helm command. 
+> You can specify the version adding `--version <version, e.g. 1.0.0>` to the Helm command. 
 
-For more installation options have a look at the
- [Operator Parameters]({{% relref "04-production-installation/06-operator-parameters" %}}) section for a described list.
+For more installation options have a look at the [Operator Parameters]({{% relref "04-production-installation/06-operator-parameters" %}}) section for more information.
 
-If you want to enable StackGres integration with Prometheus and Grafana, please, read the next section. 
+If you want to integrate Prometheus and Grafana into StackGres, please read the next section. 
 
-## StackGres Operator installation with Monitoring
+## StackGres Operator Installation With Monitoring
 
-Now that we have configured a Backup storage place, as indicated in the pre-requisites, 
-and a monitoring system already in place for proper observability, 
-we can proceed to the StackGres Operator itself!
-
-> The `grafana.webHost` value may change if the installation is not Prometheus' default, as well as `grafana.user` and `grafana.password`. Take note of above section's secret outputs and replace them accordingly.
-
-- Install the Operator: 
+Install the operator with the Grafana-specific values:
 
 ```bash
 helm install --namespace stackgres stackgres-operator \
-    --set grafana.autoEmbed=true \
-    --set-string grafana.webHost=prometheus-grafana.monitoring \
-    --set-string grafana.secretNamespace=monitoring \
-    --set-string grafana.secretName=prometheus-grafana \
-    --set-string grafana.secretUserKey=admin-user \
-    --set-string grafana.secretPasswordKey=admin-password \
-    --set-string adminui.service.type=LoadBalancer \
-    stackgres-charts/stackgres-operator
+ --set grafana.autoEmbed=true \
+ --set-string grafana.webHost=prometheus-grafana.monitoring \
+ --set-string grafana.secretNamespace=monitoring \
+ --set-string grafana.secretName=prometheus-grafana \
+ --set-string grafana.secretUserKey=admin-user \
+ --set-string grafana.secretPasswordKey=admin-password \
+ --set-string adminui.service.type=LoadBalancer \
+ stackgres-charts/stackgres-operator
 ```
 
-> You can specify the version adding `--version 1.0.0` to the Helm command. 
+In this example, we included the required values to enable monitoring.
+Follow the [Operator Parameters]({{% relref "04-production-installation/06-operator-parameters" %}}) section for more information.
 
-In the previous example StackGres have included several options to the installation, including the needed options to enable
-the monitoring. Follow the [Operator Parameters]({{% relref "04-production-installation/06-operator-parameters" %}}) section for a described list.
+## Creating and Customizing Your Postgres Clusters 
 
-## Creating and customizing your Postgres Clusters 
+The following shows some examples of StackGres' versatile configuration options.
+These steps are optional.
 
-The next step is an optional one, but it will show you how to play with the StackGres versatility.
+### Configuring an Instance Profile
 
-You can instruct StackGres to create your cluster with different hardware specification using the [Custom Resource](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) (AKA CR) [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-instance-profiles/) as follow
-
+You can create your cluster with different hardware specifications using an [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-instance-profiles/) custom resource (CR) as follows:
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -84,13 +74,13 @@ spec:
 EOF
 ```
 
-But not only the Instance Profile, you can instruct StackGres to changes PostgreSQL configuration using the CR [SGPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}})
- or the PGBouncer setting with [SGPoolingConfig]({{% relref "06-crd-reference/04-sgpoolingconfig" %}})
- and more, like the backup storage specification using [SGObjectStorage]({{% relref "06-crd-reference/10-sgobjectstorage" %}})
+### Configuring Postgres and PGBouncer
 
-The next code snippets will show you how to play with these CRs.
+You can also change Postgres' configuration using an [SGPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}}) CR, or the PGBouncer settings using [SGPoolingConfig]({{% relref "06-crd-reference/04-sgpoolingconfig" %}}), the backup storage specification using [SGObjectStorage]({{% relref "06-crd-reference/10-sgobjectstorage" %}}), and more.
 
-Start with PostgreSQL configuration using th `SGPostgresConfig` as follow
+The next code snippets will show you how to use these CRs.
+
+Let's start with a custom PostgreSQL configuration, using `SGPostgresConfig`:
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -109,12 +99,12 @@ spec:
 EOF
 ```
 
-You can easily declare the StackGres supported variables and setup your specific configuration.
+You can configure the variables supported by StackGres.
 
-The pooling CR, is a key piece of a cluster (currently PgBouncer as the default software fot this), as it provides connection scaling capabilities.
+The connection pooler (currently PgBouncer) is an important part of a Postgres cluster, as it provides connection scaling capabilities.
 We'll cover all more details about this in the [Customizing Pooling configuration section]({{% relref "05-administration-guide/05-customize-connection-pooling-configuration" %}}).
 
-For better performance and stability, it is recommended to use `pool_mode` in `transaction`. An example configuration would be like this:
+For improved performance and stability, it is recommended to set the `pool_mode` to `transaction`. An example pooling configuration looks like this:
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -133,8 +123,11 @@ spec:
 EOF
 ```
 
-The longest step for this demonstration is the backup storage CR.
- For example, [Google Cloud Storage](https://cloud.google.com/storage/) could be used:
+### Configuring Backups
+
+The [SGObjectStorage]({{% relref "06-crd-reference/10-sgobjectstorage" %}}) CRs are used to configure how backups are being taken.
+
+The following shows and example configuration using [Google Cloud Storage](https://cloud.google.com/storage/):
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -155,7 +148,7 @@ spec:
 EOF
 ```
 
-Or [AWS S3](https://aws.amazon.com/s3/) if you want to:
+Or alternatively, for [AWS S3](https://aws.amazon.com/s3/):
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -175,111 +168,12 @@ spec:
 EOF
 ```
 
-On AWS you will need to define some parameters if already you don't have defined it.
-As bottom here is some variables and the needed permissions on S3:
+You will need to perform additional steps in order to configure backups in your cloud environment.
+Have a look at the section [Backups]({{% relref "04-production-installation/01-pre-requisites/03-backups" %}}) for full examples using S3, GKE, Digital Ocean, and more.
 
-```bash
-S3_BACKUP_BUCKET=backup.my-cluster.stackgres.io
+### Configuring Distributed Logs
 
-S3_BACKUP_BUCKET_POLICY_NAME=s3_backup_bucket_iam_policy
-
-S3_BACKUP_BUCKET_USER=s3_backup_bucket_iam_user
-
-S3_BACKUP_CREDENTIALS_K8S_SECRET=s3-backup-bucket-secret
-
-CLUSTER_NAMESPACE=my-cluster
-
-# May be empty
-export AWS_PROFILE=
-
-# Include the region as you like
-AWS_REGION=
-
-aws=aws
-[ ">"${AWS_PROFILE}"<" != "><" ] && aws="aws --profile ${AWS_PROFILE}"
-```
-
-Is necessary perform the policies generation, access keys and credentials.
-
-```bash
-#!/bin/bash
-
-source ./variables
-
-tempdir=/tmp/.$RANDOM-$RANDOM
-mkdir $tempdir
-
-cat << EOF > "$tempdir/policy.json"
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "s3:PutObject",
-        "s3:GetObject",
-        "s3:DeleteObject"
-      ],
-      "Resource": [
-        "arn:aws:s3:::${S3_BACKUP_BUCKET}/*"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "s3:ListBucket",
-        "s3:GetBucketLocation"
-      ],
-      "Resource": [
-        "arn:aws:s3:::${S3_BACKUP_BUCKET}"
-      ]
-    }
-  ]
-}
-EOF
-
-{
-	aws iam create-user --region $AWS_REGION --user-name $S3_BACKUP_BUCKET_USER > /dev/null
-	
-	aws iam put-user-policy --region $AWS_REGION --user-name $S3_BACKUP_BUCKET_USER \
-		--policy-name $S3_BACKUP_BUCKET_POLICY_NAME \
-		--policy-document "file://$tempdir/policy.json" > /dev/null
-	
-	aws iam create-access-key --region $AWS_REGION --user-name $S3_BACKUP_BUCKET_USER \
-		> $tempdir/credentials.json
-
-	aws s3 mb s3://$S3_BACKUP_BUCKET --region $AWS_REGION
-} &> /dev/null
-
-accessKeyId=$(jq -r '.AccessKey.AccessKeyId' "$tempdir/credentials.json")
-secretAccessKey=$(jq -r '.AccessKey.SecretAccessKey' "$tempdir/credentials.json")
-
-echo accessKeyId=$accessKeyId
-echo secretAccessKey=$secretAccessKey
-echo kubectl --namespace $CLUSTER_NAMESPACE create secret generic $S3_BACKUP_CREDENTIALS_K8S_SECRET \
-	--from-literal="accessKeyId=$accessKeyId" \
-	--from-literal="secretAccessKey=$secretAccessKey"
-
-rm $tempdir/policy.json
-rm $tempdir/credentials.json
-rmdir $tempdir
-```
-
-Now StackGres is able to use the keys accordingly.
-
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: aws-creds-secret
-type: Opaque
-data:
-  accessKey: ${accessKey}
-  secretKey: ${secretKey}
-EOF
-```
-
-Finally create the SGDistributedLogs CR to enable a [distributed log cluster]({{% relref "06-crd-reference/07-sgdistributedlogs" %}}):
+You can create an SGDistributedLogs CR to enable a [distributed log cluster]({{% relref "06-crd-reference/07-sgdistributedlogs" %}}):
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -294,23 +188,27 @@ spec:
 EOF
 ```
 
-Notice that each CR was assigned with its own `name:` which you would keep to define in the cluster creation
-and aware StackGres about it.
+### Configuring Initial Data
 
-The order of the CR creation have some relevance for the Cluster creation, i.e you need perform the access and secrets keys before create the SGDistributedLogs CR.
+Last but not least, StackGres lets you include several `initialData` scripts, to perform cluster operations at startup.
 
-But that is not all, StackGres lets you include several `initialData` script to perform any operation in the cluster before start.
-
-In the given example, we are creating an user to perform some queries using the k8s secret capabilities.
+In this example, we're creating a Postgres user, using a Kubernetes secret:
 
 ```bash
 kubectl -n my-cluster create secret generic pgbench-user-password-secret \
   --from-literal=pgbench-create-user-sql="create user pgbench password 'admin123'"
 ```
 
-As you can see, has been created a secret key and its value which will be used in the StackGres cluster creation.
+The secret will be referenced in the `initialData` definition of the cluster, shown below.
 
-All the necessary steps were performed to create your first StackGres Cluster, lets do it.
+Note that we could equally well define the SQL script in a config map, however, since the password represents a credential, we're using a secret.
+
+
+### Creating the Cluster
+
+All the required steps were performed to create our StackGres Cluster.
+
+Create the SGCluster resource:
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -350,42 +248,15 @@ spec:
 EOF
 ```
 
-Look up to the yaml into the here doc above, every CR previously being included in the right place in the SGCluster CR creation.
+Notice that each resource has been defined with its own `name`, and is referenced in the StackGres cluster definition.
+The order of the CR creation is relevant to successfully create a cluster, that is you create all resources, secrets, and permissions necessary before creating dependent resources.
 
-And there is in place the script created through the secret, but StackGres includes an extra example for you, the second script
-show you how to run a SQL instruction directly into the yaml. 
+The `initialData` scripts are defined both by the secret created before and SQL instructions inline.
 
-Another important entry to highlight in the yaml is [prometheusAutobind: true]({{% relref "04-production-installation/06-operator-parameters" %}}). 
-It is not enough to have the Prometheus operator installed to have monitoring, we need to enable this parameter to have monitoring as documentation indicates.
+Another helpful configuration is the [prometheusAutobind: true]({{% relref "04-production-installation/06-operator-parameters" %}}) definition.
+This parameter automatically enables monitoring for our cluster.
+We can use this since we've installed the Prometheus operator on our Kubernetes environment.
 
-Awesome, now you can relax and wait for the SGCluster spinning up.
+Awesome, now you can sit back and relax while the SGCluster is spinning up.
 
-## Accessing the cluster
-
-Once the cluster is up and running, we need to expose the main entrypoint port for being accessed remotely:
-
-> WARNING: You don't expose in production to 0.0.0.0 interface, rather than that you need to place the IP of an internal interface to be able to connect remotely within you private network.
-
-
-```bash
-kubectl port-forward -n my-cluster --address 0.0.0.0 statefulset/cluster 7777:7432
-```
-
-In the namespace of the cluster, you should be able to see a set of secrets, we'll get the main superuser password:
-
-```
-kubectl get secrets -n my-cluster cluster -o jsonpath='{.data.superuser-password}' | base64 -d
-```
-
-
-You should be able to connect by issuing any client application with the connection string as follows:
-
-```bash
-psql -h <the ip of the cluster> -p 7777 -U postgres
-```
-
-It is also possible to open a direct port-forward towards the main Postgres pod as follows:
-
-```
-kubectl port-forward cluster-0 --address 0.0.0.0 7777:5432
-```
+Have a look at [Accessing the Cluster]({{% relref "03-tutorial/04-complete-cluster/07-accessing-cluster" %}}), to see how to connect to the created Postgres cluster.

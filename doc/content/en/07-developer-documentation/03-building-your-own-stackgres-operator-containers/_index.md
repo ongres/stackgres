@@ -1,36 +1,39 @@
 ---
-title: Building your own StackGres operator containers
+title: Building StackGres operator images
 weight: 3
 url: developer/stackgres/build/operator/own
 description: Details about how to build the container images.
 showToc: true
 ---
 
-Build stackgres images are fairly simple. You can build in two forms:
+Building StackGres container images is fairly simple.
+You can build them in two variants:
 
- * build using zulu JVM as a base image (Default)
- * build using ubi8 as a base image
+ * Using Zulu JVM as the base image (default)
+ * Using ubi8 as the base image
 
-## Building stackgres zulu based image
+## Building the Zulu-Based Image
 
-Compiles fast but has a higher memory footprint. So it useful for local environment testing
+Using the JVM build compiles faster but has a higher memory footprint. So, this is useful for testing in local environments.
 
-Go to the `stackgres/stackgres-k8s/src` folder and the execute:
+In the `stackgres/stackgres-k8s/src` folder, execute the following:
 
-```
+```bash
 ./mvnw clean verify -P build-image-jvm
 ```
 
-You can find the image in th stackgres/operator repository tagged as development-jvm
+You can find the image in the stackgres/operator repository, tagged as development-jvm.
 
-## Building stackgres native image
+## Building the StackGres Native Image
 
-Takes long to compile but has a lower memory footprint.  Is recommended for production workloads. 
+Building a native image takes longer to compile, but the container will have a lower memory footprint.
+This is the recommended approach for production workloads.
 
-The native image use GraalVM but at the expense of some limitations. So once your development is ready, be sure to test it with the native image. 
+The native image uses GraalVM but at the expense of some limitations.
+So once your development is ready, be sure to test it with the native image build.
 
-To generate a native image simpleme run:
+To build a native image, run:
 
-```
+```bash
 ./mvnw clean verify -P native,build-image-native
 ```

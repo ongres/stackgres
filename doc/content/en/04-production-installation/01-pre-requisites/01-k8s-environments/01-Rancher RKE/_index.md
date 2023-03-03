@@ -11,7 +11,9 @@ Rancher Kubernetes Engine (RKE) is a CNCF-certified Kubernetes distribution that
 
 By default, RKE looks for a file called `cluster.yml`, which contains information about the remote servers and services that will run on servers.
 
-StackGres uses self-signed certificates to enable https on the Web UI, when you are installing StackGres it creates a Certificate Signing Request to the internal CA of Kubernetes, RKE by default do not configure the parameters `--cluster-signing-cert-file` and `--cluster-signing-key-file` on the kube-controller-manager, you need to add these lines inside "service" section in your `cluster.yaml`.
+StackGres uses self-signed certificates to enable HTTPS on the web UI.
+When installing StackGres, it creates a certificate signing request (CSR) to Kubernetes' internal CA.
+RKE by default does not configure the parameters `--cluster-signing-cert-file` and `--cluster-signing-key-file` on the kube-controller-manager, so you need to add these lines inside the `services` section of your `cluster.yml`.
 
 ```yaml
 services:
@@ -21,7 +23,7 @@ services:
       cluster-signing-key-file: /etc/kubernetes/ssl/kube-ca-key.pem
 ```
 
-After you’ve updated your cluster.yml, you can deploy your cluster with a simple command. This command assumes the cluster.yml file is in the same directory as where you are running the command.
+After you’ve updated your `cluster.yml`, you can deploy your cluster with the command `rke up`. This command assumes that the `cluster.yml` file resides in your shell's current working directory:
 
 ```
 rke up
@@ -34,4 +36,4 @@ INFO[0000] [network] Pulling image [alpine:latest] on host [10.0.0.1]
 INFO[0101] Finished building Kubernetes cluster successfully
 ```
 
-The last line should read "Finished building Kubernetes cluster successfully" to indicate that your cluster is ready to use. After that continue the instalation of StackGres.
+The last line should read "Finished building Kubernetes cluster successfully" to indicate that your cluster is ready to use. After that you can continue the installation of StackGres.

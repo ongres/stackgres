@@ -1,5 +1,5 @@
 ---
-title: Service mesh integration
+title: Service Mesh Integration
 url: install/prerequisites/services-mesh-integration
 weight: 6
 chapter: true

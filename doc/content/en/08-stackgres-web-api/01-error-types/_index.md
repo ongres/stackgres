@@ -8,41 +8,41 @@ description: Details about the Error Codes, PostgreSQL Blocklist settings, and f
 showToc: true
 ---
 
-The operator error responses follows the [RFC 7807](https://datatracker.ietf.org/doc/rfc7807/?include_text=1).
+The operator error responses follows the [RFC 7807 - Problem Details for HTTP APIs](https://datatracker.ietf.org/doc/rfc7807/?include_text=1).
 
-That means that all of error messages follows the following structure:
+That means that all error messages follow this structure:
 
 ``` json
 {
-  "type": "https://StackGres.io/doc/<operator-version>/07-operator-api/01-error-types/#<error-type>",
+  "type": "https://StackGres.io/doc/<operator-version>/api/responses/#<error-type>",
   "title": "The title of the error message",
-  "detail": "A human readable description of what is the problem",
-  "field": "If applicable the field that is causing the issue"
+  "detail": "A human readable description of what the problem is",
+  "field": "If applicable, the field that is causing the issue"
 }
 ```
 
 ## Error types
 
-| Type | Summary |
-| ---- | ----------- |
-| [postgres-blocklist](#postgres-blocklist) | The postgres configuration that is trying to be created or update contains blocklisted parameters |
-| [postgres-major-version-mismatch](#postgres-major-version-mismatch) | The postgres configuration that you are using is targeted to a different major version that the one that your cluster has. |
-| [invalid-configuration-reference](#invalid-configuration-reference) | The StackGres cluster you are trying to create or update holds a reference to a custom resource that don't exists  |
-| [default-configuration](#default-configuration) | An attempt to update or delete a default configuration has been detected |
-| [forbidden-configuration-deletion](#forbidden-configuration-deletion) | You are attempting to delete a custom resource that cluster depends on it |
-| [forbidden-configuration-update](#forbidden-configuration-update) | You are attempting to update a custom resource that cluster depends on it |
-| [forbidden-cluster-update](#forbidden-cluster-update) | You are trying to update a cluster property that should not be updated |
-| [invalid-storage-class](#invalid-storage-class) | You are trying to create a cluster using a storage class that doesn't exists |
-| [constraint-violation](#constraint-violation) | One of the properties of the CR that you are creating or updating violates its syntactic rules. |
-| [forbidden-authorization](#forbidden-authorization) | You don't have the permisions to access the Kubernetes resource based on the RBAC rules. |
-| [invalid-secret](#invalid-secret) | You are trying to create a cluster using a secret that doesn't exists |
-| [extension-not-found](#extension-not-found) | Any of the default or configured extensions can not be found in extensions repository |
-| [already-exists](#already-exists) | The resource already exists |
-| [postgres-parameter](#postgres-parameter) | The postgres configuration contains invalid parameters |
+| Type                                                                  | Summary                                                                                                                    |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| [postgres-blocklist](#postgres-blocklist)                             | The Postgres configuration contains blocklisted parameters                          |
+| [postgres-major-version-mismatch](#postgres-major-version-mismatch)   | The Postgres configuration is targeted to a different major version than the current version of your cluster. |
+| [invalid-configuration-reference](#invalid-configuration-reference)   | The StackGres cluster holds a reference to a resource that doesn't exist.          |
+| [default-configuration](#default-configuration)                       | An attempt to update or delete a default configuration has been detected.                                                   |
+| [forbidden-configuration-deletion](#forbidden-configuration-deletion) | A resource that the cluster depends on is attempted to be deleted.                                                  |
+| [forbidden-configuration-update](#forbidden-configuration-update)     | A resource that the cluster depends on is attempted to be updated.                                                  |
+| [forbidden-cluster-update](#forbidden-cluster-update)                 | A certain cluster property that must not be updated is attempted to be updated.                                                     |
+| [invalid-storage-class](#invalid-storage-class)                       | The StackGres cluster refers to a storage class that doesn't exist.                                               |
+| [constraint-violation](#constraint-violation)                         | One of the resource properties that is created or updated violates its syntactic rules.                            |
+| [forbidden-authorization](#forbidden-authorization)                   | You don't have permission to access the Kubernetes resource based on the RBAC rules.                                   |
+| [invalid-secret](#invalid-secret)                                     | The StackGres cluster refers to a secret that doesn't exist.                                                      |
+| [extension-not-found](#extension-not-found)                           | Some of the default or configured extensions can not be found in extensions repository                                      |
+| [already-exists](#already-exists)                                     | The resource already exists.                                                                                                |
+| [postgres-parameter](#postgres-parameter)                             | The Postgres configuration contains invalid parameters.                                                                     |
 
 ## Postgres Blocklist
 
-Some postgres configuration properties are managed automatically by StackGres, therefore you cannot include them.
+Some Postgres configuration properties are managed automatically by StackGres, therefore you cannot include them.
 
 The blocklisted configuration properties are:
 
@@ -66,12 +66,11 @@ The blocklisted configuration properties are:
 
 ## Invalid Configuration Reference
 
-This error means that you are trying to create or update a StackGres cluster using a reference to a
- custom resource that doesn't exists in the same namespace.
+This error means that you are trying to create or update a StackGres cluster using a reference to a resource that doesn't exist in the same namespace.
 
 For example:
 
-Supose that we are trying to create a StackGres cluster with the following json.
+Suppose that we are trying to create a StackGres cluster with the following JSON.
 
 ```json
 {
@@ -96,34 +95,24 @@ Supose that we are trying to create a StackGres cluster with the following json.
 }
 ```
 
-In order to create the cluster successfully, a postgres configuration with the name "postgresconf"
- must exists in the same namespace of the cluster that is being created.
+In order to create the cluster successfully, a Postgres configuration with the name `postgresconf` must exists in the same namespace.
 
-The same principle applies for the properties: sgPoolingConfig, sgInstanceProfile, sgBackupConfig.
+The same principle applies for the properties: `sgPoolingConfig`, `sgInstanceProfile`, `sgBackupConfig`.
 
-## Default configuration
+## Default Configuration
 
-When the operator is first installed a set of default configurations objects that are created in the namespace in which the
- operator is installed.
+When the operator is first installed, a set of default configuration objects are created in the operator's namespace.
 
-If you try to update or delete any of those configuraions, you will get this error.
+If you try to update or delete any of those configurations, you will get this error.
 
 ## Forbidden Configuration Deletion
 
-A StackGres cluster configuration is composed in several configuration objects. When you create a
- postgres, connection pooling, resource profile or backup configuration, you can delete them
- if you loke to, until you create a cluster that references one of these objets.
+A StackGres cluster configuration is composed in several configuration objects.
+You can only delete any of these resources, if no cluster references them.
+Once a StackGres cluster references any of the above mentioned resources, those become protected against deletion.
 
-Once a StackGres cluster references any of the above mentioned objects those become protected against
- deletion.
+Suppose that you create a config by sending the following `POST` request body to `/stackgres/pgconfig`:
 
-Suppose that you send a the following request:
-
-```
-uri: /stackgres/pgconfig
-method: POST
-payload:
-```
 ```json
 {
   "metadata": {
@@ -136,16 +125,11 @@ payload:
 }
 ```
 
-This will create a postgres configuration object with the name postgresconf.
-At this point, you can delete the created object without any issue.
+This will create a Postgres configuration object with the name `postgresconf`.
+At this point, you can delete the created object again without any issue.
 
-Nonetheless, if you send the request to the path /stackgres/cluster:
+However, if you create a cluster referencing the config, for example by sending the following to path `/stackgres/cluster`:
 
-```
-uri: /stackgres/cluster
-method: POST
-payload:
-```
 ```json
 {
   "metadata": {
@@ -167,32 +151,32 @@ payload:
 }
 ```
 
-The postgresconf object becomes protected against deletion, and if you try to delete it you will get an
- error of this type to prevent deletion of postgresql configuration used by an existing cluster.
+... the `postgresconf` object becomes protected against deletion.
+If you try to delete it, you will get an error of type `forbidden-configuration-deletion`, since StackGres prevents you from deleting Postgres configuration resources that are used by an existing cluster.
 
 
 ## Forbidden Configuration Update
 
-Whole or parts of some objects cannot be updated. This is because changing it would require some
- particular handling that is not possible or not supported at this time.
+Some StackGres resources (or parts thereof) cannot be updated.
+This is because certain updates require special handling that is not possible or not supported at this time.
 
-In future versions we expect to do these types of operation automatically, and planned. But, since we
- are not there yet, must of out configuration object cannot be updated.
+In future versions, we would like StackGres to handle all types of operations automatically, and planned.
+But, since we are not there yet, most of the configuration objects cannot be updated.
 
 ## Forbidden Cluster Update
 
-After a StackGres cluster is created some of it's properties cannot be updated.
+After a StackGres cluster has been created, some of its properties cannot be updated.
 
 These properties are:
 
-* version
-* size
-* configurations
-* storageClass
-* pods
-* restore
+* `version`
+* `size`
+* `configurations`
+* `storageClass`
+* `pods`
+* `restore`
 
-If you try to update any of these properties, you will receive an error of this type.
+If you try to update any of these properties, you will receive an error of type `forbidden-cluster-update`.
 
 ## Invalid Storage Class
 
@@ -202,29 +186,23 @@ If it doesn't you will get an error.
 
 ## Constraint Violations
 
-All fields of all StackGres objects have some limitations regarding of the value type, maximum, minimum
- values, etc. All these of limitations are described in the documentation of each object.
+The fields of the StackGres resources have restrictions regarding of the value type, maximum, minimum values, etc.
+All of these restrictions are described in the documentation of each custom resource definition.
 
-Any violation of these limitations will trigger an error of these.
+Any violation of these restrictions will cause an error.
 
-The details of the error should indicate which configuration limitation are you violating.
+The details of the error indicate which restriction is violated.
 
 ## Postgres Major Version Mismatch
 
-When you create a StackGres cluster you have to specify the postgres version do you want to use. Also you
- can specify which postgres configuration do you want to use.
+When creating a StackGres cluster, you have to specify the Postgres version.
+Also, you can specify a custom Postgres configuration.
 
-Postgres configurations are targeted to a specific postgres major version. Therefore in order to use a
- postgres configuration, cluster's postgres version and the postgres configuration's target version
- should match.
+Postgres configurations are targeted to a specific Postgres major version.
+Therefore, in order to use a Postgres configuration, the cluster's Postgres version and the Postgres configuration's target version needs to match.
 
-Suppose that create a postgres configuration with the following request:
+Assuming you create a Postgres configuration, for example by sending a `POST` request with the following body to `/stackgres/pgconfig`:
 
-```
-uri: /stackgres/pgconfig
-method: POST
-payload:
-```
 ```json
 {
   "metadata": {
@@ -237,11 +215,10 @@ payload:
 }
 ```
 
-Notice that the postgresVersion property says "12". This means that this configuration is
- targeted for postgresql versions 12.x.
+Note that the `postgresVersion` property specifies `12`.
+This means that this configuration is targeted for Postgres version `12.x`.
 
-In order to use that postgres configuration, your StackGres cluster should have postgres version 12,
- like the following:
+In order to use that Postgres configuration, your StackGres cluster must also have Postgres version `12`, like the following:
 
 ```json
 {
@@ -263,15 +240,11 @@ In order to use that postgres configuration, your StackGres cluster should have 
 }
 ```
 
-Notice that the cluster version says 12.1. Therefore, you will be able to install a cluster like the above.
+Notice that the cluster version specifies `12.1`.
+Therefore, you will be able to create a cluster like this.
 
-Also if instead of using the above payload, you try to create a cluster with the following request
- (notice the version change):
-```
-uri: /stackgres/cluster
-method: POST
-payload:
-```
+But, if you instead try to create a cluster like the following (notice the version change):
+
 ```json
 {
   "metadata": {
@@ -280,7 +253,7 @@ payload:
   "spec": {
     "instances": 1,
     "postgres": {
-      "version": "12.1"
+      "version": "11.1"
     },
     "pods": {
       "persistentVolume": {
@@ -292,35 +265,31 @@ payload:
 }
 ```
 
-You will receive an error. This is because the cluster wants to use postgres 11 and your the postgres
- configuration is targeted for postgres 12.
+... you will receive an error.
+This is because the cluster is specified with Postgres `11` and the Postgres configuration `postgresconf` is targeted for Postgres `12`.
 
 ## Forbidden Authorization
 
-Role-based access control (`RBAC`) is a method of regulating access to computer or network resources
- based on the roles of individual users within your organization.
+Role-based access control (`RBAC`) is a method of regulating access to computer or network resources based on the roles of individual users within your organization.
 
-The REST API uses the RBAC Authorization from Kubernetes, so you should define correctly the subject `User`
- in the `RoleBinding` or `ClusterRoleBinding` with the correct set of permisions in a `Role` or `ClusterRole`
+The StackGres REST API uses the RBAC authorization from Kubernetes.
+Therefore, you need to specify the correct role bindings or cluster role bindings with the correct set of permissions for your user subject's role or cluster role.
 
-This error means that you either don't have access to the corresponding resource or that your permisions
- are not set correctly.
+When you don't have permissions to view or update a corresponding resource, or the permissions aren't configured correctly, you'll receive an error.
 
 ## Invalid Secret
 
-If you specify a secret in the cluster creation, that secret have to already exsits.
+If you specify a secret in the cluster creation that doesn't exist, you will receive an error.
 
-If it doesn't you will get an error.
+## Extension Not Found
 
-## Extension not found
+If you specify a Postgres extension that cannot be found in any repository, you will receive an error.
 
-If you specify an extension than can not be found in any repository you will get an error.
+## Already Exists
 
-# Already Exists
+A resource of the same type and name as the one you're trying to create in the same namespace already exists.
 
-A resource of same type in the same namespace and with the same name as the one you are trying to create already exists.
-
-# Postgres Parameter
+## Postgres Parameter
 
 There are some invalid parameters in the configuration for the corresponding version of PostgreSQL.
 
@@ -340,8 +309,12 @@ spec:
     checkpoint_timeout: '15s'
 ```
 
-This configuration has two subtle invalid parameters, the first one is `default_toast_compression`, while the name and
- value (`lz4`) of the parameter is correct for PostgreSQL 14, this config targets PostgreSQL 13.
- The second issue is that `checkpoint_timeout` min value is `30s`, setting this value lower creates an invalid setting.
+This configuration has two subtle errors.
 
-StackGres validates this kind of issues using a small library that comes from https://postgresqlco.nf/.
+The first invalid parameter is `default_toast_compression`.
+While the name and value (`lz4`) of the parameter would be correct for PostgreSQL `14`, this config targets PostgreSQL `13`.
+
+The second issue is that `checkpoint_timeout` minimum value is `30s`.
+Setting this value lower than that is not valid.
+
+StackGres validates these kinds of issues using a small library that comes from https://postgresqlco.nf/.

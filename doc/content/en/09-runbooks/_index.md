@@ -9,6 +9,6 @@ chapter: true
 
 # Runbooks
 
-This chapter contains day two operations.
+This chapter contains runbooks how to perform specific day-two operations.
 
 {{% children style="li" depth="2" description="true" %}}

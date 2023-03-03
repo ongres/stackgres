@@ -6,28 +6,34 @@ description: Details about how to run E2E tests.
 showToc: true
 ---
 
-Given the operator nature we rely heavily on our integration and e2e tests. 
+Given the operator nature, we rely heavily on integration and end-to-end (e2e) tests.
 
-E2E tests are mainly composed of POSIX complaint scripts (only exception is the use of local variables in functions),
- and we intend to keep them that way. 
+E2E tests are built with shell scripts.
+They are mainly POSIX-compliant scripts (the only exception is the use of local variables in functions).
 
-The easiest way to run the e2e scripts is by executing the `stackgres-k8s/e2e/run-all-tests.sh` file.
- This script will configure a kuberentes cluster (by default kind), then it will generate jvm version
-  of the operator and deploy it on the configured kubernetes cluster. 
+The easiest way to run the e2e scripts is by executing the `stackgres-k8s/e2e/run-all-tests.sh` file:
 
-The E2E tests are grouped by specs, and they are contained in the folder stackgres-k8s/e2e/spec. 
+```bash
+sh stackgres-k8s/e2e/run-all-tests.sh
+```
 
-There is also several util functions which are localted in the folder stackgres-k8s/e2e/utils
+This will configure a Kubernetes cluster (by default using kind), build the JVM version of the operator, and deploy it to the configured Kubernetes cluster.
 
-## E2E tests with kind
+The E2E tests are grouped by specifications, which are located in the `stackgres-k8s/e2e/spec` folder.
 
-By default e2e tests are made with kind, so you don't need to specify anything to use it other than having kind installed.
+There are also several util functions, which are located in the `stackgres-k8s/e2e/utils` folder.
 
-## E2E tests with other environment
+For more information, have look at the E2E [readme](https://gitlab.com/ongresinc/stackgres/-/tree/main/stackgres-k8s/e2e).
 
-Environment can be specified using the `ENV` environment variable. Currently we support following environment:
+## E2E Tests With Kind
 
-* kind
-* minikube
-* gke
+By default, e2e tests use kind to create and configure a Kubernetes cluster, so you don't need to specify anything other than having kind installed.
+
+## E2E Tests With Other Environments
+
+The Kubernetes environment can be specified using the `E2E_ENV` environment variable. Currently we support the following environments:
+
+* `kind` (default)
+* `minikube`
+* `gke`
 

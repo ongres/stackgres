@@ -2,38 +2,37 @@
 title: GKE
 weight: 3
 url: install/prerequisites/backups/gke
-description: Details about how to setup and configure the backups on Google Cloud Storage.
+description: Details about how to set up and configure the backups on Google Cloud Storage.
 showToc: true
 ---
 
 ## Google Cloud Bucket Setup
 
-This section will illustrate how to setup backup using Google Cloud Storage. To do so, you will need to have the [gsutil](https://cloud.google.com/storage/docs/gsutil_install) installed to create the bucket on Google Cloud.
+This section shows how to set up backups using Google Cloud Storage.
+You will need to have [gsutil](https://cloud.google.com/storage/docs/gsutil_install) installed, to create the bucket on Google Cloud.
 
 Create the bucket with following characteristics (that you may change):
 
-* Project: my-project
-* Zone: us-west1
-* Bucket name: backup-demo-of-stackgres-io
+* Project: `my-project`
+* Zone: `us-west1`
+* Bucket name: `backup-demo-of-stackgres-io`
 
 ```bash
 gsutil mb \
-    -p my-project \
-    -b on \
-    -l us-west1 \
-    "gs://backup-demo-of-stackgres-io/"
+ -p my-project \
+ -b on \
+ -l us-west1 \
+ "gs://backup-demo-of-stackgres-io/"
 ```
 
 ## Kubernetes Setup
 
-To proceed, a Kubernetes `Secret` with the folling shape needs to be created:
+Create a Kubernetes namespace, a serviceaccount, the required access, and a Kubernetes secret containing the credentials.
+We use the following information:
 
-* Project: my-project
-* Zone: us-west1
-* Bucket name: backup-demo-of-stackgres-io
-* K8s Service Account: stackgres-demo-k8s-sa-user
-* K8s Bucket Secret Credentials: gcp-backup-bucket-secret
-* Cluster namespace: stackgres
+* K8s namespace: `stackgres`
+* K8s service account: `stackgres-demo-k8s-sa-user`
+* K8s bucket secret credentials: `gcp-backup-bucket-secret`
 
 ```bash
 kubectl create namespace stackgres
@@ -44,24 +43,23 @@ gcloud iam service-accounts create stackgres-demo-k8s-sa-user --project my-proje
 
 ## grant access to the bucket
 gsutil iam ch \
-  serviceAccount:stackgres-demo-k8s-sa-user@my-project.iam.gserviceaccount.com:roles/storage.objectAdmin \
-  "gs://backup-demo-of-stackgres-io/"
+ serviceAccount:stackgres-demo-k8s-sa-user@my-project.iam.gserviceaccount.com:roles/storage.objectAdmin \
+ "gs://backup-demo-of-stackgres-io/"
 
 gcloud iam service-accounts keys \
-  create my-creds.json --iam-account stackgres-demo-k8s-sa-user@my-project.iam.gserviceaccount.com
+ create my-creds.json --iam-account stackgres-demo-k8s-sa-user@my-project.iam.gserviceaccount.com
 
 ## create secret
 kubectl --namespace stackgres create secret \
-  generic gcp-backup-bucket-secret \
-	--from-file="my-creds.json"
+ generic gcp-backup-bucket-secret \
+ --from-file="my-creds.json"
 
 rm -rfv my-creds.json
 ```
 
-Having the credentials secret created, we just need to create the object storage configuration and set the backup configuration.
- The object storage configuration it is governed by the CRD
- [SGObjectStorage]({{% relref "06-crd-reference/10-sgobjectstorage" %}}). This CRD allows to specify the object storage technology
- and parameters required and a reference to the above secret.
+Having the resources created, we now need to create the object storage configuration and to set the backup configuration.
+The object storage configuration it is governed by the [SGObjectStorage]({{% relref "06-crd-reference/10-sgobjectstorage" %}}) CRD.
+This CRD allows to specify the object storage technology, required parameters, as well as a reference to the credentials secret.
 
 Create the file `sgobjectstorage-backupconfig1.yaml`:
 
@@ -82,15 +80,15 @@ spec:
           key: my-creds.json
 ```
 
-and deploy to Kubernetes:
+and deploy it to Kubernetes:
 
 ```bash
 kubectl apply -f sgobjectstorage-backupconfig1.yaml
 ```
 
-The backup configuration can be set unser the section `.spec.configurations.backups` of the CRD
- [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}}), among others, the retention window for the automated backups,
- when base backups are performed and performance parameters of the backup process.
+The backup configuration can be set under the section `.spec.configurations.backups` of the [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}}) CRD.
+Here we define the retention window for the automated backups and when base backups are performed.
+Additionally, you can define performance-related configuration of the backup process.
 
 ```yaml
 apiVersion: stackgres.io/v1
@@ -103,8 +101,7 @@ spec:
       retention: 6
 ```
 
-Note that for this tutorial and demo purposes, backups are created every 5 minutes. Modify the
-`.spec.backups[0].cronSchedule` parameter above to adjust to your own needs.
+For this tutorial, backups are created every 5 minutes.
+Change the `.spec.backups[0].cronSchedule` parameter according to your own needs.
 
-The above configuration will be applied when creating the SGCluster resource.
-
+The above configuration will be applied when the SGCluster resource is created.

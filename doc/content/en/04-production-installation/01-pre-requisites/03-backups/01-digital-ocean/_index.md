@@ -2,17 +2,19 @@
 title: DigitalOcean
 weight: 1
 url: install/prerequisites/backups/do
-description: Details about how to setup and configure the backups on DigitalOcean Spaces.
+description: Details about how to set up and configure the backups on DigitalOcean Spaces.
 showToc: true
 ---
 
 ## DigitalOcean Setup
 
-This section will illustrate how to setup backup using DigitalOcean Spaces. you will also need to have installed the [s3Cmd](https://s3tools.org/download) installed. Once installed, configure it following the [instructions in the oficial docs](https://docs.digitalocean.com/products/spaces/resources/s3cmd/).
+This section shows to set up backups using DigitalOcean Spaces.
+You will need to have [s3Cmd](https://s3tools.org/download) installed.
+You need to configure `s3cmd` following the [instructions in the official docs](https://docs.digitalocean.com/products/spaces/resources/s3cmd/).
 
-Go the [API page](https://cloud.digitalocean.com/settings/api/tokens) and create a spaces key.
+Go to the [API page](https://cloud.digitalocean.com/settings/api/tokens) and create a spaces key.
 
-Create the bucket with following characteristics (that you may change):
+Create the bucket with the following characteristics (that you may change):
 
 ```bash
 export DO_SPACES_BACKUP_BUCKET=stackgres-tutorial
@@ -21,7 +23,7 @@ s3cmd mb s3://${DO_SPACES_BACKUP_BUCKET}
 
 ## Kubernetes Setup
 
-To proceed, a Kubernetes `Secret` with the folling shape needs to be created:
+Create a Kubernetes secret with the following contents:
 
 ```bash
 ACCESS_KEY="**********" ## fix me
@@ -34,10 +36,9 @@ kubectl create secret generic \
   --from-literal=secretAccessKey=${SECRET_KEY}
 ```
 
-Having the credentials secret created, we just need to create the object storage configuration and set the backup configuration.
- The object storage configuration it is governed by the CRD
- [SGObjectStorage]({{% relref "06-crd-reference/10-sgobjectstorage" %}}). This CRD allows to specify the object storage technology
- and parameters required and a reference to the above secret.
+Having the credentials secret created, we now need to create the object storage configuration and to set the backup configuration.
+The object storage configuration it is governed by the [SGObjectStorage]({{% relref "06-crd-reference/10-sgobjectstorage" %}}) CRD.
+This CRD allows to specify the object storage technology, required parameters, as well as a reference to the credentials secret.
 
 Create the file `sgobjectstorage-backupconfig1.yaml`:
 
@@ -58,15 +59,15 @@ spec:
         secretAccessKey: {name: 'do-creds-secret', key: 'secretAccessKey'}
 ```
 
-and deploy to Kubernetes:
+and deploy it to Kubernetes:
 
 ```bash
 kubectl apply -f sgobjectstorage-backupconfig1.yaml
 ```
 
-The backup configuration can be set unser the section `.spec.configurations.backups` of the CRD
- [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}}), among others, the retention window for the automated backups,
- when base backups are performed and performance parameters of the backup process.
+The backup configuration can be set under the section `.spec.configurations.backups` of the [SGCluster]({{% relref "06-crd-reference/01-sgcluster" %}}) CRD.
+Here we define the retention window for the automated backups and when base backups are performed.
+Additionally, you can define performance-related configuration of the backup process.
 
 ```yaml
 apiVersion: stackgres.io/v1
@@ -79,8 +80,7 @@ spec:
       retention: 6
 ```
 
-Note that for this tutorial and demo purposes, backups are created every 5 minutes. Modify the
-`.spec.backups[0].cronSchedule` parameter above to adjust to your own needs.
+For this tutorial, backups are created every 5 minutes.
+Change the `.spec.backups[0].cronSchedule` parameter according to your own needs.
 
-The above configuration will be applied when creating the SGCluster resource.
-
+The above configuration will be applied when the SGCluster resource is created.

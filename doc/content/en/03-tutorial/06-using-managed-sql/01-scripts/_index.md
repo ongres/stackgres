@@ -9,7 +9,7 @@ description: "Details about how use scripts in the managed SQL section"
 With this option you can provide the script or many scripts as you required by referencing
  [SGScript]({{% relref "06-crd-reference/11-sgscript" %}}):
 
-Create the file `sgcluster-with-script.yaml` and apply the following YAML file:
+Create the file `sgcluster-with-script.yaml`:
 
 ```yaml
 apiVersion: stackgres.io/v1
@@ -22,17 +22,17 @@ spec:
     - sgScript: stackgres-script
 ```
 
-and deploy to Kubernetes:
+and deploy it to Kubernetes:
 
 ```bash
-kubectl apply -f sgcluster-with-raw-script.yaml
+kubectl apply -f sgcluster-with-script.yaml
 ```
 
 Then you can provide the script or many scripts entries in [SGScript]({{% relref "06-crd-reference/11-sgscript" %}}) in three different ways:
 
 1. **Raw format:**
 
-Create the file `sgscript-with-raw-script.yaml` and apply the following YAML file:
+Create the file `sgscript-with-raw-script.yaml`:
 
 ```yaml
 apiVersion: stackgres.io/v1
@@ -46,7 +46,7 @@ spec:
       create database my_db owner postgres;
 ```
 
-and deploy to Kubernetes:
+and deploy it to Kubernetes:
 
 ```bash
 kubectl apply -f sgscript-with-raw-script.yaml
@@ -81,7 +81,7 @@ spec:
         key: create-user.sql
 ```
 
-and deploy to Kubernetes:
+and deploy it to Kubernetes:
 
 ```bash
 kubectl apply -f sgscript-with-secret-script.yaml
@@ -114,7 +114,7 @@ spec:
         key: create-init-tables.sql
 ```
 
-and deploy to Kubernetes:
+and deploy it to Kubernetes:
 
 ```bash
 kubectl apply -f sgscript-with-script-from-configmap.yaml

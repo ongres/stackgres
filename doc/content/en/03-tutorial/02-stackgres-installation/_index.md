@@ -5,13 +5,13 @@ url: tutorial/stackgres-installation
 description: Details about the operator installation.
 ---
 
-StackGres recommended installation is performed from the published Helm chart. Some parameters may be passed to the default installation, which basically can be summarized as:
-* Username and password to access Grafana (this is used by StackGres to install StackGres specific dashboards as well as to embed Grafana into the Web Console). If you installed Prometheus following the previous step, they will be at their default values (username: `admin`, password: `prom-operator`). Also the Grafana host where it is running (by default, exposed as a service at `prometheus-grafana.namespace`, i.e. `prometheus-grafana.monitoring` here).
-* How to expose the Web Console. Select `LoadBalancer` if using a cloud Kubernetes cluster or your Kubernetes environment supports creating load balancers. Otherwise, select `ClusterIP` (in this case you will later need to do a port forward to access the Web Console).
+The recommended way to install StackGres is to use the official Helm chart. Additional parameters can be passed to the default installation:
+* Access to Grafana. StackGres uses this access to install StackGres specific dashboards as well as to embed Grafana into the web console. If you've installed Prometheus as shown in the previous step, the host and credentials are set to the default values (Grafana service: `prometheus-grafana.monitoring`, username: `admin`, password: `prom-operator`).
+* How to expose the web console. You can choose `LoadBalancer` if you're using a Kubernetes setup that supports creating load balancers. Otherwise, you can choose `ClusterIP` (the default), or omit this parameter, in which case you will need to create a custom routing to the console, or use mechanisms such as a port forward, in order to access the web console.
 
 Proceed to install StackGres:
 
-- Add the helm repo:
+- Add the Helm repo:
 
 ```
 helm repo add stackgres-charts https://stackgres.io/downloads/stackgres-k8s/stackgres/helm/
@@ -36,7 +36,7 @@ helm install --create-namespace --namespace stackgres stackgres-operator \
 
 Note that using `adminui.service.type=LoadBalancer` will create a network load balancer, which may incur in additional costs. You may alternatively use `ClusterIP` if that's your preference.
 
-StackGres installation may take a few minutes. The output will be similar to:
+The StackGres installation may take a few minutes. The output will be similar to:
 
 ```plain
 NAME: stackgres-operator
@@ -97,8 +97,8 @@ Remember to remove the generated password hint from the secret to avoid security
 ## Connecting to the Web Console
 
 Several useful commands are provided as part of the Helm installation output. Let's use them to connect to the StackGres
-Web Console. If the `LoadBalancer` parameter was used, let's query the URL of the created load balancer, by querying the
-K8s Service created:
+web console. If the `LoadBalancer` parameter was used, let's query the URL of the created load balancer, by querying the
+K8s service created:
 
 ```bash
 kubectl -n stackgres get svc --field-selector metadata.name=stackgres-restapi
@@ -107,13 +107,13 @@ NAME                TYPE           CLUSTER-IP      EXTERNAL-IP                  
 stackgres-restapi   LoadBalancer   10.100.165.13   aa372eefc1630469f95e64d384caa004-833850176.eu-west-1.elb.amazonaws.com   443:32194/TCP   47m
 ```
 
-The Web Console is exposed as part of the `stackgres-restapi` service. Here we can see it is of type `LoadBalancer`, and exposed at a given URL. Open this URL in the web browser prefixing it with `https://` , as in:
+The web console is exposed as part of the `stackgres-restapi` service. Here we can see it is of type `LoadBalancer`, and exposed at a given URL. Open this URL in the web browser prefixing it with `https://` , as in:
 
 ```
 https://aa372eefc1630469f95e64d384caa004-833850176.eu-west-1.elb.amazonaws.com
 ```
 
-If your service is exposed as `ClusterIP`, you can instead use port forwarding to access the Web Console. Find the name of the `restapi` pod in either of the following ways, at your preference:
+If your service is exposed as `ClusterIP`, you can instead use port forwarding to access the web console. Find the name of the `restapi` pod in either of the following ways, at your preference:
 
 ```bash
 $ POD_NAME=$(kubectl get pods --namespace stackgres -l "app=stackgres-restapi" -o jsonpath="{.items[0].metadata.name}")
@@ -124,16 +124,18 @@ And then do the port-forward to your localhost on port 8443, which you can acces
 ```bash
 $ kubectl port-forward "$POD_NAME" 8443:9443 --namespace stackgres
 ```
-Once you open the Web Console in the browser, you will need to accept to continue to the page. StackGres Web Console uses by default a self-signed certificate, which is generated during the installation. You can customize it during the installation, or install the Web Console only via HTTP and expose it via an _Ingress_ controller. But for now, proceed. The default administrator's username is `admin`, and the password is generated automatically but can be obtained via the following command:
+Once you open the web console in the browser, you will need to accept the self-signed certificate to continue to the page. This certificate is generated during the installation and can be customized.
+
+It's also possible to access the web console using an ingress controller or other mechanisms.
+
+The default administrator's username is `admin`, and the password is generated automatically and can be obtained via the following command:
 
 ```bash
 $ kubectl get secret -n stackgres stackgres-restapi --template '{{ printf "%s\n" (.data.clearPassword | base64decode) }}'
 ```
 
-You should see something like the following screenshot (where Dark Mode was dectivated!):
+You should see something like the following screenshot:
 
 ![StackGres Web Console](web-console-1.png)
 
 ![StackGres Web Console](web-console-2.png)
-
-

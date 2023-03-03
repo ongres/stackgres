@@ -5,16 +5,16 @@ url: tutorial/complete-cluster/pooling-config
 description: Details about how to create custom pool configurations.
 ---
 
-StackGres will deploy Postgres clusters, by default, with a sidecar with a connection pooler (set the
-[SGCluster.pods.disableConnectionPooling]({{% relref "06-crd-reference/01-sgcluster/#pods" %}}) property if you
-don't want such a connection pooler). The goal of this connection pooler fronting the database is to allow to control
-the incoming connections (fan-in) and keep Postgres operating with a lower number of concurrent connections, while
-allowing a higher number of external connections.
+By default, StackGres will deploy Postgres clusters with a sidecar containing a connection pooler.
+You can set the [SGCluster.pods.disableConnectionPooling]({{% relref "06-crd-reference/01-sgcluster/#pods" %}}) property if you don't want such a connection pooler.
+This connection pooler fronts the database and controls the incoming connections (fan-in).
+This keeps Postgres operating with a lower number of concurrent connections, while allowing a higher number of external connections (from the application to the pooler).
 
-A default configuration is provided by StackGres. But you may provide your own, creating an instance of the CRD
-[SGPoolingConfig]({{% relref "06-crd-reference/04-sgpoolingconfig" %}}). StackGres currently uses
-[PgBouncer](https://www.pgbouncer.org/). To create a custom PgBouncer configuration, create the file
-`sgpoolingconfig-pgbouncer1.yaml`:
+StackGres provides production-grade default configuration.
+But of course you may provide your own, by creating an instance of the [SGPoolingConfig]({{% relref "06-crd-reference/04-sgpoolingconfig" %}}) CRD.
+StackGres currently uses [PgBouncer](https://www.pgbouncer.org/).
+
+To create a custom PgBouncer configuration, create the file `sgpoolingconfig-pgbouncer1.yaml`:
 
 ```yaml
 apiVersion: stackgres.io/v1
@@ -31,13 +31,13 @@ spec:
         pool_mode: transaction
 ```
 
-and deploy to Kubernetes:
+and deploy it to Kubernetes:
 
 ```bash
 kubectl apply -f sgpoolingconfig-pgbouncer1.yaml
 ```
 
-You may inspect the default values provided by StackGres by describing the created CRD:
+You may inspect the default values provided by StackGres by describing the created custom resource:
 
 ```bash
 kubectl -n demo describe sgpoolconfig poolconfig1

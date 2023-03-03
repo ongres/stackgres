@@ -5,11 +5,16 @@ url: tutorial/complete-cluster/postgres-config
 description: Details about how to create custom PostgreSQL configurations.
 ---
 
-StackGres comes with an expertly tuned Postgres configuration (aka `postgresql.conf`) by default. However, it does not prevent you from using your own specialized Postgres configuration. If you want to create one and need some guidance, consider using the [postgresqlCONF](https://postgresqlco.nf) service, which gives you detailed parameter information in several langauges, recommendations, a tuning guide and even a facility to store and manage your Postgres configurations online.
+StackGres comes with an expertly tuned Postgres configuration (aka `postgresql.conf`) by default.
+However, it's absolutely possible to specify your own configuration.
+If you need guidance regarding configuration, consider using the [postgresqlCONF](https://postgresqlco.nf) service, which gives you detailed parameter information in several langauges, recommendations, a tuning guide, and even a facility to store and manage your Postgres configurations online.
 
-StackGres hides the implementation details of how Postgres configuration file works, and how to configure it with Patroni. Instead, a specialized CRD is exposed for you to manage Postgres configurations, called [SGPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}})`. Postgres configurations are created (and/or modified) once and then can be used in zero, one or multiple clusters. No need to repeat the configuration in every cluster.
+StackGres hides the implementation details of how Postgres configuration file works, and how to configure it with Patroni.
+Instead, a CRD called [SGPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}}) allows to specify and manage your Postgres configurations.
+Postgres configurations are created (and/or modified) once and then can be used in any number of clusters.
+There's no need to repeat the configuration in every cluster.
 
-Configurations are assigned a name, which you may reference later from one or more Postgres clusters. Create the file `sgpostgresconfig-config1.yaml`:
+The SGPostgresConfig's name is referenced from one or more Postgres clusters. Create the file `sgpostgresconfig-config1.yaml`:
 
 ```yaml
 apiVersion: stackgres.io/v1
@@ -28,13 +33,13 @@ spec:
     jit: 'off'
 ```
 
-and deploy to Kubernetes:
+and deploy it to Kubernetes:
 
 ```bash
 kubectl apply -f sgpostgresconfig-config1.yaml
 ```
 
-You may use `kubectl describe` on the created resource to inspect the values that are injected (tuned by default), as
+You may `kubectl describe` the created resource to inspect the values that are injected (which are tuned by default), as
 well as an indication in the `status` field of which values are using StackGres defaults:
 
 ```bash

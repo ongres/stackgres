@@ -5,16 +5,16 @@ url: install/prerequisites/k8s/eks
 description: Amazon Elastic Kubernetes Service (EKS) is a managed service and certified Kubernetes conformant to run Kubernetes on AWS and on-premises.
 ---
 
-This section will illustrate how to create an [AWS Elastic Kubernetes Service](https://aws.amazon.com/eks/).
- Assuming you have already installed the [aws CLI](https://aws.amazon.com/cli/) and the [eksctl CLI](https://github.com/weaveworks/eksctl)
- you can proceed by creating the kubernetes cluster with following characteristics (that you may change):
+This section will illustrate how to create an [AWS Elastic Kubernetes Service](https://aws.amazon.com/eks/) cluster.
+Assuming you have already installed the [aws CLI](https://aws.amazon.com/cli/) and the [eksctl CLI](https://github.com/weaveworks/eksctl), you can proceed by creating the Kubernetes cluster.
+We use the following characteristics which you might change:
 
-* Cluster name: stackgres
-* Kubernetes version: 1.13
-* Zone: us-west-2
-* Machine type: m5.large
+* Cluster name: `stackgres`
+* Kubernetes version: `1.21`
+* Zone: `us-west-2`
+* Machine type: `m5.large`
 * Number of nodes: 3
-* Disk size 20GB
+* Disk size: 20 GB
 
 ```bash
 eksctl create cluster --name stackgres \
@@ -24,6 +24,8 @@ eksctl create cluster --name stackgres \
   --nodes 3 \
   --version 1.21
 ```
+
+The output will be similar to the following:
 
 ```bash
 [ℹ]  eksctl version 0.13.0
@@ -61,7 +63,7 @@ eksctl create cluster --name stackgres \
 [✔]  EKS cluster "stackgres" in "us-west-2" region is ready
 ```
 
-To cleanup the kubernetes cluster you may issue following command:
+To clean up the Kubernetes cluster you can run the following command:
 
 ```bash
 eksctl delete cluster --name stackgres \
@@ -69,7 +71,7 @@ eksctl delete cluster --name stackgres \
   --wait
 ```
 
-You may also want to cleanup EBS used by persistence volumes that may have been created:
+You may also want to clean up EBS used by persistence volumes that may have been created:
 
 ```bash
 aws ec2 describe-volumes --region us-west-2 --filters Name=tag-key,Values=kubernetes.io/cluster/stackgres \

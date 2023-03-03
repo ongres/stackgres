@@ -9,6 +9,6 @@ url: reference/crd
 
 # CRD Reference
 
-Alongside with the Administration Guide StackGres provides a detailed list of each CRD entry.
+This is the reference for the StackGres-provided custom resource definitions (CRDs).
 
 {{% children style="li" depth="2" description="true" %}}

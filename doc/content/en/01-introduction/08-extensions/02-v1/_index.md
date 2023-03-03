@@ -4,7 +4,7 @@ weight: 2
 url: intro/extensions/v1
 ---
 
-The table below contains the list of all avaiable extensions:
+The table below contains the list of all available extensions:
 
 <script src="{{<relurl url="/js/stackgres-postgres-extensions-list-v1.js">}}"></script>
 <div class="postgresExtensions">Loading extensions info...</div>

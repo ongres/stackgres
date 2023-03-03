@@ -1,14 +1,17 @@
 ---
-title: Restore a backup
+title: Restoring a Backup
 weight: 3
 url: runbooks/restore-backup
 description: Details about how to restore a StackGres cluster backup.
 showToc: true
 ---
 
-This runbook will show you how to restore a cluster backup. All the steps explained here are also available from the StackGres web console.
+This runbook will show you how to restore a StackGres cluster backup.
+All the steps explained here are also possible from the StackGres web console.
 
-## Check the database size
+## Checking the Database Size
+
+Check the databases and sizes of your StackGres cluster.
 
 The demo cluster `ongres-db` has one database:
 
@@ -26,7 +29,9 @@ $ kubectl exec -it --namespace ongres-db ongres-db -c postgres-util -- psql -c '
 (4 rows)
 ```
 
-## Get the backups list
+## Retrieving the Backup List
+
+Get the backup list:
 
 ```
 $ kubectl get sgbackups --namespace ongres-db
@@ -37,12 +42,16 @@ backup-demo-2   3h11m
 backup-demo-3   55s
 ```
 
-## Configuring the instance profile
+## Configuring the Instance Profile
 
-The restore consist in create a new [cluster](https://stackgres.io/doc/latest/reference/crd/sgcluster/) from any of the backups taked.
-You're able to specify any of the cluster params and if you do not specify a [SGInstanceProfile](https://stackgres.io/doc/latest/reference/crd/sginstanceprofile/) this will use the default profile with `1` CPU and `2Gi` of RAM.
+The restore operation includes creating a new [cluster](https://stackgres.io/doc/latest/reference/crd/sgcluster/) from a previously performed backup.
+You're able to specify any of the cluster params.
+If you do not specify an [SGInstanceProfile](https://stackgres.io/doc/latest/reference/crd/sginstanceprofile/), it will use the default profile with `1` CPU and `2Gi` of RAM.
 
-Create an instance profile specific for the restore (Assign the resources according with your environment). Create a file with the next content and then apply it:
+Create an instance profile specific to the restore cluster.
+Change the resources according to your requirements.
+
+Create a YAML file with the following content and apply it to Kubernetes:
 
 ```
 apiVersion: stackgres.io/v1
@@ -55,13 +64,13 @@ spec:
   memory: "256Mi"
 ```
 
-> Note: The restore process needs to be done in the same namespace as the cluster to be restored.
+> Note: The restore process needs to be performed in the same namespace as the cluster which you want to backup.
 
-## Restore the backup
+## Restoring the Backup
 
-To restore the backup you need to create a new `SGCluster` specifying the section `initialData` setting the param `fromBackup` with `UID` value from the previous step.
+To restore the backup you need to create a new `SGCluster` specifying the `initialData` section setting the param `fromBackup` with the backup resource name.
 
-Create a `yaml` file with the next content and apply it (Change the values according to your environment):
+Create a YAML file similar to the following content and apply it to Kubernetes:
 
 ```
 apiVersion: stackgres.io/v1
@@ -83,7 +92,7 @@ spec:
         name: backup-demo-3
 ```
 
-Now you should have a new cluster called `demo-restore` with all the data restored:
+Now, you should have a new cluster called `demo-restore` with all the data restored:
 
 ```
 $ kubectl exec -it -n ongres-db demo-restore-0 -c postgres-util -- psql -c '\l+'
@@ -98,5 +107,4 @@ $ kubectl exec -it -n ongres-db demo-restore-0 -c postgres-util -- psql -c '\l+'
            |          |          |         |         | postgres=CTc/postgres |         |            |
 (4 rows)
 ```
-
 

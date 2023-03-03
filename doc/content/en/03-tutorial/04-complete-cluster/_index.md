@@ -1,5 +1,5 @@
 ---
-title: Create a complete cluster
+title: Creating a complete cluster
 weight: 4
 url: tutorial/complete-cluster
 description: Details about how to create a StackGres cluster with all features.

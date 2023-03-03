@@ -5,7 +5,7 @@ url: reference/crd/sginstanceprofile
 description: Details about SGInstanceProfile configurations
 ---
 
-The instance profile CR represent the CPU and memory resources assigned to each Pod of the cluster.
+The `SGInstanceProfile` custom resource represents the CPU and memory resources assigned to each pod of the Postgres cluster.
 
 ___
 **Kind:** SGInstanceProfile
@@ -19,14 +19,14 @@ ___
 
 **Spec**
 
-| Property                           | Required | Updatable | Default   | Type   | Description |
-|:-----------------------------------|----------|-----------|:----------|:-------|:------------|
-| cpu                                | ✓        | ✓         | 1         | string | {{< crd-field-description SGInstanceProfile.spec.cpu >}} |
-| memory                             | ✓        | ✓         | 2Gi       | string | {{< crd-field-description SGInstanceProfile.spec.memory >}} |
-| [hugePages](#huge-pages)           |          | ✓         |           | object | {{< crd-field-description SGInstanceProfile.spec.hugePages >}} |
-| [containers](#containers)          |          | ✓         | generated | object | {{< crd-field-description SGInstanceProfile.spec.containers >}} |
-| [initContainers](#init-containers) |          | ✓         | generated | object | {{< crd-field-description SGInstanceProfile.spec.initContainers >}} |
-| [requests](#requests)              |          | ✓         |           | object | {{< crd-field-description SGInstanceProfile.spec.requests >}} |
+| <div style="width:7rem">Property</div> | Required | Updatable | <div style="width:6rem">Default</div> | <div style="width:4rem">Type</div> | Description |
+|:---------------------------------------|----------|-----------|:--------------------------------------|:-----------------------------------|:------------|
+| cpu                                    | ✓        | ✓         | 1                                     | string                             | {{< crd-field-description SGInstanceProfile.spec.cpu >}} |
+| memory                                 | ✓        | ✓         | 2Gi                                   | string                             | {{< crd-field-description SGInstanceProfile.spec.memory >}} |
+| [hugePages](#huge-pages)               |          | ✓         |                                       | object                             | {{< crd-field-description SGInstanceProfile.spec.hugePages >}} |
+| [containers](#containers)              |          | ✓         | generated                             | object                             | {{< crd-field-description SGInstanceProfile.spec.containers >}} |
+| [initContainers](#init-containers)     |          | ✓         | generated                             | object                             | {{< crd-field-description SGInstanceProfile.spec.initContainers >}} |
+| [requests](#requests)                  |          | ✓         |                                       | object                             | {{< crd-field-description SGInstanceProfile.spec.requests >}} |
 
 Example:
 

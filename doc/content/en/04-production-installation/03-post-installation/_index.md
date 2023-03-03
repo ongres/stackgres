@@ -2,26 +2,29 @@
 title: Post-installation
 weight: 3
 url: install/post/install
-description: Details about how to expose and connect to the UI.
+description: Details about how to connect to the web UI.
 showToc: true
 ---
 
+StackGres includes a web UI which offers to display and modify all StackGres resources.
+The web UI is available inside the cluster at the service `stackgres-operator.stackgres`.
+
 ## Exposing the UI
 
-StackGres publish a Web UI that can be accessed by pointing to port 443 with DNS
-`stackgres-operator.stackgres`. It is not recommended to expose this Web UI to public
-internet without protecting it with some secure access bridge. 
+To expose the web UI to a local environment, we can forward a local port to the `stackgres-restapi` pod.
+This is only for local test purposes.
+It is not recommended to expose the web UI to the public internet without protecting it with additional security measure.
 
-You can expose the UI using the command below:
+You can forward the port using the following command:
 
 ```
 POD_NAME=$(kubectl get pods --namespace stackgres -l "app=stackgres-restapi" -o jsonpath="{.items[0].metadata.name}")
 kubectl port-forward ${POD_NAME} --address 0.0.0.0 8443:9443 --namespace stackgres
 ```
 
-## Connect to the UI
+## Connecting to the UI
 
-Connect to `https://<your-host>:8443/admin/` and get your UI credentials:
+You can connect to `https://localhost:8443/admin/` and log in with the StackGres credentials:
 
 ```bash
 kubectl get secret -n stackgres stackgres-restapi --template '{{ printf "username = %s\n" (.data.k8sUsername | base64decode) }}'
