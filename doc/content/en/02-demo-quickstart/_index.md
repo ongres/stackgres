@@ -97,7 +97,7 @@ To open a psql console and manage the PostgreSQL cluster, you may connect to the
 kubectl exec -ti "$(kubectl get pod --selector app=StackGresCluster,stackgres.io/cluster=true,role=master -o name)" -c postgres-util -- psql
 ```
 
-> **IMPORTANT:** Connecting directly through the `postgres-util` sidecar will grant you access with the postgres user. It works similar to `sudo -i postgres -c psql`.
+> **Note:** Connecting directly through the `postgres-util` sidecar will grant you access with the postgres user. It works similar to `sudo -i postgres -c psql`.
 
 Please read about the [postgres-util side car]({{% relref "05-administration-guide/02-connecting-to-the-cluster/03-postgres-util" %}}) and [how to connect to the Postgres cluster]({{% relref "05-administration-guide/02-connecting-to-the-cluster" %}}) for more details.
 
