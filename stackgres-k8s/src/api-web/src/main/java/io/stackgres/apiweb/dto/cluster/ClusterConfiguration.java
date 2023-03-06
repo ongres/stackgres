@@ -33,6 +33,12 @@ public class ClusterConfiguration {
   @JsonProperty("backups")
   private List<ClusterBackupsConfiguration> backups;
 
+  @JsonProperty("patroni")
+  private ClusterPatroni patroni;
+
+  @JsonProperty("credentials")
+  private ClusterCredentials credentials;
+
   public String getSgPostgresConfig() {
     return sgPostgresConfig;
   }
@@ -75,6 +81,22 @@ public class ClusterConfiguration {
 
   public void setBackups(List<ClusterBackupsConfiguration> backups) {
     this.backups = backups;
+  }
+
+  public ClusterPatroni getPatroni() {
+    return patroni;
+  }
+
+  public void setPatroni(ClusterPatroni patroni) {
+    this.patroni = patroni;
+  }
+
+  public ClusterCredentials getCredentials() {
+    return credentials;
+  }
+
+  public void setCredentials(ClusterCredentials credentials) {
+    this.credentials = credentials;
   }
 
   @Override

@@ -36,6 +36,11 @@ public class ClusterLabelMapper implements LabelMapperForCluster<StackGresCluste
   }
 
   @Override
+  public String resourceScopeKey(StackGresCluster resource) {
+    return getKeyPrefix(resource) + StackGresContext.CLUSTER_SCOPE_KEY;
+  }
+
+  @Override
   public String getKeyPrefix(StackGresCluster resource) {
     return Optional.of(resource)
         .map(StackGresCluster::getStatus)

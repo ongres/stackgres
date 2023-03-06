@@ -115,7 +115,8 @@ public class PatroniServices implements
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(configName(context))
-        .withLabels(labelFactory.clusterLabels(cluster))
+        .addToLabels(context.servicesCustomLabels())
+        .addToLabels(labelFactory.clusterLabels(cluster))
         .endMetadata()
         .withNewSpec()
         .withClusterIP(NO_CLUSTER_IP)
@@ -130,7 +131,8 @@ public class PatroniServices implements
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(restName(context))
-        .withLabels(labelFactory.genericLabels(cluster))
+        .addToLabels(context.servicesCustomLabels())
+        .addToLabels(labelFactory.genericLabels(cluster))
         .endMetadata()
         .withNewSpec()
         .withPorts(
@@ -153,7 +155,8 @@ public class PatroniServices implements
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(readWriteName(context))
-        .withLabels(labelFactory.patroniPrimaryLabels(cluster))
+        .addToLabels(context.servicesCustomLabels())
+        .addToLabels(labelFactory.clusterLabels(cluster))
         .withAnnotations(getPrimaryServiceAnnotations(cluster))
         .endMetadata()
         .withNewSpec()
@@ -225,13 +228,12 @@ public class PatroniServices implements
   private Service createPrimaryService(StackGresClusterContext context) {
     StackGresCluster cluster = context.getSource();
 
-    final Map<String, String> labels = labelFactory.genericLabels(cluster);
-
     return new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(deprecatedReadWriteName(context))
-        .withLabels(labels)
+        .addToLabels(context.servicesCustomLabels())
+        .addToLabels(labelFactory.genericLabels(cluster))
         .endMetadata()
         .withNewSpec()
         .withType("ExternalName")
@@ -261,16 +263,16 @@ public class PatroniServices implements
   private Service createReplicaService(StackGresClusterContext context) {
 
     StackGresCluster cluster = context.getSource();
-    final Map<String, String> replicaLabels = labelFactory.patroniReplicaLabels(cluster);
     return new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(readOnlyName(context))
-        .withLabels(replicaLabels)
+        .addToLabels(context.servicesCustomLabels())
+        .addToLabels(labelFactory.genericLabels(cluster))
         .withAnnotations(getReplicasServiceAnnotations(cluster))
         .endMetadata()
         .withNewSpec()
-        .withSelector(replicaLabels)
+        .withSelector(labelFactory.patroniReplicaLabels(cluster))
         .addAllToPorts(List.of(
             new ServicePortBuilder()
                 .withProtocol("TCP")
@@ -355,4 +357,5 @@ public class PatroniServices implements
   public void setLabelFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
     this.labelFactory = labelFactory;
   }
+
 }

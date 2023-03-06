@@ -299,10 +299,9 @@ public class PatroniReconciliator {
           .putAll(tagsMap)
           .build());
       client.pods()
-          .inNamespace(cluster.getMetadata().getNamespace())
-          .withName(podName)
+          .resource(pod)
           .lockResourceVersion(pod.getMetadata().getResourceVersion())
-          .replace(pod);
+          .replace();
       return null;
     });
   }

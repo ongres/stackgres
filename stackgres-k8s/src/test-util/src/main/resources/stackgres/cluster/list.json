@@ -84,10 +84,13 @@
 		        }
 		      },
 		      "labels": {
-		        "clusterPods": {
-		          "customLabel" : "customLabelValue"
-		        }
-		      }
+            "clusterPods": {
+              "customLabel" : "podsCustomValue"
+            },
+            "services": {
+              "customLabel" : "servicesCustomValue"
+            }
+          }
 		    }
       }
     }, {
@@ -152,9 +155,12 @@
 		        }
 		      },
 		      "labels": {
-		        "clusterPods": {
-		          "customLabel" : "customLabelValue"
-		        }
+            "clusterPods": {
+              "customLabel" : "podsCustomValue"
+            },
+            "services": {
+              "customLabel" : "servicesCustomValue"
+            }
 		      }
 		    }
       }

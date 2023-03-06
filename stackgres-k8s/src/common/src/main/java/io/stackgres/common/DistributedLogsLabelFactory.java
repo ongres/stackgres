@@ -9,6 +9,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped
 public class DistributedLogsLabelFactory
@@ -19,6 +20,11 @@ public class DistributedLogsLabelFactory
   @Inject
   public DistributedLogsLabelFactory(DistributedLogsLabelMapper labelMapper) {
     this.labelMapper = labelMapper;
+  }
+
+  @Override
+  public String resourceScope(@NotNull StackGresDistributedLogs resource) {
+    return resourceName(resource);
   }
 
   @Override

@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -49,26 +47,6 @@ public class ClusterReplicateFromUsers {
 
   public void setAuthenticator(ClusterReplicateFromUserSecretKeyRef authenticator) {
     this.authenticator = authenticator;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(authenticator, replication, superuser);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof ClusterReplicateFromUsers)) {
-      return false;
-    }
-    ClusterReplicateFromUsers other =
-        (ClusterReplicateFromUsers) obj;
-    return Objects.equals(authenticator, other.authenticator)
-        && Objects.equals(replication, other.replication)
-        && Objects.equals(superuser, other.superuser);
   }
 
   public String toString() {

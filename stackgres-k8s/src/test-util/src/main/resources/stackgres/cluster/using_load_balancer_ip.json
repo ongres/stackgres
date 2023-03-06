@@ -76,7 +76,10 @@
       },
       "labels": {
         "clusterPods": {
-          "customLabel" : "customLabelValue"
+          "customLabel" : "podsCustomValue"
+        },
+        "services": {
+          "customLabel" : "servicesCustomValue"
         }
       }
     }

@@ -41,7 +41,7 @@ public class PatroniFailover implements ResourceGenerator<StackGresDistributedLo
             .withNewMetadata()
             .withNamespace(cluster.getMetadata().getNamespace())
             .withName(name(cluster))
-            .withLabels(labelFactory.patroniClusterLabels(cluster))
+            .withLabels(labelFactory.clusterLabels(cluster))
             .endMetadata()
             .build()
     );

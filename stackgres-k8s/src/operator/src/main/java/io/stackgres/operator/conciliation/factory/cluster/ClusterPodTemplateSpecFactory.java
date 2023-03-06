@@ -45,8 +45,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.InitContainerFactoryDiscover;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -61,7 +59,7 @@ import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder
-public class PodTemplateSpecFactory
+public class ClusterPodTemplateSpecFactory
     implements PodTemplateFactory<ClusterContainerContext> {
 
   private final ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityContext;
@@ -75,7 +73,7 @@ public class PodTemplateSpecFactory
       initContainerFactoryDiscoverer;
 
   @Inject
-  public PodTemplateSpecFactory(
+  public ClusterPodTemplateSpecFactory(
       ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityContext,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
       ContainerFactoryDiscoverer<ClusterContainerContext> containerFactoryDiscoverer,
@@ -129,7 +127,8 @@ public class PodTemplateSpecFactory
 
     StackGresCluster cluster = context.getClusterContext().getSource();
     final Map<String, String> podLabels = labelFactory.statefulSetPodLabels(cluster);
-    final Map<String, String> customPodLabels = podsCustomLabels(cluster);
+    final Map<String, String> customPodLabels = context.getClusterContext()
+        .clusterPodsCustomLabels();
 
     final boolean isEnabledClusterPodAntiAffinity = Optional.ofNullable(
         cluster.getSpec().getNonProductionOptions())
@@ -287,12 +286,4 @@ public class PodTemplateSpecFactory
         .build();
   }
 
-  public Map<String, String> podsCustomLabels(StackGresCluster cluster) {
-    return Optional.ofNullable(cluster)
-        .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getMetadata)
-        .map(StackGresClusterSpecMetadata::getLabels)
-        .map(StackGresClusterSpecLabels::getClusterPods)
-        .orElse(Map.of());
-  }
 }

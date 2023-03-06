@@ -31,7 +31,7 @@ export E2E_BUILD_IMAGES="${E2E_BUILD_IMAGES:-true}"
 export E2E_SKIP_OPERATOR_LOAD="${E2E_SKIP_OPERATOR_LOAD:-false}"
 export E2E_WAIT_OPERATOR="${E2E_WAIT_OPERATOR:-true}"
 
-export E2E_INCLUDE_ONLY_POSTGRES_VERSIONS="12.9 12.12 13.4 13.5 14.3 14.4"
+export E2E_INCLUDE_ONLY_POSTGRES_VERSIONS="12.9 12.12 13.4 13.5 14.3 14.4 ${E2E_POSTGRES_VERSION:-15.2} $E2E_UI_POSTGRES_VERSOIN"
 
 export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-1.4.3}"
 
@@ -74,7 +74,7 @@ build_components() {
   echo "Building components..."
   (
   cd "$STACKGRES_PATH/src"
-  ./mvnw -q clean package -DskipTests
+  ./mvnw clean package -DskipTests > "$TARGET_PATH/build-components.log" 2>&1
   shell api-web/src/main/swagger/build.sh
   )
 }

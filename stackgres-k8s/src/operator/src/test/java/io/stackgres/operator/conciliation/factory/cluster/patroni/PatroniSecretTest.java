@@ -38,13 +38,10 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StringUtil;
-import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternal;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
-import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUserSecretKeyRef;
-import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUsers;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -190,7 +187,7 @@ class PatroniSecretTest {
   }
 
   @Test
-  void generateResourcesWithReplicateFromSecret_shouldReusePasswords() {
+  void generateResourcesWithCredentialsSecret_shouldReusePasswords() {
     cluster.getSpec().setReplicateFrom(new StackGresClusterReplicateFrom());
     cluster.getSpec().getReplicateFrom().setInstance(new StackGresClusterReplicateFromInstance());
     cluster.getSpec().getReplicateFrom().getInstance()
@@ -199,26 +196,6 @@ class PatroniSecretTest {
         .setHost("test");
     cluster.getSpec().getReplicateFrom().getInstance().getExternal()
         .setPort(5433);
-    cluster.getSpec().getReplicateFrom()
-        .setUsers(new StackGresClusterReplicateFromUsers());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setSuperuser(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getSuperuser().setUsername(new SecretKeySelector(SUPERUSER_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getSuperuser().setPassword(new SecretKeySelector(SUPERUSER_PASSWORD_KEY, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setReplication(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getReplication().setUsername(new SecretKeySelector(REPLICATION_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getReplication().setPassword(new SecretKeySelector(REPLICATION_PASSWORD_KEY, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .setAuthenticator(new StackGresClusterReplicateFromUserSecretKeyRef());
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getAuthenticator().setUsername(new SecretKeySelector(AUTHENTICATOR_USERNAME_ENV, "test"));
-    cluster.getSpec().getReplicateFrom().getUsers()
-        .getAuthenticator().setPassword(new SecretKeySelector(AUTHENTICATOR_PASSWORD_KEY, "test"));
     when(generatorContext.getSuperuserUsername())
         .thenReturn(Optional.of(decodedExistentSecretData.get(SUPERUSER_USERNAME_ENV)));
     when(generatorContext.getSuperuserPassword())
@@ -231,6 +208,8 @@ class PatroniSecretTest {
         .thenReturn(Optional.of(decodedExistentSecretData.get(AUTHENTICATOR_USERNAME_ENV)));
     when(generatorContext.getAuthenticatorPassword())
         .thenReturn(Optional.of(decodedExistentSecretData.get(AUTHENTICATOR_PASSWORD_KEY)));
+    when(generatorContext.getPatroniRestApiPassword())
+        .thenReturn(Optional.of(decodedExistentSecretData.get(RESTAPI_PASSWORD_KEY)));
     Secret secret = patroniSecret.buildSource(generatorContext);
 
     final Map<String, String> data = ResourceUtil.decodeSecret(secret.getData());
@@ -272,8 +251,8 @@ class PatroniSecretTest {
         data.get(PGBOUNCER_ADMIN_PASSWORD_KEY));
     assertNotEquals(existentData.get(PGBOUNCER_STATS_PASSWORD_KEY),
         data.get(PGBOUNCER_STATS_PASSWORD_KEY));
-    assertNotEquals(existentData.get(RESTAPI_PASSWORD_KEY), data.get(RESTAPI_PASSWORD_ENV));
-    assertNotEquals(existentData.get(RESTAPI_PASSWORD_KEY), data.get(RESTAPI_PASSWORD_KEY));
+    assertEquals(existentData.get(RESTAPI_PASSWORD_KEY), data.get(RESTAPI_PASSWORD_ENV));
+    assertEquals(existentData.get(RESTAPI_PASSWORD_KEY), data.get(RESTAPI_PASSWORD_KEY));
   }
 
   @Test

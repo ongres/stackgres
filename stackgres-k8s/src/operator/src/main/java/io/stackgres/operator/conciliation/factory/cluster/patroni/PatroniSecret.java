@@ -105,7 +105,7 @@ public class PatroniSecret
 
     setPgBouncerCredentials(previousSecretData, data);
 
-    setRestApiCredentials(previousSecretData, data);
+    setRestApiCredentials(context, previousSecretData, data);
 
     return new SecretBuilder()
         .withNewMetadata()
@@ -183,12 +183,14 @@ public class PatroniSecret
         .getOrDefault(PGBOUNCER_STATS_PASSWORD_KEY, generatePassword()));
   }
 
-  private void setRestApiCredentials(final Map<String, String> previousSecretData,
+  private void setRestApiCredentials(StackGresClusterContext context,
+      final Map<String, String> previousSecretData,
       final Map<String, String> data) {
     data.put(RESTAPI_USERNAME_ENV, RESTAPI_USERNAME);
-    data.put(RESTAPI_PASSWORD_KEY, previousSecretData
-        .getOrDefault(RESTAPI_PASSWORD_KEY, previousSecretData
-            .getOrDefault(RESTAPI_PASSWORD_ENV, generatePassword())));
+    data.put(RESTAPI_PASSWORD_KEY, context.getPatroniRestApiPassword()
+        .orElse(previousSecretData
+            .getOrDefault(RESTAPI_PASSWORD_KEY, previousSecretData
+                .getOrDefault(RESTAPI_PASSWORD_ENV, generatePassword()))));
     data.put(RESTAPI_PASSWORD_ENV, data.get(RESTAPI_PASSWORD_KEY));
   }
 

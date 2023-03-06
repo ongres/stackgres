@@ -87,10 +87,9 @@ public class CrdLoaderImpl implements CrdLoader {
                   .get();
               if (currentResource != null) {
                 client.genericKubernetesResources(context)
-                    .inNamespace(resource.getMetadata().getNamespace())
-                    .withName(resource.getMetadata().getName())
+                    .resource(currentResource)
                     .lockResourceVersion(currentResource.getMetadata().getResourceVersion())
-                    .replace(currentResource);
+                    .replace();
               }
             }));
   }
@@ -101,8 +100,8 @@ public class CrdLoaderImpl implements CrdLoader {
         "/crds/" + crdFilename)) {
       return YAML_MAPPER
           .readValue(resourceAsStream, CustomResourceDefinition.class);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    } catch (IOException ex) {
+      throw new RuntimeException("Error while reading /crds/" + crdFilename, ex);
     }
   }
 

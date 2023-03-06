@@ -41,9 +41,11 @@ public class PatroniSync implements ResourceGenerator<StackGresClusterContext> {
             .withNewMetadata()
             .withNamespace(cluster.getMetadata().getNamespace())
             .withName(name(cluster))
-            .withLabels(labelFactory.patroniClusterLabels(cluster))
+            .addToLabels(context.servicesCustomLabels())
+            .addToLabels(labelFactory.clusterLabels(context.getSource()))
             .endMetadata()
             .build()
     );
   }
+
 }

@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -38,23 +36,6 @@ public class ClusterReplicateFromInstance {
 
   public void setExternal(ClusterReplicateFromExternal external) {
     this.external = external;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(external, sgCluster);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof ClusterReplicateFromInstance)) {
-      return false;
-    }
-    ClusterReplicateFromInstance other = (ClusterReplicateFromInstance) obj;
-    return Objects.equals(external, other.external) && Objects.equals(sgCluster, other.sgCluster);
   }
 
   @Override

@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -50,25 +48,6 @@ public class ClusterReplicateFromStorage {
 
   public void setPath(String path) {
     this.path = path;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(path, performance, sgObjectStorage);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof ClusterReplicateFromStorage)) {
-      return false;
-    }
-    ClusterReplicateFromStorage other = (ClusterReplicateFromStorage) obj;
-    return Objects.equals(path, other.path)
-        && Objects.equals(performance, other.performance)
-        && Objects.equals(sgObjectStorage, other.sgObjectStorage);
   }
 
   @Override

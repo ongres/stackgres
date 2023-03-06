@@ -71,7 +71,8 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
             .withNewMetadata()
             .withNamespace(clusterNamespace)
             .withName(serviceName(context))
-            .withLabels(ImmutableMap.<String, String>builder()
+            .addToLabels(context.servicesCustomLabels())
+            .addToLabels(ImmutableMap.<String, String>builder()
                 .putAll(crossNamespaceLabels)
                 .put(StackGresContext.CONTAINER_KEY,
                     StackGresContainer.POSTGRES_EXPORTER.getName())
@@ -118,6 +119,6 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
     return serviceMonitors
         .map(hasMetadataStream -> Stream.concat(resources, hasMetadataStream))
         .orElse(resources);
-
   }
+
 }

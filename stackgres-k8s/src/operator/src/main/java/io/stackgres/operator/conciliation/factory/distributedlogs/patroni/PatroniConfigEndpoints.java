@@ -60,13 +60,12 @@ public class PatroniConfigEndpoints
     final String patroniConfigJson = objectMapper.valueToTree(patroniConf).toString();
 
     StackGresDistributedLogs cluster = context.getSource();
-    final Map<String, String> labels = labelFactory.patroniClusterLabels(cluster);
 
     return Stream.of(new EndpointsBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(configName(context))
-        .withLabels(labels)
+        .withLabels(labelFactory.clusterLabels(cluster))
         .withAnnotations(Map.of(PATRONI_CONFIG_KEY, patroniConfigJson))
         .endMetadata()
         .build());

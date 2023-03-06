@@ -8,6 +8,7 @@ package io.stackgres.common;
 import java.util.Map;
 
 import io.fabric8.kubernetes.client.CustomResource;
+import org.jetbrains.annotations.NotNull;
 
 public interface LabelFactoryForCluster<T extends CustomResource<?, ?>>
     extends LabelFactory<T> {
@@ -20,13 +21,19 @@ public interface LabelFactoryForCluster<T extends CustomResource<?, ?>>
 
   Map<String, String> patroniReplicaLabels(T resource);
 
+  Map<String, String> patroniClusterLabelsWithoutScope(T resource);
+
+  Map<String, String> patroniPrimaryLabelsWithoutScope(T resource);
+
+  Map<String, String> patroniReplicaLabelsWithoutScope(T resource);
+
   Map<String, String> statefulSetPodLabels(T resource);
 
   Map<String, String> scheduledBackupPodLabels(T resource);
 
-  Map<String, String> anyPatroniClusterLabels(T resource);
-
   Map<String, String> clusterCrossNamespaceLabels(T resource);
+
+  String resourceScope(@NotNull T resource);
 
   @Override
   LabelMapperForCluster<T> labelMapper();

@@ -101,6 +101,12 @@ public class ClusterReviewFixture extends VersionedFixture<StackGresClusterRevie
     return this;
   }
 
+  public ClusterReviewFixture loadPatroniInitialConfigUpdate() {
+    fixture = readFromJson(
+        STACKGRES_CLUSTER_ADMISSION_REVIEW_PATRONI_INITIAL_CONFIG_UPDATE_JSON);
+    return this;
+  }
+
   public ClusterReviewFixture loadScriptsConfigUpdate() {
     fixture = readFromJson(
         STACKGRES_CLUSTER_ADMISSION_REVIEW_SCRIPTS_CONFIG_UPDATE_JSON);

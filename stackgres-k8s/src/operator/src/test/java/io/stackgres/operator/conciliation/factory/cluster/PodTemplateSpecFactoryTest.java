@@ -62,7 +62,7 @@ class PodTemplateSpecFactoryTest {
   private Container patroniContainer;
 
   @InjectMocks
-  private PodTemplateSpecFactory podTemplateSpecFactory;
+  private ClusterPodTemplateSpecFactory podTemplateSpecFactory;
 
   @Mock
   private ClusterContainerContext clusterContainerContext;
@@ -74,7 +74,7 @@ class PodTemplateSpecFactoryTest {
 
   @BeforeEach
   public void setupClass() {
-    this.podTemplateSpecFactory = new PodTemplateSpecFactory(
+    this.podTemplateSpecFactory = new ClusterPodTemplateSpecFactory(
         podSecurityContext, labelFactory, containerFactoryDiscoverer,
         initContainerFactoryDiscoverer);
     cluster = Fixtures.cluster().loadDefault().get();

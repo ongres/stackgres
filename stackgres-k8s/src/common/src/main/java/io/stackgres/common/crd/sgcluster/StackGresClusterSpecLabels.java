@@ -22,6 +22,8 @@ public class StackGresClusterSpecLabels {
 
   private Map<String, String> clusterPods;
 
+  private Map<String, String> services;
+
   public Map<String, String> getClusterPods() {
     return clusterPods;
   }
@@ -30,9 +32,17 @@ public class StackGresClusterSpecLabels {
     this.clusterPods = clusterPods;
   }
 
+  public Map<String, String> getServices() {
+    return services;
+  }
+
+  public void setServices(Map<String, String> services) {
+    this.services = services;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(clusterPods);
+    return Objects.hash(clusterPods, services);
   }
 
   @Override
@@ -44,7 +54,8 @@ public class StackGresClusterSpecLabels {
       return false;
     }
     StackGresClusterSpecLabels other = (StackGresClusterSpecLabels) obj;
-    return Objects.equals(clusterPods, other.clusterPods);
+    return Objects.equals(clusterPods, other.clusterPods)
+        && Objects.equals(services, other.services);
   }
 
   @Override

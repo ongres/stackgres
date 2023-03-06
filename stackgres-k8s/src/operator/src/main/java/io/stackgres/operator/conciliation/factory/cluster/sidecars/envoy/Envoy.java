@@ -328,7 +328,7 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(configMapName)
-        .withLabels(labelFactory.clusterLabels(stackGresCluster))
+        .withLabels(labelFactory.genericLabels(stackGresCluster))
         .endMetadata()
         .withData(data)
         .build();

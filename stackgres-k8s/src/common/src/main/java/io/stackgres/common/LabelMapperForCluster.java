@@ -28,7 +28,8 @@ public interface LabelMapperForCluster<T extends CustomResource<?, ?>>
   }
 
   default String clusterScopeKey(T resource) {
-    return ResourceUtil.labelKey(resourceNameKey(resource));
+    return ResourceUtil.labelKey(resourceScopeKey(resource));
   }
 
+  String resourceScopeKey(T resource);
 }

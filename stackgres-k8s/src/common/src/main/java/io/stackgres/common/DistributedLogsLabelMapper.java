@@ -36,6 +36,11 @@ public class DistributedLogsLabelMapper implements LabelMapperForCluster<StackGr
   }
 
   @Override
+  public String resourceScopeKey(StackGresDistributedLogs resource) {
+    return getKeyPrefix(resource) + StackGresContext.DISTRIBUTED_LOGS_CLUSTER_SCOPE_KEY;
+  }
+
+  @Override
   public String getKeyPrefix(StackGresDistributedLogs resource) {
     return Optional.of(resource)
         .map(StackGresDistributedLogs::getStatus)

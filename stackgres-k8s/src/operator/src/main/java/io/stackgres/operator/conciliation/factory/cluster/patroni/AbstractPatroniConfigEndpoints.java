@@ -41,14 +41,13 @@ public abstract class AbstractPatroniConfigEndpoints
 
     final String patroniConfigJson = objectMapper.valueToTree(patroniConf).toString();
 
-    final Map<String, String> labels = labelFactory.patroniClusterLabels(context.getSource());
-
     StackGresCluster cluster = context.getSource();
     return Stream.of(new EndpointsBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(PatroniUtil.configName(context))
-        .withLabels(labels)
+        .addToLabels(context.servicesCustomLabels())
+        .addToLabels(labelFactory.clusterLabels(context.getSource()))
         .withAnnotations(Map.of(PatroniUtil.CONFIG_KEY, patroniConfigJson))
         .endMetadata()
         .build());

@@ -24,6 +24,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.ClusterLabelFactory;
 import io.stackgres.common.ClusterLabelMapper;
 import io.stackgres.common.ClusterStatefulSetEnvVars;
@@ -61,7 +62,7 @@ class PatroniConfigEndpointsTest {
       new ClusterLabelMapper());
   @Mock
   private StackGresClusterContext context;
-  private AbstractPatroniConfigEndpoints generator;
+  private PatroniConfigEndpoints generator;
   private StackGresCluster cluster;
   private StackGresBackupConfig backupConfig;
   private StackGresPostgresConfig postgresConfig;
@@ -74,6 +75,7 @@ class PatroniConfigEndpointsTest {
     cluster.getMetadata().getAnnotations()
         .put(StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     cluster.getSpec().setDistributedLogs(null);
+    cluster.getSpec().getMetadata().getLabels().setServices(null);
     backupConfig = Fixtures.backupConfig().loadDefault().get();
     postgresConfig = Fixtures.postgresConfig().loadDefault().get();
     postgresConfig.setStatus(new StackGresPostgresConfigStatus());
@@ -178,7 +180,7 @@ class PatroniConfigEndpointsTest {
   @Test
   void generateResource_shouldSetLabelsFromLabelFactory() {
     Endpoints endpoints = generateEndpoint();
-    assertEquals(labelFactory.patroniClusterLabels(cluster), endpoints.getMetadata().getLabels());
+    assertEquals(labelFactory.clusterLabels(cluster), endpoints.getMetadata().getLabels());
   }
 
   @Test
@@ -245,6 +247,10 @@ class PatroniConfigEndpointsTest {
   @Test
   void generatedEndpointWithReplicateFromSgCluster_shouldBeConfiguredAccordingly()
       throws JsonProcessingException {
+    StackGresCluster replicatedCluster = new StackGresCluster();
+    replicatedCluster.setMetadata(new ObjectMeta());
+    replicatedCluster.getMetadata().setName("test");
+    when(context.getReplicateCluster()).thenReturn(Optional.of(replicatedCluster));
     cluster.getSpec().setReplicateFrom(new StackGresClusterReplicateFrom());
     cluster.getSpec().getReplicateFrom().setInstance(new StackGresClusterReplicateFromInstance());
     cluster.getSpec().getReplicateFrom().getInstance()

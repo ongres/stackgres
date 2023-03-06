@@ -32,7 +32,7 @@
       "disablePostgresUtil": false,
       "metadata": {
         "labels": {
-          "customLabel" : "customLabelValue"
+          "customLabel" : "podsCustomValue"
         }
       }
     },

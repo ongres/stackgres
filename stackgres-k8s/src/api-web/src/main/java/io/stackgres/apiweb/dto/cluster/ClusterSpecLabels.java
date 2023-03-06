@@ -17,12 +17,22 @@ public class ClusterSpecLabels {
 
   private Map<String, String> clusterPods;
 
+  private Map<String, String> services;
+
   public Map<String, String> getClusterPods() {
     return clusterPods;
   }
 
   public void setClusterPods(Map<String, String> clusterPods) {
     this.clusterPods = clusterPods;
+  }
+
+  public Map<String, String> getServices() {
+    return services;
+  }
+
+  public void setServices(Map<String, String> services) {
+    this.services = services;
   }
 
   @Override

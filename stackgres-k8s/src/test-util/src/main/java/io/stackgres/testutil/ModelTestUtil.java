@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -122,6 +123,19 @@ public class ModelTestUtil {
       int desiredListSize = RANDOM.nextInt(10) + 1; //More than this could be counter-productive
 
       List<Object> targetList = new ArrayList<>(desiredListSize);
+      if (clazz != List.class) {
+        try {
+          var constructor = Arrays.stream(clazz.getConstructors())
+              .filter(c -> c.getParameterTypes().length == 1
+                  && c.getParameterTypes()[0] == List.class)
+              .findAny()
+              .orElseThrow();
+          targetList = (List<Object>) constructor.newInstance(targetList);
+        } catch (SecurityException | InvocationTargetException | IllegalAccessException
+            | InstantiationException ex) {
+          throw new RuntimeException(ex);
+        }
+      }
 
       for (int i = 0; i < desiredListSize; i++) {
         Object item = visit(new RandomDataVisitor<>(), elementClazz);
@@ -137,6 +151,19 @@ public class ModelTestUtil {
       int desiredMapSize = RANDOM.nextInt(10) + 1; //More than this could be counter-productive
 
       Map<Object, Object> targetMap = new HashMap<>(desiredMapSize);
+      if (clazz != Map.class) {
+        try {
+          var constructor = Arrays.stream(clazz.getConstructors())
+              .filter(c -> c.getParameterTypes().length == 1
+                  && c.getParameterTypes()[0] == Map.class)
+              .findAny()
+              .orElseThrow();
+          targetMap = (Map<Object, Object>) constructor.newInstance(targetMap);
+        } catch (SecurityException | InvocationTargetException | IllegalAccessException
+            | InstantiationException ex) {
+          throw new RuntimeException(ex);
+        }
+      }
 
       for (int i = 0; i < desiredMapSize; i++) {
         Object key = visit(new RandomDataVisitor<>(), keyClazz);
@@ -217,11 +244,11 @@ public class ModelTestUtil {
     if (isValueType(clazz)) {
       return visitor.onValue(clazz);
     } else if (List.class.isAssignableFrom(clazz)) {
-      var elementClazz = getCollectionGenericType(genericType);
+      var elementClazz = getParameterFromGenericType(clazz, genericType, 0);
       return visitor.onList(clazz, elementClazz);
     } else if (Map.class.isAssignableFrom(clazz)) {
-      var keyClazz = getCollectionGenericType(genericType);
-      var valueClazz = getMapValueType(genericType);
+      var keyClazz = getParameterFromGenericType(clazz, genericType, 0);
+      var valueClazz = getParameterFromGenericType(clazz, genericType, 1);
       if (genericType instanceof ParameterizedType parameterizedValueType) {
         return visitor.onMap(clazz, keyClazz, valueClazz,
             parameterizedValueType.getActualTypeArguments()[1]);
@@ -236,14 +263,27 @@ public class ModelTestUtil {
     return visitor.onObject(clazz, targetFields);
   }
 
-  private static Class<?> getCollectionGenericType(Type type) {
-    ParameterizedType listType = (ParameterizedType) type;
-    return TypeFactory.rawClass(listType.getActualTypeArguments()[0]);
+  public static Class<?> getParameterFromGenericType(Class<?> clazz, Type genericType, int index) {
+    ParameterizedType listType = getParameterizedType(clazz, genericType);
+    return TypeFactory.rawClass(listType.getActualTypeArguments()[index]);
   }
 
-  private static Class<?> getMapValueType(Type type) {
-    ParameterizedType mapType = (ParameterizedType) type;
-    return TypeFactory.rawClass(mapType.getActualTypeArguments()[1]);
+  private static ParameterizedType getParameterizedType(Class<?> clazz, Type genericType) {
+    final ParameterizedType parameterizedType;
+    if (genericType instanceof ParameterizedType currentGenericType) {
+      parameterizedType = currentGenericType;
+    } else {
+      Class<?> currentClazz = clazz;
+      while (!(currentClazz.getGenericSuperclass() instanceof ParameterizedType)) {
+        currentClazz = currentClazz.getSuperclass();
+        if (currentClazz == Object.class) {
+          throw new RuntimeException(
+              "Class " + clazz.getName() + " do not have any generics!");
+        }
+      }
+      parameterizedType = (ParameterizedType) currentClazz.getGenericSuperclass();
+    }
+    return parameterizedType;
   }
 
   private static boolean isValueType(Class<?> type) {

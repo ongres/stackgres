@@ -44,7 +44,7 @@ public class PatroniServices implements
 
   public static String name(StackGresDistributedLogsContext clusterContext) {
     String name = clusterContext.getSource().getMetadata().getName();
-    return PatroniUtil.readWriteName(name);
+    return PatroniUtil.defaultReadWriteName(name);
   }
 
   public static String readWriteName(StackGresDistributedLogsContext clusterContext) {

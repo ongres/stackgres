@@ -221,6 +221,9 @@ public interface JsonFixtureWithPaths {
   String STACKGRES_CLUSTER_ADMISSION_REVIEW_RESTORE_CONFIG_UPDATE_JSON =
       "stackgres/cluster/admission_review/restore_config_update.json";
 
+  String STACKGRES_CLUSTER_ADMISSION_REVIEW_PATRONI_INITIAL_CONFIG_UPDATE_JSON =
+      "stackgres/cluster/admission_review/patroni_initial_config_update.json";
+
   String STACKGRES_CLUSTER_ADMISSION_REVIEW_SCRIPTS_CONFIG_UPDATE_JSON =
       "stackgres/cluster/admission_review/scripts_config_update.json";
 

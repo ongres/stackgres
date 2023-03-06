@@ -72,8 +72,8 @@
         }
       },
       "labels" : {
-        "clusterPods" : {
-          "customLabel" : "customLabelValue"
+        "clusterPods": {
+          "customLabel" : "podsCustomValue"
         }
       }
     }

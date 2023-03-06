@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
@@ -53,7 +54,7 @@ public class ClusterEndpointsReconciliationHandler
   @Override
   public HasMetadata create(StackGresCluster context, HasMetadata resource) {
     if (isPatroniConfigEndpoint(context, resource)) {
-      return createPatroniConfig(resource);
+      return updatePatroniConfig(resource);
     }
     return super.create(context, resource);
   }
@@ -79,14 +80,12 @@ public class ClusterEndpointsReconciliationHandler
     return resource.getMetadata().getName().equals(PatroniUtil.configName(context));
   }
 
-  private HasMetadata createPatroniConfig(HasMetadata resource) {
-    return client.resource(resource)
-        .create();
-  }
-
   private HasMetadata updatePatroniConfig(HasMetadata resource) {
-    return Optional.ofNullable(client.resource(resource).get())
-        .map(Endpoints.class::cast)
+    return KubernetesClientUtil
+        .retryOnConflict(() -> Optional.ofNullable(client.endpoints()
+            .inNamespace(resource.getMetadata().getNamespace())
+            .withName(resource.getMetadata().getName())
+            .get())
         .map(foundResource -> client.resource(new EndpointsBuilder(foundResource)
             .editMetadata()
             .withLabels(Seq.seq(resource.getMetadata().getLabels())
@@ -109,9 +108,7 @@ public class ClusterEndpointsReconciliationHandler
             .build())
             .lockResourceVersion(foundResource.getMetadata().getResourceVersion())
             .replace())
-        .orElseThrow(() -> new RuntimeException("Endpoints "
-            + resource.getMetadata().getNamespace() + "." + resource.getMetadata().getName()
-            + " was not found"));
+        .orElseGet(() -> client.endpoints().resource((Endpoints) resource).create()));
   }
 
   private String mergeConfig(HasMetadata foundResource, HasMetadata resource) {

@@ -643,7 +643,8 @@ class ClusterResourceMockedTest extends
   private void clusterMocks() {
     when(configContext.get(WebApiProperty.GRAFANA_EMBEDDED))
         .thenReturn(Optional.of("true"));
-    when(serviceFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(getResourceName())),
+    when(serviceFinder.findByNameAndNamespace(
+        eq(PatroniUtil.defaultReadWriteName(getResourceName())),
         anyString()))
         .thenReturn(Optional.of(servicePrimary));
     when(serviceFinder.findByNameAndNamespace(eq(PatroniUtil.readOnlyName(getResourceName())),
