@@ -32,7 +32,7 @@ describe('Create SGPostgresConfig', () => {
     });
 
     it('Create SGPostgresConfig form should be visible', () => {
-        cy.get('form#cretaePgConfig')
+        cy.get('form#createPgConfig')
             .should('be.visible')
     });  
 
@@ -50,7 +50,7 @@ describe('Create SGPostgresConfig', () => {
             .type('autovacuum_max_workers = 2')
 
         // Test Submit form
-        cy.get('form#cretaePgConfig button[type="submit"]')
+        cy.get('form#createPgConfig button[type="submit"]')
             .click()
         
         cy.get('#notifications .message.show .title')
