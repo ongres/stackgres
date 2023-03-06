@@ -444,7 +444,7 @@ metadata:
 spec:
   instances: 1
   postgres:
-    version: 'latest'
+    version: "$E2E_POSTGRES_VERSION"
   pods:
     persistentVolume:
       size: '5Gi'
@@ -477,7 +477,7 @@ metadata:
 spec:
   instances: 1
   postgres:
-    version: 'latest'
+    version: "$E2E_POSTGRES_VERSION"
   pods:
     persistentVolume:
       size: '5Gi'
@@ -512,7 +512,7 @@ metadata:
 spec:
   instances: 1
   postgres:
-    version: 'latest'
+    version: "$E2E_POSTGRES_VERSION"
   pods:
     persistentVolume:
       size: '512Mi'
@@ -685,7 +685,7 @@ metadata:
 spec:
   instances: 1
   postgres:
-    version: 'latest'
+    version: "$E2E_POSTGRES_VERSION"
   pods:
     persistentVolume:
       size: '512Mi'
@@ -748,7 +748,7 @@ metadata:
 spec:
   instances: 1
   postgres:
-    version: 'latest'
+    version: "$E2E_POSTGRES_VERSION"
   pods:
     persistentVolume:
       size: '512Mi'

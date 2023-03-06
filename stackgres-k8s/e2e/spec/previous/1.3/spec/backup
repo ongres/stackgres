@@ -2,6 +2,11 @@
 
 . "$SPEC_PATH/abstract/backup"
 
+e2e_test_extra_hash() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/backup")"
+}
+
 e2e_test_install() {
   install_minio
 
@@ -36,6 +41,8 @@ check_cron_job_security_context() {
 
 
 check_backup_is_working() {
+  kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true"
+
   check_backup 0
 }
 

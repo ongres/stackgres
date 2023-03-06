@@ -1,7 +1,6 @@
 #!/bin/sh
 
 e2e_test_install() {
-
   K8S_NODES=$(kubectl get nodes | tail -n+2 | wc -l)
   K8S_NODES=$(($K8S_NODES+ 1))
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$K8S_NODES"

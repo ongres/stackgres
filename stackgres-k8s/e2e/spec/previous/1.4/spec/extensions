@@ -241,6 +241,7 @@ check_extension_with_shared_library_installed_when_added() {
     --reset-values \
     --set-string 'cluster.postgres.version=13.5' \
     --set-string 'cluster.postgres.extensions[0].name=pageinspect' \
+    --set-string 'cluster.postgres.extensions[0].version='"$PAGEINSPECT_VERSION" \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
 
   try_function wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
@@ -361,6 +362,7 @@ check_extension_with_executable_installed_when_added() {
     --reset-values \
     --set-string 'cluster.postgres.version=13.5' \
     --set-string 'cluster.postgres.extensions[0].name=pg_repack' \
+    --set-string 'cluster.postgres.extensions[0].version='"$PG_REPACK_VERSION" \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=
 
   try_function wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
