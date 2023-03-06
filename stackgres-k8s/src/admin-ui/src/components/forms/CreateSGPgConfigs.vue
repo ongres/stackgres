@@ -3,7 +3,7 @@
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
 
-        <form id="cretaePgConfig" class="form" @submit.prevent>
+        <form id="createPgConfig" class="form" @submit.prevent>
             <div class="header">
                 <h2>
                     <span>{{ editMode ? 'Edit' : 'Create' }} Postgres Configuration</span>
@@ -248,23 +248,16 @@
 
                 var configParams = conf.data.status["postgresql.conf"];
                 var defaultParams = conf.data.status["defaultParameters"];
-                var configParamsObj = {};
 
                 configParams.forEach(function(item) {
-                    configParamsObj[item.parameter] = item.value
-                });
-                
-                if(JSON.stringify(configParamsObj) !== JSON.stringify(defaultParams)) {
-                    for(const key in configParamsObj) {
-                        if(defaultParams.hasOwnProperty(key)) {
-                            if(configParamsObj[key] !== defaultParams[key]) {
-                                customParams.push(key + "=" + configParamsObj[key])
-                            }
-                        } else {
-                            customParams.push(key + "=" + configParamsObj[key])
+                    if(defaultParams.hasOwnProperty(item.parameter)) {
+                        if(item.value !== defaultParams[item.parameter]) {
+                            customParams.push(item.parameter + "=" + item.value)
                         }
+                    } else {
+                        customParams.push(item.parameter + "=" + item.value)
                     }
-                }
+                });
 
                 return customParams.join('\n')
             }, 
@@ -278,10 +271,6 @@
                 var inputParams = vc.pgConfigParams.split('\n');
                 var initialParams = vc.pgConfigParamsObj;
                 var defaultParams = vc.defaultParams;
-                
-                initialParams.forEach(function(item) {
-                    initialParamsObj[item.parameter] = item.value
-                });
 
                 inputParams.forEach(function(item) {
                     if(item.length && (item != " ")) {
@@ -301,17 +290,17 @@
                     }
                 });
 
-                for(const key in initialParamsObj) {
-                    if(!inputParamsObj.hasOwnProperty(key)) {
-                        if(defaultParams.hasOwnProperty(key)) {
-                            inputParamsObj[key] = defaultParams[key]
+                initialParams.forEach(function(item) {
+                    if(!inputParamsObj.hasOwnProperty(item.parameter)) {
+                        if(defaultParams.hasOwnProperty(item.parameter)) {
+                            inputParamsObj[item.parameter] = defaultParams[item.parameter]
                         }
                     }
-                }
+                });
 
-                for(const key in inputParamsObj) {
+                Object.keys(inputParamsObj).forEach( (key) => {
                     finalParamsArr.push(key + "='" + inputParamsObj[key] + "'")
-                }
+                });
 
                 return finalParamsArr.join('\n')
             }
