@@ -47,13 +47,13 @@
                 
                     <table class="defaultParams">
                         <tbody>
-                            <tr v-for="value, key in defaultParams">
+                            <tr v-for="param in pgConfigParamsObj" v-if="defaultParams.hasOwnProperty(param.parameter)">
                                 <td class="label">
-                                    {{ key }}
-                                    <!--<a v-if="(typeof param.documentationLink !== 'undefined')" :href="param.documentationLink" target="_blank" :title="'Read documentation about ' + param.parameter" class="paramDoc"></a>-->
+                                    {{ param.parameter }}
+                                    <a v-if="(typeof param.documentationLink !== 'undefined')" :href="param.documentationLink" target="_blank" :title="'Read documentation about ' + param.parameter" class="paramDoc"></a>
                                 </td>
                                 <td class="paramValue">
-                                    {{ value }}
+                                    {{ param.value }}
                                 </td>
                             </tr>
                         </tbody>
@@ -112,7 +112,7 @@
                 pgConfigNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 pgConfigParams: '',
                 pgConfigParamsObj: null,
-                defaultParams: '',
+                defaultParams: {},
                 pgConfigVersion: '',
                 configClusters: []
             }
