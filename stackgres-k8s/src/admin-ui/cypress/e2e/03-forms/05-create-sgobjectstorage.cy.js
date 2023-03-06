@@ -157,9 +157,6 @@ describe('Create SGObjectStorage', () => {
         cy.get('[for="gcs"]')
             .click()
         
-        cy.get('form#createObjectStorage input#advancedModeStorage')
-            .click()
-
         cy.get('[data-field="spec.gcs.bucket"]')
             .type(resourceName)
 
@@ -192,9 +189,6 @@ describe('Create SGObjectStorage', () => {
         cy.get('[for="azureBlob"]')
             .click()
         
-        cy.get('form#createObjectStorage input#advancedModeStorage')
-            .click()
-
         cy.get('[data-field="spec.azureBlob.bucket"]')
             .type(resourceName)
 
@@ -227,11 +221,11 @@ describe('Create SGObjectStorage', () => {
         cy.get('form#createObjectStorage button[type="submit"]')
             .click()
 
-        // Error notificacion should appear
-        cy.get('#notifications .message.show .kind')
+        // Error notification should appear
+        cy.get('#notifications .message.show .title')
             .should(($notification) => {
-                expect($notification).contain('error')
-            })
+                expect($notification).contain('Please fill every mandatory field in the form')
+        })
 
         // notValid class should be added to Type boxes
         cy.get('.optionBoxes label')
