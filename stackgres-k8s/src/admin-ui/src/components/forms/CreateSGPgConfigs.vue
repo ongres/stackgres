@@ -3,7 +3,7 @@
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
 
-        <form id="cretaePgConfig" class="form" @submit.prevent>
+        <form id="createPgConfig" class="form" @submit.prevent>
             <div class="header">
                 <h2>
                     <span>{{ editMode ? 'Edit' : 'Create' }} Postgres Configuration</span>
@@ -38,6 +38,28 @@
                     <textarea v-model="pgConfigParams" placeholder="parameter = value" data-field="spec.postgresql\.conf"></textarea>
                 </div>
             </div>
+
+            <template v-if="Object.keys(defaultParams).length">
+                <div class="paramDetails">
+                    <hr/>
+                    <h2>Default Parameters</h2><br/>
+                    <p>StackGres has set some default parameters to your configuration. If no value is specifically set for them, they will remain with the following default values:</p><br/><br/>
+                
+                    <table class="defaultParams">
+                        <tbody>
+                            <tr v-for="param in pgConfigParamsObj" v-if="defaultParams.hasOwnProperty(param.parameter)">
+                                <td class="label">
+                                    {{ param.parameter }}
+                                    <a v-if="(typeof param.documentationLink !== 'undefined')" :href="param.documentationLink" target="_blank" :title="'Read documentation about ' + param.parameter" class="paramDoc"></a>
+                                </td>
+                                <td class="paramValue">
+                                    {{ param.value }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </template>
 
             <hr/>
             
@@ -89,6 +111,8 @@
                 pgConfigName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 pgConfigNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 pgConfigParams: '',
+                pgConfigParamsObj: null,
+                defaultParams: {},
                 pgConfigVersion: '',
                 configClusters: []
             }
@@ -116,11 +140,13 @@
                     store.state.sgpgconfigs.forEach(function( conf ){
                         if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
                             vm.pgConfigVersion = conf.data.spec.postgresVersion;
-                            vm.pgConfigParams = conf.data.spec["postgresql.conf"];
-                            vm.configClusters = [...conf.data.status.clusters]
+                            vm.pgConfigParams = vm.getParams(conf);
+                            vm.pgConfigParamsObj = conf.data.status["postgresql.conf"];
+                            vm.defaultParams = conf.data.status["defaultParameters"];
+                            vm.configClusters = [...conf.data.status.clusters];
                             config = conf;
                             
-                            vm.editReady = true
+                            vm.editReady = true;
                             return false;
                         }
                     });    
@@ -168,7 +194,7 @@
                     "spec": {
                         ...(this.hasProp(previous, 'spec') && previous.spec),
                         "postgresVersion": this.pgConfigVersion,
-                        "postgresql.conf": this.pgConfigParams
+                        "postgresql.conf": this.editMode ? vc.unifyParams() : this.pgConfigParams
                     }
                 }
 
@@ -214,10 +240,71 @@
                         });
                     }
                 }
+            },
+
+            getParams(conf) {
+                const vc = this;
+                const customParams = [];
+
+                var configParams = conf.data.status["postgresql.conf"];
+                var defaultParams = conf.data.status["defaultParameters"];
+
+                configParams.forEach(function(item) {
+                    if(defaultParams.hasOwnProperty(item.parameter)) {
+                        if(item.value !== defaultParams[item.parameter]) {
+                            customParams.push(item.parameter + "=" + item.value)
+                        }
+                    } else {
+                        customParams.push(item.parameter + "=" + item.value)
+                    }
+                });
+
+                return customParams.join('\n')
+            }, 
+
+            unifyParams() {
+                const vc = this;
+                const inputParamsObj = {};
+                const initialParamsObj = {};
+                const finalParamsArr = [];
+                
+                var inputParams = vc.pgConfigParams.split('\n');
+                var initialParams = vc.pgConfigParamsObj;
+                var defaultParams = vc.defaultParams;
+
+                inputParams.forEach(function(item) {
+                    if(item.length && (item != " ")) {
+                        const indexOfEqual = item.indexOf('=');
+                        const key = item.substring(0, indexOfEqual);
+                        var value = (item.substring(indexOfEqual+1, item.length));
+                        
+                        if(value.startsWith("'")) {
+                            value = value.substring(1)
+                        }
+
+                        if(value.endsWith("'")) {
+                            value = value.substring(0, value.length-1)
+                        }
+
+                        inputParamsObj[key] = value
+                    }
+                });
+
+                initialParams.forEach(function(item) {
+                    if(!inputParamsObj.hasOwnProperty(item.parameter)) {
+                        if(defaultParams.hasOwnProperty(item.parameter)) {
+                            inputParamsObj[item.parameter] = defaultParams[item.parameter]
+                        }
+                    }
+                });
+
+                Object.keys(inputParamsObj).forEach( (key) => {
+                    finalParamsArr.push(key + "='" + inputParamsObj[key] + "'")
+                });
+
+                return finalParamsArr.join('\n')
             }
-
         }
-
     }
 </script>
 

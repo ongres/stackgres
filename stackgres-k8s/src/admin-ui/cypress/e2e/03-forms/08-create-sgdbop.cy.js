@@ -552,11 +552,11 @@ describe('Create SGDbOp', () => {
         cy.get('form#createDbops button[type="submit"]')
             .click()
 
-        // Error notificacion should appear
-        cy.get('#notifications .message.show .kind')
+        // Error notification should appear
+        cy.get('#notifications .message.show .title')
             .should(($notification) => {
-                expect($notification).contain('error')
-            })
+                expect($notification).contain('Please fill every mandatory field in the form')
+        })
 
         // notValid class should be added to op boxes
         cy.get('.optionBoxes label')
