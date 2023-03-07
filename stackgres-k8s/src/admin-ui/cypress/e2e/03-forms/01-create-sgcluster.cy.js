@@ -262,7 +262,7 @@ describe('Create SGCluster', () => {
         // Choose Backup (We're always assuming there's a backup with name "ui-0" on the specified namespace)
         cy.get('select[data-field="spec.initialData.restore.fromBackup"]') 
             .select('ui-0')
-        
+         
         // Set PITR
         cy.get('input[data-field="spec.initialData.restore.fromBackup.pointInTimeRecovery"]')
             .click()
@@ -416,13 +416,111 @@ describe('Create SGCluster', () => {
         cy.get('input[data-field="spec.postgresServices.primary.loadBalancerIP"]')
             .clear()
             .type('1.2.3.4')
+
+        cy.get('input[data-field="spec.postgresServices.primary.customPorts[0].appProtocol"]')
+            .clear()
+            .type('protocol')
         
+        cy.get('input[data-field="spec.postgresServices.primary.customPorts[0].name"]')
+            .clear()
+            .type('name')
+        
+        cy.get('input[data-field="spec.postgresServices.primary.customPorts[0].nodePort"]')
+            .clear()
+            .type('1234')
+
+        cy.get('input[data-field="spec.postgresServices.primary.customPorts[0].port"]')
+            .clear()
+            .type('1234')
+
+        cy.get('select[data-field="spec.postgresServices.primary.customPorts[0].protocol"]')
+            .select('UDP')
+
+        cy.get('input[data-field="spec.postgresServices.primary.customPorts[0].targetPort"]')
+            .clear()
+            .type('1234')
+
+        cy.get('fieldset[data-field="spec.postgresServices.primary.customPorts"] + div.fieldsetFooter > a.addRow')
+            .click()
+
+        cy.get('input[data-field="spec.postgresServices.primary.customPorts[1].appProtocol"]')
+            .clear()
+            .type('protocol2')
+        
+        cy.get('input[data-field="spec.postgresServices.primary.customPorts[1].name"]')
+            .clear()
+            .type('name2')
+        
+        cy.get('input[data-field="spec.postgresServices.primary.customPorts[1].nodePort"]')
+            .clear()
+            .type('4321')
+
+        cy.get('input[data-field="spec.postgresServices.primary.customPorts[1].port"]')
+            .clear()
+            .type('4321')
+
+        cy.get('select[data-field="spec.postgresServices.primary.customPorts[1].protocol"]')
+            .select('SCTP')
+        
+        cy.get('input[data-field="spec.postgresServices.primary.customPorts[1].targetPort"]')
+            .clear()
+            .type('4321')
+
         cy.get('select[data-field="spec.postgresServices.replicas.type"]')
             .select('NodePort')
         
         cy.get('input[data-field="spec.postgresServices.replicas.loadBalancerIP"]')
             .clear()
             .type('1.2.3.4')
+
+        cy.get('input[data-field="spec.postgresServices.replicas.customPorts[0].appProtocol"]')
+            .clear()
+            .type('protocol')
+        
+        cy.get('input[data-field="spec.postgresServices.replicas.customPorts[0].name"]')
+            .clear()
+            .type('name')
+        
+        cy.get('input[data-field="spec.postgresServices.replicas.customPorts[0].nodePort"]')
+            .clear()
+            .type('1234')
+
+        cy.get('input[data-field="spec.postgresServices.replicas.customPorts[0].port"]')
+            .clear()
+            .type('1234')
+
+        cy.get('select[data-field="spec.postgresServices.replicas.customPorts[0].protocol"]')
+            .select('UDP')
+        
+        cy.get('input[data-field="spec.postgresServices.replicas.customPorts[0].targetPort"]')
+            .clear()
+            .type('1234')
+
+        cy.get('fieldset[data-field="spec.postgresServices.replicas.customPorts"] + div.fieldsetFooter > a.addRow')
+            .click()
+
+        cy.get('input[data-field="spec.postgresServices.replicas.customPorts[1].appProtocol"]')
+            .clear()
+            .type('protocol2')
+        
+        cy.get('input[data-field="spec.postgresServices.replicas.customPorts[1].name"]')
+            .clear()
+            .type('name2')
+        
+        cy.get('input[data-field="spec.postgresServices.replicas.customPorts[1].nodePort"]')
+            .clear()
+            .type('4321')
+
+        cy.get('input[data-field="spec.postgresServices.replicas.customPorts[1].port"]')
+            .clear()
+            .type('4321')
+
+        cy.get('select[data-field="spec.postgresServices.replicas.customPorts[1].protocol"]')
+            .select('SCTP')
+
+        cy.get('input[data-field="spec.postgresServices.replicas.customPorts[1].targetPort"]')
+            .clear()
+            .type('4321')
 
         // Test Metadata
         cy.get('form#createCluster li[data-step="metadata"]')
@@ -623,8 +721,32 @@ describe('Create SGCluster', () => {
             .its('request.body.spec.postgresServices')
             .should('nested.include', {"primary.type": 'LoadBalancer'})
             .and('nested.include', {"primary.loadBalancerIP": '1.2.3.4'})
+            .and('nested.include', {"primary.customPorts[0].appProtocol": 'protocol'})
+            .and('nested.include', {"primary.customPorts[0].name": 'name'})
+            .and('nested.include', {"primary.customPorts[0].nodePort": '1234'})
+            .and('nested.include', {"primary.customPorts[0].port": '1234'})
+            .and('nested.include', {"primary.customPorts[0].protocol": 'UDP'})
+            .and('nested.include', {"primary.customPorts[0].targetPort": '1234'})
+            .and('nested.include', {"primary.customPorts[1].appProtocol": 'protocol2'})
+            .and('nested.include', {"primary.customPorts[1].name": 'name2'})
+            .and('nested.include', {"primary.customPorts[1].nodePort": '4321'})
+            .and('nested.include', {"primary.customPorts[1].port": '4321'})
+            .and('nested.include', {"primary.customPorts[1].protocol": 'SCTP'})
+            .and('nested.include', {"primary.customPorts[1].targetPort": '4321'})
             .and('nested.include', {"replicas.type": 'NodePort'})
             .and('nested.include', {"replicas.loadBalancerIP": '1.2.3.4'})
+            .and('nested.include', {"replicas.customPorts[0].appProtocol": 'protocol'})
+            .and('nested.include', {"replicas.customPorts[0].name": 'name'})
+            .and('nested.include', {"replicas.customPorts[0].nodePort": '1234'})
+            .and('nested.include', {"replicas.customPorts[0].port": '1234'})
+            .and('nested.include', {"replicas.customPorts[0].protocol": 'UDP'})
+            .and('nested.include', {"replicas.customPorts[0].targetPort": '1234'})
+            .and('nested.include', {"replicas.customPorts[1].appProtocol": 'protocol2'})
+            .and('nested.include', {"replicas.customPorts[1].name": 'name2'})
+            .and('nested.include', {"replicas.customPorts[1].nodePort": '4321'})
+            .and('nested.include', {"replicas.customPorts[1].port": '4321'})
+            .and('nested.include', {"replicas.customPorts[1].protocol": 'SCTP'})
+            .and('nested.include', {"replicas.customPorts[1].targetPort": '4321'})
         cy.get('@postCluster')
             .its('request.body.spec.metadata')
             .should('nested.include', {"labels.clusterPods.label": 'value'})
@@ -894,6 +1016,33 @@ describe('Create SGCluster', () => {
         cy.get('input[data-field="spec.postgresServices.primary.loadBalancerIP"]')
             .clear()
             .type('4.3.2.1')
+
+        cy.get('input[data-field="spec.postgresServices.primary.customPorts[1].appProtocol"]')
+            .clear()
+            .type('edit-protocol')
+        
+        cy.get('input[data-field="spec.postgresServices.primary.customPorts[1].name"]')
+            .clear()
+            .type('edit-name')
+        
+        cy.get('input[data-field="spec.postgresServices.primary.customPorts[1].nodePort"]')
+            .clear()
+            .type('4321')
+
+        cy.get('input[data-field="spec.postgresServices.primary.customPorts[1].port"]')
+            .clear()
+            .type('4321')
+
+        cy.get('select[data-field="spec.postgresServices.primary.customPorts[1].protocol"]')
+            .should('have.value', 'SCTP')
+            .select('TCP')
+
+        cy.get('input[data-field="spec.postgresServices.primary.customPorts[1].targetPort"]')
+            .clear()
+            .type('4321')
+
+        cy.get('fieldset[data-field="spec.postgresServices.primary.customPorts"] .section:first-child a.addRow.delete')
+            .click()
         
         cy.get('select[data-field="spec.postgresServices.replicas.type"]')
             .should('have.value', 'NodePort')
@@ -902,6 +1051,33 @@ describe('Create SGCluster', () => {
         cy.get('input[data-field="spec.postgresServices.replicas.loadBalancerIP"]')
             .clear()
             .type('4.3.2.1')
+
+        cy.get('fieldset[data-field="spec.postgresServices.replicas.customPorts"] .section:last-child a.addRow.delete')
+            .click()
+        
+        cy.get('input[data-field="spec.postgresServices.replicas.customPorts[0].appProtocol"]')
+            .clear()
+            .type('edit-protocol')
+        
+        cy.get('input[data-field="spec.postgresServices.replicas.customPorts[0].name"]')
+            .clear()
+            .type('edit-name')
+        
+        cy.get('input[data-field="spec.postgresServices.replicas.customPorts[0].nodePort"]')
+            .clear()
+            .type('4321')
+
+        cy.get('input[data-field="spec.postgresServices.replicas.customPorts[0].port"]')
+            .clear()
+            .type('4321')
+
+        cy.get('select[data-field="spec.postgresServices.replicas.customPorts[0].protocol"]')
+            .should('have.value', 'UDP')
+            .select('SCTP')
+        
+        cy.get('input[data-field="spec.postgresServices.replicas.customPorts[0].targetPort"]')
+            .clear()
+            .type('4321')
 
         // Test Metadata
         cy.get('form#createCluster li[data-step="metadata"]')
@@ -1197,8 +1373,20 @@ describe('Create SGCluster', () => {
             .its('request.body.spec.postgresServices')
             .should('nested.include', {"primary.type": 'NodePort'})
             .and('nested.include', {"primary.loadBalancerIP": '4.3.2.1'})
+            .and('nested.include', {"primary.customPorts[0].appProtocol": 'edit-protocol'})
+            .and('nested.include', {"primary.customPorts[0].name": 'edit-name'})
+            .and('nested.include', {"primary.customPorts[0].nodePort": '4321'})
+            .and('nested.include', {"primary.customPorts[0].port": '4321'})
+            .and('nested.include', {"primary.customPorts[0].protocol": 'TCP'})
+            .and('nested.include', {"primary.customPorts[0].targetPort": '4321'})
             .and('nested.include', {"replicas.type": 'LoadBalancer'})
             .and('nested.include', {"replicas.loadBalancerIP": '4.3.2.1'})
+            .and('nested.include', {"replicas.customPorts[0].appProtocol": 'edit-protocol'})
+            .and('nested.include', {"replicas.customPorts[0].name": 'edit-name'})
+            .and('nested.include', {"replicas.customPorts[0].nodePort": '4321'})
+            .and('nested.include', {"replicas.customPorts[0].port": '4321'})
+            .and('nested.include', {"replicas.customPorts[0].protocol": 'SCTP'})
+            .and('nested.include', {"replicas.customPorts[0].targetPort": '4321'})
         cy.get('@putCluster')
             .its('request.body.spec.metadata')
             .should('nested.include', {"labels.clusterPods.label1": 'value1'})
