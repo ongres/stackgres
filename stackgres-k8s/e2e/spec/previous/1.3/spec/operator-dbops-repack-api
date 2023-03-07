@@ -7,7 +7,7 @@ e2e_use_extensions() {
 e2e_test_install() {
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
-  PG_REPACK_VERSION="$(get_latest_version_of_extension pg_repack "${E2E_POSTGRES_VERSION%.*})"
+  PG_REPACK_VERSION="$(get_latest_version_of_extension pg_repack "${E2E_POSTGRES_VERSION%.*}")"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set-string 'cluster.postgres.extensions[0].name=pg_repack' \

@@ -268,6 +268,11 @@ spec_controller() {
       if [ -n "$(printf %s "$SPECS_TO_RUN" | tr -d ' ')" ]
       then
         printf '%s\n' "$SPECS_TO_RUN" | tr ' ' '\n' | grep -vxF "" >> "$TARGET_PATH/specs_to_run.pipe"
+        for SPEC_TO_RUN in $SPECS_TO_RUN
+        do
+          SPEC_NAME="${SPEC_TO_RUN##*/}"
+          printf '%s\n' "$SPEC_NAME" >> "$TARGET_PATH/runned-tests"
+        done
         SPECS_TO_COMPLETE="$SPECS_TO_COMPLETE $SPECS_TO_RUN"
       fi
       BATCH_FAILED=false
@@ -302,8 +307,7 @@ spec_controller() {
             else
               SPEC_HASH="$SPEC_NAME"
             fi
-            printf '%s\n' "$SPEC_NAME" >> "$TARGET_PATH/runned-tests"
-            if printf '%s\n' " $SPECS_FAILED " | grep -qF " $SPEC "
+            if printf '%s\n' " $SPECS_FAILED " | grep -qF " $SPEC_TO_COMPLETE "
             then
               cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.results.xml"
     <testcase classname="$SPEC_NAME" name="$SPEC_HASH" time="$(cat "$TARGET_PATH/$SPEC_NAME.duration")">
@@ -330,7 +334,7 @@ EOF
 
       if "$BATCH_FAILED"
       then
-        if [ "$E2E_CONTINUOUS_PARALLELIZATION" != true ] || [ "$COMPLETED_COUNT" -ge "$SPEC_COUNT" ]
+        if [ "$E2E_DISABLE_LOGS_SNAPSHOTS" != true ] && { [ "$E2E_CONTINUOUS_PARALLELIZATION" != true ] || [ "$COMPLETED_COUNT" -ge "$SPEC_COUNT" ]; }
         then
           if [ "$E2E_DISABLE_LOGS" = "true" ] || [ "$E2E_DISABLE_RESOURCE_LOGS" = "true" ]
           then

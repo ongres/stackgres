@@ -1,11 +1,19 @@
 #!/bin/sh
 
+e2e_test_extra_hash() {
+  printf "E2E_OK_KO=$E2E_OK_KO\n"
+}
+
 e2e_test_install() {
   true
 }
 
 e2e_test() {
-  true
+  if [ "$E2E_OK_KO" = true ]
+  then
+    return 1
+  fi
+  return
 }
 
 e2e_test_uninstall() {
