@@ -1,5 +1,4 @@
-{{- if .Values.deploy.restapi }}
----
+{{ if and .Values.deploy.restapi (not (and .Values.developer.externalRestApiIp .Values.developer.externalRestApiPort)) }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -43,4 +42,25 @@ spec:
       nodePort: {{ . }}
       {{- end }}
   {{- end }}
-{{- end }}
+{{ else}}
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Values.restapi.name  }}
+spec:
+  ports:
+  - port: 443
+    targetPort: {{ .Values.developer.externalRestApiPort }}
+---
+kind: Endpoints
+apiVersion: v1
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Values.restapi.name  }}
+subsets:
+- addresses:
+  - ip: "{{ .Values.developer.externalRestApiIp }}"
+  ports:
+  - port: {{ .Values.developer.externalRestApiPort }}
+{{ end }}
