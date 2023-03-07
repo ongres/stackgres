@@ -1265,13 +1265,13 @@
                     <div class="row-50">
                         <div class="col">
                             <label for="spec.postgresServices.primary.enabled">Service</label>  
-                            <label for="postgresServicesPrimary" class="switch yes-no" data-field="spec.postgresServices.primary.enabled">Enable<input type="checkbox" id="postgresServicesPrimary" v-model="postgresServicesPrimary" data-switch="YES"></label>
+                            <label for="postgresServicesPrimary" class="switch yes-no" data-field="spec.postgresServices.primary.enabled">Enable<input type="checkbox" id="postgresServicesPrimary" v-model="postgresServices.primary.enabled" data-switch="YES"></label>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary.enabled')"></span>
                         </div>
 
                         <div class="col">
                             <label for="spec.postgresServices.primary.type">Type</label>
-                            <select v-model="postgresServicesPrimaryType" required data-field="spec.postgresServices.primary.type">    
+                            <select v-model="postgresServices.primary.type" required data-field="spec.postgresServices.primary.type">    
                                 <option selected>ClusterIP</option>
                                 <option>LoadBalancer</option>
                                 <option>NodePort</option>
@@ -1282,12 +1282,84 @@
                         <div class="col">
                             <label>Load Balancer IP</label>
                             <input 
-                                v-model="postgresServicesPrimaryLoadBalancerIP" 
+                                v-model="postgresServices.primary.loadBalancerIP" 
                                 autocomplete="off" 
                                 data-field="spec.postgresServices.primary.loadBalancerIP">
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary.loadBalancerIP')"></span>
                         </div>
                     </div>
+
+                    <div class="repeater sidecars">
+                        <div class="header">
+                            <h4 for="spec.postgresServices.primary.customPorts">
+                                Custom Ports
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary.customPorts')"></span>
+                            </h4>
+                        </div>
+                        <fieldset
+                            data-field="spec.postgresServices.primary.customPorts"
+                            v-if="postgresServices.primary.hasOwnProperty('customPorts') && postgresServices.primary.customPorts.length"
+                        >
+                            <div class="section" v-for="(port, index) in postgresServices.primary.customPorts">
+                                <div class="header">
+                                    <h5>Port #{{ index + 1 }}</h5>
+                                    <a class="addRow delete" @click="spliceArray(postgresServices.primary.customPorts, index)">Delete</a>
+                                </div>
+
+                                <div class="row-50">
+                                    <div class="col">
+                                        <label for="spec.postgresServices.primary.customPorts.appProtocol">Application Protocol</label>  
+                                        <input v-model="port.appProtocol" :data-field="'spec.postgresServices.primary.customPorts[' + index + '].appProtocol'" autocomplete="off">
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary.customPorts.appProtocol')"></span>
+                                    </div>
+                                    <div class="col">
+                                        <label for="spec.postgresServices.primary.customPorts.name">Name</label>  
+                                        <input v-model="port.name" :data-field="'spec.postgresServices.primary.customPorts[' + index + '].name'" autocomplete="off">
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary.customPorts.name')"></span>
+                                    </div>
+                                    <div class="col">
+                                        <label for="spec.postgresServices.primary.customPorts.nodePort">Node Port</label>  
+                                        <input type="number" v-model="port.nodePort" :data-field="'spec.postgresServices.primary.customPorts[' + index + '].nodePort'" autocomplete="off">
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary.customPorts.nodePort')"></span>
+                                    </div>
+                                    <div class="col">
+                                        <label for="spec.postgresServices.primary.customPorts.port">Port</label>  
+                                        <input type="number" v-model="port.port" :data-field="'spec.postgresServices.primary.customPorts[' + index + '].port'" autocomplete="off">
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary.customPorts.port')"></span>
+                                    </div>
+                                    <div class="col">
+                                        <label for="spec.postgresServices.primary.customPorts.protocol">Protocol</label>  
+                                        <select v-model="port.protocol" :data-field="'spec.postgresServices.primary.customPorts[' + index + '].protocol'">
+                                            <option :value="nullVal" selected>Choose one...</option>
+                                            <option>TCP</option>
+                                            <option>UDP</option>
+                                            <option>SCTP</option>
+                                        </select>
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary.customPorts.protocol')"></span>
+                                    </div>
+                                    <div class="col">
+                                        <label for="spec.postgresServices.primary.customPorts.targetPort">Target Port</label>  
+                                        <input v-model="port.targetPort" :data-field="'spec.postgresServices.primary.customPorts[' + index + '].targetPort'" autocomplete="off">
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary.customPorts.targetPort')"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <div class="fieldsetFooter" :class="(postgresServices.primary.hasOwnProperty('customPorts') && !postgresServices.primary.customPorts.length) && 'topBorder'">
+                            <a class="addRow" @click="!postgresServices.primary.hasOwnProperty('customPorts') && (postgresServices.primary['customPorts'] = []); postgresServices.primary.customPorts.push({
+                                appProtocol: null,
+                                name: null,
+                                nodePort: null,
+                                port: null,
+                                protocol: null,
+                                targetPort: null
+                            })">
+                                Add Port
+                            </a>
+                        </div>
+                    </div>
+
+                    <br/><br/><br/>
 
                     <div class="header">
                         <h3 for="spec.postgresServices.replicas">
@@ -1299,13 +1371,13 @@
                     <div class="row-50">
                         <div class="col">
                             <label for="spec.postgresServices.replicas.enabled">Service</label>  
-                            <label for="postgresServicesReplicas" class="switch yes-no" data-field="spec.postgresServices.replicas.enabled">Enable <input type="checkbox" id="postgresServicesReplicas" v-model="postgresServicesReplicas" data-switch="YES"></label>
+                            <label for="postgresServicesReplicas" class="switch yes-no" data-field="spec.postgresServices.replicas.enabled">Enable <input type="checkbox" id="postgresServicesReplicas" v-model="postgresServices.replicas.enabled" data-switch="YES"></label>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas.enabled')"></span>
                         </div>
 
                         <div class="col">
                             <label for="spec.postgresServices.replicas.type">Type</label>
-                            <select v-model="postgresServicesReplicasType" required data-field="spec.postgresServices.replicas.type">    
+                            <select v-model="postgresServices.replicas.type" required data-field="spec.postgresServices.replicas.type">    
                                 <option selected>ClusterIP</option>
                                 <option>LoadBalancer</option>
                                 <option>NodePort</option>
@@ -1316,10 +1388,80 @@
                         <div class="col">
                             <label>Load Balancer IP</label>
                             <input 
-                                v-model="postgresServicesReplicasLoadBalancerIP" 
+                                v-model="postgresServices.replicas.loadBalancerIP" 
                                 autocomplete="off" 
                                 data-field="spec.postgresServices.replicas.loadBalancerIP">
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas.loadBalancerIP')"></span>
+                        </div>
+                    </div>
+
+                    <div class="repeater sidecars">
+                        <div class="header">
+                            <h4 for="spec.postgresServices.replicas.customPorts">
+                                Custom Ports
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas.customPorts')"></span>
+                            </h4>
+                        </div>
+                        <fieldset
+                            data-field="spec.postgresServices.replicas.customPorts"
+                            v-if="postgresServices.replicas.hasOwnProperty('customPorts') && postgresServices.replicas.customPorts.length"
+                        >
+                            <div class="section" v-for="(port, index) in postgresServices.replicas.customPorts">
+                                <div class="header">
+                                    <h5>Port #{{ index + 1 }}</h5>
+                                    <a class="addRow delete" @click="spliceArray(postgresServices.replicas.customPorts, index)">Delete</a>
+                                </div>
+
+                                <div class="row-50">
+                                    <div class="col">
+                                        <label for="spec.postgresServices.replicas.customPorts.appProtocol">Application Protocol</label>  
+                                        <input v-model="port.appProtocol" :data-field="'spec.postgresServices.replicas.customPorts[' + index + '].appProtocol'" autocomplete="off">
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas.customPorts.appProtocol')"></span>
+                                    </div>
+                                    <div class="col">
+                                        <label for="spec.postgresServices.replicas.customPorts.name">Name</label>  
+                                        <input v-model="port.name" :data-field="'spec.postgresServices.replicas.customPorts[' + index + '].name'" autocomplete="off">
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas.customPorts.name')"></span>
+                                    </div>
+                                    <div class="col">
+                                        <label for="spec.postgresServices.replicas.customPorts.nodePort">Node Port</label>  
+                                        <input type="number" v-model="port.nodePort" :data-field="'spec.postgresServices.replicas.customPorts[' + index + '].nodePort'" autocomplete="off">
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas.customPorts.nodePort')"></span>
+                                    </div>
+                                    <div class="col">
+                                        <label for="spec.postgresServices.replicas.customPorts.port">Port</label>  
+                                        <input type="number" v-model="port.port" :data-field="'spec.postgresServices.replicas.customPorts[' + index + '].port'" autocomplete="off">
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas.customPorts.port')"></span>
+                                    </div>
+                                    <div class="col">
+                                        <label for="spec.postgresServices.replicas.customPorts.protocol">Protocol</label>  
+                                        <select v-model="port.protocol" :data-field="'spec.postgresServices.replicas.customPorts[' + index + '].protocol'">
+                                            <option :value="nullVal" selected>Choose one...</option>
+                                            <option>TCP</option>
+                                            <option>UDP</option>
+                                            <option>SCTP</option>
+                                        </select>
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas.customPorts.protocol')"></span>
+                                    </div>
+                                    <div class="col">
+                                        <label for="spec.postgresServices.replicas.customPorts.targetPort">Target Port</label>  
+                                        <input v-model="port.targetPort" :data-field="'spec.postgresServices.replicas.customPorts[' + index + '].targetPort'" autocomplete="off">
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas.customPorts.targetPort')"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <div class="fieldsetFooter" :class="(postgresServices.replicas.hasOwnProperty('customPorts') && !postgresServices.replicas.customPorts.length) && 'topBorder'">
+                            <a class="addRow" @click="!postgresServices.replicas.hasOwnProperty('customPorts') && (postgresServices.replicas['customPorts'] = []); postgresServices.replicas.customPorts.push({
+                                appProtocol: null,
+                                name: null,
+                                nodePort: null,
+                                port: null,
+                                protocol: null,
+                                targetPort: null
+                            })">
+                                Add Port
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -2056,13 +2198,35 @@
                 annotationsAllText: '',
                 annotationsPods: [ { annotation: '', value: '' } ],
                 annotationsServices: [ { annotation: '', value: '' } ],
-                postgresServicesPrimary: true,
-                postgresServicesPrimaryType: 'ClusterIP',
-                postgresServicesPrimaryLoadBalancerIP: '',
+                postgresServices: {
+                    primary: {
+                        enabled: true,
+                        type: 'ClusterIP',
+                        loadBalancerIP: '',
+                        customPorts: [{
+                            appProtocol: null,
+                            name: null,
+                            nodePort: null,
+                            port: null,
+                            protocol: null,
+                            targetPort: null
+                        }]
+                    },
+                    replicas: {
+                        enabled: true,
+                        type: 'ClusterIP',
+                        loadBalancerIP: '',
+                        customPorts: [{
+                            appProtocol: null,
+                            name: null,
+                            nodePort: null,
+                            port: null,
+                            protocol: null,
+                            targetPort: null
+                        }]
+                    },
+                },
                 postgresServicesPrimaryAnnotations: [ { annotation: '', value: '' } ],
-                postgresServicesReplicas: true,
-                postgresServicesReplicasType: 'ClusterIP',
-                postgresServicesReplicasLoadBalancerIP: '',
                 postgresServicesReplicasAnnotations: [ { annotation: '', value: '' } ],
                 searchExtension: '',
                 extLicense: 'opensource',
@@ -2317,13 +2481,8 @@
                             vm.annotationsAll = vm.hasProp(c, 'data.spec.metadata.annotations.allResources') ? vm.unparseProps(c.data.spec.metadata.annotations.allResources) : [];
                             vm.annotationsPods = vm.hasProp(c, 'data.spec.metadata.annotations.clusterPods') ? vm.unparseProps(c.data.spec.metadata.annotations.clusterPods) : [];
                             vm.annotationsServices = vm.hasProp(c, 'data.spec.metadata.annotations.services') ? vm.unparseProps(c.data.spec.metadata.annotations.services) : [];
-                            vm.postgresServicesPrimary = vm.hasProp(c, 'data.spec.postgresServices.primary.enabled') ? c.data.spec.postgresServices.primary.enabled : false;
-                            vm.postgresServicesPrimaryType = vm.hasProp(c, 'data.spec.postgresServices.primary.type') ? c.data.spec.postgresServices.primary.type : 'ClusterIP';
-                            vm.postgresServicesPrimaryLoadBalancerIP = vm.hasProp(c, 'data.spec.postgresServices.primary.loadBalancerIP') ? c.data.spec.postgresServices.primary.loadBalancerIP : '';
+                            vm.postgresServices = vm.hasProp(c, 'data.spec.postgresServices') && c.data.spec.postgresServices;
                             vm.postgresServicesPrimaryAnnotations = vm.hasProp(c, 'data.spec.metadata.annotations.primaryService') ?  vm.unparseProps(c.data.spec.metadata.annotations.primaryService) : [];
-                            vm.postgresServicesReplicas = vm.hasProp(c, 'data.spec.postgresServices.replicas.enabled') ? c.data.spec.postgresServices.replicas.enabled : false;
-                            vm.postgresServicesReplicasType = vm.hasProp(c, 'data.spec.postgresServices.replicas.type') ? c.data.spec.postgresServices.replicas.type : 'ClusterIP';
-                            vm.postgresServicesReplicasLoadBalancerIP = vm.hasProp(c, 'data.spec.postgresServices.replicas.loadBalancerIP') ? c.data.spec.postgresServices.replicas.loadBalancerIP : '';
                             vm.postgresServicesReplicasAnnotations = vm.hasProp(c, 'data.spec.metadata.annotations.replicasService') ?  vm.unparseProps(c.data.spec.metadata.annotations.replicasService) : [];
                             vm.selectedExtensions = vm.hasProp(c, 'data.spec.postgres.extensions') ? c.data.spec.postgres.extensions : [];
 
@@ -2353,6 +2512,14 @@
         },
 
         methods: {
+
+            isNullObject(obj) {
+                return !Object.keys(obj).filter((k) => obj[k] !== null).length
+            },
+
+            isNullObjectArray(arr) {
+                return !arr.filter((obj) => !this.isNullObject(obj)).length
+            },
 
             getScriptFile( baseIndex, index ){
                 this.currentScriptIndex = { base: baseIndex, entry: index };
@@ -2538,7 +2705,7 @@
                         vc.createCluster(preview, response.data);
                     })
                     .catch(function (error) {
-                        if (error.response.status != 404) {
+                        if ( vc.hasProp(error, 'response.status') && (error.response.status != 404) ) {
                           console.log(error.response);
                           vc.notify(error.response.data,'error', 'sgclusters');
                           return;
@@ -2696,18 +2863,24 @@
                             ...(this.hasProp(previous, 'spec.postgresServices') && previous.spec.postgresServices),
                             "primary": {
                                 ...(this.hasProp(previous, 'spec.postgresServices.primary') && previous.spec.postgresServices.primary),
-                                "enabled": this.postgresServicesPrimary,
-                                "type": this.postgresServicesPrimaryType,
-                                ...(this.postgresServicesPrimaryLoadBalancerIP.length && {
-                                    "loadBalancerIP": this.postgresServicesPrimaryLoadBalancerIP
+                                "enabled": this.postgresServices.primary.enabled,
+                                "type": this.postgresServices.primary.type,
+                                ...( (this.hasProp(this.postgresServices, 'primary.loadBalancerIP') && this.postgresServices.primary.loadBalancerIP.length) && {
+                                    "loadBalancerIP": this.postgresServices.primary.loadBalancerIP,
+                                }),
+                                ...( (this.postgresServices.primary.hasOwnProperty('customPorts') && !this.isNullObjectArray(this.postgresServices.primary.customPorts) ) && {
+                                    "customPorts": this.postgresServices.primary.customPorts
                                 })
                             },
                             "replicas": {
                                 ...(this.hasProp(previous, 'spec.postgresServices.replicas') && previous.spec.postgresServices.replicas),
-                                "enabled": this.postgresServicesReplicas,
-                                "type": this.postgresServicesReplicasType,
-                                ...(this.postgresServicesReplicasLoadBalancerIP.length && {
-                                    "loadBalancerIP": this.postgresServicesReplicasLoadBalancerIP
+                                "enabled": this.postgresServices.replicas.enabled,
+                                "type": this.postgresServices.replicas.type,
+                                ...( (this.hasProp(this.postgresServices, 'replicas.loadBalancerIP') && this.postgresServices.replicas.loadBalancerIP.length) && {
+                                    "loadBalancerIP": this.postgresServices.replicas.loadBalancerIP,
+                                }),
+                                ...( (this.postgresServices.replicas.hasOwnProperty('customPorts') && !this.isNullObjectArray(this.postgresServices.replicas.customPorts) ) && {
+                                    "customPorts": this.postgresServices.replicas.customPorts
                                 })
                             }
                         },

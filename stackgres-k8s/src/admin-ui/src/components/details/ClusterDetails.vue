@@ -1170,13 +1170,13 @@
                 <table v-for="(service, serviceName) in cluster.data.spec.postgresServices" class="crdDetails">
                     <tbody>
                         <tr>
-                            <td class="label capitalize" :rowspan="(service.hasOwnProperty('loadBalancerIP') ? 4 : 3)">
+                            <td class="label capitalize" :rowspan="getRowSpan(service)">
                                 {{ serviceName }}
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.'+serviceName)"></span>
                             </td>
                             <td class="label">
                                 Status
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.'+serviceName+'.enabled')"></span>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.' + serviceName + '.enabled')"></span>
                             </td>
                             <td :colspan="(service.hasOwnProperty('loadBalancerIP') ? 3 : 2)">
                                 {{ isEnabled(service.enabled) }}
@@ -1193,7 +1193,7 @@
                         <tr>
                             <td class="label">
                                 Type
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.'+serviceName+'.type')"></span>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.' + serviceName + '.type')"></span>
                             </td>
                             <td colspan="2">
                                 {{ service.type }}
@@ -1202,12 +1202,29 @@
                         <tr v-if="service.hasOwnProperty('loadBalancerIP')">
                             <td class="label">
                                 Load Balancer IP
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.'+serviceName+'.loadBalancerIP')"></span>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.' + serviceName + '.loadBalancerIP')"></span>
                             </td>
                             <td colspan="2">
                                 {{ service.loadBalancerIP }}
                             </td>
                         </tr>
+                        <template v-if="service.hasOwnProperty('customPorts')">
+                            <template v-for="(port, portIndex) in service.customPorts">
+                                <tr v-for="(value, key, index) in port">
+                                    <td v-if="!portIndex && !index" class="label" :rowspan="getRowSpan(port)">
+                                        Custom Ports
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.' + serviceName + '.customPorts')"></span>
+                                    </td>
+                                    <td class="label capitalize">
+                                        {{ splitUppercase(key) }}
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.' + serviceName + '.customPorts.' + key)"></span>
+                                    </td>
+                                    <td>
+                                        {{ value }}
+                                    </td>
+                                </tr>
+                            </template>
+                        </template>
                     </tbody>
                 </table>
             </div>
@@ -1358,6 +1375,22 @@
                     
                     return count
                 }
+            },
+
+            getRowSpan(el) {
+                let count = 0;
+
+                if (typeof el == 'object') {
+                    Object.keys(el).forEach( (item) => {
+                        count += this.getRowSpan(item);
+                    })
+                } else if (Array.isArray(el)) {
+                    el.forEach( (item) => {
+                        count += this.getRowSpan(item);
+                    })
+                }
+
+                return count;
             }
 
 		},
