@@ -698,14 +698,14 @@
                         </li>
                     </ul>
 
-                    <ul class="section" v-if="showDefaults || !cluster.data.spec.postgresServices.primary.enabled || (cluster.data.spec.postgresServices.primary.type != 'ClusterIP') || !cluster.data.spec.postgresServices.replicas.enabled || (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP') || cluster.data.spec.postgresServices.primary.hasOwnProperty('loadBalancerIP') || cluster.data.spec.postgresServices.replicas.hasOwnProperty('loadBalancerIP')">
+                    <ul class="section" v-if="showDefaults || !cluster.data.spec.postgresServices.primary.enabled || (cluster.data.spec.postgresServices.primary.type != 'ClusterIP') || !cluster.data.spec.postgresServices.replicas.enabled || (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP') || cluster.data.spec.postgresServices.primary.hasOwnProperty('loadBalancerIP') || cluster.data.spec.postgresServices.replicas.hasOwnProperty('loadBalancerIP') || cluster.data.spec.postgresServices.primary.hasOwnProperty('customPorts') || cluster.data.spec.postgresServices.replicas.hasOwnProperty('customPorts')">
                         <li>
                             <strong class="sectionTitle">Customize generated Kubernetes service</strong>
                             <ul>
-                                <li v-if="showDefaults || !cluster.data.spec.postgresServices.primary.enabled || (cluster.data.spec.postgresServices.primary.type != 'ClusterIP') || cluster.data.spec.postgresServices.primary.hasOwnProperty('loadBalancerIP')">
+                                <li v-if="showDefaults || !cluster.data.spec.postgresServices.primary.enabled || (cluster.data.spec.postgresServices.primary.type != 'ClusterIP') || cluster.data.spec.postgresServices.primary.hasOwnProperty('loadBalancerIP') || cluster.data.spec.postgresServices.primary.hasOwnProperty('customPorts')">
                                     <strong class="sectionTitle">Primary Service</strong>
                                     <span><strong>:</strong> {{ isEnabled(cluster.data.spec.postgresServices.primary.enabled) }}</span>
-                                    <ul v-if="( showDefaults || (cluster.data.spec.postgresServices.primary.type != 'ClusterIP') || cluster.data.spec.postgresServices.primary.hasOwnProperty('loadBalancerIP') )">
+                                    <ul v-if="( showDefaults || (cluster.data.spec.postgresServices.primary.type != 'ClusterIP') || cluster.data.spec.postgresServices.primary.hasOwnProperty('loadBalancerIP') || cluster.data.spec.postgresServices.primary.hasOwnProperty('customPorts'))">
                                         <li v-if="( showDefaults || (cluster.data.spec.postgresServices.primary.type != 'ClusterIP') )">
                                             <strong class="label">Type:</strong>
                                             <span class="value">{{ cluster.data.spec.postgresServices.primary.type }}</span>
@@ -714,12 +714,47 @@
                                             <strong class="label">Load Balancer IP:</strong>
                                             <span class="value">{{ cluster.data.spec.postgresServices.primary.loadBalancerIP }}</span>
                                         </li>
+                                        <li v-if="cluster.data.spec.postgresServices.primary.hasOwnProperty('customPorts')">
+                                            <strong class="sectionTitle">Custom Ports</strong>
+                                            <ul>
+                                                <li v-for="(port, index) in cluster.data.spec.postgresServices.primary.customPorts">
+                                                    <strong class="sectionTitle">Port #{{ index + 1 }}</strong>
+                                                    <ul>
+                                                        <li v-if="port.hasOwnProperty('appProtocol')">
+                                                            <strong class="label">Application Protocol:</strong>
+                                                            <span class="value">{{ port.appProtocol }}</span>
+                                                        </li>
+                                                        <li v-if="port.hasOwnProperty('name')">
+                                                            <strong class="label">Name:</strong>
+                                                            <span class="value">{{ port.name }}</span>
+                                                        </li>
+                                                        <li v-if="port.hasOwnProperty('nodePort')">
+                                                            <strong class="label">Node Port:</strong>
+                                                            <span class="value">{{ port.nodePort }}</span>
+                                                        </li>
+                                                        <li v-if="port.hasOwnProperty('port')">
+                                                            <strong class="label">Port:</strong>
+                                                            <span class="value">{{ port.port }}</span>
+                                                        </li>
+                                                        <li v-if="port.hasOwnProperty('protocol')">
+                                                            <strong class="label">Protocol:</strong>
+                                                            <span class="value">{{ port.protocol }}</span>
+                                                        </li>
+                                                        <li v-if="port.hasOwnProperty('targetPort')">
+                                                            <strong class="label">Target Port:</strong>
+                                                            <span class="value">{{ port.targetPort }}</span>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
+                                        </li>
                                     </ul>
                                 </li>
-                                <li v-if="showDefaults || !cluster.data.spec.postgresServices.replicas.enabled || (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP') || cluster.data.spec.postgresServices.replicas.hasOwnProperty('loadBalancerIP')">
+
+                                <li v-if="showDefaults || !cluster.data.spec.postgresServices.replicas.enabled || (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP') || cluster.data.spec.postgresServices.replicas.hasOwnProperty('loadBalancerIP') || cluster.data.spec.postgresServices.replicas.hasOwnProperty('customPorts')">
                                     <strong class="sectionTitle">Replicas Service</strong>
                                     <span><strong>:</strong> {{ isEnabled(cluster.data.spec.postgresServices.replicas.enabled) }}</span>
-                                    <ul v-if="( showDefaults || (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP') || cluster.data.spec.postgresServices.replicas.hasOwnProperty('loadBalancerIP'))">
+                                    <ul v-if="( showDefaults || (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP') || cluster.data.spec.postgresServices.replicas.hasOwnProperty('loadBalancerIP') || cluster.data.spec.postgresServices.replicas.hasOwnProperty('customPorts'))">
                                         <li v-if="( showDefaults || (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP') )">
                                             <strong class="label">Type:</strong>
                                             <span class="value">{{ cluster.data.spec.postgresServices.replicas.type }}</span>
@@ -727,6 +762,40 @@
                                         <li v-if="cluster.data.spec.postgresServices.replicas.hasOwnProperty('loadBalancerIP')">
                                             <strong class="label">Load Balancer IP:</strong>
                                             <span class="value">{{ cluster.data.spec.postgresServices.replicas.loadBalancerIP }}</span>
+                                        </li>
+                                        <li v-if="cluster.data.spec.postgresServices.replicas.hasOwnProperty('customPorts')">
+                                            <strong class="sectionTitle">Custom Ports</strong>
+                                            <ul>
+                                                <li v-for="(port, index) in cluster.data.spec.postgresServices.replicas.customPorts">
+                                                    <strong class="sectionTitle">Port #{{ index + 1 }}</strong>
+                                                    <ul>
+                                                        <li v-if="port.hasOwnProperty('appProtocol')">
+                                                            <strong class="label">Application Protocol:</strong>
+                                                            <span class="value">{{ port.appProtocol }}</span>
+                                                        </li>
+                                                        <li v-if="port.hasOwnProperty('name')">
+                                                            <strong class="label">Name:</strong>
+                                                            <span class="value">{{ port.name }}</span>
+                                                        </li>
+                                                        <li v-if="port.hasOwnProperty('nodePort')">
+                                                            <strong class="label">Node Port:</strong>
+                                                            <span class="value">{{ port.nodePort }}</span>
+                                                        </li>
+                                                        <li v-if="port.hasOwnProperty('port')">
+                                                            <strong class="label">Port:</strong>
+                                                            <span class="value">{{ port.port }}</span>
+                                                        </li>
+                                                        <li v-if="port.hasOwnProperty('protocol')">
+                                                            <strong class="label">Protocol:</strong>
+                                                            <span class="value">{{ port.protocol }}</span>
+                                                        </li>
+                                                        <li v-if="port.hasOwnProperty('targetPort')">
+                                                            <strong class="label">Target Port:</strong>
+                                                            <span class="value">{{ port.targetPort }}</span>
+                                                        </li>
+                                                    </ul>
+                                                </li>
+                                            </ul>
                                         </li>
                                     </ul>
                                 </li>
