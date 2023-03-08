@@ -177,9 +177,9 @@ spec:
             path: "/q/health/ready"
             port: 8080
             scheme: "HTTP"
-          initialDelaySeconds: 5
-          periodSeconds: 30
-          timeoutSeconds: 2
+          initialDelaySeconds: 0
+          periodSeconds: 2
+          timeoutSeconds: 1
         {{- with .Values.restapi.resources }}
         resources:
         {{- toYaml . | nindent 10 }}
