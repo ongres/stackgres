@@ -127,7 +127,6 @@ check_init_data_after_restore() {
     echo "FAIL: primary db not restored successfully"
     return 1
   fi
-
 }
 
 check_replica_data_after_restore() {
@@ -148,7 +147,6 @@ check_replica_data_after_restore() {
     echo "FAIL: replica db not restored successfully"
     return 1
   fi
-
 }
 
 check_replication_after_restore() {
@@ -176,7 +174,6 @@ check_replication_after_restore() {
     echo "FAIL: inserts on the primary where not sucessful."
     return 1
   fi
-
 }
 
 check_backup_pg_version() {
@@ -252,7 +249,6 @@ assert_default_value(){
     echo "FAIL. Default value for field $FIELD not found"
     return 1
   fi
-    
 }
 
 check_restore_using_pitr() {

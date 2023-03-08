@@ -1,8 +1,8 @@
 #!/bin/sh
+
 e2e_exclusive_lock() {
   true
 }
-
 
 e2e_test_install() {
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"

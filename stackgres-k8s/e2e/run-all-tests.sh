@@ -58,18 +58,21 @@ then
   E2E_EXCLUDES_BY_HASH="$(get_already_passed_tests)"
   echo 'done'
 
-  if echo "$E2E_EXCLUDES_BY_HASH" | grep -q '[^ ]'
+  if [ "$E2E_REPEAT_TESTS" != true ]
   then
-    echo "Excluding following tests since already passed:"
-    echo
-    printf '%s' "$E2E_EXCLUDES_BY_HASH" | tr ' ' '\n' | grep -v '^$' \
-      | while read -r E2E_EXCLUDED_TEST
-        do
-          printf ' - %s\n' "$E2E_EXCLUDED_TEST"
-        done
-    echo
+    if echo "$E2E_EXCLUDES_BY_HASH" | grep -q '[^ ]'
+    then
+      echo "Excluding following tests since already passed:"
+      echo
+      printf '%s' "$E2E_EXCLUDES_BY_HASH" | tr ' ' '\n' | grep -v '^$' \
+        | while read -r E2E_EXCLUDED_TEST
+          do
+            printf ' - %s\n' "$E2E_EXCLUDED_TEST"
+          done
+      echo
+    fi
+    E2E_EXCLUDES="$(echo "$E2E_EXCLUDES $E2E_EXCLUDES_BY_HASH" | tr ' ' '\n' | sort | uniq | tr '\n' ' ')"
   fi
-  E2E_EXCLUDES="$(echo "$E2E_EXCLUDES $E2E_EXCLUDES_BY_HASH" | tr ' ' '\n' | sort | uniq | tr '\n' ' ')"
 fi
 
 if [ -z "$E2E_ONLY_INCLUDES" ]
@@ -175,6 +178,7 @@ $(printf '%s\n' "$SPECS" | grep -v '^$' \
     do
       printf '%s\n' " - ${LINE##*spec/}"
     done)
+
 "
 
 rm -f "$TARGET_PATH/runned-tests"
@@ -211,8 +215,13 @@ setup_logs
 echo "Setup operator"
 setup_operator
 
-echo "Calculating spec hashes"
-SPEC_HASHES="$(calculate_spec_hashes)"
+if [ "$E2E_USE_TEST_HASHES" = true ]
+then
+  echo "Calculating spec hashes"
+  SPEC_HASHES="$(calculate_spec_hashes)"
+else
+  SPEC_HASHES=""
+fi
 
 echo "Functional tests results" > "$TARGET_PATH/logs/results.log"
 
@@ -221,105 +230,86 @@ export E2E_REUSE_OPERATOR_PODS=true
 export E2E_SKIP_SETUP=false
 
 START="$(date +%s)"
-COUNT=0
-SPECS_TO_RUN=""
-OVERALL_RESULT=true
-CLEANUP=false
 find "$TARGET_PATH" -maxdepth 1 -type f -name '*.retries' -delete
-while true
-do
-  SPEC_COUNT="$(printf '%s\n' "$SPECS" | tr '\n' ' ' | wc -w)"
-  if [ "$COUNT" -ge "$SPEC_COUNT" ]
-  then
-    break
-  fi
-  COUNT="$((COUNT+1))"
-  SPEC="$(printf '%s\n' "$SPECS" | tr ' ' '\n' | tail -n+"$COUNT" | head -n 1)"
-  SPECS_TO_RUN="$SPECS_TO_RUN $SPEC"
-  SPECS_TO_RUN="${SPECS_TO_RUN# *}"
-  if [ "$((COUNT%E2E_PARALLELISM))" -eq 0 ] || [ "$COUNT" -eq "$SPEC_COUNT" ]
-  then
-    if "$CLEANUP"
+rm -f "$TARGET_PATH/specs_to_run.pipe"
+mkfifo "$TARGET_PATH/specs_to_run.pipe"
+
+rm -f "$TARGET_PATH/specs_to_run.result"
+rm -f "$TARGET_PATH/specs_to_run.tail.pid"
+
+spec_controller() {
+  echo 'Run started!'
+  COUNT=0
+  SPECS_TO_RUN=""
+  OVERALL_RESULT=true
+  CLEANUP=false
+  SPECS_TO_COMPLETE=""
+  COMPLETED_COUNT=0
+  while true
+  do
+    SPEC_COUNT="$(printf '%s\n' "$SPECS" | tr '\n' ' ' | wc -w)"
+    if { [ "$E2E_CONTINUOUS_PARALLELIZATION" != true ] && [ "$COUNT" -ge "$SPEC_COUNT" ]; } \
+      || { [ "$E2E_CONTINUOUS_PARALLELIZATION" = true ] && [ "$COMPLETED_COUNT" -ge "$SPEC_COUNT" ]; }
     then
-      CLEANUP=false
-      setup_k8s
+      echo 'Run completed!'
+      break
     fi
-    SPECS_FAILED=""
-    if printf '%s\n' "$SPECS_TO_RUN" | tr ' ' '\n' \
-      | xargs_parallel_shell % -c "'$SHELL' $SHELL_XTRACE '$E2E_PATH/e2e' spec '%'"
+    COUNT="$((COUNT+1))"
+    SPEC="$(printf '%s\n' "$SPECS" | tr ' ' '\n' | tail -n+"$COUNT" | head -n 1)"
+    SPECS_TO_RUN="$SPECS_TO_RUN $SPEC "
+    if [ "$((COUNT%E2E_PARALLELISM))" -eq 0 ] || [ "$COUNT" -eq "$SPEC_COUNT" ]
     then
+      if [ "$CLEANUP" = true ]
+      then
+        CLEANUP=false
+        setup_k8s
+      fi
+      SPECS_FAILED=""
+      if [ -n "$(printf %s "$SPECS_TO_RUN" | tr -d ' ')" ]
+      then
+        printf '%s\n' "$SPECS_TO_RUN" | tr ' ' '\n' | grep -vxF "" >> "$TARGET_PATH/specs_to_run.pipe"
+        for SPEC_TO_RUN in $SPECS_TO_RUN
+        do
+          SPEC_NAME="${SPEC_TO_RUN##*/}"
+          printf '%s\n' "$SPEC_NAME" >> "$TARGET_PATH/runned-tests"
+        done
+        SPECS_TO_COMPLETE="$SPECS_TO_COMPLETE $SPECS_TO_RUN"
+      fi
       BATCH_FAILED=false
-    else
-      BATCH_FAILED=true
-    fi
-    if "$BATCH_FAILED"
-    then
-      if [ "$E2E_DISABLE_LOGS" = "true" ] || [ "$E2E_DISABLE_RESOURCE_LOGS" = "true" ]
-      then
-        echo "Snapshotting resources"
-        resource_watch --log-in-files > "$LOG_PATH/all_resources.log" 2>/dev/null || true
-      fi
-      if [ "$E2E_DISABLE_LOGS" = "true" ] || [ "$E2E_DISABLE_POD_LOGS" = "true" ]
-      then
-        echo "Snapshotting pods logs"
-        pod_logs --log-in-files > "$LOG_PATH/all_pods.log" 2>/dev/null || true
-      fi
-      if [ "$E2E_DISABLE_LOGS" = "true" ] || [ "$E2E_DISABLE_EVENT_LOGS" = "true" ]
-      then
-        echo "Snapshotting events"
-        event_watch -o wide >> "$TARGET_PATH/events.log" 2>/dev/null || true
-      fi
-      if [ "$((COUNT%E2E_PARALLELISM))" -ne 0 ]
-      then
-        PAD_COUNT="$((E2E_PARALLELISM - COUNT%E2E_PARALLELISM))"
-        SPECS="$SPECS $(seq 1 "$PAD_COUNT")"
-        COUNT="$((COUNT+PAD_COUNT))"
-      fi
-      NONE_FAILED=true
-      for FAILED in $(find "$TARGET_PATH" -maxdepth 1 -type f -name '*.failed')
+      while [ -n "$(printf %s "$SPECS_TO_COMPLETE" | tr -d ' ')" ]
       do
-        if [ "$(stat -c %Y "$FAILED" || echo 0)" -lt "$START" ]
-        then
-          continue
-        fi
-        NONE_FAILED=false
-        SPEC="$(cat "$FAILED")"
-        SPEC_NAME="$(basename "$FAILED" | sed 's/\.failed$//')"
-        RETRIES="$([ -f "$TARGET_PATH/$SPEC_NAME.retries" ] && cat "$TARGET_PATH/$SPEC_NAME.retries" || echo 0)"
-        RETRIES="$((RETRIES + 1))"
-        if [ "$RETRIES" -lt "$E2E_RETRY" ]
-        then
-          printf '%s\n' "$RETRIES" > "$TARGET_PATH/$SPEC_NAME.retries"
-          rm "$FAILED"
-          SPECS="$SPECS $SPEC_PATH/$SPEC_NAME"
-        else
-          SPECS_FAILED="$SPECS_FAILED $SPEC"
-          SPECS_FAILED="${SPECS_FAILED# *}"
-          OVERALL_RESULT=false
-        fi
-        CLEANUP=true
-      done
-      if "$NONE_FAILED"
-      then
-        echo "Some test failed but no <test name>.failed file was found...this is weird!"
-        OVERALL_RESULT=false
-      fi
-    fi
-    RUNNED_COUNT=0
-    while [ "$RUNNED_COUNT" -lt "$(printf '%s\n' "$SPECS_TO_RUN" | tr '\n' ' ' | wc -w)" ]
-    do
-      RUNNED_COUNT="$((RUNNED_COUNT+1))"
-      SPEC="$(printf '%s\n' "$SPECS_TO_RUN" | tr ' ' '\n' | tail -n+"$RUNNED_COUNT" | head -n 1)"
-      SPEC_NAME="$(basename "$SPEC")"
-      SPEC_HASH="$(printf '%s\n' "$SPEC_HASHES" | grep "^$SPEC:" | cut -d : -f 2)"
-      if printf '%s\n' " $(printf '%s\n' "$SPECS" | tr ' ' '\n' | tail -n+"$((COUNT+1))" | tr '\n' ' ') " | grep -qF " $SPEC "
-      then
-        continue
-      fi
-      printf '%s\n' "$SPEC_NAME" >> "$TARGET_PATH/runned-tests"
-      if printf '%s\n' " $SPECS_FAILED " | grep -qF " $SPEC "
-      then
-        cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.results.xml"
+        sleep 2
+        for SPEC_TO_COMPLETE in $SPECS_TO_COMPLETE
+        do
+          SPEC_NAME="${SPEC_TO_COMPLETE##*/}"
+          if [ ! -f "$TARGET_PATH/$SPEC_NAME.completed" ] \
+            || [ "$(stat -c %Y "$TARGET_PATH/$SPEC_NAME.completed" || echo 0)" -lt "$START" ]
+          then
+            continue
+          fi
+          COMPLETED_COUNT="$((COMPLETED_COUNT + 1))"
+          SPEC_FAILED=false
+          if [ -f "$TARGET_PATH/$SPEC_NAME.failed" ] \
+            && ! [ "$(stat -c %Y "$TARGET_PATH/$SPEC_NAME.failed" || echo 0)" -lt "$START" ]
+          then
+            SPEC_FAILED=true
+            BATCH_FAILED=true
+          fi
+          echo "Spec $SPEC_NAME ($([ "$SPEC_FAILED" != true ] && printf 'succeded' || printf 'failed'))"
+          SPECS_TO_COMPLETE="$(printf %s "$SPECS_TO_COMPLETE" | tr ' ' '\n' | grep -vxF "$SPEC_TO_COMPLETE" | tr '\n' ' ')"
+          RETRIES="$([ -f "$TARGET_PATH/$SPEC_NAME.retries" ] && cat "$TARGET_PATH/$SPEC_NAME.retries" || echo 0)"
+          RETRIES="$((RETRIES + 1))"
+          if [ "$SPEC_FAILED" != true ] || [ "$RETRIES" -ge "$E2E_RETRY" ]
+          then
+            if printf '%s\n' "$SPEC_HASHES" | grep -q "^$SPEC_TO_COMPLETE:"
+            then
+              SPEC_HASH="$(printf '%s\n' "$SPEC_HASHES" | grep "^$SPEC:" | cut -d : -f 2)"
+            else
+              SPEC_HASH="$SPEC_NAME"
+            fi
+            if printf '%s\n' " $SPECS_FAILED " | grep -qF " $SPEC_TO_COMPLETE "
+            then
+              cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.results.xml"
     <testcase classname="$SPEC_NAME" name="$SPEC_HASH" time="$(cat "$TARGET_PATH/$SPEC_NAME.duration")">
       <failure message="$SPEC_NAME failed" type="ERROR">
       <![CDATA[
@@ -328,17 +318,127 @@ do
       </failure>
     </testcase>
 EOF
-      else
-        printf '%s\n' "$SPEC_NAME" >> "$TARGET_PATH/passed-tests"
-        cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.results.xml"
+            else
+              printf '%s\n' "$SPEC_NAME" >> "$TARGET_PATH/passed-tests"
+              cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.results.xml"
     <testcase classname="$SPEC_NAME" name="$SPEC_HASH" time="$(cat "$TARGET_PATH/$SPEC_NAME.duration")" />
 EOF
+            fi
+          fi
+        done
+        if [ "$E2E_CONTINUOUS_PARALLELIZATION" = true ]
+        then
+          break
+        fi
+      done
+
+      if "$BATCH_FAILED"
+      then
+        if [ "$E2E_DISABLE_LOGS_SNAPSHOTS" != true ] && { [ "$E2E_CONTINUOUS_PARALLELIZATION" != true ] || [ "$COMPLETED_COUNT" -ge "$SPEC_COUNT" ]; }
+        then
+          if [ "$E2E_DISABLE_LOGS" = "true" ] || [ "$E2E_DISABLE_RESOURCE_LOGS" = "true" ]
+          then
+            echo "Snapshotting resources"
+            resource_watch --log-in-files >> "$LOG_PATH/all_resources.log" 2>/dev/null || true
+          fi
+          if [ "$E2E_DISABLE_LOGS" = "true" ] || [ "$E2E_DISABLE_POD_LOGS" = "true" ]
+          then
+            echo "Snapshotting pods logs"
+            pod_logs --log-in-files >> "$LOG_PATH/all_pods.log" 2>/dev/null || true
+          fi
+          if [ "$E2E_DISABLE_LOGS" = "true" ] || [ "$E2E_DISABLE_EVENT_LOGS" = "true" ]
+          then
+            echo "Snapshotting events"
+            event_watch -o wide >> "$TARGET_PATH/events.log" 2>/dev/null || true
+          fi
+        fi
+        if [ "$((COUNT%E2E_PARALLELISM))" -ne 0 ]
+        then
+          PAD_COUNT="$((E2E_PARALLELISM - COUNT%E2E_PARALLELISM))"
+          SPECS="$SPECS $(seq 1 "$PAD_COUNT")"
+          COUNT="$((COUNT+PAD_COUNT))"
+          COMPLETED_COUNT="$((COMPLETED_COUNT+PAD_COUNT))"
+        fi
+        NONE_FAILED=true
+        for FAILED in $(find "$TARGET_PATH" -maxdepth 1 -type f -name '*.failed')
+        do
+          if [ "$(stat -c %Y "$FAILED" || echo 0)" -lt "$START" ]
+          then
+            continue
+          fi
+          NONE_FAILED=false
+          SPEC="$(cat "$FAILED")"
+          SPEC_NAME="$(basename "$FAILED" | sed 's/\.failed$//')"
+          RETRIES="$([ -f "$TARGET_PATH/$SPEC_NAME.retries" ] && cat "$TARGET_PATH/$SPEC_NAME.retries" || echo 0)"
+          RETRIES="$((RETRIES + 1))"
+          if [ "$RETRIES" -lt "$E2E_RETRY" ]
+          then
+            printf '%s\n' "$RETRIES" > "$TARGET_PATH/$SPEC_NAME.retries"
+            rm "$FAILED"
+            SPECS="$SPECS $SPEC_PATH/$SPEC_NAME"
+          else
+            SPECS_FAILED="$SPECS_FAILED $SPEC"
+            SPECS_FAILED="${SPECS_FAILED# *}"
+            OVERALL_RESULT=false
+          fi
+          if [ "$E2E_CONTINUOUS_PARALLELIZATION" != true ]
+          then
+            CLEANUP=true
+          fi
+        done
+        if [ "$NONE_FAILED" = true ]
+        then
+          echo "Some test failed but no <test name>.failed file was found...this is weird!"
+          OVERALL_RESULT=false
+        fi
       fi
-    done
-    SPECS_TO_RUN=""
+      if [ "$E2E_SKIP_SPEC_UNINSTALL" != true ] && [ "$E2E_CONTINUOUS_PARALLELIZATION" != true ]
+      then
+        k8s_cleanup_but_operator
+      fi
+      SPECS_TO_RUN=""
+    fi
+  done
+  until [ -f "$TARGET_PATH/specs_to_run.tail.pid" ]
+  do
+    sleep 1
+  done
+  kill "$(cat "$TARGET_PATH/specs_to_run.tail.pid")"
+  if [ "$OVERALL_RESULT" = false ]
+  then
+    return 1
+  else
+    return 0
   fi
-  k8s_cleanup_but_operator
-done
+}
+
+(
+  notrace_function spec_controller
+) &
+SPEC_EMITTER_PID="$!"
+trap_kill "$SPEC_EMITTER_PID"
+
+set +e
+OVERALL_RESULT=true
+shell -c '
+  echo $$ > "'"$TARGET_PATH/specs_to_run.tail.pid"'"
+  exec tail -f "'"$TARGET_PATH/specs_to_run.pipe"'"
+  ' | xargs_parallel_shell % -c "'$SHELL' $SHELL_XTRACE '$E2E_PATH/e2e' spec '%'"
+EXIT_CODE="$?"
+if [ "$EXIT_CODE" != 0 ]
+then
+  OVERALL_RESULT=false
+fi
+set -e
+
+if ! wait "$SPEC_EMITTER_PID"
+then
+  if [ "$OVERALL_RESULT" = true ]
+  then
+    echo "No test failed but overall process failed...this is weird!"
+    OVERALL_RESULT=false
+  fi
+fi
 
 cat << EOF > "$TARGET_PATH/e2e-tests-junit-report.xml"
 <?xml version="1.0" encoding="UTF-8"?>
@@ -359,7 +459,7 @@ then
   delete_k8s || true
 fi
 
-if $OVERALL_RESULT
+if [ "$OVERALL_RESULT" = true ]
 then
   cat "$TARGET_PATH/logs/results.log" | sort
 else

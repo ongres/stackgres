@@ -198,8 +198,9 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
                 .withPort(new IntOrString(EnvoyUtil.PATRONI_ENTRY_PORT))
                 .withScheme("HTTP")
                 .build())
-            .withInitialDelaySeconds(5)
-            .withPeriodSeconds(10)
+            .withInitialDelaySeconds(0)
+            .withPeriodSeconds(2)
+            .withTimeoutSeconds(1)
             .build())
         .withResources(podResources)
         .build();

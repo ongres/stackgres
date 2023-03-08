@@ -1,7 +1,7 @@
 
 .release image:
   image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
-  stage: image release
+  stage: image build
   timeout: 1 hour
   dependencies:
     - build
@@ -24,7 +24,7 @@
 
 .release image multi archs:
   image: docker:20.10.12
-  stage: image release multi archs
+  stage: image build multi archs
   timeout: 1 hour
   script:
     - |

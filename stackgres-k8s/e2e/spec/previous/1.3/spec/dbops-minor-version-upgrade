@@ -2,6 +2,11 @@
 
 . "$SPEC_PATH/abstract/dbops-minor-version-upgrade"
 
+e2e_test_extra_hash() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/dbops-major-version-upgrade")"
+}
+
 e2e_test_install() {
   CLUSTER_NAME="$(get_sgcluster_name dbops-minor-version-upgrade)"
   DBOPS_NAME="$(get_sgdbops_name minor-version-upgrade)"

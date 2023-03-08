@@ -24,6 +24,8 @@ then
     -Djava.util.logging.manager=org.jboss.logmanager.LogManager \
     -Dquarkus.http.ssl.certificate.files= \
     -Dquarkus.http.ssl.certificate.key-files= \
+    -Dmp.jwt.verify.publickey.location=classpath:META-INF/jwt/rsa_public.pem \
+    -Dsmallrye.jwt.sign.key.location=classpath:META-INF/jwt/rsa_private.key \
     $JAVA_OPTS $DEBUG_JAVA_OPTS -jar /app/quarkus-run.jar \
     -Dquarkus.http.host=0.0.0.0 \
     $APP_OPTS &

@@ -27,8 +27,6 @@ stages:
   - build 2
   - image build
   - image build multi archs
-  - image release
-  - image release multi archs
   - test
   - deploy
 

@@ -55,7 +55,7 @@ metadata:
 spec:
   instances: 2
   postgres:
-    version: 'latest'
+    version: "$E2E_POSTGRES_VERSION"
   pods:
     persistentVolume:
       size: '128Mi'

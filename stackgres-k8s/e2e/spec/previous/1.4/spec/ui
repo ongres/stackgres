@@ -7,7 +7,7 @@ e2e_exclusive_lock() {
 e2e_test_extra_hash() {
   "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
     "$(realpath --relative-to "$PROJECT_PATH" "$PROJECT_PATH/stackgres-k8s/src/admin-ui/cypress")"
-  echo "E2E_UI_POSTGRES_VERSOIN=$E2E_UI_POSTGRES_VERSOIN"
+  echo "E2E_UI_POSTGRES_VERSION=$E2E_UI_POSTGRES_VERSION"
 }
 
 e2e_test_install() {
@@ -16,7 +16,7 @@ e2e_test_install() {
     return
   fi
 
-  E2E_UI_POSTGRES_VERSOIN="${E2E_UI_POSTGRES_VERSION:-$E2E_POSTGRES_VERSION}"
+  E2E_UI_POSTGRES_VERSION="${E2E_UI_POSTGRES_VERSION:-$E2E_POSTGRES_VERSION}"
 
   k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
   k8s_async_cleanup
