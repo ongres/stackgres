@@ -157,6 +157,12 @@ spec:
             {{- end }}
           {{- end }}
           {{- end }}
+          {{- with .Values.restapi.env }}
+          {{- range $name,$value := . }}
+          - name: {{ $name }}
+            value: {{ $value }}
+          {{- end }}
+          {{- end }}
         ports:
         - containerPort: 8080
           name: "resthttp"
@@ -218,6 +224,12 @@ spec:
             value: "localhost:8080"
           - name: GRAFANA_TOKEN
             value: "unknown"
+          {{- end }}
+          {{- with .Values.adminui.env }}
+          {{- range $name,$value := . }}
+          - name: {{ $name }}
+            value: {{ $value }}
+          {{- end }}
           {{- end }}
         args:
           - '/bin/sh'

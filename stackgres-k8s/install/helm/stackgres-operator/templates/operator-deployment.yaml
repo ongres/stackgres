@@ -120,8 +120,8 @@ spec:
           - name: EXTENSIONS_REPOSITORY_URLS
             value: "{{ range $index, $element := .Values.extensions.repositoryUrls }}{{ if $index }},{{ end }}{{ $element }}{{ end }}"
           {{- end }}
-          {{- if .Values.developer.extraEnv }}
-          {{- range $name,$value := .Values.developer.extraEnv }}
+          {{- with .Values.operator.env }}
+          {{- range $name,$value := . }}
           - name: {{ $name }}
             value: {{ $value }}
           {{- end }}
@@ -151,7 +151,7 @@ spec:
           timeoutSeconds: 1
         {{- with .Values.operator.resources }}
         resources:
-        {{- toYaml . | nindent 10 }}
+          {{- toYaml . | nindent 10 }}
         {{- end }}
         volumeMounts:
           - name: operator-certs
