@@ -27,6 +27,7 @@ modules:
         -DdeployAtEnd=true
         -Dsurefire.useFile=false
         -DtrimStackTrace=false
+        -Dquarkus.package.type=mutable-jar
     build_commands:
       - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS clean install -P safer -f "$MODULE_PATH/pom.xml" -N'
     cache:

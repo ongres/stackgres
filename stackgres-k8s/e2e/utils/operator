@@ -74,7 +74,7 @@ build_components() {
   echo "Building components..."
   (
   cd "$STACKGRES_PATH/src"
-  ./mvnw -q clean package -DskipTests
+  ./mvnw -q clean package -DskipTests -Dquarkus.package.type=mutable-jar
   shell api-web/src/main/swagger/build.sh
   )
 }
