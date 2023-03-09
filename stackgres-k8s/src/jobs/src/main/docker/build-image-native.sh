@@ -2,7 +2,7 @@
 
 set -e
 
-BASE_IMAGE="registry.access.redhat.com/ubi8-minimal:8.7-1031"
+BASE_IMAGE="registry.access.redhat.com/ubi8-minimal:8.7-1085"
 
 JOBS_IMAGE_NAME="${JOBS_IMAGE_NAME:-"stackgres/jobs:main"}"
 TARGET_JOBS_IMAGE_NAME="${TARGET_JOBS_IMAGE_NAME:-$JOBS_IMAGE_NAME}"

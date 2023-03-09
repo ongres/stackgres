@@ -507,7 +507,7 @@ store_test_results() {
     && true || false
 
   cat << EOF > "$TARGET_PATH/Dockerfile.e2e"
-FROM alpine:3.13.5
+FROM registry.access.redhat.com/ubi8-micro:8.7-6
   COPY . /project
 EOF
 
@@ -546,7 +546,7 @@ store_test_result() {
     && true || false
 
   cat << EOF > "$TARGET_PATH/Dockerfile.e2e.$SPEC_NAME"
-FROM alpine:3.13.5
+FROM registry.access.redhat.com/ubi8-micro:8.7-6
   COPY . /project
 EOF
 
