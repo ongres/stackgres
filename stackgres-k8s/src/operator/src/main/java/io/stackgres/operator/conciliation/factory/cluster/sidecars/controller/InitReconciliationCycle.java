@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.controller;
 
+import java.util.Optional;
+
 import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.Container;
@@ -22,6 +24,7 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
+import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder
@@ -107,6 +110,16 @@ public class InitReconciliationCycle implements ContainerFactory<ClusterContaine
                 .withName("DEBUG_CLUSTER_CONTROLLER_SUSPEND")
                 .withValue(System.getenv("DEBUG_OPERATOR_SUSPEND"))
                 .build())
+        .addAllToEnv(Optional.ofNullable(System.getenv("CONTROLLER_ENV"))
+            .stream()
+            .flatMap(envs -> Seq.of(envs.split(" ")))
+            .map(env -> env.split("="))
+            .filter(env -> env.length > 1)
+            .map(env -> new EnvVarBuilder()
+                .withName(env[0])
+                .withValue(env[1])
+                .build())
+            .toList())
         .addToVolumeMounts(
             new VolumeMountBuilder()
             .withName(context.getDataVolumeName())

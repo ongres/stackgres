@@ -35,6 +35,7 @@ import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
+import org.jooq.lambda.Seq;
 
 @Singleton
 @Sidecar(StackGresContainer.CLUSTER_CONTROLLER)
@@ -141,6 +142,16 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
                 .withName("DEBUG_CLUSTER_CONTROLLER_SUSPEND")
                 .withValue(System.getenv("DEBUG_OPERATOR_SUSPEND"))
                 .build())
+        .addAllToEnv(Optional.ofNullable(System.getenv("CONTROLLER_ENV"))
+            .stream()
+            .flatMap(envs -> Seq.of(envs.split(" ")))
+            .map(env -> env.split("="))
+            .filter(env -> env.length > 1)
+            .map(env -> new EnvVarBuilder()
+                .withName(env[0])
+                .withValue(env[1])
+                .build())
+            .toList())
         .withVolumeMounts(userContainerMounts.getVolumeMounts(context))
         .addAllToVolumeMounts(postgresDataMounts.getVolumeMounts(context))
         .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))

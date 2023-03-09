@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.factory.distributedlogs.controller;
 
 import java.util.Map;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -33,6 +34,7 @@ import io.stackgres.operator.conciliation.factory.PostgresDataMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
+import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder
@@ -140,6 +142,16 @@ public class DistributedLogsController
                 .withName("DEBUG_DISTRIBUTEDLOGS_CONTROLLER_SUSPEND")
                 .withValue(System.getenv("DEBUG_OPERATOR_SUSPEND"))
                 .build())
+        .addAllToEnv(Optional.ofNullable(System.getenv("CONTROLLER_ENV"))
+            .stream()
+            .flatMap(envs -> Seq.of(envs.split(" ")))
+            .map(env -> env.split("="))
+            .filter(env -> env.length > 1)
+            .map(env -> new EnvVarBuilder()
+                .withName(env[0])
+                .withValue(env[1])
+                .build())
+            .toList())
         .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
         .addAllToVolumeMounts(postgresDataMounts.getVolumeMounts(context))
         .addToVolumeMounts(
