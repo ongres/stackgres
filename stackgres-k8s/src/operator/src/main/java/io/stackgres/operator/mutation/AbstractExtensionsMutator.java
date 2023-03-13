@@ -24,6 +24,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.extension.ExtensionUtil;
+import io.stackgres.operator.common.OperatorExtensionMetadataManager;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
@@ -39,7 +40,7 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
   static final JsonPointer TO_INSTALL_EXTENSIONS_POINTER =
       CONFIG_POINTER.append("toInstallPostgresExtensions");
 
-  protected abstract ClusterExtensionMetadataManager getExtensionMetadataManager();
+  protected abstract OperatorExtensionMetadataManager getExtensionMetadataManager();
 
   protected abstract ObjectMapper getObjectMapper();
 
@@ -62,7 +63,7 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
     final StackGresCluster cluster = getCluster(customResource);
     List<StackGresClusterExtension> extensions = getExtensions(customResource);
     List<StackGresClusterInstalledExtension> missingDefaultExtensions = Seq.seq(
-        getDefaultExtensions(getCluster(customResource)))
+        getDefaultExtensions(cluster))
         .filter(defaultExtension -> extensions.stream()
             .noneMatch(extension -> extension.getName()
                 .equals(defaultExtension.getName())))
@@ -76,13 +77,13 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
         .collect(ImmutableList.toImmutableList());
     final ArrayNode toInstallExtensionsNode = getObjectMapper().valueToTree(toInstallExtensions);
     if (getToInstallExtensions(customResource).orElse(null) == null) {
-      operations.add(new AddOperation(TO_INSTALL_EXTENSIONS_POINTER,
+      operations.add(new AddOperation(getToInstallExtensionsPointer(),
           toInstallExtensionsNode));
     } else if (getToInstallExtensions(customResource)
         .map(previousToInstallExtensions -> toInstallExtensionsHasChanged(
             toInstallExtensions, previousToInstallExtensions))
         .orElse(true)) {
-      operations.add(new ReplaceOperation(TO_INSTALL_EXTENSIONS_POINTER,
+      operations.add(new ReplaceOperation(getToInstallExtensionsPointer(),
           toInstallExtensionsNode));
     }
     Seq.seq(extensions)
@@ -94,6 +95,10 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
             .ifPresent(installedExtension -> onExtensionToInstall(
                 operations, extension.v1, extension.v2.intValue(), installedExtension)));
     return operations.build();
+  }
+
+  protected JsonPointer getToInstallExtensionsPointer() {
+    return TO_INSTALL_EXTENSIONS_POINTER;
   }
 
   private boolean toInstallExtensionsHasChanged(
@@ -119,7 +124,7 @@ public abstract class AbstractExtensionsMutator<T extends CustomResource<?, ?>,
       final StackGresClusterExtension extension, final int index,
       final StackGresClusterInstalledExtension installedExtension) {
     final JsonPointer extensionVersionPointer =
-        TO_INSTALL_EXTENSIONS_POINTER.append(index).append("version");
+        getToInstallExtensionsPointer().append(index).append("version");
     final TextNode extensionVersion = new TextNode(installedExtension.getVersion());
     if (extension.getVersion() == null) {
       operations.add(new AddOperation(extensionVersionPointer, extensionVersion));

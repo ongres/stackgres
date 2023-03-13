@@ -14,6 +14,7 @@ import io.stackgres.common.component.Component;
 import io.stackgres.common.component.Components;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import org.jooq.lambda.tuple.Tuple;
 
 public enum StackGresComponent {
@@ -60,6 +61,10 @@ public enum StackGresComponent {
   }
 
   public Component get(StackGresCluster cluster) {
+    return getOrThrow(StackGresVersion.getStackGresVersion(cluster));
+  }
+
+  public Component get(StackGresShardedCluster cluster) {
     return getOrThrow(StackGresVersion.getStackGresVersion(cluster));
   }
 

@@ -14,10 +14,10 @@ import java.util.stream.Collectors;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
+import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.extension.ExtensionRequest;
 import io.stackgres.common.extension.ImmutableExtensionRequest;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
-import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
@@ -28,7 +28,7 @@ import org.jooq.lambda.tuple.Tuple2;
 public abstract class AbstractExtensionsValidator<T extends AdmissionReview<?>>
     implements Validator<T> {
 
-  protected abstract ClusterExtensionMetadataManager getExtensionMetadataManager();
+  protected abstract ExtensionMetadataManager getExtensionMetadataManager();
 
   @Override
   public void validate(T review) throws ValidationFailed {

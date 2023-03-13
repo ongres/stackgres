@@ -47,4 +47,8 @@ public interface AdmissionReviewFixtures {
     return new ScriptReviewFixture();
   }
 
+  static ShardedClusterReviewFixture shardedCluster() {
+    return new ShardedClusterReviewFixture();
+  }
+
 }

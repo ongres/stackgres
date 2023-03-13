@@ -30,9 +30,9 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.operator.common.OperatorExtensionMetadataManager;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,7 +55,7 @@ class ClusterMutatorPipelineTest {
   CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
 
   @InjectMock
-  ClusterExtensionMetadataManager extensionManager;
+  OperatorExtensionMetadataManager extensionManager;
 
   StackGresClusterReview review;
 

@@ -22,8 +22,8 @@ import io.stackgres.apiweb.dto.cluster.ClusterManagedSqlStatus;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterStatus;
 import io.stackgres.common.StackGresPropertyContext;
+import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSqlStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -111,7 +111,7 @@ public class ClusterTransformer
     }
     ClusterStatus transformation = new ClusterStatus();
 
-    final List<StackGresClusterCondition> sourceClusterConditions = source.getConditions();
+    final List<Condition> sourceClusterConditions = source.getConditions();
 
     if (sourceClusterConditions != null) {
       transformation.setConditions(sourceClusterConditions.stream()
@@ -125,8 +125,7 @@ public class ClusterTransformer
     return transformation;
   }
 
-  private ClusterCondition getResourceCondition(
-      StackGresClusterCondition source) {
+  private ClusterCondition getResourceCondition(Condition source) {
     return mapper.convertValue(source, ClusterCondition.class);
   }
 

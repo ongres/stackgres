@@ -24,11 +24,11 @@ class ClusterEndpointsComparatorTest {
 
   private final ClusterEndpointsComparator comparator = new ClusterEndpointsComparator(JSON_MAPPER);
 
-  private final Map<String, String> defaultConfig = ImmutableMap
-      .of("ttl", "30", "loop_wait", "10");
+  private final Map<String, Object> defaultConfig = ImmutableMap
+      .of("ttl", 30, "loop_wait", 10);
 
-  private final Map<String, String> configWithIgnoredConfigField = ImmutableMap
-      .of("ttl", "30", "loop_wait", "10", "test", "test");
+  private final Map<String, Object> configWithIgnoredConfigField = ImmutableMap
+      .of("ttl", 30, "loop_wait", 10, "test", "test");
 
   private final Map<String, String> defaultAnnotations = ImmutableMap
       .of("config", JSON_MAPPER.valueToTree(defaultConfig).toString());
@@ -36,9 +36,9 @@ class ClusterEndpointsComparatorTest {
   private final Map<String, String> annotationsWithIgnoredConfigField = ImmutableMap
       .of("config", JSON_MAPPER.valueToTree(configWithIgnoredConfigField).toString());
 
-  private final Endpoints required = Fixtures.endpoints().loadRequired().get();
+  private final Endpoints required = Fixtures.endpoints().loadPatroniRequired().get();
 
-  private final Endpoints deployed = Fixtures.endpoints().loadDeployed().get();
+  private final Endpoints deployed = Fixtures.endpoints().loadPatroniDeployed().get();
 
   @Test
   void generatedResourceAndRequiredResource_shouldHaveNoDifference() {

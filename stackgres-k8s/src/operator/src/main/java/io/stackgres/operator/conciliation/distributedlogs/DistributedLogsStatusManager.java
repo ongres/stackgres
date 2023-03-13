@@ -23,14 +23,14 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.ClusterPendingRestartUtil;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
-import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
+import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
 import org.slf4j.Logger;
@@ -38,8 +38,8 @@ import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class DistributedLogsStatusManager
-    extends ConditionUpdater<StackGresDistributedLogs, StackGresDistributedLogsCondition>
-    implements StatusManager<StackGresDistributedLogs, StackGresDistributedLogsCondition> {
+    extends ConditionUpdater<StackGresDistributedLogs, Condition>
+    implements StatusManager<StackGresDistributedLogs, Condition> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DistributedLogsStatusManager.class);
 
@@ -154,7 +154,7 @@ public class DistributedLogsStatusManager
   }
 
   @Override
-  protected List<StackGresDistributedLogsCondition> getConditions(
+  protected List<Condition> getConditions(
       StackGresDistributedLogs distributedLogs) {
     return Optional.ofNullable(distributedLogs.getStatus())
         .map(StackGresDistributedLogsStatus::getConditions)
@@ -162,27 +162,28 @@ public class DistributedLogsStatusManager
   }
 
   @Override
-  protected void setConditions(StackGresDistributedLogs distributedLogs,
-                               List<StackGresDistributedLogsCondition> conditions) {
+  protected void setConditions(
+      StackGresDistributedLogs distributedLogs,
+      List<Condition> conditions) {
     if (distributedLogs.getStatus() == null) {
       distributedLogs.setStatus(new StackGresDistributedLogsStatus());
     }
     distributedLogs.getStatus().setConditions(conditions);
   }
 
-  protected StackGresDistributedLogsCondition getFalsePendingRestart() {
+  protected Condition getFalsePendingRestart() {
     return DistributedLogsStatusCondition.FALSE_PENDING_RESTART.getCondition();
   }
 
-  protected StackGresDistributedLogsCondition getPodRequiresRestart() {
+  protected Condition getPodRequiresRestart() {
     return DistributedLogsStatusCondition.POD_REQUIRES_RESTART.getCondition();
   }
 
-  protected StackGresDistributedLogsCondition getFalsePendingUpgrade() {
+  protected Condition getFalsePendingUpgrade() {
     return DistributedLogsStatusCondition.FALSE_PENDING_UPGRADE.getCondition();
   }
 
-  protected StackGresDistributedLogsCondition getClusterRequiresUpgrade() {
+  protected Condition getClusterRequiresUpgrade() {
     return DistributedLogsStatusCondition.CLUSTER_REQUIRES_UPGRADE.getCondition();
   }
 }

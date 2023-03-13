@@ -15,11 +15,23 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class ClusterPersistentVolumeSizeExpansionValidatorTest extends
-    PersistentVolumeSizeExpansionValidatorTest<StackGresClusterReview, StackGresCluster> {
+    PersistentVolumeSizeExpansionValidatorTest<StackGresClusterReview,
+        StackGresCluster, StackGresCluster> {
 
   @Override
   protected StackGresClusterReview getAdmissionReview() {
     return AdmissionReviewFixtures.cluster().loadUpdate().get();
+  }
+
+  @Override
+  protected PersistentVolumeSizeExpansionValidator<StackGresClusterReview,
+      StackGresCluster, StackGresCluster> getValidator() {
+    return new ClusterPersistentVolumeSizeExpansionValidator(finder, pvcScanner, labelFactory);
+  }
+
+  @Override
+  protected StackGresCluster getCluster(StackGresCluster resource) {
+    return resource;
   }
 
   @Override
@@ -35,12 +47,6 @@ class ClusterPersistentVolumeSizeExpansionValidatorTest extends
   @Override
   protected String getStorageClassName(StackGresCluster cluster) {
     return cluster.getSpec().getPod().getPersistentVolume().getStorageClass();
-  }
-
-  @Override
-  protected PersistentVolumeSizeExpansionValidator<StackGresClusterReview,
-      StackGresCluster> getValidator() {
-    return new ClusterPersistentVolumeSizeExpansionValidator(finder, pvcScanner, labelFactory);
   }
 
 }

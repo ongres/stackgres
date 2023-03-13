@@ -15,10 +15,10 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.ClusterEventReason;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.resource.CustomResourceScanner;
@@ -43,13 +43,13 @@ public class ClusterReconciliator
     @Inject Conciliator<StackGresCluster> conciliator;
     @Inject HandlerDelegator<StackGresCluster> handlerDelegator;
     @Inject KubernetesClient client;
-    @Inject StatusManager<StackGresCluster, StackGresClusterCondition> statusManager;
+    @Inject StatusManager<StackGresCluster, Condition> statusManager;
     @Inject EventEmitter<StackGresCluster> eventController;
     @Inject CustomResourceScheduler<StackGresCluster> clusterScheduler;
     @Inject ComparisonDelegator<StackGresCluster> resourceComparator;
   }
 
-  private final StatusManager<StackGresCluster, StackGresClusterCondition> statusManager;
+  private final StatusManager<StackGresCluster, Condition> statusManager;
   private final EventEmitter<StackGresCluster> eventController;
   private final CustomResourceScheduler<StackGresCluster> clusterScheduler;
   private final ClusterPatchResumer patchResumer;

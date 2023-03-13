@@ -12,7 +12,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
-import io.stackgres.common.ClusterLabelMapper;
 import io.stackgres.common.JobUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
@@ -20,6 +19,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.labels.ClusterLabelMapper;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.conciliation.factory.backup.BackupJob;

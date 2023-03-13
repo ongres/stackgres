@@ -15,6 +15,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import org.jooq.lambda.Seq;
 
 public enum StackGresVersion {
@@ -89,6 +90,10 @@ public enum StackGresVersion {
         .findAny()
         .orElseThrow(() -> new IllegalArgumentException(
             "Invalid version " + version));
+  }
+
+  public static StackGresVersion getStackGresVersion(StackGresShardedCluster cluster) {
+    return getStackGresVersionFromResource(cluster);
   }
 
   public static StackGresVersion getStackGresVersion(StackGresCluster cluster) {

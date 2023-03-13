@@ -2,7 +2,7 @@
 title: SGPoolingConfig
 weight: 4
 url: reference/crd/sgpoolingconfig
-description: Details about SGPoolingConfig configurations
+description: Details about SGPoolingConfig
 ---
 
 The `SGPoolingConfig` custom resource represents the configuration of the connection pooling, in particular of PgBouncer.

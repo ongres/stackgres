@@ -1,0 +1,329 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: sgshardedclusters.stackgres.io
+spec:
+  group: stackgres.io
+  scope: Namespaced
+  names:
+    kind: SGShardedCluster
+    listKind: SGShardedClusterList
+    plural: sgshardedclusters
+    singular: sgshardedcluster
+    shortNames:
+      - sgscl
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      additionalPrinterColumns:
+      - name: version
+        type: string
+        jsonPath: .spec.postgres.version
+      - name: instances
+        type: integer
+        jsonPath: .spec.coordinator.instances + (.spec.shards.clusters * .spec.shards.instancesPerCluster) 
+      - name: Profile
+        type: string
+        jsonPath: .spec.coordinator.sgInstanceProfile + ", " + .spec.shards.sgInstanceProfile 
+      - name: Disk
+        type: string
+        jsonPath: .spec.coordinator.pods.persistentVolume.size + ", " + .spec.shards.pods.persistentVolume.size
+      - name: prometheus-autobind
+        type: string
+        jsonPath: .spec.prometheusAutobind
+        priority: 1
+      - name: pool-config
+        type: string
+        jsonPath: .spec.coordinator.configurations.sgPoolingConfig + ", " + .spec.shards.configurations.sgPoolingConfig
+        priority: 1
+      - name: postgres-config
+        type: string
+        jsonPath: .spec.coordinator.configurations.sgPostgresConfig + ", " + .spec.shards.configurations.sgPostgresConfig
+        priority: 1
+      schema:
+        openAPIV3Schema:
+          type: object
+          required: ["metadata", "spec"]
+          properties:
+            metadata:
+              type: object
+              properties:
+                name:
+                  type: string
+                  maxLength: 50
+                  pattern: "^[a-z]([-a-z0-9]*[a-z0-9])?$"
+                  description: |
+                    Name of the StackGres sharded cluster. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the `-` character allowed anywhere except the first or last character.
+
+                    The name must be unique across all SGCluster, SGShardedCluster and SGDistributedLogs in the same namespace.
+            spec:
+              type: object
+              properties:
+                type:
+                  type: string
+                  description: |
+                    The sharding technology that will be used for the sharded cluster.
+                    
+                    Currently the only possible value for this field is `citus`.
+                database:
+                  type: string
+                  description: |
+                    The database name that will be created and used across all node and where "partitioned" (distributed) tables will live in.
+                postgres:
+                  type: object
+                  description: |
+                    This section allows to configure Postgres features
+                  properties:
+                    version:
+                      type: string
+                      description: |
+                        Postgres version used on the cluster. It is either of:
+                        *  The string 'latest', which automatically sets the latest major.minor Postgres version.
+                        *  A major version, like '14' or '13', which sets that major version and the latest minor version.
+                        *  A specific major.minor version, like '14.4'.
+                  required: [ "version" ]
+                coordinator:
+                  type: object
+                  description: |
+                    The coordinator is a StackGres cluster responsible of coordinating data storage and access from the shards.
+                  properties:
+                    instances:
+                      type: integer
+                      minimum: 1
+                      maximum: 16
+                      description: |
+                        Number of StackGres instances for the cluster. Each instance contains one Postgres server.
+                         Out of all of the Postgres servers, one is elected as the primary, the rest remain as read-only replicas.
+                    sgInstanceProfile:
+                      type: string
+                      description: |
+                        Name of the [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-resource-profiles/). A SGInstanceProfile defines CPU and memory limits. Must exist before creating a cluster. When no profile is set, a default (currently: 1 core, 2 GiB RAM) one is used.
+                    pods:
+                      type: object
+                      description: Cluster pod's configuration.
+                      properties:
+                        persistentVolume:
+                          type: object
+                          description: Pod's persistent volume configuration.
+                          properties:
+                            size:
+                              type: string
+                              pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi|Ti)$'
+                              description: |
+                                Size of the PersistentVolume set for each instance of the cluster. This size is specified either in Mebibytes, Gibibytes or Tebibytes (multiples of 2^20, 2^30 or 2^40, respectively).
+                            storageClass:
+                              type: string
+                              description: |
+                                Name of an existing StorageClass in the Kubernetes cluster, used to create the PersistentVolumes for the instances of the cluster.
+                          required: ["size"]
+                    configurations:
+                      type: object
+                      description: |
+                        Cluster custom configurations.
+                      properties:
+                        sgPostgresConfig:
+                          type: string
+                          description: |
+                            Name of the [SGPostgresConfig](https://stackgres.io/doc/latest/reference/crd/sgpgconfig) used for the cluster. It must exist. When not set, a default Postgres config, for the major version selected, is used.
+                        sgPoolingConfig:
+                          type: string
+                          description: |
+                            Name of the [SGPoolingConfig](https://stackgres.io/doc/latest/reference/crd/sgpoolconfig) used for this cluster. Each pod contains a sidecar with a connection pooler (currently: [PgBouncer](https://www.pgbouncer.org/)). The connection pooler is implemented as a sidecar.
+    
+                            If not set, a default configuration will be used. Disabling connection pooling altogether is possible if the disableConnectionPooling property of the pods object is set to true.
+                  required: ["instances", "pods"]
+                shards:
+                  type: object
+                  description: |
+                    The shards are a group of StackGres clusters where the partitioned data chunks are stored.
+                    
+                    When referring to the cluster in the descriptions above it apply to any cluster of the shards
+                  properties:
+                    clusters:
+                      type: integer
+                      minimum: 1
+                      maximum: 16
+                      description: |
+                        Number of StackGres clusters for the shards.
+                    instancesPerCluster:
+                      type: integer
+                      minimum: 1
+                      maximum: 16
+                      description: |
+                        Number of StackGres instances per shard's cluster. Each instance contains one Postgres server.
+                         Out of all of the Postgres servers, one is elected as the primary, the rest remain as read-only replicas.
+                    sgInstanceProfile:
+                      type: string
+                      description: |
+                        Name of the [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-resource-profiles/). A SGInstanceProfile defines CPU and memory limits. Must exist before creating a cluster. When no profile is set, a default (currently: 1 core, 2 GiB RAM) one is used.
+                    pods:
+                      type: object
+                      description: Cluster pod's configuration.
+                      properties:
+                        persistentVolume:
+                          type: object
+                          description: Pod's persistent volume configuration.
+                          properties:
+                            size:
+                              type: string
+                              pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi|Ti)$'
+                              description: |
+                                Size of the PersistentVolume set for each instance of the cluster. This size is specified either in Mebibytes, Gibibytes or Tebibytes (multiples of 2^20, 2^30 or 2^40, respectively).
+                            storageClass:
+                              type: string
+                              description: |
+                                Name of an existing StorageClass in the Kubernetes cluster, used to create the PersistentVolumes for the instances of the cluster.
+                          required: ["size"]
+                    configurations:
+                      type: object
+                      description: |
+                        Cluster custom configurations.
+                      properties:
+                        sgPostgresConfig:
+                          type: string
+                          description: |
+                            Name of the [SGPostgresConfig](https://stackgres.io/doc/latest/reference/crd/sgpgconfig) used for the cluster. It must exist. When not set, a default Postgres config, for the major version selected, is used.
+                        sgPoolingConfig:
+                          type: string
+                          description: |
+                            Name of the [SGPoolingConfig](https://stackgres.io/doc/latest/reference/crd/sgpoolconfig) used for this cluster. Each pod contains a sidecar with a connection pooler (currently: [PgBouncer](https://www.pgbouncer.org/)). The connection pooler is implemented as a sidecar.
+    
+                            If not set, a default configuration will be used. Disabling connection pooling altogether is possible if the disableConnectionPooling property of the pods object is set to true.
+                  required: ["clusters", "instancesPerCluster", "pods"]
+                prometheusAutobind:
+                  type: boolean
+                  description: |
+                    If enabled, a ServiceMonitor is created for each Prometheus instance found in order to collect metrics.
+                nonProductionOptions:
+                  type: object
+                  properties:
+                    disableClusterPodAntiAffinity:
+                      type: boolean
+                      description: |
+                        It is a best practice, on non-containerized environments, when running production workloads, to run each database server on a different server (virtual or physical), i.e., not to co-locate more than one database server per host.
+
+                        The same best practice applies to databases on containers. By default, StackGres will not allow to run more than one StackGres pod on a given Kubernetes node. Set this property to true to allow more than one StackGres pod per node.
+                    disablePatroniResourceRequirements:
+                      type: boolean
+                      description: |
+                        It is a best practice, on containerized environments, when running production workloads, to enforce container's resources requirements.
+
+                        The same best practice applies to databases on containers. By default, StackGres will configure resource requirements for patroni container. Set this property to true to prevent StackGres from setting patroni container's resources requirement.
+                    disableClusterResourceRequirements:
+                      type: boolean
+                      description: |
+                        It is a best practice, on containerized environments, when running production workloads, to enforce container's resources requirements.
+
+                        By default, StackGres will configure resource requirements for all the containers. Set this property to true to prevent StackGres from setting container's resources requirements (except for patroni container, see `disablePatroniResourceRequirements`).
+                    enableSetPatroniCpuRequests:
+                      type: boolean
+                      description: |
+                        On containerized environments, when running production workloads, enforcing container's cpu requirements request to be equals to the limit allow to achieve the highest level of performance. Doing so, reduces the chances of leaving
+                         the workload with less cpu than it requires. It also allow to set [static CPU management policy](https://kubernetes.io/docs/tasks/administer-cluster/cpu-management-policies/#static-policy) that allows to guarantee a pod the usage exclusive CPUs on the node.
+
+                        By default, StackGres will configure cpu requirements to have the same limit and request for the patroni container. Set this property to true to prevent StackGres from setting patroni container's cpu requirements request equals to the limit
+                         when `.spec.requests.cpu` is configured in the referenced `SGInstanceProfile`.
+                    enableSetClusterCpuRequests:
+                      type: boolean
+                      description: |
+                        On containerized environments, when running production workloads, enforcing container's cpu requirements request to be equals to the limit allow to achieve the highest level of performance. Doing so, reduces the chances of leaving
+                         the workload with less cpu than it requires. It also allow to set [static CPU management policy](https://kubernetes.io/docs/tasks/administer-cluster/cpu-management-policies/#static-policy) that allows to guarantee a pod the usage exclusive CPUs on the node.
+
+                        By default, StackGres will configure cpu requirements to have the same limit and request for all the containers. Set this property to true to prevent StackGres from setting container's cpu requirements request equals to the limit (except for patroni container, see `enablePatroniCpuRequests`)
+                         when `.spec.requests.containers.<container name>.cpu` `.spec.requests.initContainers.<container name>.cpu` is configured in the referenced `SGInstanceProfile`.
+                    enableSetPatroniMemoryRequests:
+                      type: boolean
+                      description: |
+                        On containerized environments, when running production workloads, enforcing container's memory requirements request to be equals to the limit allow to achieve the highest level of performance. Doing so, reduces the chances of leaving
+                         the workload with less memory than it requires.
+
+                        By default, StackGres will configure memory requirements to have the same limit and request for the patroni container. Set this property to true to prevent StackGres from setting patroni container's memory requirements request equals to the limit
+                         when `.spec.requests.memory` is configured in the referenced `SGInstanceProfile`.
+                    enableSetClusterMemoryRequests:
+                      type: boolean
+                      description: |
+                        On containerized environments, when running production workloads, enforcing container's memory requirements request to be equals to the limit allow to achieve the highest level of performance. Doing so, reduces the chances of leaving
+                         the workload with less memory than it requires.
+
+                        By default, StackGres will configure memory requirements to have the same limit and request for all the containers. Set this property to true to prevent StackGres from setting container's memory requirements request equals to the limit (except for patroni container, see `enablePatroniCpuRequests`)
+                         when `.spec.requests.containers.<container name>.memory` `.spec.requests.initContainers.<container name>.memory` is configured in the referenced `SGInstanceProfile`.
+                    enabledFeatureGates:
+                      type: array
+                      description: |
+                        A list of StackGres feature gates to enable (not suitable for a production environment).
+                        
+                        Available feature gates are:
+                        * `babelfish-flavor`: Allow to use `babelfish` flavor.
+                      items:
+                        type: string
+                        description: The name of the fature gate to enable.
+              required: ["database", "postgres", "coordinator", "shards"]
+            status:
+              type: object
+              properties:
+                conditions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      lastTransitionTime:
+                        description: Last time the condition transitioned from one status to another.
+                        type: string
+                      message:
+                        description: A human readable message indicating details about the transition.
+                        type: string
+                      reason:
+                        description: The reason for the condition's last transition.
+                        type: string
+                      status:
+                        description: Status of the condition, one of True, False, Unknown.
+                        type: string
+                      type:
+                        description: Type of deployment condition.
+                        type: string
+                clusterStatuses:
+                  type: array
+                  description: The list of cluster statuses.
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: The name of the cluster.
+                      pendingRestart:
+                        type: boolean
+                        description: Indicates if the cluster requires restart
+                    required: ["name"]
+                toInstallPostgresExtensions:
+                  type: array
+                  description: The list of Postgres extensions to install
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: The name of the extension to install.
+                      publisher:
+                        type: string
+                        description: The id of the publisher of the extension to install.
+                      version:
+                        type: string
+                        description: The version of the extension to install.
+                      repository:
+                        type: string
+                        description: The repository base URL from where the extension will be installed from.
+                      postgresVersion:
+                        type: string
+                        description: The postgres major version of the extension to install.
+                      build:
+                        type: string
+                        description: The build version of the extension to install.
+                      extraMounts:
+                        type: array
+                        description: The extra mounts of the extension to install.
+                        items:
+                          type: string
+                          description: The extra mount of the installed extension.
+                    required: ["name", "publisher", "version", "repository", "postgresVersion"]
+

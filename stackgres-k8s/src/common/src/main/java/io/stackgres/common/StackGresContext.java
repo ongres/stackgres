@@ -38,6 +38,12 @@ public interface StackGresContext {
   String BACKUP_NAME_KEY = "backup-name";
   String BACKUP_UID_KEY = "backup-uid";
   String BACKUP_NAMESPACE_KEY = "backup-namespace";
+  String SHARDEDCLUSTER_APP_NAME = "StackGresShardedCluster";
+  String SHARDEDCLUSTER_NAME_KEY = "shardedcluster-name";
+  String SHARDEDCLUSTER_UID_KEY = "shardedcluster-uid";
+  String SHARDEDCLUSTER_NAMESPACE_KEY = "shardedcluster-namespace";
+  String COORDINATOR_KEY = "coordinator";
+  String SHARDS_KEY = "shards";
 
   String REST_APIUSER_KEY = "apiUsername";
   String REST_K8SUSER_KEY = "k8sUsername";

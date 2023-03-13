@@ -26,8 +26,8 @@ import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.DbOpsReview;
+import io.stackgres.operator.common.OperatorExtensionMetadataManager;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -52,7 +52,7 @@ class ExtensionsValidatorTest {
       StackGresComponent.POSTGRESQL.getLatest().streamOrderedBuildVersions().findFirst().get();
 
   @Mock
-  ClusterExtensionMetadataManager extensionMetadataManager;
+  OperatorExtensionMetadataManager extensionMetadataManager;
   @Mock
   CustomResourceFinder<StackGresCluster> clusterFinder;
   StackGresCluster cluster;

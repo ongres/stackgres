@@ -12,7 +12,7 @@ import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator
 
 public interface DistributedLogsMutator extends JsonPatchMutator<StackGresDistributedLogsReview> {
 
-  default JsonPointer getTargetPointer(String field) throws NoSuchFieldException {
+  default JsonPointer getTargetPointer(String field) {
     String jsonField = getJsonMappingField(field, StackGresDistributedLogsSpec.class);
     return SPEC_POINTER.append(jsonField);
   }

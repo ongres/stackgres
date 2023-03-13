@@ -33,7 +33,6 @@ import io.fabric8.kubernetes.api.model.TopologySpreadConstraintBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
-import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresInitContainer;
@@ -45,6 +44,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.InitContainerFactoryDiscover;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -54,7 +54,7 @@ import io.stackgres.operator.conciliation.factory.ImmutablePodTemplateResult;
 import io.stackgres.operator.conciliation.factory.PodTemplateFactory;
 import io.stackgres.operator.conciliation.factory.PodTemplateResult;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniRoleGenerator;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniRole;
 import org.jooq.lambda.Seq;
 
 @Singleton
@@ -146,14 +146,14 @@ public class ClusterPodTemplateSpecFactory
             .build())
         .withNewSpec()
         .withShareProcessNamespace(Boolean.TRUE)
-        .withServiceAccountName(PatroniRoleGenerator.roleName(context.getClusterContext()))
+        .withServiceAccountName(PatroniRole.roleName(context.getClusterContext()))
         .withSecurityContext(podSecurityContext.createResource(context.getClusterContext()))
         .withVolumes(volumes)
         .withContainers(containers)
         .withInitContainers(initContainers)
         .withTerminationGracePeriodSeconds(60L)
         .withShareProcessNamespace(Boolean.TRUE)
-        .withServiceAccountName(PatroniRoleGenerator.roleName(context.getClusterContext()))
+        .withServiceAccountName(PatroniRole.roleName(context.getClusterContext()))
         .withSecurityContext(podSecurityContext.createResource(context.getClusterContext()))
         .withNodeSelector(Optional.ofNullable(cluster.getSpec())
             .map(StackGresClusterSpec::getPod)

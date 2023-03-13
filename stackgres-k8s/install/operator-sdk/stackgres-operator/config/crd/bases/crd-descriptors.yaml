@@ -43,6 +43,11 @@
   version: v1
   displayName: StackGres Distributed Logs
   description: Multi-tenant logs server, to aggregate Postgres logs. Fully managed
+- kind: SGShardedCluster
+  name: sgshardedclusters.stackgres.io
+  version: v1alpha1
+  displayName: StackGres Sharded Cluster
+  description: Manages Postgres sharded clusters (two or more SGClusters)
 - kind: SGConfig
   name: sgconfigs.stackgres.io
   version: v1

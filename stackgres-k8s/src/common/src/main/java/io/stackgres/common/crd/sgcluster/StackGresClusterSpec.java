@@ -12,7 +12,6 @@ import java.util.Optional;
 import javax.validation.Valid;
 import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -32,16 +31,13 @@ import io.sundr.builder.annotations.Buildable;
 public class StackGresClusterSpec {
 
   @JsonProperty("postgres")
-  @NotNull(message = "postgres section is required")
   @Valid
   private StackGresClusterPostgres postgres;
 
   @JsonProperty("instances")
-  @Positive(message = "You need at least 1 instance in the cluster")
   private int instances;
 
   @JsonProperty("replication")
-  @NotNull(message = "replication section is required")
   @Valid
   private StackGresClusterReplication replication;
 
@@ -94,8 +90,33 @@ public class StackGresClusterSpec {
   @Valid
   private StackGresClusterSpecMetadata metadata;
 
+  @ReferencedField("postgres")
+  interface Postgres extends FieldReference { }
+
+  @ReferencedField("replication")
+  interface Replication extends FieldReference { }
+
   @ReferencedField("instances")
   interface Instances extends FieldReference { }
+
+  @JsonIgnore
+  @AssertTrue(message = "postgres section is required", payload = { Postgres.class })
+  public boolean isPosgresSectionPresent() {
+    return postgres != null;
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "You need at least 1 instance in the cluster",
+      payload = { Instances.class })
+  public boolean isInstancesPositive() {
+    return instances > 0;
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "replication section is required", payload = { Replication.class })
+  public boolean isReplicationSectionPresent() {
+    return replication != null;
+  }
 
   @JsonIgnore
   @AssertTrue(message = "The total number of instances must be greather than the number of"

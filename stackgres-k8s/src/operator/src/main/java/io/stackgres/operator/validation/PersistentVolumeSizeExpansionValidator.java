@@ -8,13 +8,12 @@ package io.stackgres.operator.validation;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
@@ -23,7 +22,7 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 public abstract class PersistentVolumeSizeExpansionValidator<T extends AdmissionReview<R>,
-    R extends CustomResource<?, ?>> implements Validator<T> {
+    R extends CustomResource<?, ?>, S extends CustomResource<?, ?>> implements Validator<T> {
 
   @Override
   public void validate(T review) throws ValidationFailed {
@@ -92,7 +91,7 @@ public abstract class PersistentVolumeSizeExpansionValidator<T extends Admission
    *
    * @return a label factory for cluster.
    */
-  public abstract LabelFactoryForCluster<R> getLabelFactory();
+  public abstract LabelFactoryForCluster<S> getLabelFactory();
 
   /**
    * Looks for a PersistentVolumeClaim scanner.
@@ -129,22 +128,27 @@ public abstract class PersistentVolumeSizeExpansionValidator<T extends Admission
            * If we are here, is because there is no storage class configured,
            * therefore we have to look for the cluster PVCs
            */
-          final R cluster = review.getRequest().getObject();
-          String clusterNamespace = cluster.getMetadata().getNamespace();
-          Map<String, String> clusterLabels = getLabelFactory().clusterLabels(cluster);
-          List<PersistentVolumeClaim> pvcs = getPvcScanner()
-              .findByLabelsAndNamespace(clusterNamespace, clusterLabels);
-          return pvcs.stream()
-              .map(pvc -> pvc.getSpec().getStorageClassName())
-              .distinct()
-              // Since is very likely that all the storage classes
-              // are the same we should look only for the different ones to avoid unneeded requests
-              .map(getStorageClassFinder()::findByName)
-              .filter(Optional::isPresent)
-              .map(Optional::get)
-              .collect(Collectors.toUnmodifiableList());
+          final List<S> clusters = getClusters(review.getRequest().getObject());
+          return clusters.stream()
+              .flatMap(cluster -> {
+                String clusterNamespace = cluster.getMetadata().getNamespace();
+                Map<String, String> clusterLabels = getLabelFactory().clusterLabels(cluster);
+                List<PersistentVolumeClaim> pvcs = getPvcScanner()
+                    .findByLabelsAndNamespace(clusterNamespace, clusterLabels);
+                return pvcs.stream()
+                    .map(pvc -> pvc.getSpec().getStorageClassName())
+                    .distinct()
+                    // Since is very likely that all the storage classes are the same
+                    // we should look only for the different ones to avoid unneeded requests
+                    .map(getStorageClassFinder()::findByName)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get);
+              })
+              .toList();
         });
   }
+
+  protected abstract List<S> getClusters(R resource);
 
   /**
    * Checks if a storage class allows volume expansion.

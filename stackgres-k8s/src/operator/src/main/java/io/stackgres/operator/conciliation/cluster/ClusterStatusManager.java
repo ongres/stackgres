@@ -23,14 +23,14 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.ClusterPendingRestartUtil;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
-import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
+import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
 import org.slf4j.Logger;
@@ -38,8 +38,8 @@ import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class ClusterStatusManager
-    extends ConditionUpdater<StackGresCluster, StackGresClusterCondition>
-    implements StatusManager<StackGresCluster, StackGresClusterCondition> {
+    extends ConditionUpdater<StackGresCluster, Condition>
+    implements StatusManager<StackGresCluster, Condition> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ClusterStatusManager.class);
 
@@ -153,7 +153,7 @@ public class ClusterStatusManager
   }
 
   @Override
-  protected List<StackGresClusterCondition> getConditions(
+  protected List<Condition> getConditions(
       StackGresCluster source) {
     return Optional.ofNullable(source.getStatus())
         .map(StackGresClusterStatus::getConditions)
@@ -161,27 +161,28 @@ public class ClusterStatusManager
   }
 
   @Override
-  protected void setConditions(StackGresCluster source,
-                               List<StackGresClusterCondition> conditions) {
+  protected void setConditions(
+      StackGresCluster source,
+      List<Condition> conditions) {
     if (source.getStatus() == null) {
       source.setStatus(new StackGresClusterStatus());
     }
     source.getStatus().setConditions(conditions);
   }
 
-  protected StackGresClusterCondition getFalsePendingRestart() {
+  protected Condition getFalsePendingRestart() {
     return ClusterStatusCondition.FALSE_PENDING_RESTART.getCondition();
   }
 
-  protected StackGresClusterCondition getPodRequiresRestart() {
+  protected Condition getPodRequiresRestart() {
     return ClusterStatusCondition.POD_REQUIRES_RESTART.getCondition();
   }
 
-  protected StackGresClusterCondition getFalsePendingUpgrade() {
+  protected Condition getFalsePendingUpgrade() {
     return ClusterStatusCondition.FALSE_PENDING_UPGRADE.getCondition();
   }
 
-  protected StackGresClusterCondition getClusterRequiresUpgrade() {
+  protected Condition getClusterRequiresUpgrade() {
     return ClusterStatusCondition.CLUSTER_REQUIRES_UPGRADE.getCondition();
   }
 }

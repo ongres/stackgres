@@ -15,9 +15,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.apiweb.dto.extension.Extension;
 import io.stackgres.apiweb.dto.extension.ExtensionPublisher;
 import io.stackgres.apiweb.dto.extension.ExtensionsDto;
-import io.stackgres.apiweb.rest.ClusterExtensionMetadataManager;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
+import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.extension.StackGresExtension;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.common.extension.StackGresExtensionPublisher;
@@ -28,15 +28,15 @@ import org.jooq.lambda.tuple.Tuple2;
 @ApplicationScoped
 public class ExtensionsTransformer {
 
-  private final ClusterExtensionMetadataManager clusterExtensionMetadataManager;
+  private final ExtensionMetadataManager extensionMetadataManager;
 
   private final ObjectMapper mapper;
 
   @Inject
-  public ExtensionsTransformer(ClusterExtensionMetadataManager clusterExtensionMetadataManager,
+  public ExtensionsTransformer(ExtensionMetadataManager extensionMetadataManager,
                                ObjectMapper mapper) {
     super();
-    this.clusterExtensionMetadataManager = clusterExtensionMetadataManager;
+    this.extensionMetadataManager = extensionMetadataManager;
     this.mapper = mapper;
   }
 
@@ -70,7 +70,7 @@ public class ExtensionsTransformer {
     extension.setName(source.getName());
     extension.setRepository(source.getRepository());
     transformation.setVersions(
-        Seq.seq(clusterExtensionMetadataManager.getExtensionsAnyVersion(cluster, extension, false))
+        Seq.seq(extensionMetadataManager.getExtensionsAnyVersion(cluster, extension, false))
             .map(StackGresExtensionMetadata::getVersion)
             .map(StackGresExtensionVersion::getVersion)
             .grouped(Function.identity())

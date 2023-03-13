@@ -39,7 +39,7 @@ spec:
 
                     A Distributed Logs cluster may store logs for zero or more SGClusters.
 
-                    The name must be unique across all Distributed Logs and StackGres clusters in the same namespace. The full cluster name includes the namespace in which the cluster is created.
+                    The name must be unique across all SGCluster, SGShardedCluster and SGDistributedLogs in the same namespace.
             spec:
               type: object
               properties:

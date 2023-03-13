@@ -79,6 +79,15 @@ public class StatefulSetComparator extends AbstractComparator {
           .compile("/spec/template/spec/containers/\\d+/volumeMounts/\\d+/readOnly"),
           "remove"),
       new PatchPattern(Pattern
+          .compile("/spec/template/spec/initContainers/\\d+/volumeMounts/\\d+/readOnly"),
+          "remove"),
+      new PatchPattern(Pattern
+          .compile("/spec/template/spec/containers/\\d+/readinessProbe/initialDelaySeconds"),
+          "remove"),
+      new PatchPattern(Pattern
+          .compile("/spec/template/spec/initContainers/\\d+/readinessProbe/initialDelaySeconds"),
+          "remove"),
+      new PatchPattern(Pattern
           .compile("/spec/template/spec/volumes/\\d+/configMap/defaultMode"),
           "add",
           "420"),

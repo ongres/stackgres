@@ -12,11 +12,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.ReconciliationScope;
-import io.stackgres.operator.conciliation.comparator.EndpointsComparator;
+import io.stackgres.operator.conciliation.comparator.PatroniEndpointsComparator;
 
 @ReconciliationScope(value = StackGresCluster.class, kind = "Endpoints")
 @ApplicationScoped
-public class ClusterEndpointsComparator extends EndpointsComparator {
+public class ClusterEndpointsComparator extends PatroniEndpointsComparator {
 
   @Inject
   protected ClusterEndpointsComparator(ObjectMapper objectMapper) {

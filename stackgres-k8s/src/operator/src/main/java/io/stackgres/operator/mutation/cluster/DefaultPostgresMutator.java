@@ -7,7 +7,6 @@ package io.stackgres.operator.mutation.cluster;
 
 import java.util.List;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 import com.github.fge.jackson.jsonpointer.JsonPointer;
@@ -19,10 +18,12 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
+import io.stackgres.operator.mutation.AbstractDefaultResourceMutator;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 public class DefaultPostgresMutator
-    extends AbstractDefaultResourceMutator<StackGresPostgresConfig>
+    extends AbstractDefaultResourceMutator<StackGresPostgresConfig, StackGresCluster,
+        StackGresClusterReview>
     implements ClusterConfigurationMutator {
 
   @Inject
@@ -31,12 +32,6 @@ public class DefaultPostgresMutator
       CustomResourceFinder<StackGresPostgresConfig> finder,
       CustomResourceScheduler<StackGresPostgresConfig> scheduler) {
     super(resourceFactory, finder, scheduler);
-  }
-
-  @PostConstruct
-  @Override
-  public void init() {
-    super.init();
   }
 
   @Override
@@ -58,11 +53,6 @@ public class DefaultPostgresMutator
 
   @Override
   public JsonPointer getTargetPointer() {
-    return getTargetPointer("postgresConfig");
-  }
-
-  @Override
-  public JsonPointer getTargetPointer(String field) {
-    return getConfigurationTargetPointer(field);
+    return getConfigurationTargetPointer("postgresConfig");
   }
 }

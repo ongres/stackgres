@@ -44,6 +44,7 @@ import io.stackgres.common.component.Component;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -323,6 +324,22 @@ public interface StackGresUtil {
         .toList();
   }
 
+  static List<Tuple2<String, Optional<String>>> getDefaultShardedClusterExtensions(
+      StackGresCluster cluster) {
+    String pgVersion = cluster.getSpec().getPostgres().getVersion();
+
+    return getDefaultShardedClusterExtensions(
+        pgVersion,
+        StackGresVersion.getStackGresVersion(cluster));
+  }
+
+  static List<Tuple2<String, Optional<String>>> getDefaultShardedClusterExtensions(
+      String pgVersion, StackGresVersion stackGresVersion) {
+    return List.of(
+        Tuple.tuple("citus", Optional.of("11.2-1")),
+        Tuple.tuple("citus_columnar", Optional.of("11.2-1")));
+  }
+
   static List<Tuple2<String, Optional<String>>> getDefaultDistributedLogsExtensions(
       StackGresCluster cluster) {
     String pgVersion = cluster.getSpec().getPostgres().getVersion();
@@ -412,6 +429,10 @@ public interface StackGresUtil {
     return getPostgresFlavorComponent(cluster.getSpec().getPostgres().getFlavor());
   }
 
+  static @NotNull StackGresComponent getPostgresFlavorComponent(StackGresShardedCluster cluster) {
+    return getPostgresFlavorComponent(cluster.getSpec().getPostgres().getFlavor());
+  }
+
   static @NotNull StackGresComponent getPostgresFlavorComponent(@Nullable String flavor) {
     final StackGresPostgresFlavor postgresFlavor = getPostgresFlavor(flavor);
     return switch (postgresFlavor) {
@@ -422,6 +443,10 @@ public interface StackGresUtil {
   }
 
   static StackGresPostgresFlavor getPostgresFlavor(@NotNull StackGresCluster cluster) {
+    return getPostgresFlavor(cluster.getSpec().getPostgres().getFlavor());
+  }
+
+  static StackGresPostgresFlavor getPostgresFlavor(@NotNull StackGresShardedCluster cluster) {
     return getPostgresFlavor(cluster.getSpec().getPostgres().getFlavor());
   }
 

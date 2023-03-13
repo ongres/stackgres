@@ -14,9 +14,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutatorUtil;
 
-public interface ClusterConfigurationMutator extends JsonPatchMutatorUtil {
+public interface ClusterConfigurationMutator extends ClusterMutator {
 
   default JsonPointer getConfigurationTargetPointer(String field) {
     String jsonField =

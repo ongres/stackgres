@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.Condition;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.sundr.builder.annotations.Buildable;
@@ -33,7 +34,7 @@ public class StackGresDbOpsStatus {
   @JsonProperty("conditions")
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @Valid
-  private List<StackGresDbOpsCondition> conditions = new ArrayList<>();
+  private List<Condition> conditions = new ArrayList<>();
 
   @JsonProperty("opRetries")
   private Integer opRetries;
@@ -73,11 +74,11 @@ public class StackGresDbOpsStatus {
     }
   }
 
-  public List<StackGresDbOpsCondition> getConditions() {
+  public List<Condition> getConditions() {
     return conditions;
   }
 
-  public void setConditions(List<StackGresDbOpsCondition> conditions) {
+  public void setConditions(List<Condition> conditions) {
     this.conditions = conditions;
   }
 

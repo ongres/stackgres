@@ -7,6 +7,8 @@ package io.stackgres.common.crd.sgdbops;
 
 import java.util.Objects;
 
+import io.stackgres.common.crd.Condition;
+
 public enum DbOpsStatusCondition {
 
   DB_OPS_FALSE_RUNNING(Type.RUNNING, Status.FALSE, "OperationNotRunning"),
@@ -28,18 +30,17 @@ public enum DbOpsStatusCondition {
     this.reason = reason;
   }
 
-  public StackGresDbOpsCondition getCondition() {
-    return new StackGresDbOpsCondition(type, status, reason);
+  public Condition getCondition() {
+    return new Condition(type, status, reason);
   }
 
-  public boolean isCondition(StackGresDbOpsCondition condition) {
+  public boolean isCondition(Condition condition) {
     return Objects.equals(condition.getType(), type)
         && Objects.equals(condition.getStatus(), status)
         && Objects.equals(condition.getReason(), reason);
   }
 
   public enum Type {
-
     RUNNING("Running"),
     FAILED("Failed"),
     COMPLETED("Completed");
@@ -54,13 +55,12 @@ public enum DbOpsStatusCondition {
       return type;
     }
 
-    public boolean isCondition(StackGresDbOpsCondition condition) {
+    public boolean isCondition(Condition condition) {
       return Objects.equals(condition.getType(), type);
     }
   }
 
   public enum Status {
-
     TRUE("True"),
     FALSE("False"),
     UNKNOWN("Unknown");
@@ -75,7 +75,7 @@ public enum DbOpsStatusCondition {
       return status;
     }
 
-    public boolean isCondition(StackGresDbOpsCondition condition) {
+    public boolean isCondition(Condition condition) {
       return Objects.equals(condition.getStatus(), status);
     }
   }

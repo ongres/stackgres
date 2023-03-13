@@ -17,8 +17,8 @@ import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsCondition;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsDto;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsSpec;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsStatus;
+import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 
@@ -78,7 +78,7 @@ public class DistributedLogsTransformer
       return transformation;
     }
 
-    final List<StackGresDistributedLogsCondition> sourceConditions = source.getConditions();
+    final List<Condition> sourceConditions = source.getConditions();
 
     if (sourceConditions != null) {
       transformation.setConditions(sourceConditions.stream()
@@ -89,8 +89,7 @@ public class DistributedLogsTransformer
     return transformation;
   }
 
-  private DistributedLogsCondition getResourceCondition(
-      StackGresDistributedLogsCondition source) {
+  private DistributedLogsCondition getResourceCondition(Condition source) {
     return mapper.convertValue(source, DistributedLogsCondition.class);
   }
 

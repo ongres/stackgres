@@ -1,4 +1,4 @@
-{{ if .Values.cluster.create }}
+{{ if and (eq .Values.kind "SGCluster") .Values.cluster.create }}
 apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:

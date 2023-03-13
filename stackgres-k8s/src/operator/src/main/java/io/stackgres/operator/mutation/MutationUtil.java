@@ -18,5 +18,6 @@ public interface MutationUtil {
   String DBOPS_MUTATION_PATH = MUTATION_PATH + "/sgdbops";
   String OBJECT_STORAGE_MUTATION_PATH = MUTATION_PATH + "/sgobjectstorage";
   String SCRIPT_MUTATION_PATH = MUTATION_PATH + "/sgscript";
+  String SHARDED_CLUSTER_MUTATION_PATH = MUTATION_PATH + "/sgshardedcluster";
 
 }

@@ -282,10 +282,9 @@ spec() {
       cleanup_spec || true
     fi
     return "$EXIT_CODE"
-  else
-    echo "$SPEC_FILE" > "$TARGET_PATH/$SPEC_NAME.completed"
-    echo "$SPEC_FILE" > "$TARGET_PATH/$SPEC_NAME.success"
   fi
+  echo "$SPEC_FILE" > "$TARGET_PATH/$SPEC_NAME.completed"
+  echo "$SPEC_FILE" > "$TARGET_PATH/$SPEC_NAME.success"
   store_test_result "$SPEC_NAME"
   echo "$SPEC_NAME. SUCCESS. Test took $SPEC_TIME seconds" >> "$TARGET_PATH/logs"/results.log
 }
@@ -506,6 +505,7 @@ store_test_results() {
     && [ -n "$E2E_TEST_REGISTRY_PATH" ] \
     && true || false
 
+  run_as_root_on_host chown "$(id -u)":"$(id -g)" "$(pwd)" -R
   cat << EOF > "$TARGET_PATH/Dockerfile.e2e"
 FROM registry.access.redhat.com/ubi8-micro:8.7-6
   COPY . /project
@@ -545,6 +545,7 @@ store_test_result() {
     && [ -n "$E2E_TEST_REGISTRY_PATH" ] \
     && true || false
 
+  run_as_root_on_host chown "$(id -u)":"$(id -g)" "$(pwd)" -R
   cat << EOF > "$TARGET_PATH/Dockerfile.e2e.$SPEC_NAME"
 FROM registry.access.redhat.com/ubi8-micro:8.7-6
   COPY . /project

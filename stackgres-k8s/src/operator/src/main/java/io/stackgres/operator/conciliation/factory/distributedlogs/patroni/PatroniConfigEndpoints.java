@@ -15,11 +15,11 @@ import javax.inject.Singleton;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -93,7 +93,7 @@ public class PatroniConfigEndpoints
   }
 
   private String configName(StackGresDistributedLogsContext context) {
-    final String scope = PatroniConfigMap.clusterScope(context.getSource());
+    final String scope = PatroniUtil.clusterScope(context.getSource());
     return ResourceUtil.nameIsValidDnsSubdomain(scope + PatroniUtil.CONFIG_SERVICE);
   }
 

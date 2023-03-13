@@ -29,7 +29,7 @@ spec:
       - name: Disk
         type: string
         jsonPath: .spec.pods.persistentVolume.size
-      - name: prometheus-Autobind
+      - name: prometheus-autobind
         type: string
         jsonPath: .spec.prometheusAutobind
         priority: 1
@@ -56,7 +56,7 @@ spec:
                   description: |
                     Name of the StackGres cluster. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with a maximum length of 63 characters, with the `-` character allowed anywhere except the first or last character.
 
-                    The name must be unique across all StackGres clusters in the same namespace. The full cluster name includes the namespace in which the cluster is created.
+                    The name must be unique across all SGCluster, SGShardedCluster and SGDistributedLogs in the same namespace.
             spec:
               type: object
               properties:

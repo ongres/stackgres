@@ -1,0 +1,147 @@
+{
+  "kind": "AdmissionReview",
+  "request": {
+    "uid": "e1bf674a-f85f-4305-ba25-271aba55e9b3",
+    "kind": {
+      "kind": "SGShardedCluster",
+      "group": "stackgres.io",
+      "version": "v1alpha1"
+    },
+    "resource": {
+      "group": "stackgres.io",
+      "resource": "sgshardedclusters",
+      "version": "v1alpha1"
+    },
+    "subResource": null,
+    "requestKind": {
+      "kind": "SGShardedCluster",
+      "group": "stackgres.io",
+      "version": "v1alpha1"
+    },
+    "requestResource": {
+      "group": "stackgres.io",
+      "resource": "sgshardedclusters",
+      "version": "v1alpha1"
+    },
+    "requestSubResource": null,
+    "name": null,
+    "namespace": "default",
+    "operation": "UPDATE",
+    "userInfo": {
+      "groups": [
+        "system:serviceaccounts",
+        "system:serviceaccounts:kube-system",
+        "system:authenticated"
+      ],
+      "uid": "516bc998-9eca-4176-945e-61c53c0fce28",
+      "username": "system:serviceaccount:kube-system:tiller"
+    },
+    "object": {
+      "kind": "SGShardedCluster",
+      "apiVersion": "stackgres.io/v1alpha1",
+      "metadata": {
+        "creationTimestamp": "2019-09-27T09:09:34Z",
+        "generation": 1,
+        "name": "stackgres",
+        "namespace": "default",
+        "uid": "6fe0edf5-8a6d-43b7-99bd-131e2efeab66"
+      },
+      "spec": {
+        "type": "citus",
+        "database": "citus",
+        "postgres": {
+          "version": "13.4"
+        },
+        "coordinator": {
+          "instances": 1,
+          "sgInstanceProfile": "size-xs",
+          "configurations": {
+            "sgPostgresConfig": "postgresconf",
+            "sgPoolingConfig": "pgbouncerconf"
+          },
+          "pods":{
+            "persistentVolume": {
+              "size": "5Gi",
+              "storageClass": "standard"
+            }
+          }
+        },
+        "shards": {
+          "clusters": 2,
+          "instancesPerCluster": 1,
+          "sgInstanceProfile": "size-xs",
+          "configurations": {
+            "sgPostgresConfig": "postgresconf",
+            "sgPoolingConfig": "pgbouncerconf"
+          },
+          "pods":{
+            "persistentVolume": {
+              "size": "5Gi",
+              "storageClass": "standard"
+            }
+          }
+        },
+        "prometheusAutobind": "true"
+      },
+      "status": null
+    },
+    "oldObject": {
+      "kind": "SGShardedCluster",
+      "apiVersion": "stackgres.io/v1alpha1",
+      "metadata": {
+        "creationTimestamp": "2019-09-27T09:09:34Z",
+        "generation": 1,
+        "name": "stackgres",
+        "namespace": "default",
+        "uid": "6fe0edf5-8a6d-43b7-99bd-131e2efeab66"
+      },
+      "spec": {
+        "type": "citus",
+        "database": "citus",
+        "postgres": {
+          "version": "13.4"
+        },
+        "coordinator": {
+          "instances": 1,
+          "sgInstanceProfile": "size-xs",
+          "configurations": {
+            "sgPostgresConfig": "oldpostgresconf",
+            "sgPoolingConfig": "pgbouncerconf"
+          },
+          "pods":{
+            "persistentVolume": {
+              "size": "5Gi",
+              "storageClass": "standard"
+            }
+          }
+        },
+        "shards": {
+          "clusters": 2,
+          "instancesPerCluster": 1,
+          "sgInstanceProfile": "size-xs",
+          "configurations": {
+            "sgPostgresConfig": "postgresconf",
+            "sgPoolingConfig": "pgbouncerconf"
+          },
+          "pods":{
+            "persistentVolume": {
+              "size": "5Gi",
+              "storageClass": "standard"
+            }
+          }
+        },
+        "prometheusAutobind": "true"
+      },
+      "status": null
+    },
+    "options": {
+      "kind": "CreateOptions",
+      "apiVersion": "meta.k8s.io/v1",
+      "metadata": {},
+      "spec": null,
+      "status": null
+    },
+    "dryRun": false
+  },
+  "apiVersion": "admission.k8s.io/v1"
+}

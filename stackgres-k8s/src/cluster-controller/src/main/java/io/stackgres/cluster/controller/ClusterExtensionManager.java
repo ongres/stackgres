@@ -11,15 +11,16 @@ import javax.inject.Inject;
 import io.stackgres.common.FileSystemHandler;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.extension.ExtensionManager;
+import io.stackgres.common.extension.ExtensionMetadataManager;
 
 @ApplicationScoped
 public class ClusterExtensionManager extends ExtensionManager {
 
   @Inject
   public ClusterExtensionManager(
-      ClusterExtensionMetadataManager clusterExtensionMetadataManager) {
+      ExtensionMetadataManager extensionMetadataManager) {
     super(
-        clusterExtensionMetadataManager,
+        extensionMetadataManager,
         new WebClientFactory(), new FileSystemHandler());
   }
 

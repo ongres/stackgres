@@ -14,6 +14,7 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.testutil.SetterGetterTestCase;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -30,7 +31,8 @@ class CrdSetterGetterTest extends SetterGetterTestCase {
       StackGresObjectStorage.class,
       StackGresDbOps.class,
       StackGresDistributedLogs.class,
-      StackGresScript.class
+      StackGresScript.class,
+      StackGresShardedCluster.class,
   })
   @Override
   protected void assertSettersAndGetters(Class<?> sourceClazz) {

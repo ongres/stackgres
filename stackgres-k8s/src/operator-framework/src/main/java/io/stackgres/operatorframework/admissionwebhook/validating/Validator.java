@@ -72,9 +72,12 @@ public interface Validator<T extends AdmissionReview<?>> {
   /**
    * Check value exists and is not empty.
    */
-  default void checkIfProvided(String value, @NotNull String field) throws ValidationFailed {
+  default void checkIfProvided(String value, @NotNull String field, String...messageSuffixes)
+      throws ValidationFailed {
     if (value == null || value.isEmpty()) {
-      throw new ValidationFailed(field + " must be provided");
+      throw new ValidationFailed(field + " must be provided"
+          + (messageSuffixes.length == 0 ? ""
+              : " " + Arrays.asList(messageSuffixes).stream().collect(Collectors.joining(" "))));
     }
   }
 

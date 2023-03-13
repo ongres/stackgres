@@ -19,6 +19,7 @@ import io.stackgres.apiweb.transformer.ExtensionsTransformer;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -29,14 +30,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 @Authenticated
 public class ExtensionsResource {
 
-  private final ClusterExtensionMetadataManager clusterExtensionMetadataManager;
+  private final ExtensionMetadataManager extensionMetadataManager;
   private final ExtensionsTransformer extensionsTransformer;
 
   @Inject
   public ExtensionsResource(
-      ClusterExtensionMetadataManager clusterExtensionMetadataManager,
+      ExtensionMetadataManager extensionMetadataManager,
       ExtensionsTransformer extensionsTransformer) {
-    this.clusterExtensionMetadataManager = clusterExtensionMetadataManager;
+    this.extensionMetadataManager = extensionMetadataManager;
     this.extensionsTransformer = extensionsTransformer;
   }
 
@@ -62,7 +63,7 @@ public class ExtensionsResource {
     cluster.getSpec().setPostgres(new StackGresClusterPostgres());
     cluster.getSpec().getPostgres().setVersion(postgresVersion);
     cluster.getSpec().getPostgres().setFlavor(flavor);
-    var extensionMetadataList = clusterExtensionMetadataManager.getExtensions();
+    var extensionMetadataList = extensionMetadataManager.getExtensions();
     return extensionsTransformer.toDto(extensionMetadataList, cluster);
   }
 

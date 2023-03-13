@@ -10,10 +10,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
-import io.stackgres.common.LabelFactoryForCluster;
-import io.stackgres.common.LabelMapperForCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.common.labels.LabelMapperForCluster;
 import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.InitContainerFactoryDiscover;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;

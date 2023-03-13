@@ -20,8 +20,8 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.labels.LabelFactoryForDbOps;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
 import io.stackgres.operator.conciliation.ReconciliationOperations;
 

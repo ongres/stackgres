@@ -24,6 +24,7 @@ import io.stackgres.common.CdiUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
+import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
@@ -113,33 +114,20 @@ public class ClusterEndpointsReconciliationHandler
 
   private String mergeConfig(HasMetadata foundResource, HasMetadata resource) {
     try {
-      JsonNode foundConfig = objectMapper.readTree(Optional
+      String foundConfigString = Optional
           .ofNullable(foundResource.getMetadata().getAnnotations())
           .map(map -> map.get(PatroniUtil.CONFIG_KEY))
-          .orElse("{}"));
+          .orElse("{}");
+      ObjectNode foundConfig = (ObjectNode) objectMapper.readTree(foundConfigString);
+      JsonNode previousConfig = objectMapper.valueToTree(
+          objectMapper.readValue(foundConfigString, PatroniConfig.class));
+      previousConfig.fieldNames().forEachRemaining(foundConfig::remove);
       JsonNode updatedConfig = objectMapper.readerForUpdating(foundConfig)
           .readTree(resource.getMetadata().getAnnotations().get(PatroniUtil.CONFIG_KEY));
       return updatedConfig.toString();
     } catch (JsonProcessingException ex) {
       throw new RuntimeException(ex);
     }
-  }
-
-  private JsonNode deepMerge(JsonNode required, JsonNode deployed) {
-    if (required instanceof ObjectNode requiredObject
-        && deployed instanceof ObjectNode deployedObject) {
-      return objectDeepMerge(requiredObject, deployedObject);
-    }
-
-    return required;
-  }
-
-  private ObjectNode objectDeepMerge(ObjectNode required, ObjectNode deployed) {
-    Seq.seq(deployed.fields()).toList().stream()
-        .filter(e -> !required.has(e.getKey()))
-        .forEach(e -> required
-            .set(e.getKey(), deepMerge(required.get(e.getKey()), e.getValue())));
-    return required;
   }
 
 }
