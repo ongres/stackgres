@@ -192,7 +192,7 @@ cli() {
       ;;
       ('--debug')
       cli_set_parameter_boolean "$@"
-      shift "$(cli_get_parameter_shifts "$@")"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       if "$VALUE"
       then
         set -x
@@ -201,7 +201,7 @@ cli() {
       ;;
       ('--use-cache')
       cli_set_parameter_boolean "$@"
-      shift "$(cli_get_parameter_shifts "$@")"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       E2E_USE_TEST_CACHE="$VALUE"
       ;;
       ('--env')
@@ -211,7 +211,7 @@ cli() {
       ;;
       ('--reset-env')
       cli_set_parameter_boolean_negation "$@"
-      shift "$(cli_get_parameter_shifts "$@")"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       K8S_REUSE="$VALUE"
       ;;
       ('--retry')
@@ -226,7 +226,7 @@ cli() {
       ;;
       ('--native-image-tag')
       cli_set_parameter_boolean "$@"
-      shift "$(cli_get_parameter_shifts "$@")"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       if "$VALUE"
       then
         IMAGE_TAG="${IMAGE_TAG%-jvm}"
@@ -244,7 +244,7 @@ cli() {
       ;;
       ('--reuse-operator')
       cli_set_parameter_boolean "$@"
-      shift "$(cli_get_parameter_shifts "$@")"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       E2E_REUSE_OPERATOR_PODS="$VALUE"
       if [ "$E2E_REUSE_OPERATOR_PODS" ]
       then
@@ -253,12 +253,12 @@ cli() {
       ;;
       ('--skip-operator-install')
       cli_set_parameter_boolean "$@"
-      shift "$(cli_get_parameter_shifts "$@")"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       E2E_SKIP_OPERATOR_INSTALL="$VALUE"
       ;;
       ('--skip-spec-uninstall')
       cli_set_parameter_boolean "$@"
-      shift "$(cli_get_parameter_shifts "$@")"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       E2E_SKIP_SPEC_UNINSTALL="$VALUE"
       ;;
       ('--pull-policy')
@@ -268,12 +268,12 @@ cli() {
       ;;
       ('--skip-load-operator')
       cli_set_parameter_boolean "$@"
-      shift "$(cli_get_parameter_shifts "$@")"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       E2E_SKIP_LOAD_OPERATOR="$VALUE"
       ;;
       ('--enable-image-cache')
       cli_set_parameter_boolean_negation "$@"
-      shift "$(cli_get_parameter_shifts "$@")"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       E2E_DISABLE_CACHE="$VALUE"
       ;;
       ('--images-map')
@@ -283,27 +283,27 @@ cli() {
       ;;
       ('--enable-k8s-logging')
       cli_set_parameter_boolean_negation "$@"
-      shift "$(cli_get_parameter_shifts "$@")"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       E2E_DISABLE_LOGS="$VALUE"
       ;;
       ('--enable-pods-logging')
       cli_set_parameter_boolean_negation "$@"
-      shift "$(cli_get_parameter_shifts "$@")"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       E2E_DISABLE_POD_LOGS="$VALUE"
       ;;
       ('--enable-resource-logging')
       cli_set_parameter_boolean_negation "$@"
-      shift "$(cli_get_parameter_shifts "$@")"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       E2E_DISABLE_RESOURCE_LOGS="$VALUE"
       ;;
       ('--load-components')
       cli_set_parameter_boolean_negation "$@"
-      shift "$(cli_get_parameter_shifts "$@")"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       E2E_SKIP_LOAD_COMPONENTS="$VALUE"
       ;;
       ('--load-extensions')
       cli_set_parameter_boolean_negation "$@"
-      shift "$(cli_get_parameter_shifts "$@")"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       E2E_SKIP_LOAD_EXTENSIONS="$VALUE"
       ;;
       ('--operator-public-registry')
@@ -348,12 +348,12 @@ cli() {
       ;;
       ('--enable-cluster-resource-requirements')
       cli_set_parameter_boolean_negation "$@"
-      shift "$(cli_get_parameter_shifts "$@")"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       E2E_DISABLE_RESOURCE_REQUIREMENTS="$VALUE"
       ;;
       ('--upgrade-from-previous-operator')
       cli_set_parameter_boolean_negation "$@"
-      shift "$(cli_get_parameter_shifts "$@")"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR="$VALUE"
       ;;
       ('--target-version')
@@ -373,7 +373,7 @@ cli() {
       ;;
       ('pull')
       cli_set_parameter_boolean "$@"
-      shift "$(cli_get_parameter_shifts "$@")"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       DO_PULL="$VALUE"
       if [ "$DO_PULL" = true ]
       then
@@ -383,7 +383,7 @@ cli() {
       ;;
       ('build')
       cli_set_parameter_boolean "$@"
-      shift "$(cli_get_parameter_shifts "$@")"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       DO_BUILD="$VALUE"
       if [ "$DO_BUILD" = true ]
       then
@@ -392,12 +392,12 @@ cli() {
       ;;
       ('push')
       cli_set_parameter_boolean "$@"
-      shift "$(cli_get_parameter_shifts "$@")"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       DO_PUSH="$VALUE"
       ;;
       ('test')
       cli_set_parameter_boolean "$@"
-      shift "$(cli_get_parameter_shifts "$@")"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       DO_TEST="$VALUE"
       ;;
       ('--')
@@ -577,7 +577,7 @@ cli_set_parameter_boolean_negation() {
   fi
 }
 
-cli_get_parameter_shifts() {
+cli_get_parameter_shifts_for_boolean() {
   if [ "${1%%=*}" = "$1" ]
   then
     printf 1
@@ -586,5 +586,17 @@ cli_get_parameter_shifts() {
     printf 1
   else
     printf 2
+  fi
+}
+
+cli_get_parameter_shifts() {
+  if [ "${1%%=*}" = "$1" ]
+  then
+    printf 2
+  elif [ "${1%-}" != "$1" ]
+  then
+    printf 1
+  else
+    printf 1
   fi
 }
