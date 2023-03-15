@@ -824,3 +824,8 @@ form .sectionTitle {
     display: block;
     margin-bottom: 20px;
 }
+
+.darkmode select.plain {
+    background-color: var(--activeBg);
+    color: #e3e3e3;
+}
