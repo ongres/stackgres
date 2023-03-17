@@ -177,8 +177,9 @@ describe('Create SGCluster', () => {
             .type('tls.key')
         
         // Test instances
-        cy.get('select[data-field="spec.instances"]')
-            .select('4')
+        cy.get('input[data-field="spec.instances"]')
+            .clear()
+            .type('4')    
         
         // Test Volume Size
         cy.get('input[data-field="spec.pods.persistentVolume.size"]')
@@ -793,9 +794,10 @@ describe('Create SGCluster', () => {
             .should('be.disabled')
 
         // Test instances
-        cy.get('select[data-field="spec.instances"]')
+        cy.get('input[data-field="spec.instances"]')
             .should('have.value', '4')
-            .select('5')
+            .clear()
+            .type('5')
         
         // Test Volume Size
         cy.get('input[data-field="spec.pods.persistentVolume.size"]')
