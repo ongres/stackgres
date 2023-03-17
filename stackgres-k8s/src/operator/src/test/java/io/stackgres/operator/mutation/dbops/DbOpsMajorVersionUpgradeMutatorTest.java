@@ -12,16 +12,10 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
-import com.github.fge.jsonpatch.JsonPatch;
-import com.github.fge.jsonpatch.JsonPatchException;
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
@@ -30,12 +24,12 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.DbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.opentest4j.AssertionFailedError;
 
 @ExtendWith(MockitoExtension.class)
 class DbOpsMajorVersionUpgradeMutatorTest {
@@ -58,9 +52,7 @@ class DbOpsMajorVersionUpgradeMutatorTest {
     cluster.getMetadata().setNamespace(
         review.getRequest().getObject().getMetadata().getNamespace());
 
-    mutator = new DbOpsMajorVersionUpgradeMutator();
-    mutator.init();
-    mutator.setBackupConfigFinder(clusterFinder);
+    mutator = new DbOpsMajorVersionUpgradeMutator(clusterFinder);
   }
 
   @Test
@@ -141,13 +133,6 @@ class DbOpsMajorVersionUpgradeMutatorTest {
   }
 
   private StackGresDbOps mutate(DbOpsReview review) {
-    try {
-      List<JsonPatchOperation> operations = mutator.mutate(review);
-      JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
-      JsonNode newConfig = new JsonPatch(operations).apply(crJson);
-      return JSON_MAPPER.treeToValue(newConfig, StackGresDbOps.class);
-    } catch (JsonPatchException | JsonProcessingException | IllegalArgumentException e) {
-      throw new AssertionFailedError(e.getMessage(), e);
-    }
+    return mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
   }
 }

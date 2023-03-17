@@ -14,18 +14,29 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.CdiUtil;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 
 @Path(MutationUtil.DISTRIBUTED_LOGS_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class DistributedLogsMutationResource
-    implements MutationResource<StackGresDistributedLogsReview> {
+    extends MutationResource<StackGresDistributedLogs, StackGresDistributedLogsReview> {
 
-  private JsonPatchMutationPipeline<StackGresDistributedLogsReview> pipeline;
+  @Inject
+  public DistributedLogsMutationResource(
+      MutationPipeline<StackGresDistributedLogs, StackGresDistributedLogsReview> pipeline) {
+    super(pipeline);
+  }
+
+  public DistributedLogsMutationResource() {
+    super(null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+  }
 
   void onStart(@Observes StartupEvent ev) {
     getLogger().info("Distributed logs mutation resource started");
@@ -34,11 +45,11 @@ public class DistributedLogsMutationResource
   @POST
   @Override
   public AdmissionReviewResponse mutate(StackGresDistributedLogsReview admissionReview) {
-    return mutate(admissionReview, pipeline);
+    return super.mutate(admissionReview);
   }
 
-  @Inject
-  public void setPipeline(JsonPatchMutationPipeline<StackGresDistributedLogsReview> pipeline) {
-    this.pipeline = pipeline;
+  @Override
+  protected Class<StackGresDistributedLogs> getResourceClass() {
+    return StackGresDistributedLogs.class;
   }
 }

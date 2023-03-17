@@ -11,22 +11,16 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import io.stackgres.operator.common.BackupConfigReview;
-import io.stackgres.operator.validation.SimpleValidationPipeline;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
+import io.stackgres.operator.validation.AbstractValidationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 @ApplicationScoped
-public class BackupConfigValidationPipeline implements ValidationPipeline<BackupConfigReview> {
-
-  private SimpleValidationPipeline<BackupConfigReview, BackupConfigValidator> pipeline;
-
-  @Override
-  public void validate(BackupConfigReview review) throws ValidationFailed {
-    pipeline.validate(review);
-  }
+public class BackupConfigValidationPipeline extends AbstractValidationPipeline<BackupConfigReview> {
 
   @Inject
-  public void setValidators(@Any Instance<BackupConfigValidator> validators) {
-    this.pipeline = new SimpleValidationPipeline<>(validators);
+  public BackupConfigValidationPipeline(
+      @Any Instance<Validator<BackupConfigReview>> validatorInstances) {
+    super(validatorInstances);
   }
+
 }

@@ -7,7 +7,6 @@ package io.stackgres.operator.mutation.shardedcluster;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -16,7 +15,6 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -31,19 +29,27 @@ import org.jooq.lambda.Unchecked;
 @ApplicationScoped
 public class DefaultCoordinatorPostgresDelegator implements ShardedClusterMutator {
 
-  @Inject
-  PostgresDefaultFactoriesProvider resourceFactoryProducer;
+  private final PostgresDefaultFactoriesProvider resourceFactoryProducer;
+
+  private final CustomResourceFinder<StackGresPostgresConfig> finder;
+
+  private final CustomResourceScheduler<StackGresPostgresConfig> scheduler;
 
   @Inject
-  CustomResourceFinder<StackGresPostgresConfig> finder;
-
-  @Inject
-  CustomResourceScheduler<StackGresPostgresConfig> scheduler;
+  public DefaultCoordinatorPostgresDelegator(
+      PostgresDefaultFactoriesProvider resourceFactoryProducer,
+      CustomResourceFinder<StackGresPostgresConfig> finder,
+      CustomResourceScheduler<StackGresPostgresConfig> scheduler) {
+    this.resourceFactoryProducer = resourceFactoryProducer;
+    this.finder = finder;
+    this.scheduler = scheduler;
+  }
 
   @Override
-  public List<JsonPatchOperation> mutate(StackGresShardedClusterReview review) {
+  public StackGresShardedCluster mutate(
+      StackGresShardedClusterReview review, StackGresShardedCluster resource) {
     return getMutator(review)
-        .map(mutator -> mutator.mutate(review))
+        .map(mutator -> mutator.mutate(review, resource))
         .orElseThrow(IllegalStateException::new);
   }
 
@@ -67,7 +73,6 @@ public class DefaultCoordinatorPostgresDelegator implements ShardedClusterMutato
   private DefaultCoordinatorPostgresMutator getMutator(PostgresConfigurationFactory factory) {
     final DefaultCoordinatorPostgresMutator mutator = new DefaultCoordinatorPostgresMutator(
         factory, finder, scheduler);
-    mutator.init();
     return mutator;
   }
 

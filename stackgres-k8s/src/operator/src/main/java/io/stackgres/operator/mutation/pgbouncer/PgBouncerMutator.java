@@ -5,18 +5,10 @@
 
 package io.stackgres.operator.mutation.pgbouncer;
 
-import com.github.fge.jackson.jsonpointer.JsonPointer;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.operator.common.PoolingReview;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
+import io.stackgres.operatorframework.admissionwebhook.mutating.Mutator;
 
-public interface PgBouncerMutator extends JsonPatchMutator<PoolingReview> {
+public interface PgBouncerMutator extends Mutator<StackGresPoolingConfig, PoolingReview> {
 
-  JsonPointer PG_BOUNCER_CONFIG_POINTER = JsonPointer.of("spec",
-      "pgBouncer",
-      "pgbouncer.ini",
-      "pgbouncer");
-
-  JsonPointer PG_BOUNCER_DEFAULT_PARAMETERS_POINTER = JsonPointer.of("status",
-      "pgBouncer",
-      "defaultParameters");
 }

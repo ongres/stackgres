@@ -5,23 +5,19 @@
 
 package io.stackgres.operator.mutation.objectstorage;
 
-import java.util.List;
-
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.fge.jackson.jsonpointer.JsonPointer;
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.operator.common.ObjectStorageReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
-import io.stackgres.operator.mutation.DefaultValuesMutator;
+import io.stackgres.operator.mutation.AbstractValuesMutator;
 
 @ApplicationScoped
 public class ObjectStorageDefaultValuesMutator
-    extends DefaultValuesMutator<StackGresObjectStorage, ObjectStorageReview>
+    extends AbstractValuesMutator<StackGresObjectStorage, ObjectStorageReview>
     implements ObjectStorageMutator {
 
   @Inject
@@ -31,29 +27,25 @@ public class ObjectStorageDefaultValuesMutator
     super(factory, jsonMapper);
   }
 
+  @PostConstruct
   @Override
-  public JsonNode getTargetNode(StackGresObjectStorage resource) {
-    return super.toNode(resource)
-        .get("spec");
+  public void init() {
+    super.init();
   }
 
   @Override
-  protected JsonNode getSourceNode(StackGresObjectStorage resource) {
-    return getTargetNode(resource);
-  }
-
-  @Override
-  public List<JsonPatchOperation> mutate(ObjectStorageReview review) {
-    return mutate(SG_OBJECT_STORAGE_POINTER, review.getRequest().getObject());
-  }
-
-  @Override
-  public List<JsonPatchOperation> applyDefaults(JsonPointer basePointer,
-      JsonNode defaultNode, JsonNode incomingNode) {
-    if (incomingNode.has("type")
-        && !incomingNode.get("type").equals(defaultNode.get("type"))) {
-      defaultNode = FACTORY.objectNode();
+  public StackGresObjectStorage mutate(
+      ObjectStorageReview review, StackGresObjectStorage resource) {
+    if (resource.getSpec().getType() != null
+        && !resource.getSpec().getType().equals(defaultValue.getSpec().getType())) {
+      return resource;
     }
-    return super.applyDefaults(basePointer, defaultNode, incomingNode);
+    return super.mutate(review, resource);
   }
+
+  @Override
+  protected Class<StackGresObjectStorage> getResourceClass() {
+    return StackGresObjectStorage.class;
+  }
+
 }

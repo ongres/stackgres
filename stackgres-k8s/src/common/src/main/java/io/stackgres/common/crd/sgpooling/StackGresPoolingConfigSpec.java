@@ -22,7 +22,7 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
 public class StackGresPoolingConfigSpec {
 
-  @NotNull(message = "pgBouncer configuration should not be empty")
+  @NotNull(message = "pgBouncer is required")
   @Valid
   private StackGresPoolingConfigPgBouncer pgBouncer;
 

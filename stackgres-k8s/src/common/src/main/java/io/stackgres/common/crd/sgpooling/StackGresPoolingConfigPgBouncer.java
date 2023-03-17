@@ -24,7 +24,7 @@ import io.sundr.builder.annotations.Buildable;
 public class StackGresPoolingConfigPgBouncer {
 
   @JsonProperty("pgbouncer.ini")
-  @NotNull(message = "pgbouncer.ini should not be empty")
+  @NotNull(message = "pgbouncer.ini is required")
   @Valid
   private StackGresPoolingConfigPgBouncerPgbouncerIni pgbouncerIni;
 

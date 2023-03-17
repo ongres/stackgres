@@ -5,9 +5,9 @@
 
 package io.stackgres.operator.mutation.backupconfig;
 
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.common.BackupConfigReview;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
+import io.stackgres.operatorframework.admissionwebhook.mutating.Mutator;
 
-public interface BackupConfigMutator extends JsonPatchMutator<BackupConfigReview> {
-
+public interface BackupConfigMutator extends Mutator<StackGresBackupConfig, BackupConfigReview> {
 }

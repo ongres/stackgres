@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -29,7 +29,7 @@ public class StackGresPostgresConfigSpec {
   private String postgresVersion;
 
   @JsonProperty("postgresql.conf")
-  @NotEmpty(message = "postgresql.conf should not be empty")
+  @NotNull(message = "postgresql.conf is required")
   private Map<String, String> postgresqlConf;
 
   public String getPostgresVersion() {

@@ -5,35 +5,23 @@
 
 package io.stackgres.operator.mutation.distributedlogs;
 
-import java.util.Collection;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
+import io.stackgres.operator.mutation.AbstractMutationPipeline;
 
 @ApplicationScoped
 public class DistributedLogsPipeline
-    implements JsonPatchMutationPipeline<StackGresDistributedLogsReview> {
-
-  private final Instance<DistributedLogsMutator> mutators;
+    extends AbstractMutationPipeline<StackGresDistributedLogs, StackGresDistributedLogsReview> {
 
   @Inject
-  public DistributedLogsPipeline(Instance<DistributedLogsMutator> mutators) {
-    this.mutators = mutators;
+  public DistributedLogsPipeline(
+      @Any Instance<DistributedLogsMutator> mutators) {
+    super(mutators);
   }
 
-  @Override
-  public Optional<String> mutate(StackGresDistributedLogsReview review) {
-    return mutators.stream()
-        .sorted(JsonPatchMutationPipeline.weightComparator())
-        .map(m -> m.mutate(review))
-        .flatMap(Collection::stream)
-        .collect(Collectors.collectingAndThen(Collectors.toList(),
-            JsonPatchMutationPipeline::join));
-  }
 }

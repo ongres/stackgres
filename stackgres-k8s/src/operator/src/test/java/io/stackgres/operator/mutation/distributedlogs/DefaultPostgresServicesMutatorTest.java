@@ -18,16 +18,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
-import com.github.fge.jsonpatch.JsonPatch;
-import com.github.fge.jsonpatch.JsonPatchException;
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceBuilder;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServices;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServicesBuilder;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
@@ -35,7 +29,6 @@ import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.opentest4j.AssertionFailedError;
 
 class DefaultPostgresServicesMutatorTest {
 
@@ -54,8 +47,6 @@ class DefaultPostgresServicesMutatorTest {
     review = AdmissionReviewFixtures.distributedLogs().loadCreate().get();
 
     mutator = new DefaultPostgresServicesMutator();
-    mutator.setObjectMapper(JSON_MAPPER);
-    mutator.init();
   }
 
   @Test
@@ -197,15 +188,9 @@ class DefaultPostgresServicesMutatorTest {
   }
 
   private StackGresDistributedLogsPostgresServices mutate(StackGresDistributedLogsReview review) {
-    try {
-      List<JsonPatchOperation> operations = mutator.mutate(review);
-      JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
-      JsonNode newConfig = new JsonPatch(operations).apply(crJson);
-      return JSON_MAPPER.treeToValue(newConfig, StackGresDistributedLogs.class).getSpec()
-          .getPostgresServices();
-    } catch (JsonPatchException | JsonProcessingException | IllegalArgumentException e) {
-      throw new AssertionFailedError(e.getMessage(), e);
-    }
+    return mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()))
+        .getSpec()
+        .getPostgresServices();
   }
 
 }

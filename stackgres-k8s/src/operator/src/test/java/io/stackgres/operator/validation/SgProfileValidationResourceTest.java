@@ -21,8 +21,8 @@ class SgProfileValidationResourceTest extends ValidationResourceTest<SgProfileRe
 
   @BeforeEach
   public void setUp() {
-    final SgProfileValidationResource resource = new SgProfileValidationResource();
-    resource.setPipeline(pipeline);
+    final SgProfileValidationResource resource =
+        new SgProfileValidationResource(pipeline);
     this.resource = resource;
 
     review = AdmissionReviewFixtures.instanceProfile().loadCreate().get();

@@ -14,13 +14,7 @@ import java.util.Optional;
 
 import javax.inject.Inject;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.fge.jsonpatch.JsonPatch;
-import com.github.fge.jsonpatch.JsonPatchException;
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
@@ -33,11 +27,11 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.OperatorExtensionMetadataManager;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
+import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.opentest4j.AssertionFailedError;
 
 @QuarkusTest
 class ClusterMutatorPipelineTest {
@@ -112,19 +106,6 @@ class ClusterMutatorPipelineTest {
   }
 
   private StackGresCluster mutate(StackGresClusterReview review) {
-    final Optional<String> mutate = pipeline.mutate(review);
-    assertThat(mutate).isPresent();
-    try {
-      List<JsonPatchOperation> operations = mapper.readValue(mutate.orElseThrow(),
-          new TypeReference<List<JsonPatchOperation>>() {});
-      assertThat(operations).isNotNull();
-      assertThat(operations).isNotEmpty();
-      assertThat(operations).containsNoDuplicates();
-      JsonNode currentObject = mapper.valueToTree(review.getRequest().getObject());
-      JsonNode patchedObject = new JsonPatch(operations).apply(currentObject);
-      return mapper.treeToValue(patchedObject, StackGresCluster.class);
-    } catch (JsonPatchException | JsonProcessingException | IllegalArgumentException e) {
-      throw new AssertionFailedError("Could not mutate StackGresClusterReview", e);
-    }
+    return pipeline.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
   }
 }

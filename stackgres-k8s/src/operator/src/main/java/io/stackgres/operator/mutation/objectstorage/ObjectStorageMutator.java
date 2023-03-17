@@ -5,11 +5,11 @@
 
 package io.stackgres.operator.mutation.objectstorage;
 
-import com.github.fge.jackson.jsonpointer.JsonPointer;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.operator.common.ObjectStorageReview;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
+import io.stackgres.operatorframework.admissionwebhook.mutating.Mutator;
 
-public interface ObjectStorageMutator extends JsonPatchMutator<ObjectStorageReview> {
+public interface ObjectStorageMutator
+    extends Mutator<StackGresObjectStorage, ObjectStorageReview> {
 
-  JsonPointer SG_OBJECT_STORAGE_POINTER = JsonPointer.of("spec");
 }

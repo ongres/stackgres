@@ -6,26 +6,31 @@
 package io.stackgres.operator.validation;
 
 import java.util.Comparator;
-import java.util.List;
 import java.util.Objects;
 
 import javax.enterprise.inject.Instance;
 
+import io.stackgres.common.CdiUtil;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
-public class SimpleValidationPipeline<T extends AdmissionReview<?>, V extends Validator<T>>
-    implements io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline<T> {
+public abstract class AbstractValidationPipeline<T extends AdmissionReview<?>>
+    extends io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline<T> {
 
-  private List<V> validators;
-
-  public SimpleValidationPipeline(Instance<V> validatorInstances) {
-    init(validatorInstances);
+  public AbstractValidationPipeline(Instance<Validator<T>> validatorInstances) {
+    super(validatorInstances.stream()
+        .sorted(validationTypeComparator())
+        .toList());
   }
 
-  private Comparator<? super V> validationTypeComparator() {
+  public AbstractValidationPipeline() {
+    super(null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+  }
+
+  static Comparator<Validator<?>> validationTypeComparator() {
     return (v1, v2) -> {
       final ValidationType v1ValidationType = v1.getClass().getAnnotation(ValidationType.class);
       final ValidationType v2ValidationType = v2.getClass().getAnnotation(ValidationType.class);
@@ -42,16 +47,9 @@ public class SimpleValidationPipeline<T extends AdmissionReview<?>, V extends Va
     };
   }
 
-  private void init(Instance<V> validatorInstances) {
-    this.validators = validatorInstances.stream()
-        .sorted(validationTypeComparator()).toList();
-  }
-
   @Override
   public void validate(T review) throws ValidationFailed {
-
     if (review.getRequest().getOperation() == Operation.UPDATE) {
-
       final Object object = review.getRequest().getObject();
       final Object oldObject = review.getRequest().getOldObject();
 
@@ -60,9 +58,7 @@ public class SimpleValidationPipeline<T extends AdmissionReview<?>, V extends Va
       }
     }
 
-    for (V validator : validators) {
-      validator.validate(review);
-    }
+    super.validate(review);
   }
 
 }

@@ -14,21 +14,29 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Path(ValidationUtil.BACKUP_VALIDATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class BackupValidationResource implements ValidationResource<BackupReview> {
+public class BackupValidationResource extends AbstractValidationResource<BackupReview> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(BackupValidationResource.class);
 
-  private ValidationPipeline<BackupReview> pipeline;
+  @Inject
+  public BackupValidationResource(ValidationPipeline<BackupReview> pipeline) {
+    super(pipeline);
+  }
+
+  public BackupValidationResource() {
+    super(null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+  }
 
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("Backup validation resource started");
@@ -37,11 +45,6 @@ public class BackupValidationResource implements ValidationResource<BackupReview
   @Override
   @POST
   public AdmissionReviewResponse validate(BackupReview admissionReview) {
-    return validate(admissionReview, pipeline);
-  }
-
-  @Inject
-  public void setPipeline(ValidationPipeline<BackupReview> pipeline) {
-    this.pipeline = pipeline;
+    return super.validate(admissionReview);
   }
 }

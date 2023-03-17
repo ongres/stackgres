@@ -37,7 +37,6 @@ class DefaultPoolingConfigMutatorTest
     resourceFactory.init();
     var mutator = new DefaultPoolingMutator(
         resourceFactory, finder, scheduler);
-    mutator.init();
     return mutator;
   }
 

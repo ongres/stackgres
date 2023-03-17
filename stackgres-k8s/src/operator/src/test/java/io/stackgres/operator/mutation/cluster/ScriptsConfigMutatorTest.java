@@ -5,22 +5,15 @@
 
 package io.stackgres.operator.mutation.cluster;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.fge.jsonpatch.AddOperation;
-import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
-import com.github.fge.jsonpatch.JsonPatchOperation;
-import com.github.fge.jsonpatch.ReplaceOperation;
 import io.stackgres.common.ManagedSqlUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
@@ -63,16 +56,12 @@ class ScriptsConfigMutatorTest {
 
     JsonNode expectedCluster = JsonUtil.toJson(review.getRequest().getObject());
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertTrue(operations.isEmpty());
-
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualCluster = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedCluster, actualCluster);
+    JsonUtil.assertJsonEquals(
+        expectedCluster,
+        JsonUtil.toJson(result));
 
     verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(scriptScheduler, times(0)).create(any());
@@ -90,16 +79,12 @@ class ScriptsConfigMutatorTest {
         review.getRequest().getObject().getStatus().getManagedSql().getScripts().subList(0, 1));
     JsonNode expectedCluster = JsonUtil.toJson(review.getRequest().getObject());
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertTrue(operations.isEmpty());
-
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualCluster = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedCluster, actualCluster);
+    JsonUtil.assertJsonEquals(
+        expectedCluster,
+        JsonUtil.toJson(result));
 
     verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(scriptScheduler, times(0)).create(any());
@@ -130,18 +115,12 @@ class ScriptsConfigMutatorTest {
 
     review.getRequest().getObject().setStatus(null);
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(2, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
-    assertEquals(1, operations.stream().filter(o -> o instanceof AddOperation).count());
-
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualCluster = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedCluster, actualCluster);
+    JsonUtil.assertJsonEquals(
+        expectedCluster,
+        JsonUtil.toJson(result));
 
     verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(scriptScheduler, times(0)).create(any());
@@ -167,17 +146,12 @@ class ScriptsConfigMutatorTest {
     review.getRequest().getObject().getStatus().setManagedSql(
         new StackGresClusterManagedSqlStatus());
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(2, operations.size());
-    assertEquals(2, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
-
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualCluster = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedCluster, actualCluster);
+    JsonUtil.assertJsonEquals(
+        expectedCluster,
+        JsonUtil.toJson(result));
 
     verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(scriptScheduler, times(0)).create(any());
@@ -191,16 +165,12 @@ class ScriptsConfigMutatorTest {
 
     JsonNode expectedCluster = JsonUtil.toJson(review.getRequest().getObject());
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertTrue(operations.isEmpty());
-
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualCluster = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedCluster, actualCluster);
+    JsonUtil.assertJsonEquals(
+        expectedCluster,
+        JsonUtil.toJson(result));
 
     verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(scriptScheduler, times(0)).create(any());
@@ -228,17 +198,12 @@ class ScriptsConfigMutatorTest {
         .setId(0);
     JsonNode expectedCluster = JsonUtil.toJson(expected);
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(2, operations.size());
-    assertEquals(2, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
-
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualCluster = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedCluster, actualCluster);
+    JsonUtil.assertJsonEquals(
+        expectedCluster,
+        JsonUtil.toJson(result));
 
     verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(scriptScheduler, times(0)).create(any());
@@ -266,17 +231,12 @@ class ScriptsConfigMutatorTest {
         .setId(0);
     JsonNode expectedCluster = JsonUtil.toJson(expected);
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(2, operations.size());
-    assertEquals(2, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
-
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualCluster = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedCluster, actualCluster);
+    JsonUtil.assertJsonEquals(
+        expectedCluster,
+        JsonUtil.toJson(result));
 
     verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(scriptScheduler, times(0)).create(any());
@@ -298,17 +258,12 @@ class ScriptsConfigMutatorTest {
     expected.getStatus().getManagedSql().getScripts().get(4).setId(4);
     JsonNode expectedCluster = JsonUtil.toJson(expected);
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(2, operations.size());
-    assertEquals(2, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
-
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualCluster = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedCluster, actualCluster);
+    JsonUtil.assertJsonEquals(
+        expectedCluster,
+        JsonUtil.toJson(result));
 
     verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(scriptScheduler, times(0)).create(any());
@@ -325,17 +280,12 @@ class ScriptsConfigMutatorTest {
     expected.getStatus().getManagedSql().getScripts().remove(1);
     JsonNode expectedCluster = JsonUtil.toJson(expected);
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(1, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
-
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualCluster = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedCluster, actualCluster);
+    JsonUtil.assertJsonEquals(
+        expectedCluster,
+        JsonUtil.toJson(result));
 
     verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(scriptScheduler, times(0)).create(any());

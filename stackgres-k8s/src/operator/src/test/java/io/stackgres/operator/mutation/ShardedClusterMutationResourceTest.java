@@ -5,25 +5,24 @@
 
 package io.stackgres.operator.mutation;
 
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import org.junit.jupiter.api.BeforeEach;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-@RunWith(MockitoJUnitRunner.class)
 class ShardedClusterMutationResourceTest
-    extends MutationResourceTest<StackGresShardedClusterReview> {
+    extends MutationResourceTest<StackGresShardedCluster, StackGresShardedClusterReview> {
 
-  @BeforeEach
-  void setUp() {
-    final ShardedClusterMutationResource resource = new ShardedClusterMutationResource();
-    resource.setPipeline(pipeline);
-    this.resource = resource;
+  @Override
+  protected MutationResource<StackGresShardedCluster, StackGresShardedClusterReview> getResource() {
+    return new ShardedClusterMutationResource(pipeline);
+  }
 
-    review = AdmissionReviewFixtures.shardedCluster().loadCreate().get();
+  @Override
+  protected StackGresShardedClusterReview getReview() {
+    return AdmissionReviewFixtures.shardedCluster().loadCreate().get();
   }
 }

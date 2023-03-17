@@ -5,34 +5,25 @@
 
 package io.stackgres.operator.mutation;
 
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class SgPgBouncerMutationResourceTest extends MutationResourceTest<PoolingReview> {
+class SgPgBouncerMutationResourceTest
+    extends MutationResourceTest<StackGresPoolingConfig, PoolingReview> {
 
-  @BeforeEach
-  void setUp() {
-    final SgPgBouncerMutationResource resource = new SgPgBouncerMutationResource();
-    resource.setPipeline(pipeline);
-    this.resource = resource;
-
-    review = AdmissionReviewFixtures.poolingConfig().loadCreate().get();
+  @Override
+  protected MutationResource<StackGresPoolingConfig, PoolingReview> getResource() {
+    return new SgPgBouncerMutationResource(pipeline);
   }
 
   @Override
-  @Test
-  void givenAnValidAdmissionReview_itShouldReturnAnyPath() {
-    super.givenAnValidAdmissionReview_itShouldReturnAnyPath();
+  protected PoolingReview getReview() {
+    return AdmissionReviewFixtures.poolingConfig().loadCreate().get();
   }
 
-  @Override
-  @Test
-  void givenAnInvalidAdmissionReview_itShouldReturnABase64EncodedPath() {
-    super.givenAnInvalidAdmissionReview_itShouldReturnABase64EncodedPath();
-  }
 }
