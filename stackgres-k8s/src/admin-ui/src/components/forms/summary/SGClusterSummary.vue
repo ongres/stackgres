@@ -650,6 +650,146 @@
                         </li>
                     </ul>
 
+                    <ul class="section" v-if="cluster.data.spec.pods.hasOwnProperty('customVolumes') && !isNull(cluster.data.spec.pods.customVolumes)">
+                        <li>
+                            <strong class="sectionTitle">
+                                User-Supplied Pods' Sidecars
+                            </strong>
+                            <ul>
+                                <template v-for="(vol, index) in cluster.data.spec.pods.customVolumes">
+                                    <li :key="index">
+                                        <strong class="sectionTitle">
+                                            Volume #{{ index + 1 }}
+                                        </strong>
+
+                                        <ul>
+                                            <li v-if="vol.hasOwnProperty('name')">
+                                                <strong class="label">Name:</strong>
+                                                <span class="value">{{ vol.name }}</span>
+                                            </li>
+                                            <li v-if="vol.hasOwnProperty('emptyDir') && Object.keys(vol.emptyDir).length && (!isNull(vol.emptyDir.medium) || !isNull(vol.emptyDir.sizeLimit))">
+                                                <strong class="sectionTitle">
+                                                    Empty Directory
+                                                </strong>
+
+                                                <ul>
+                                                    <li v-if="vol.emptyDir.hasOwnProperty('medium') && !isNull(vol.emptyDir.medium)">
+                                                        <strong class="label">Medium:</strong>
+                                                        <span class="value">{{ vol.emptyDir.medium }}</span>
+                                                    </li>
+                                                    <li v-if="vol.emptyDir.hasOwnProperty('sizeLimit') && !isNull(vol.emptyDir.sizeLimit)">
+                                                        <strong class="label">Size Limit:</strong>
+                                                        <span class="value">{{ vol.emptyDir.sizeLimit }}</span>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                            <li v-if="vol.hasOwnProperty('configMap') && Object.keys(vol.configMap).length">
+                                                <strong class="sectionTitle">
+                                                    Config Map
+                                                </strong>
+
+                                                <ul>
+                                                    <li v-if="vol.configMap.hasOwnProperty('name') && !isNull(vol.configMap.name)">
+                                                        <strong class="label">Name:</strong>
+                                                        <span class="value">{{ vol.configMap.name }}</span>
+                                                    </li>
+                                                    <li v-if="vol.configMap.hasOwnProperty('optional')">
+                                                        <strong class="label">Optional:</strong>
+                                                        <span class="value">{{ isEnabled(vol.configMap.optional) }}</span>
+                                                    </li>
+                                                    <li v-if="vol.configMap.hasOwnProperty('defaultMode') && !isNull(vol.configMap.defaultMode)">
+                                                        <strong class="label">Default Mode:</strong>
+                                                        <span class="value">{{ vol.configMap.defaultMode }}</span>
+                                                    </li>
+                                                    <li v-if="vol.configMap.hasOwnProperty('items') && vol.configMap.items.length">
+                                                        <strong class="sectionTitle">
+                                                            Items
+                                                        </strong>
+
+                                                        <ul>
+                                                            <template v-for="(item, index) in vol.configMap.items">
+                                                                <li :key="index">
+                                                                    <strong class="sectionTitle">
+                                                                        Item #{{ index + 1 }}
+                                                                    </strong>
+
+                                                                    <ul>
+                                                                        <li v-if="item.hasOwnProperty('key') && !isNull(item.key)">
+                                                                            <strong class="label">Key:</strong>
+                                                                            <span class="value">{{ item.key }}</span>
+                                                                        </li>
+                                                                        <li v-if="item.hasOwnProperty('mode') && !isNull(item.mode)">
+                                                                            <strong class="label">Mode:</strong>
+                                                                            <span class="value">{{ item.mode }}</span>
+                                                                        </li>
+                                                                        <li v-if="item.hasOwnProperty('path') && !isNull(item.path)">
+                                                                            <strong class="label">Path:</strong>
+                                                                            <span class="value">{{ item.path }}</span>
+                                                                        </li>
+                                                                    </ul>
+                                                                </li>
+                                                            </template>
+                                                        </ul>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                            <li v-if="vol.hasOwnProperty('secret') && Object.keys(vol.secret).length">
+                                                <strong class="sectionTitle">
+                                                    Secret
+                                                </strong>
+
+                                                <ul>
+                                                    <li v-if="vol.secret.hasOwnProperty('name') && !isNull(vol.secret.secretName)">
+                                                        <strong class="label">Secret Name:</strong>
+                                                        <span class="value">{{ vol.secret.secretName }}</span>
+                                                    </li>
+                                                    <li v-if="vol.secret.hasOwnProperty('optional')">
+                                                        <strong class="label">Optional:</strong>
+                                                        <span class="value">{{ isEnabled(vol.secret.optional) }}</span>
+                                                    </li>
+                                                    <li v-if="vol.secret.hasOwnProperty('defaultMode') && !isNull(vol.secret.defaultMode)">
+                                                        <strong class="label">Default Mode:</strong>
+                                                        <span class="value">{{ vol.secret.defaultMode }}</span>
+                                                    </li>
+                                                    <li v-if="vol.secret.hasOwnProperty('items') && vol.secret.items.length">
+                                                        <strong class="sectionTitle">
+                                                            Items
+                                                        </strong>
+
+                                                        <ul>
+                                                            <template v-for="(item, index) in vol.secret.items">
+                                                                <li :key="index">
+                                                                    <strong class="sectionTitle">
+                                                                        Item #{{ index + 1 }}
+                                                                    </strong>
+
+                                                                    <ul>
+                                                                        <li v-if="item.hasOwnProperty('key') && !isNull(item.key)">
+                                                                            <strong class="label">Key:</strong>
+                                                                            <span class="value">{{ item.key }}</span>
+                                                                        </li>
+                                                                        <li v-if="item.hasOwnProperty('mode') && !isNull(item.mode)">
+                                                                            <strong class="label">Mode:</strong>
+                                                                            <span class="value">{{ item.mode }}</span>
+                                                                        </li>
+                                                                        <li v-if="item.hasOwnProperty('path') && !isNull(item.path)">
+                                                                            <strong class="label">Path:</strong>
+                                                                            <span class="value">{{ item.path }}</span>
+                                                                        </li>
+                                                                    </ul>
+                                                                </li>
+                                                            </template>
+                                                        </ul>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </template>
+                            </ul>
+                        </li>
+                    </ul>
+
                     <ul class="section" v-if="( showDefaults || ( (cluster.data.spec.replication.role != 'ha-read') || (cluster.data.spec.replication.mode != 'async') || cluster.data.spec.replication.hasOwnProperty('groups') ) )">
                         <li>
                             <strong class="sectionTitle">

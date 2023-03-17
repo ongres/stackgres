@@ -596,6 +596,140 @@
                 </tbody>
             </table>
 
+            <div class="clusterConfigurations" v-if="cluster.data.spec.pods.hasOwnProperty('customVolumes')">
+                <h2>
+                    Pods Custom Volumes
+                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes')"></span>
+                </h2>
+                <template v-if="cluster.data.spec.pods.hasOwnProperty('customVolumes')">
+                    <template v-for="(vol, index) in cluster.data.spec.pods.customVolumes">
+                        <table class="crdDetails">
+                            <tbody>
+                                <tr>
+                                    <td class="label" v-if="!index" :rowspan="0">
+                                        Volume #{{ index + 1 }}
+                                    </td>
+                                    <td class="label" v-if="vol.hasOwnProperty('name')">
+                                        Name
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.name')"></span>
+                                    </td>
+                                    <td colspan="100%">
+                                        {{ vol.name }}
+                                    </td>
+                                </tr>
+                                <template v-if="vol.hasOwnProperty('emptyDir')">
+                                    <template v-for="(val, key, index) in vol.emptyDir">
+                                        <tr>
+                                            <td v-if="!index" class="label" :rowspan="Object.keys(vol.emptyDir).length">
+                                                Empty Directory
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.emptyDir')"></span>
+                                            </td>
+                                            <td class="label capitalize">
+                                                {{ splitUppercase(key) }}
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.emptyDir.properties.' + key)"></span>
+                                            </td>
+                                            <td colspan="100%">
+                                                {{ val }}
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </template>
+                                <template v-if="vol.hasOwnProperty('configMap')">
+                                    <template v-for="(val, key, index) in vol.configMap">
+                                        <tr>
+                                            <td v-if="!index" class="label" :rowspan="Object.keys(vol.configMap).length">
+                                                Config Map
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap')"></span>
+                                            </td>
+                                            <td class="label capitalize">
+                                                {{ splitUppercase(key) }}
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.' + key)"></span>
+                                            </td>
+                                            <td colspan="100%">
+                                                <template v-if="Array.isArray(val)">
+                                                    <ul class="tableCells">
+                                                        <template v-for="(el, index) in val">
+                                                            <li>
+                                                                <span class="label">
+                                                                    Item #{{ index + 1 }}
+                                                                </span>
+                                                                <span class="value">
+                                                                    <ul class="tableCells">
+                                                                        <template v-for="(value, subKey, index) in el">
+                                                                            <li>
+                                                                                <span class="label capitalize">
+                                                                                    {{ subKey }}
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.' + key + '.items.properties.' + subKey)"></span>
+                                                                                </span>
+                                                                                <span class="value">
+                                                                                    {{ value }}
+                                                                                </span>
+                                                                            </li>
+                                                                        </template>
+                                                                    </ul>
+                                                                </span>
+                                                            </li>
+                                                        </template>
+                                                    </ul>
+                                                </template>
+                                                <template v-else>
+                                                    {{ val }}
+                                                </template>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </template>
+                                <template v-if="vol.hasOwnProperty('secret')">
+                                    <template v-for="(val, key, index) in vol.secret">
+                                        <tr>
+                                            <td v-if="!index" class="label" rowspan="0">
+                                                Secret
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret')"></span>
+                                            </td>
+                                            <td class="label capitalize">
+                                                {{ splitUppercase(key) }}
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.' + key)"></span>
+                                            </td>
+                                            <td>
+                                                <template v-if="Array.isArray(val)">
+                                                    <ul class="tableCells">
+                                                        <template v-for="(el, index) in val">
+                                                            <li>
+                                                                <span class="label">
+                                                                    Item #{{ index + 1 }}
+                                                                </span>
+                                                                <span class="value">
+                                                                    <ul class="tableCells">
+                                                                        <template v-for="(value, subKey, index) in el">
+                                                                            <li>
+                                                                                <span class="label capitalize">
+                                                                                    {{ subKey }}
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.' + key + '.items.properties.' + subKey)"></span>
+                                                                                </span>
+                                                                                <span class="value">
+                                                                                    {{ value }}
+                                                                                </span>
+                                                                            </li>
+                                                                        </template>
+                                                                    </ul>
+                                                                </span>
+                                                            </li>
+                                                        </template>
+                                                    </ul>
+                                                </template>
+                                                <template v-else>
+                                                    {{ val }}
+                                                </template>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </template>
+                            </tbody>
+                        </table>
+                    </template>
+                </template>
+            </div>
+
             <div class="clusterConfigurations">
                 <h2>Cluster Configurations <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations')"></span></h2>
                 <table class="crdDetails">

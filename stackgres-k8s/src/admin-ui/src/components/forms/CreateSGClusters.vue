@@ -1149,6 +1149,254 @@
                 </div>
             </fieldset>
 
+            <fieldset class="step" :class="(currentStep == 'pods') && 'active'" data-fieldset="pods">
+                <div class="header">
+                    <h2>User-Supplied Pods Sidecars</h2>
+                </div>
+
+                <div class="fields">
+                    <div class="header">
+                        <h3 for="spec.pods.customVolumes">
+                            Custom Volumes
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes')"></span>
+                        </h3>
+                    </div>
+                    <p>List of volumes that can be mounted by custom containers belonging to the pod</p>
+
+                    <br/><br/>
+                    
+                    <div class="repeater">
+                        <fieldset
+                            v-if="pods.customVolumes.length"
+                            data-fieldset="spec.pods.customVolumes"
+                        >
+                            <template v-for="(vol, index) in pods.customVolumes">
+                                <div class="section" :key="index">
+                                    <div class="header">
+                                        <h4>Volume #{{ index + 1 }}{{ !isNull(vol.name) ? (': ' + vol.name) : '' }}</h4>
+                                        <a class="addRow delete" @click="spliceArray(pods.customVolumes, index); spliceArray(customVolumesType, index)">Delete</a>
+                                    </div>
+                                                    
+                                    <div class="row-50">
+                                        <div class="col">
+                                            <label>Name</label>
+                                            <input :required="(customVolumesType[index] !== null)" v-model="vol.name" autocomplete="off" :data-field="'spec.pods.customVolumes[' + index + '].name'">
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.name')"></span>
+                                        </div>
+                                        
+                                        <div class="col">
+                                            <label>Type</label>
+                                            <select v-model="customVolumesType[index]" @change="initCustomVolume(index)">
+                                                <option :value="null" disabled selected>Choose one...</option>
+                                                <option value="emptyDir">Empty Directory</option>
+                                                <option value="configMap">Config Map</option>
+                                                <option value="secret">Secret</option>
+                                            </select>
+                                            <span class="helpTooltip" data-tooltip="Specifies the type of volume to be used"></span>
+                                        </div>
+                                    </div>
+
+                                    <template v-if="(customVolumesType[index] == 'emptyDir')">
+                                        <div class="header">
+                                            <h5 for="spec.pods.customVolumes.emptyDir">
+                                                Empty Directory
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.emptyDir')"></span>
+                                            </h5>
+                                        </div>
+                                        <div class="row-50">
+                                            <div class="col">
+                                                <label>Medium</label>
+                                                <input v-model="vol.emptyDir.medium" autocomplete="off" :data-field="'spec.pods.customVolumes[' + index + '].emptyDir.medium'">
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.emptyDir.properties.medium')"></span>
+                                            </div>
+                                            <div class="col">
+                                                <label>Size Limit</label>
+                                                <input v-model="vol.emptyDir.sizeLimit" autocomplete="off" :data-field="'spec.pods.customVolumes[' + index + '].emptyDir.sizeLimit'">
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.emptyDir.properties.sizeLimit')"></span>
+                                            </div>
+                                        </div>
+
+                                    </template>
+                                    <template v-else-if="(customVolumesType[index] == 'configMap')">
+                                        <div class="header">
+                                            <h5 for="spec.pods.customVolumes.configMap">
+                                                Config Map
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap')"></span>
+                                            </h5>
+                                        </div>
+                                        <div class="row-50">
+                                            <div class="col">
+                                                <label>Name</label>
+                                                <input v-model="vol.configMap.name" autocomplete="off" :data-field="'spec.pods.customVolumes[' + index + '].configMap.name'">
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.name')"></span>
+                                            </div>
+                                            <div class="col">                    
+                                                <label :for="'spec.pods.customVolumes[' + index + '].configMap.optional'">
+                                                    Optional
+                                                </label>  
+                                                <label :for="'spec.pods.customVolumes[' + index + '].configMap.optional'" class="switch yes-no">
+                                                    Enable
+                                                    <input type="checkbox" :id="'spec.pods.customVolumes[' + index + '].configMap.optional'" v-model="vol.configMap.optional" data-switch="NO" :data-field="'spec.pods.customVolumes[' + index + '].configMap.optional'">
+                                                </label>
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.optional')"></span>
+                                            </div>
+                                            <div class="col">
+                                                <label>Default Mode</label>
+                                                <input type="number" v-model="vol.configMap.defaultMode" autocomplete="off" :data-field="'spec.pods.customVolumes[' + index + '].configMap.defaultMode'">
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.defaultMode')"></span>
+                                            </div>
+                                        </div>
+
+                                        <br/><br/>
+                                        <div class="header">
+                                            <h6 for="spec.pods.customVolumes.configMap.items">
+                                                Items
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.items')"></span>
+                                            </h6>
+                                        </div>
+                                        <fieldset
+                                            class="noMargin"
+                                            data-field="spec.pods.customVolumes.configMap.items"
+                                            v-if="vol.configMap.items.length"
+                                        >
+                                            <template v-for="(item, itemIndex) in vol.configMap.items">
+                                                <div class="section" :key="itemIndex">
+                                                    <div class="header">
+                                                        <h4>Item #{{ itemIndex + 1 }}</h4>
+                                                        <a class="addRow delete" @click="spliceArray(vol.configMap.items, itemIndex)">Delete</a>
+                                                    </div>
+                                                                    
+                                                    <div class="row-50">
+                                                        <div class="col">
+                                                            <label>Key</label>
+                                                            <input :required="!isNull(vol.name)" v-model="item.key" autocomplete="off" :data-field="'spec.pods.customVolumes[' + index + '].configMap.items[' + itemIndex + '].key'">
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.items.items.properties.key')"></span>
+                                                        </div>
+                                                        <div class="col">
+                                                            <label>Mode</label>
+                                                            <input type="number" v-model="item.mode" autocomplete="off" :data-field="'spec.pods.customVolumes[' + index + '].configMap.items[' + itemIndex + '].mode'">
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.items.items.properties.mode')"></span>
+                                                        </div>
+                                                        <div class="col">
+                                                            <label>Path</label>
+                                                            <input :required="!isNull(vol.name)" v-model="item.path" autocomplete="off" :data-field="'spec.pods.customVolumes[' + index + '].configMap.items[' + itemIndex + '].path'">
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.items.items.properties.path')"></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </fieldset>
+                                        <div class="fieldsetFooter" :class="!vol.configMap.items.length && 'topBorder'">
+                                            <a
+                                                class="addRow"
+                                                @click="vol.configMap.items.push({
+                                                    key: null,
+                                                    mode: null,
+                                                    path: null,
+                                                })"
+                                            >
+                                                Add Item
+                                            </a>
+                                        </div>
+                                    </template>
+
+                                    <template v-else-if="(customVolumesType[index] == 'secret')">
+                                        <div class="header">
+                                            <h5 for="spec.pods.customVolumes.secret">
+                                                Secret
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret')"></span>
+                                            </h5>
+                                        </div>
+                                        <div class="row-50">
+                                            <div class="col">
+                                                <label>Secret Name</label>
+                                                <input v-model="vol.secret.secretName" autocomplete="off" :data-field="'spec.pods.customVolumes[' + index + '].secret.secretName'">
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.secretName')"></span>
+                                            </div>
+                                            <div class="col">                    
+                                                <label :for="'spec.pods.customVolumes[' + index + '].secret.optional'">
+                                                    Optional
+                                                </label>  
+                                                <label :for="'spec.pods.customVolumes[' + index + '].secret.optional'" class="switch yes-no">
+                                                    Enable
+                                                    <input type="checkbox" :id="'spec.pods.customVolumes[' + index + '].secret.optional'" v-model="vol.secret.optional" data-switch="NO" :data-field="'spec.pods.customVolumes[' + index + '].secret.optional'">
+                                                </label>
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.optional')"></span>
+                                            </div>
+                                            <div class="col">
+                                                <label>Default Mode</label>
+                                                <input type="number" v-model="vol.secret.defaultMode" autocomplete="off" :data-field="'spec.pods.customVolumes[' + index + '].secret.defaultMode'">
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.defaultMode')"></span>
+                                            </div>
+                                        </div>
+
+                                        <br/><br/>
+                                        <div class="header">
+                                            <h6 for="spec.pods.customVolumes.secret.items">
+                                                Items
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.items')"></span>
+                                            </h6>
+                                        </div>
+                                        <fieldset
+                                            class="noMargin"
+                                            data-field="spec.pods.customVolumes.secret.items"
+                                            v-if="vol.secret.items.length"
+                                        >
+                                            <template v-for="(item, itemIndex) in vol.secret.items">
+                                                <div class="section" :key="itemIndex">
+                                                    <div class="header">
+                                                        <h4>Item #{{ itemIndex + 1 }}</h4>
+                                                        <a class="addRow delete" @click="spliceArray(vol.secret.items, itemIndex)">Delete</a>
+                                                    </div>
+                                                                    
+                                                    <div class="row-50">
+                                                        <div class="col">
+                                                            <label>Key</label>
+                                                            <input :required="!isNull(vol.name)" v-model="item.key" autocomplete="off" :data-field="'spec.pods.customVolumes[' + index + '].secret.items[' + itemIndex + '].key'">
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.items.items.properties.key')"></span>
+                                                        </div>
+                                                        <div class="col">
+                                                            <label>Mode</label>
+                                                            <input type="number" v-model="item.mode" autocomplete="off" :data-field="'spec.pods.customVolumes[' + index + '].secret.items[' + itemIndex + '].mode'">
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.items.items.properties.mode')"></span>
+                                                        </div>
+                                                        <div class="col">
+                                                            <label>Path</label>
+                                                            <input :required="!isNull(vol.name)" v-model="item.path" autocomplete="off" :data-field="'spec.pods.customVolumes[' + index + '].secret.items[' + itemIndex + '].path'">
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.items.items.properties.path')"></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </fieldset>
+                                        <div class="fieldsetFooter" :class="!vol.secret.items.length && 'topBorder'">
+                                            <a
+                                                class="addRow"
+                                                @click="vol.secret.items.push({
+                                                    key: '',
+                                                    mode: '',
+                                                    path: '',
+                                                })"
+                                            >
+                                                Add Item
+                                            </a>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                        </fieldset>
+                        <div class="fieldsetFooter" :class="!pods.customVolumes.length && 'topBorder'">
+                            <a 
+                                class="addRow"
+                                @click="pods.customVolumes.push({ name: null}); customVolumesType.push(null)"
+                            >
+                                Add Volume
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
             <fieldset class="step" :class="(currentStep == 'pods-replication') && 'active'" data-fieldset="pods-replication">
                 <div class="header">
                     <h2>Replication</h2>
@@ -1796,7 +2044,7 @@
                                     <h5>Term #{{ termIndex + 1 }}</h5>
                                     <a class="addRow" @click="spliceArray(requiredAffinity, termIndex)">Delete</a>
                                 </div>
-                                <fieldset class="affinityMatch">
+                                <fieldset class="affinityMatch noMargin">
                                     <div class="header">
                                         <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions">
                                             Match Expressions
@@ -1830,7 +2078,7 @@
                                                 </div>
                                             </div>
 
-                                            <fieldset v-if="expression.hasOwnProperty('values') && expression.values.length && !['', 'Exists', 'DoesNotExists'].includes(expression.operator)" :class="(['Gt', 'Lt'].includes(expression.operator)) && 'noRepeater'" class="affinityValues">
+                                            <fieldset v-if="expression.hasOwnProperty('values') && expression.values.length && !['', 'Exists', 'DoesNotExists'].includes(expression.operator)" :class="(['Gt', 'Lt'].includes(expression.operator)) && 'noRepeater'" class="affinityValues noMargin">
                                                 <div class="header">
                                                     <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.values">
                                                         {{ !['Gt', 'Lt'].includes(expression.operator) ? 'Values' : 'Value' }}
@@ -1855,7 +2103,7 @@
                                     <a class="addRow" @click="addNodeSelectorRequirement(requiredAffinityTerm.matchExpressions)">Add Expression</a>
                                 </div>
 
-                                <fieldset class="affinityMatch">
+                                <fieldset class="affinityMatch noMargin">
                                     <div class="header">
                                         <label for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields">
                                             Match Fields
@@ -1944,7 +2192,7 @@
                                     <h5>Term #{{ termIndex + 1 }}</h5>
                                     <a class="addRow" @click="spliceArray(preferredAffinity, termIndex)">Delete</a>
                                 </div>
-                                <fieldset class="affinityMatch">
+                                <fieldset class="affinityMatch noMargin">
                                     <div class="header">
                                         <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions">
                                             Match Expressions
@@ -2003,7 +2251,7 @@
                                     <a class="addRow" @click="addNodeSelectorRequirement(preferredAffinityTerm.preference.matchExpressions)">Add Expression</a>
                                 </div>
 
-                                <fieldset class="affinityMatch">
+                                <fieldset class="affinityMatch noMargin">
                                     <div class="header">
                                         <label for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields">
                                             Match Fields
@@ -2141,7 +2389,7 @@
                 previewCRD: {},
                 showSummary: false,
                 advancedMode: false,
-                formSteps: ['cluster', 'extensions', 'backups', 'initialization', 'replicate-from', 'scripts', 'sidecars', 'pods-replication', 'services', 'metadata', 'scheduling', 'non-production'],
+                formSteps: ['cluster', 'extensions', 'backups', 'initialization', 'replicate-from', 'scripts', 'sidecars', 'pods', 'pods-replication', 'services', 'metadata', 'scheduling', 'non-production'],
                 currentStep: 'cluster',
                 errorStep: [],
                 editMode: (vm.$route.name === 'EditCluster'),
@@ -2309,6 +2557,12 @@
                     month: tzCrontab[3],
                     dow: tzCrontab[4],
                 }],
+                pods: {
+                    customVolumes: [{
+                        name: null,
+                    }]
+                },
+                customVolumesType: [null]
             }
 
         },
@@ -2447,6 +2701,7 @@
                             vm.preferredAffinity = vm.hasProp(c, 'data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution') ? c.data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution : [];
                             vm.requiredAffinity = vm.hasProp(c, 'data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution') ? c.data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms : [];
                             vm.tolerations = vm.hasProp(c, 'data.spec.pods.scheduling.tolerations') ? c.data.spec.pods.scheduling.tolerations : [];
+                            vm.pods.customVolumes = vm.hasProp(c, 'data.spec.pods.customVolumes') ? c.data.spec.pods.customVolumes : [];
                             vm.pgConfigExists = true;
 
                             if(vm.hasProp(c, 'data.spec.managedSql.scripts')) {
@@ -2525,14 +2780,6 @@
         },
 
         methods: {
-
-            isNullObject(obj) {
-                return !Object.keys(obj).filter((k) => obj[k] !== null).length
-            },
-
-            isNullObjectArray(arr) {
-                return !arr.filter((obj) => !this.isNullObject(obj)).length
-            },
 
             getScriptFile( baseIndex, index ){
                 this.currentScriptIndex = { base: baseIndex, entry: index };
@@ -2774,7 +3021,13 @@
                                         }
                                     } || { "nodeAffinity": null }
                                 }
-                            } )
+                            } ),
+                            ...((
+                                this.pods.hasOwnProperty('customVolumes') && 
+                                (this.pods.customVolumes.filter( (v) => (v.name !== null) ).length > 0) && {
+                                    "customVolumes": this.pods.customVolumes
+                                } || { "customVolumes": null }
+                            )),
                         },
                         ...( (this.hasProp(previous, 'spec.configurations') || this.pgConfig.length || this.managedBackups || this.connectionPoolingConfig.length) && ({
                             "configurations": {
@@ -3601,6 +3854,38 @@
                         return 'storage'   
                     }
                 }
+            },
+
+            initCustomVolume(index) {
+                let options = {
+                    emptyDir: {
+                        medium: null,
+                        sizeLimit: null,
+                    },
+                    configMap: {
+                        name: null,
+                        optional: true,
+                        defaultMode: null,
+                        items: [{
+                            key: null,
+                            mode: null,
+                            path: null,
+                        }],
+                    },
+                    secret: { 
+                        secretName: null,
+                        optional: true,
+                        defaultMode: null,
+                        items: [{
+                            key: null,
+                            mode: null,
+                            path: null,
+                        }],
+                    }
+                };
+                
+                this.pods.customVolumes[index] = { name: this.pods.customVolumes[index].name };
+                this.pods.customVolumes[index][this.customVolumesType[index]] = options[this.customVolumesType[index]];
             }
         
         },
@@ -3982,8 +4267,8 @@
         padding-bottom: 10px;
     }
 
-    fieldset.affinityValues, fieldset.affinityMatch, .scriptFieldset fieldset fieldset:last-of-type {
-        margin-bottom: -10px;
+    fieldset.noMargin, .scriptFieldset fieldset fieldset:last-of-type {
+        margin-bottom: 0;
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
     }
@@ -4016,7 +4301,7 @@
         fill: #3452a8 !important;
     }
 
-    .noMargin {
+    .row-50.noMargin {
         margin-bottom: -20px;
     }
 
@@ -4033,7 +4318,7 @@
     }
 
     form#createCluster {
-        width: 1080px;
+        width: 1120px;
         max-width: 100%;
     }
 

@@ -61,6 +61,18 @@ export const mixin = {
   
     },
     methods: {
+
+      isNull(el) {
+        return el === null;
+      },
+
+      isNullObject(obj) {
+        return !Object.keys(obj).filter((k) => obj[k] !== null).length
+      },
+
+      isNullObjectArray(arr) {
+          return !arr.filter((obj) => !this.isNullObject(obj)).length
+      },
       
       cancel: function() {
         const vc = this
