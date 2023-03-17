@@ -6,18 +6,15 @@
 package io.stackgres.operator.mutation.shardedcluster;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
-import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
@@ -45,64 +42,62 @@ class DefaultPostgresVersionMutatorTest {
     review = AdmissionReviewFixtures.shardedCluster().loadCreate().get();
 
     mutator = new DefaultPostgresVersionMutator();
-    mutator.setObjectMapper(JSON_MAPPER);
-    mutator.init();
   }
 
   @Test
   void clusterWithFinalPostgresVersion_shouldNotDoAnything() {
     review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertTrue(operations.isEmpty());
+    assertEquals(review.getRequest().getObject(), result);
   }
 
   @Test
   void clusteWithNoPostgresVersion_shouldSetFinalValue() throws JsonPatchException {
     review.getRequest().getObject().getSpec().getPostgres().setVersion(null);
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode newConfig = jp.apply(crJson);
-
-    String actualPostgresVersion = newConfig.get("spec").get("postgres").get("version").asText();
     assertEquals(StackGresComponent.POSTGRESQL.getLatest().getLatestVersion(),
-        actualPostgresVersion);
+        result.getSpec().getPostgres().getVersion());
+  }
+
+  @Test
+  void clusteWithNoPostgresFlavor_shouldSetFinalValue() throws JsonPatchException {
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
+    review.getRequest().getObject().getSpec().getPostgres().setFlavor(null);
+
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
+
+    assertEquals(StackGresPostgresFlavor.VANILLA.toString(),
+        result.getSpec().getPostgres().getFlavor());
   }
 
   @Test
   void clusteWithLatestPostgresVersion_shouldSetFinalValue() throws JsonPatchException {
     review.getRequest().getObject().getSpec().getPostgres().setVersion(StackGresComponent.LATEST);
+    review.getRequest().getObject().getSpec().getPostgres().setFlavor(null);
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode newConfig = jp.apply(crJson);
-
-    String actualPostgresVersion = newConfig.get("spec").get("postgres").get("version").asText();
-    assertEquals(StackGresComponent.POSTGRESQL.getLatest().getLatestVersion(),
-        actualPostgresVersion);
+    assertEquals(StackGresPostgresFlavor.VANILLA.toString(),
+        result.getSpec().getPostgres().getFlavor());
   }
 
   @Test
   void clusteWithMajorPostgresVersion_shouldSetFinalValue() throws JsonPatchException {
-    review.getRequest().getObject().getSpec().getPostgres().setVersion("12");
+    review.getRequest().getObject().getSpec().getPostgres().setVersion(
+        StackGresComponent.POSTGRESQL.getLatest().getLatestMajorVersion());
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode newConfig = jp.apply(crJson);
-
-    String actualPostgresVersion = newConfig.get("spec").get("postgres").get("version").asText();
-    assertEquals(StackGresComponent.POSTGRESQL.getLatest().getVersion("12"),
-        actualPostgresVersion);
+    assertEquals(StackGresComponent.POSTGRESQL.getLatest().getLatestVersion(),
+        result.getSpec().getPostgres().getVersion());
   }
 }

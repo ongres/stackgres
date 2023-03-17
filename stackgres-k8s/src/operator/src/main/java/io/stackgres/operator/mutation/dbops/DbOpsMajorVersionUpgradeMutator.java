@@ -10,21 +10,15 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import java.util.List;
 import java.util.Optional;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.github.fge.jackson.jsonpointer.JsonPointer;
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.base.Predicates;
-import com.google.common.collect.ImmutableList;
 import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsMajorVersionUpgrade;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.DbOpsReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
@@ -32,47 +26,35 @@ import io.stackgres.operatorframework.admissionwebhook.Operation;
 @ApplicationScoped
 public class DbOpsMajorVersionUpgradeMutator implements DbOpsMutator {
 
-  CustomResourceFinder<StackGresCluster> clusterFinder;
+  private final CustomResourceFinder<StackGresCluster> clusterFinder;
 
-  private JsonPointer backupPathPointer;
-
-  @PostConstruct
-  public void init() throws NoSuchFieldException {
-    String majorVersionUpgradeJson = getJsonMappingField("majorVersionUpgrade",
-        StackGresDbOpsSpec.class);
-    String backupPathJson = getJsonMappingField("backupPath",
-        StackGresDbOpsMajorVersionUpgrade.class);
-
-    backupPathPointer = SPEC_POINTER
-        .append(majorVersionUpgradeJson)
-        .append(backupPathJson);
+  @Inject
+  public DbOpsMajorVersionUpgradeMutator(CustomResourceFinder<StackGresCluster> clusterFinder) {
+    this.clusterFinder = clusterFinder;
   }
 
   @Override
-  public List<JsonPatchOperation> mutate(DbOpsReview review) {
-    if (review.getRequest().getOperation() == Operation.CREATE
-        || review.getRequest().getOperation() == Operation.UPDATE) {
-      final StackGresDbOps dbOps = review.getRequest().getObject();
-
-      ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
-      if (dbOps.getSpec() != null
-          && dbOps.getSpec().getSgCluster() != null
-          && dbOps.getSpec().getMajorVersionUpgrade() != null
-          && dbOps.getSpec().getMajorVersionUpgrade().getPostgresVersion() != null
-          && dbOps.getSpec().getMajorVersionUpgrade().getBackupPath() == null) {
-        Optional<StackGresCluster> cluster = clusterFinder.findByNameAndNamespace(
-            dbOps.getSpec().getSgCluster(),
-            dbOps.getMetadata().getNamespace());
-        if (cluster.filter(this::clusterHasBackups).isPresent()) {
-          final String backupPath = getBackupPath(dbOps, cluster.get());
-          operations.add(applyAddValue(backupPathPointer, FACTORY.textNode(backupPath)));
-        }
-      }
-
-      return operations.build();
+  public StackGresDbOps mutate(DbOpsReview review, StackGresDbOps resource) {
+    if (review.getRequest().getOperation() != Operation.CREATE
+        && review.getRequest().getOperation() != Operation.UPDATE) {
+      return resource;
     }
 
-    return ImmutableList.of();
+    if (resource.getSpec() != null
+        && resource.getSpec().getSgCluster() != null
+        && resource.getSpec().getMajorVersionUpgrade() != null
+        && resource.getSpec().getMajorVersionUpgrade().getPostgresVersion() != null
+        && resource.getSpec().getMajorVersionUpgrade().getBackupPath() == null) {
+      Optional<StackGresCluster> cluster = clusterFinder.findByNameAndNamespace(
+          resource.getSpec().getSgCluster(),
+          resource.getMetadata().getNamespace());
+      if (cluster.filter(this::clusterHasBackups).isPresent()) {
+        final String backupPath = getBackupPath(resource, cluster.get());
+        resource.getSpec().getMajorVersionUpgrade().setBackupPath(backupPath);
+      }
+    }
+
+    return resource;
   }
 
   private boolean clusterHasBackups(StackGresCluster cluster) {
@@ -97,12 +79,6 @@ public class DbOpsMajorVersionUpgradeMutator implements DbOpsMutator {
         cluster.getMetadata().getNamespace(),
         cluster.getMetadata().getName(),
         postgresMajorVersion);
-  }
-
-  @Inject
-  public void setBackupConfigFinder(
-      CustomResourceFinder<StackGresCluster> clusterFinder) {
-    this.clusterFinder = clusterFinder;
   }
 
 }

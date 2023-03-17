@@ -5,9 +5,10 @@
 
 package io.stackgres.operator.mutation;
 
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import org.junit.jupiter.api.BeforeEach;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -15,14 +16,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
-class ClusterMutationResourceTest extends MutationResourceTest<StackGresClusterReview> {
+class ClusterMutationResourceTest
+    extends MutationResourceTest<StackGresCluster, StackGresClusterReview> {
 
-  @BeforeEach
-  void setUp() {
-    final ClusterMutationResource resource = new ClusterMutationResource();
-    resource.setPipeline(pipeline);
-    this.resource = resource;
+  @Override
+  protected MutationResource<StackGresCluster, StackGresClusterReview> getResource() {
+    return new ClusterMutationResource(pipeline);
+  }
 
-    review = AdmissionReviewFixtures.cluster().loadCreate().get();
+  @Override
+  protected StackGresClusterReview getReview() {
+    return AdmissionReviewFixtures.cluster().loadCreate().get();
   }
 }

@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -25,7 +25,7 @@ import io.sundr.builder.annotations.Buildable;
 public class StackGresPoolingConfigPgBouncerPgbouncerIni {
 
   @JsonProperty("pgbouncer")
-  @NotEmpty(message = "pgbouncer should not be empty")
+  @NotNull(message = "pgbouncer should not be null")
   private Map<String, String> parameters;
 
   @JsonProperty("databases")

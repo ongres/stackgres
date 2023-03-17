@@ -7,7 +7,6 @@ package io.stackgres.operator.mutation.distributedlogs;
 
 import static io.stackgres.common.StackGresDistributedLogsUtil.getPostgresFlavorComponent;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -16,7 +15,6 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -30,19 +28,27 @@ import org.jooq.lambda.Unchecked;
 @ApplicationScoped
 public class DefaultPostgresDelegator implements DistributedLogsMutator {
 
-  @Inject
-  PostgresDefaultFactoriesProvider resourceFactoryProducer;
+  private final PostgresDefaultFactoriesProvider resourceFactoryProducer;
+
+  private final CustomResourceFinder<StackGresPostgresConfig> finder;
+
+  private final CustomResourceScheduler<StackGresPostgresConfig> scheduler;
 
   @Inject
-  CustomResourceFinder<StackGresPostgresConfig> finder;
-
-  @Inject
-  CustomResourceScheduler<StackGresPostgresConfig> scheduler;
+  public DefaultPostgresDelegator(
+      PostgresDefaultFactoriesProvider resourceFactoryProducer,
+      CustomResourceFinder<StackGresPostgresConfig> finder,
+      CustomResourceScheduler<StackGresPostgresConfig> scheduler) {
+    this.resourceFactoryProducer = resourceFactoryProducer;
+    this.finder = finder;
+    this.scheduler = scheduler;
+  }
 
   @Override
-  public List<JsonPatchOperation> mutate(StackGresDistributedLogsReview review) {
+  public StackGresDistributedLogs mutate(
+      StackGresDistributedLogsReview review, StackGresDistributedLogs resource) {
     return getMutator(review)
-        .map(mutator -> mutator.mutate(review))
+        .map(mutator -> mutator.mutate(review, resource))
         .orElseThrow(IllegalStateException::new);
   }
 
@@ -60,11 +66,8 @@ public class DefaultPostgresDelegator implements DistributedLogsMutator {
         .map(Unchecked.function(this::getMutator));
   }
 
-  private DefaultPostgresMutator getMutator(PostgresConfigurationFactory factory)
-      throws NoSuchFieldException {
-    final DefaultPostgresMutator mutator = new DefaultPostgresMutator(factory, finder, scheduler);
-    mutator.init();
-    return mutator;
+  private DefaultPostgresMutator getMutator(PostgresConfigurationFactory factory) {
+    return new DefaultPostgresMutator(factory, finder, scheduler);
   }
 
 }

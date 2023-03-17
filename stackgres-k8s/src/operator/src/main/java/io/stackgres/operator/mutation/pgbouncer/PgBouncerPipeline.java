@@ -5,34 +5,23 @@
 
 package io.stackgres.operator.mutation.pgbouncer;
 
-import java.util.Collection;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.operator.common.PoolingReview;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
+import io.stackgres.operator.mutation.AbstractMutationPipeline;
 
 @ApplicationScoped
-public class PgBouncerPipeline implements JsonPatchMutationPipeline<PoolingReview> {
-
-  private final Instance<PgBouncerMutator> mutators;
+public class PgBouncerPipeline
+    extends AbstractMutationPipeline<StackGresPoolingConfig, PoolingReview> {
 
   @Inject
-  public PgBouncerPipeline(Instance<PgBouncerMutator> mutators) {
-    this.mutators = mutators;
+  public PgBouncerPipeline(
+      @Any Instance<PgBouncerMutator> mutators) {
+    super(mutators);
   }
 
-  @Override
-  public Optional<String> mutate(PoolingReview review) {
-    return mutators.stream()
-        .sorted(JsonPatchMutationPipeline.weightComparator())
-        .map(m -> m.mutate(review))
-        .flatMap(Collection::stream)
-        .collect(Collectors.collectingAndThen(Collectors.toList(),
-            JsonPatchMutationPipeline::join));
-  }
 }

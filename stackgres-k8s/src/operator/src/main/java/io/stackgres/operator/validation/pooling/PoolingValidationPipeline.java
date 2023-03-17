@@ -11,23 +11,16 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import io.stackgres.operator.common.PoolingReview;
-import io.stackgres.operator.validation.SimpleValidationPipeline;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
+import io.stackgres.operator.validation.AbstractValidationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 @ApplicationScoped
-public class PoolingValidationPipeline
-    implements ValidationPipeline<PoolingReview> {
-
-  private SimpleValidationPipeline<PoolingReview, PoolingValidator> genericPipeline;
-
-  @Override
-  public void validate(PoolingReview review) throws ValidationFailed {
-    genericPipeline.validate(review);
-  }
+public class PoolingValidationPipeline extends AbstractValidationPipeline<PoolingReview> {
 
   @Inject
-  public void setValidatorInstances(@Any Instance<PoolingValidator> validatorInstances) {
-    this.genericPipeline = new SimpleValidationPipeline<>(validatorInstances);
+  public PoolingValidationPipeline(
+      @Any Instance<Validator<PoolingReview>> validatorInstances) {
+    super(validatorInstances);
   }
+
 }

@@ -5,35 +5,23 @@
 
 package io.stackgres.operator.mutation.profile;
 
-import java.util.Collection;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.common.SgProfileReview;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
+import io.stackgres.operator.mutation.AbstractMutationPipeline;
 
 @ApplicationScoped
-public class ProfilePipeline implements JsonPatchMutationPipeline<SgProfileReview> {
-
-  private final Instance<ProfileMutator> mutators;
+public class ProfilePipeline
+    extends AbstractMutationPipeline<StackGresProfile, SgProfileReview> {
 
   @Inject
-  public ProfilePipeline(Instance<ProfileMutator> mutators) {
-    this.mutators = mutators;
-  }
-
-  @Override
-  public Optional<String> mutate(SgProfileReview review) {
-    return mutators.stream()
-        .sorted(JsonPatchMutationPipeline.weightComparator())
-        .map(m -> m.mutate(review))
-        .flatMap(Collection::stream)
-        .collect(Collectors.collectingAndThen(Collectors.toList(),
-            JsonPatchMutationPipeline::join));
+  public ProfilePipeline(
+      @Any Instance<ProfileMutator> mutators) {
+    super(mutators);
   }
 
 }

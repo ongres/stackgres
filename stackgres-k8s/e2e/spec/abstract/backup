@@ -96,7 +96,7 @@ check_timelines(){
   local EXPECTED_TIMELINE
   local ACTUAL_TIMELINE
   BACKUP_LINE="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
-    --template "{{ range .items }}{{ .status.process.status }} {{ .status.backupInformation.startWalFile }} {{ .status.backupInformation.timeline }}{{ print \"\n\" }}{{ end }}" \
+    --template '{{ range .items }}{{ .status.process.status }} {{ .status.backupInformation.startWalFile }} {{ .status.backupInformation.timeline }}{{ print "\n" }}{{ end }}' \
     | grep "^Completed " | tail -n 1)"
 
   EXPECTED_TIMELINE="$(echo "$BACKUP_LINE" | cut -d ' ' -f 2)"
@@ -117,7 +117,7 @@ check_control_data(){
   EXPECTED_CONTROL_DATA_LENGTH="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni \
     -- bash -c 'pg_controldata --pgdata=$PG_DATA_PATH' | wc -l)"
   kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
-    --template '{{ range .items }}{{ .metadata.name }} {{ .status.process.status }}{{ print \"\n\" }}{{ end }}' \
+    --template '{{ range .items }}{{ .metadata.name }} {{ .status.process.status }}{{ print "\n" }}{{ end }}' \
     | grep " Completed$" \
     | while read BACKUP_NAME STATUS
       do
@@ -152,7 +152,7 @@ is_automatic_backup_cr_completed() {
   local BACKUP_NAME
 
   BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" \
-    --template "{{ range .items }}{{ .status.internalName }} {{ .status.process.status }} {{ .status.backupInformation.sourcePod }}{{ print \"\n\" }}{{ end }}" \
+    --template '{{ range .items }}{{ .status.internalName }} {{ .status.process.status }} {{ .status.backupInformation.sourcePod }}{{ print "\n" }}{{ end }}' \
     | grep " Completed ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
 
   if [ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
@@ -203,7 +203,7 @@ check_manual_backup() {
   fi
 
   ACTUAL_BACKUP_NAME="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-    --template "{{ .status.internalName }} {{ .status.process.status }} {{ .status.backupInformation.sourcePod }}" \
+    --template '{{ .status.internalName }} {{ .status.process.status }} {{ .status.backupInformation.sourcePod }}' \
     | grep " Completed ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
 
   if [ -z "$ACTUAL_BACKUP_NAME" ]
@@ -294,7 +294,7 @@ check_is_managed_lifecycle_value() {
   local EXPECTED_MANAGED_LYFECYCLE="$2"
   local ACTUAL_MANAGED_LYFECYCLE
   ACTUAL_MANAGED_LYFECYCLE="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-    --template "{{ .status.process.managedLifecycle }} {{ .status.process.status }} {{ .status.backupInformation.sourcePod }}" \
+    --template '{{ .status.process.managedLifecycle }} {{ .status.process.status }} {{ .status.backupInformation.sourcePod }}' \
     | grep " Completed ${CLUSTER_NAME}-${NODE}$" | tail -n 1 | cut -d ' ' -f 1)"
 
   if [ "$ACTUAL_MANAGED_LYFECYCLE" != "$EXPECTED_MANAGED_LYFECYCLE" ]

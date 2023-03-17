@@ -37,7 +37,6 @@ class DefaultShardsPostgresConfigMutatorTest
     resourceFactory.init();
     var mutator = new DefaultShardsPostgresMutator(
         resourceFactory, finder, scheduler);
-    mutator.init();
     return mutator;
   }
 
@@ -48,6 +47,7 @@ class DefaultShardsPostgresConfigMutatorTest
 
   @Override
   protected void checkConfigurationIsSet(StackGresShardedCluster newResource) {
+    assertNotNull(newResource.getSpec().getShards());
     assertNotNull(newResource.getSpec().getShards().getConfiguration());
     assertNotNull(newResource.getSpec().getShards().getConfiguration().getPostgresConfig());
   }
@@ -67,7 +67,7 @@ class DefaultShardsPostgresConfigMutatorTest
   @Override
   protected void setUpMissingConfigurationSection() {
     review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
-    review.getRequest().getObject().getSpec().getShards().setConfiguration(null);
+    review.getRequest().getObject().getSpec().setShards(null);
   }
 
 }

@@ -5,21 +5,16 @@
 
 package io.stackgres.operator.mutation;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.io.IOException;
-import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
-import com.github.fge.jsonpatch.JsonPatch;
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.testutil.JsonUtil;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,44 +56,38 @@ public abstract class AbstractDefaultResourceMutatorTest<
   protected abstract void checkConfigurationIsSet(T newResource);
 
   @Test
-  void clusterWithExistingConfiguration_shouldNotDoAnything() {
+  protected void clusterWithExistingConfiguration_shouldNotDoAnything() {
     setUpExistingConfiguration();
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
+    T result = mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertTrue(operations.isEmpty());
+    Assertions.assertEquals(review.getRequest().getObject(), result);
   }
 
   protected abstract void setUpExistingConfiguration();
 
   @Test
-  void clusteWithNoConfiguration_shouldSetOne() throws Exception {
+  protected void clusteWithNoConfiguration_shouldSetOne() throws Exception {
     setUpMissingConfiguration();
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
+    T result = mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
 
-    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
+    Assertions.assertNotEquals(review.getRequest().getObject(), result);
 
-    JsonPatch jp = new JsonPatch(operations);
-    T newResource = JSON_MAPPER.treeToValue(jp.apply(crJson), getResourceClass());
-
-    checkConfigurationIsSet(newResource);
+    checkConfigurationIsSet(result);
   }
 
   protected abstract void setUpMissingConfiguration();
 
   @Test
-  void clusteWithNoConfigurationSection_shouldSetOne() throws Exception {
+  protected void clusteWithNoConfigurationSection_shouldSetOne() throws Exception {
     setUpMissingConfigurationSection();
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
+    T result = mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
 
-    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
+    Assertions.assertNotEquals(review.getRequest().getObject(), result);
 
-    JsonPatch jp = new JsonPatch(operations);
-    T newResource = JSON_MAPPER.treeToValue(jp.apply(crJson), getResourceClass());
-
-    checkConfigurationIsSet(newResource);
+    checkConfigurationIsSet(result);
   }
 
   protected abstract void setUpMissingConfigurationSection();

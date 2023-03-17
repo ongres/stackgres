@@ -11,26 +11,16 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.validation.SimpleValidationPipeline;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
+import io.stackgres.operator.validation.AbstractValidationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 @ApplicationScoped
-public class ClusterValidationPipeline implements ValidationPipeline<StackGresClusterReview> {
-
-  private SimpleValidationPipeline<StackGresClusterReview, ClusterValidator> genericPipeline;
-
-  /**
-   * Validate all {@code Validator}s in sequence.
-   */
-  @Override
-  public void validate(StackGresClusterReview review) throws ValidationFailed {
-    genericPipeline.validate(review);
-  }
+public class ClusterValidationPipeline extends AbstractValidationPipeline<StackGresClusterReview> {
 
   @Inject
-  public void setValidators(@Any Instance<ClusterValidator> validators) {
-    this.genericPipeline = new SimpleValidationPipeline<>(validators);
+  public ClusterValidationPipeline(
+      @Any Instance<Validator<StackGresClusterReview>> validatorInstances) {
+    super(validatorInstances);
   }
 
 }

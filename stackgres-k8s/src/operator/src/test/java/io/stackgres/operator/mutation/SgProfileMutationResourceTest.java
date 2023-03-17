@@ -5,35 +5,24 @@
 
 package io.stackgres.operator.mutation;
 
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class SgProfileMutationResourceTest extends MutationResourceTest<SgProfileReview> {
+class SgProfileMutationResourceTest
+    extends MutationResourceTest<StackGresProfile, SgProfileReview> {
 
-  @BeforeEach
-  void setUp() {
-    final SgProfileMutationResource resource = new SgProfileMutationResource();
-    resource.setPipeline(pipeline);
-    this.resource = resource;
-
-    review = AdmissionReviewFixtures.instanceProfile().loadCreate().get();
+  @Override
+  protected MutationResource<StackGresProfile, SgProfileReview> getResource() {
+    return new SgProfileMutationResource(pipeline);
   }
 
   @Override
-  @Test
-  void givenAnValidAdmissionReview_itShouldReturnAnyPath() {
-    super.givenAnValidAdmissionReview_itShouldReturnAnyPath();
+  protected SgProfileReview getReview() {
+    return AdmissionReviewFixtures.instanceProfile().loadCreate().get();
   }
-
-  @Override
-  @Test
-  void givenAnInvalidAdmissionReview_itShouldReturnABase64EncodedPath() {
-    super.givenAnInvalidAdmissionReview_itShouldReturnABase64EncodedPath();
-  }
-
 }

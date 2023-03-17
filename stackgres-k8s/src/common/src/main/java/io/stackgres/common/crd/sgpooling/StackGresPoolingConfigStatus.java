@@ -8,7 +8,6 @@ package io.stackgres.common.crd.sgpooling;
 import java.util.Objects;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -22,7 +21,6 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
 public class StackGresPoolingConfigStatus {
 
-  @NotNull(message = "pgBouncer is required")
   @Valid
   private StackGresPoolingConfigPgBouncerStatus pgBouncer;
 

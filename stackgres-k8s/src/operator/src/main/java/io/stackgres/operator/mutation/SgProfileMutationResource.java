@@ -14,21 +14,28 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.CdiUtil;
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 
 @Path(MutationUtil.PROFILE_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class SgProfileMutationResource implements MutationResource<SgProfileReview> {
-
-  private JsonPatchMutationPipeline<SgProfileReview> pipeline;
+public class SgProfileMutationResource
+    extends MutationResource<StackGresProfile, SgProfileReview> {
 
   @Inject
-  public void setPipeline(JsonPatchMutationPipeline<SgProfileReview> pipeline) {
-    this.pipeline = pipeline;
+  public SgProfileMutationResource(
+      MutationPipeline<StackGresProfile, SgProfileReview> pipeline) {
+    super(pipeline);
+  }
+
+  public SgProfileMutationResource() {
+    super(null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
   }
 
   void onStart(@Observes StartupEvent ev) {
@@ -38,6 +45,11 @@ public class SgProfileMutationResource implements MutationResource<SgProfileRevi
   @POST
   @Override
   public AdmissionReviewResponse mutate(SgProfileReview admissionReview) {
-    return mutate(admissionReview, pipeline);
+    return super.mutate(admissionReview);
+  }
+
+  @Override
+  protected Class<StackGresProfile> getResourceClass() {
+    return StackGresProfile.class;
   }
 }

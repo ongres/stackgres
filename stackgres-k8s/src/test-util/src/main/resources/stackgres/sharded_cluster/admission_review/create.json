@@ -50,7 +50,8 @@
         "type": "citus",
         "database": "citus",
         "postgres": {
-          "version": "13.4"
+          "version": "13.4",
+          "flavor": "vanilla"
         },
         "coordinator": {
           "instances": 1,

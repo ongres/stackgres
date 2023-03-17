@@ -11,11 +11,17 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
+import com.ongres.pgconfig.validator.GucValidator;
+import com.ongres.pgconfig.validator.PgParameter;
+import io.fabric8.kubernetes.api.model.EndpointsBuilder;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
@@ -35,6 +41,7 @@ import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.common.patroni.StandbyCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
@@ -42,16 +49,38 @@ import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder
-public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
+public class PatroniConfigEndpoints
+    implements ResourceGenerator<StackGresClusterContext> {
+
+  private final ObjectMapper objectMapper;
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Inject
   public PatroniConfigEndpoints(ObjectMapper objectMapper,
-      LabelFactoryForCluster<StackGresCluster> labelFactory) {
-    super(objectMapper, labelFactory);
+                                LabelFactoryForCluster<StackGresCluster> labelFactory) {
+    this.objectMapper = objectMapper;
+    this.labelFactory = labelFactory;
   }
 
   @Override
-  protected PatroniConfig getPatroniConfig(StackGresClusterContext context) {
+  public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
+    PatroniConfig patroniConf = getPatroniConfig(context);
+
+    final String patroniConfigJson = objectMapper.valueToTree(patroniConf).toString();
+
+    StackGresCluster cluster = context.getSource();
+    return Stream.of(new EndpointsBuilder()
+        .withNewMetadata()
+        .withNamespace(cluster.getMetadata().getNamespace())
+        .withName(PatroniUtil.configName(context.getCluster()))
+        .addToLabels(context.servicesCustomLabels())
+        .addToLabels(labelFactory.clusterLabels(context.getSource()))
+        .withAnnotations(Map.of(PatroniUtil.CONFIG_KEY, patroniConfigJson))
+        .endMetadata()
+        .build());
+  }
+
+  private PatroniConfig getPatroniConfig(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getCluster();
     PatroniConfig patroniConf = new PatroniConfig();
     patroniConf.setTtl(30);
@@ -147,8 +176,34 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
     return patroniConf;
   }
 
-  @Override
-  protected Map<String, String> getPostgresParameters(StackGresClusterContext context,
+  protected Map<String, String> getPostgresConfigValues(StackGresClusterContext context) {
+    StackGresPostgresConfig pgConfig = context.getPostgresConfig();
+
+    Map<String, String> params = getPostgresParameters(context, pgConfig);
+
+    return normalizeParams(pgConfig.getSpec().getPostgresVersion(), params);
+  }
+
+  protected Map<String, String> getPostgresRecoveryConfigValues(StackGresClusterContext context) {
+    StackGresPostgresConfig pgConfig = context.getPostgresConfig();
+
+    Map<String, String> params = getPostgresRecoveryParameters(context);
+
+    return normalizeParams(pgConfig.getSpec().getPostgresVersion(), params);
+  }
+
+  private Map<String, String> normalizeParams(String postgresVersion,
+      Map<String, String> params) {
+    final GucValidator val = GucValidator.forVersion(postgresVersion);
+    final var builder = ImmutableMap.<String, String>builderWithExpectedSize(params.size());
+    params.forEach((name, setting) -> {
+      PgParameter parameter = val.parameter(name, setting);
+      builder.put(parameter.getName(), parameter.getSetting());
+    });
+    return builder.build();
+  }
+
+  private Map<String, String> getPostgresParameters(StackGresClusterContext context,
       StackGresPostgresConfig pgConfig) {
     final String version = pgConfig.getSpec().getPostgresVersion();
     Map<String, String> params = new HashMap<>(PostgresDefaultValues.getDefaultValues(
@@ -191,9 +246,7 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
     return params;
   }
 
-  @Override
-  protected Map<String, String> getPostgresRecoveryParameters(StackGresClusterContext context,
-      StackGresPostgresConfig pgConfig) {
+  private Map<String, String> getPostgresRecoveryParameters(StackGresClusterContext context) {
     Map<String, String> params = new HashMap<>();
 
     if (isBackupConfigurationPresent(context)) {
@@ -204,6 +257,11 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
     }
 
     return params;
+  }
+
+  private boolean isBackupConfigurationPresent(StackGresClusterContext context) {
+    return context.getBackupStorage()
+        .isPresent();
   }
 
 }

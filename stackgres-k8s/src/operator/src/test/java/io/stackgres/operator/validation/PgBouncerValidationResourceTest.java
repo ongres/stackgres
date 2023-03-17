@@ -21,8 +21,8 @@ class PgBouncerValidationResourceTest extends ValidationResourceTest<PoolingRevi
 
   @BeforeEach
   public void setUp() {
-    final PgBouncerValidationResource resource = new PgBouncerValidationResource();
-    resource.setPipeline(pipeline);
+    final PgBouncerValidationResource resource =
+        new PgBouncerValidationResource(pipeline);
     this.resource = resource;
 
     review = AdmissionReviewFixtures.poolingConfig().loadCreate().get();

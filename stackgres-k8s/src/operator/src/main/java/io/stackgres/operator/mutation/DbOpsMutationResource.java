@@ -14,21 +14,28 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.CdiUtil;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.operator.common.DbOpsReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 
 @Path(MutationUtil.DBOPS_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class DbOpsMutationResource implements MutationResource<DbOpsReview> {
-
-  private JsonPatchMutationPipeline<DbOpsReview> pipeline;
+public class DbOpsMutationResource
+    extends MutationResource<StackGresDbOps, DbOpsReview> {
 
   @Inject
-  public void setPipeline(JsonPatchMutationPipeline<DbOpsReview> pipeline) {
-    this.pipeline = pipeline;
+  public DbOpsMutationResource(
+      MutationPipeline<StackGresDbOps, DbOpsReview> pipeline) {
+    super(pipeline);
+  }
+
+  public DbOpsMutationResource() {
+    super(null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
   }
 
   void onStart(@Observes StartupEvent ev) {
@@ -38,6 +45,11 @@ public class DbOpsMutationResource implements MutationResource<DbOpsReview> {
   @POST
   @Override
   public AdmissionReviewResponse mutate(DbOpsReview admissionReview) {
-    return mutate(admissionReview, pipeline);
+    return super.mutate(admissionReview);
+  }
+
+  @Override
+  protected Class<StackGresDbOps> getResourceClass() {
+    return StackGresDbOps.class;
   }
 }

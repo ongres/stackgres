@@ -6,17 +6,15 @@
 package io.stackgres.operator.mutation.distributedlogs;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.github.fge.jsonpatch.AddOperation;
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.common.OperatorExtensionMetadataManager;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
@@ -50,7 +48,7 @@ class ExtensionsMutatorTest {
   void setUp() throws Exception {
     review = AdmissionReviewFixtures.distributedLogs().loadCreate().get();
 
-    mutator = new ExtensionsMutator(extensionMetadataManager, JsonUtil.jsonMapper());
+    mutator = new ExtensionsMutator(extensionMetadataManager);
 
     installedExtensions = Seq.<String>of()
         .map(this::getInstalledExtension)
@@ -63,17 +61,18 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getSpec().getToInstallPostgresExtensions()
         .addAll(installedExtensions);
 
-    final List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresDistributedLogs result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertTrue(operations.isEmpty());
+    assertEquals(review.getRequest().getObject(), result);
   }
 
   @Test
   void clusterWithoutExtensionsAndState_shouldCreateTheStateWithDefaultExtensions() {
-    final List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresDistributedLogs result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(1, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof AddOperation).count());
+    assertEquals(installedExtensions, result.getSpec().getToInstallPostgresExtensions());
   }
 
   private StackGresClusterInstalledExtension getInstalledExtension(String name) {

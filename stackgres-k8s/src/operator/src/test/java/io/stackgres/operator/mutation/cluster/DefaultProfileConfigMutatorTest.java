@@ -15,6 +15,8 @@ import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.initialization.DefaultProfileFactory;
 import io.stackgres.operator.mutation.AbstractDefaultResourceMutatorTest;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -37,7 +39,6 @@ class DefaultProfileConfigMutatorTest
     resourceFactory.init();
     var mutator = new DefaultProfileMutator(
         resourceFactory, finder, scheduler);
-    mutator.init();
     return mutator;
   }
 
@@ -64,8 +65,14 @@ class DefaultProfileConfigMutatorTest
 
   @Override
   protected void setUpMissingConfigurationSection() {
-    review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
-    review.getRequest().getObject().getSpec().setConfiguration(null);
+    // Nothing to do
+  }
+
+  @Test
+  @Disabled("There is no configuration section for profile")
+  @Override
+  protected void clusteWithNoConfigurationSection_shouldSetOne() throws Exception {
+    super.clusteWithNoConfigurationSection_shouldSetOne();
   }
 
 }

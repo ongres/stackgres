@@ -48,8 +48,34 @@
               "default_pool_size": "200",
               "max_client_conn": "200",
               "pool_mode": "transaction"
+            },
+            "databases": {
+              "foodb": {
+                "dbname": "bardb",
+                "pool_size": "10"
+              },
+              "sgdb": {
+                "pool_mode": "statement",
+                "max_db_connections": "1000"
+              }
+            },
+            "users": {
+              "user1": {
+                "max_user_connections": "30"
+              },
+              "user2": {
+                "pool_mode": "session",
+                "max_user_connections": "100"
+              }
             }
           }
+        }
+      },
+      "status": {
+        "defaultParameters": {
+          "default_pool_size": "200",
+          "max_client_conn": "200",
+          "pool_mode": "transaction"
         }
       }
     },

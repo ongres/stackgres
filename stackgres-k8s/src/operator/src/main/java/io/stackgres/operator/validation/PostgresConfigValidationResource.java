@@ -14,22 +14,30 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Path(ValidationUtil.PGCONFIG_VALIDATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class PostgresConfigValidationResource implements ValidationResource<PgConfigReview> {
+public class PostgresConfigValidationResource extends AbstractValidationResource<PgConfigReview> {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(PostgresConfigValidationResource.class);
 
-  private ValidationPipeline<PgConfigReview> validationPipeline;
+  @Inject
+  public PostgresConfigValidationResource(ValidationPipeline<PgConfigReview> pipeline) {
+    super(pipeline);
+  }
+
+  public PostgresConfigValidationResource() {
+    super(null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+  }
 
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("Postgres configuration validation resource started");
@@ -41,11 +49,6 @@ public class PostgresConfigValidationResource implements ValidationResource<PgCo
   @POST
   @Override
   public AdmissionReviewResponse validate(PgConfigReview admissionReview) {
-    return validate(admissionReview, validationPipeline);
-  }
-
-  @Inject
-  public void setValidationPipeline(ValidationPipeline<PgConfigReview> validationPipeline) {
-    this.validationPipeline = validationPipeline;
+    return super.validate(admissionReview);
   }
 }

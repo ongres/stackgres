@@ -5,35 +5,25 @@
 
 package io.stackgres.operator.mutation;
 
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class BackupConfigMutationResourceTest extends MutationResourceTest<BackupConfigReview> {
+class BackupConfigMutationResourceTest
+    extends MutationResourceTest<StackGresBackupConfig, BackupConfigReview> {
 
-  @BeforeEach
-  void setUp() {
-    final BackupConfigMutationResource resource = new BackupConfigMutationResource();
-    resource.setPipeline(pipeline);
-    this.resource = resource;
-
-    review = AdmissionReviewFixtures.backupConfig().loadCreate().get();
+  @Override
+  protected MutationResource<StackGresBackupConfig, BackupConfigReview> getResource() {
+    return new BackupConfigMutationResource(pipeline);
   }
 
   @Override
-  @Test
-  void givenAnValidAdmissionReview_itShouldReturnAnyPath() {
-    super.givenAnValidAdmissionReview_itShouldReturnAnyPath();
-  }
-
-  @Override
-  @Test
-  void givenAnInvalidAdmissionReview_itShouldReturnABase64EncodedPath() {
-    super.givenAnInvalidAdmissionReview_itShouldReturnABase64EncodedPath();
+  protected BackupConfigReview getReview() {
+    return AdmissionReviewFixtures.backupConfig().loadCreate().get();
   }
 
 }

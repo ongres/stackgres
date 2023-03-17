@@ -9,21 +9,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
-import java.util.List;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.github.fge.jsonpatch.JsonPatch;
-import com.github.fge.jsonpatch.JsonPatchException;
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupPerformance;
 import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.opentest4j.AssertionFailedError;
 
 class BackupPerformanceMutatorTest {
 
@@ -37,7 +31,6 @@ class BackupPerformanceMutatorTest {
     review = AdmissionReviewFixtures.backup().loadCreate().get();
 
     mutator = new BackupPerformanceMutator();
-    mutator.init();
   }
 
   @Test
@@ -150,13 +143,6 @@ class BackupPerformanceMutatorTest {
   }
 
   private StackGresBackup mutate(BackupReview review) {
-    try {
-      List<JsonPatchOperation> operations = mutator.mutate(review);
-      JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
-      JsonNode newConfig = new JsonPatch(operations).apply(crJson);
-      return JSON_MAPPER.treeToValue(newConfig, StackGresBackup.class);
-    } catch (JsonPatchException | JsonProcessingException | IllegalArgumentException e) {
-      throw new AssertionFailedError(e.getMessage(), e);
-    }
+    return mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
   }
 }

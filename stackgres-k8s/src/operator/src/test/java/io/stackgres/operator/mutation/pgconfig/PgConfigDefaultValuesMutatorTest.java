@@ -7,14 +7,13 @@ package io.stackgres.operator.mutation.pgconfig;
 
 import java.util.HashMap;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
-import io.stackgres.operator.mutation.DefaultValuesMutator;
+import io.stackgres.operator.mutation.AbstractValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
@@ -27,7 +26,7 @@ class PgConfigDefaultValuesMutatorTest
     extends DefaultValuesMutatorTest<StackGresPostgresConfig, PgConfigReview> {
 
   @Override
-  protected DefaultValuesMutator<StackGresPostgresConfig, PgConfigReview> getMutatorInstance(
+  protected AbstractValuesMutator<StackGresPostgresConfig, PgConfigReview> getMutatorInstance(
       DefaultCustomResourceFactory<StackGresPostgresConfig> factory, JsonMapper jsonMapper) {
     return new PgConfigDefaultValuesMutator(factory, jsonMapper);
   }
@@ -47,11 +46,6 @@ class PgConfigDefaultValuesMutatorTest
   @Override
   protected StackGresPostgresConfig getDefaultResource() {
     return Fixtures.postgresConfig().loadDefault().get();
-  }
-
-  @Override
-  protected JsonNode getConfJson(JsonNode crJson) {
-    return crJson.get("spec").get("postgresql.conf");
   }
 
 }

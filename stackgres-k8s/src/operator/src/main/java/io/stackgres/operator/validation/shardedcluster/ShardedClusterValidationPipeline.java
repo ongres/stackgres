@@ -11,28 +11,17 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import io.stackgres.operator.common.StackGresShardedClusterReview;
-import io.stackgres.operator.validation.SimpleValidationPipeline;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
+import io.stackgres.operator.validation.AbstractValidationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 @ApplicationScoped
 public class ShardedClusterValidationPipeline
-    implements ValidationPipeline<StackGresShardedClusterReview> {
-
-  private SimpleValidationPipeline<StackGresShardedClusterReview,
-      ShardedClusterValidator> genericPipeline;
-
-  /**
-   * Validate all {@code Validator}s in sequence.
-   */
-  @Override
-  public void validate(StackGresShardedClusterReview review) throws ValidationFailed {
-    genericPipeline.validate(review);
-  }
+    extends AbstractValidationPipeline<StackGresShardedClusterReview> {
 
   @Inject
-  public void setValidators(@Any Instance<ShardedClusterValidator> validators) {
-    this.genericPipeline = new SimpleValidationPipeline<>(validators);
+  public ShardedClusterValidationPipeline(
+      @Any Instance<Validator<StackGresShardedClusterReview>> validatorInstances) {
+    super(validatorInstances);
   }
 
 }
