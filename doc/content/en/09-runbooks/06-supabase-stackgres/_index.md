@@ -204,6 +204,10 @@ supabase-db-0                             6/6     Running   0          3m
 supabase-db-1                             6/6     Running   0          2m
 ```
 
+> The Supabase Helm chart makes use of Alpine-based Docker images, e.g. `postgres:15-alpine`.
+> On some systems, this led to problems caused by issues with DNS, that might lead to an error such as `Waiting for database to start...  supabase-db.default.svc.cluster.local:5432 - no response`.
+> If that happens to you, you'll need to change the base images in the Supabase Helm chart.
+
 In order to test the setup, we create a local port forwarding to the Supabase API and Studio:
 
 ```
