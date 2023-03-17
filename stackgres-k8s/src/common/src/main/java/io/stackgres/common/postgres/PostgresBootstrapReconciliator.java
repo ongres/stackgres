@@ -8,6 +8,7 @@ package io.stackgres.common.postgres;
 import java.util.Objects;
 import java.util.Optional;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
@@ -41,6 +42,8 @@ public abstract class PostgresBootstrapReconciliator {
     this.podName = null;
   }
 
+  @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",
+      justification = "False positives")
   public ReconciliationResult<Boolean> reconcile(KubernetesClient client, ClusterContext context)
       throws Exception {
     try {
@@ -68,7 +71,6 @@ public abstract class PostgresBootstrapReconciliator {
       if (!isBootstrapped) {
         return new ReconciliationResult<>(false);
       }
-      LOGGER.info("Cluster bootstrap completed");
       final Optional<Endpoints> patroniEndpoints = endpointsFinder
           .findByNameAndNamespace(PatroniUtil.readWriteName(context.getCluster()),
               context.getCluster().getMetadata().getNamespace());
@@ -86,7 +88,10 @@ public abstract class PostgresBootstrapReconciliator {
         LOGGER.info("Setting pod as {}", isPodPrimary ? "primary" : "non primary");
         result = true;
       }
-      if (isPodPrimary) {
+      if (isPodPrimary
+          && (context.getCluster().getStatus().getArch() == null
+          || context.getCluster().getStatus().getOs() == null)) {
+        LOGGER.info("Cluster bootstrap completed");
         if (context.getCluster().getStatus() == null) {
           context.getCluster().setStatus(new StackGresClusterStatus());
         }
