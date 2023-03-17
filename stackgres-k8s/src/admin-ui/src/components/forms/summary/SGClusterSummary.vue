@@ -720,15 +720,15 @@
                                                 <li v-for="(port, index) in cluster.data.spec.postgresServices.primary.customPorts">
                                                     <strong class="sectionTitle">Port #{{ index + 1 }}</strong>
                                                     <ul>
-                                                        <li v-if="port.hasOwnProperty('appProtocol')">
+                                                        <li v-if="port.hasOwnProperty('appProtocol') && (port.appProtocol != null)">
                                                             <strong class="label">Application Protocol:</strong>
                                                             <span class="value">{{ port.appProtocol }}</span>
                                                         </li>
-                                                        <li v-if="port.hasOwnProperty('name')">
+                                                        <li v-if="port.hasOwnProperty('name') && (port.name != null)">
                                                             <strong class="label">Name:</strong>
                                                             <span class="value">{{ port.name }}</span>
                                                         </li>
-                                                        <li v-if="port.hasOwnProperty('nodePort')">
+                                                        <li v-if="port.hasOwnProperty('nodePort') && (port.nodePort != null)">
                                                             <strong class="label">Node Port:</strong>
                                                             <span class="value">{{ port.nodePort }}</span>
                                                         </li>
@@ -736,11 +736,11 @@
                                                             <strong class="label">Port:</strong>
                                                             <span class="value">{{ port.port }}</span>
                                                         </li>
-                                                        <li v-if="port.hasOwnProperty('protocol')">
+                                                        <li v-if="port.hasOwnProperty('protocol') && (port.protocol != null)">
                                                             <strong class="label">Protocol:</strong>
                                                             <span class="value">{{ port.protocol }}</span>
                                                         </li>
-                                                        <li v-if="port.hasOwnProperty('targetPort')">
+                                                        <li v-if="port.hasOwnProperty('targetPort') && (port.targetPort != null)">
                                                             <strong class="label">Target Port:</strong>
                                                             <span class="value">{{ port.targetPort }}</span>
                                                         </li>
@@ -769,15 +769,15 @@
                                                 <li v-for="(port, index) in cluster.data.spec.postgresServices.replicas.customPorts">
                                                     <strong class="sectionTitle">Port #{{ index + 1 }}</strong>
                                                     <ul>
-                                                        <li v-if="port.hasOwnProperty('appProtocol')">
+                                                        <li v-if="port.hasOwnProperty('appProtocol') && (port.appProtocol != null)">
                                                             <strong class="label">Application Protocol:</strong>
                                                             <span class="value">{{ port.appProtocol }}</span>
                                                         </li>
-                                                        <li v-if="port.hasOwnProperty('name')">
+                                                        <li v-if="port.hasOwnProperty('name') && (port.name != null)">
                                                             <strong class="label">Name:</strong>
                                                             <span class="value">{{ port.name }}</span>
                                                         </li>
-                                                        <li v-if="port.hasOwnProperty('nodePort')">
+                                                        <li v-if="port.hasOwnProperty('nodePort') && (port.nodePort != null)">
                                                             <strong class="label">Node Port:</strong>
                                                             <span class="value">{{ port.nodePort }}</span>
                                                         </li>
@@ -785,11 +785,11 @@
                                                             <strong class="label">Port:</strong>
                                                             <span class="value">{{ port.port }}</span>
                                                         </li>
-                                                        <li v-if="port.hasOwnProperty('protocol')">
+                                                        <li v-if="port.hasOwnProperty('protocol') && (port.protocol != null)">
                                                             <strong class="label">Protocol:</strong>
                                                             <span class="value">{{ port.protocol }}</span>
                                                         </li>
-                                                        <li v-if="port.hasOwnProperty('targetPort')">
+                                                        <li v-if="port.hasOwnProperty('targetPort') && (port.targetPort != null)">
                                                             <strong class="label">Target Port:</strong>
                                                             <span class="value">{{ port.targetPort }}</span>
                                                         </li>

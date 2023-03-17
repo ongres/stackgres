@@ -1324,7 +1324,13 @@
                                     </div>
                                     <div class="col">
                                         <label for="spec.postgresServices.primary.customPorts.port">Port</label>  
-                                        <input type="number" v-model="port.port" :data-field="'spec.postgresServices.primary.customPorts[' + index + '].port'" autocomplete="off">
+                                        <input 
+                                            type="number"
+                                            v-model="port.port"
+                                            :data-field="'spec.postgresServices.primary.customPorts[' + index + '].port'"
+                                            :required="(port.appProtocol != null) || (port.name != null) || (port.nodePort != null) || (port.protocol != null) || (port.targetPort != null)"
+                                            autocomplete="off"
+                                        >
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary.customPorts.port')"></span>
                                     </div>
                                     <div class="col">
@@ -1430,7 +1436,13 @@
                                     </div>
                                     <div class="col">
                                         <label for="spec.postgresServices.replicas.customPorts.port">Port</label>  
-                                        <input type="number" v-model="port.port" :data-field="'spec.postgresServices.replicas.customPorts[' + index + '].port'" autocomplete="off">
+                                        <input 
+                                            type="number" 
+                                            v-model="port.port"
+                                            :data-field="'spec.postgresServices.replicas.customPorts[' + index + '].port'"
+                                            :required="(port.appProtocol != null) || (port.name != null) || (port.nodePort != null) || (port.protocol != null) || (port.targetPort != null)"
+                                            autocomplete="off"
+                                        >
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas.customPorts.port')"></span>
                                     </div>
                                     <div class="col">
