@@ -54,19 +54,7 @@
 
                         <div class="col">
                             <label for="spec.instances">Number of Instances <span class="req">*</span></label>
-                            <select v-model="instances" required data-field="spec.instances">
-                                <option disabled value="">Instances</option>
-                                <option>1</option>
-                                <option>2</option>
-                                <option>3</option>
-                                <option>4</option>
-                                <option>5</option>
-                                <option>6</option>
-                                <option>7</option>
-                                <option>8</option>
-                                <option>9</option>
-                                <option>10</option>
-                            </select>
+                            <input type="number" v-model="instances" required data-field="spec.instances" min="0">
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.instances')"></span>
                         </div>
                         <div class="col">
