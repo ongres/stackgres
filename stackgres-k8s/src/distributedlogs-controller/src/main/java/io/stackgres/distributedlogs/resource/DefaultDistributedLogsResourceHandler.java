@@ -12,8 +12,8 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.distributedlogs.common.StackGresDistributedLogsContext;
 
 @ApplicationScoped

@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.resource;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -15,10 +16,11 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.transformer.ClusterTransformer;
-import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.PodFinder;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
@@ -41,6 +43,23 @@ public class ClusterDtoScanner implements CustomResourceScanner<ClusterDto> {
   public List<ClusterDto> getResources(String namespace) {
     Transformer transformer = createTransformer();
     return Seq.seq(clusterScanner.getResources(namespace))
+        .map(transformer::transform)
+        .toList();
+  }
+
+  @Override
+  public @NotNull List<@NotNull ClusterDto> getResourcesWithLabels(Map<String, String> labels) {
+    Transformer transformer = createTransformer();
+    return Seq.seq(clusterScanner.getResourcesWithLabels(labels))
+        .map(transformer::transform)
+        .toList();
+  }
+
+  @Override
+  public @NotNull List<@NotNull ClusterDto> getResourcesWithLabels(
+      String namespace, Map<String, String> labels) {
+    Transformer transformer = createTransformer();
+    return Seq.seq(clusterScanner.getResourcesWithLabels(namespace, labels))
         .map(transformer::transform)
         .toList();
   }

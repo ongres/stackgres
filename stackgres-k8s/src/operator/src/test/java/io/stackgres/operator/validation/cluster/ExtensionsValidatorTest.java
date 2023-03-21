@@ -20,9 +20,9 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.extension.ExtensionRequest;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
+import io.stackgres.operator.common.OperatorExtensionMetadataManager;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.jooq.lambda.Seq;
@@ -52,7 +52,7 @@ class ExtensionsValidatorTest {
   private List<StackGresClusterInstalledExtension> installedExtensions;
 
   @Mock
-  private ClusterExtensionMetadataManager extensionMetadataManager;
+  private OperatorExtensionMetadataManager extensionMetadataManager;
 
   @BeforeEach
   void setUp() {

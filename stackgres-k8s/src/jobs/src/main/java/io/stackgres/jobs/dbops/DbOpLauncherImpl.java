@@ -24,10 +24,10 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.smallrye.mutiny.TimeoutException;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
+import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -35,7 +35,6 @@ import io.stackgres.jobs.app.JobsProperty;
 import io.stackgres.jobs.dbops.lock.ImmutableLockRequest;
 import io.stackgres.jobs.dbops.lock.LockAcquirer;
 import io.stackgres.jobs.dbops.lock.LockRequest;
-import io.stackgres.operatorframework.resource.Condition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -146,8 +145,7 @@ public class DbOpLauncherImpl implements DbOpLauncher {
     }
   }
 
-  private void updateToConditions(String dbOpName, String namespace,
-                                  List<StackGresDbOpsCondition> conditions) {
+  private void updateToConditions(String dbOpName, String namespace, List<Condition> conditions) {
     Uni.createFrom().item(() -> dbOpsFinder.findByNameAndNamespace(dbOpName, namespace)
             .orElseThrow())
         .invoke(currentDbOps -> currentDbOps.getStatus().setConditions(conditions))
@@ -171,8 +169,8 @@ public class DbOpLauncherImpl implements DbOpLauncher {
     updateToConditions(dbOpName, namespace, getTimeoutConditions());
   }
 
-  public List<StackGresDbOpsCondition> getStartingConditions() {
-    final List<StackGresDbOpsCondition> conditions = List.of(
+  public List<Condition> getStartingConditions() {
+    final List<Condition> conditions = List.of(
         DbOpsStatusCondition.DB_OPS_RUNNING.getCondition(),
         DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED.getCondition(),
         DbOpsStatusCondition.DB_OPS_FALSE_FAILED.getCondition()
@@ -181,8 +179,8 @@ public class DbOpLauncherImpl implements DbOpLauncher {
     return conditions;
   }
 
-  public List<StackGresDbOpsCondition> getCompletedConditions() {
-    final List<StackGresDbOpsCondition> conditions = List.of(
+  public List<Condition> getCompletedConditions() {
+    final List<Condition> conditions = List.of(
         DbOpsStatusCondition.DB_OPS_FALSE_RUNNING.getCondition(),
         DbOpsStatusCondition.DB_OPS_COMPLETED.getCondition(),
         DbOpsStatusCondition.DB_OPS_FALSE_FAILED.getCondition()
@@ -191,8 +189,8 @@ public class DbOpLauncherImpl implements DbOpLauncher {
     return conditions;
   }
 
-  public List<StackGresDbOpsCondition> getFailedConditions() {
-    final List<StackGresDbOpsCondition> conditions = List.of(
+  public List<Condition> getFailedConditions() {
+    final List<Condition> conditions = List.of(
         DbOpsStatusCondition.DB_OPS_FALSE_RUNNING.getCondition(),
         DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED.getCondition(),
         DbOpsStatusCondition.DB_OPS_FAILED.getCondition()
@@ -201,8 +199,8 @@ public class DbOpLauncherImpl implements DbOpLauncher {
     return conditions;
   }
 
-  public List<StackGresDbOpsCondition> getTimeoutConditions() {
-    final List<StackGresDbOpsCondition> conditions = List.of(
+  public List<Condition> getTimeoutConditions() {
+    final List<Condition> conditions = List.of(
         DbOpsStatusCondition.DB_OPS_FALSE_RUNNING.getCondition(),
         DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED.getCondition(),
         DbOpsStatusCondition.DB_OPS_TIMED_OUT.getCondition()

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -20,6 +21,8 @@ import javax.inject.Singleton;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
@@ -32,27 +35,30 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
-import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresPort;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
+import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.CustomContainer;
 import io.stackgres.common.crd.CustomServicePort;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import org.jetbrains.annotations.NotNull;
+import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,12 +72,15 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
 
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
   private final ObjectMapper jsonMapper;
+  private final YAMLMapper yamlMapper;
 
   @Inject
   public PatroniConfigMap(LabelFactoryForCluster<StackGresCluster> labelFactory,
-      ObjectMapper jsonMapper) {
+      ObjectMapper jsonMapper,
+      YamlMapperProvider yamlMapperProvider) {
     this.labelFactory = labelFactory;
     this.jsonMapper = jsonMapper;
+    this.yamlMapper = yamlMapperProvider.get();
   }
 
   public static String name(ClusterContext clusterContext) {
@@ -191,7 +200,24 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
     final int pgPort = EnvoyUtil.PG_ENTRY_PORT;
     final int babelfishPort = EnvoyUtil.BF_ENTRY_PORT;
     Map<String, String> data = new HashMap<>();
-    data.put("PATRONI_SCOPE", PatroniUtil.clusterScope(cluster));
+    data.put("PATRONI_CONFIG_FILE", ClusterStatefulSetPath.PATRONI_CONFIG_FILE_PATH.path());
+    data.put("PATRONI_SCOPE", Optional
+        .ofNullable(cluster.getSpec().getConfiguration().getPatroni())
+        .map(StackGresClusterPatroni::getInitialConfig)
+        .map(patroniConfig -> patroniConfig.getScope())
+        .orElse(PatroniUtil.clusterScope(cluster)));
+    data.put("PATRONI_INITIAL_CONFIG", Optional
+        .ofNullable(cluster.getSpec().getConfiguration().getPatroni())
+        .map(StackGresClusterPatroni::getInitialConfig)
+        .map(Unchecked.function(yamlMapper::valueToTree))
+        .map(ObjectNode.class::cast)
+        .map(config -> {
+          PatroniUtil.PATRONI_BLOCKLIST_CONFIG_KEYS.forEach(config::remove);
+          return config;
+        })
+        .filter(Predicate.not(ObjectNode::isEmpty))
+        .map(Unchecked.function(yamlMapper::writeValueAsString))
+        .orElse(""));
     data.put("PATRONI_KUBERNETES_SCOPE_LABEL",
         labelFactory.labelMapper().clusterScopeKey(cluster));
     data.put("PATRONI_KUBERNETES_LABELS", patroniClusterLabelsAsJson);
@@ -230,7 +256,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(name(context))
-        .withLabels(patroniClusterLabels)
+        .withLabels(labelFactory.genericLabels(cluster))
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
         .build();

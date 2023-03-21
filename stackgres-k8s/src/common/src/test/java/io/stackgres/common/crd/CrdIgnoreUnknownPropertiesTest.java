@@ -15,6 +15,7 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.testutil.ModelTestUtil;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -33,6 +34,7 @@ public class CrdIgnoreUnknownPropertiesTest {
     StackGresDistributedLogs.class,
     StackGresObjectStorage.class,
     StackGresScript.class,
+    StackGresShardedCluster.class,
   })
   void crdShouldInoreUnknownProperties(Class<?> resourceClazz) {
     ModelTestUtil.assertJsonInoreUnknownProperties(resourceClazz);

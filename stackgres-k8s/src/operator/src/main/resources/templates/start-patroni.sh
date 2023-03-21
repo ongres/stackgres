@@ -113,6 +113,9 @@ fi
 watchdog:
   mode: off
 tags: {}
+
+#Custom initial config
+$PATRONI_INITIAL_CONFIG
 EOF
 PATRONI_CONFIG_EOF
 chmod 600 "$PATRONI_CONFIG_FILE_PATH"

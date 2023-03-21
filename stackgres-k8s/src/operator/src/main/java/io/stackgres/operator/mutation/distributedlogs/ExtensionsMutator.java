@@ -20,9 +20,9 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
+import io.stackgres.operator.common.OperatorExtensionMetadataManager;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.mutation.AbstractExtensionsMutator;
-import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
@@ -30,11 +30,11 @@ public class ExtensionsMutator
     extends AbstractExtensionsMutator<StackGresDistributedLogs, StackGresDistributedLogsReview>
     implements DistributedLogsMutator {
 
-  private final ClusterExtensionMetadataManager extensionMetadataManager;
+  private final OperatorExtensionMetadataManager extensionMetadataManager;
   private final ObjectMapper objectMapper;
 
   @Inject
-  public ExtensionsMutator(ClusterExtensionMetadataManager extensionMetadataManager,
+  public ExtensionsMutator(OperatorExtensionMetadataManager extensionMetadataManager,
       ObjectMapper objectMapper) {
     super();
     this.extensionMetadataManager = extensionMetadataManager;
@@ -42,7 +42,7 @@ public class ExtensionsMutator
   }
 
   @Override
-  protected ClusterExtensionMetadataManager getExtensionMetadataManager() {
+  protected OperatorExtensionMetadataManager getExtensionMetadataManager() {
     return extensionMetadataManager;
   }
 

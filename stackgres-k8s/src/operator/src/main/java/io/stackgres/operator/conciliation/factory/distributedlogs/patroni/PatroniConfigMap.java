@@ -21,11 +21,13 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
-import io.stackgres.common.LabelFactoryForCluster;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
@@ -36,7 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-@OperatorVersionBinder
+@OperatorVersionBinder(startAt = StackGresVersion.V_1_5)
 public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsContext> {
 
   public static final int PATRONI_LOG_FILE_SIZE = 256 * 1024 * 1024;
@@ -97,7 +99,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
     final String pgVersion = StackGresDistributedLogsUtil.getPostgresVersion(context.getSource());
 
     final String patroniClusterLabelsAsJson;
-    final Map<String, String> patroniClusterLabels = labelFactory.genericLabels(cluster);
+    final Map<String, String> patroniClusterLabels = labelFactory.patroniClusterLabels(cluster);
     try {
       patroniClusterLabelsAsJson = jsonMapper.writeValueAsString(
           patroniClusterLabels);
@@ -108,7 +110,8 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
     final int pgRawPort = EnvoyUtil.PG_PORT;
     final int pgPort = EnvoyUtil.PG_PORT;
     Map<String, String> data = new HashMap<>();
-    data.put("PATRONI_SCOPE", clusterScope(cluster));
+    data.put("PATRONI_CONFIG_FILE", ClusterStatefulSetPath.PATRONI_CONFIG_FILE_PATH.path());
+    data.put("PATRONI_SCOPE", PatroniUtil.clusterScope(cluster));
     data.put("PATRONI_KUBERNETES_SCOPE_LABEL",
         labelFactory.labelMapper().clusterScopeKey(cluster));
     data.put("PATRONI_KUBERNETES_LABELS", patroniClusterLabelsAsJson);
@@ -137,10 +140,6 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
         .build();
-  }
-
-  public static String clusterScope(StackGresDistributedLogs distributedLogs) {
-    return distributedLogs.getMetadata().getName();
   }
 
 }

@@ -26,12 +26,12 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetUpdateStrategyBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ImmutableStorageConfig;
-import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StorageConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -90,6 +90,7 @@ public class ClusterStatefulSet
 
     final Map<String, String> labels = labelFactory.clusterLabels(cluster);
     final Map<String, String> podLabels = labelFactory.statefulSetPodLabels(cluster);
+    final Map<String, String> customPodLabels = context.clusterPodsCustomLabels();
 
     Map<String, VolumePair> availableVolumesPairs = volumeDiscoverer.discoverVolumes(context);
 
@@ -133,6 +134,7 @@ public class ClusterStatefulSet
             .orElse("OrderedReady"))
         .withReplicas(cluster.getSpec().getInstances())
         .withSelector(new LabelSelectorBuilder()
+            .addToMatchLabels(customPodLabels)
             .addToMatchLabels(podLabels)
             .build())
         .withUpdateStrategy(new StatefulSetUpdateStrategyBuilder()

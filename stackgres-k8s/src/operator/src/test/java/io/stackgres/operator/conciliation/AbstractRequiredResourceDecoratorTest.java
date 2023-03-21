@@ -15,17 +15,27 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.base.Preconditions;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceUtil;
 import junit.framework.AssertionFailedError;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public abstract class AbstractRequiredResourceDecoratorTest<T> {
+
+  private int sgClusterMaxLength;
+
+  @BeforeEach
+  void setUp() throws Exception {
+    sgClusterMaxLength = getMaxLengthResourceNameFrom("SGCluster.yaml");
+  }
 
   @Test
   void shouldCreateResourceSuccessfully_OnceUsingTheCurrentCrdMaxLength() throws IOException {
@@ -87,6 +97,12 @@ public abstract class AbstractRequiredResourceDecoratorTest<T> {
       ResourceUtil.nameIsValidDnsSubdomainForJob(resource.getMetadata().getName());
     } else if (resource instanceof CronJob) {
       ResourceUtil.nameIsValidDnsSubdomainForCronJob(resource.getMetadata().getName());
+    } else if (resource instanceof StackGresCluster) {
+      final String name = resource.getMetadata().getName();
+      ResourceUtil.nameIsValidDnsSubdomain(name);
+      Preconditions.checkArgument(name.length() <= sgClusterMaxLength,
+          format("Valid name must be %s characters or less. But was %d (%s)",
+              sgClusterMaxLength, name.length(), name));
     } else {
       ResourceUtil.nameIsValidDnsSubdomain(resource.getMetadata().getName());
     }

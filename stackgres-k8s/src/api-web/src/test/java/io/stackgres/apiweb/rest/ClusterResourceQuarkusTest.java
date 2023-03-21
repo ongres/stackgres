@@ -75,7 +75,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
 
     Service primary = new ServiceBuilder()
         .withNewMetadata()
-        .withName(PatroniUtil.readWriteName(cluster.getMetadata().getName()))
+        .withName(PatroniUtil.defaultReadWriteName(cluster.getMetadata().getName()))
         .withNamespace(cluster.getMetadata().getNamespace())
         .endMetadata()
         .withNewSpec()
@@ -164,7 +164,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
             "info.superuserSecretName", equalTo(cluster.getMetadata().getName()),
             "info.superuserPasswordKey", equalTo("superuser-password"),
             "info.primaryDns",
-            equalTo(PatroniUtil.readWriteName(cluster.getMetadata().getName())
+            equalTo(PatroniUtil.defaultReadWriteName(cluster.getMetadata().getName())
                 + ".test"),
             "info.replicasDns",
             equalTo(PatroniUtil.readOnlyName(cluster.getMetadata().getName())
@@ -188,7 +188,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
             "[0].info.superuserSecretName", equalTo(cluster.getMetadata().getName()),
             "[0].info.superuserPasswordKey", equalTo("superuser-password"),
             "[0].info.primaryDns",
-            equalTo(PatroniUtil.readWriteName(cluster.getMetadata().getName())
+            equalTo(PatroniUtil.defaultReadWriteName(cluster.getMetadata().getName())
                 + ".test"),
             "[0].info.replicasDns",
             equalTo(PatroniUtil.readOnlyName(cluster.getMetadata().getName())

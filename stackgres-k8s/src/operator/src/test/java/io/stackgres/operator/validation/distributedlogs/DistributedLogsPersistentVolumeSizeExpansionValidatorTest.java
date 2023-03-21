@@ -16,7 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DistributedLogsPersistentVolumeSizeExpansionValidatorTest extends
     PersistentVolumeSizeExpansionValidatorTest<StackGresDistributedLogsReview,
-        StackGresDistributedLogs> {
+        StackGresDistributedLogs, StackGresDistributedLogs> {
 
   @Override
   protected StackGresDistributedLogsReview getAdmissionReview() {
@@ -25,12 +25,17 @@ class DistributedLogsPersistentVolumeSizeExpansionValidatorTest extends
 
   @Override
   protected PersistentVolumeSizeExpansionValidator<StackGresDistributedLogsReview,
-      StackGresDistributedLogs> getValidator() {
+      StackGresDistributedLogs, StackGresDistributedLogs> getValidator() {
     return new DistributedLogsPersistentVolumeSizeExpansionValidator(
         finder,
         pvcScanner,
         labelFactory
     );
+  }
+
+  @Override
+  protected StackGresDistributedLogs getCluster(StackGresDistributedLogs resource) {
+    return resource;
   }
 
   @Override

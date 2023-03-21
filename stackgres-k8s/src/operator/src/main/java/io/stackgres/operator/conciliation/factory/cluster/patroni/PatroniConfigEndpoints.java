@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
-import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresVersion;
@@ -32,6 +31,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.common.patroni.StandbyCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -67,13 +67,10 @@ public class PatroniConfigEndpoints extends AbstractPatroniConfigEndpoints {
     patroniConf.setSynchronousNodeCount(
         cluster.getSpec().getReplication().getSyncInstances());
 
-    Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getReplicateFrom)
-        .map(StackGresClusterReplicateFrom::getInstance)
-        .map(StackGresClusterReplicateFromInstance::getSgCluster)
-        .ifPresent(sgCluster -> {
+    context.getReplicateCluster()
+        .ifPresent(replicateCluster -> {
           patroniConf.setStandbyCluster(new StandbyCluster());
-          patroniConf.getStandbyCluster().setHost(PatroniUtil.readWriteName(sgCluster));
+          patroniConf.getStandbyCluster().setHost(PatroniUtil.readWriteName(replicateCluster));
           patroniConf.getStandbyCluster().setPort(
               String.valueOf(PatroniUtil.REPLICATION_SERVICE_PORT));
           patroniConf.getStandbyCluster().setRestoreCommand("exec-with-env '"

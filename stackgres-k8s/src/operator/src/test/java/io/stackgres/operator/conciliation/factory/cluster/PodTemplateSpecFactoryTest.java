@@ -15,12 +15,12 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterLabelMapper;
-import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.labels.ClusterLabelMapper;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.InitContainerFactoryDiscover;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -62,7 +62,7 @@ class PodTemplateSpecFactoryTest {
   private Container patroniContainer;
 
   @InjectMocks
-  private PodTemplateSpecFactory podTemplateSpecFactory;
+  private ClusterPodTemplateSpecFactory podTemplateSpecFactory;
 
   @Mock
   private ClusterContainerContext clusterContainerContext;
@@ -74,7 +74,7 @@ class PodTemplateSpecFactoryTest {
 
   @BeforeEach
   public void setupClass() {
-    this.podTemplateSpecFactory = new PodTemplateSpecFactory(
+    this.podTemplateSpecFactory = new ClusterPodTemplateSpecFactory(
         podSecurityContext, labelFactory, containerFactoryDiscoverer,
         initContainerFactoryDiscoverer);
     cluster = Fixtures.cluster().loadDefault().get();

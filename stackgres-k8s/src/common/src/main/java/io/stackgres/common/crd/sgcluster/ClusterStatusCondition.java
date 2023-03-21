@@ -5,6 +5,10 @@
 
 package io.stackgres.common.crd.sgcluster;
 
+import java.util.Objects;
+
+import io.stackgres.common.crd.Condition;
+
 public enum ClusterStatusCondition {
 
   POD_REQUIRES_RESTART(Type.PENDING_RESTART, Status.TRUE, "PodRequiresRestart"),
@@ -24,12 +28,17 @@ public enum ClusterStatusCondition {
     this.reason = reason;
   }
 
-  public StackGresClusterCondition getCondition() {
-    return new StackGresClusterCondition(type, status, reason);
+  public Condition getCondition() {
+    return new Condition(type, status, reason);
+  }
+
+  public boolean isCondition(Condition condition) {
+    return Objects.equals(condition.getType(), type)
+        && Objects.equals(condition.getStatus(), status)
+        && Objects.equals(condition.getReason(), reason);
   }
 
   public enum Type {
-
     PENDING_RESTART("PendingRestart"),
     PENDING_UPGRADE("PendingUpgrade"),
     FAILED("Failed");
@@ -46,7 +55,6 @@ public enum ClusterStatusCondition {
   }
 
   public enum Status {
-
     TRUE("True"),
     FALSE("False"),
     UNKNOWN("Unknown");

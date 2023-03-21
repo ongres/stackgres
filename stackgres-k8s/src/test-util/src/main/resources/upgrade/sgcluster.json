@@ -53,6 +53,9 @@
             "labels": {
                 "clusterPods": {
                     "pod-label": "X3VnaUPuNGtadWsp1K6ZrR2TV8CIuTSe"
+                },
+                "services": {
+                  "service-label" : "X3VnaUPuNGtadWsp1K6ZrR2TV8CIuTSe"
                 }
             }
         },

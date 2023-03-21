@@ -2,7 +2,7 @@
 title: SGInstanceProfile
 weight: 2
 url: reference/crd/sginstanceprofile
-description: Details about SGInstanceProfile configurations
+description: Details about SGInstanceProfile
 ---
 
 The `SGInstanceProfile` custom resource represents the CPU and memory resources assigned to each pod of the Postgres cluster.

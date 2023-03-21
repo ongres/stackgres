@@ -20,11 +20,13 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
+import io.stackgres.operator.mutation.AbstractDefaultResourceMutator;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 @ApplicationScoped
 public class DefaultPoolingMutator
-    extends AbstractDefaultResourceMutator<StackGresPoolingConfig>
+    extends AbstractDefaultResourceMutator<StackGresPoolingConfig, StackGresCluster,
+        StackGresClusterReview>
     implements ClusterConfigurationMutator {
 
   @Inject
@@ -60,11 +62,6 @@ public class DefaultPoolingMutator
 
   @Override
   public JsonPointer getTargetPointer() {
-    return getTargetPointer("connectionPoolingConfig");
-  }
-
-  @Override
-  public JsonPointer getTargetPointer(String field) {
-    return getConfigurationTargetPointer(field);
+    return getConfigurationTargetPointer("connectionPoolingConfig");
   }
 }

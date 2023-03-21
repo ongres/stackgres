@@ -26,6 +26,16 @@ public class EndpointsFixture extends Fixture<Endpoints> {
     return this;
   }
 
+  public EndpointsFixture loadPatroniDeployed() {
+    fixture = readFromJson(ENDPOINTS_PATRONI_DEPLOYED_JSON);
+    return this;
+  }
+
+  public EndpointsFixture loadPatroniRequired() {
+    fixture = readFromJson(ENDPOINTS_PATRONI_REQUIRED_JSON);
+    return this;
+  }
+
   public EndpointsFixture loadDeployed() {
     fixture = readFromJson(ENDPOINTS_DEPLOYED_JSON);
     return this;

@@ -19,7 +19,11 @@ public interface JsonFixtureWithPaths {
   String ENDPOINTS_PATRONI_CONFIG_WITH_STANDBY_CLUSTER_JSON =
       "endpoints/patroni_config_with_standby_cluster.json";
 
+  String ENDPOINTS_PATRONI_DEPLOYED_JSON = "endpoints/patroni_deployed.json";
+
   String ENDPOINTS_PATRONI_JSON = "endpoints/patroni.json";
+
+  String ENDPOINTS_PATRONI_REQUIRED_JSON = "endpoints/patroni_required.json";
 
   String ENDPOINTS_REQUIRED_JSON = "endpoints/required.json";
 
@@ -220,6 +224,9 @@ public interface JsonFixtureWithPaths {
 
   String STACKGRES_CLUSTER_ADMISSION_REVIEW_RESTORE_CONFIG_UPDATE_JSON =
       "stackgres/cluster/admission_review/restore_config_update.json";
+
+  String STACKGRES_CLUSTER_ADMISSION_REVIEW_PATRONI_INITIAL_CONFIG_UPDATE_JSON =
+      "stackgres/cluster/admission_review/patroni_initial_config_update.json";
 
   String STACKGRES_CLUSTER_ADMISSION_REVIEW_SCRIPTS_CONFIG_UPDATE_JSON =
       "stackgres/cluster/admission_review/scripts_config_update.json";
@@ -425,6 +432,54 @@ public interface JsonFixtureWithPaths {
   String STACKGRES_SCRIPT_DEFAULT_JSON = "stackgres/script/default.json";
 
   String STACKGRES_SCRIPT_DTO_JSON = "stackgres/script/dto.json";
+
+  String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_CREATE_JSON =
+      "stackgres/sharded_cluster/admission_review/create.json";
+
+  String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_DELETE_JSON =
+      "stackgres/sharded_cluster/admission_review/delete.json";
+
+  String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_CONNECTION_POOLING_CONFIG_UPDATE_JSON =
+      "stackgres/sharded_cluster/admission_review/connection_pooling_config_update.json";
+
+  String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_INVALID_CREATION_EMPTY_PG_VERSION_JSON =
+      "stackgres/sharded_cluster/admission_review/invalid_creation_empty_pg_version.json";
+
+  String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_INVALID_CREATION_NO_PG_VERSION_JSON =
+      "stackgres/sharded_cluster/admission_review/invalid_creation_no_pg_version.json";
+
+  String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_INVALID_CREATION_PG_VERSION_JSON =
+      "stackgres/sharded_cluster/admission_review/invalid_creation_pg_version.json";
+
+  String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_INVALID_CREATION_ZERO_INSTANCES_JSON =
+      "stackgres/sharded_cluster/admission_review/invalid_creation_zero_instances.json";
+
+  String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_MAJOR_POSTGRES_VERSION_UPDATE_JSON =
+      "stackgres/sharded_cluster/admission_review/major_postgres_version_update.json";
+
+  String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_MINOR_POSTGRES_VERSION_UPDATE_JSON =
+      "stackgres/sharded_cluster/admission_review/minor_postgres_version_update.json";
+
+  String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_POSTGRES_CONFIG_UPDATE_JSON =
+      "stackgres/sharded_cluster/admission_review/postgres_config_update.json";
+
+  String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_PROFILE_CONFIG_UPDATE_JSON =
+      "stackgres/sharded_cluster/admission_review/profile_config_update.json";
+
+  String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_STORAGE_CLASS_CONFIG_UPDATE_JSON =
+      "stackgres/sharded_cluster/admission_review/storage_class_config_update.json";
+
+  String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_UPDATE_JSON =
+      "stackgres/sharded_cluster/admission_review/update.json";
+
+  String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_WRONG_MAJOR_POSTGRES_VERSION_UPDATE_JSON =
+      "stackgres/sharded_cluster/admission_review/wrong_major_postgres_version_update.json";
+
+  String STACKGRES_SHARDED_CLUSTER_DEFAULT_JSON = "stackgres/sharded_cluster/default.json";
+
+  String STACKGRES_SHARDED_CLUSTER_DTO_JSON = "stackgres/sharded_cluster/dto.json";
+
+  String STACKGRES_SHARDED_CLUSTER_LIST_JSON = "stackgres/sharded_cluster/list.json";
 
   String STATEFULSET_0_9_5_JSON = "statefulset/0.9.5.json";
 

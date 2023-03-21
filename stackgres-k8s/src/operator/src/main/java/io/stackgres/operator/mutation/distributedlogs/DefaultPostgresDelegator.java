@@ -62,10 +62,7 @@ public class DefaultPostgresDelegator implements DistributedLogsMutator {
 
   private DefaultPostgresMutator getMutator(PostgresConfigurationFactory factory)
       throws NoSuchFieldException {
-    final DefaultPostgresMutator mutator = new DefaultPostgresMutator();
-    mutator.setFinder(finder);
-    mutator.setScheduler(scheduler);
-    mutator.setResourceFactory(factory);
+    final DefaultPostgresMutator mutator = new DefaultPostgresMutator(factory, finder, scheduler);
     mutator.init();
     return mutator;
   }

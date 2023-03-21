@@ -1,0 +1,45 @@
+{
+  "metadata": {
+    "name": "stackgres",
+    "namespace": "stackgres",
+    "uid": "bfb53778-f59a-11e9-b1b5-0242ac110002"
+  },
+  "spec": {
+    "type": "citus",
+    "database": "citus",
+    "postgres": {
+      "version": "13.4"
+    },
+    "coordinator": {
+      "instances": 1,
+      "sgInstanceProfile": "size-xs",
+      "configurations": {
+        "sgPostgresConfig": "postgresconf",
+        "sgPoolingConfig": "pgbouncerconf"
+      },
+      "pods":{
+        "persistentVolume": {
+          "size": "5Gi",
+          "storageClass": "standard"
+        }
+      }
+    },
+    "shards": {
+      "clusters": 2,
+      "instancesPerCluster": 1,
+      "sgInstanceProfile": "size-xs",
+      "configurations": {
+        "sgPostgresConfig": "postgresconf",
+        "sgPoolingConfig": "pgbouncerconf"
+      },
+      "pods":{
+        "persistentVolume": {
+          "size": "5Gi",
+          "storageClass": "standard"
+        }
+      }
+    },
+    "prometheusAutobind": "true"
+  },
+  "status": null
+}

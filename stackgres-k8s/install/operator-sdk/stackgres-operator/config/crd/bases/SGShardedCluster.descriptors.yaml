@@ -1,0 +1,141 @@
+specDescriptors:
+  instances:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:podCount'
+  replication.syncInstances:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:podCount'
+  replication.groups.instances:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:podCount'
+  distributedLogs.sgDistributedLogs:
+    displayName: SGDistributedLogs Reference
+  replicateFrom.instance.sgCluster:
+    displayName: Replicate From Instance SGCluster Reference
+  postgres.ssl.certificateSecretKeySelector:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  postgres.ssl.certificateSecretKeySelector.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  postgres.ssl.privateKeySecretKeySelector:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  postgres.ssl.privateKeySecretKeySelector.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  replicateFrom.users.superuser.username:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  replicateFrom.users.superuser.username.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  replicateFrom.users.superuser.password:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  replicateFrom.users.superuser.password.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  replicateFrom.users.replication.username:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  replicateFrom.users.replication.username.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  replicateFrom.users.replication.password:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  replicateFrom.users.replication.password.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  replicateFrom.users.authenticator.username:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  replicateFrom.users.authenticator.username.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  replicateFrom.users.authenticator.password:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:selector:core:v1:Secret'
+  replicateFrom.users.authenticator.password.name:
+    x-descriptors:
+    - urn:alm:descriptor:io.kubernetes:Secret
+  coordinator.pods.scheduling.nodeAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:nodeAffinity'
+  coordinator.pods.scheduling.podAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:podAffinity'
+  coordinator.pods.scheduling.podAntiAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:podAntiAffinity'
+  coordinator.pods.scheduling.tolerations: {}
+  coordinator.pods.scheduling.topologySpreadConstraints: {}
+  coordinator.pods.scheduling.backup.nodeAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:nodeAffinity'
+  coordinator.pods.scheduling.backup.podAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:podAffinity'
+  coordinator.pods.scheduling.backup.podAntiAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:podAntiAffinity'
+  coordinator.pods.scheduling.backup.tolerations: {}
+  coordinator.configurations.backups.sgObjectStorage:
+    displayName: Configurations Backups SGObjectStorage
+  shards.pods.scheduling.nodeAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:nodeAffinity'
+  shards.pods.scheduling.podAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:podAffinity'
+  shards.pods.scheduling.podAntiAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:podAntiAffinity'
+  shards.pods.scheduling.tolerations: {}
+  shards.pods.scheduling.topologySpreadConstraints: {}
+  shards.pods.scheduling.backup.nodeAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:nodeAffinity'
+  shards.pods.scheduling.backup.podAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:podAffinity'
+  shards.pods.scheduling.backup.podAntiAffinity:
+    x-descriptors:
+    - 'urn:alm:descriptor:com.tectonic.ui:podAntiAffinity'
+  shards.pods.scheduling.backup.tolerations: {}
+  shards.configurations.backups.sgObjectStorage:
+    displayName: Configurations Backups SGObjectStorage
+
+specIgnore:
+- postgresServices.primary.customPorts
+- postgresServices.replicas.customPorts
+- coordinator.pods.customVolumes
+- coordinator.pods.customContainers
+- coordinator.pods.customInitContainers
+- coordinator.pods.scheduling.nodeAffinity
+- coordinator.pods.scheduling.podAffinity
+- coordinator.pods.scheduling.podAntiAffinity
+- coordinator.pods.scheduling.topologySpreadConstraints
+- coordinator.pods.scheduling.tolerations
+- coordinator.pods.scheduling.backup.nodeAffinity
+- coordinator.pods.scheduling.backup.podAffinity
+- coordinator.pods.scheduling.backup.podAntiAffinity
+- coordinator.pods.scheduling.backup.tolerations
+- shards.pods.customVolumes
+- shards.pods.customContainers
+- shards.pods.customInitContainers
+- shards.pods.scheduling.nodeAffinity
+- shards.pods.scheduling.podAffinity
+- shards.pods.scheduling.podAntiAffinity
+- shards.pods.scheduling.topologySpreadConstraints
+- shards.pods.scheduling.tolerations
+- shards.pods.scheduling.backup.nodeAffinity
+- shards.pods.scheduling.backup.podAffinity
+- shards.pods.scheduling.backup.podAntiAffinity
+- shards.pods.scheduling.backup.tolerations
+
+statusDescriptors:
+  conditions:
+    x-descriptors:
+    - 'urn:alm:descriptor:io.kubernetes.conditions'

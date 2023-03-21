@@ -11,17 +11,17 @@ import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsCondition;
+import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.distributedlogs.common.StackGresDistributedLogsContext;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
 
 @ApplicationScoped
 public class DistributedLogsStatusManager
-    extends ConditionUpdater<StackGresDistributedLogsContext, StackGresDistributedLogsCondition> {
+    extends ConditionUpdater<StackGresDistributedLogsContext, Condition> {
 
   @Override
-  protected List<StackGresDistributedLogsCondition> getConditions(
+  protected List<Condition> getConditions(
       StackGresDistributedLogsContext context) {
     return Optional.ofNullable(context.getDistributedLogs().getStatus())
         .map(StackGresDistributedLogsStatus::getConditions)
@@ -30,7 +30,7 @@ public class DistributedLogsStatusManager
 
   @Override
   protected void setConditions(StackGresDistributedLogsContext context,
-      List<StackGresDistributedLogsCondition> conditions) {
+      List<Condition> conditions) {
     if (context.getDistributedLogs().getStatus() == null) {
       context.getDistributedLogs().setStatus(new StackGresDistributedLogsStatus());
     }

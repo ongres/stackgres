@@ -28,6 +28,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.extension.ExtensionUtil;
 import io.stackgres.common.extension.StackGresExtension;
 import io.stackgres.common.extension.StackGresExtensionIndexAnyVersion;
@@ -65,7 +66,7 @@ class ExtensionsResourceTest {
       StackGresComponent.POSTGRESQL.getLatest().getBuildMajorVersion(PG_VERSION);
 
   @Mock
-  private ClusterExtensionMetadataManager clusterExtensionMetadataManager;
+  private ExtensionMetadataManager extensionMetadataManager;
 
   private StackGresExtensions extensionsMetadata;
 
@@ -116,26 +117,26 @@ class ExtensionsResourceTest {
         .flatMap(List::stream)
         .filter(target -> Objects.equals(target.getPostgresVersion(), "11.9"))
         .forEach(target -> target.setPostgresVersion(SECOND_PG_VERSION));
-    resource = new ExtensionsResource(clusterExtensionMetadataManager,
-        new ExtensionsTransformer(clusterExtensionMetadataManager,
+    resource = new ExtensionsResource(extensionMetadataManager,
+        new ExtensionsTransformer(extensionMetadataManager,
             JsonMapper.builder().build()));
   }
 
   @Test
   void getWithExactVersionShouldReturnAllExtensions() throws Exception {
-    when(clusterExtensionMetadataManager.getExtensions()).thenReturn(
+    when(extensionMetadataManager.getExtensions()).thenReturn(
         Seq.seq(ExtensionUtil.toExtensionsMetadataIndex(REPOSITORY, extensionsMetadata))
           .map(Tuple2::v2)
           .toList());
-    when(clusterExtensionMetadataManager.getExtensionsAnyVersion(
+    when(extensionMetadataManager.getExtensionsAnyVersion(
         any(), eq(getClusterExtension("pgsodium")), anyBoolean())).thenReturn(
             ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensionsMetadata)
             .get(getIndexAnyVersion(PG_VERSION, getClusterExtension("pgsodium"))));
-    when(clusterExtensionMetadataManager.getExtensionsAnyVersion(
+    when(extensionMetadataManager.getExtensionsAnyVersion(
         any(), eq(getClusterExtension("mysqlcompat")), anyBoolean())).thenReturn(
             ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensionsMetadata)
             .get(getIndexAnyVersion(PG_VERSION, getClusterExtension("mysqlcompat"))));
-    when(clusterExtensionMetadataManager.getExtensionsAnyVersion(
+    when(extensionMetadataManager.getExtensionsAnyVersion(
         any(), eq(getClusterExtension("plpgsql")), anyBoolean())).thenReturn(
             ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensionsMetadata)
             .get(getIndexAnyVersion(PG_VERSION, getClusterExtension("plpgsql"))));
@@ -154,8 +155,8 @@ class ExtensionsResourceTest {
         .filter(extension -> extension.getName().equals("plpgsql"))
         .map(Extension::getVersions).flatMap(List::stream).count());
 
-    verify(clusterExtensionMetadataManager, times(1)).getExtensions();
-    verify(clusterExtensionMetadataManager, times(3)).getExtensionsAnyVersion(
+    verify(extensionMetadataManager, times(1)).getExtensions();
+    verify(extensionMetadataManager, times(3)).getExtensionsAnyVersion(
         any(), any(), anyBoolean());
   }
 
@@ -174,19 +175,19 @@ class ExtensionsResourceTest {
             .replaceFirst(".[0-9]+", ".99999999" + Math.min(9, t.v2.intValue()))));
     extensionsMetadata.getExtensions().add(sameVersionWithAnotherBuildExtension);
 
-    when(clusterExtensionMetadataManager.getExtensions()).thenReturn(
+    when(extensionMetadataManager.getExtensions()).thenReturn(
         Seq.seq(ExtensionUtil.toExtensionsMetadataIndex(REPOSITORY, extensionsMetadata))
           .map(Tuple2::v2)
           .toList());
-    when(clusterExtensionMetadataManager.getExtensionsAnyVersion(
+    when(extensionMetadataManager.getExtensionsAnyVersion(
         any(), eq(getClusterExtension("pgsodium")), anyBoolean())).thenReturn(
             ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensionsMetadata)
             .get(getIndexAnyVersion(PG_VERSION, getClusterExtension("pgsodium"))));
-    when(clusterExtensionMetadataManager.getExtensionsAnyVersion(
+    when(extensionMetadataManager.getExtensionsAnyVersion(
         any(), eq(getClusterExtension("mysqlcompat")), anyBoolean())).thenReturn(
             ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensionsMetadata)
             .get(getIndexAnyVersion(PG_VERSION, getClusterExtension("mysqlcompat"))));
-    when(clusterExtensionMetadataManager.getExtensionsAnyVersion(
+    when(extensionMetadataManager.getExtensionsAnyVersion(
         any(), eq(getClusterExtension("plpgsql")), anyBoolean())).thenReturn(
             ExtensionUtil.toExtensionsMetadataIndexAnyVersions(REPOSITORY, extensionsMetadata)
             .get(getIndexAnyVersion(PG_VERSION, getClusterExtension("plpgsql"))));

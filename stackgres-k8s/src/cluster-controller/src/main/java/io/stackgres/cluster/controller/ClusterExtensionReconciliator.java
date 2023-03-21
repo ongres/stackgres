@@ -16,6 +16,7 @@ import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.extension.ExtensionEventEmitter;
+import io.stackgres.common.extension.ExtensionManager;
 import io.stackgres.common.extension.ExtensionReconciliator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +34,7 @@ public class ClusterExtensionReconciliator
   public static class Parameters {
     @Inject EventController eventController;
     @Inject ClusterControllerPropertyContext propertyContext;
-    @Inject ClusterExtensionManager extensionManager;
+    @Inject ExtensionManager extensionManager;
     @Inject ExtensionEventEmitter extensionEventEmitter;
   }
 

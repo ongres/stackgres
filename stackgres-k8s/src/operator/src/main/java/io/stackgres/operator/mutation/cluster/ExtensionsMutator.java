@@ -32,9 +32,9 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.extension.ExtensionUtil;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
+import io.stackgres.operator.common.OperatorExtensionMetadataManager;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.mutation.AbstractExtensionsMutator;
-import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
 import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
@@ -47,20 +47,20 @@ public class ExtensionsMutator
     extends AbstractExtensionsMutator<StackGresCluster, StackGresClusterReview>
     implements ClusterMutator {
 
-  private final ClusterExtensionMetadataManager extensionMetadataManager;
+  private final OperatorExtensionMetadataManager extensionMetadataManager;
   private final ObjectMapper objectMapper;
   private final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
       supportedPostgresVersions;
 
   @Inject
   public ExtensionsMutator(
-      ClusterExtensionMetadataManager extensionMetadataManager,
+      OperatorExtensionMetadataManager extensionMetadataManager,
       ObjectMapper objectMapper) {
     this(extensionMetadataManager, objectMapper, ValidationUtil.SUPPORTED_POSTGRES_VERSIONS);
   }
 
   public ExtensionsMutator(
-      ClusterExtensionMetadataManager extensionMetadataManager,
+      OperatorExtensionMetadataManager extensionMetadataManager,
       ObjectMapper objectMapper,
       Map<StackGresComponent, Map<StackGresVersion, List<String>>> supportedPostgresVersions) {
     this.extensionMetadataManager = extensionMetadataManager;
@@ -158,7 +158,7 @@ public class ExtensionsMutator
   }
 
   @Override
-  protected ClusterExtensionMetadataManager getExtensionMetadataManager() {
+  protected OperatorExtensionMetadataManager getExtensionMetadataManager() {
     return extensionMetadataManager;
   }
 

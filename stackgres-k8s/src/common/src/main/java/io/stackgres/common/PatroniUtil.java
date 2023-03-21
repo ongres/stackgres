@@ -7,6 +7,7 @@ package io.stackgres.common;
 
 import static io.stackgres.operatorframework.resource.ResourceUtil.getIndexPattern;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -55,6 +56,24 @@ public interface PatroniUtil {
   int REPLICATION_SERVICE_PORT = 5433;
   int BABELFISH_SERVICE_PORT = 1433;
 
+  List<String> PATRONI_BLOCKLIST_CONFIG_KEYS = List.of(
+      "scope",
+      "name",
+      "namespace",
+      "log",
+      "bootstrap",
+      "consul",
+      "etcd",
+      "etcdv3",
+      "zookeper",
+      "exhibitor",
+      "kubernetes",
+      "raft",
+      "postgresql",
+      "restapi",
+      "ctl",
+      "tags");
+
   static String readWriteName(StackGresCluster cluster) {
     String name = cluster.getMetadata().getName();
     return readWriteName(name);
@@ -62,6 +81,10 @@ public interface PatroniUtil {
 
   static String readWriteName(@NotNull String clusterName) {
     return ResourceUtil.nameIsValidService(clusterName);
+  }
+
+  static String defaultReadWriteName(@NotNull String clusterName) {
+    return readWriteName(clusterName);
   }
 
   static String deprecatedReadWriteName(StackGresCluster cluster) {
@@ -92,7 +115,7 @@ public interface PatroniUtil {
 
   static String restName(StackGresCluster cluster) {
     String name = cluster.getMetadata().getName();
-    return readWriteName(name + REST_SERVICE);
+    return defaultReadWriteName(name + REST_SERVICE);
   }
 
   static String configName(ClusterContext context) {
@@ -104,8 +127,8 @@ public interface PatroniUtil {
         clusterScope(cluster) + CONFIG_SERVICE);
   }
 
-  static String clusterScope(CustomResource<?, ?> cluster) {
-    return cluster.getMetadata().getName();
+  static String clusterScope(CustomResource<?, ?> resource) {
+    return resource.getMetadata().getName();
   }
 
   /**

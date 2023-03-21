@@ -23,10 +23,14 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
+import io.stackgres.operator.mutation.AbstractDefaultResourceMutator;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 @ApplicationScoped
-public class DefaultProfileMutator extends AbstractDefaultResourceMutator<StackGresProfile> {
+public class DefaultProfileMutator
+    extends AbstractDefaultResourceMutator<StackGresProfile, StackGresCluster,
+        StackGresClusterReview>
+    implements ClusterMutator {
 
   @Inject
   public DefaultProfileMutator(

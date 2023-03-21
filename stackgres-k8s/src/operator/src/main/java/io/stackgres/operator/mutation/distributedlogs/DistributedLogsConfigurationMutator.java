@@ -14,17 +14,16 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsConfigu
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutatorUtil;
 
-public interface DistributedLogsConfigurationMutator extends JsonPatchMutatorUtil {
+public interface DistributedLogsConfigurationMutator extends DistributedLogsMutator {
 
-  default JsonPointer getConfigurationTargetPointer(String field) throws NoSuchFieldException {
+  default JsonPointer getConfigurationTargetPointer(String field) {
     String jsonField =
         getJsonMappingField(field, StackGresDistributedLogsConfiguration.class);
     return getConfigurationTargetPointer().append(jsonField);
   }
 
-  default JsonPointer getConfigurationTargetPointer() throws NoSuchFieldException {
+  default JsonPointer getConfigurationTargetPointer() {
     String jsonField =
         getJsonMappingField("configuration", StackGresDistributedLogsSpec.class);
 
@@ -36,16 +35,12 @@ public interface DistributedLogsConfigurationMutator extends JsonPatchMutatorUti
     StackGresDistributedLogsConfiguration configuration = spec.getConfiguration();
 
     if (configuration == null) {
-      try {
-        configuration = new StackGresDistributedLogsConfiguration();
-        spec.setConfiguration(configuration);
-        final JsonPointer confPointer = getConfigurationTargetPointer();
-        final AddOperation configurationAdd = new AddOperation(confPointer,
-            JsonPatchMutator.FACTORY.objectNode());
-        return List.of(configurationAdd);
-      } catch (NoSuchFieldException e) {
-        return List.of();
-      }
+      configuration = new StackGresDistributedLogsConfiguration();
+      spec.setConfiguration(configuration);
+      final JsonPointer confPointer = getConfigurationTargetPointer();
+      final AddOperation configurationAdd = new AddOperation(confPointer,
+          JsonPatchMutator.FACTORY.objectNode());
+      return List.of(configurationAdd);
     }
 
     return List.of();

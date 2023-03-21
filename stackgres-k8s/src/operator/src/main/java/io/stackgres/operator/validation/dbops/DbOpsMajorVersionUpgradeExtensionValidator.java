@@ -21,9 +21,9 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.DbOpsReview;
-import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
 import io.stackgres.operator.validation.AbstractExtensionsValidator;
 import io.stackgres.operator.validation.ExtensionReview;
 import io.stackgres.operator.validation.ImmutableExtensionReview;
@@ -37,19 +37,19 @@ public class DbOpsMajorVersionUpgradeExtensionValidator
     extends AbstractExtensionsValidator<DbOpsReview>
     implements DbOpsValidator {
 
-  private final ClusterExtensionMetadataManager extensionMetadataManager;
+  private final ExtensionMetadataManager extensionMetadataManager;
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
 
   @Inject
   public DbOpsMajorVersionUpgradeExtensionValidator(
-      ClusterExtensionMetadataManager extensionMetadataManager,
+      ExtensionMetadataManager extensionMetadataManager,
       CustomResourceFinder<StackGresCluster> clusterFinder) {
     this.extensionMetadataManager = extensionMetadataManager;
     this.clusterFinder = clusterFinder;
   }
 
   @Override
-  protected ClusterExtensionMetadataManager getExtensionMetadataManager() {
+  protected ExtensionMetadataManager getExtensionMetadataManager() {
     return extensionMetadataManager;
   }
 

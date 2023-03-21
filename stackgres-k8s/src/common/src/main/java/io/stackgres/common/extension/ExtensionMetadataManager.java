@@ -141,7 +141,7 @@ public abstract class ExtensionMetadataManager {
 
   @SuppressFBWarnings(value = "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE",
       justification = "False positive")
-  private synchronized ExtensionMetadataCache getExtensionsMetadata() {
+  synchronized ExtensionMetadataCache getExtensionsMetadata() {
     boolean updated = false;
     for (URI extensionsRepositoryUri : extensionsRepositoryUris) {
       try {

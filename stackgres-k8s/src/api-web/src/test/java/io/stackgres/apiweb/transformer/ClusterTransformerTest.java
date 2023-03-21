@@ -28,8 +28,8 @@ import io.stackgres.apiweb.dto.cluster.ClusterReplicationGroup;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
 import io.stackgres.apiweb.dto.cluster.ClusterStatus;
+import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
@@ -81,7 +81,7 @@ class ClusterTransformerTest {
 
     var conditions = TransformerTestUtil.generateRandomListTuple(
         ClusterCondition.class,
-        StackGresClusterCondition.class
+        Condition.class
     );
 
     statusTuple.source().setConditions(conditions.source());

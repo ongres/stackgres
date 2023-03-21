@@ -33,7 +33,6 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.EnvoyUtil;
-import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
@@ -45,6 +44,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -328,7 +328,7 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(configMapName)
-        .withLabels(labelFactory.clusterLabels(stackGresCluster))
+        .withLabels(labelFactory.genericLabels(stackGresCluster))
         .endMetadata()
         .withData(data)
         .build();

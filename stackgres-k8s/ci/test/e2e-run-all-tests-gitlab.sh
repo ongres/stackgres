@@ -53,7 +53,6 @@ export TEMP_DIR="/tmp/$CI_PROJECT_ID"
 export E2E_TEST_REGISTRY="$CI_REGISTRY"
 export E2E_TEST_REGISTRY_PATH="$CI_PROJECT_PATH"
 export E2E_USE_TEST_HASHES=true
-export E2E_CONTINUOUS_PARALLELIZATION=true
 
 copy_project_to_temp_dir() {
   echo "Copying project files ..."

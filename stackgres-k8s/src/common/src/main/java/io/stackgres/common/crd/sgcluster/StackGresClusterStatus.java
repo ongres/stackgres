@@ -16,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.Condition;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
@@ -27,7 +28,7 @@ public class StackGresClusterStatus {
   @JsonProperty("conditions")
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @Valid
-  private List<StackGresClusterCondition> conditions = new ArrayList<>();
+  private List<Condition> conditions = new ArrayList<>();
 
   @JsonProperty("podStatuses")
   @Valid
@@ -50,11 +51,11 @@ public class StackGresClusterStatus {
   @JsonProperty("labelPrefix")
   private String labelPrefix;
 
-  public List<StackGresClusterCondition> getConditions() {
+  public List<Condition> getConditions() {
     return conditions;
   }
 
-  public void setConditions(List<StackGresClusterCondition> conditions) {
+  public void setConditions(List<Condition> conditions) {
     this.conditions = conditions;
   }
 

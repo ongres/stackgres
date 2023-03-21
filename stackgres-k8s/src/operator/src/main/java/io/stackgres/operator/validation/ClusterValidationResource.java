@@ -15,8 +15,8 @@ import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operator.validation.cluster.ClusterValidationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,7 @@ public class ClusterValidationResource implements ValidationResource<StackGresCl
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ClusterValidationResource.class);
 
-  private ClusterValidationPipeline pipeline;
+  private ValidationPipeline<StackGresClusterReview> pipeline;
 
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("Cluster validation resource started");
@@ -45,7 +45,7 @@ public class ClusterValidationResource implements ValidationResource<StackGresCl
   }
 
   @Inject
-  public void setPipeline(ClusterValidationPipeline pipeline) {
+  public void setPipeline(ValidationPipeline<StackGresClusterReview> pipeline) {
     this.pipeline = pipeline;
   }
 }

@@ -127,6 +127,13 @@ abstract class AbstractClusterRequiredResourcesGeneratorTest {
     assertEquals(message, ex.getMessage());
   }
 
+  protected void mockProfile() {
+    when(profileConfigFinder.findByNameAndNamespace(
+        cluster.getSpec().getResourceProfile(),
+        cluster.getMetadata().getNamespace()))
+        .thenReturn(Optional.of(instanceProfile));
+  }
+
   void mockPoolingConfig() {
     when(poolingConfigFinder.findByNameAndNamespace(
         cluster.getSpec().getConfiguration().getConnectionPoolingConfig(),

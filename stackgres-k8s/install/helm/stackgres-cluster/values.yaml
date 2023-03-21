@@ -1,3 +1,4 @@
+kind: SGCluster
 cluster:
   create: true
   # restart: true
@@ -199,6 +200,13 @@ cluster:
   #        name: stackgres-sqls-scripts
   #        key: create-stackgres-schema.sql
   prometheusAutobind: true
+
+shardedCluster:
+  type: citus
+  database: citus
+  shards:
+    clusters: 2
+    instancesPerCluster: 1
 
 instanceProfiles:
   - name: size-xs

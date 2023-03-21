@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterCondition;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceScanner;
@@ -54,7 +54,7 @@ class ClusterReconciliatorTest {
   @Mock
   HandlerDelegator<StackGresCluster> handlerDelegator;
   @Mock
-  StatusManager<StackGresCluster, StackGresClusterCondition> statusManager;
+  StatusManager<StackGresCluster, Condition> statusManager;
   @Mock
   EventEmitter<StackGresCluster> eventController;
   @Mock

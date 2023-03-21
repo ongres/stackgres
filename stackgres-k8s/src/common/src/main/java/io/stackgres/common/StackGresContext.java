@@ -15,6 +15,7 @@ public interface StackGresContext {
   String CLUSTER_APP_NAME = "StackGresCluster";
   String CLUSTER_NAME_KEY = "cluster-name";
   String CLUSTER_UID_KEY = "cluster-uid";
+  String CLUSTER_SCOPE_KEY = "cluster-scope";
   String CLUSTER_NAMESPACE_KEY = "cluster-namespace";
   String RIGHT_VALUE = Boolean.TRUE.toString();
   String WRONG_VALUE = Boolean.FALSE.toString();
@@ -28,6 +29,7 @@ public interface StackGresContext {
   String DISTRIBUTED_LOGS_CLUSTER_NAME_KEY = "distributed-logs-name";
   String DISTRIBUTED_LOGS_CLUSTER_NAMESPACE_KEY = "distributed-logs-namespace";
   String DISTRIBUTED_LOGS_CLUSTER_UID_KEY = "distributed-logs-uid";
+  String DISTRIBUTED_LOGS_CLUSTER_SCOPE_KEY = "distributed-logs-scope";
   String DBOPS_APP_NAME = "StackGresDbOps";
   String DBOPS_NAME_KEY = "dbops-name";
   String DBOPS_UID_KEY = "dbops-uid";
@@ -36,6 +38,12 @@ public interface StackGresContext {
   String BACKUP_NAME_KEY = "backup-name";
   String BACKUP_UID_KEY = "backup-uid";
   String BACKUP_NAMESPACE_KEY = "backup-namespace";
+  String SHARDEDCLUSTER_APP_NAME = "StackGresShardedCluster";
+  String SHARDEDCLUSTER_NAME_KEY = "shardedcluster-name";
+  String SHARDEDCLUSTER_UID_KEY = "shardedcluster-uid";
+  String SHARDEDCLUSTER_NAMESPACE_KEY = "shardedcluster-namespace";
+  String COORDINATOR_KEY = "coordinator";
+  String SHARDS_KEY = "shards";
 
   String REST_APIUSER_KEY = "apiUsername";
   String REST_K8SUSER_KEY = "k8sUsername";

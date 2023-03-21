@@ -47,6 +47,14 @@ public class StackGresClusterConfiguration {
   @Valid
   private List<StackGresClusterBackupConfiguration> backups;
 
+  @JsonProperty("patroni")
+  @Valid
+  private StackGresClusterPatroni patroni;
+
+  @JsonProperty("credentials")
+  @Valid
+  private StackGresClusterCredentials credentials;
+
   @ReferencedField("backupPath")
   interface BackupPath extends FieldReference {
   }
@@ -98,18 +106,42 @@ public class StackGresClusterConfiguration {
     this.backups = backups;
   }
 
+  public StackGresClusterPatroni getPatroni() {
+    return patroni;
+  }
+
+  public void setPatroni(StackGresClusterPatroni patroni) {
+    this.patroni = patroni;
+  }
+
+  public StackGresClusterCredentials getCredentials() {
+    return credentials;
+  }
+
+  public void setCredentials(StackGresClusterCredentials credentials) {
+    this.credentials = credentials;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(backupConfig, backupPath, backups, connectionPoolingConfig, postgresConfig);
+    return Objects.hash(backupConfig, backupPath, backups, connectionPoolingConfig, credentials,
+        patroni, postgresConfig);
   }
 
   @Override
   public boolean equals(Object obj) {
-    return obj instanceof StackGresClusterConfiguration other
-        && Objects.equals(backupConfig, other.backupConfig)
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof StackGresClusterConfiguration)) {
+      return false;
+    }
+    StackGresClusterConfiguration other = (StackGresClusterConfiguration) obj;
+    return Objects.equals(backupConfig, other.backupConfig)
         && Objects.equals(backupPath, other.backupPath)
         && Objects.equals(backups, other.backups)
         && Objects.equals(connectionPoolingConfig, other.connectionPoolingConfig)
+        && Objects.equals(credentials, other.credentials) && Objects.equals(patroni, other.patroni)
         && Objects.equals(postgresConfig, other.postgresConfig);
   }
 

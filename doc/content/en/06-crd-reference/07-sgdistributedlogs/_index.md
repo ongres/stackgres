@@ -2,7 +2,7 @@
 title: SGDistributedLogs
 weight: 8
 url: reference/crd/sgdistributedlogs
-description: Details about SGDistributedLogs configurations
+description: Details about SGDistributedLogs
 showToc: true
 ---
 

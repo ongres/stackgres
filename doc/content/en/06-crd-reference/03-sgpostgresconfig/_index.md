@@ -2,7 +2,7 @@
 title: SGPostgresConfig
 weight: 3
 url: reference/crd/sgpgconfig
-description: Details about SGPostgresConfig configurations
+description: Details about SGPostgresConfig
 ---
 
 The `SGPostgresConfig` custom resource represents the PostgreSQL configuration.

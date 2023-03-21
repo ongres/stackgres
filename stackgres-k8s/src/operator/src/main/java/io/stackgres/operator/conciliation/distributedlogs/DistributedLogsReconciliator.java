@@ -17,10 +17,10 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsEventReason;
 import io.stackgres.common.crd.sgdistributedlogs.DistributedLogsStatusCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsCondition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatusCluster;
 import io.stackgres.common.event.EventEmitter;
@@ -45,14 +45,13 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
     @Inject ConnectedClustersScanner connectedClustersScanner;
     @Inject CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
     @Inject StatusManager<StackGresDistributedLogs,
-        StackGresDistributedLogsCondition> statusManager;
+    Condition> statusManager;
     @Inject EventEmitter<StackGresDistributedLogs> eventController;
   }
 
   private final ConnectedClustersScanner connectedClustersScanner;
   private final CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
-  private final StatusManager<StackGresDistributedLogs,
-      StackGresDistributedLogsCondition> statusManager;
+  private final StatusManager<StackGresDistributedLogs, Condition> statusManager;
   private final EventEmitter<StackGresDistributedLogs> eventController;
 
   @Inject

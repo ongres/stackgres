@@ -146,15 +146,47 @@ class RestoreConfigValidatorTest {
   }
 
   @Test
-  void givenAnUpdate_shouldFail() {
+  void givenAnUpdateWithSameRestoreConfig_shouldPass() throws ValidationFailed {
+    final StackGresClusterReview review = getUpdateReview();
+    review.getRequest().getObject().getSpec().getInitData().getRestore().getFromBackup()
+        .setName(review.getRequest().getOldObject().getSpec().getInitData().getRestore()
+            .getFromBackup().getName());
 
+    validator.validate(review);
+
+    verify(finder, never()).findByNameAndNamespace(anyString(), anyString());
+  }
+
+  @Test
+  void givenAnUpdateWithoutInitialData_shouldPass() throws ValidationFailed {
+    final StackGresClusterReview review = getUpdateReview();
+    review.getRequest().getObject().getSpec().setInitData(null);
+    review.getRequest().getOldObject().getSpec().setInitData(null);
+
+    validator.validate(review);
+
+    verify(finder, never()).findByNameAndNamespace(anyString(), anyString());
+  }
+
+  @Test
+  void givenAnUpdateWithoutRestoreConfig_shouldPass() throws ValidationFailed {
+    final StackGresClusterReview review = getUpdateReview();
+    review.getRequest().getObject().getSpec().getInitData().setRestore(null);
+    review.getRequest().getOldObject().getSpec().getInitData().setRestore(null);
+
+    validator.validate(review);
+
+    verify(finder, never()).findByNameAndNamespace(anyString(), anyString());
+  }
+
+  @Test
+  void givenAnUpdate_shouldFail() {
     final StackGresClusterReview review = getUpdateReview();
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
         "Cannot update cluster's restore configuration");
 
     verify(finder, never()).findByNameAndNamespace(anyString(), anyString());
-
   }
 
   private StackGresClusterReview getCreationReview() {

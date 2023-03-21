@@ -36,12 +36,23 @@ public interface JsonPatchMutatorUtil {
   }
 
   default @NotNull String getJsonMappingField(@NotNull String field, @NotNull Class<?> clazz) {
-    try {
-      JsonProperty annotation = clazz.getDeclaredField(field).getAnnotation(JsonProperty.class);
-      return annotation != null ? annotation.value() : field;
-    } catch (NoSuchFieldException ex) {
-      throw new RuntimeException(ex);
+    JsonProperty annotation = null;
+    boolean fieldNotFound = true;
+    Class<?> currentClazz = clazz;
+    do {
+      try {
+        annotation = currentClazz.getDeclaredField(field).getAnnotation(JsonProperty.class);
+        fieldNotFound = false;
+        break;
+      } catch (NoSuchFieldException ex) {
+        currentClazz = currentClazz.getSuperclass();
+      }
+    } while (currentClazz != Object.class);
+    if (fieldNotFound) {
+      throw new RuntimeException("Filed " + field + " not found in class "
+          + clazz + " or any of its subclasses");
     }
+    return annotation != null ? annotation.value() : field;
   }
 
   default JsonPatchOperation buildAddOperation(JsonPointer path, String value) {

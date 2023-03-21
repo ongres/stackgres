@@ -5,6 +5,7 @@
 
 package io.stackgres.testutil;
 
+import static io.stackgres.testutil.ModelTestUtil.getParameterFromGenericType;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -12,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -55,12 +55,14 @@ public abstract class SetterGetterTestCase {
   private <S> void assertSettersAndGettersForField(
       Field field, Class<S> targetClazz) {
     if (List.class.isAssignableFrom(field.getType())) {
-      var parameterType = getCollectionGenericType(field);
+      var parameterType = getParameterFromGenericType(
+          field.getType(), field.getGenericType(), 0);
       assertSettersAndGetters(
           parameterType
       );
     } else if (Map.class.isAssignableFrom(field.getType())) {
-      var valueType = getMapValueType(field);
+      var valueType = getParameterFromGenericType(
+          field.getType(), field.getGenericType(), 1);
 
       assertSettersAndGetters(
           valueType
@@ -127,25 +129,6 @@ public abstract class SetterGetterTestCase {
         || Boolean.class == type
         || type.isPrimitive()
         || Object.class == type;
-  }
-
-  private Class<?> getCollectionGenericType(Field collectionField) {
-    ParameterizedType listType = (ParameterizedType) collectionField.getGenericType();
-    return (Class<?>) listType.getActualTypeArguments()[0];
-  }
-
-  private Class<?> getMapValueType(Field mapField) {
-    ParameterizedType mapType = (ParameterizedType) mapField.getGenericType();
-    return getMapValueType(mapType);
-  }
-
-  private Class<?> getMapValueType(ParameterizedType mapType) {
-    if (mapType.getActualTypeArguments()[1] instanceof ParameterizedType parameterizedTypeValue) {
-      if (Map.class.isAssignableFrom((Class<?>) parameterizedTypeValue.getRawType())) {
-        return getMapValueType(parameterizedTypeValue);
-      }
-    }
-    return (Class<?>) mapType.getActualTypeArguments()[1];
   }
 
   private Method findMethod(Class<?> targetClazz, String name, Class<?>... parameterTypes)

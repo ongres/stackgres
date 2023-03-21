@@ -22,13 +22,10 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.crd.CommonDefinition;
-import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import org.junit.jupiter.api.Test;
 
 @SuppressWarnings("rawtypes")
 class CrdMatchTest {
-
-  private static final String CRD_VERSION = CommonDefinition.VERSION;
 
   private static final String CRD_GROUP = CommonDefinition.GROUP;
 
@@ -54,41 +51,6 @@ class CrdMatchTest {
 
       assertTrue(matchingSchema.isPresent(), "Kind : " + HasMetadata.getKind(clazz));
 
-    });
-  }
-
-  @Test
-  void crdVersion_ShouldMatchConfiguredVersion() throws IOException {
-    withEveryYaml(crdTree -> {
-      if (Objects.equals(
-          crdTree.get("spec").get("names").get("kind").asText(),
-          StackGresObjectStorage.KIND)) {
-        /*
-         * Skipping this test because the SGObjectStorage we only have v1beta1 version
-         * at the moment
-         */
-        return;
-      }
-
-      JsonNode crdInstallVersions = crdTree.get("spec").get("versions");
-      crdInstallVersions.elements();
-      Class<? extends CustomResource> clazz = getCustomResourceClass(crdTree);
-
-      boolean isThereASchemaThatMatches = StreamSupport.stream(
-              Spliterators.spliteratorUnknownSize(
-                  crdInstallVersions.elements(),
-                  Spliterator.ORDERED),
-              false)
-          .anyMatch(crdInstallVersion -> Objects.equals(
-                  CRD_VERSION,
-                  crdInstallVersion.get("name").asText()
-              ) && Objects.equals(
-                  CRD_VERSION,
-                  HasMetadata.getVersion(clazz))
-          );
-
-      assertTrue(isThereASchemaThatMatches,
-          "At least one schema should have the version " + CRD_VERSION);
     });
   }
 

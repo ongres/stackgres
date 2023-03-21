@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.extension.ExtensionManager;
 import io.stackgres.common.extension.ExtensionReconciliator;
 import io.stackgres.distributedlogs.common.DistributedLogsControllerEventReason;
 import io.stackgres.distributedlogs.common.StackGresDistributedLogsContext;
@@ -33,7 +34,7 @@ public class DistributedLogsExtensionReconciliator
   public static class Parameters {
     @Inject EventController eventController;
     @Inject DistributedLogsControllerPropertyContext propertyContext;
-    @Inject DistributedLogsExtensionManager extensionManager;
+    @Inject ExtensionManager extensionManager;
     @Inject ExtensionEventEmitterImpl extensionEventEmitter;
   }
 

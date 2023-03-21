@@ -21,7 +21,6 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
-import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
@@ -32,6 +31,7 @@ import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
@@ -98,7 +98,7 @@ public class PatroniRole implements
             .build())
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups("")
-            .withResources("endpoints", "configmaps")
+            .withResources("configmaps")
             .withVerbs("create", "get", "list", "patch", "update", "watch")
             .build())
         .addToRules(new PolicyRuleBuilder()

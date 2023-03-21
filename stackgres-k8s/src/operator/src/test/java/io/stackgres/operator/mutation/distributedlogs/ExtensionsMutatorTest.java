@@ -17,9 +17,9 @@ import com.google.common.collect.ImmutableList;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.operator.common.OperatorExtensionMetadataManager;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import io.stackgres.operator.mutation.ClusterExtensionMetadataManager;
 import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +40,7 @@ class ExtensionsMutatorTest {
   private StackGresDistributedLogsReview review;
 
   @Mock
-  private ClusterExtensionMetadataManager extensionMetadataManager;
+  private OperatorExtensionMetadataManager extensionMetadataManager;
 
   private ExtensionsMutator mutator;
 

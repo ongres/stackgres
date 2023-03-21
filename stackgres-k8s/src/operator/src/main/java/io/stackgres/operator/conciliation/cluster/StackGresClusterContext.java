@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation.cluster;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -27,6 +28,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromStorage;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
@@ -90,6 +93,8 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
   Optional<String> getAuthenticatorUsername();
 
   Optional<String> getAuthenticatorPassword();
+
+  Optional<String> getPatroniRestApiPassword();
 
   default Optional<String> getBackupPath() {
     Optional<@NotNull StackGresClusterConfiguration> config = Optional.of(getCluster())
@@ -219,6 +224,24 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
                     bp.getUploadConcurrency(),
                     bp.getDownloadConcurrency()))
                 .orElse(null)));
+  }
+
+  default Map<String, String> clusterPodsCustomLabels() {
+    return Optional.ofNullable(getCluster())
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getMetadata)
+        .map(StackGresClusterSpecMetadata::getLabels)
+        .map(StackGresClusterSpecLabels::getClusterPods)
+        .orElse(Map.of());
+  }
+
+  default Map<String, String> servicesCustomLabels() {
+    return Optional.ofNullable(getCluster())
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getMetadata)
+        .map(StackGresClusterSpecMetadata::getLabels)
+        .map(StackGresClusterSpecLabels::getServices)
+        .orElse(Map.of());
   }
 
 }

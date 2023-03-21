@@ -12,19 +12,31 @@ import com.github.fge.jsonpatch.JsonPatchOperation;
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
+import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
+import io.stackgres.operator.mutation.AbstractDefaultResourceMutator;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 public class DefaultPostgresMutator
-    extends AbstractDefaultResourceMutator<StackGresPostgresConfig>
+    extends AbstractDefaultResourceMutator<StackGresPostgresConfig,
+        StackGresDistributedLogs, StackGresDistributedLogsReview>
     implements DistributedLogsConfigurationMutator {
+
+  public DefaultPostgresMutator(
+      DefaultCustomResourceFactory<StackGresPostgresConfig> resourceFactory,
+      CustomResourceFinder<StackGresPostgresConfig> finder,
+      CustomResourceScheduler<StackGresPostgresConfig> scheduler) {
+    super(resourceFactory, finder, scheduler);
+  }
 
   @Override
   public List<JsonPatchOperation> mutate(StackGresDistributedLogsReview review) {
     if (review.getRequest().getOperation() == Operation.CREATE) {
       ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
       operations.addAll(ensureConfigurationNode(review));
-      operations.addAll(addDefaultResource(review));
+      operations.addAll(super.mutate(review));
       return operations.build();
 
     }
@@ -37,12 +49,7 @@ public class DefaultPostgresMutator
   }
 
   @Override
-  public JsonPointer getTargetPointer() throws NoSuchFieldException {
-    return getTargetPointer("postgresConfig");
-  }
-
-  @Override
-  public JsonPointer getTargetPointer(String field) throws NoSuchFieldException {
-    return getConfigurationTargetPointer(field);
+  public JsonPointer getTargetPointer() {
+    return getConfigurationTargetPointer("postgresConfig");
   }
 }

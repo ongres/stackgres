@@ -22,6 +22,7 @@ import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.event.ClusterEventEmitter;
+import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.operatorframework.resource.EventReason;
@@ -43,7 +44,7 @@ class ExtensionEventEmitterImplTest {
   ExtensionEventEmitterImpl extensionEventEmitter;
 
   @InjectMock
-  ClusterExtensionMetadataManager extensionManager;
+  ExtensionMetadataManager extensionManager;
 
   StackGresCluster cluster = Fixtures.cluster().loadDefault().get();
 

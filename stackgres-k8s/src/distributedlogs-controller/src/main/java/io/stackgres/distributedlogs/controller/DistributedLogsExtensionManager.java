@@ -11,15 +11,16 @@ import javax.inject.Inject;
 import io.stackgres.common.FileSystemHandler;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.extension.ExtensionManager;
+import io.stackgres.common.extension.ExtensionMetadataManager;
 
 @ApplicationScoped
 public class DistributedLogsExtensionManager extends ExtensionManager {
 
   @Inject
   public DistributedLogsExtensionManager(
-      DistributedLogsExtensionMetadataManager distributedLogsExtensionMetadataManager) {
+      ExtensionMetadataManager extensionMetadataManager) {
     super(
-        distributedLogsExtensionMetadataManager,
+        extensionMetadataManager,
         new WebClientFactory(), new FileSystemHandler());
   }
 

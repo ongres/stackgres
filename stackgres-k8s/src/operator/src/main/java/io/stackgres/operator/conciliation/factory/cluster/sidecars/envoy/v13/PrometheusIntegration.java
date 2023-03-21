@@ -20,11 +20,11 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
-import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.prometheus.Endpoint;
 import io.stackgres.common.prometheus.NamespaceSelector;
 import io.stackgres.common.prometheus.ServiceMonitor;
@@ -59,7 +59,8 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
             .withNewMetadata()
             .withNamespace(cluster.getMetadata().getNamespace())
             .withName(AbstractEnvoy.serviceName(context))
-            .withLabels(ImmutableMap.<String, String>builder()
+            .addToLabels(context.servicesCustomLabels())
+            .addToLabels(ImmutableMap.<String, String>builder()
                 .putAll(crossNamespaceLabels)
                 .put(StackGresContext.CONTAINER_KEY, StackGresContainer.ENVOY.getName())
                 .build())

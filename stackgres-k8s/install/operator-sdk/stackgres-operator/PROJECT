@@ -4,7 +4,7 @@ layout:
 plugins:
   manifests.sdk.operatorframework.io/v2: {}
   scorecard.sdk.operatorframework.io/v2: {}
-projectName: stackgres-operator
+projectName: stackgres
 resources:
 - api:
     crdVersion: v1

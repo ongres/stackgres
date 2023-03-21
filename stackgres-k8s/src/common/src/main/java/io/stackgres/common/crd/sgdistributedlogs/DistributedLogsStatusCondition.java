@@ -5,6 +5,8 @@
 
 package io.stackgres.common.crd.sgdistributedlogs;
 
+import io.stackgres.common.crd.Condition;
+
 public enum DistributedLogsStatusCondition {
 
   POD_REQUIRES_RESTART(Type.PENDING_RESTART, Status.TRUE, "PodRequiresRestart"),
@@ -24,8 +26,8 @@ public enum DistributedLogsStatusCondition {
     this.reason = reason;
   }
 
-  public StackGresDistributedLogsCondition getCondition() {
-    return new StackGresDistributedLogsCondition(type, status, reason);
+  public Condition getCondition() {
+    return new Condition(type, status, reason);
   }
 
   private enum Type {

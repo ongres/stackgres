@@ -16,9 +16,9 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
 import io.stackgres.common.DbOpsUtil;
+import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdbops.StackGresDbOpsCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.conciliation.StatusManager;
@@ -28,8 +28,8 @@ import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class DbOpsStatusManager
-    extends ConditionUpdater<StackGresDbOps, StackGresDbOpsCondition>
-    implements StatusManager<StackGresDbOps, StackGresDbOpsCondition> {
+    extends ConditionUpdater<StackGresDbOps, Condition>
+    implements StatusManager<StackGresDbOps, Condition> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DbOpsStatusManager.class);
 
@@ -85,29 +85,29 @@ public class DbOpsStatusManager
         .anyMatch(condition -> Objects.equals(condition.getStatus(), "True"));
   }
 
-  protected StackGresDbOpsCondition getFalseRunning() {
+  protected Condition getFalseRunning() {
     return DbOpsStatusCondition.DB_OPS_FALSE_RUNNING.getCondition();
   }
 
-  protected StackGresDbOpsCondition getFalseCompleted() {
+  protected Condition getFalseCompleted() {
     return DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED.getCondition();
   }
 
-  protected StackGresDbOpsCondition getFailedDueToUnexpectedFailure() {
+  protected Condition getFailedDueToUnexpectedFailure() {
     var failed = DbOpsStatusCondition.DB_OPS_FAILED.getCondition();
     failed.setMessage("Unexpected failure");
     return failed;
   }
 
   @Override
-  protected List<StackGresDbOpsCondition> getConditions(StackGresDbOps context) {
+  protected List<Condition> getConditions(StackGresDbOps context) {
     return Optional.ofNullable(context.getStatus())
         .map(StackGresDbOpsStatus::getConditions)
         .orElseGet(ArrayList::new);
   }
 
   @Override
-  protected void setConditions(StackGresDbOps context, List<StackGresDbOpsCondition> conditions) {
+  protected void setConditions(StackGresDbOps context, List<Condition> conditions) {
     if (context.getStatus() == null) {
       context.setStatus(new StackGresDbOpsStatus());
     }

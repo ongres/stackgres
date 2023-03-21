@@ -116,7 +116,7 @@ public class DistributedLogsFetcherImpl implements DistributedLogsFetcher {
     String namespace = StackGresUtil.getNamespaceFromRelativeId(
         distributedLogs, cluster.getMetadata().getNamespace());
     String name = StackGresUtil.getNameFromRelativeId(distributedLogs);
-    String serviceName = PatroniUtil.readWriteName(name);
+    String serviceName = PatroniUtil.defaultReadWriteName(name);
     Secret secret = secretFinder.findByNameAndNamespace(name, namespace)
         .orElseThrow(() -> new NotFoundException(
             "Secret with username and password for user postgres can not be found."));

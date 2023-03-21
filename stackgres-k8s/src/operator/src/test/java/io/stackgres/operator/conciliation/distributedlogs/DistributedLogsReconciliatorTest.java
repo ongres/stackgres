@@ -20,8 +20,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsCondition;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceScanner;
@@ -54,7 +54,7 @@ class DistributedLogsReconciliatorTest {
   @Mock
   HandlerDelegator<StackGresDistributedLogs> handlerDelegator;
   @Mock
-  StatusManager<StackGresDistributedLogs, StackGresDistributedLogsCondition> statusManager;
+  StatusManager<StackGresDistributedLogs, Condition> statusManager;
   @Mock
   EventEmitter<StackGresDistributedLogs> eventController;
   @Mock

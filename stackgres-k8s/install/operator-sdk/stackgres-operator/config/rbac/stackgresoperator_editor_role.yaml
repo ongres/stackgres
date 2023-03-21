@@ -6,8 +6,8 @@ metadata:
     app.kubernetes.io/name: clusterrole
     app.kubernetes.io/instance: sgconfig-editor-role
     app.kubernetes.io/component: rbac
-    app.kubernetes.io/created-by: stackgres-operator
-    app.kubernetes.io/part-of: stackgres-operator
+    app.kubernetes.io/created-by: stackgres
+    app.kubernetes.io/part-of: stackgres
     app.kubernetes.io/managed-by: kustomize
   name: sgconfig-editor-role
 rules:

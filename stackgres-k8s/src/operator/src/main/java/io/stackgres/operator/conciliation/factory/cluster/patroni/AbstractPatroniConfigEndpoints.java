@@ -14,10 +14,10 @@ import com.ongres.pgconfig.validator.GucValidator;
 import com.ongres.pgconfig.validator.PgParameter;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -41,14 +41,13 @@ public abstract class AbstractPatroniConfigEndpoints
 
     final String patroniConfigJson = objectMapper.valueToTree(patroniConf).toString();
 
-    final Map<String, String> labels = labelFactory.patroniClusterLabels(context.getSource());
-
     StackGresCluster cluster = context.getSource();
     return Stream.of(new EndpointsBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(PatroniUtil.configName(context))
-        .withLabels(labels)
+        .addToLabels(context.servicesCustomLabels())
+        .addToLabels(labelFactory.clusterLabels(context.getSource()))
         .withAnnotations(Map.of(PatroniUtil.CONFIG_KEY, patroniConfigJson))
         .endMetadata()
         .build());

@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -39,24 +37,6 @@ public class ClusterReplicateFromUserSecretKeyRef {
 
   public void setPassword(SecretKeySelector password) {
     this.password = password;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(password, username);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (!(obj instanceof ClusterReplicateFromUserSecretKeyRef)) {
-      return false;
-    }
-    ClusterReplicateFromUserSecretKeyRef other =
-        (ClusterReplicateFromUserSecretKeyRef) obj;
-    return Objects.equals(password, other.password) && Objects.equals(username, other.username);
   }
 
   public String toString() {

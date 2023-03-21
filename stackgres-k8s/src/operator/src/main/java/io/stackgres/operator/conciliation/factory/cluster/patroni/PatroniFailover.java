@@ -12,8 +12,8 @@ import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.LabelFactoryForCluster;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -41,9 +41,11 @@ public class PatroniFailover implements ResourceGenerator<StackGresClusterContex
             .withNewMetadata()
             .withNamespace(cluster.getMetadata().getNamespace())
             .withName(name(cluster))
-            .withLabels(labelFactory.patroniClusterLabels(cluster))
+            .addToLabels(context.servicesCustomLabels())
+            .addToLabels(labelFactory.clusterLabels(context.getSource()))
             .endMetadata()
             .build()
     );
   }
+
 }

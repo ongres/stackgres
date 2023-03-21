@@ -19,12 +19,12 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.LabelFactoryForCluster;
-import io.stackgres.common.LabelFactoryForDbOps;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.common.labels.LabelFactoryForDbOps;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 

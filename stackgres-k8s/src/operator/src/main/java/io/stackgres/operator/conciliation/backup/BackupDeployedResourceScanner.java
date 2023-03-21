@@ -17,8 +17,8 @@ import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.stackgres.common.LabelFactoryForBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.labels.LabelFactoryForBackup;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
 import io.stackgres.operator.conciliation.ReconciliationOperations;
 

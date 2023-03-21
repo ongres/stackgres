@@ -166,6 +166,150 @@ create_or_replace_cluster_for_version_only() {
   fi
 }
 
+create_or_replace_sharded_cluster() {
+  local RELEASE="$1"
+  local NAMESPACE="$2"
+  local CLUSTERS="$3"
+  local INSTANCES="$4"
+  shift 4
+
+  create_or_replace_sharded_cluster_only "$RELEASE" "$NAMESPACE" "$CLUSTERS" "$INSTANCES" \
+    -f "$SPEC_VALUES_FILE" --set cluster.postgres.version="$E2E_POSTGRES_VERSION" \
+    "$@"
+}
+
+create_or_replace_sharded_cluster_only() {
+  local RELEASE="$1"
+  local NAMESPACE="$2"
+  local CLUSTERS="$3"
+  local INSTANCES="$4"
+  shift 4
+
+  local OPERATOR_VERSION
+  OPERATOR_VERSION="$(get_installed_operator_version)"
+  if [ -n "$OPERATOR_VERSION" ] && [ "$OPERATOR_VERSION" != "$STACKGRES_VERSION" ]
+  then
+    create_or_replace_sharded_cluster_for_version_only "$OPERATOR_VERSION" "$RELEASE" "$NAMESPACE" "$CLUSTERS" "$INSTANCES" "$@"
+    return
+  fi
+
+  if helm get values "$RELEASE" --namespace "$NAMESPACE" > /dev/null 2>&1
+  then
+    helm upgrade "$RELEASE" --namespace "$NAMESPACE" "$CLUSTER_CHART_PATH" \
+      --reuse-values \
+      $E2E_CLUSTER_PARAMETERS \
+      --set nonProductionOptions.disablePatroniResourceRequirements="$E2E_DISABLE_RESOURCE_REQUIREMENTS" \
+      --set nonProductionOptions.disableClusterResourceRequirements="$E2E_DISABLE_RESOURCE_REQUIREMENTS" \
+      $([ -z "$STACKGRES_TARGET_VERSION" ] || printf '%s' "--set-string cluster.version=$STACKGRES_TARGET_VERSION ") \
+      --set-string kind=SGShardedCluster --set shardedCluster.shards.clusters="$((CLUSTERS - 1))" \
+      --set shardedCluster.shards.instancesPerCluster="$INSTANCES" --set cluster.instances="$INSTANCES" "$@"
+  else
+    create_namespace_if_not_exists "$NAMESPACE"
+    helm install "$RELEASE" "$CLUSTER_CHART_PATH" \
+      --namespace "$NAMESPACE" \
+      $E2E_CLUSTER_PARAMETERS \
+      --set nonProductionOptions.disablePatroniResourceRequirements="$E2E_DISABLE_RESOURCE_REQUIREMENTS" \
+      --set nonProductionOptions.disableClusterResourceRequirements="$E2E_DISABLE_RESOURCE_REQUIREMENTS" \
+      $([ -z "$STACKGRES_TARGET_VERSION" ] || printf '%s' "--set-string cluster.version=$STACKGRES_TARGET_VERSION ") \
+      --set-string kind=SGShardedCluster --set shardedCluster.shards.clusters="$((CLUSTERS - 1))" \
+      --set shardedCluster.shards.instancesPerCluster="$INSTANCES" --set cluster.instances="$INSTANCES" "$@"
+  fi
+}
+
+wait_sharded_cluster() {
+  local RELEASE="$1"
+  local NAMESPACE="$2"
+  local LEADER
+
+  echo "Wait release $RELEASE"
+  wait_until eval '[ "$(kubectl get endpoints --namespace "$NAMESPACE" "$RELEASE" \
+    --template="{{ range .subsets }}{{ range .addresses }}{{ printf \"%s\n\" .ip }}{{ end }}{{ end }}" 2>/dev/null \
+    | wc -l)" -ge 1 ]'
+}
+
+create_or_replace_sharded_cluster_for_version() {
+  local VERSION="$1"
+  local RELEASE="$2"
+  local NAMESPACE="$3"
+  local CLUSTERS="$4"
+  local INSTANCES="$5"
+  shift 5
+
+  create_or_replace_sharded_cluster_for_version_only "$VERSION" "$RELEASE" "$NAMESPACE" "$CLUSTERS" "$INSTANCES" -f "$SPEC_VALUES_FILE" \
+    "$@"
+}
+
+create_or_replace_sharded_cluster_for_version_only() {
+  local VERSION="$1"
+  local RELEASE="$2"
+  local NAMESPACE="$3"
+  local CLUSTERS="$4"
+  local INSTANCES="$5"
+  shift 5
+
+  if ! [ -d "$LOG_PATH/stackgres-cluster-$VERSION" ]
+  then
+    mkdir -p "$LOG_PATH/stackgres-cluster-$VERSION"
+  fi
+  local CLUSTER_HELM_URL
+  CLUSTER_HELM_URL="$(get_cluster_helm_url "$VERSION")"
+  local CLUSTER_HELM_TAR_PATH="$LOG_PATH/stackgres-cluster-$VERSION/${CLUSTER_HELM_URL##*/}"
+  if ! [ -f "$CLUSTER_HELM_TAR_PATH" ]
+  then
+    curl -f -s -L "$CLUSTER_HELM_URL" -o "$CLUSTER_HELM_TAR_PATH"
+  fi
+  local CLUSTER_HELM_PATH
+  tar tzvf "$CLUSTER_HELM_TAR_PATH" > "$CLUSTER_HELM_TAR_PATH.log"
+  CLUSTER_HELM_PATH="$(tr -s ' ' < "$CLUSTER_HELM_TAR_PATH.log" \
+    | cut -d ' ' -f 6 | cut -d / -f 1 | head -n 1)"
+  CLUSTER_HELM_PATH="$LOG_PATH/stackgres-cluster-$VERSION/$CLUSTER_HELM_PATH"
+  if ! [ -f "$CLUSTER_HELM_PATH/Chart.yaml" ]
+  then
+    rm -rf "$CLUSTER_HELM_PATH"
+    tar xzf "$CLUSTER_HELM_TAR_PATH" -C "$LOG_PATH/stackgres-cluster-$VERSION"
+    if ! sed -i '/^kubeVersion:/d' "$CLUSTER_HELM_PATH/Chart.yaml"
+    then
+      rm -rf "$CLUSTER_HELM_PATH"
+      return 1
+    fi
+  fi
+
+  local TRANSFORMER="dont_transform"
+  local VERSION_AS_NUMBER VERSION_1_0_0_ALPHA1_AS_NUMBER VERSION_1_2_0_RC1_AS_NUMBER
+  VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
+  VERSION_1_0_0_ALPHA1_AS_NUMBER="$(get_version_as_number 1.0.0-alpha1)"
+  VERSION_1_2_0_RC1_AS_NUMBER="$(get_version_as_number 1.2.0-RC1)"
+  VERSION_1_3_0_AS_NUMBER="$(get_version_as_number 1.3.0)"
+  if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_0_0_ALPHA1_AS_NUMBER" ]
+  then
+    TRANSFORMER="transform_to_0_9"
+  elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_2_0_RC1_AS_NUMBER" ]
+  then
+    TRANSFORMER="transform_to_1_1"
+  elif [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_3_0_AS_NUMBER" ]
+  then
+    TRANSFORMER="transform_to_1_2"
+  fi
+
+  if helm get values "$RELEASE" --namespace "$NAMESPACE" > /dev/null 2>&1
+  then
+    eval "$(transform_params "$TRANSFORMER" helm upgrade "$RELEASE" --namespace "$NAMESPACE" "$CLUSTER_HELM_PATH" \
+        --reuse-values \
+        $E2E_CLUSTER_PARAMETERS \
+        --set-string kind=SGShardedCluster --set shardedCluster.shards.clusters="$((CLUSTERS - 1))" \
+        --set shardedCluster.shards.instancesPerCluster="$INSTANCES" --set cluster.instances="$INSTANCES" "$@")"
+  else
+    create_namespace_if_not_exists "$NAMESPACE"
+    eval "$(transform_params "$TRANSFORMER" helm install "$RELEASE" "$CLUSTER_HELM_PATH" \
+        --namespace "$NAMESPACE" \
+        $E2E_CLUSTER_PARAMETERS \
+        --set nonProductionOptions.disablePatroniResourceRequirements="$E2E_DISABLE_RESOURCE_REQUIREMENTS" \
+        --set nonProductionOptions.disableClusterResourceRequirements="$E2E_DISABLE_RESOURCE_REQUIREMENTS" \
+        --set-string kind=SGShardedCluster --set shardedCluster.shards.clusters="$((CLUSTERS - 1))" \
+        --set shardedCluster.shards.instancesPerCluster="$INSTANCES" --set cluster.instances="$INSTANCES" "$@")"
+  fi
+}
+
 transform_to_1_2() {
   if printf '%s' "$1" | grep -q '^cluster\.managedSql\.scripts'
   then

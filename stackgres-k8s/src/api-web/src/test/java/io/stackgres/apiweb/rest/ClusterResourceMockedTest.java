@@ -74,8 +74,6 @@ import io.stackgres.apiweb.transformer.ClusterPodTransformer;
 import io.stackgres.apiweb.transformer.ClusterStatsTransformer;
 import io.stackgres.apiweb.transformer.ClusterTransformer;
 import io.stackgres.apiweb.transformer.ScriptTransformer;
-import io.stackgres.common.ClusterLabelFactory;
-import io.stackgres.common.ClusterLabelMapper;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.StringUtil;
@@ -95,6 +93,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.labels.ClusterLabelFactory;
+import io.stackgres.common.labels.ClusterLabelMapper;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.PersistentVolumeClaimFinder;
@@ -643,7 +643,8 @@ class ClusterResourceMockedTest extends
   private void clusterMocks() {
     when(configContext.get(WebApiProperty.GRAFANA_EMBEDDED))
         .thenReturn(Optional.of("true"));
-    when(serviceFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(getResourceName())),
+    when(serviceFinder.findByNameAndNamespace(
+        eq(PatroniUtil.defaultReadWriteName(getResourceName())),
         anyString()))
         .thenReturn(Optional.of(servicePrimary));
     when(serviceFinder.findByNameAndNamespace(eq(PatroniUtil.readOnlyName(getResourceName())),
