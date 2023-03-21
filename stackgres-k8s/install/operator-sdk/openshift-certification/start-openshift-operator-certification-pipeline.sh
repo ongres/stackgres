@@ -153,7 +153,7 @@ tkn pipeline start operator-ci-pipeline \
   --param git_repo_url="$OPENSHIFT_CERTIFICATION_GITHUB_REPO" \
   --param git_branch=main \
   --param upstream_repo_name=redhat-openshift-ecosystem/certified-operators \
-  --param bundle_path="operators/stackgres-operator/$STACKGRES_VERSION" \
+  --param bundle_path="operators/stackgres/$STACKGRES_VERSION" \
   --param env=prod \
   --workspace name=pipeline,volumeClaimTemplateFile="$TARGET_PATH"/operator-pipelines/templates/workspace-template.yml \
   --pod-template "$TARGET_PATH"/operator-pipelines/templates/crc-pod-template.yml \

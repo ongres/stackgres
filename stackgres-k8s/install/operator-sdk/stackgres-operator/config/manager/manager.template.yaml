@@ -6,8 +6,8 @@ metadata:
     app.kubernetes.io/name: namespace
     app.kubernetes.io/instance: system
     app.kubernetes.io/component: manager
-    app.kubernetes.io/created-by: stackgres-operator
-    app.kubernetes.io/part-of: stackgres-operator
+    app.kubernetes.io/created-by: stackgres
+    app.kubernetes.io/part-of: stackgres
     app.kubernetes.io/managed-by: kustomize
   name: system
 ---
@@ -21,8 +21,8 @@ metadata:
     app.kubernetes.io/name: deployment
     app.kubernetes.io/instance: controller-manager
     app.kubernetes.io/component: manager
-    app.kubernetes.io/created-by: stackgres-operator
-    app.kubernetes.io/part-of: stackgres-operator
+    app.kubernetes.io/created-by: stackgres
+    app.kubernetes.io/part-of: stackgres
     app.kubernetes.io/managed-by: kustomize
 spec:
   selector:
@@ -62,7 +62,7 @@ spec:
       containers:
       - args:
         - --leader-elect
-        - --leader-election-id=stackgres-operator
+        - --leader-election-id=stackgres
         image: controller:latest
         imagePullPolicy: IfNotPresent
         name: manager
@@ -98,7 +98,7 @@ spec:
         - -ec
         - |
           OPERATOR_NAME="\$(kubectl get operators.operators.coreos.com -o name \
-            | grep '^operator.operators.coreos.com/stackgres-operator' \
+            | grep '^operator.operators.coreos.com/stackgres' \
             | head -n 1 | cut -d / -f 2)"
           test -n "\$OPERATOR_NAME"
           OPERATOR_UID="\$(kubectl get operators.operators.coreos.com "\$OPERATOR_NAME" --template '{{ .metadata.uid }}')"

@@ -1,7 +1,7 @@
 apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
-  name: stackgres-operator.v${VERSION}
+  name: stackgres.v${VERSION}
   namespace: placeholder
   annotations:
     description: |
@@ -85,7 +85,7 @@ $(
     name: stackgres-jobs
   description: |
 $(
-  sed 's/^/    /' config/manifests/bases/stackgres-operator.clusterserviceversion.description.txt
+  sed 's/^/    /' config/manifests/bases/stackgres.clusterserviceversion.description.txt
 )
   icon:
   - base64data: |

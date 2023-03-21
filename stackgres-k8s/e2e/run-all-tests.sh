@@ -365,11 +365,6 @@ shell -c '
   echo $$ > "'"$TARGET_PATH/specs_to_run.tail.pid"'"
   exec tail -f "'"$TARGET_PATH/specs_to_run.pipe"'"
   ' | xargs_parallel_shell % -c "'$SHELL' $SHELL_XTRACE '$E2E_PATH/e2e' spec '%'"
-EXIT_CODE="$?"
-if [ "$EXIT_CODE" != 0 ]
-then
-  OVERALL_RESULT=false
-fi
 set -e
 
 if ! wait "$SPEC_EMITTER_PID"

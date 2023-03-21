@@ -41,7 +41,7 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 # This variable is used to construct full image tags for bundle and catalog images.
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
-# stackgres.io/stackgres-operator-bundle:$VERSION and stackgres.io/stackgres-operator-catalog:$VERSION.
+# quay.io/stackgres/helm-operator-bundle:$VERSION and quay.io/stackgres/helm-operator-catalog:$VERSION.
 IMAGE_TAG_BASE ?= quay.io/stackgres/helm-operator
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
@@ -169,8 +169,8 @@ endif
 
 .PHONY: bundle
 bundle: kustomize ## Generate bundle manifests and metadata, then validate generated files.
-	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat config/manifests/bases/stackgres-operator.clusterserviceversion.template.yaml)\nEOF")" \
-		> config/manifests/bases/stackgres-operator.clusterserviceversion.yaml
+	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat config/manifests/bases/stackgres.clusterserviceversion.template.yaml)\nEOF")" \
+		> config/manifests/bases/stackgres.clusterserviceversion.yaml
 	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat config/manager/kustomization.template.yaml)\nEOF")" \
 		> config/manager/kustomization.yaml
 	cp -a "$(PROJECT_DIR)/stackgres-k8s/src/common/src/main/resources/crds/." config/crd/bases/.
@@ -189,12 +189,12 @@ bundle: kustomize ## Generate bundle manifests and metadata, then validate gener
 bundle-openshift: IMAGE_TAG := $(IMAGE_TAG)-openshift
 bundle-openshift: OPENSHIFT_BUNDLE := true
 bundle-openshift: bundle
-	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat openshift-operator-bundle/manifests/stackgres-operator.clusterserviceversion.template.yaml)\nEOF")" \
-		> openshift-operator-bundle/manifests/stackgres-operator.clusterserviceversion.yaml
+	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat openshift-operator-bundle/manifests/stackgres.clusterserviceversion.template.yaml)\nEOF")" \
+		> openshift-operator-bundle/manifests/stackgres.clusterserviceversion.yaml
 	yq -y -s '.[0] * .[1]' \
-		bundle/manifests/stackgres-operator.clusterserviceversion.yaml \
-		openshift-operator-bundle/manifests/stackgres-operator.clusterserviceversion.yaml \
-		> bundle/manifests/stackgres-operator.clusterserviceversion.yaml.bak && mv bundle/manifests/stackgres-operator.clusterserviceversion.yaml.bak bundle/manifests/stackgres-operator.clusterserviceversion.yaml
+		bundle/manifests/stackgres.clusterserviceversion.yaml \
+		openshift-operator-bundle/manifests/stackgres.clusterserviceversion.yaml \
+		> bundle/manifests/stackgres.clusterserviceversion.yaml.bak && mv bundle/manifests/stackgres.clusterserviceversion.yaml.bak bundle/manifests/stackgres.clusterserviceversion.yaml
 	yq -y -s '.[0] * .[1]' \
 		bundle/metadata/annotations.yaml \
 		openshift-operator-bundle/metadata/annotations.yaml \
