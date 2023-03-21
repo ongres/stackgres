@@ -16,7 +16,6 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.quarkus.test.junit.QuarkusTest;
-import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
@@ -1569,7 +1568,7 @@ class ClusterRequiredResourcesGeneratorForReplicateFromTest
         cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.of(replicatedCluster));
     when(secretFinder.findByNameAndNamespace(
-        PatroniUtil.defaultReadWriteName("test"),
+        "test",
         cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.of(new SecretBuilder()
             .withData(Map.ofEntries(
@@ -1600,7 +1599,7 @@ class ClusterRequiredResourcesGeneratorForReplicateFromTest
     cluster.getSpec().getReplicateFrom().getInstance()
         .setSgCluster("test");
     when(secretFinder.findByNameAndNamespace(
-        PatroniUtil.defaultReadWriteName("test"),
+        "test",
         cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.empty());
   }
@@ -1611,7 +1610,7 @@ class ClusterRequiredResourcesGeneratorForReplicateFromTest
     cluster.getSpec().getReplicateFrom().getInstance()
         .setSgCluster("test");
     when(secretFinder.findByNameAndNamespace(
-        PatroniUtil.defaultReadWriteName("test"),
+        "test",
         cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.of(new SecretBuilder()
             .withData(Map.ofEntries(
@@ -1648,7 +1647,7 @@ class ClusterRequiredResourcesGeneratorForReplicateFromTest
     cluster.getSpec().getReplicateFrom().getInstance()
         .setSgCluster("test");
     when(secretFinder.findByNameAndNamespace(
-        PatroniUtil.defaultReadWriteName("test"),
+        "test",
         cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.of(new SecretBuilder()
             .withData(Map.ofEntries(
@@ -1696,7 +1695,7 @@ class ClusterRequiredResourcesGeneratorForReplicateFromTest
         cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.of(new StackGresObjectStorage()));
     when(secretFinder.findByNameAndNamespace(
-        PatroniUtil.defaultReadWriteName("test"),
+        "test",
         cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.of(new SecretBuilder()
             .withData(Map.ofEntries(
@@ -1738,7 +1737,7 @@ class ClusterRequiredResourcesGeneratorForReplicateFromTest
         cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.of(targetCluster));
     when(secretFinder.findByNameAndNamespace(
-        PatroniUtil.defaultReadWriteName("test"),
+        "test",
         cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.of(new SecretBuilder()
             .withData(Map.ofEntries(

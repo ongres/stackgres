@@ -138,6 +138,8 @@ class ClusterResourceMockedTest extends
   private PersistentVolumeClaimFinder persistentVolumeClaimFinder;
 
   @Mock
+  private CustomResourceFinder<StackGresCluster> clusterFinder;
+  @Mock
   private CustomResourceScheduler<StackGresScript> scriptScheduler;
   @Mock
   private ResourceWriter<ConfigMap> configMapWriter;
@@ -156,6 +158,7 @@ class ClusterResourceMockedTest extends
 
   private ExecutorService executorService;
 
+  private StackGresCluster cluster;
   private Service servicePrimary;
   private Service serviceReplicas;
   private ConfigMap configMap;
@@ -166,6 +169,7 @@ class ClusterResourceMockedTest extends
   @Override
   @BeforeEach
   void setUp() {
+    cluster = Fixtures.cluster().loadDefault().get();
     scriptTransformer = new ScriptTransformer(JsonUtil.jsonMapper());
     super.setUp();
     servicePrimary = new ServiceBuilder()
@@ -643,8 +647,12 @@ class ClusterResourceMockedTest extends
   private void clusterMocks() {
     when(configContext.get(WebApiProperty.GRAFANA_EMBEDDED))
         .thenReturn(Optional.of("true"));
+    when(clusterFinder.findByNameAndNamespace(
+        eq(getResourceName()),
+        anyString()))
+        .thenReturn(Optional.of(cluster));
     when(serviceFinder.findByNameAndNamespace(
-        eq(PatroniUtil.defaultReadWriteName(getResourceName())),
+        eq(getResourceName()),
         anyString()))
         .thenReturn(Optional.of(servicePrimary));
     when(serviceFinder.findByNameAndNamespace(eq(PatroniUtil.readOnlyName(getResourceName())),
@@ -743,7 +751,7 @@ class ClusterResourceMockedTest extends
     statsDtoFinder.setManagedExecutor(managedExecutor);
 
     return new ClusterResource(
-        dtoScanner, scriptScheduler, secretWriter, configMapWriter,
+        dtoScanner, clusterFinder, scriptScheduler, secretWriter, configMapWriter,
         scriptFinder, scriptTransformer, secretFinder, configMapFinder, serviceFinder);
   }
 

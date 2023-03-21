@@ -201,11 +201,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
     final int babelfishPort = EnvoyUtil.BF_ENTRY_PORT;
     Map<String, String> data = new HashMap<>();
     data.put("PATRONI_CONFIG_FILE", ClusterStatefulSetPath.PATRONI_CONFIG_FILE_PATH.path());
-    data.put("PATRONI_SCOPE", Optional
-        .ofNullable(cluster.getSpec().getConfiguration().getPatroni())
-        .map(StackGresClusterPatroni::getInitialConfig)
-        .map(patroniConfig -> patroniConfig.getScope())
-        .orElse(PatroniUtil.clusterScope(cluster)));
+    data.put("PATRONI_SCOPE", PatroniUtil.clusterScope(cluster));
     data.put("PATRONI_INITIAL_CONFIG", Optional
         .ofNullable(cluster.getSpec().getConfiguration().getPatroni())
         .map(StackGresClusterPatroni::getInitialConfig)

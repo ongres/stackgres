@@ -72,8 +72,6 @@ public class ShardedClusterSecret
 
     setAuthenticatorCredentials(context, previousSecretData, data);
 
-    setPgBouncerCredentials(previousSecretData, data);
-
     setRestApiCredentials(context, previousSecretData, data);
 
     return Stream.of(new SecretBuilder()
@@ -129,16 +127,6 @@ public class ShardedClusterSecret
     data.put(authenticatorPasswordEnv, context.getAuthenticatorPassword()
         .orElse(data.get(AUTHENTICATOR_PASSWORD_KEY)));
     data.put(authenticatorOptionsEnv, "superuser");
-  }
-
-  private void setPgBouncerCredentials(final Map<String, String> previousSecretData,
-      final Map<String, String> data) {
-    data.put(PGBOUNCER_ADMIN_USERNAME_ENV, PGBOUNCER_ADMIN_USERNAME);
-    data.put(PGBOUNCER_ADMIN_PASSWORD_KEY, previousSecretData
-        .getOrDefault(PGBOUNCER_ADMIN_PASSWORD_KEY, generatePassword()));
-    data.put(PGBOUNCER_STATS_USERNAME_ENV, PGBOUNCER_STATS_USERNAME);
-    data.put(PGBOUNCER_STATS_PASSWORD_KEY, previousSecretData
-        .getOrDefault(PGBOUNCER_STATS_PASSWORD_KEY, generatePassword()));
   }
 
   private void setRestApiCredentials(StackGresShardedClusterContext context,

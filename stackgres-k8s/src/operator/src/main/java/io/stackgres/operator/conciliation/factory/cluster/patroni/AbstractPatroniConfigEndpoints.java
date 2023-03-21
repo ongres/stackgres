@@ -45,7 +45,7 @@ public abstract class AbstractPatroniConfigEndpoints
     return Stream.of(new EndpointsBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
-        .withName(PatroniUtil.configName(context))
+        .withName(PatroniUtil.configName(context.getCluster()))
         .addToLabels(context.servicesCustomLabels())
         .addToLabels(labelFactory.clusterLabels(context.getSource()))
         .withAnnotations(Map.of(PatroniUtil.CONFIG_KEY, patroniConfigJson))

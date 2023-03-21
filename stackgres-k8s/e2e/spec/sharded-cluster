@@ -25,7 +25,7 @@ e2e_test() {
 }
 
 service_check() {
-  RESPONSE_PRIMARY="$(run_query -c "$CLUSTER_NAME-0" -h "$CLUSTER_NAME" -i 1 -p 5432)"
+  RESPONSE_PRIMARY="$(run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME" -i 1 -p 5432)"
 
   if [ "$RESPONSE_PRIMARY" = "1" ]
   then
@@ -38,7 +38,7 @@ service_check() {
 
 sharded_check() {
   local RESULT EXIT_CODE
-  try_function wait_until eval 'run_query -c "$CLUSTER_NAME-0" -h "$CLUSTER_NAME" -i 1 -p 5432 \
+  try_function wait_until eval 'run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME" -i 1 -p 5432 \
     -d citus -q "SELECT COUNT(*) FROM master_get_active_worker_nodes()" | grep -xF 2'
 
   if [ "$EXIT_CODE" = 0 ]
@@ -51,8 +51,8 @@ sharded_check() {
 }
 
 pgbouncer_database_check() {
-  if kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-0-0" -c "postgres-util" -- env \
-    PGPASSWORD="$(kubectl -n "$CLUSTER_NAMESPACE" get secrets "$CLUSTER_NAME-0" \
+  if kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- env \
+    PGPASSWORD="$(kubectl -n "$CLUSTER_NAMESPACE" get secrets "$CLUSTER_NAME-coord" \
       -o jsonpath='{.data.pgbouncer-admin-password}' | base64 -d)" \
     PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
     psql -t -A -U pgbouncer_admin -d pgbouncer -h "$CLUSTER_NAME" -c "SHOW FDS" >/dev/null
@@ -63,8 +63,8 @@ pgbouncer_database_check() {
     return 1
   fi
 
-  if kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-0-0" -c "postgres-util" -- env \
-    PGPASSWORD="$(kubectl -n "$CLUSTER_NAMESPACE" get secrets "$CLUSTER_NAME-0" \
+  if kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- env \
+    PGPASSWORD="$(kubectl -n "$CLUSTER_NAMESPACE" get secrets "$CLUSTER_NAME-coord" \
       -o jsonpath='{.data.pgbouncer-stats-password}' | base64 -d)" \
     PGCONNECT_TIMEOUT="$((5 + E2E_TIMEOUT / 10))" \
     psql -t -A -U pgbouncer_stats -d pgbouncer -h "$CLUSTER_NAME" -c "SHOW VERSION" >/dev/null
