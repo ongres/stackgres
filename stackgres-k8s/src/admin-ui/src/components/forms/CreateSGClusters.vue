@@ -991,7 +991,7 @@
                                                         <input :id="'scriptFile-'+ baseIndex + '-' + index" type="file" @change="uploadScript" class="hide" :disabled="isDefaultScript(baseScript.sgScript)">
                                                         <textarea v-model="script.script" placeholder="Type a script..." :data-field="'spec.managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].script'" :disabled="isDefaultScript(baseScript.sgScript)" required></textarea>
                                                     </template>
-                                                    <template v-else-if="(!editMode && (scriptSource[baseIndex].entries[index] != 'raw') )">
+                                                    <template v-else-if="(scriptSource[baseIndex].entries[index] != 'raw')">
                                                         <div class="header">
                                                             <h3 :for="'spec.managedSql.scripts.scriptFrom.properties' + scriptSource[baseIndex].entries[index]" class="capitalize">
                                                                 {{ splitUppercase(scriptSource[baseIndex].entries[index]) }}
@@ -1001,21 +1001,35 @@
                                                             </h3>
                                                         </div>
                                                         
-                                                        <label :for="'spec.managedSql.scripts.scriptFrom.properties.' + scriptSource[baseIndex].entries[index] + '.properties.name'">
-                                                            Name
-                                                            <span class="req">*</span>
-                                                        </label>
-                                                        <input v-model="script.scriptFrom[scriptSource[baseIndex].entries[index]].name" placeholder="Type a name.." autocomplete="off" :disabled="isDefaultScript(baseScript.sgScript)" required>
-                                                        <span class="helpTooltip" :class="( (scriptSource[baseIndex].entries[index] != 'configMapKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.configMapKeyRef.properties.name')"></span>
-                                                        <span class="helpTooltip" :class="( (scriptSource[baseIndex].entries[index] != 'secretKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.secretKeyRef.properties.name')"></span>
+                                                        <div class="row-50">
+                                                            <div class="col">
+                                                                <label :for="'spec.managedSql.scripts.scriptFrom.properties.' + scriptSource[baseIndex].entries[index] + '.properties.name'">
+                                                                    Name
+                                                                    <span class="req">*</span>
+                                                                </label>
+                                                                <input v-model="script.scriptFrom[scriptSource[baseIndex].entries[index]].name" placeholder="Type a name.." autocomplete="off" :disabled="isDefaultScript(baseScript.sgScript)" required>
+                                                                <span class="helpTooltip" :class="( (scriptSource[baseIndex].entries[index] != 'configMapKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.configMapKeyRef.properties.name')"></span>
+                                                                <span class="helpTooltip" :class="( (scriptSource[baseIndex].entries[index] != 'secretKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.secretKeyRef.properties.name')"></span>
+                                                            </div>
 
-                                                        <label :for="'spec.managedSql.scripts.scriptFrom.properties.' + scriptSource[baseIndex].entries[index] + '.properties.key'">
-                                                            Key
+                                                            <div class="col">
+                                                                <label :for="'spec.managedSql.scripts.scriptFrom.properties.' + scriptSource[baseIndex].entries[index] + '.properties.key'">
+                                                                    Key
+                                                                    <span class="req">*</span>
+                                                                </label>
+                                                                <input v-model="script.scriptFrom[scriptSource[baseIndex].entries[index]].key" placeholder="Type a key.." autocomplete="off" :disabled="isDefaultScript(baseScript.sgScript)" required>
+                                                                <span class="helpTooltip" :class="( (scriptSource[baseIndex].entries[index] != 'configMapKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.configMapKeyRef.properties.key')"></span>
+                                                                <span class="helpTooltip" :class="( (scriptSource[baseIndex].entries[index] != 'secretKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.secretKeyRef.properties.key')"></span>
+                                                            </div>
+                                                        </div>
+
+                                                        <template v-if="editMode && (script.scriptFrom.hasOwnProperty('configMapScript'))">
+                                                            <label :for="'spec.managedSql.scripts.scriptFrom.properties.' + scriptSource[baseIndex].entries[index] + '.properties.configMapScript'" class="script">
+                                                                Script
                                                             <span class="req">*</span>
-                                                        </label>
-                                                        <input v-model="script.scriptFrom[scriptSource[baseIndex].entries[index]].key" placeholder="Type a key.." autocomplete="off" :disabled="isDefaultScript(baseScript.sgScript)" required>
-                                                        <span class="helpTooltip" :class="( (scriptSource[baseIndex].entries[index] != 'configMapKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.configMapKeyRef.properties.key')"></span>
-                                                        <span class="helpTooltip" :class="( (scriptSource[baseIndex].entries[index] != 'secretKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.secretKeyRef.properties.key')"></span>
+                                                            </label> 
+                                                            <textarea v-model="script.scriptFrom.configMapScript" placeholder="Type a script..." :data-field="'spec.managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].scriptFrom.configMapScript'" :disabled="isDefaultScript(baseScript.sgScript)" required></textarea>
+                                                        </template>
                                                     </template>
                                                 </div>
                                             </div>
@@ -2461,7 +2475,7 @@
                                                 vm.scriptSource[baseIndex].entries.push('secretKeyRef');
                                             } else if(script.scriptFrom.hasOwnProperty('configMapScript')) {
                                                 vm.scriptSource[baseIndex].entries.push('configMapKeyRef');
-                                                script['script'] = script.scriptFrom.configMapScript;
+                                                //script['script'] = script.scriptFrom.configMapScript;
                                             }
                                         })
                                     }
