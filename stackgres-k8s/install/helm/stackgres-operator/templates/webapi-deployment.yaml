@@ -55,7 +55,7 @@ spec:
         {{- end }}
       containers:
       - name: {{ .Values.restapi.name }}
-        image: "{{ .Values.restapi.image.name }}:{{ .Values.restapi.image.tag }}"
+        image: "{{ include "restapi-image" . }}"
         imagePullPolicy: {{ .Values.restapi.image.pullPolicy }}
         securityContext:
           {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}
@@ -189,7 +189,7 @@ spec:
             mountPath: /etc/operator/certs
             readOnly: true
       - name: {{ .Values.adminui.name }}
-        image: '{{ .Values.adminui.image.name }}:{{ .Values.adminui.image.tag }}'
+        image: "{{ include "adminui-image" . }}"
         imagePullPolicy: {{ .Values.adminui.image.pullPolicy }}
         securityContext:
           {{- if or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser }}

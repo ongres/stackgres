@@ -57,7 +57,7 @@ spec:
       containers:
       {{- if not (and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort) }}
       - name: {{ .Release.Name }}
-        image: "{{ .Values.operator.image.name }}:{{ .Values.operator.image.tag }}"
+        image: "{{ include "operator-image" . }}"
         imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
         env:
           - name: OPERATOR_NAME

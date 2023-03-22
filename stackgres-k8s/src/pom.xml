@@ -59,7 +59,7 @@
     <stackgres.documentation.errorsPath>/api/responses/error#</stackgres.documentation.errorsPath>
     <stackgres.conversionWebhooks>false</stackgres.conversionWebhooks>
     <stackgres.crdUpgrade>false</stackgres.crdUpgrade>
-    <stackgres.containerRegistry>docker.io</stackgres.containerRegistry>
+    <stackgres.containerRegistry>quay.io</stackgres.containerRegistry>
     <stackgres.imagePullPolicy>IfNotPresent</stackgres.imagePullPolicy>
     <stackgres.extensionsRepositoryUrls>https://extensions.stackgres.io/postgres/repository</stackgres.extensionsRepositoryUrls>
     <stackgres.databaseOperationJob>false</stackgres.databaseOperationJob>

@@ -1,7 +1,7 @@
 # Generate the token
 
 ```
-printf %s:%s stackgresbot "$DOCKER_API_TOKEN" | base64 | jq -R '{auths:{"docker.io":{auth: .}}}'
+printf %s:%s stackgresbot "$DOCKER_API_TOKEN" | base64 | jq -R '{auths:{"quay.io":{auth: .}}}'
 ```
 
 # Cleanup preflight
@@ -18,5 +18,5 @@ preflight check container \
         --submit \
         --docker-config ./temp-auth.json \
         --pyxis-api-token "$PYXIS_API_TOKEN" \
-        docker.io/stackgres/restapi:main-jvm
+        quay.io/stackgres/restapi:main-jvm
 ```

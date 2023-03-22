@@ -54,7 +54,7 @@ spec:
         {{- end }}
       containers:
       - name: "conversion-webhooks"
-        image: "{{ .Values.jobs.image.name }}:{{ .Values.jobs.image.tag }}"
+        image: "{{ include "jobs-image" . }}"
         imagePullPolicy: "{{ .Values.jobs.image.pullPolicy }}"
         env:
           - name: OPERATOR_NAME

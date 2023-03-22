@@ -32,13 +32,13 @@ test_yamls() {
     | sed "s|namespace: stackgres$|namespace: $OPERATOR_NAMESPACE|" \
     | sed "s| -n ['\"]\?stackgres['\"]\? | -n '$OPERATOR_NAMESPACE' |" \
     | sed "s|stackgres-operator\.stackgres|stackgres-operator.$OPERATOR_NAMESPACE|" \
-    | sed "s|image: \"stackgres/operator:.*\"$|image: \"$OPERATOR_IMAGE_NAME\"|" \
-    | sed "s|image: \"stackgres/restapi:.*\"$|image: \"$RESTAPI_IMAGE_NAME\"|" \
-    | sed "s|image: \"stackgres/jobs:.*\"$|image: \"$JOBS_IMAGE_NAME\"|" \
-    | sed "s|image: 'stackgres/admin-ui:.*'$|image: \"$ADMINUI_IMAGE_NAME\"|" \
+    | sed "s|image: \"\([^/]\+/\)\?stackgres/operator:.*\"$|image: \"$OPERATOR_IMAGE_NAME\"|" \
+    | sed "s|image: \"\([^/]\+/\)\?stackgres/restapi:.*\"$|image: \"$RESTAPI_IMAGE_NAME\"|" \
+    | sed "s|image: \"\([^/]\+/\)\?stackgres/jobs:.*\"$|image: \"$JOBS_IMAGE_NAME\"|" \
+    | sed "s|image: \"\([^/]\+/\)\?stackgres/admin-ui:.*\"$|image: \"$ADMINUI_IMAGE_NAME\"|" \
     | sed "$(printf '/name: OPERATOR_IMAGE_VERSION$/{$!{N;s/name: OPERATOR_IMAGE_VERSION\\n\( *\)value: .*$/name: OPERATOR_IMAGE_VERSION\\n\\1value: '"'%s'"'/;ty;P;D;:y}}' "$IMAGE_TAG")" \
     | sed "s|imagePullPolicy:.*[a-zA-Z].*$|imagePullPolicy: $E2E_OPERATOR_PULL_POLICY|" \
-    | sed '/image: ongres\/.*$/{$!{N;s/image: \(ongres\/.*\)\n\( *\)imagePullPolicy: .*$/image: \1\n\2imagePullPolicy: IfNotPresent/;ty;P;D;:y}}' \
+    | sed '/image: \([^/]\+\/\)\?ongres\/.*$/{$!{N;s/image: \([^/]\+\/\)\?\(ongres\/.*\)\n\( *\)imagePullPolicy: .*$/image: \2\n\3imagePullPolicy: IfNotPresent/;ty;P;D;:y}}' \
     | if grep -q 'http%3A%2F%2Fstackgres-operator-extensions-cache\.stackgres%3FsetHttpScheme%3Dtrue' "${STACKGRES_YAMLS}/stackgres-operator-demo.yml"
       then
         sed "s|value: \"https://extensions.stackgres.io/postgres/repository?|value: \"$ESCAPED_EXTENSIONS_REPOSITORY_URL$(

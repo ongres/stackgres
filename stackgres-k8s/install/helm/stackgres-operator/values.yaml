@@ -1,4 +1,4 @@
-containerRegistry: docker.io
+containerRegistry: quay.io
 imagePullPolicy: "IfNotPresent"
 operator:
   image:

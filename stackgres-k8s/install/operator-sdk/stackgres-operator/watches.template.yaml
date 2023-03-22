@@ -5,9 +5,10 @@
   chart: helm-charts/stackgres-operator
   watchDependentResources: false
   overrideValues:
+    containerRegistry: quay.io
     adminui.image.name: stackgres/admin-ui
     adminui.image.tag: "${VERSION}"
-    containerRegistry: docker.io
+    containerRegistry: quay.io
     jobs.image.name: stackgres/jobs
     jobs.image.tag: "${VERSION}"
     operator.image.name: stackgres/operator

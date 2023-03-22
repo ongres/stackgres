@@ -12,7 +12,7 @@ metadata:
     operatorhub.io/ui-metadata-max-k8s-version: "1.25.999"
     categories: Database
     repository: https://gitlab.com/ongresinc/stackgres
-    containerImage: docker.io/stackgres/operator:${VERSION}
+    containerImage: quay.io/stackgres/operator:${VERSION}
 spec:
   displayName: StackGres
   provider:
@@ -75,13 +75,13 @@ $(
     name: kube-rbac-proxy_0_13_0
   - image: quay.io/stackgres/helm-operator:${VERSION}
     name: stackgres-operator-helm
-  - image: docker.io/stackgres/operator:${VERSION}
+  - image: quay.io/stackgres/operator:${VERSION}
     name: stackgres-operator
-  - image: docker.io/stackgres/restapi:${VERSION}
+  - image: quay.io/stackgres/restapi:${VERSION}
     name: stackgres-restapi
-  - image: docker.io/stackgres/admin-ui:${VERSION}
+  - image: quay.io/stackgres/admin-ui:${VERSION}
     name: stackgres-admin-ui
-  - image: docker.io/stackgres/jobs:${VERSION}
+  - image: quay.io/stackgres/jobs:${VERSION}
     name: stackgres-jobs
   description: |
 $(

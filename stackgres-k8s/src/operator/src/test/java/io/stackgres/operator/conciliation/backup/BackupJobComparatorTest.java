@@ -59,10 +59,10 @@ class BackupJobComparatorTest {
   @Test
   void containerImageChanges_shouldHaveNoDifference() {
     required.getSpec().getTemplate().getSpec().getContainers()
-        .get(0).setImage("docker.io/ongres/patroni:v1.6.5-pg12.3-build-5.2");
+        .get(0).setImage("quay.io/ongres/patroni:v1.6.5-pg12.3-build-5.2");
 
     deployed.getSpec().getTemplate().getSpec().getContainers()
-        .get(0).setImage("docker.io/ongres/patroni:v1.6.5-pg12.3-build-5.1");
+        .get(0).setImage("quay.io/ongres/patroni:v1.6.5-pg12.3-build-5.1");
 
     var isContentEqual = comparator.isResourceContentEqual(required, deployed);
 

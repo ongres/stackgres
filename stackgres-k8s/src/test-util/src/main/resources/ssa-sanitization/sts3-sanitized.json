@@ -288,7 +288,7 @@
                                 }
                             }
                         ],
-                        "image": "docker.io/ongres/patroni-ext:v1.6.5-pg12.6-build-6.0",
+                        "image": "quay.io/ongres/patroni-ext:v1.6.5-pg12.6-build-6.0",
                         "imagePullPolicy": "IfNotPresent",
                         "livenessProbe": {
                             "failureThreshold": 6,
@@ -423,7 +423,7 @@
                         "command": [
                             "/bin/sh"
                         ],
-                        "image": "docker.io/ongres/postgres-util:v12.6-build-6.0",
+                        "image": "quay.io/ongres/postgres-util:v12.6-build-6.0",
                         "imagePullPolicy": "IfNotPresent",
                         "name": "postgres-util",
                         "resources": {},
@@ -472,7 +472,7 @@
                         "command": [
                             "/usr/local/bin/envoy"
                         ],
-                        "image": "docker.io/ongres/envoy:v1.15.3-build-6.0",
+                        "image": "quay.io/ongres/envoy:v1.15.3-build-6.0",
                         "imagePullPolicy": "IfNotPresent",
                         "name": "envoy",
                         "ports": [
@@ -670,7 +670,7 @@
                                 "value": "5432"
                             }
                         ],
-                        "image": "docker.io/ongres/fluentbit:v1.4.6-build-6.0",
+                        "image": "quay.io/ongres/fluentbit:v1.4.6-build-6.0",
                         "imagePullPolicy": "IfNotPresent",
                         "name": "fluent-bit",
                         "resources": {},
@@ -741,7 +741,7 @@
                                 "value": "cluster_name=dbops-security-upgrade-3, namespace=dbops-security-upgrade-61bc6d8a"
                             }
                         ],
-                        "image": "docker.io/ongres/prometheus-postgres-exporter:v0.8.0-build-6.0",
+                        "image": "quay.io/ongres/prometheus-postgres-exporter:v0.8.0-build-6.0",
                         "imagePullPolicy": "IfNotPresent",
                         "name": "prometheus-postgres-exporter",
                         "ports": [
@@ -791,7 +791,7 @@
                         ]
                     },
                     {
-                        "image": "docker.io/ongres/pgbouncer:v1.13.0-build-6.0",
+                        "image": "quay.io/ongres/pgbouncer:v1.13.0-build-6.0",
                         "imagePullPolicy": "IfNotPresent",
                         "name": "pgbouncer",
                         "resources": {},

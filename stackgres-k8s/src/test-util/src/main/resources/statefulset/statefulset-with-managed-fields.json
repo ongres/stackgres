@@ -1792,7 +1792,7 @@
                 }
               }
             ],
-            "image": "docker.io/ongres/patroni:v2.1.0-pg12.2-build-6.5",
+            "image": "quay.io/ongres/patroni:v2.1.0-pg12.2-build-6.5",
             "imagePullPolicy": "IfNotPresent",
             "livenessProbe": {
               "failureThreshold": 6,
@@ -1956,7 +1956,7 @@
             "command": [
               "/usr/local/bin/envoy"
             ],
-            "image": "docker.io/ongres/envoy:v1.19.1-build-6.6",
+            "image": "quay.io/ongres/envoy:v1.19.1-build-6.6",
             "imagePullPolicy": "IfNotPresent",
             "name": "envoy",
             "ports": [
@@ -2030,7 +2030,7 @@
                 "value": "cluster_name=test, namespace=annotations"
               }
             ],
-            "image": "docker.io/ongres/prometheus-postgres-exporter:v0.10.0-build-6.6",
+            "image": "quay.io/ongres/prometheus-postgres-exporter:v0.10.0-build-6.6",
             "imagePullPolicy": "IfNotPresent",
             "name": "prometheus-postgres-exporter",
             "ports": [
@@ -2129,7 +2129,7 @@
                 "name": "DEBUG_CLUSTER_CONTROLLER_SUSPEND"
               }
             ],
-            "image": "docker.io/stackgres/cluster-controller:main-jvm",
+            "image": "quay.io/stackgres/cluster-controller:main-jvm",
             "imagePullPolicy": "IfNotPresent",
             "name": "cluster-controller",
             "resources": {},
@@ -2172,7 +2172,7 @@
             ]
           },
           {
-            "image": "docker.io/ongres/pgbouncer:v1.15.0-build-6.6",
+            "image": "quay.io/ongres/pgbouncer:v1.15.0-build-6.6",
             "imagePullPolicy": "IfNotPresent",
             "name": "pgbouncer",
             "resources": {},
@@ -2229,7 +2229,7 @@
             "command": [
               "/bin/sh"
             ],
-            "image": "docker.io/ongres/postgres-util:v12.2-build-6.5",
+            "image": "quay.io/ongres/postgres-util:v12.2-build-6.5",
             "imagePullPolicy": "IfNotPresent",
             "name": "postgres-util",
             "resources": {},
@@ -2294,7 +2294,7 @@
                 "value": "/var/lib/postgresql/data"
               }
             ],
-            "image": "docker.io/ongres/kubectl:v1.19.14-build-6.6",
+            "image": "quay.io/ongres/kubectl:v1.19.14-build-6.6",
             "imagePullPolicy": "IfNotPresent",
             "name": "setup-arbitrary-user",
             "resources": {},
@@ -2448,7 +2448,7 @@
                 "value": "/usr/lib/postgresql/12.2/extra/lib"
               }
             ],
-            "image": "docker.io/ongres/patroni:v2.1.0-pg12.2-build-6.5",
+            "image": "quay.io/ongres/patroni:v2.1.0-pg12.2-build-6.5",
             "imagePullPolicy": "IfNotPresent",
             "name": "relocate-binaries",
             "resources": {},
@@ -2493,7 +2493,7 @@
                 "value": "/etc/env/.secret"
               }
             ],
-            "image": "docker.io/ongres/kubectl:v1.19.14-build-6.6",
+            "image": "quay.io/ongres/kubectl:v1.19.14-build-6.6",
             "imagePullPolicy": "IfNotPresent",
             "name": "setup-scripts",
             "resources": {},
@@ -2540,7 +2540,7 @@
               "-exc",
               "test -f \"/etc/pgbouncer/auth/pgbouncer-admin-password\"\ntest -f \"/etc/pgbouncer/auth/pgbouncer-stats-password\"\nPGBOUNCER_ADMIN_MD5=\"$({\n  cat \"/etc/pgbouncer/auth/pgbouncer-admin-password\"\n  printf 'pgbouncer_admin'\n  } | md5sum | cut -d ' ' -f 1)\"\nPGBOUNCER_STATS_MD5=\"$({\n  cat \"/etc/pgbouncer/auth/pgbouncer-stats-password\"\n  printf 'pgbouncer_stats'\n  } | md5sum | cut -d ' ' -f 1)\"\n(\necho \"\\\"pgbouncer_admin\\\" \\\"md5$PGBOUNCER_ADMIN_MD5\\\"\"\necho \"\\\"pgbouncer_stats\\\" \\\"md5$PGBOUNCER_STATS_MD5\\\"\"\n) \u003e \"/etc/pgbouncer/auth/users.txt\""
             ],
-            "image": "docker.io/ongres/kubectl:v1.19.14-build-6.6",
+            "image": "quay.io/ongres/kubectl:v1.19.14-build-6.6",
             "imagePullPolicy": "IfNotPresent",
             "name": "pgbouncer-auth-file",
             "resources": {},
@@ -2617,7 +2617,7 @@
                 "name": "DEBUG_CLUSTER_CONTROLLER_SUSPEND"
               }
             ],
-            "image": "docker.io/stackgres/cluster-controller:main-jvm",
+            "image": "quay.io/stackgres/cluster-controller:main-jvm",
             "imagePullPolicy": "IfNotPresent",
             "name": "cluster-reconciliation-cycle",
             "resources": {},

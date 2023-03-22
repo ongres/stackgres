@@ -13,9 +13,9 @@ PROJECT_ID="$(jq -r ".[\"$REPOSITORY\"] | if . != null then . else error(\"Proje
 . "${OPENSHIFT_CERTIFICATION_TOKENS_PATH:-$HOME/.openshift-tokens}"
 
 REPOSITORY="${IMAGE%%/*}"
-if [ "$REPOSITORY" = docker.io ]
+if [ "$REPOSITORY" = quay.io ]
 then
-  REPOSITORY=https://index.docker.io/v1/
+  REPOSITORY=https://index.quay.io/v1/
 fi
 
 AUTH="$(jq -r '.auths|to_entries|.[]|select(.key == "'"$REPOSITORY"'").value.auth' "${OPENSHIFT_CERTIFICATION_PROJECTS_JSON_PATH:-$HOME/.openshift-certification-auths.json}")"

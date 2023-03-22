@@ -103,7 +103,7 @@ properly_tag_not_found_import_images() {
       while read IMAGE_NAME
       do
         echo "Detected import-* image $IMAGE_NAME to tag properly into k8s env $E2E_ENV"
-        tag_image_k8s "${IMAGE_NAME#docker.io/library/}" "$IMAGE_NAME"
+        tag_image_k8s "${IMAGE_NAME#quay.io/library/}" "$IMAGE_NAME"
       done
       )
 }

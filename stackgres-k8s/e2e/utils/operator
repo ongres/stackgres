@@ -5,9 +5,9 @@
 
 export IMAGE_TAG="${IMAGE_TAG:-main-jvm}"
 export ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
-export OPERATOR_PUBLIC_REGISTRY="${OPERATOR_PUBLIC_REGISTRY:-docker.io}"
+export OPERATOR_PUBLIC_REGISTRY="${OPERATOR_PUBLIC_REGISTRY:-quay.io}"
 export OPERATOR_PUBLIC_REGISTRY_PATH="${OPERATOR_PUBLIC_REGISTRY_PATH:-/stackgres}"
-export COMPONENT_PUBLIC_REGISTRY="${COMPONENT_PUBLIC_REGISTRY:-docker.io}"
+export COMPONENT_PUBLIC_REGISTRY="${COMPONENT_PUBLIC_REGISTRY:-quay.io}"
 export COMPONENT_PUBLIC_REGISTRY_PATH="${COMPONENT_PUBLIC_REGISTRY_PATH:-/ongres}"
 export OPERATOR_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/operator:$IMAGE_TAG"
 export RESTAPI_IMAGE_NAME="${OPERATOR_PUBLIC_REGISTRY}${OPERATOR_PUBLIC_REGISTRY_PATH}/restapi:$IMAGE_TAG"
@@ -346,12 +346,12 @@ load_operator_k8s() {
     local ORIGINAL_ADMINUI_IMAGE_NAME="$ADMINUI_IMAGE_NAME"
     local IMAGE_TAG="$1"
     local ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
-    local OPERATOR_IMAGE_NAME="stackgres/operator:$IMAGE_TAG"
-    local RESTAPI_IMAGE_NAME="stackgres/restapi:$IMAGE_TAG"
-    local JOBS_IMAGE_NAME="stackgres/jobs:$IMAGE_TAG"
-    local CLUSTER_CONTROLLER_IMAGE_NAME="stackgres/cluster-controller:$IMAGE_TAG"
-    local DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="stackgres/distributedlogs-controller:$IMAGE_TAG"
-    local ADMINUI_IMAGE_NAME="stackgres/admin-ui:$ADMINUI_IMAGE_TAG"
+    local OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME%:*}:$IMAGE_TAG"
+    local RESTAPI_IMAGE_NAME="${RESTAPI_IMAGE_NAME%:*}:$IMAGE_TAG"
+    local JOBS_IMAGE_NAME="${JOBS_IMAGE_NAME%:*}:$IMAGE_TAG"
+    local CLUSTER_CONTROLLER_IMAGE_NAME="${CLUSTER_CONTROLLER_IMAGE_NAME%:*}:$IMAGE_TAG"
+    local DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME%:*}:$IMAGE_TAG"
+    local ADMINUI_IMAGE_NAME="${ADMINUI_IMAGE_NAME%:*}:$ADMINUI_IMAGE_TAG"
     docker_tag "$ORIGINAL_OPERATOR_IMAGE_NAME" "$OPERATOR_IMAGE_NAME"
     docker_tag "$ORIGINAL_RESTAPI_IMAGE_NAME" "$RESTAPI_IMAGE_NAME"
     docker_tag "$ORIGINAL_JOBS_IMAGE_NAME" "$JOBS_IMAGE_NAME"
@@ -1014,48 +1014,48 @@ traceable_get_component_images() {
     do
       if [ "${VERSION#*-build-}" = "${SUBVERSION#*-build-}" ]
       then
-        echo "docker.io/ongres/patroni:v${VERSION%-build-*}-pg${SUBVERSION%-build-*}-build-${VERSION#*-build-}"
+        echo "quay.io/ongres/patroni:v${VERSION%-build-*}-pg${SUBVERSION%-build-*}-build-${VERSION#*-build-}"
       fi
     done
     for SUBVERSION in $COMPONENT_BABELFISH_VERSIONS
     do
       if [ "${VERSION#*-build-}" = "${SUBVERSION#*-build-}" ]
       then
-        echo "docker.io/ongres/patroni:v${VERSION%-build-*}-bf${SUBVERSION%-build-*}-build-${VERSION#*-build-}"
+        echo "quay.io/ongres/patroni:v${VERSION%-build-*}-bf${SUBVERSION%-build-*}-build-${VERSION#*-build-}"
       fi
     done
   done
   for VERSION in $COMPONENT_POSTGRESQL_VERSIONS
   do
-    echo "docker.io/ongres/postgres-util:v$VERSION"
+    echo "quay.io/ongres/postgres-util:v$VERSION"
   done
   for VERSION in $COMPONENT_PGBOUNCER_VERSIONS
   do
-    echo "docker.io/ongres/pgbouncer:v$VERSION"
+    echo "quay.io/ongres/pgbouncer:v$VERSION"
   done
   for VERSION in $COMPONENT_POSTGRES_EXPORTER_VERSIONS
   do
-    echo "docker.io/ongres/prometheus-postgres-exporter:v$VERSION"
+    echo "quay.io/ongres/prometheus-postgres-exporter:v$VERSION"
   done
   for VERSION in $COMPONENT_ENVOY_VERSIONS
   do
-    echo "docker.io/ongres/envoy:v$VERSION"
+    echo "quay.io/ongres/envoy:v$VERSION"
   done
   for VERSION in $COMPONENT_FLUENTBIT_VERSIONS
   do
-    echo "docker.io/ongres/fluentbit:v$VERSION"
+    echo "quay.io/ongres/fluentbit:v$VERSION"
   done
   for VERSION in $COMPONENT_FLUENTD_VERSIONS
   do
-    echo "docker.io/ongres/fluentd:v$VERSION"
+    echo "quay.io/ongres/fluentd:v$VERSION"
   done
   for VERSION in $COMPONENT_KUBECTL_VERSIONS
   do
-    echo "docker.io/ongres/kubectl:v$VERSION"
+    echo "quay.io/ongres/kubectl:v$VERSION"
   done
   for VERSION in $COMPONENT_BABELFISH_COMPASS_VERSIONS
   do
-    echo "docker.io/ongres/babelfish-compass:v$VERSION"
+    echo "quay.io/ongres/babelfish-compass:v$VERSION"
   done
 }
 
@@ -1126,32 +1126,32 @@ get_component_images_pre_1_0_0_alpha2() {
   do
     for SUBVERSION in $COMPONENT_POSTGRESQL_VERSIONS
     do
-      echo "docker.io/ongres/patroni-ext:v$VERSION-pg$SUBVERSION-build-$BUILD"
+      echo "quay.io/ongres/patroni-ext:v$VERSION-pg$SUBVERSION-build-$BUILD"
     done
   done
   for VERSION in $COMPONENT_POSTGRESQL_VERSIONS
   do
-    echo "docker.io/ongres/postgres-util:v$VERSION-build-$BUILD"
+    echo "quay.io/ongres/postgres-util:v$VERSION-build-$BUILD"
   done
   for VERSION in $COMPONENT_PGBOUNCER_VERSIONS
   do
-    echo "docker.io/ongres/pgbouncer:v$VERSION-build-$BUILD"
+    echo "quay.io/ongres/pgbouncer:v$VERSION-build-$BUILD"
   done
   for VERSION in $COMPONENT_POSTGRES_EXPORTER_VERSIONS
   do
-    echo "docker.io/ongres/prometheus-postgres-exporter:v$VERSION-build-$BUILD"
+    echo "quay.io/ongres/prometheus-postgres-exporter:v$VERSION-build-$BUILD"
   done
   for VERSION in $COMPONENT_ENVOY_VERSIONS
   do
-    echo "docker.io/ongres/envoy:v$VERSION-build-$BUILD"
+    echo "quay.io/ongres/envoy:v$VERSION-build-$BUILD"
   done
   for VERSION in $COMPONENT_FLUENTBIT_VERSIONS
   do
-    echo "docker.io/ongres/fluentbit:v$VERSION-build-$BUILD"
+    echo "quay.io/ongres/fluentbit:v$VERSION-build-$BUILD"
   done
   for VERSION in $COMPONENT_FLUENTD_VERSIONS
   do
-    echo "docker.io/ongres/fluentd:v$VERSION-build-$BUILD"
+    echo "quay.io/ongres/fluentd:v$VERSION-build-$BUILD"
   done
 }
 
@@ -1219,7 +1219,7 @@ get_component_images_pre_0_9_5() {
         done | sort -t ' ' -k 1V,1V \
           | while read -r SUBVERSION
             do
-              echo "docker.io/ongres/patroni:v$VERSION-pg$SUBVERSION-build-$1"
+              echo "quay.io/ongres/patroni:v$VERSION-pg$SUBVERSION-build-$1"
             done
       done
   for VERSION in $COMPONENT_POSTGRESQL_VERSIONS
@@ -1228,7 +1228,7 @@ get_component_images_pre_0_9_5() {
   done | sort -t ' ' -k 1V,1V \
     | while read -r VERSION
       do
-        echo "docker.io/ongres/postgres-util:v$VERSION-build-$1"
+        echo "quay.io/ongres/postgres-util:v$VERSION-build-$1"
       done
   for VERSION in $COMPONENT_PGBOUNCER_VERSIONS
   do
@@ -1236,7 +1236,7 @@ get_component_images_pre_0_9_5() {
   done | sort -t ' ' -k 1V,1V \
     | while read -r VERSION
       do
-        echo "docker.io/ongres/pgbouncer:v$VERSION-build-$1"
+        echo "quay.io/ongres/pgbouncer:v$VERSION-build-$1"
       done
   for VERSION in $COMPONENT_POSTGRES_EXPORTER_VERSIONS
   do
@@ -1244,7 +1244,7 @@ get_component_images_pre_0_9_5() {
   done | sort -t ' ' -k 1V,1V \
     | while read -r VERSION
       do
-        echo "docker.io/ongres/prometheus-postgres-exporter:v$VERSION-build-$1"
+        echo "quay.io/ongres/prometheus-postgres-exporter:v$VERSION-build-$1"
       done
   for VERSION in $COMPONENT_ENVOY_VERSIONS
   do
@@ -1252,7 +1252,7 @@ get_component_images_pre_0_9_5() {
   done | sort -t ' ' -k 1V,1V \
     | while read -r VERSION
       do
-        echo "docker.io/ongres/envoy:v$VERSION-build-$1"
+        echo "quay.io/ongres/envoy:v$VERSION-build-$1"
       done
   for VERSION in $COMPONENT_FLUENTBIT_VERSIONS
   do
@@ -1260,7 +1260,7 @@ get_component_images_pre_0_9_5() {
   done | sort -t ' ' -k 1V,1V \
     | while read -r VERSION
       do
-        echo "docker.io/ongres/fluentbit:v$VERSION-build-$1"
+        echo "quay.io/ongres/fluentbit:v$VERSION-build-$1"
       done
   for VERSION in $COMPONENT_FLUENTD_VERSIONS
   do
@@ -1268,7 +1268,7 @@ get_component_images_pre_0_9_5() {
   done | sort -t ' ' -k 1V,1V \
     | while read -r VERSION
       do
-        echo "docker.io/ongres/fluentd:v$VERSION-build-$1"
+        echo "quay.io/ongres/fluentd:v$VERSION-build-$1"
       done
 }
 
@@ -1302,7 +1302,23 @@ get_operator_image_repository() {
     return
   fi
 
-  echo "stackgres"
+  if [ "$VERSION" = "$STACKGRES_VERSION" ]
+  then
+    echo "${OPERATOR_IMAGE_NAME%/*}"
+    return
+  fi
+
+  local VERSION_AS_NUMBER VERSION_1_4_3
+  VERSION_AS_NUMBER="$(get_version_as_number 1.4.3)"
+  VERSION_1_4_3="$(get_version_as_number 1.4.3)"
+
+  if [ "$VERSION_AS_NUMBER" -le "$VERSION_1_4_3" ]
+  then
+    echo "docker.io/stackgres"
+    return
+  fi
+
+  echo "quay.io/stackgres"
 }
 
 get_operator_image_tag() {
