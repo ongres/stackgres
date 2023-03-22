@@ -39,7 +39,7 @@ public interface StackGresShardedClusterUtil {
     StackGresCluster coordinatorCluster = new StackGresCluster();
     coordinatorCluster.setMetadata(new ObjectMeta());
     coordinatorCluster.getMetadata().setNamespace(cluster.getMetadata().getNamespace());
-    coordinatorCluster.getMetadata().setName(cluster.getMetadata().getName() + "-0");
+    coordinatorCluster.getMetadata().setName(cluster.getMetadata().getName() + "-coord");
     coordinatorCluster.setSpec(spec);
     return coordinatorCluster;
   }
@@ -53,7 +53,7 @@ public interface StackGresShardedClusterUtil {
     StackGresCluster shardsCluster = new StackGresCluster();
     shardsCluster.setMetadata(new ObjectMeta());
     shardsCluster.getMetadata().setNamespace(cluster.getMetadata().getNamespace());
-    shardsCluster.getMetadata().setName(cluster.getMetadata().getName() + "-" + (index + 1));
+    shardsCluster.getMetadata().setName(cluster.getMetadata().getName() + "-shard" + index);
     shardsCluster.setSpec(spec);
     return shardsCluster;
   }

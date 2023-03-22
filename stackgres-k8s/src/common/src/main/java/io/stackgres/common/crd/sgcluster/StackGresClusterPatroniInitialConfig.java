@@ -6,6 +6,7 @@
 package io.stackgres.common.crd.sgcluster;
 
 import java.util.Map;
+import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -38,6 +39,15 @@ public class StackGresClusterPatroniInitialConfig extends JsonObject {
 
   public String getScope() {
     return (String) get("scope");
+  }
+
+  public Optional<Integer> getCitusGroup() {
+    return Optional.of(this)
+        .filter(config -> config.hasObject("citus"))
+        .map(config -> config.getObject("citus"))
+        .map(config -> config.get("group"))
+        .filter(Integer.class::isInstance)
+        .map(Integer.class::cast);
   }
 
   public String toString() {

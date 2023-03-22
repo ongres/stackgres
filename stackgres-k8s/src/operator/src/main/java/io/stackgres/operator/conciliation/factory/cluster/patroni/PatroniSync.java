@@ -12,6 +12,7 @@ import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -30,7 +31,7 @@ public class PatroniSync implements ResourceGenerator<StackGresClusterContext> {
   }
 
   private static String name(StackGresCluster cluster) {
-    return cluster.getMetadata().getName() + "-sync";
+    return PatroniUtil.readWriteName(cluster) + "-sync";
   }
 
   @Override

@@ -44,8 +44,7 @@ public class PatroniServices implements
   private LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
   public static String name(StackGresDistributedLogsContext clusterContext) {
-    String name = clusterContext.getSource().getMetadata().getName();
-    return PatroniUtil.defaultReadWriteName(name);
+    return PatroniUtil.readWriteName(clusterContext.getSource());
   }
 
   public static String readWriteName(StackGresDistributedLogsContext clusterContext) {
@@ -59,10 +58,7 @@ public class PatroniServices implements
   }
 
   public String configName(StackGresDistributedLogsContext clusterContext) {
-    final StackGresDistributedLogs cluster = clusterContext.getSource();
-    final String scope = PatroniUtil.clusterScope(cluster);
-    return ResourceUtil.resourceName(
-        scope + PatroniUtil.CONFIG_SERVICE);
+    return PatroniUtil.configName(clusterContext.getSource());
   }
 
   /**

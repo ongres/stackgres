@@ -21,7 +21,6 @@ import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniConfig;
-import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
@@ -93,8 +92,7 @@ public class PatroniConfigEndpoints
   }
 
   private String configName(StackGresDistributedLogsContext context) {
-    final String scope = PatroniUtil.clusterScope(context.getSource());
-    return ResourceUtil.nameIsValidDnsSubdomain(scope + PatroniUtil.CONFIG_SERVICE);
+    return PatroniUtil.configName(context.getSource());
   }
 
 }

@@ -20,6 +20,7 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.labels.LabelFactoryForShardedCluster;
+import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
@@ -33,7 +34,7 @@ public class ShardedClusterServices implements
   private LabelFactoryForShardedCluster labelFactory;
 
   public static String readWriteName(StackGresShardedClusterContext clusterContext) {
-    return PatroniUtil.readWriteName(clusterContext.getSource().getMetadata().getName());
+    return ResourceUtil.nameIsValidService(clusterContext.getSource().getMetadata().getName());
   }
 
   /**

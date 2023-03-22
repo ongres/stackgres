@@ -12,6 +12,7 @@ import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.labels.LabelFactoryForCluster;
@@ -37,7 +38,7 @@ public class PatroniEndpoint implements ResourceGenerator<StackGresDistributedLo
         new EndpointsBuilder()
             .withNewMetadata()
             .withNamespace(cluster.getMetadata().getNamespace())
-            .withName(cluster.getMetadata().getName())
+            .withName(PatroniUtil.readWriteName(cluster))
             .withLabels(labelFactory.patroniClusterLabels(cluster))
             .endMetadata()
             .build()

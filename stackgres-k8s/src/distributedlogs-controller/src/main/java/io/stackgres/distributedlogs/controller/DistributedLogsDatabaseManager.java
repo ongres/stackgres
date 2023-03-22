@@ -133,7 +133,7 @@ public class DistributedLogsDatabaseManager {
       throws SQLException {
     final String name = context.getCluster().getMetadata().getName();
     final String namespace = context.getCluster().getMetadata().getNamespace();
-    String serviceName = PatroniUtil.defaultReadWriteName(name);
+    String serviceName = PatroniUtil.readWriteName(context.getCluster());
     Secret secret = secretFinder.findByNameAndNamespace(name, namespace)
         .orElseThrow(() -> new NotFoundException(
             "Secret with username and password for user postgres can not be found."));

@@ -69,6 +69,7 @@ public class ClusterResource
   public static final String DEFAULT_SCRIPT_KEY = ScriptResource.DEFAULT_SCRIPT_KEY;
 
   private final CustomResourceScanner<ClusterDto> clusterScanner;
+  private final CustomResourceFinder<StackGresCluster> clusterFinder;
   private final CustomResourceScheduler<StackGresScript> scriptScheduler;
   private final ResourceWriter<Secret> secretWriter;
   private final ResourceWriter<ConfigMap> configMapWriter;
@@ -81,6 +82,7 @@ public class ClusterResource
   @Inject
   public ClusterResource(
       CustomResourceScanner<ClusterDto> clusterScanner,
+      CustomResourceFinder<StackGresCluster> clusterFinder,
       CustomResourceScheduler<StackGresScript> scriptScheduler,
       ResourceWriter<Secret> secretWriter,
       ResourceWriter<ConfigMap> configMapWriter,
@@ -90,6 +92,7 @@ public class ClusterResource
       ResourceFinder<ConfigMap> configMapFinder,
       ResourceFinder<Service> serviceFinder) {
     this.clusterScanner = clusterScanner;
+    this.clusterFinder = clusterFinder;
     this.scriptScheduler = scriptScheduler;
     this.secretWriter = secretWriter;
     this.configMapWriter = configMapWriter;
@@ -153,7 +156,10 @@ public class ClusterResource
     final String clusterName = resource.getMetadata().getName();
     final ClusterInfoDto info = new ClusterInfoDto();
 
-    serviceFinder.findByNameAndNamespace(PatroniUtil.readWriteName(clusterName), namespace)
+    var foundCluster = clusterFinder.findByNameAndNamespace(clusterName, namespace);
+    foundCluster
+        .flatMap(cluster -> serviceFinder.findByNameAndNamespace(
+            PatroniUtil.readWriteName(cluster), namespace))
         .ifPresent(service -> info.setPrimaryDns(StackGresUtil.getServiceDnsName(service)));
     serviceFinder.findByNameAndNamespace(PatroniUtil.readOnlyName(clusterName), namespace)
         .ifPresent(service -> info.setReplicasDns(StackGresUtil.getServiceDnsName(service)));

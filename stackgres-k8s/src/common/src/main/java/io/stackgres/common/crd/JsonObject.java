@@ -34,6 +34,11 @@ public class JsonObject extends HashMap<String, Object> {
     super(initialCapacity);
   }
 
+  public boolean hasObject(String key) {
+    Object value = get(key);
+    return value != null && value instanceof Map;
+  }
+
   @SuppressWarnings("unchecked")
   public JsonObject getObject(String key) {
     return new JsonObject((Map<? extends String, ? extends Object>) get(key));

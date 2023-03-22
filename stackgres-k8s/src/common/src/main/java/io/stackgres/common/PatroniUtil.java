@@ -21,6 +21,11 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniInitialConfig;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.common.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -49,9 +54,10 @@ public interface PatroniUtil {
   String SUFFIX = "-patroni";
   String DEPRECATED_READ_WRITE_SERVICE = "-primary";
   String READ_ONLY_SERVICE = "-replicas";
-  String FAILOVER_SERVICE = "-failover";
   String REST_SERVICE = "-rest";
   String CONFIG_SERVICE = "-config";
+  String SYNC_SERVICE = "-sync";
+  String FAILOVER_SERVICE = "-failover";
   int POSTGRES_SERVICE_PORT = 5432;
   int REPLICATION_SERVICE_PORT = 5433;
   int BABELFISH_SERVICE_PORT = 1433;
@@ -74,17 +80,24 @@ public interface PatroniUtil {
       "ctl",
       "tags");
 
-  static String readWriteName(StackGresCluster cluster) {
-    String name = cluster.getMetadata().getName();
-    return readWriteName(name);
+  static String clusterScope(StackGresCluster cluster) {
+    return Optional
+        .ofNullable(cluster.getSpec().getConfiguration().getPatroni())
+        .map(StackGresClusterPatroni::getInitialConfig)
+        .map(patroniConfig -> patroniConfig.getScope())
+        .orElse(cluster.getMetadata().getName());
   }
 
-  static String readWriteName(@NotNull String clusterName) {
-    return ResourceUtil.nameIsValidService(clusterName);
+  static String clusterScope(StackGresDistributedLogs cluster) {
+    return cluster.getMetadata().getName();
   }
 
-  static String defaultReadWriteName(@NotNull String clusterName) {
-    return readWriteName(clusterName);
+  static String readWriteName(CustomResource<?, ?> cluster) {
+    return ResourceUtil.nameIsValidService(baseNameFor(cluster));
+  }
+
+  static String readWriteNameForDistributedLogs(String name) {
+    return ResourceUtil.nameIsValidService(name);
   }
 
   static String deprecatedReadWriteName(StackGresCluster cluster) {
@@ -114,21 +127,59 @@ public interface PatroniUtil {
   }
 
   static String restName(StackGresCluster cluster) {
-    String name = cluster.getMetadata().getName();
-    return defaultReadWriteName(name + REST_SERVICE);
-  }
-
-  static String configName(ClusterContext context) {
-    return configName(context.getCluster());
+    return ResourceUtil.nameIsValidService(cluster.getMetadata().getName() + REST_SERVICE);
   }
 
   static String configName(CustomResource<?, ?> cluster) {
-    return ResourceUtil.nameIsValidDnsSubdomain(
-        clusterScope(cluster) + CONFIG_SERVICE);
+    return ResourceUtil.nameIsValidDnsSubdomain(baseNameFor(cluster) + CONFIG_SERVICE);
   }
 
-  static String clusterScope(CustomResource<?, ?> resource) {
-    return resource.getMetadata().getName();
+  static String failoverName(CustomResource<?, ?> cluster) {
+    return ResourceUtil.nameIsValidDnsSubdomain(baseNameFor(cluster) + FAILOVER_SERVICE);
+  }
+
+  static String syncName(CustomResource<?, ?> cluster) {
+    return ResourceUtil.nameIsValidDnsSubdomain(baseNameFor(cluster) + SYNC_SERVICE);
+  }
+
+  private static String baseNameFor(CustomResource<?, ?> resource) {
+    if (resource instanceof StackGresCluster cluster) {
+      return baseName(cluster);
+    } else if (resource instanceof StackGresDistributedLogs cluster) {
+      return baseName(cluster);
+    }
+    throw new IllegalArgumentException("Can not deternime base name for custom resource of kind "
+        + resource.getKind());
+  }
+
+  /**
+   * The patroni base name used to construct the read-write endpoints name and other endpoints names
+   *  is the SGCluster name unless patroni scope is provided.
+   * When patroni scope is provided the patroni base name is the scope unless the patroni citus
+   *  group is provided.
+   * When the patroni scope and the patroni citus group are provided the patroni base name is the
+   *  scope concatenated with a dash (`-`) and the group.
+   */
+  private static String baseName(StackGresCluster cluster) {
+    return Optional.of(cluster)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getConfiguration)
+        .map(StackGresClusterConfiguration::getPatroni)
+        .map(StackGresClusterPatroni::getInitialConfig)
+        .map(StackGresClusterPatroniInitialConfig::getScope)
+        .map(scope -> Optional.of(cluster)
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getConfiguration)
+            .map(StackGresClusterConfiguration::getPatroni)
+            .map(StackGresClusterPatroni::getInitialConfig)
+            .flatMap(StackGresClusterPatroniInitialConfig::getCitusGroup)
+            .map(group -> scope + "-" + group)
+            .orElse(scope))
+        .orElse(cluster.getMetadata().getName());
+  }
+
+  private static String baseName(StackGresDistributedLogs cluster) {
+    return cluster.getMetadata().getName();
   }
 
   /**
