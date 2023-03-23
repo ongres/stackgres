@@ -977,6 +977,10 @@ load_image_from() {
 }
 
 get_component_images() {
+  notrace_function traceable_get_component_images "$1"
+}
+
+traceable_get_component_images() {
   [ -n "$1" ]
   local VERSION="$1"
   local VERSION_AS_NUMBER VERSION_1_0_0_ALPHA1
@@ -1061,6 +1065,10 @@ get_pom_url() {
 }
 
 get_component_versions() {
+  notrace_function traceable_get_component_versions "$1" "$2"
+}
+
+traceable_get_component_versions() {
   [ -n "$1" ] && [ -n "$2" ]
   local VERSION="$1"
   local COMPONENT="$2"

@@ -28,11 +28,11 @@ import io.sundr.builder.annotations.Buildable;
 public class StackGresDbOpsMajorVersionUpgrade {
 
   @JsonProperty("postgresVersion")
-  @NotEmpty(message = "spec.majorVersionUpgrade.postgresVersion must not be empty")
+  @NotEmpty(message = "postgresVersion must not be empty")
   private String postgresVersion;
 
   @JsonProperty("sgPostgresConfig")
-  @NotEmpty(message = "spec.majorVersionUpgrade.sgPostgresConfig must not be empty")
+  @NotEmpty(message = "sgPostgresConfig must not be empty")
   private String sgPostgresConfig;
 
   @JsonProperty("backupPath")
@@ -47,11 +47,21 @@ public class StackGresDbOpsMajorVersionUpgrade {
   @JsonProperty("check")
   private Boolean check;
 
+  @ReferencedField("backupPath")
+  interface BackupPath extends FieldReference { }
+
   @ReferencedField("link")
   interface Link extends FieldReference { }
 
   @ReferencedField("clone")
   interface Clone extends FieldReference { }
+
+  @JsonIgnore
+  @AssertTrue(message = "backupPath must not be blank",
+      payload = { BackupPath.class })
+  public boolean isBackupPathNotBlank() {
+    return backupPath == null || !backupPath.isBlank();
+  }
 
   @JsonIgnore
   @AssertTrue(message = "link and clone are mutually exclusive",
