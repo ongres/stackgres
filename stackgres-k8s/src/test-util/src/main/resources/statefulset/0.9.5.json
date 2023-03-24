@@ -288,7 +288,7 @@
                 }
               }
             ],
-            "image": "docker.io/ongres/patroni:v1.6.5-pg12.6-build-5.1",
+            "image": "quay.io/ongres/patroni:v1.6.5-pg12.6-build-5.1",
             "imagePullPolicy": "IfNotPresent",
             "livenessProbe": {
               "failureThreshold": 6,
@@ -424,7 +424,7 @@
             "command": [
               "/usr/local/bin/envoy"
             ],
-            "image": "docker.io/ongres/envoy:v1.17.1-build-6.0",
+            "image": "quay.io/ongres/envoy:v1.17.1-build-6.0",
             "imagePullPolicy": "IfNotPresent",
             "name": "envoy",
             "ports": [
@@ -473,7 +473,7 @@
             ]
           },
           {
-            "image": "docker.io/ongres/pgbouncer:v1.13.0-build-6.0",
+            "image": "quay.io/ongres/pgbouncer:v1.13.0-build-6.0",
             "imagePullPolicy": "IfNotPresent",
             "name": "pgbouncer",
             "resources": {},
@@ -541,7 +541,7 @@
                 "value": "cluster_name=operator-upgrade-1, namespace=operator-upgrade-608adf10"
               }
             ],
-            "image": "docker.io/ongres/prometheus-postgres-exporter:v0.8.0-build-6.0",
+            "image": "quay.io/ongres/prometheus-postgres-exporter:v0.8.0-build-6.0",
             "imagePullPolicy": "IfNotPresent",
             "name": "prometheus-postgres-exporter",
             "ports": [
@@ -598,7 +598,7 @@
             "command": [
               "/bin/sh"
             ],
-            "image": "docker.io/ongres/postgres-util:v12.6-build-6.0",
+            "image": "quay.io/ongres/postgres-util:v12.6-build-6.0",
             "imagePullPolicy": "IfNotPresent",
             "name": "postgres-util",
             "resources": {},

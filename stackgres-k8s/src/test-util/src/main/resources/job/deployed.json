@@ -223,7 +223,7 @@
             "name" : "JOBS",
             "value" : "1"
           } ],
-          "image" : "docker.io/ongres/postgres-util:v12.3-build-5.1",
+          "image" : "quay.io/ongres/postgres-util:v12.3-build-5.1",
           "imagePullPolicy" : "IfNotPresent",
           "name" : "run-dbops",
           "resources" : { },

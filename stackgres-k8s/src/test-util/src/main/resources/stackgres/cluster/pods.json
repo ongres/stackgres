@@ -204,7 +204,7 @@
                 }
               }
             ],
-            "image": "docker.io/ongres/patroni:v1.6.4-pg12.2-build-3-dev",
+            "image": "quay.io/ongres/patroni:v1.6.4-pg12.2-build-3-dev",
             "imagePullPolicy": "Always",
             "livenessProbe": {
               "failureThreshold": 6,
@@ -303,7 +303,7 @@
             "command": [
               "/usr/local/bin/envoy"
             ],
-            "image": "docker.io/envoyproxy/envoy:v1.13.1",
+            "image": "quay.io/envoyproxy/envoy:v1.13.1",
             "imagePullPolicy": "Always",
             "name": "envoy",
             "ports": [
@@ -352,7 +352,7 @@
                 }
               }
             ],
-            "image": "docker.io/ongres/prometheus-postgres-exporter:v0.8.0-build-3-dev",
+            "image": "quay.io/ongres/prometheus-postgres-exporter:v0.8.0-build-3-dev",
             "imagePullPolicy": "Always",
             "name": "prometheus-postgres-exporter",
             "ports": [
@@ -384,7 +384,7 @@
             "command": [
               "/bin/sh"
             ],
-            "image": "docker.io/ongres/postgres-util:v12.2-build-3-dev",
+            "image": "quay.io/ongres/postgres-util:v12.2-build-3-dev",
             "imagePullPolicy": "Always",
             "name": "postgres-util",
             "resources": {},
@@ -630,8 +630,8 @@
         "containerStatuses": [
           {
             "containerID": "containerd://7a5bb329e35203be0a7fded656dcc065fa2838133cb485fce37cc4700a2acacd",
-            "image": "docker.io/envoyproxy/envoy:v1.13.1",
-            "imageID": "docker.io/envoyproxy/envoy@sha256:11022c45843f3649a8f4ec6a7b5da32c3699a3522b724c42af671229d5bdfacc",
+            "image": "quay.io/envoyproxy/envoy:v1.13.1",
+            "imageID": "quay.io/envoyproxy/envoy@sha256:11022c45843f3649a8f4ec6a7b5da32c3699a3522b724c42af671229d5bdfacc",
             "lastState": {},
             "name": "envoy",
             "ready": true,
@@ -645,8 +645,8 @@
           },
           {
             "containerID": "containerd://29942f6ba61d4b9b2cfc768d4756de32a07767885763dc7d894a4ce21bd93025",
-            "image": "docker.io/ongres/patroni:v1.6.4-pg12.2-build-3-dev",
-            "imageID": "docker.io/ongres/patroni@sha256:f6102f36894b2c7cc9637a6de49779f2fd1480d11a3706465333fc7dc0bc4f20",
+            "image": "quay.io/ongres/patroni:v1.6.4-pg12.2-build-3-dev",
+            "imageID": "quay.io/ongres/patroni@sha256:f6102f36894b2c7cc9637a6de49779f2fd1480d11a3706465333fc7dc0bc4f20",
             "lastState": {},
             "name": "patroni",
             "ready": true,
@@ -660,8 +660,8 @@
           },
           {
             "containerID": "containerd://6fe8203bfbdea71ced677ed37e53de393a6e3ef4f8cdf478e9b4726b7ff3ca82",
-            "image": "docker.io/ongres/postgres-util:v12.2-build-3-dev",
-            "imageID": "docker.io/ongres/postgres-util@sha256:0f460d70cb122903f748ec5836e96e264c8a1617a1a34ee367e27b6b8e43b327",
+            "image": "quay.io/ongres/postgres-util:v12.2-build-3-dev",
+            "imageID": "quay.io/ongres/postgres-util@sha256:0f460d70cb122903f748ec5836e96e264c8a1617a1a34ee367e27b6b8e43b327",
             "lastState": {},
             "name": "postgres-util",
             "ready": true,
@@ -675,8 +675,8 @@
           },
           {
             "containerID": "containerd://482411c405386aada0fb36fde1c913cbfe0380895de5495c50a2a1170c1fa64f",
-            "image": "docker.io/ongres/prometheus-postgres-exporter:v0.8.0-build-3-dev",
-            "imageID": "docker.io/ongres/prometheus-postgres-exporter@sha256:fbef618f0419560e537856aea0de0bc867377f84a995c716c74a73445511aeba",
+            "image": "quay.io/ongres/prometheus-postgres-exporter:v0.8.0-build-3-dev",
+            "imageID": "quay.io/ongres/prometheus-postgres-exporter@sha256:fbef618f0419560e537856aea0de0bc867377f84a995c716c74a73445511aeba",
             "lastState": {},
             "name": "prometheus-postgres-exporter",
             "ready": true,
@@ -693,8 +693,8 @@
         "initContainerStatuses": [
           {
             "containerID": "containerd://bbad1de92e9d4ca192e33a370377e5fab0f18295be3ce4378f838f590dc222b3",
-            "image": "docker.io/library/busybox:lastackgres",
-            "imageID": "docker.io/library/busybox@sha256:b26cd013274a657b86e706210ddd5cc1f82f50155791199d29b9e86e935ce135",
+            "image": "quay.io/library/busybox:lastackgres",
+            "imageID": "quay.io/library/busybox@sha256:b26cd013274a657b86e706210ddd5cc1f82f50155791199d29b9e86e935ce135",
             "lastState": {},
             "name": "set-data-permissions",
             "ready": true,
@@ -711,8 +711,8 @@
           },
           {
             "containerID": "containerd://959c6f86a347210416869b59412b4db9821d2d6e5ea71953f9c87bb40a396cbe",
-            "image": "docker.io/library/busybox:lastackgres",
-            "imageID": "docker.io/library/busybox@sha256:b26cd013274a657b86e706210ddd5cc1f82f50155791199d29b9e86e935ce135",
+            "image": "quay.io/library/busybox:lastackgres",
+            "imageID": "quay.io/library/busybox@sha256:b26cd013274a657b86e706210ddd5cc1f82f50155791199d29b9e86e935ce135",
             "lastState": {},
             "name": "exec-with-env",
             "ready": true,
@@ -938,7 +938,7 @@
                 }
               }
             ],
-            "image": "docker.io/ongres/patroni:v1.6.4-pg12.2-build-3-dev",
+            "image": "quay.io/ongres/patroni:v1.6.4-pg12.2-build-3-dev",
             "imagePullPolicy": "Always",
             "livenessProbe": {
               "failureThreshold": 6,
@@ -1037,7 +1037,7 @@
             "command": [
               "/usr/local/bin/envoy"
             ],
-            "image": "docker.io/envoyproxy/envoy:v1.13.1",
+            "image": "quay.io/envoyproxy/envoy:v1.13.1",
             "imagePullPolicy": "Always",
             "name": "envoy",
             "ports": [
@@ -1086,7 +1086,7 @@
                 }
               }
             ],
-            "image": "docker.io/ongres/prometheus-postgres-exporter:v0.8.0-build-3-dev",
+            "image": "quay.io/ongres/prometheus-postgres-exporter:v0.8.0-build-3-dev",
             "imagePullPolicy": "Always",
             "name": "prometheus-postgres-exporter",
             "ports": [
@@ -1118,7 +1118,7 @@
             "command": [
               "/bin/sh"
             ],
-            "image": "docker.io/ongres/postgres-util:v12.2-build-3-dev",
+            "image": "quay.io/ongres/postgres-util:v12.2-build-3-dev",
             "imagePullPolicy": "Always",
             "name": "postgres-util",
             "resources": {},

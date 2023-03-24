@@ -1587,7 +1587,7 @@
           } ],
           "initContainers" : [ {
             "name" : "setup-arbitrary-user",
-            "image" : "docker.io/ongres/kubectl:v1.19.14-build-6.6",
+            "image" : "quay.io/ongres/kubectl:v1.19.14-build-6.6",
             "command" : [ "/bin/sh", "-ex", "/templates/setup-arbitrary-user.sh" ],
             "env" : [ {
               "name" : "TEMPLATES_PATH",
@@ -1613,7 +1613,7 @@
             "imagePullPolicy" : "IfNotPresent"
           }, {
             "name" : "relocate-binaries",
-            "image" : "docker.io/ongres/patroni:v2.1.0-pg12.2-build-6.5",
+            "image" : "quay.io/ongres/patroni:v2.1.0-pg12.2-build-6.5",
             "command" : [ "/bin/sh", "-ex", "/templates/relocate-binaries.sh" ],
             "env" : [ {
               "name" : "PG_BASE_PATH",
@@ -1725,7 +1725,7 @@
             "imagePullPolicy" : "IfNotPresent"
           }, {
             "name" : "setup-scripts",
-            "image" : "docker.io/ongres/kubectl:v1.19.14-build-6.6",
+            "image" : "quay.io/ongres/kubectl:v1.19.14-build-6.6",
             "command" : [ "/bin/sh", "-ex", "/templates/setup-scripts.sh" ],
             "env" : [ {
               "name" : "LOCAL_BIN_PATH",
@@ -1776,7 +1776,7 @@
             "imagePullPolicy" : "IfNotPresent"
           }, {
             "name" : "pgbouncer-auth-file",
-            "image" : "docker.io/ongres/kubectl:v1.19.14-build-6.6",
+            "image" : "quay.io/ongres/kubectl:v1.19.14-build-6.6",
             "command" : [ "/bin/sh", "-exc", "test -f \"/etc/pgbouncer/auth/pgbouncer-admin-password\"\ntest -f \"/etc/pgbouncer/auth/pgbouncer-stats-password\"\nPGBOUNCER_ADMIN_MD5=\"$({\n  cat \"/etc/pgbouncer/auth/pgbouncer-admin-password\"\n  printf 'pgbouncer_admin'\n  } | md5sum | cut -d ' ' -f 1)\"\nPGBOUNCER_STATS_MD5=\"$({\n  cat \"/etc/pgbouncer/auth/pgbouncer-stats-password\"\n  printf 'pgbouncer_stats'\n  } | md5sum | cut -d ' ' -f 1)\"\n(\necho \"\\\"pgbouncer_admin\\\" \\\"md5$PGBOUNCER_ADMIN_MD5\\\"\"\necho \"\\\"pgbouncer_stats\\\" \\\"md5$PGBOUNCER_STATS_MD5\\\"\"\n) > \"/etc/pgbouncer/auth/users.txt\"" ],
             "resources" : { },
             "volumeMounts" : [ {
@@ -1799,7 +1799,7 @@
             "imagePullPolicy" : "IfNotPresent"
           }, {
             "name" : "cluster-reconciliation-cycle",
-            "image" : "docker.io/stackgres/cluster-controller:main-jvm",
+            "image" : "quay.io/stackgres/cluster-controller:main-jvm",
             "env" : [ {
               "name" : "COMMAND",
               "value" : "run-reconciliation-cycle"
@@ -1848,7 +1848,7 @@
           } ],
           "containers" : [ {
             "name" : "patroni",
-            "image" : "docker.io/ongres/patroni:v2.1.0-pg12.2-build-6.5",
+            "image" : "quay.io/ongres/patroni:v2.1.0-pg12.2-build-6.5",
             "command" : [ "/bin/sh", "-ex", "/usr/local/bin/start-patroni.sh" ],
             "ports" : [ {
               "name" : "pgport",
@@ -2183,7 +2183,7 @@
             "imagePullPolicy" : "IfNotPresent"
           }, {
             "name" : "envoy",
-            "image" : "docker.io/ongres/envoy:v1.19.1-build-6.6",
+            "image" : "quay.io/ongres/envoy:v1.19.1-build-6.6",
             "command" : [ "/usr/local/bin/envoy" ],
             "args" : [ "-c", "/etc/envoy/envoy.json" ],
             "ports" : [ {
@@ -2224,7 +2224,7 @@
             "imagePullPolicy" : "IfNotPresent"
           }, {
             "name" : "prometheus-postgres-exporter",
-            "image" : "docker.io/ongres/prometheus-postgres-exporter:v0.10.0-build-6.6",
+            "image" : "quay.io/ongres/prometheus-postgres-exporter:v0.10.0-build-6.6",
             "command" : [ "/bin/sh", "-exc" ],
             "args" : [ "run_postgres_exporter() {\n  set -x\n  exec /usr/local/bin/postgres_exporter \\\n    --log.level=info\n}\n\nset +x\nwhile true\ndo\n  if ( [ -z \"$PID\" ] || [ ! -d \"/proc/$PID\" ] ) \\\n    && [ -S '/var/run/postgresql/.s.PGSQL.5432' ]\n  then\n    if [ -n \"$PID\" ]\n    then\n      kill \"$PID\"\n      wait \"$PID\" || true\n    fi\n    run_postgres_exporter &\n    PID=\"$!\"\n  fi\n  sleep 5\ndone\n" ],
             "ports" : [ {
@@ -2279,7 +2279,7 @@
             "imagePullPolicy" : "IfNotPresent"
           }, {
             "name" : "cluster-controller",
-            "image" : "docker.io/stackgres/cluster-controller:main-jvm",
+            "image" : "quay.io/stackgres/cluster-controller:main-jvm",
             "env" : [ {
               "name" : "CLUSTER_NAME",
               "value" : "test"
@@ -2350,7 +2350,7 @@
             "imagePullPolicy" : "IfNotPresent"
           }, {
             "name" : "pgbouncer",
-            "image" : "docker.io/ongres/pgbouncer:v1.15.0-build-6.6",
+            "image" : "quay.io/ongres/pgbouncer:v1.15.0-build-6.6",
             "resources" : { },
             "volumeMounts" : [ {
               "name" : "socket",
@@ -2391,7 +2391,7 @@
             "imagePullPolicy" : "IfNotPresent"
           }, {
             "name" : "postgres-util",
-            "image" : "docker.io/ongres/postgres-util:v12.2-build-6.5",
+            "image" : "quay.io/ongres/postgres-util:v12.2-build-6.5",
             "command" : [ "/bin/sh" ],
             "args" : [ "-c", "while true; do sleep 10; done" ],
             "resources" : { },

@@ -36,7 +36,7 @@ spec:
     resetCerts: false
     webCrt: null
     webKey: null
-  containerRegistry: docker.io
+  containerRegistry: quay.io
   deploy:
     operator: true
     restapi: true

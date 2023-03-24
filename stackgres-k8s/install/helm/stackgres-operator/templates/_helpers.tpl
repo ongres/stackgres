@@ -1,14 +1,30 @@
 {{- define "kubectl.image" }}
 {{- if semverCompare ">=1.24" .Capabilities.KubeVersion.Version -}}
-{{- printf "ongres/kubectl:v1.25.5-build-6.19" -}}
+{{- printf "%s/ongres/kubectl:v1.25.5-build-6.19" .Values.containerRegistry -}}
 {{- else if semverCompare ">=1.21" .Capabilities.KubeVersion.Version -}}
-{{- printf "ongres/kubectl:v1.22.17-build-6.19" -}}
+{{- printf "%s/ongres/kubectl:v1.22.17-build-6.19" .Values.containerRegistry -}}
 {{- else if semverCompare ">=1.18" .Capabilities.KubeVersion.Version -}}
-{{- printf "ongres/kubectl:v1.19.16-build-6.19" -}}
+{{- printf "%s/ongres/kubectl:v1.19.16-build-6.19" .Values.containerRegistry -}}
 {{- else -}}
-{{- printf "ongres/kubectl:v1.25.5-build-6.19" -}}
+{{- printf "%s/ongres/kubectl:v1.25.5-build-6.19" .Values.containerRegistry -}}
 {{- end -}}
 {{- end -}}
+
+{{- define "operator-image" }}
+{{- if not (regexMatch "^[^/]+\\.[^/]+/.*$" .Values.operator.image.name) }}{{ .Values.containerRegistry }}/{{ end }}{{ .Values.operator.image.name }}:{{ .Values.operator.image.tag }}
+{{- end }}
+
+{{- define "restapi-image" }}
+{{- if not (regexMatch "^[^/]+\\.[^/]+/.*$" .Values.restapi.image.name ) }}{{ .Values.containerRegistry }}/{{ end }}{{ .Values.restapi.image.name }}:{{ .Values.restapi.image.tag }}
+{{- end }}
+
+{{- define "adminui-image" }}
+{{- if not (regexMatch "^[^/]+\\.[^/]+/.*$" .Values.adminui.image.name ) }}{{ .Values.containerRegistry }}/{{ end }}{{ .Values.adminui.image.name }}:{{ .Values.adminui.image.tag }}
+{{- end }}
+
+{{- define "jobs-image" }}
+{{- if not (regexMatch "^[^/]+\\.[^/]+/.*$" .Values.jobs.image.name ) }}{{ .Values.containerRegistry }}/{{ end }}{{ .Values.jobs.image.name }}:{{ .Values.jobs.image.tag }}
+{{- end }}
 
 {{- define "cert-name" }}
 {{- .Values.cert.secretName | default (printf "%s-%s" .Release.Name "certs") }}

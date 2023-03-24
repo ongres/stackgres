@@ -197,7 +197,7 @@
                 }
               }
             ],
-            "image": "docker.io/ongres/patroni:v1.6.5-pg12.4-build-5.1",
+            "image": "quay.io/ongres/patroni:v1.6.5-pg12.4-build-5.1",
             "imagePullPolicy": "IfNotPresent",
             "livenessProbe": {
               "failureThreshold": 6,
@@ -314,7 +314,7 @@
               "/bin/sh",
               "-exc"
             ],
-            "image": "docker.io/ongres/fluentd:v1.9.3-build-5.1",
+            "image": "quay.io/ongres/fluentd:v1.9.3-build-5.1",
             "imagePullPolicy": "IfNotPresent",
             "livenessProbe": {
               "failureThreshold": 6,
@@ -395,7 +395,7 @@
                 }
               }
             ],
-            "image": "docker.io/stackgres/distributedlogs-controller:main",
+            "image": "quay.io/stackgres/distributedlogs-controller:main",
             "imagePullPolicy": "IfNotPresent",
             "livenessProbe": {
               "failureThreshold": 3,
