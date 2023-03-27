@@ -32,8 +32,7 @@ Options:
                            the folder stackgres-k8s/e2e/envs
   --reset-env             Specify that the k8s environment have to be
                            recreated if it already exists
-  --native-image-tag <tag> Specify the native image tag to use for the
-                           operator images
+  --native-image-tag      If set use the native image tag for the operator images
   --image-tag <tag>       Specify the JVM image tag to use for the operator
                            images
   --reuse-operator        Reuse an already installed operator
