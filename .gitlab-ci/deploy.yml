@@ -38,7 +38,7 @@
           docker tag registry.gitlab.com/ongresinc/stackgres/placeholder "$IMAGE_PUSH_NAME"
         fi
         mv ~/.docker/config.json ~/.docker/gitlab.json
-        mv "$REGISTRY_AUTH_FILE" ~/.docker/config.json
+        cp "$REGISTRY_AUTH_FILE" ~/.docker/config.json
         for ARCH in $ARCH_LIST
         do
           docker push "$IMAGE_PUSH_NAME-$ARCH"
@@ -54,6 +54,7 @@
             echo "$IMAGE_PUSH_NAME-$ARCH "
           done)
         docker manifest push "$IMAGE_PUSH_NAME"
+        mv ~/.docker/gitlab.json ~/.docker/config.json
       done
   retry: 2
   only:
