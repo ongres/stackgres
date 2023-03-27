@@ -20,11 +20,12 @@ public interface PostgresDefaultValues {
     PG_14_VALUES("/postgresql-default-values-pg14.properties"),
     PG_13_VALUES("/postgresql-default-values-pg13.properties"),
     PG_12_VALUES("/postgresql-default-values-pg12.properties"),
+    PG_14_VALUES_V_1_5("/v1.5/postgresql-default-values-pg14-v1.5.properties"),
+    PG_13_VALUES_V_1_5("/v1.5/postgresql-default-values-pg13-v1.5.properties"),
+    PG_12_VALUES_V_1_5("/v1.5/postgresql-default-values-pg12-v1.5.properties"),
     PG_14_VALUES_V_1_4("/v1.4/postgresql-default-values-pg14-v1.4.properties"),
     PG_13_VALUES_V_1_4("/v1.4/postgresql-default-values-pg13-v1.4.properties"),
-    PG_12_VALUES_V_1_4("/v1.4/postgresql-default-values-pg12-v1.4.properties"),
-    PG_13_VALUES_V_1_3("/v1.3/postgresql-default-values-pg13-v1.3.properties"),
-    PG_12_VALUES_V_1_3("/v1.3/postgresql-default-values-pg12-v1.3.properties");
+    PG_12_VALUES_V_1_4("/v1.4/postgresql-default-values-pg12-v1.4.properties");
 
     private final @NotNull Properties properties;
 
@@ -45,13 +46,6 @@ public interface PostgresDefaultValues {
     Objects.requireNonNull(pgVersion, "pgVersion parameter is null");
     int majorVersion = Integer.parseInt(pgVersion.split("\\.")[0]);
 
-    if (version.getVersionAsNumber() <= StackGresVersion.V_1_3.getVersionAsNumber()) {
-      if (majorVersion <= 12) {
-        return PostgresDefaulValuesProperties.PG_12_VALUES_V_1_3.properties;
-      }
-      return PostgresDefaulValuesProperties.PG_13_VALUES_V_1_3.properties;
-    }
-
     if (version.getVersionAsNumber() <= StackGresVersion.V_1_4.getVersionAsNumber()) {
       if (majorVersion <= 12) {
         return PostgresDefaulValuesProperties.PG_12_VALUES_V_1_4.properties;
@@ -60,6 +54,16 @@ public interface PostgresDefaultValues {
         return PostgresDefaulValuesProperties.PG_13_VALUES_V_1_4.properties;
       }
       return PostgresDefaulValuesProperties.PG_14_VALUES_V_1_4.properties;
+    }
+
+    if (version.getVersionAsNumber() <= StackGresVersion.V_1_5.getVersionAsNumber()) {
+      if (majorVersion <= 12) {
+        return PostgresDefaulValuesProperties.PG_12_VALUES_V_1_5.properties;
+      }
+      if (majorVersion <= 13) {
+        return PostgresDefaulValuesProperties.PG_13_VALUES_V_1_5.properties;
+      }
+      return PostgresDefaulValuesProperties.PG_14_VALUES_V_1_5.properties;
     }
 
     if (majorVersion <= 12) {
