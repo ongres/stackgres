@@ -19,8 +19,8 @@ kubectl get sgdistributedlogs.stackgres.io -A --template '
 {{- end }}'
 ```
 
-**The upgrade procedure will generate a service disruption**. The service disruption will end when Patroni
- elect the new primary instance.
+**The upgrade procedure will generate a service disruption**.
+The service disruption will end when Patroni elects the new primary instance.
 
 The procedure includes some shell script snippet examples. In those snippet we assume the
  following environment variables are set with values of the StackGres cluster you want to restart:
@@ -47,8 +47,8 @@ kubectl annotate sgdistributedlogs.stackgres.io -n "$NAMESPACE" "$DISTRIBUTED_LO
 kubectl delete sts -n "$NAMESPACE" "$DISTRIBUTED_LOGS_NAME" --wait=true
 ```
 
-Wait until the new instance is created and operational, receiving traffic from the service. This new
- primary has already been initialized with the new components.
+Wait until the new instance is created and operational, receiving traffic from the service.
+This new primary has already been initialized with the new components.
 
 ```shell
 kubectl wait --for=condition=Ready -n "$NAMESPACE" "pod/$DISTRIBUTED_LOGS_NAME-0"

@@ -39,8 +39,8 @@ There are two restart strategy:
 
 > **NOTE**: If any of postgres's parameters `max_connections`, `max_prepared_transactions`, `max_wal_senders`,
 > `max_wal_senders` or `max_locks_per_transaction` are changed to a lower value than they were set
-> the primary have to be restarted before any replica can be restarted too, the service disruption
-> for read write connection will last longer in this case depending how long it take to the primary
+> the primary instance has to be restarted before any replica can be restarted too, the service disruption
+> for read write connection will last longer in this case depending how long it take the primary instance
 > to restart.
 
 Those procedures includes some shell script snippet examples. In those snippet we assume the
@@ -89,10 +89,10 @@ PRIMARY_POD="$(kubectl get pod -n "$NAMESPACE" \
     -l "app=StackGresCluster,cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=master" -o name | head -n 1)"
 PRIMARY_POD="${PRIMARY_POD#pod/}"
 
-echo "Restart primary instance $PRIMARY_POD"
+echo "Restart the primary instance $PRIMARY_POD"
 kubectl exec -t -n "$NAMESPACE" "$PRIMARY_POD" -- patronictl restart "$SGCLUSTER" "$PRIMARY_POD" --force
 
-echo "Waiting for primary pod $PRIMARY_POD"
+echo "Waiting for the primary pod $PRIMARY_POD"
 kubectl wait --for=condition=Ready -n "$NAMESPACE" "pod/$PRIMARY_POD"
 ```
 
@@ -157,7 +157,7 @@ else
 fi
 ```
 
-## 7. \[In-place Restart\] - Delete primary pod
+## 7. \[In-place Restart\] - Delete the primary pod
 
 Delete the primary pod.
 

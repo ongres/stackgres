@@ -102,7 +102,7 @@ Now connect to the replica and verify that it is in recovery (i.e. read-only mod
 $ kubectl exec -it simple-1 -n stackgres -c postgres-util -- psql
 ```
 
-(note, we're connecting to `simple-1`, the replica! If `simple-1` is not the replica (it may happen), see the next section below to consult with Patroni who is the replica).
+> Note that we're connecting to `simple-1`, the replica! If `simple-1` is not the replica which may happen, see the next section below to consult Patroni which instance is the replica.
 
 ```sql
 postgres=# select pg_is_in_recovery();
@@ -144,9 +144,15 @@ pod "simple-0" deleted
 
 When killed, two things will happen in parallel:
 * Kubernetes will create a new pod, which will take over `simple-0`. It will attach the previous disk to this node. This operation may be quite fast (a few seconds).
-* The replica (`simple-1`) may or may not fail to see the leader renewing its lock. This is due to the timeout that govern when a leader lock expires. If the pod creation operation takes less time than the lock to expire, the new pod will take over the lock quickly enough to "hold" it, and `simple-0` will remain the primary. For a few seconds, there was no primary. However, the new `simple-0` node will be promoted to a new timeline (2), which will be shown in the Patroni state. If, however, the lock expired before `simple-0` was re-created, `simple-1` will be elected as the new leader.
+* The replica (`simple-1`) may or may not fail to see the leader renewing its lock.
+This is due to the timeout that govern when a leader lock expires.
+If the pod creation operation takes less time than the lock expiration, the new pod will take over the lock quickly enough to "hold" it, and `simple-0` will remain the primary pod.
+For a few seconds, there was no primary instance.
+The new `simple-0` node will be promoted to a new timeline (2), which will be shown in the Patroni state.
+If, however, the lock expired before `simple-0` was re-created, `simple-1` will be elected as the new leader.
 
-In any case, the situation should restore back to normal, just with a timeline increased and a potential inversion of the Leader. You may repeat this process as you wish, killing either a primary or replica pod.
+In any case, the situation should restore back to normal, just with a timeline increased and a potential inversion of the Leader.
+You may repeat this process as you wish, killing either a primary or replica pod.
 
 ```bash
 $ kubectl exec -it simple-1 -n stackgres -c patroni -- patronictl list 

@@ -110,7 +110,7 @@ The next tables contains details about the metrics collected by the postgres_exp
 |   |              | datname | LABEL | Database name |
 |   |              | age | GAUGE | Age of the oldest transaction that has not been frozen |
 | 19| pg_wal_position             |  | | |
-|   |              | bytes | COUNTER | Postgres LSN (log sequence number) being generated on primary or replayed on replica (truncated to low 52 bits) |
+|   |              | bytes | COUNTER | Postgres LSN (log sequence number) being generated on the primary instance or replayed on a replica (truncated to low 52 bits) |
 | 20| pg_replication_slots             |  | | |
 |   |              | slot_name | LABEL | Slot Name |
 |   |              | slot_type | LABEL | Slot Type |
