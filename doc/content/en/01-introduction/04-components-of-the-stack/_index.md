@@ -30,9 +30,9 @@ sidecar util container to allow access for a system/database administrator.
 
 ## Configuration
 
-Run PostgreSQL using default configuration is a really bad idea in a production environment. PostgreSQL uses very
-conservative defaults so it must be tuned in order to achieve good performance of the database. Exists some places
-where you can find information about Postgres configuration parameters and best practices:
+Running PostgreSQL using the default configuration is usually not a good idea in a production environment. PostgreSQL uses very
+conservative defaults, and it must be tuned in order to achieve good performance. There are some places
+where you can find more information about Postgres configuration parameters and best practices:
 
 * [Postgres Official Documentation](https://www.postgresql.org/docs/)
 * [https://postgresqlco.nf](https://postgresqlco.nf) (see [PostgreSQL Configuration for Humans](https://speakerdeck.com/ongres/postgresql-configuration-for-humans))

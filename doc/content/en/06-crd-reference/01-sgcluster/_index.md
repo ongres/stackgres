@@ -509,7 +509,7 @@ spec:
     sgDistributedLogs: distributedlogs
 ```
 
-## Non Production options
+## Non-Production Options
 
 The following options should NOT be enabled in a production environment.
 

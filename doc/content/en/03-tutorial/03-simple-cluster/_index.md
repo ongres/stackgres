@@ -31,14 +31,17 @@ spec:
       size: '5Gi'
 ```
 
-The contents of the file should be easily understandable. A StackGres cluster with name `simple` will be created in the `default` namespace (none specified), with one StackGres instance (which will lead to one Pod), using the `latest` Postgres version --this is a handy shortcut you may use. StackGres will internally resolve this to the latest version available, and modify your CR to note the specific version used. For each Pod, a 5Gi _PersistentVolume_ will be created and attached to it.
+The contents of the file should be easily understandable.
+A StackGres cluster with name `simple` will be created in the `default` namespace, or any other namespace specified in the commands (like the example below), with one StackGres instances (which will lead to one pod), using the `latest` Postgres version.
+StackGres will internally resolve `latest` to the latest Postgres version available, and modify your CR to note the specific version used.
+For the pod, a 5Gi _PersistentVolume_ will be created and attached to it.
 
 ```bash
 kubectl apply -f simple.yaml -n stackgres
 sgcluster.stackgres.io/simple created
 ```
 
-This operation will take some around a minute. At the end, you will be able to see one instance (Pod) created on the default namespace. You can track the progress with:
+This operation will take some around a minute. At the end, you will be able to see one instances (pod) created in the `stackgres` namespace. You can track the progress with:
 
 ```bash
 $ kubectl get pods -n stackgres --watch
@@ -87,9 +90,9 @@ Here you have your Postgres database! Feel free to play around with it. You can 
 We can actually create a database and some data. Within the previous Postgres console you can run the following commands
 
 ```sql
-create database hol;
-\c hol
-create table hol1 as select * from generate_series(1,1000*1000);
+create database stackgres;
+\c stackgres
+create table stackgres1 as select * from generate_series(1,1000*1000);
 \dt+
 ```
 
@@ -108,19 +111,19 @@ postgres=# select pg_is_in_recovery();
  t
 (1 row)
 
-postgres=# \c hol
-You are now connected to database "hol" as user "postgres".
-hol=# \dt+
+postgres=# \c stackgres
+You are now connected to database "stackgres" as user "postgres".
+stackgres=# \dt+
                    List of relations
- Schema | Name | Type  |  Owner   | Size  | Description 
---------+------+-------+----------+-------+-------------
- public | hol1 | table | postgres | 35 MB | 
+ Schema |   Name     | Type  |  Owner   | Size  | Description 
+--------+------------+-------+----------+-------+-------------
+ public | stackgres1 | table | postgres | 35 MB | 
 (1 row)
 ```
 
 ## Patroni and automated failover
 
-StackGres uses internall a software called [Patroni](https://github.com/zalando/patroni) to handle high availability and automated failover. It's handled for you, you shouldn't even care about it. Feel free to skip this section if you don't want to know about Patorni. But if you do, you can query Patroni status easily by running `patronictl` on `patroni`'s container:
+StackGres internally uses a software called [Patroni](https://github.com/zalando/patroni) to handle high availability and automated failover. It's handled for you, you shouldn't even care about it. Feel free to skip this section if you don't want to know about Patroni. But if you do, you can query Patroni status easily by running `patronictl` on `patroni`'s container:
 
 ```
 $ kubectl exec -it simple-0 -n stackgres -c patroni -- patronictl list 
