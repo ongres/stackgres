@@ -6,12 +6,11 @@ description: Details about the components of the "stack".
 showToc: true
 ---
 
-Running Postgres in production requires "a RedHat" of PostgreSQL. A curated set of open source components built,
-verified, and packaged together. In this sense, Postgres is like the Linux kernel, it needs many components around
-it to provide what a Linux distribution provides.
+Running Postgres successfully in production requires a whole stack of components related to PostgreSQL -- a curated set of open source components built, verified, and packaged together.
+There is an ecosystem of tools built around Postgres that can be used to create a Postgres distribution.
+This is what we call the stack of components.
 
-There is an ecosystem of tools built around Postgres that can be used to create a Postgres distribution. This is what
-we call the stack of components.
+To give a comparison, Postgres is like the Linux kernel of a Linux distribution -- while it sits at the core, it still needs many components around it to provide what a Linux distribution provides.
 
 Choosing the right component of this stack is a challenging task. There are many components and multiple software distributions
 that overlap in their functionalities or have pros and cons to take into account before we can choose one over another.
@@ -82,9 +81,9 @@ one among them:
 * [PAF](https://dalibo.github.io/PAF/)
 * [Stolon](https://github.com/sorintlab/stolon)
 
-StackGres chooses Patroni as the HA solution. It is a well-proved solution that relies on distributed consensus
-algorithms in order to provide a consistent mechanism for primary election. In particular, Patroni is able to use the same
-distributed consensus algorithm used by Kubernetes so that it does not require installation of other services.
+StackGres chooses Patroni as the HA solution.
+It is a well-proved solution that relies on distributed consensus algorithms in order to provide a consistent mechanism for primary instance election.
+In particular, Patroni is able to use the same distributed consensus algorithm used by Kubernetes so that it does not require installation of other services.
 
 ## Backup and Disaster Recovery
 
@@ -117,7 +116,7 @@ all the logs in Postgres using [Timescale](https://github.com/timescale/timescal
 
 ## Proxy
 
-How do I locate the primary, and what if it changes? How do I obtain traffic [metrics]({{% relref "05-administration-guide/18-monitoring-metrics" %}})?
+How do I locate the primary instance, and what if it changes? How do I obtain traffic [metrics]({{% relref "05-administration-guide/18-monitoring-metrics" %}})?
 It is possible to manage the traffic: duplicate, A/B to test cluster, or event inspect it?
 
 [Envoy](https://www.envoyproxy.io/) is an open source edge and service proxy, designed for cloud-native applications. It is

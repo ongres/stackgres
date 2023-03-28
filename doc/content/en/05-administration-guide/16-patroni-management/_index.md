@@ -96,7 +96,9 @@ As you can see we get the cluster status from patroni node. We can appreciate so
 
 ## How to perform a Switchover to a replica
 
-A switchover (or graceful switchover) is a planned role reversal between the primary and the one of the standby databases. This is used when there is a planned outage on the primary database or primary server and you do not want to have extended downtime on the primary database. The switchover allows you to switch the roles of the databases so that the standby databases now becomes a primary databases and all your users and applications can continue operations on the "new" primary node.
+A switchover (or graceful switchover) is a planned role reversal between the primary and the one of the standby databases.
+This is used when there is a planned outage on the primary database or primary server and you do not want to have extended downtime on the primary database.
+The switchover allows you to switch the roles of the databases so that the standby databases now becomes a primary databases and all your users and applications can continue operations on the "new" primary node.
 
 
 To perform this we will use the `patronictl switchover` command:

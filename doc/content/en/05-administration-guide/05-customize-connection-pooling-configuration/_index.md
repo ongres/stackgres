@@ -18,9 +18,8 @@ Some applications, do not handle connection closing properly, which may require 
 In the [Customizing Pooling configuration section]({{% relref "06-crd-reference/04-sgpoolingconfig/#pgbouncer" %}}),
  it is explained the different sauces for scaling connections properly.
 
-Each configuration, once applied, need to be _reloaded_. This can be done by getting the
- corresponding primary node pod name and issue the same signal it is done on most of the
- environments:
+Each configuration, once applied, need to be _reloaded_.
+This can be done by getting the corresponding primary node pod name and issue the same signal it is done on most of the environments:
 
 ```
 PRIMARY=$(kubectl get pod -l role=master -n my-cluster -o name)
