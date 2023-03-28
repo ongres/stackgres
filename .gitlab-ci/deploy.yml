@@ -7,6 +7,7 @@
   variables:
     IMAGE_TAG_SUFFIX: "-release"
     IMAGE_PUSH_TAG_SUFFIX: ""
+    TARGET_REGISTRIES: "docker.io quay.io"
   script:
     - |
       set -e
@@ -16,7 +17,7 @@
       export IMAGE_PUSH_TAG="${CI_COMMIT_TAG:-"$CI_COMMIT_REF_NAME"}$IMAGE_PUSH_TAG_SUFFIX"
       [ -n "$IMAGE_NAME" ]
       export IMAGE_PULL_NAME="$CI_REGISTRY/$CI_PROJECT_PATH/$IMAGE_NAME:$IMAGE_TAG"
-      for IMAGE_PUSH_REGISTRY in docker.io quay.io
+      for IMAGE_PUSH_REGISTRY in $TARGET_REGISTRIES
       do
         export IMAGE_PUSH_NAME="$IMAGE_PUSH_REGISTRY/$IMAGE_NAME:$IMAGE_PUSH_TAG"
         ARCH_LIST="amd64 $(
@@ -37,7 +38,7 @@
           docker tag registry.gitlab.com/ongresinc/stackgres/placeholder "$IMAGE_PUSH_NAME"
         fi
         mv ~/.docker/config.json ~/.docker/gitlab.json
-        mv "$REGISTRY_AUTH_FILE" ~/.docker/config.json
+        cp "$REGISTRY_AUTH_FILE" ~/.docker/config.json
         for ARCH in $ARCH_LIST
         do
           docker push "$IMAGE_PUSH_NAME-$ARCH"
@@ -53,6 +54,7 @@
             echo "$IMAGE_PUSH_NAME-$ARCH "
           done)
         docker manifest push "$IMAGE_PUSH_NAME"
+        mv ~/.docker/gitlab.json ~/.docker/config.json
       done
   retry: 2
   only:
@@ -131,28 +133,33 @@ deploy admin-ui image:
   extends: .deploy native image
   variables:
     IMAGE_NAME: "stackgres/admin-ui"
+    TARGET_REGISTRIES: "quay.io"
 
 deploy helm operator image:
   extends: .deploy image
   variables:
     IMAGE_NAME: "stackgres/helm-operator"
+    TARGET_REGISTRIES: "quay.io"
 
 deploy helm operator bundle image:
   extends: .deploy image
   variables:
     IMAGE_NAME: "stackgres/helm-operator-bundle"
+    TARGET_REGISTRIES: "quay.io"
 
 deploy helm operator openshift image:
   extends: .deploy image
   variables:
     IMAGE_NAME: "stackgres/helm-operator"
     IMAGE_PUSH_TAG_SUFFIX: "-openshift"
+    TARGET_REGISTRIES: "quay.io"
 
 deploy helm operator openshift bundle image:
   extends: .deploy image
   variables:
     IMAGE_NAME: "stackgres/helm-operator-bundle"
     IMAGE_PUSH_TAG_SUFFIX: "-openshift"
+    TARGET_REGISTRIES: "quay.io"
 
 deploy helm packages and templates:
   image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
