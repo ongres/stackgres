@@ -1,0 +1,74 @@
+#!/bin/sh
+
+. "$SPEC_PATH/abstract/backup"
+
+e2e_test_extra_hash() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/backup")"
+}
+
+e2e_test_install() {
+  install_minio
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2
+
+  deploy_curl_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 4
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  # Avoid backups before waiting for pods (since backup pods could biase the wait)
+  enable_cronSchedule
+}
+
+e2e_test() {
+  run_test "Backup Cron Job should have a security context" check_cron_job_security_context
+
+  run_test "Checking that backup is working" check_backup_is_working
+
+  run_test "Checking that backup retention is working" check_backup_retention_is_working
+
+  run_test "Checking that backup is working after killing storage provider service" check_backup_after_kill_storage_provider_service
+
+  run_test "Checking that backups aren't being deleted after the cluster is deleted" check_backup_not_deleted_after_cluster
+}
+
+check_cron_job_security_context() {
+  local RUN_AS_NON_ROOT
+  RUN_AS_NON_ROOT="$(kubectl get cronjobs.batch -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-backup -o jsonpath='{.spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot}')"
+  assert_string_equal "true" "$RUN_AS_NON_ROOT"
+}
+
+
+check_backup_is_working() {
+  kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true"
+
+  check_backup 0
+}
+
+check_backup_retention_is_working() {
+  check_backup_retention 0
+}
+
+check_backup_after_kill_storage_provider_service() {
+  kubectl get pod -n "$CLUSTER_NAMESPACE" -o name | grep "^pod/$CLUSTER_NAME-minio-" \
+    | xargs -r -I % kubectl delete -n "$CLUSTER_NAMESPACE" %
+
+  kubectl wait --timeout="$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" \
+    deployment/"$CLUSTER_NAME-minio" --for=condition=Available
+  
+  kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true"
+
+  check_backup 0
+}
+
+check_backup_not_deleted_after_cluster() {
+  kubectl delete sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
+
+  wait_pods_terminated "$CLUSTER_NAMESPACE" 2
+
+  BACKUPS_COUNT="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" -o json | jq '.items | length')"
+
+  assert_greater_than 0 "$BACKUPS_COUNT"
+}
+

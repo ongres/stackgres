@@ -22,13 +22,13 @@ public class ScriptAnnotationMutator
     implements ScriptMutator {
 
   // On version removed change this code to use the oldest one
-  private static final long VERSION_1_3 = StackGresVersion.V_1_3.getVersionAsNumber();
+  private static final long VERSION_1_4 = StackGresVersion.V_1_4.getVersionAsNumber();
 
   @Override
   public Optional<Map<String, String>> getAnnotationsToOverwrite(StackGresScript resource) {
     final long version = StackGresVersion.getStackGresVersionAsNumber(resource);
-    if (VERSION_1_3 > version) {
-      return Optional.of(Map.of(StackGresContext.VERSION_KEY, StackGresVersion.V_1_3.getVersion()));
+    if (VERSION_1_4 > version) {
+      return Optional.of(Map.of(StackGresContext.VERSION_KEY, StackGresVersion.V_1_4.getVersion()));
     }
     return Optional.empty();
   }

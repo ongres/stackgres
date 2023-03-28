@@ -1,3 +1,72 @@
+# :rocket: Release 1.5.0-beta1 (2022-03-27)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.5.0-beta1 open the door to horizontal scaling by leveraging [Citus support from Patroni](https://patroni.readthedocs.io/en/master/citus.html).
+
+A new CRD called SGShardedCluster will bring you the power of sharding by creating multiple SGCluster that will behave like a single one.
+ The feature is still in alpha so you might expect braking changes in the CRD.
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Patroni 3.0.1
+* Postgres 15.2, 14.7, 13.10 and 12.14
+* Added SGShardedCluster CRD
+* Support to specify Patroni initial config
+* Support to set labels for Services (and Endpoints)
+* Shift from docker.io to quay.io
+* Improved operator startup
+* Improved cluster startup
+* Enhanced cluster stats endpoint to fallback for cgroup v1 and v2
+* Make CronJob generator for v1 or v1beta1 api versions dependent on Kubernetes version
+
+## Web Console
+
+* Support user-supplied sidecars for SGCluster services
+* Add loadBalancerIP to SGCluster and SGDistributedLogs
+
+## :bug: FIXES
+
+* ClusterBootstrapCompleted sent every few seconds
+* Empty backupPath for majorVersionUpgrade SGDbOps make the operation fail
+* Enable SSL specs
+* Implemented cascading replication with WAL shipping
+* Implemented cascade replication from an external instance
+* Implemented cascade replication from a local sgcluster
+
+## Web Console
+
+* Edit SGPostgresConfig form should only list custom parameters
+* Remove Advanced switch from Azure section
+* Summaries should not open unless all required fields are filled in
+* Backup scheduling inserting trailing zero in cron job minutes config
+* Script source not cleared when deleting a script
+* notValid class not being removed on Babelfish Experimental Feature
+* Unify click behavious when clicked on a switch and on its label
+* Cluster name on SGDbOp details is not clickable
+* Sidebar items hidden behind dialog popups
+* PITR date and time picker not working
+* Continue on SGScripts Error should not be visible if there are no Scripts set
+* Fix Extensions table layout
+* View Script button text and icon on Cluster Configuration tab have different behaviours
+* Hide empty sections on summaries
+* Disable Connection Pooling not working properly on Cluster Form
+* Object Storage selector on Cluster form shows all Object Storages from all Namespaces
+* Make sure crontab is shown on preferred timezone
+
+## :construction: KNOWN ISSUES
+
+* Major version upgrade fails if some extensions version are not available for the target Postgres version ([#1368](https://gitlab.com/ongresinc/stackgres/-/issues/1368)) 
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+Alpha or beta version should not be used to upgrade. Please wait for a release candidate or general availability version.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.5.0-beta1)
+
 # :rocket: Release 1.4.3 (2022-02-20)
 
 ## :notepad_spiral: NOTES
