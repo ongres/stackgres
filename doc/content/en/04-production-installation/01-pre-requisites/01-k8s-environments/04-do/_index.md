@@ -17,7 +17,7 @@ export DIGITALOCEAN_PROJECT=stackgres-playground ## change me!
 export K8S_CLUSTER_NAME=stackgres ## change me!
 export K8S_CLUSTER_NODES=3
 export K8S_VERSION=1.19.6
-time doctl kubernetes cluster create ${K8S_CLUSTER_NAME} \
+doctl kubernetes cluster create ${K8S_CLUSTER_NAME} \
 	--region ${DO_REGION} \
 	--size ${DO_NODE_SIZE} \
 	--count ${K8S_CLUSTER_NODES} \
@@ -54,7 +54,7 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 
 To clean up the Kubernetes cluster you can run the following command:
 ```bash
-time doctl kubernetes cluster delete ${K8S_CLUSTER_NAME} \
+doctl kubernetes cluster delete ${K8S_CLUSTER_NAME} \
 	--region ${DO_REGION} \
 	--wait
 ```

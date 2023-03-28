@@ -74,11 +74,15 @@ select count(*) from log_postgres;
 select * from log_postgres where error_severity = 'ERROR';
 ```
 
+> `\l+` Lists the databases (with additional details) \
+> `\c <db>` Connects to a database \
+> `\dt <table>` Lists all tables (if `<table>` isn't specified) or a specific table
+
 
 ## Adding Postgres Extensions
 
 Let's add some extensions.
-Postgres extensions are awesome and possibly one of the most appreciated Postgres features.
+Postgres extensions are awesome and possibly one of the most recognized Postgres features.
 
 Let's first connect to the `cluster` cluster, and run a command to list the extensions available:
 

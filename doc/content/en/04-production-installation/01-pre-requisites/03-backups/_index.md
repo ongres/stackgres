@@ -71,7 +71,7 @@ spec:
 
 Backups are materialized using [SGBackup]({{% relref "06-crd-reference/06-sgbackup" %}}).
 An SGBackup can be created automatically by the scheduled backup process, manually, or by copying an existing SGBackup in order to make it accessible in another namespace.
-Removing an SGBackup also triggers the removal of the actual backup associated with it (if it is accessible by the backup configuration used by the SGCluster).
+Removing an SGBackup also triggers the removal of the actual backup associated with it, that is the files on the object storage that represent the backup (if they are accessible by the backup configuration used by the SGCluster).
 
 ### Creating a Manual Backup
 

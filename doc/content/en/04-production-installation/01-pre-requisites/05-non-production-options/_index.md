@@ -1,16 +1,15 @@
 ---
-title: Non production options
+title: Non-Production Options
 weight: 5
 url: install/prerequisites/nonproduction
-description: Important notes for Non production options in the production environment.
+description: Important notes for non-production options in the production environment.
 ---
 
-We recommend to disable all non production options in a production environment. To do so create a
- YAML values file to include in the helm installation (`-f` or `--values` parameters) of the
- StackGres operator similar to the following:
-
-<!--more-->
+There are certain [non-production options]({{% relref "06-crd-reference/01-sgcluster" %}}#non-production-options) supported in StackGres, that we recommend to disable in a production environment.
+To disable all of these options, create a YAML values file to include in the helm installation (`-f` or `--values` parameters) of the StackGres operator similar to the following:
 
 ```yaml
 nonProductionOptions: {}
 ```
+
+For reference, you can see a list of all of these [non-production options]({{% relref "06-crd-reference/01-sgcluster" %}}#non-production-options).

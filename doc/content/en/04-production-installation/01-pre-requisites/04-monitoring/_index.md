@@ -41,7 +41,7 @@ helm install --create-namespace --namespace monitoring \
 
 > StackGres provides advanced options for monitoring installation, see [Operator installation with Helm]({{% relref "04-production-installation/02-installation-via-helm/#stackgres-operator-installation" %}}) in the [Production installation section]({{% relref "04-production-installation/#monitoring" %}}).
 
-Once the operator is installed, you can retrieve the generated secrets. By default, they are `user=admin` and `password=prom-operator`.
+Once the operator is installed, you can retrieve the generated credentials. By default, they are user `admin` and password `prom-operator`.
 
 ```bash
 kubectl get secret prometheus-grafana \
@@ -102,8 +102,9 @@ Inside the cluster, the Prometheus alert manager can be accessed via `prometheus
 If you already have a Grafana installation in your system, you can embed it automatically in the StackGres UI by setting the property `grafana.autoEmbed=true`:
 
 ```bash
-helm install --namespace stackgres stackgres-operator {{< download-url >}}/helm/stackgres-operator.tgz \
- --set grafana.autoEmbed=true
+helm install --create-namespace --namespace stackgres stackgres-operator \
+   --set grafana.autoEmbed=true \
+   https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm/stackgres-operator.tgz
 ```
 
 This method requires the installation process to authenticate using Grafana's username and password (see [installation via helm]({{% relref "/04-production-installation/02-installation-via-helm" %}}) for more options related to automatic embedding of Grafana).

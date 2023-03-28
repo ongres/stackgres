@@ -7,7 +7,7 @@ description: Details about how to create custom backup configurations.
 
 # Backups
 
-StackGres supports automated backups, based on Postgres continuous archiving, that is base backups plus WAL archiving, as well as backup lifecycle management.
+StackGres supports automated backups, based on Postgres [continuous archiving](https://www.postgresql.org/docs/current/continuous-archiving.html), that is base backups plus WAL (write ahead log) archiving, as well as backup lifecycle management.
 To achieve maximum durability, backups are stored on cloud/object storage.
 S3, GCP, Azure Blob, and S3-compatible object storages are supported.
 
@@ -59,7 +59,7 @@ The following command will create and output the credentials, which we save in a
 aws --output json iam create-access-key --region $AWS_REGION --user-name $S3_BACKUP_BUCKET_USER > credentials.json
 ```
 
-Finally, create the bucket:
+Finally, create the bucket (`mb` stands for 'make bucket'):
 
 ```bash
 aws s3 mb s3://$S3_BACKUP_BUCKET --region $AWS_REGION
@@ -99,8 +99,12 @@ spec:
     bucket: 'YOUR_BUCKET_NAME'
     awsCredentials:
       secretKeySelectors:
-        accessKeyId: {name: 's3-backup-bucket-secret', key: 'accessKeyId'}
-        secretAccessKey: {name: 's3-backup-bucket-secret', key: 'secretAccessKey'}
+        accessKeyId:
+          name: 's3-backup-bucket-secret'
+          key: 'accessKeyId'
+        secretAccessKey:
+          name: 's3-backup-bucket-secret'
+          key: 'secretAccessKey'
 ```
 
 and deploy it to Kubernetes:
