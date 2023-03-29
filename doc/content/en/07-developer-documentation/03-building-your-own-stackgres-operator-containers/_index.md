@@ -8,20 +8,20 @@ showToc: true
 
 Build stackgres images are fairly simple. You can build in two forms:
 
- * build using zulu JVM as a base image (Default)
- * build using ubi8 as a base image
+ * JVM: Using OpenJDK JVM as the base image (default)
+ * Native: Using Ubi8 Minimal as the base image
 
-## Building stackgres zulu based image
+## Building the StackGres JVM Image
 
-Compiles fast but has a higher memory footprint. So it useful for local environment testing
+Using the JVM build compiles faster but leads to a higher memory footprint in the running instance. So, this is useful for development and testing in local environments.
 
-Go to the `stackgres/stackgres-k8s/src` folder and the execute:
+You can build the JVM versions using the script in the corresponding components (such as operator, REST API, etc.):
 
+```bash
+stackgres-k8s/src/operator/src/main/docker/build-image-jvm.sh
 ```
-./mvnw clean verify -P build-image-jvm
-```
 
-You can find the image in th stackgres/operator repository tagged as development-jvm
+You can find the image in the `stackgres/operator` repository, tagged as `main-jvm`.
 
 ## Building stackgres native image
 
@@ -31,6 +31,8 @@ The native image use GraalVM but at the expense of some limitations. So once you
 
 To generate a native image simpleme run:
 
+```bash
+stackgres-k8s/src/operator/src/main/docker/build-image-native.sh
 ```
-./mvnw clean verify -P native,build-image-native
-```
+
+The native images are tagged as `main`.
