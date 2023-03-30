@@ -2475,7 +2475,6 @@
                                                 vm.scriptSource[baseIndex].entries.push('secretKeyRef');
                                             } else if(script.scriptFrom.hasOwnProperty('configMapScript')) {
                                                 vm.scriptSource[baseIndex].entries.push('configMapKeyRef');
-                                                //script['script'] = script.scriptFrom.configMapScript;
                                             }
                                         })
                                     }
