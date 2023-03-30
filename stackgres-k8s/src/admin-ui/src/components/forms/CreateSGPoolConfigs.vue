@@ -30,6 +30,27 @@
                 </div>
             </div>
 
+            <template v-if="Object.keys(defaultParams).length">
+                <div class="paramDetails">
+                    <hr/>
+                    <h2>Default Parameters</h2><br/>
+                    <p>StackGres has set some default parameters to your configuration. If no value is specifically set for them, they will remain with the following default values:</p><br/><br/>
+                
+                    <table class="defaultParams">
+                        <tbody>
+                            <tr v-for="param in poolConfigParamsObj" v-if="(defaultParams.hasOwnProperty(param.parameter) && (defaultParams[param.parameter] == param.value) )">
+                                <td class="label">
+                                    {{ param.parameter }}
+                                </td>
+                                <td class="paramValue">
+                                    {{ param.value }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </template>
+
             <hr/>
 
             <template v-if="editMode">
@@ -80,7 +101,9 @@
                 poolConfigName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 poolConfigNamespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
                 poolConfigParams: '',
-                configClusters: []
+                configClusters: [],
+                poolConfigParamsObj: null,
+                defaultParams: {},
             }
 
         },
@@ -105,11 +128,13 @@
                 if( vm.editMode && !vm.editReady ) {
                     store.state.sgpoolconfigs.forEach(function( conf ){
                         if( (conf.data.metadata.name === vm.$route.params.name) && (conf.data.metadata.namespace === vm.$route.params.namespace) ) {
-                            vm.poolConfigParams = conf.data.spec.pgBouncer["pgbouncer.ini"].replace('[pgbouncer]\n','');
-                            vm.configClusters = [...conf.data.status.clusters]
+                            vm.poolConfigParams = vm.getParams(conf);
+                            vm.poolConfigParamsObj = conf.data.status.pgBouncer["pgbouncer.ini"];
+                            vm.defaultParams = conf.data.status.pgBouncer["defaultParameters"];
+                            vm.configClusters = [...conf.data.status.clusters];
                             config = conf;
 
-                            vm.editReady = true
+                            vm.editReady = true;
                             return false;
                         }
                     });    
@@ -154,7 +179,7 @@
                     "spec": {
                         ...(this.hasProp(previous, 'spec') && previous.spec),
                         "pgBouncer": {
-                            "pgbouncer.ini": this.poolConfigParams
+                            "pgbouncer.ini": this.editMode ? vc.unifyParams() : this.poolConfigParams
                         }
                     }
                 }
@@ -203,6 +228,69 @@
                         });
                     }
                 }
+            },
+
+            getParams(conf) {
+                const vc = this;
+                const customParams = [];
+
+                var configParams = conf.data.status.pgBouncer["pgbouncer.ini"];
+                var defaultParams = conf.data.status.pgBouncer["defaultParameters"];
+
+                configParams.forEach(function(item) {
+                    if(defaultParams.hasOwnProperty(item.parameter)) {
+                        if(item.value !== defaultParams[item.parameter]) {
+                            customParams.push(item.parameter + "=" + item.value)
+                        }
+                    } else {
+                        customParams.push(item.parameter + "=" + item.value)
+                    }
+                });
+
+                return customParams.join('\n')
+            }, 
+
+            unifyParams() {
+                const vc = this;
+                const inputParamsObj = {};
+                const initialParamsObj = {};
+                const finalParamsArr = [];
+                
+                var inputParams = vc.poolConfigParams.split('\n');
+                var initialParams = vc.poolConfigParamsObj;
+                var defaultParams = vc.defaultParams;
+
+                inputParams.forEach(function(item) {
+                    if(item.length && (item != " ")) {
+                        const indexOfEqual = item.indexOf('=');
+                        const key = item.substring(0, indexOfEqual);
+                        var value = (item.substring(indexOfEqual+1, item.length));
+                        
+                        if(value.startsWith("'")) {
+                            value = value.substring(1)
+                        }
+
+                        if(value.endsWith("'")) {
+                            value = value.substring(0, value.length-1)
+                        }
+
+                        inputParamsObj[key] = value
+                    }
+                });
+
+                initialParams.forEach(function(item) {
+                    if(!inputParamsObj.hasOwnProperty(item.parameter)) {
+                        if(defaultParams.hasOwnProperty(item.parameter)) {
+                            inputParamsObj[item.parameter] = defaultParams[item.parameter]
+                        }
+                    }
+                });
+
+                Object.keys(inputParamsObj).forEach( (key) => {
+                    finalParamsArr.push(key + "=" + inputParamsObj[key])
+                });
+
+                return finalParamsArr.join('\n')
             }
 
         }
