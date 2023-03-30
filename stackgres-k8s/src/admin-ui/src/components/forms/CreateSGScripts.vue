@@ -144,7 +144,7 @@
                                     <input :id="'scriptFile-'+ index" type="file" @change="uploadScript" class="hide">
                                     <textarea v-model="script.script" placeholder="Type a script..." :data-field="'spec.scripts[' + index + '].script'" required></textarea>
                                 </template>
-                                <template v-else-if="(!editMode && (scriptSource[index] != 'raw') )">
+                                <template v-else-if="(scriptSource[index] != 'raw')">
                                     <div class="header">
                                         <h3 :for="'spec.scripts.scriptFrom.properties' + scriptSource[index]" class="capitalize">
                                             {{ splitUppercase(scriptSource[index]) }}
@@ -154,23 +154,37 @@
                                         </h3>
                                     </div>
                                     
-                                    <label :for="'spec.scripts.scriptFrom.' + scriptSource[index] + '.properties.properties.name'">
-                                        Name
-                                        <span class="req">*</span>
-                                    </label>
-                                    <input v-model="script.scriptFrom[scriptSource[index]].name" placeholder="Type a name.." autocomplete="off" required>
-                                    
-                                    <span class="helpTooltip" :class="( (scriptSource[index] != 'configMapKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.configMapKeyRef.properties.name')"></span>
-                                    <span class="helpTooltip" :class="( (scriptSource[index] != 'secretKeyRef') && 'hidden' )"  :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.secretKeyRef.properties.name')"></span>
+                                    <div class="row-50">
+                                        <div class="col">
+                                            <label :for="'spec.scripts.scriptFrom.' + scriptSource[index] + '.properties.properties.name'">
+                                                Name
+                                                <span class="req">*</span>
+                                            </label>
+                                            <input v-model="script.scriptFrom[scriptSource[index]].name" placeholder="Type a name.." autocomplete="off" required>
+                                            
+                                            <span class="helpTooltip" :class="( (scriptSource[index] != 'configMapKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.configMapKeyRef.properties.name')"></span>
+                                            <span class="helpTooltip" :class="( (scriptSource[index] != 'secretKeyRef') && 'hidden' )"  :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.secretKeyRef.properties.name')"></span>
+                                        </div>
 
-                                    <label :for="'spec.scripts.scriptFrom.' + scriptSource[index] + '.properties.properties.key'">
-                                        Key
-                                        <span class="req">*</span>
-                                    </label>
-                                    <input v-model="script.scriptFrom[scriptSource[index]].key" placeholder="Type a key.." autocomplete="off" required>
-                                    
-                                    <span class="helpTooltip" :class="( (scriptSource[index] != 'configMapKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.configMapKeyRef.properties.key')"></span>
-                                    <span class="helpTooltip" :class="( (scriptSource[index] != 'secretKeyRef') && 'hidden' )"  :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.secretKeyRef.properties.key')"></span>
+                                        <div class="col">
+                                            <label :for="'spec.scripts.scriptFrom.' + scriptSource[index] + '.properties.properties.key'">
+                                                Key
+                                                <span class="req">*</span>
+                                            </label>
+                                            <input v-model="script.scriptFrom[scriptSource[index]].key" placeholder="Type a key.." autocomplete="off" required>
+                                            
+                                            <span class="helpTooltip" :class="( (scriptSource[index] != 'configMapKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.configMapKeyRef.properties.key')"></span>
+                                            <span class="helpTooltip" :class="( (scriptSource[index] != 'secretKeyRef') && 'hidden' )"  :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.secretKeyRef.properties.key')"></span>
+                                        </div>
+                                    </div>
+
+                                    <template v-if="editMode && (script.scriptFrom.hasOwnProperty('configMapScript'))">
+                                        <label :for="'spec.scripts.scriptFrom.' + scriptSource[index] + '.properties.properties.configMapScript'" class="script">
+                                            Script
+                                            <span class="req">*</span>
+                                        </label> 
+                                        <textarea v-model="script.scriptFrom.configMapScript" placeholder="Type a script..." :data-field="'spec.scripts[' + index + '].scriptFrom.configMapScript'" required></textarea>
+                                    </template>
                                 </template>
                             </div>
                         </div>
@@ -272,7 +286,6 @@
                                     vc.scriptSource.push('secretKeyRef');
                                 } else if(script.scriptFrom.hasOwnProperty('configMapScript')) {
                                     vc.scriptSource.push('configMapKeyRef');
-                                    script['script'] = script.scriptFrom.configMapScript;
                                 }
                             })
 
