@@ -51,7 +51,8 @@ public abstract class AbstractResourceHandler<T extends ResourceHandlerContext>
   public HasMetadata create(@NotNull KubernetesClient client, @NotNull HasMetadata resource) {
     return getResourceOperation(client, resource)
         .inNamespace(resource.getMetadata().getNamespace())
-        .create(resource);
+        .resource(resource)
+        .create();
   }
 
   @Override

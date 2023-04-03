@@ -15,6 +15,7 @@ public class ReconciliationResult<R> {
   private final R result;
   private final ImmutableList<Exception> exceptions;
 
+  @SuppressWarnings("null")
   public ReconciliationResult() {
     this((R) null);
   }

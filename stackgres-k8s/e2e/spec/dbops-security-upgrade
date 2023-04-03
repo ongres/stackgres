@@ -112,7 +112,7 @@ e2e_test_install() {
     "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
-    --set prometheusAutobind=true \
+    --set cluster.prometheusAutobind=true \
     --set configurations.objectstorage.create=false \
     --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
     --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \
@@ -128,7 +128,7 @@ e2e_test_install() {
       "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE" 2 \
       --set configurations.create=false --set instanceProfiles=false \
       --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
-      --set prometheusAutobind=true \
+      --set cluster.prometheusAutobind=true \
       --set configurations.objectstorage.create=false \
       --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
       --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \
@@ -142,7 +142,7 @@ e2e_test_install() {
       "$CLUSTER_3_NAME" "$CLUSTER_NAMESPACE" 3 \
       --set configurations.create=false --set instanceProfiles=false \
       --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
-      --set prometheusAutobind=true \
+      --set cluster.prometheusAutobind=true \
       --set configurations.objectstorage.create=false \
       --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
       --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \
@@ -181,7 +181,7 @@ EOF
     "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
-    --set prometheusAutobind=true \
+    --set cluster.prometheusAutobind=true \
     --set configurations.objectstorage.create=false \
     --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
     --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \

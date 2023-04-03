@@ -10,8 +10,6 @@
     IS_NATIVE: "false"
     IS_WEB: "false"
   timeout: 1 hour
-  dependencies:
-    - build
   script:
     - |
       [ "$DEBUG" != true ] || set -x
@@ -48,6 +46,8 @@
 
 .e2e tests jvm amd64:
   extends: .e2e tests
+  dependencies:
+    - build amd64
   tags:
     - stackgres-e2e-runner
     - linux-amd64
@@ -65,6 +65,8 @@
 
 .e2e tests native amd64:
   extends: .e2e tests
+  dependencies:
+    - build amd64
   tags:
     - stackgres-e2e-runner
     - linux-amd64
@@ -327,6 +329,8 @@ e2e ui tests native amd64:
 
 .e2e tests jvm arm64:
   extends: .e2e tests
+  dependencies:
+    - build arm64
   tags:
     - stackgres-e2e-runner
     - linux-arm64
@@ -345,6 +349,8 @@ e2e ui tests native amd64:
 
 .e2e tests native arm64:
   extends: .e2e tests
+  dependencies:
+    - build arm64
   tags:
     - stackgres-e2e-runner
     - linux-arm64

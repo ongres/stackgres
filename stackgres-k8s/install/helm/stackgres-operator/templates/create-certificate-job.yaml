@@ -14,7 +14,7 @@ metadata:
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
     "helm.sh/hook-weight": "10"
     {{- with .Values.jobs.annotations }}
-    {{ toYaml . | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
   template:
@@ -211,6 +211,7 @@ spec:
             kubectl apply -f /tmp/validating-webhook-configuration.yaml
             kubectl apply -f /tmp/mutating-webhook-configuration.yaml
             {{- end }}
+
             {{- if .Values.cert.createForWebApi }}
             {{- if or (not .Values.cert.webKey) (not .Values.cert.webCrt) }}
             cat << EOF > /tmp/csr-web.conf

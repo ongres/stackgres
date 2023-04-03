@@ -52,16 +52,7 @@ setup_images() {
       || ! is_operator_installed
     )
   then
-    build_components
-    (
-    echo build_operator_image
-    echo build_restapi_image
-    echo build_jobs_image
-    echo build_cluster_controller_image
-    echo build_distributedlogs_controller_image
-    echo build_adminui_image
-    echo build_helm_artifacts
-    ) | xargs_parallel_shell % "$E2E_PATH/e2e" %
+    build_all
   fi
 
   if [ "$E2E_PUSH_IMAGES" = true ] && [ -n "$E2E_OPERATOR_REGISTRY" ]
@@ -70,75 +61,30 @@ setup_images() {
   fi
 }
 
-build_components() {
-  echo "Building components..."
-  (
-  cd "$STACKGRES_PATH/src"
-  ./mvnw clean package -DskipTests > "$TARGET_PATH/build-components.log" 2>&1
-  shell api-web/src/main/swagger/build.sh
-  )
-}
-
-build_operator_image() {
-  echo "Building operator image..."
-  (
-  cd "$STACKGRES_PATH/src"
-  shell "operator/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
-  )
-}
-
-build_restapi_image() {
-  echo "Building restapi image..."
-  (
-  cd "$STACKGRES_PATH/src"
-  shell "api-web/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
-  )
-}
-
-build_jobs_image() {
-  echo "Building jobs image..."
-  (
-  cd "$STACKGRES_PATH/src"
-  shell "jobs/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
-  )
-}
-
-build_cluster_controller_image() {
-  echo "Building cluster-controller image..."
-  (
-  cd "$STACKGRES_PATH/src"
-  shell "cluster-controller/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
-  )
-}
-
-build_distributedlogs_controller_image() {
-  echo "Building distributedlogs-controller image..."
-  (
-  cd "$STACKGRES_PATH/src"
-  shell "distributedlogs-controller/src/main/$STACKGRES_IMAGE_BUILDER/build-image-jvm.sh"
-  )
-}
-
-build_adminui_image() {
-  echo "Building admin-ui image..."
-  (
-  cd "$STACKGRES_PATH/src"
-  shell admin-ui/npmw install
-  ! test -f admin-ui/node_modules/prettycron/node_modules/later/index.js \
-    || sed -i 's/later-cov/later/' admin-ui/node_modules/prettycron/node_modules/later/index.js
-  shell admin-ui/npmw run build
-  shell admin-ui/build.sh
-  shell "admin-ui/$STACKGRES_IMAGE_BUILDER/build.sh"
-  )
-}
-
-build_helm_artifacts() {
-  echo "Building helm artifacts..."
-  (
-  cd "$STACKGRES_PATH/install/helm"
-  shell build-helm-packages.sh
-  shell build-helm-templates.sh
-  )
+build_all() {
+  echo "Building all..."
+  sh stackgres-k8s/ci/build/build.sh parent-java operator-framework-java test-util-java common-java \
+    operator-java restapi-java jobs-java cluster-controller-java distributedlogs-controller-java admin-ui \
+    operator-jvm-image restapi-jvm-image jobs-jvm-image cluster-controller-jvm-image distributedlogs-controller-jvm-image \
+    admin-ui-image helm-packages helm-templates
+  docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)" >/dev/null 2>&1 \
+    || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)"
+  docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)" >/dev/null 2>&1 \
+    || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)"
+  docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name jobs-jvm-image)" >/dev/null 2>&1 \
+    || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name jobs-jvm-image)"
+  docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)" >/dev/null 2>&1 \
+    || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)"
+  docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name distributedlogs-controller-jvm-image)" >/dev/null 2>&1 \
+    || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name distributedlogs-controller-jvm-image)"
+  docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)" >/dev/null 2>&1 \
+    || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)"
+  docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)" "$OPERATOR_IMAGE_NAME"
+  docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)" "$RESTAPI_IMAGE_NAME"
+  docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name jobs-jvm-image)" "$JOBS_IMAGE_NAME"
+  docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)" "$CLUSTER_CONTROLLER_IMAGE_NAME"
+  docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name distributedlogs-controller-jvm-image)" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
+  docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)" "$ADMINUI_IMAGE_NAME"
 }
 
 create_operator_certificate() {
@@ -681,7 +627,8 @@ upgrade_operator_vanilla() {
       --set developer.externalOperatorPort="$E2E_LOCAL_OPERATOR_SSL_PORT" \
       "$@"
   else
-    helm upgrade stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_VERSION_HELM_URL" "$@"
+    helm upgrade stackgres-operator --namespace "$OPERATOR_NAMESPACE" "$OPERATOR_VERSION_HELM_URL" \
+      "$@"
   fi
   after_operator_install_or_upgrade
 }
