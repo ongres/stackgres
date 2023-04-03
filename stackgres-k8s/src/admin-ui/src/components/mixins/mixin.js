@@ -63,7 +63,7 @@ export const mixin = {
     methods: {
 
       isNull(el) {
-        return el === null;
+        return ( (el === null) || ( (typeof el === 'string') && !el.length ) );
       },
 
       isNullObject(obj) {

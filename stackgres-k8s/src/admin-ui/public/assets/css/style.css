@@ -283,6 +283,14 @@ pre {
     margin: 0 !important;
 }
 
+.marginTop {
+    margin-top: 25px !important;
+}
+
+.marginBottom {
+    margin-bottom: 25px !important;
+}
+
 .blue {
     color: var(--blue);
 }
@@ -2710,15 +2718,19 @@ a.addRow, .addRow > a {
     display: block;
 }
 
-.repeater .row {
+.repeater .row, .inputContainer {
     position: relative;
     display: inline-block;
+    width: 100%;
 }
 
-.repeater .eqSign ~ a.addRow {
+.repeater .eqSign ~ a.addRow, .inputContainer a.addRow.topRight {
     position: absolute;
     top: 0;
     right: 0;
+}
+.inputContainer a.addRow.topRight {
+    top: -20px;
 }
 
 input.annotation, input.annotationValue, input.label, input.labelValue {
