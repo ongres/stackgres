@@ -4,7 +4,7 @@ kind: "Deployment"
 metadata:
   {{- with .Values.operator.annotations }}
   annotations:
-    {{ toYaml . | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
   labels:
     app: {{ .Release.Name }}
@@ -13,7 +13,7 @@ metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
 spec:
-  replicas: {{ if or (eq "true" (include "stackgres.operator.resetCerts" .)) (eq "true" (include "stackgres.operator.upgradeCrds" .)) }}0{{ else }}1{{ end }}
+  replicas: 1
   selector:
     matchLabels:
       app: {{ .Release.Name }}
@@ -60,6 +60,14 @@ spec:
         image: "{{ include "operator-image" . }}"
         imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
         env:
+          {{- if eq "true" (include "stackgres.operator.resetCerts" .) }}
+          - name: RESET_CERTS
+            value: "true"
+          {{- end }}
+          {{- if eq "true" (include "stackgres.operator.upgradeCrds" .) }}
+          - name: DISABLE_RECONCILIATION
+            value: "true"
+          {{- end }}
           - name: OPERATOR_NAME
             value: "{{ .Release.Name }}"
           - name: OPERATOR_NAMESPACE
@@ -193,11 +201,6 @@ spec:
           secret:
             secretName: {{ include "cert-name" . }}
             optional: false
-            items:
-              - key: tls.key
-                path: root.key
-              - key: tls.crt
-                path: server.crt
         {{- if and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort }}
         - name: operator-nginx-conf
           configMap:

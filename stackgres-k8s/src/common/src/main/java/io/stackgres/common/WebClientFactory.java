@@ -170,6 +170,7 @@ public class WebClientFactory {
       return UriBuilder.fromUri(uri).scheme("http").build();
     }
 
+    @SuppressWarnings("null")
     private <T> T doWithRetry(Supplier<T> supplier) {
       RuntimeException firstEx = null;
       for (int retryCount = 1; retryCount <= maxRetries; retryCount++) {

@@ -158,7 +158,7 @@ deploy helm packages and templates:
   image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: deploy
   dependencies:
-    - build
+    - build amd64
   script:
     - |
       set -e
@@ -186,7 +186,7 @@ pages:
     name: development
     url: https://ongresinc.gitlab.io/stackgres/
   dependencies:
-    - build
+    - build amd64
   script:
     - sh stackgres-k8s/ci/build/build-gitlab.sh extract documentation doc/public
     - tar cC doc public | tar x

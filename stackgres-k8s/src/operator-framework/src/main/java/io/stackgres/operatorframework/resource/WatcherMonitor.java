@@ -41,6 +41,7 @@ public class WatcherMonitor<T> implements AutoCloseable {
     this(name, watcherCreator, null);
   }
 
+  @SuppressWarnings("null")
   public WatcherMonitor(
       String name,
       Function<WatcherListener<T>, Watch> watcherCreator,
@@ -48,7 +49,7 @@ public class WatcherMonitor<T> implements AutoCloseable {
     this.name = name;
     this.watcherCreator = watcherCreator;
     this.backoffSleepDuration = Optional.ofNullable(backoffSleepDuration)
-        .orElse(this::exponentialBackoffSleepDuration);;
+        .orElse(this::exponentialBackoffSleepDuration);
     this.executorService = Executors.newFixedThreadPool(
         1, r -> new Thread(r, "WatcherInit-" + name));
     this.executorService.execute(this::run);

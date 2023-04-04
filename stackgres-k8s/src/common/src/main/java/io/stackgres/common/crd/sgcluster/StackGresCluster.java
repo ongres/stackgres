@@ -17,6 +17,8 @@ import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Kind;
+import io.fabric8.kubernetes.model.annotation.Plural;
+import io.fabric8.kubernetes.model.annotation.Singular;
 import io.fabric8.kubernetes.model.annotation.Version;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
@@ -30,6 +32,8 @@ import io.sundr.builder.annotations.Buildable;
 @Group(CommonDefinition.GROUP)
 @Version(StackGresCluster.VERSION)
 @Kind(StackGresCluster.KIND)
+@Singular("sgcluster")
+@Plural("sgclusters")
 public final class StackGresCluster
     extends CustomResource<StackGresClusterSpec, StackGresClusterStatus>
     implements Namespaced {
