@@ -30,7 +30,7 @@ run() {
   then
     kill_with_childs "$PID"
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/failure","value":"Lock lost:\n'"$(cat /tmp/try-lock | to_json_string)"'"}
+      {"op":"replace","path":"/status/process/failure","value":'"Lock lost:$(printf '\n')$(cat /tmp/try-lock | to_json_string)"'}
       ]'
     cat /tmp/try-lock
     echo "Lock lost"
@@ -106,7 +106,7 @@ reconcile_backups() {
   if [ "$?" != 0 ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/failure","value":"Backup can not be listed after creation '"$(cat /tmp/backup-list | to_json_string)"'"}
+      {"op":"replace","path":"/status/process/failure","value":'"Backup can not be listed after creation $(cat /tmp/backup-list | to_json_string)"'}
       ]'
     cat /tmp/backup-list
     echo "Backups can not be listed after creation"
@@ -290,14 +290,14 @@ EOF
 }
 
 get_primary_and_replica_pods() {
-  kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${PATRONI_CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_PRIMARY_ROLE}" -o name > /tmp/current-primary
-  kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${PATRONI_CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_REPLICA_ROLE}" -o name | head -n 1 > /tmp/current-replica-or-primary
+  kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_PRIMARY_ROLE}" -o name > /tmp/current-primary
+  kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_REPLICA_ROLE}" -o name | head -n 1 > /tmp/current-replica-or-primary
   if [ ! -s /tmp/current-primary ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/process/failure","value":"Unable to find primary, backup aborted"}
       ]'
-    kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${PATRONI_CLUSTER_LABELS}" >&2
+    kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${CLUSTER_LABELS}" >&2
     echo > /tmp/backup-push
     echo "Unable to find primary, backup aborted" >> /tmp/backup-push
     exit 1
@@ -323,7 +323,7 @@ EOF
   if [ "$?" != 0 ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/failure","value":"Backup failed:\n\n'"$(cat /tmp/backup-push | to_json_string)"'"}
+      {"op":"replace","path":"/status/process/failure","value":'"Backup failed:$(printf '\n\n')$(cat /tmp/backup-push | to_json_string)"'}
       ]'
     exit 1
   fi
@@ -335,7 +335,7 @@ EOF
   if [ -z "$CURRENT_BACKUP_NAME" ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/failure","value":"Backup name not found in backup-push log:\n'"$(cat /tmp/backup-push | to_json_string)"'"}
+      {"op":"replace","path":"/status/process/failure","value":'"Backup name not found in backup-push log:$(printf '\n')$(cat /tmp/backup-push | to_json_string)"'}
       ]'
     cat /tmp/backup-push
     echo "Backup name not found in backup-push log"

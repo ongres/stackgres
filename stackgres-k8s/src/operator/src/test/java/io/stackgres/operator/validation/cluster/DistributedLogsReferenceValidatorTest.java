@@ -46,12 +46,10 @@ class DistributedLogsReferenceValidatorTest {
     validator = new DistributedLogsValidator(distributedLogsFinder);
 
     distributedLogs = Fixtures.distributedLogs().loadDefault().get();
-
   }
 
   @Test
   void givenValidStackGresReferenceOnCreation_shouldNotFail() throws ValidationFailed {
-
     final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     String distributedLogsName =
@@ -64,12 +62,10 @@ class DistributedLogsReferenceValidatorTest {
     validator.validate(review);
 
     verify(distributedLogsFinder).findByNameAndNamespace(eq(distributedLogsName), eq(namespace));
-
   }
 
   @Test
   void giveInvalidStackGresReferenceOnCreation_shouldFail() {
-
     final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     String distributedLogsName =
@@ -92,7 +88,6 @@ class DistributedLogsReferenceValidatorTest {
 
   @Test
   void giveAnAttemptToUpdateToAnUnknownProfile_shouldFail() {
-
     final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
         .loadDistributedLogsUpdate().get();
 
@@ -109,15 +104,14 @@ class DistributedLogsReferenceValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Distributed logs " + distributedLogsName + " not found", resultMessage);
+    assertEquals("Cannot update to distributed logs " + distributedLogsName
+        + " because it doesn't exists", resultMessage);
 
     verify(distributedLogsFinder).findByNameAndNamespace(anyString(), anyString());
-
   }
 
   @Test
   void giveAnAttemptToUpdateToAnKnownProfile_shouldNotFail() throws ValidationFailed {
-
     final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
         .loadDistributedLogsUpdate().get();
 
@@ -133,12 +127,10 @@ class DistributedLogsReferenceValidatorTest {
     validator.validate(review);
 
     verify(distributedLogsFinder).findByNameAndNamespace(anyString(), anyString());
-
   }
 
   @Test
   void giveAnAttemptToDelete_shouldNotFail() throws ValidationFailed {
-
     final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
         .loadDistributedLogsUpdate().get();
     review.getRequest().setOperation(Operation.DELETE);
@@ -146,7 +138,6 @@ class DistributedLogsReferenceValidatorTest {
     validator.validate(review);
 
     verify(distributedLogsFinder, never()).findByNameAndNamespace(anyString(), anyString());
-
   }
 
 }

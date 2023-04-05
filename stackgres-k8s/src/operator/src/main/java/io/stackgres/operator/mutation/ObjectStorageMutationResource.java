@@ -13,6 +13,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
@@ -29,12 +30,13 @@ public class ObjectStorageMutationResource
 
   @Inject
   public ObjectStorageMutationResource(
+      ObjectMapper objectMapper,
       MutationPipeline<StackGresObjectStorage, ObjectStorageReview> pipeline) {
-    super(pipeline);
+    super(objectMapper, pipeline);
   }
 
   public ObjectStorageMutationResource() {
-    super(null);
+    super(null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
   }
 

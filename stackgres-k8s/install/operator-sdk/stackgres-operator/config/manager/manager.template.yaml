@@ -88,7 +88,7 @@ spec:
         resources:
           limits:
             cpu: 1
-            memory: 256Mi
+            memory: 512Mi
           requests:
             cpu: 10m
             memory: 128Mi
@@ -108,12 +108,12 @@ spec:
           kind: SGConfig
           metadata:
             name: stackgres-operator
-          spec:
-            clusterOwnerRefereces:
+            ownerReferences:
             - apiVersion: operators.coreos.com/v1
               kind: Operator
               name: \$OPERATOR_NAME
               uid: \$OPERATOR_UID
+          spec: {}
           EOF
         image: ongres/kubectl:v1.25.5-build-6.19
         imagePullPolicy: IfNotPresent
@@ -138,7 +138,7 @@ fi
         resources:
           limits:
             cpu: 1
-            memory: 256Mi
+            memory: 512Mi
           requests:
             cpu: 10m
             memory: 128Mi

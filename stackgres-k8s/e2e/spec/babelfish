@@ -170,7 +170,7 @@ pgbouncer_users_check() {
   kubectl delete pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true"
   wait_pods_running "$CLUSTER_NAMESPACE" 2
 
-  RESPONSE_REPLICA="$(run_query -h "$CLUSTER_NAME"-primary -i 0 -p 5432 -u user1:test)"
+  RESPONSE_REPLICA="$(wait_until run_query -h "$CLUSTER_NAME"-primary -i 0 -p 5432 -u user1:test)"
   if [ "$RESPONSE_REPLICA" = "1" ]
   then
     echo "SUCCESS: Connections are possible using user1 in pgbouncer users section"

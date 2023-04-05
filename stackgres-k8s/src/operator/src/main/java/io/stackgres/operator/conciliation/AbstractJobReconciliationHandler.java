@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.UnaryOperator;
+import java.util.function.BiFunction;
 
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -23,7 +23,6 @@ import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
 import io.stackgres.common.labels.LabelFactory;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
-import io.stackgres.common.resource.ResourceWriter;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
@@ -35,36 +34,31 @@ public abstract class AbstractJobReconciliationHandler<T extends CustomResource<
   protected static final Logger LOGGER =
       LoggerFactory.getLogger(AbstractJobReconciliationHandler.class);
 
+  private final ReconciliationHandler<T> handler;
+
   private final LabelFactory<T> labelFactory;
 
   private final ResourceFinder<Job> jobFinder;
 
-  private final ResourceWriter<Job> jobWriter;
-
   private final ResourceScanner<Pod> podScanner;
 
-  private final ResourceWriter<Pod> podWriter;
-
   protected AbstractJobReconciliationHandler(
+      ReconciliationHandler<T> handler,
       LabelFactory<T> labelFactory,
       ResourceFinder<Job> jobFinder,
-      ResourceWriter<Job> jobWriter,
-      ResourceScanner<Pod> podScanner,
-      ResourceWriter<Pod> podWriter) {
+      ResourceScanner<Pod> podScanner) {
+    this.handler = handler;
     this.labelFactory = labelFactory;
     this.jobFinder = jobFinder;
-    this.jobWriter = jobWriter;
     this.podScanner = podScanner;
-    this.podWriter = podWriter;
   }
 
   public AbstractJobReconciliationHandler() {
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.handler = null;
     this.labelFactory = null;
     this.jobFinder = null;
-    this.jobWriter = null;
     this.podScanner = null;
-    this.podWriter = null;
   }
 
   @Override
@@ -75,7 +69,7 @@ public abstract class AbstractJobReconciliationHandler<T extends CustomResource<
           resource.getMetadata().getName());
       return resource;
     }
-    return concileJob(context, resource, jobWriter::create);
+    return concileJob(context, resource, (c, job) -> (Job) handler.create(c, job));
   }
 
   @Override
@@ -108,7 +102,18 @@ public abstract class AbstractJobReconciliationHandler<T extends CustomResource<
           resource.getMetadata().getName());
       return;
     }
-    jobWriter.delete(safeCast(resource));
+    handler.delete(context, safeCast(resource));
+  }
+
+  @Override
+  public void deleteWithOrphans(T context, HasMetadata resource) {
+    if (isAlreadyCompleted(context)) {
+      LOGGER.debug("Skipping deleting Job {}.{}",
+          resource.getMetadata().getNamespace(),
+          resource.getMetadata().getName());
+      return;
+    }
+    handler.deleteWithOrphans(context, safeCast(resource));
   }
 
   private Job safeCast(HasMetadata resource) {
@@ -118,27 +123,27 @@ public abstract class AbstractJobReconciliationHandler<T extends CustomResource<
     return (Job) resource;
   }
 
-  private Job updateJob(Job requiredJob) {
+  private Job updateJob(T context, Job requiredJob) {
     return KubernetesClientUtil.retryOnConflict(() -> {
       Job currentJob = jobFinder
           .findByNameAndNamespace(
               requiredJob.getMetadata().getName(),
               requiredJob.getMetadata().getNamespace())
           .orElseThrow();
-      return jobWriter.update(fixJobAnnotations(requiredJob, currentJob));
+      return (Job) handler.patch(context, fixJobAnnotations(requiredJob, currentJob), null);
     });
   }
 
   private Job concileJob(T context, HasMetadata resource,
-      UnaryOperator<Job> writer) {
+      BiFunction<T, Job, Job> writer) {
     final Job requiredJob = safeCast(resource);
     final Map<String, String> labels = labelFactory.genericLabels(context);
 
     final String namespace = resource.getMetadata().getNamespace();
 
-    Job updatedJob = writer.apply(requiredJob);
+    Job updatedJob = writer.apply(context, requiredJob);
 
-    fixPods(requiredJob, labels, namespace);
+    fixPods(context, requiredJob, labels, namespace);
 
     return updatedJob;
   }
@@ -176,7 +181,7 @@ public abstract class AbstractJobReconciliationHandler<T extends CustomResource<
     return job;
   }
 
-  private void fixPods(final Job requiredJob,
+  private void fixPods(T context, Job requiredJob,
       final Map<String, String> labels, final String namespace) {
     var podsToFix = podScanner.findByLabelsAndNamespace(namespace, labels).stream()
         .sorted(Comparator.comparing(pod -> pod.getMetadata().getName()))
@@ -184,7 +189,7 @@ public abstract class AbstractJobReconciliationHandler<T extends CustomResource<
     List<Pod> podAnnotationsToPatch = fixPodsAnnotations(requiredJob, podsToFix);
     Seq.seq(podAnnotationsToPatch)
         .grouped(pod -> pod.getMetadata().getName()).map(Tuple2::v2).map(Seq::findFirst)
-        .map(Optional::get).forEach(podWriter::update);
+        .map(Optional::get).forEach(pod -> handler.patch(context, pod, null));
   }
 
   private List<Pod> fixPodsAnnotations(Job requiredJob, List<Pod> pods) {

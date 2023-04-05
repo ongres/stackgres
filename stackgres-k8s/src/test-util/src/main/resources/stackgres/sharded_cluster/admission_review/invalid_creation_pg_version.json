@@ -53,6 +53,27 @@
           "version": "11.5",
           "flavor": "vanilla"
         },
+        "postgresServices": {
+          "coordinator": {
+            "any": {
+              "enabled": true,
+              "type": "ClusterIP"
+            },
+            "primary": {
+              "enabled": true,
+              "type": "ClusterIP"
+            }
+          },
+          "shards": {
+            "primaries": {
+              "enabled": true,
+              "type": "ClusterIP"
+            }
+          }
+        },
+        "replication": {
+          "mode": "async"
+        },
         "coordinator": {
           "instances": 1,
           "sgInstanceProfile": "size-xs",

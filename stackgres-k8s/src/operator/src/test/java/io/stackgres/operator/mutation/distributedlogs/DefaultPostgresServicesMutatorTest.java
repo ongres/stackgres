@@ -51,7 +51,6 @@ class DefaultPostgresServicesMutatorTest {
 
   @Test
   void clusterWithPostgresService_shouldSetNothing() {
-
     setupDistributedLogsPgServices(
         withPgPrimaryService(TRUE, NODE_PORT.toString()),
         withPgReplicasService(TRUE, NODE_PORT.toString()));

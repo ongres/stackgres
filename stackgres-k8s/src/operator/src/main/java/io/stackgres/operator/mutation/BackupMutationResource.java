@@ -13,6 +13,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
@@ -28,12 +29,13 @@ public class BackupMutationResource extends MutationResource<StackGresBackup, Ba
 
   @Inject
   public BackupMutationResource(
+      ObjectMapper objectMapper,
       MutationPipeline<StackGresBackup, BackupReview> pipeline) {
-    super(pipeline);
+    super(objectMapper, pipeline);
   }
 
   public BackupMutationResource() {
-    super(null);
+    super(null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
   }
 

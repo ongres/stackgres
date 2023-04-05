@@ -13,6 +13,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -29,12 +30,13 @@ public class ShardedClusterMutationResource
 
   @Inject
   public ShardedClusterMutationResource(
+      ObjectMapper objectMapper,
       MutationPipeline<StackGresShardedCluster, StackGresShardedClusterReview> pipeline) {
-    super(pipeline);
+    super(objectMapper, pipeline);
   }
 
   public ShardedClusterMutationResource() {
-    super(null);
+    super(null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
   }
 

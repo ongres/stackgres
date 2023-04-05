@@ -18,16 +18,31 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.sundr.builder.annotations.Buildable;
+import io.sundr.builder.annotations.BuildableReference;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
+@Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
+    lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
+    builderPackage = "io.fabric8.kubernetes.api.builder",
+    refs = {
+        @BuildableReference(io.fabric8.kubernetes.api.model.Toleration.class)
+    })
 @SuppressFBWarnings(value = "NM_SAME_SIMPLE_NAME_AS_SUPERCLASS",
     justification = "Intentional name shadowing")
 public class Toleration extends io.fabric8.kubernetes.api.model.Toleration {
 
   private static final long serialVersionUID = 1L;
+
+  public Toleration() {
+    super();
+  }
+
+  public Toleration(String effect, String key, String operator, Long tolerationSeconds,
+      String value) {
+    super(effect, key, operator, tolerationSeconds, value);
+  }
 
   @ReferencedField("key")
   interface Key extends FieldReference {
@@ -72,6 +87,56 @@ public class Toleration extends io.fabric8.kubernetes.api.model.Toleration {
   public boolean isEffectNoExecuteIfTolerationIsSet() {
     return getTolerationSeconds() == null
         || Objects.equals("NoExecute", getEffect());
+  }
+
+  @Override
+  public String getEffect() {
+    return super.getEffect();
+  }
+
+  @Override
+  public void setEffect(String effect) {
+    super.setEffect(effect);
+  }
+
+  @Override
+  public String getKey() {
+    return super.getKey();
+  }
+
+  @Override
+  public void setKey(String key) {
+    super.setKey(key);
+  }
+
+  @Override
+  public String getOperator() {
+    return super.getOperator();
+  }
+
+  @Override
+  public void setOperator(String operator) {
+    super.setOperator(operator);
+  }
+
+  @Override
+  public Long getTolerationSeconds() {
+    return super.getTolerationSeconds();
+  }
+
+  @Override
+  public void setTolerationSeconds(Long tolerationSeconds) {
+    super.setTolerationSeconds(tolerationSeconds);
+  }
+
+  @Override
+  public String getValue() {
+    return super.getValue();
+  }
+
+  @Override
+  public void setValue(String value) {
+    super.setValue(value);
   }
 
 }

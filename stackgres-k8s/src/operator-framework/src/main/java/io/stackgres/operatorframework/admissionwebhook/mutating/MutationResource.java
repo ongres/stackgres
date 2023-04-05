@@ -9,11 +9,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.github.fge.jsonpatch.diff.JsonDiff;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Status;
@@ -27,15 +24,13 @@ import org.slf4j.LoggerFactory;
 
 public abstract class MutationResource<R extends HasMetadata, T extends AdmissionReview<R>> {
 
-  private static final ObjectMapper JSON_MAPPER = JsonMapper.builder()
-      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-      .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-      .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
-      .build();
-
+  private final ObjectMapper objectMapper;
   private final MutationPipeline<R, T> pipeline;
 
-  protected MutationResource(MutationPipeline<R, T> pipeline) {
+  protected MutationResource(
+      ObjectMapper objectMapper,
+      MutationPipeline<R, T> pipeline) {
+    this.objectMapper = objectMapper;
     this.pipeline = pipeline;
   }
 
@@ -68,8 +63,8 @@ public abstract class MutationResource<R extends HasMetadata, T extends Admissio
       R resourceResult = pipeline.mutate(admissionReview, resourceCopy);
       final JsonNode resourceJson;
       final JsonNode resourceResultJson;
-      resourceJson = JSON_MAPPER.valueToTree(admissionReview.getRequest().getObject());
-      resourceResultJson = JSON_MAPPER.valueToTree(resourceResult);
+      resourceJson = objectMapper.valueToTree(admissionReview.getRequest().getObject());
+      resourceResultJson = objectMapper.valueToTree(resourceResult);
       JsonNode patch = JsonDiff.asJson(resourceJson, resourceResultJson);
       if (!patch.isEmpty()) {
         response.setPatchType("JSONPatch");
@@ -95,7 +90,7 @@ public abstract class MutationResource<R extends HasMetadata, T extends Admissio
 
   private R copyResource(R resource) {
     try {
-      return JSON_MAPPER.treeToValue(JSON_MAPPER.valueToTree(resource), getResourceClass());
+      return objectMapper.treeToValue(objectMapper.valueToTree(resource), getResourceClass());
     } catch (Exception ex) {
       throw new RuntimeException(ex);
     }

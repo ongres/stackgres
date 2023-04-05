@@ -11,6 +11,8 @@ import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
-@Buildable
+@Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
+    lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
+    builderPackage = "io.fabric8.kubernetes.api.builder")
 public class DbOpsReview extends AdmissionReview<StackGresDbOps> {
 }

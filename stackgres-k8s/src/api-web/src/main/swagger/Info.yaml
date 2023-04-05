@@ -9,7 +9,12 @@ tags:
 - name: sgbackupconfig
 - name: sgdistributedlogs
 - name: sgbackup
+- name: sgdbops
+- name: sgobjectstorage
+- name: sgscripts
+- name: sgshardedcluster
 - name: auth
+- name: applications
 - name: misc
 components:
   securitySchemes:

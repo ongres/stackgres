@@ -12,14 +12,12 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
+import io.stackgres.common.CrdLoader;
+import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.resource.SecretFinder;
 import io.stackgres.jobs.app.JobsProperty;
 import io.stackgres.jobs.crdupgrade.CrUpdater;
-import io.stackgres.jobs.crdupgrade.CrUpdaterImpl;
 import io.stackgres.jobs.crdupgrade.CrdInstaller;
-import io.stackgres.jobs.crdupgrade.CrdInstallerImpl;
-import io.stackgres.jobs.crdupgrade.CrdLoader;
-import io.stackgres.jobs.crdupgrade.CrdLoaderImpl;
 import io.stackgres.jobs.crdupgrade.CustomResourceDefinitionFinder;
 import io.stackgres.jobs.crdupgrade.WebhookConfigurator;
 import io.stackgres.jobs.crdupgrade.WebhookConfiguratorImpl;
@@ -40,6 +38,9 @@ public class Main implements QuarkusApplication {
   KubernetesClient client;
 
   @Inject
+  YamlMapperProvider yamlMapperProvider;
+
+  @Inject
   DbOpLauncher dbOpLauncher;
 
   @Override
@@ -52,12 +53,12 @@ public class Main implements QuarkusApplication {
      * @JsonInclude(Include.NON_EMPTY) is ignored.
      */
     Serialization.jsonMapper().disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS);
-    final CrdLoader crdLoader = new CrdLoaderImpl(client);
+    final CrdLoader crdLoader = new CrdLoader(yamlMapperProvider.get());
     final CustomResourceDefinitionFinder crdFinder =
         new CustomResourceDefinitionFinder(client);
 
     if (crdUpgrade) {
-      CrdInstaller crdInstaller = new CrdInstallerImpl(crdFinder, crdFinder, crdLoader);
+      CrdInstaller crdInstaller = new CrdInstaller(crdFinder, crdFinder, crdLoader);
       crdInstaller.installCustomResourceDefinitions();
     }
 
@@ -73,7 +74,7 @@ public class Main implements QuarkusApplication {
     }
 
     if (crUpdater) {
-      CrUpdater crUpdater = new CrUpdaterImpl(crdLoader);
+      CrUpdater crUpdater = new CrUpdater(crdLoader, client);
       crUpdater.updateExistingCustomResources();
     }
 

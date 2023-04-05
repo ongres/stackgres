@@ -439,8 +439,14 @@ public interface JsonFixtureWithPaths {
   String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_DELETE_JSON =
       "stackgres/sharded_cluster/admission_review/delete.json";
 
+  String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_DISTRIBUTED_LOGS_UPDATE_JSON =
+      "stackgres/sharded_cluster/admission_review/distributed_logs_update.json";
+
   String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_CONNECTION_POOLING_CONFIG_UPDATE_JSON =
       "stackgres/sharded_cluster/admission_review/connection_pooling_config_update.json";
+
+  String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_CREATE_WITH_MANAGED_SQL_JSON =
+      "stackgres/sharded_cluster/admission_review/create_with_managed_sql.json";
 
   String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_INVALID_CREATION_EMPTY_PG_VERSION_JSON =
       "stackgres/sharded_cluster/admission_review/invalid_creation_empty_pg_version.json";
@@ -469,8 +475,14 @@ public interface JsonFixtureWithPaths {
   String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_STORAGE_CLASS_CONFIG_UPDATE_JSON =
       "stackgres/sharded_cluster/admission_review/storage_class_config_update.json";
 
+  String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_UPDATE_WITH_MANAGED_SQL_JSON =
+      "stackgres/sharded_cluster/admission_review/update_with_managed_sql.json";
+
   String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_UPDATE_JSON =
       "stackgres/sharded_cluster/admission_review/update.json";
+
+  String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_SSL_UPDATE_JSON =
+      "stackgres/sharded_cluster/admission_review/ssl_update.json";
 
   String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_WRONG_MAJOR_POSTGRES_VERSION_UPDATE_JSON =
       "stackgres/sharded_cluster/admission_review/wrong_major_postgres_version_update.json";
@@ -478,6 +490,9 @@ public interface JsonFixtureWithPaths {
   String STACKGRES_SHARDED_CLUSTER_DEFAULT_JSON = "stackgres/sharded_cluster/default.json";
 
   String STACKGRES_SHARDED_CLUSTER_DTO_JSON = "stackgres/sharded_cluster/dto.json";
+
+  String STACKGRES_SHARDED_CLUSTER_INLINE_SCRIPTS_JSON =
+      "stackgres/sharded_cluster/inline_scripts.json";
 
   String STACKGRES_SHARDED_CLUSTER_LIST_JSON = "stackgres/sharded_cluster/list.json";
 

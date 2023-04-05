@@ -24,6 +24,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.application.SgApplication;
 import io.stackgres.apiweb.application.bbfcompass.BabelfishCompass;
@@ -136,6 +137,8 @@ public class ApplicationsResource {
     return bbfCompass.run(reportName, List.copyOf(cmFiles));
   }
 
+  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
+      justification = "False positive")
   private BabelfishCompass getBabelfishCompassApp() {
     BabelfishCompass bbfCompass = null;
     for (SgApplication app : applications) {

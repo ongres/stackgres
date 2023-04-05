@@ -78,9 +78,9 @@ public class BabelfishCompass extends SgApplication {
     final String name = ResourceUtil.nameIsValidDnsSubdomainForJob("bbf-"
         + StringUtil.generateRandom(16).toLowerCase(Locale.ROOT));
 
-    Job compassJob = client.batch().v1().jobs().inNamespace(namespace)
-        .withName(name)
-        .create(new JobBuilder()
+    Job compassJob = client.batch().v1().jobs()
+        .inNamespace(namespace)
+        .resource(new JobBuilder()
             .withNewMetadata()
             .withName(name)
             .endMetadata()
@@ -118,7 +118,8 @@ public class BabelfishCompass extends SgApplication {
             .endSpec()
             .endTemplate()
             .endSpec()
-            .build());
+            .build())
+        .create();
 
     Pod pod = waitForPod(namespace, name);
 

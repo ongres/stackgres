@@ -13,6 +13,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -29,12 +30,13 @@ public class DbOpsMutationResource
 
   @Inject
   public DbOpsMutationResource(
+      ObjectMapper objectMapper,
       MutationPipeline<StackGresDbOps, DbOpsReview> pipeline) {
-    super(pipeline);
+    super(objectMapper, pipeline);
   }
 
   public DbOpsMutationResource() {
-    super(null);
+    super(null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
   }
 

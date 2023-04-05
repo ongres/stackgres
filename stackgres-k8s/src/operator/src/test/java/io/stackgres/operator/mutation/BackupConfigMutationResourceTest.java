@@ -9,6 +9,7 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -18,7 +19,7 @@ class BackupConfigMutationResourceTest
 
   @Override
   protected MutationResource<StackGresBackupConfig, BackupConfigReview> getResource() {
-    return new BackupConfigMutationResource(pipeline);
+    return new BackupConfigMutationResource(JsonUtil.jsonMapper(), pipeline);
   }
 
   @Override

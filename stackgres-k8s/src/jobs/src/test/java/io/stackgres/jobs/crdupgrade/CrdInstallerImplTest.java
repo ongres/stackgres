@@ -12,6 +12,8 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
+import io.stackgres.common.CrdLoader;
+import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,19 +32,19 @@ class CrdInstallerImplTest {
   @Mock
   private ResourceWriter<CustomResourceDefinition> customResourceDefinitionWriter;
 
-  private final CrdLoader crdLoader = new MockCustomResourceDefinitionFinder();
+  private final CrdLoader crdLoader = new CrdLoader(new YamlMapperProvider().get());
 
-  private CrdInstallerImpl crdInstaller;
+  private CrdInstaller crdInstaller;
 
   @BeforeEach
   void setUp() {
-    crdInstaller = new CrdInstallerImpl(customResourceDefinitionFinder,
+    crdInstaller = new CrdInstaller(customResourceDefinitionFinder,
         customResourceDefinitionWriter, crdLoader);
   }
 
   @Test
   void installCrd_shouldInstallTheResourceIfDoesNotExists() {
-    CustomResourceDefinition definition = crdLoader.scanDefinitions().get(0);
+    CustomResourceDefinition definition = crdLoader.scanCrds().get(0);
     when(customResourceDefinitionFinder.findByName(definition.getMetadata().getName()))
         .thenReturn(Optional.empty());
 
@@ -59,10 +61,10 @@ class CrdInstallerImplTest {
 
   @Test
   void installCrd_shouldPatchTheResourceIfExists() {
-    CustomResourceDefinition definition = crdLoader.scanDefinitions().get(0);
+    CustomResourceDefinition definition = crdLoader.scanCrds().get(0);
     when(customResourceDefinitionFinder.findByName(definition.getMetadata().getName()))
         .thenAnswer((Answer<Optional<CustomResourceDefinition>>) invocationOnMock -> Optional
-            .of(crdLoader.load(definition.getSpec().getNames().getKind())));
+            .of(crdLoader.getCrd(definition.getSpec().getNames().getKind())));
 
     when(customResourceDefinitionWriter.update(any(CustomResourceDefinition.class)))
         .thenReturn(definition);

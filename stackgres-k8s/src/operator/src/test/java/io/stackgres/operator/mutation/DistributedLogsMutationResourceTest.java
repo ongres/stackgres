@@ -9,6 +9,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -19,7 +20,7 @@ class DistributedLogsMutationResourceTest
   @Override
   protected MutationResource<StackGresDistributedLogs, StackGresDistributedLogsReview>
       getResource() {
-    return new DistributedLogsMutationResource(pipeline);
+    return new DistributedLogsMutationResource(JsonUtil.jsonMapper(), pipeline);
   }
 
   @Override

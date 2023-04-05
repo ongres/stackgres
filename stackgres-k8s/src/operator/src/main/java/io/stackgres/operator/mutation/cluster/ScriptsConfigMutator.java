@@ -54,8 +54,9 @@ public class ScriptsConfigMutator implements ClusterMutator {
     }
     resource.getSpec().getManagedSql().getScripts()
         .add(0, new StackGresClusterManagedScriptEntry());
+    int lastId = getLastId(resource);
     resource.getSpec().getManagedSql().getScripts().get(0).setId(
-        0);
+        lastId + 1);
     resource.getSpec().getManagedSql().getScripts().get(0).setSgScript(
         defaultScriptName);
     if (resource.getStatus() == null) {
@@ -75,14 +76,7 @@ public class ScriptsConfigMutator implements ClusterMutator {
   }
 
   private void fillRequiredFields(StackGresCluster resource) {
-    int lastId = Optional.of(resource)
-        .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getManagedSql)
-        .map(StackGresClusterManagedSql::getScripts)
-        .stream()
-        .flatMap(List::stream)
-        .map(StackGresClusterManagedScriptEntry::getId)
-        .reduce(-1, (last, id) -> id == null || last >= id ? last : id, (u, v) -> v);
+    int lastId = getLastId(resource);
     for (StackGresClusterManagedScriptEntry scriptEntry : Optional.of(resource)
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getManagedSql)
@@ -93,6 +87,17 @@ public class ScriptsConfigMutator implements ClusterMutator {
         scriptEntry.setId(lastId);
       }
     }
+  }
+
+  private Integer getLastId(StackGresCluster resource) {
+    return Optional.of(resource)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getManagedSql)
+        .map(StackGresClusterManagedSql::getScripts)
+        .stream()
+        .flatMap(List::stream)
+        .map(StackGresClusterManagedScriptEntry::getId)
+        .reduce(-1, (last, id) -> id == null || last >= id ? last : id, (u, v) -> v);
   }
 
   private void updateScriptsStatuses(StackGresCluster resource) {

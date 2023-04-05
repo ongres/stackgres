@@ -233,7 +233,6 @@ test_packages() {
     "${STACKGRES_PACKAGES}/stackgres-cluster-demo.tgz" \
     --set cluster.sgInstanceProfile=size-xs \
     --set cluster.instances=2 \
-    --set nonProductionOptions.createMinio=false \
     --set nonProductionOptions.disableClusterPodAntiAffinity=true \
     --set nonProductionOptions.disablePatroniResourceRequirements=true \
     --set nonProductionOptions.disableClusterResourceRequirements=true

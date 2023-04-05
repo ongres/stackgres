@@ -53,6 +53,27 @@
           "version": "13.4",
           "flavor": "vanilla"
         },
+        "postgresServices": {
+          "coordinator": {
+            "any": {
+              "enabled": true,
+              "type": "ClusterIP"
+            },
+            "primary": {
+              "enabled": true,
+              "type": "ClusterIP"
+            }
+          },
+          "shards": {
+            "primaries": {
+              "enabled": true,
+              "type": "ClusterIP"
+            }
+          }
+        },
+        "replication": {
+          "mode": "async"
+        },
         "coordinator": {
           "instances": 1,
           "sgInstanceProfile": "size-xs",
@@ -103,6 +124,27 @@
           "version": "13.4",
           "flavor": "vanilla"
         },
+        "postgresServices": {
+          "coordinator": {
+            "any": {
+              "enabled": true,
+              "type": "ClusterIP"
+            },
+            "primary": {
+              "enabled": true,
+              "type": "ClusterIP"
+            }
+          },
+          "shards": {
+            "primaries": {
+              "enabled": true,
+              "type": "ClusterIP"
+            }
+          }
+        },
+        "replication": {
+          "mode": "async"
+        },
         "coordinator": {
           "instances": 1,
           "sgInstanceProfile": "size-xs",
@@ -120,7 +162,7 @@
         "shards": {
           "clusters": 2,
           "instancesPerCluster": 1,
-          "sgInstanceProfile": "size-x",
+          "sgInstanceProfile": "size-xs",
           "configurations": {
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"

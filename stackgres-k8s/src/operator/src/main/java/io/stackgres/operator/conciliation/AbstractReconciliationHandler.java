@@ -5,19 +5,21 @@
 
 package io.stackgres.operator.conciliation;
 
-import static io.stackgres.common.resource.ResourceWriter.STACKGRES_FIELD_MANAGER;
-
+import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.dsl.base.PatchType;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.StackGresContext;
 
 public abstract class AbstractReconciliationHandler<T extends CustomResource<?, ?>>
     implements ReconciliationHandler<T>, ReconciliationOperations {
 
-  private final KubernetesClient client;
+  private static final String STACKGRES_FIELD_MANAGER = "StackGres";
+
+  protected final KubernetesClient client;
 
   protected AbstractReconciliationHandler(KubernetesClient client) {
     this.client = client;
@@ -33,7 +35,7 @@ public abstract class AbstractReconciliationHandler<T extends CustomResource<?, 
     return client.resource(resource)
         .patch(new PatchContext.Builder()
             .withPatchType(PatchType.SERVER_SIDE_APPLY)
-            .withFieldManager(STACKGRES_FIELD_MANAGER)
+            .withFieldManager(getFieldManager(context, resource))
             .withForce(true)
             .build(),
             resource);
@@ -44,10 +46,17 @@ public abstract class AbstractReconciliationHandler<T extends CustomResource<?, 
     return client.resource(resource)
         .patch(new PatchContext.Builder()
             .withPatchType(PatchType.SERVER_SIDE_APPLY)
-            .withFieldManager(STACKGRES_FIELD_MANAGER)
+            .withFieldManager(getFieldManager(context, resource))
             .withForce(true)
             .build(),
             resource);
+  }
+
+  private String getFieldManager(T context, HasMetadata resource) {
+    if (resource.getApiVersion().startsWith(StackGresContext.STACKGRES_KEY_PREFIX)) {
+      return context.getKind();
+    }
+    return STACKGRES_FIELD_MANAGER;
   }
 
   @Override
@@ -60,6 +69,13 @@ public abstract class AbstractReconciliationHandler<T extends CustomResource<?, 
   @Override
   public void delete(T context, HasMetadata resource) {
     client.resource(resource).delete();
+  }
+
+  @Override
+  public void deleteWithOrphans(T context, HasMetadata resource) {
+    client.resource(resource)
+        .withPropagationPolicy(DeletionPropagation.ORPHAN)
+        .delete();
   }
 
 }

@@ -9,6 +9,7 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.operator.common.DbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -17,7 +18,7 @@ class DbOpsMutationResourceTest extends MutationResourceTest<StackGresDbOps, DbO
 
   @Override
   protected MutationResource<StackGresDbOps, DbOpsReview> getResource() {
-    return new DbOpsMutationResource(pipeline);
+    return new DbOpsMutationResource(JsonUtil.jsonMapper(), pipeline);
   }
 
   @Override

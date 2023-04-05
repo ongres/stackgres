@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.mutation.shardedcluster;
 
-import static io.stackgres.common.StackGresShardedClusterUtil.getCoordinatorCluster;
+import static io.stackgres.common.StackGresShardedClusterForCitusUtil.getCoordinatorCluster;
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.List;
@@ -16,7 +16,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresShardedClusterUtil;
+import io.stackgres.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -143,7 +143,7 @@ public class ExtensionsMutator
 
   @Override
   protected StackGresCluster getCluster(StackGresShardedCluster cluster) {
-    return StackGresShardedClusterUtil.getCoordinatorCluster(cluster);
+    return StackGresShardedClusterForCitusUtil.getCoordinatorCluster(cluster);
   }
 
   @Override

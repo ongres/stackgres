@@ -12,6 +12,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
@@ -53,7 +54,6 @@ import io.stackgres.common.labels.ClusterLabelMapper;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
-import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.jooq.lambda.Seq;
@@ -80,25 +80,19 @@ class ClusterStatefulSetReconciliationHandlerTest {
       new ClusterLabelFactory(new ClusterLabelMapper());
 
   @Mock
-  private ResourceWriter<StatefulSet> statefulSetWriter;
-
-  @Mock
   private ResourceScanner<Pod> podScanner;
 
   @Mock
-  private ResourceWriter<Pod> podWriter;
-
-  @Mock
   private ResourceScanner<PersistentVolumeClaim> pvcScanner;
-
-  @Mock
-  private ResourceWriter<PersistentVolumeClaim> pvcWriter;
 
   @Mock
   private ResourceFinder<StatefulSet> statefulSetFinder;
 
   @Mock
   private ResourceFinder<Endpoints> endpointsFinder;
+
+  @Mock
+  private ClusterDefaultReconciliationHandler defaultHandler;
 
   private ObjectMapper objectMapper = JsonUtil.jsonMapper();
 
@@ -117,8 +111,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
   @BeforeEach
   void setUp() {
     handler = new ClusterStatefulSetReconciliationHandler(
-        labelFactory, statefulSetFinder, statefulSetWriter,
-        podScanner, podWriter, pvcScanner, pvcWriter, endpointsFinder, objectMapper);
+        defaultHandler, labelFactory, statefulSetFinder,
+        podScanner, pvcScanner, endpointsFinder, objectMapper);
     requiredStatefulSet = Fixtures.statefulSet().loadRequired().get();
 
     cluster = new StackGresCluster();
@@ -139,14 +133,15 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     assertEquals("Resource must be a StatefulSet instance", ex.getMessage());
 
-    verify(statefulSetWriter, never()).create(any(StatefulSet.class));
-    verify(podWriter, never()).update(any());
-    verify(pvcWriter, never()).update(any());
+    verify(defaultHandler, never()).create(any(), any(StatefulSet.class));
+    verify(defaultHandler, never()).patch(any(), any(Pod.class), any());
+    verify(defaultHandler, never()).patch(any(), any(PersistentVolumeClaim.class), any());
   }
 
   @Test
   void createResource_shouldCreateTheResource() {
-    when(statefulSetWriter.update(requiredStatefulSet)).thenReturn(requiredStatefulSet);
+    when(defaultHandler.patch(any(), any(StatefulSet.class), any()))
+        .thenReturn(requiredStatefulSet);
 
     HasMetadata sts = handler.create(cluster, requiredStatefulSet);
 
@@ -165,10 +160,10 @@ class ClusterStatefulSetReconciliationHandlerTest {
     assertEquals(desiredReplicas, sts.getSpec().getReplicas());
 
     verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
-    verify(statefulSetWriter).update(any(StatefulSet.class));
-    verify(podWriter, never()).update(any(Pod.class));
-    verify(podWriter, never()).delete(any());
-    verify(pvcWriter, never()).update(any());
+    verify(defaultHandler).patch(any(), any(StatefulSet.class), any());
+    verify(defaultHandler, never()).patch(any(), any(Pod.class), any());
+    verify(defaultHandler, never()).delete(any(), any(StatefulSet.class));
+    verify(defaultHandler, never()).patch(any(), any(PersistentVolumeClaim.class), any());
   }
 
   @Test
@@ -183,10 +178,10 @@ class ClusterStatefulSetReconciliationHandlerTest {
     assertEquals(desiredReplicas, sts.getSpec().getReplicas());
 
     verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
-    verify(statefulSetWriter).update(any(StatefulSet.class));
-    verify(podWriter, never()).update(any(Pod.class));
-    verify(podWriter, never()).delete(any());
-    verify(pvcWriter, never()).update(any());
+    verify(defaultHandler).patch(any(), any(StatefulSet.class), any());
+    verify(defaultHandler, never()).patch(any(), any(Pod.class), any());
+    verify(defaultHandler, never()).delete(any(), any(StatefulSet.class));
+    verify(defaultHandler, never()).patch(any(), any(PersistentVolumeClaim.class), any());
   }
 
   @Test
@@ -201,10 +196,10 @@ class ClusterStatefulSetReconciliationHandlerTest {
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
     verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
-    verify(statefulSetWriter).update(any(StatefulSet.class));
-    verify(podWriter, times(1)).update(any(Pod.class));
-    verify(podWriter, never()).delete(any());
-    verify(pvcWriter, never()).update(any());
+    verify(defaultHandler).patch(any(), any(StatefulSet.class), any());
+    verify(defaultHandler, times(1)).patch(any(), any(Pod.class), any());
+    verify(defaultHandler, never()).delete(any(), any(StatefulSet.class));
+    verify(defaultHandler, never()).patch(any(), any(PersistentVolumeClaim.class), any());
   }
 
   @Test
@@ -219,10 +214,10 @@ class ClusterStatefulSetReconciliationHandlerTest {
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
     verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
-    verify(statefulSetWriter).update(any(StatefulSet.class));
-    verify(podWriter, atMostOnce()).update(any(Pod.class));
-    verify(podWriter, never()).delete(any());
-    verify(pvcWriter, never()).update(any());
+    verify(defaultHandler).patch(any(), any(StatefulSet.class), any());
+    verify(defaultHandler, atMostOnce()).patch(any(), any(Pod.class), any());
+    verify(defaultHandler, never()).delete(any(), any(StatefulSet.class));
+    verify(defaultHandler, never()).patch(any(), any(PersistentVolumeClaim.class), any());
   }
 
   @Test
@@ -231,17 +226,19 @@ class ClusterStatefulSetReconciliationHandlerTest {
   void scaleUpWithIndexLowerThanReplicasCount_DesiredReplicasAndFixDisruptableLabel() {
     final int desiredReplicas = setUpUpscale(1, 1, -1, PrimaryPosition.FIRST_NONDISRUPTABLE);
 
-    ArgumentCaptor<Pod> podArgumentCaptor = ArgumentCaptor.forClass(Pod.class);
+    ArgumentCaptor<HasMetadata> podArgumentCaptor = ArgumentCaptor.forClass(HasMetadata.class);
 
-    lenient().when(podWriter.update(podArgumentCaptor.capture()))
-        .then(invocationOnMock -> invocationOnMock.getArgument(0));
+    lenient().when(defaultHandler.patch(any(), any(Pod.class), any()))
+        .then(invocationOnMock -> invocationOnMock.getArgument(1));
 
     StatefulSet sts = (StatefulSet) handler.patch(
         cluster, requiredStatefulSet, deployedStatefulSet);
 
     assertEquals(desiredReplicas, sts.getSpec().getReplicas());
 
-    for (var updatedPod : podArgumentCaptor.getAllValues()) {
+    verify(defaultHandler, atLeastOnce()).patch(any(), podArgumentCaptor.capture(), any());
+    for (var updatedPod : podArgumentCaptor.getAllValues()
+        .stream().filter(Pod.class::isInstance).toList()) {
       String disruptableValue = updatedPod.getMetadata().getLabels()
           .get(labelFactory.labelMapper().disruptibleKey(cluster));
 
@@ -249,10 +246,10 @@ class ClusterStatefulSetReconciliationHandlerTest {
     }
 
     verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
-    verify(statefulSetWriter).update(any(StatefulSet.class));
-    verify(podWriter, atMostOnce()).update(any(Pod.class));
-    verify(podWriter, never()).delete(any());
-    verify(pvcWriter, never()).update(any());
+    verify(defaultHandler).patch(any(), any(StatefulSet.class), any());
+    verify(defaultHandler, atMostOnce()).patch(any(), any(Pod.class), any());
+    verify(defaultHandler, never()).delete(any(), any(StatefulSet.class));
+    verify(defaultHandler, never()).patch(any(), any(PersistentVolumeClaim.class), any());
   }
 
   @Test
@@ -262,18 +259,19 @@ class ClusterStatefulSetReconciliationHandlerTest {
   void scaleDownPods_shouldResultDesiredReplicasMinusOneThePrimaryPodNonDisruptable() {
     final int desiredReplicas = setUpDownscale(1, 0, 0, PrimaryPosition.LAST_DISRUPTABLE);
 
-    ArgumentCaptor<Pod> podArgumentCaptor = ArgumentCaptor.forClass(Pod.class);
-
-    when(podWriter.update(any(Pod.class)))
-        .then(invocationOnMock -> invocationOnMock.getArgument(0));
+    when(defaultHandler.patch(any(), any(Pod.class), any()))
+        .then(invocationOnMock -> invocationOnMock.getArgument(1));
 
     StatefulSet sts = (StatefulSet) handler.patch(
         cluster, requiredStatefulSet, deployedStatefulSet);
 
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
-    verify(podWriter).update(podArgumentCaptor.capture());
-    var updatedPod = podArgumentCaptor.getValue();
+    verify(defaultHandler).patch(any(), any(Pod.class), any());
+    ArgumentCaptor<HasMetadata> podArgumentCaptor = ArgumentCaptor.forClass(HasMetadata.class);
+    verify(defaultHandler, atLeastOnce()).patch(any(), podArgumentCaptor.capture(), any());
+    var updatedPod = podArgumentCaptor.getAllValues().stream()
+        .filter(Pod.class::isInstance).map(Pod.class::cast).findFirst().orElseThrow();
 
     String disruptableValue = updatedPod.getMetadata().getLabels()
         .get(labelFactory.labelMapper().disruptibleKey(cluster));
@@ -284,9 +282,9 @@ class ClusterStatefulSetReconciliationHandlerTest {
     assertEquals(PatroniUtil.PRIMARY_ROLE, podRole);
 
     verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
-    verify(statefulSetWriter).update(any(StatefulSet.class));
-    verify(podWriter, never()).delete(any());
-    verify(pvcWriter, never()).update(any());
+    verify(defaultHandler).patch(any(), any(StatefulSet.class), any());
+    verify(defaultHandler, never()).delete(any(), any(StatefulSet.class));
+    verify(defaultHandler, never()).patch(any(), any(PersistentVolumeClaim.class), any());
   }
 
   @Test
@@ -307,18 +305,18 @@ class ClusterStatefulSetReconciliationHandlerTest {
                 + "-" + (desiredReplicas) + "\"]]"))
             .endMetadata()
             .build()));
-    when(statefulSetWriter.update(any()))
+    when(defaultHandler.patch(any(), any(StatefulSet.class), any()))
         .then(invocationOnMock -> {
           int podIndex = desiredReplicas - 1;
           addPlaceholderPod(podIndex, false);
-          return invocationOnMock.getArgument(0);
+          return invocationOnMock.getArgument(1);
         })
         .then(invocationOnMock -> {
           int podIndex = desiredReplicas;
           addPrimaryPod(podIndex, false);
-          return invocationOnMock.getArgument(0);
+          return invocationOnMock.getArgument(1);
         })
-        .then(invocationOnMock -> invocationOnMock.getArgument(0));
+        .then(invocationOnMock -> invocationOnMock.getArgument(1));
 
     StatefulSet sts = (StatefulSet) handler.patch(
         cluster, requiredStatefulSet, deployedStatefulSet);
@@ -326,10 +324,10 @@ class ClusterStatefulSetReconciliationHandlerTest {
     assertEquals(desiredReplicas, sts.getSpec().getReplicas());
 
     verify(podScanner, times(6)).findByLabelsAndNamespace(anyString(), anyMap());
-    verify(statefulSetWriter, times(2)).update(any(StatefulSet.class));
-    verify(podWriter, never()).update(any());
-    verify(podWriter, never()).delete(any());
-    verify(pvcWriter, never()).update(any());
+    verify(defaultHandler, times(2)).patch(any(), any(StatefulSet.class), any());
+    verify(defaultHandler, never()).patch(any(), any(Pod.class), any());
+    verify(defaultHandler, never()).delete(any(), any(StatefulSet.class));
+    verify(defaultHandler, never()).patch(any(), any(PersistentVolumeClaim.class), any());
   }
 
   @Test
@@ -358,10 +356,10 @@ class ClusterStatefulSetReconciliationHandlerTest {
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
     verify(podScanner, times(5)).findByLabelsAndNamespace(anyString(), anyMap());
-    verify(statefulSetWriter, times(1)).update(any(StatefulSet.class));
-    verify(podWriter, times(1)).update(any());
-    verify(podWriter, times(1)).delete(any());
-    verify(pvcWriter, never()).update(any());
+    verify(defaultHandler, times(1)).patch(any(), any(StatefulSet.class), any());
+    verify(defaultHandler, times(1)).patch(any(), any(Pod.class), any());
+    verify(defaultHandler, times(1)).delete(any(), any(Pod.class));
+    verify(defaultHandler, never()).patch(any(), any(PersistentVolumeClaim.class), any());
   }
 
   @Test
@@ -377,10 +375,10 @@ class ClusterStatefulSetReconciliationHandlerTest {
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
     verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
-    verify(statefulSetWriter).update(any(StatefulSet.class));
-    verify(podWriter, times(1)).update(any(Pod.class));
-    verify(podWriter, never()).delete(any());
-    verify(pvcWriter, never()).update(any());
+    verify(defaultHandler).patch(any(), any(StatefulSet.class), any());
+    verify(defaultHandler, times(1)).patch(any(), any(Pod.class), any());
+    verify(defaultHandler, never()).delete(any(), any(StatefulSet.class));
+    verify(defaultHandler, never()).patch(any(), any(PersistentVolumeClaim.class), any());
   }
 
   @Test
@@ -396,19 +394,19 @@ class ClusterStatefulSetReconciliationHandlerTest {
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
     verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
-    verify(statefulSetWriter).update(any(StatefulSet.class));
-    verify(podWriter, times(1)).update(any(Pod.class));
-    verify(podWriter, never()).delete(any());
-    verify(pvcWriter, never()).update(any());
+    verify(defaultHandler).patch(any(), any(StatefulSet.class), any());
+    verify(defaultHandler, times(1)).patch(any(), any(Pod.class), any());
+    verify(defaultHandler, never()).delete(any(), any(StatefulSet.class));
+    verify(defaultHandler, never()).patch(any(), any(PersistentVolumeClaim.class), any());
   }
 
   @Test
   void delete_shouldNotFail() {
-    doNothing().when(statefulSetWriter).delete(requiredStatefulSet);
+    doNothing().when(defaultHandler).delete(any(), any(StatefulSet.class));
 
     handler.delete(cluster, requiredStatefulSet);
 
-    verify(statefulSetWriter, times(1)).delete(any());
+    verify(defaultHandler, times(1)).delete(any(), any(StatefulSet.class));
   }
 
   @Test
@@ -430,20 +428,25 @@ class ClusterStatefulSetReconciliationHandlerTest {
         .map(t -> t.map1(pod -> pod.getMetadata().getName()))
         .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2));
 
-    when(statefulSetWriter.update(any())).thenReturn(requiredStatefulSet);
+    when(defaultHandler.patch(any(), any(StatefulSet.class), any()))
+        .thenReturn(requiredStatefulSet);
 
     handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
 
-    ArgumentCaptor<StatefulSet> statefulSetArgumentCaptor =
-        ArgumentCaptor.forClass(StatefulSet.class);
-    verify(statefulSetWriter).update(statefulSetArgumentCaptor.capture());
+    verify(defaultHandler).patch(any(), any(StatefulSet.class), any());
+    ArgumentCaptor<HasMetadata> statefulSetArgumentCaptor =
+        ArgumentCaptor.forClass(HasMetadata.class);
+    verify(defaultHandler, atLeastOnce()).patch(any(), statefulSetArgumentCaptor.capture(), any());
     assertEquals(requiredAnnotations,
-        statefulSetArgumentCaptor.getValue().getSpec().getTemplate()
+        statefulSetArgumentCaptor.getAllValues().stream()
+        .filter(StatefulSet.class::isInstance).map(StatefulSet.class::cast)
+        .findFirst().orElseThrow().getSpec().getTemplate()
         .getMetadata().getAnnotations());
 
-    ArgumentCaptor<Pod> podArgumentCaptor = ArgumentCaptor.forClass(Pod.class);
-    verify(podWriter, times(replicas)).update(podArgumentCaptor.capture());
-    podArgumentCaptor.getAllValues().forEach(pod -> {
+    verify(defaultHandler, times(replicas)).patch(any(), any(Pod.class), any());
+    ArgumentCaptor<HasMetadata> podArgumentCaptor = ArgumentCaptor.forClass(HasMetadata.class);
+    verify(defaultHandler, atLeastOnce()).patch(any(), podArgumentCaptor.capture(), any());
+    podArgumentCaptor.getAllValues().stream().filter(Pod.class::isInstance).forEach(pod -> {
       assertEquals(Seq.seq(deployedAnnotations.get(pod.getMetadata().getName()))
           .filter(annotation -> !requiredAnnotations.containsKey(annotation.v1))
           .append(Seq.seq(requiredAnnotations))
@@ -475,15 +478,17 @@ class ClusterStatefulSetReconciliationHandlerTest {
         .map(t -> t.map1(pod -> pod.getMetadata().getName()))
         .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2));
 
-    when(statefulSetWriter.update(any())).thenReturn(requiredStatefulSet);
+    when(defaultHandler.patch(any(), any(StatefulSet.class), any()))
+        .thenReturn(requiredStatefulSet);
 
     handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
 
-    verify(statefulSetWriter).update(any());
+    verify(defaultHandler).patch(any(), any(StatefulSet.class), any());
 
-    ArgumentCaptor<Pod> podArgumentCaptor = ArgumentCaptor.forClass(Pod.class);
-    verify(podWriter, times(replicas)).update(podArgumentCaptor.capture());
-    podArgumentCaptor.getAllValues().forEach(pod -> {
+    verify(defaultHandler, times(replicas)).patch(any(), any(Pod.class), any());
+    ArgumentCaptor<HasMetadata> podArgumentCaptor = ArgumentCaptor.forClass(HasMetadata.class);
+    verify(defaultHandler, atLeastOnce()).patch(any(), podArgumentCaptor.capture(), any());
+    podArgumentCaptor.getAllValues().stream().filter(Pod.class::isInstance).forEach(pod -> {
       assertEquals(Seq.seq(deployedLabels.get(pod.getMetadata().getName()))
           .filter(label -> !requiredLabels.containsKey(label.v1))
           .append(Seq.seq(requiredLabels))
@@ -499,7 +504,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
     deployedStatefulSet.getMetadata().setUid(StringUtils.getRandomString());
     final List<OwnerReference> requiredOwnerReferences = getOwnerReferences(deployedStatefulSet);
 
-    when(statefulSetWriter.update(any())).thenReturn(deployedStatefulSet);
+    when(defaultHandler.patch(any(), any(StatefulSet.class), any()))
+        .thenReturn(deployedStatefulSet);
 
     handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
 
@@ -535,22 +541,28 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
 
-    ArgumentCaptor<StatefulSet> statefulSetArgumentCaptor =
-        ArgumentCaptor.forClass(StatefulSet.class);
-    verify(statefulSetWriter).update(statefulSetArgumentCaptor.capture());
-    statefulSetArgumentCaptor.getValue().getSpec().getVolumeClaimTemplates()
+    verify(defaultHandler).patch(any(), any(StatefulSet.class), any());
+    ArgumentCaptor<HasMetadata> statefulSetArgumentCaptor =
+        ArgumentCaptor.forClass(HasMetadata.class);
+    verify(defaultHandler, atLeastOnce()).patch(any(), statefulSetArgumentCaptor.capture(), any());
+    statefulSetArgumentCaptor.getAllValues().stream()
+        .filter(StatefulSet.class::isInstance).map(StatefulSet.class::cast)
+        .findFirst().orElseThrow().getSpec().getVolumeClaimTemplates()
         .forEach(pvc -> assertEquals(requiredAnnotations, pvc.getMetadata().getAnnotations()));
 
-    ArgumentCaptor<PersistentVolumeClaim> pvcArgumentCaptor =
-        ArgumentCaptor.forClass(PersistentVolumeClaim.class);
-    verify(pvcWriter, times(desiredReplicas)).update(pvcArgumentCaptor.capture());
-    pvcArgumentCaptor.getAllValues().forEach(pvc -> {
-      assertEquals(Seq.seq(deployedAnnotations.get(pvc.getMetadata().getName()))
-          .filter(annotation -> !requiredAnnotations.containsKey(annotation.v1))
-          .append(Seq.seq(requiredAnnotations))
-          .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2)),
-          pvc.getMetadata().getAnnotations());
-    });
+    verify(defaultHandler, times(desiredReplicas))
+        .patch(any(), any(PersistentVolumeClaim.class), any());
+    ArgumentCaptor<HasMetadata> pvcArgumentCaptor =
+        ArgumentCaptor.forClass(HasMetadata.class);
+    verify(defaultHandler, atLeastOnce()).patch(any(), pvcArgumentCaptor.capture(), any());
+    pvcArgumentCaptor.getAllValues().stream().filter(PersistentVolumeClaim.class::isInstance)
+        .forEach(pvc -> {
+          assertEquals(Seq.seq(deployedAnnotations.get(pvc.getMetadata().getName()))
+              .filter(annotation -> !requiredAnnotations.containsKey(annotation.v1))
+              .append(Seq.seq(requiredAnnotations))
+              .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2)),
+              pvc.getMetadata().getAnnotations());
+        });
   }
 
   @Test
@@ -581,22 +593,28 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     handler.patch(cluster, requiredStatefulSet, deployedStatefulSet);
 
-    ArgumentCaptor<StatefulSet> statefulSetArgumentCaptor =
-        ArgumentCaptor.forClass(StatefulSet.class);
-    verify(statefulSetWriter).update(statefulSetArgumentCaptor.capture());
-    statefulSetArgumentCaptor.getValue().getSpec().getVolumeClaimTemplates()
+    verify(defaultHandler).patch(any(), any(StatefulSet.class), any());
+    ArgumentCaptor<HasMetadata> statefulSetArgumentCaptor =
+        ArgumentCaptor.forClass(HasMetadata.class);
+    verify(defaultHandler, atLeastOnce()).patch(any(), statefulSetArgumentCaptor.capture(), any());
+    statefulSetArgumentCaptor.getAllValues().stream()
+        .filter(StatefulSet.class::isInstance).map(StatefulSet.class::cast)
+        .findFirst().orElseThrow().getSpec().getVolumeClaimTemplates()
         .forEach(pvc -> assertEquals(requiredLabels, pvc.getMetadata().getLabels()));
 
-    ArgumentCaptor<PersistentVolumeClaim> pvcArgumentCaptor =
-        ArgumentCaptor.forClass(PersistentVolumeClaim.class);
-    verify(pvcWriter, times(desiredReplicas)).update(pvcArgumentCaptor.capture());
-    pvcArgumentCaptor.getAllValues().forEach(pvc -> {
-      assertEquals(Seq.seq(deployedLabels.get(pvc.getMetadata().getName()))
-          .filter(label -> !requiredLabels.containsKey(label.v1))
-          .append(Seq.seq(requiredLabels))
-          .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2)),
-          pvc.getMetadata().getLabels());
-    });
+    verify(defaultHandler, times(desiredReplicas))
+        .patch(any(), any(PersistentVolumeClaim.class), any());
+    ArgumentCaptor<HasMetadata> pvcArgumentCaptor =
+        ArgumentCaptor.forClass(HasMetadata.class);
+    verify(defaultHandler, atLeastOnce()).patch(any(), pvcArgumentCaptor.capture(), any());
+    pvcArgumentCaptor.getAllValues().stream().filter(PersistentVolumeClaim.class::isInstance)
+        .forEach(pvc -> {
+          assertEquals(Seq.seq(deployedLabels.get(pvc.getMetadata().getName()))
+              .filter(label -> !requiredLabels.containsKey(label.v1))
+              .append(Seq.seq(requiredLabels))
+              .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2)),
+              pvc.getMetadata().getLabels());
+        });
   }
 
   private int setUpNoScale(int min, int nonDisruptiblePods, int distance,
@@ -654,8 +672,10 @@ class ClusterStatefulSetReconciliationHandlerTest {
         .thenReturn(Optional.of(
             returnRequiredStatefulSet ? requiredStatefulSet : deployedStatefulSet));
     requiredStatefulSet.getSpec().setReplicas(desiredReplicas);
-    lenient().when(statefulSetWriter.create(any())).thenReturn(requiredStatefulSet);
-    lenient().when(statefulSetWriter.update(any())).thenReturn(requiredStatefulSet);
+    lenient().when(defaultHandler.create(any(), any(StatefulSet.class)))
+        .thenReturn(requiredStatefulSet);
+    lenient().when(defaultHandler.patch(any(), any(StatefulSet.class), any()))
+        .thenReturn(requiredStatefulSet);
   }
 
   private int getRandomDesiredReplicas(int min) {
@@ -725,7 +745,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
     lenient().doAnswer(arguments -> {
       podList.remove(arguments.getArgument(0));
       return null;
-    }).when(podWriter).delete(any());
+    }).when(defaultHandler).delete(any(), any(Pod.class));
   }
 
   private int getPrimaryIndex(int desiredReplicas, int nonDisruptiblePods,

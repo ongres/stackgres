@@ -54,8 +54,8 @@ class DistributedLogsRequireResourceDecoratorTest
   }
 
   @Override
-  protected String usingCrdFilename() {
-    return "SGDistributedLogs.yaml";
+  protected String usingKind() {
+    return StackGresDistributedLogs.KIND;
   }
 
   @Override

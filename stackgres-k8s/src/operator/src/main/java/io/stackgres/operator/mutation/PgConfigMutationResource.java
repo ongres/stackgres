@@ -13,6 +13,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -29,12 +30,13 @@ public class PgConfigMutationResource
 
   @Inject
   public PgConfigMutationResource(
+      ObjectMapper objectMapper,
       MutationPipeline<StackGresPostgresConfig, PgConfigReview> pipeline) {
-    super(pipeline);
+    super(objectMapper, pipeline);
   }
 
   public PgConfigMutationResource() {
-    super(null);
+    super(null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
   }
 

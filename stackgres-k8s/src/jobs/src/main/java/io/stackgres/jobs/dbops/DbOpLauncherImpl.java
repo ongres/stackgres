@@ -118,8 +118,9 @@ public class DbOpLauncherImpl implements DbOpLauncher {
                       .runJob(initializedDbOps, targetCluster));
               Optional.ofNullable(initializedDbOps.getSpec().getTimeout())
                   .map(Duration::parse)
-                  .map(jobTimeout -> jobUni.await().atMost(jobTimeout))
-                  .orElseGet(() -> jobUni.await().indefinitely());
+                  .ifPresentOrElse(
+                      jobTimeout -> jobUni.await().atMost(jobTimeout),
+                      () -> jobUni.await().indefinitely());
               databaseOperationEventEmitter.operationCompleted(dbOpName, namespace);
             });
 

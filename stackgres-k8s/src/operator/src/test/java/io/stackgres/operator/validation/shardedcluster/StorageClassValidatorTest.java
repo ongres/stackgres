@@ -13,9 +13,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardBuilder;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
@@ -74,6 +76,46 @@ class StorageClassValidatorTest {
   }
 
   @Test
+  void givenValidStorageClassOnCreationWithOverrides_shouldNotFail() throws ValidationFailed {
+    final StackGresShardedClusterReview review = AdmissionReviewFixtures.shardedCluster()
+        .loadCreate().get();
+
+    review.getRequest().getObject().getSpec().getCoordinator()
+        .getPod().getPersistentVolume().setStorageClass("coordinator");
+    review.getRequest().getObject().getSpec().getShards()
+        .getPod().getPersistentVolume().setStorageClass("shards");
+    review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
+        new StackGresShardedClusterShardBuilder()
+        .withNewPodForShards()
+        .withNewPersistentVolume()
+        .withStorageClass("overrideShards")
+        .endPersistentVolume()
+        .endPodForShards()
+        .build()));
+    String coordinatorStorageClass =
+        review.getRequest().getObject().getSpec().getCoordinator()
+        .getPod().getPersistentVolume().getStorageClass();
+    String shardsStorageClass =
+        review.getRequest().getObject().getSpec().getShards()
+        .getPod().getPersistentVolume().getStorageClass();
+    String overrideShardsStorageClass =
+        review.getRequest().getObject().getSpec().getShards().getOverrides().get(0)
+        .getPodForShards().getPersistentVolume().getStorageClass();
+    when(storageClassFinder.findByName(coordinatorStorageClass))
+        .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
+    when(storageClassFinder.findByName(shardsStorageClass))
+        .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
+    when(storageClassFinder.findByName(overrideShardsStorageClass))
+        .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
+
+    validator.validate(review);
+
+    verify(storageClassFinder).findByName(eq(coordinatorStorageClass));
+    verify(storageClassFinder).findByName(eq(shardsStorageClass));
+    verify(storageClassFinder).findByName(eq(overrideShardsStorageClass));
+  }
+
+  @Test
   void giveInvalidCoordinatorStorageClassOnCreation_shouldFail() {
     final StackGresShardedClusterReview review = AdmissionReviewFixtures.shardedCluster()
         .loadCreate().get();
@@ -118,6 +160,46 @@ class StorageClassValidatorTest {
     String resultMessage = ex.getMessage();
 
     assertEquals("Storage class " + storageClass + " not found for shards", resultMessage);
+  }
+
+  @Test
+  void giveInvalidOverrideShardsStorageClassOnCreation_shouldFail() {
+    final StackGresShardedClusterReview review = AdmissionReviewFixtures.shardedCluster()
+        .loadCreate().get();
+
+    review.getRequest().getObject().getSpec().getShards()
+        .getPod().getPersistentVolume().setStorageClass("test");
+    review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
+        new StackGresShardedClusterShardBuilder()
+        .withNewPodForShards()
+        .withNewPersistentVolume()
+        .withStorageClass("overrideTest")
+        .endPersistentVolume()
+        .endPodForShards()
+        .build()));
+    String storageClass =
+        review.getRequest().getObject().getSpec().getShards()
+        .getPod().getPersistentVolume().getStorageClass();
+    String overrideStorageClass =
+        review.getRequest().getObject().getSpec().getShards()
+        .getOverrides().get(0)
+        .getPodForShards().getPersistentVolume().getStorageClass();
+
+    when(storageClassFinder.findByName(review.getRequest().getObject().getSpec().getCoordinator()
+        .getPod().getPersistentVolume().getStorageClass()))
+        .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
+    when(storageClassFinder.findByName(storageClass))
+        .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
+    when(storageClassFinder.findByName(overrideStorageClass))
+        .thenReturn(Optional.empty());
+
+    ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
+      validator.validate(review);
+    });
+
+    String resultMessage = ex.getMessage();
+
+    assertEquals("Storage class " + overrideStorageClass + " not found for shard 0", resultMessage);
   }
 
   @Test
@@ -174,6 +256,49 @@ class StorageClassValidatorTest {
   }
 
   @Test
+  void giveAnAttemptToUpdateToAUnknownOvverideShardsStorageClass_shouldFail() {
+    final StackGresShardedClusterReview review = AdmissionReviewFixtures.shardedCluster()
+        .loadUpdate().get();
+
+    review.getRequest().getObject().getSpec().getShards()
+        .getPod().getPersistentVolume().setStorageClass("test");
+    review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
+        new StackGresShardedClusterShardBuilder()
+        .withNewPodForShards()
+        .withNewPersistentVolume()
+        .withStorageClass("overrideTest")
+        .endPersistentVolume()
+        .endPodForShards()
+        .build()));
+    String storageClass =
+        review.getRequest().getObject().getSpec().getShards()
+        .getPod().getPersistentVolume().getStorageClass();
+    String overrideStorageClass =
+        review.getRequest().getObject().getSpec().getShards()
+        .getOverrides().get(0)
+        .getPodForShards().getPersistentVolume().getStorageClass();
+
+    when(storageClassFinder.findByName(review.getRequest().getObject().getSpec().getCoordinator()
+        .getPod().getPersistentVolume().getStorageClass()))
+        .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
+    when(storageClassFinder.findByName(storageClass))
+        .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
+    when(storageClassFinder.findByName(overrideStorageClass))
+        .thenReturn(Optional.empty());
+
+    ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
+      validator.validate(review);
+    });
+
+    String resultMessage = ex.getMessage();
+
+    assertEquals("Cannot update shard 0 to storage class " + overrideStorageClass
+        + " because it doesn't exists", resultMessage);
+
+    verify(storageClassFinder).findByName(eq(storageClass));
+  }
+
+  @Test
   void giveAnAttemptToUpdateToAKnownCoordinatorStorageClass_shouldNotFail()
       throws ValidationFailed {
     final StackGresShardedClusterReview review = AdmissionReviewFixtures.shardedCluster()
@@ -223,6 +348,47 @@ class StorageClassValidatorTest {
 
     verify(storageClassFinder).findByName(eq(coordinatorStorageClass));
     verify(storageClassFinder).findByName(eq(shardsStorageClass));
+  }
+
+  @Test
+  void giveAnAttemptToUpdateToAKnownOverrideShardsStorageClass_shouldNotFail()
+      throws ValidationFailed {
+    final StackGresShardedClusterReview review = AdmissionReviewFixtures.shardedCluster()
+        .loadStorageClassConfigUpdate().get();
+
+    String coordinatorStorageClass =
+        review.getRequest().getObject().getSpec().getShards()
+        .getPod().getPersistentVolume().getStorageClass();
+    review.getRequest().getObject().getSpec().getShards()
+        .getPod().getPersistentVolume().setStorageClass("test");
+    review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
+        new StackGresShardedClusterShardBuilder()
+        .withNewPodForShards()
+        .withNewPersistentVolume()
+        .withStorageClass("overrideTest")
+        .endPersistentVolume()
+        .endPodForShards()
+        .build()));
+    String shardsStorageClass =
+        review.getRequest().getObject().getSpec().getShards()
+        .getPod().getPersistentVolume().getStorageClass();
+    String overrideShardsStorageClass =
+        review.getRequest().getObject().getSpec().getShards()
+        .getOverrides().get(0)
+        .getPodForShards().getPersistentVolume().getStorageClass();
+
+    when(storageClassFinder.findByName(coordinatorStorageClass))
+        .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
+    when(storageClassFinder.findByName(shardsStorageClass))
+        .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
+    when(storageClassFinder.findByName(overrideShardsStorageClass))
+        .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
+
+    validator.validate(review);
+
+    verify(storageClassFinder).findByName(eq(coordinatorStorageClass));
+    verify(storageClassFinder).findByName(eq(shardsStorageClass));
+    verify(storageClassFinder).findByName(eq(overrideShardsStorageClass));
   }
 
   @Test

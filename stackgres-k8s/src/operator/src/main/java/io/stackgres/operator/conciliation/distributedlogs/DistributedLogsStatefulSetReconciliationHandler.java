@@ -17,8 +17,8 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
-import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operator.conciliation.AbstractStatefulSetReconciliationHandler;
+import io.stackgres.operator.conciliation.ReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 
 @ReconciliationScope(value = StackGresDistributedLogs.class, kind = "StatefulSet")
@@ -28,16 +28,15 @@ public class DistributedLogsStatefulSetReconciliationHandler
 
   @Inject
   public DistributedLogsStatefulSetReconciliationHandler(
+      @ReconciliationScope(value = StackGresDistributedLogs.class, kind = "HasMetadata")
+      ReconciliationHandler<StackGresDistributedLogs> handler,
       LabelFactoryForCluster<StackGresDistributedLogs> labelFactory,
       ResourceFinder<StatefulSet> statefulSetFinder,
-      ResourceWriter<StatefulSet> statefulSetWriter,
       ResourceScanner<Pod> podScanner,
-      ResourceWriter<Pod> podWriter,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,
-      ResourceWriter<PersistentVolumeClaim> pvcWriter,
       ResourceFinder<Endpoints> endpointsFinder, ObjectMapper objectMapper) {
-    super(labelFactory, statefulSetFinder, statefulSetWriter, podScanner, podWriter, pvcScanner,
-        pvcWriter, endpointsFinder, objectMapper);
+    super(handler, labelFactory, statefulSetFinder, podScanner, pvcScanner,
+        endpointsFinder, objectMapper);
   }
 
 }

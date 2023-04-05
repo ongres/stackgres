@@ -9,6 +9,7 @@ import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.operator.common.ObjectStorageReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -18,7 +19,7 @@ class ObjectStorageMutationResourceTest
 
   @Override
   protected MutationResource<StackGresObjectStorage, ObjectStorageReview> getResource() {
-    return new ObjectStorageMutationResource(pipeline);
+    return new ObjectStorageMutationResource(JsonUtil.jsonMapper(), pipeline);
   }
 
   @Override

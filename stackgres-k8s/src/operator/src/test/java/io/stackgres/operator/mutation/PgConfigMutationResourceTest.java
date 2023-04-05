@@ -9,6 +9,7 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -21,7 +22,7 @@ class PgConfigMutationResourceTest
 
   @Override
   protected MutationResource<StackGresPostgresConfig, PgConfigReview> getResource() {
-    return new PgConfigMutationResource(pipeline);
+    return new PgConfigMutationResource(JsonUtil.jsonMapper(), pipeline);
   }
 
   @Override

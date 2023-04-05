@@ -9,6 +9,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -21,7 +22,7 @@ class ClusterMutationResourceTest
 
   @Override
   protected MutationResource<StackGresCluster, StackGresClusterReview> getResource() {
-    return new ClusterMutationResource(pipeline);
+    return new ClusterMutationResource(JsonUtil.jsonMapper(), pipeline);
   }
 
   @Override

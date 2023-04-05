@@ -73,7 +73,8 @@ public interface Validator<T extends AdmissionReview<?>> {
     throw new ValidationFailed(status);
   }
 
-  default void failWithFields(String kind, String reason, String message, String... fields)
+  default void failWithMessageAndFields(
+      String kind, String reason, String message, String... fields)
       throws ValidationFailed {
     StatusDetailsBuilder statusDetailsBuilder = new StatusDetailsBuilder();
     Arrays.asList(fields).forEach(field -> statusDetailsBuilder

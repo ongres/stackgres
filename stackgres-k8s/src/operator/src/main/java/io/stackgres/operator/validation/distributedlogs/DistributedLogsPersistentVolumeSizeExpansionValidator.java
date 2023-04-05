@@ -51,12 +51,12 @@ public class DistributedLogsPersistentVolumeSizeExpansionValidator
   }
 
   @Override
-  public @NotNull String getVolumeSize(StackGresDistributedLogs cluster) {
+  protected @NotNull String getVolumeSize(StackGresDistributedLogs cluster) {
     return cluster.getSpec().getPersistentVolume().getSize();
   }
 
   @Override
-  public Optional<String> getStorageClass(StackGresDistributedLogs cluster) {
+  protected Optional<String> getStorageClass(StackGresDistributedLogs cluster) {
     return Optional.of(cluster)
         .map(StackGresDistributedLogs::getSpec)
         .map(StackGresDistributedLogsSpec::getPersistentVolume)
@@ -64,22 +64,22 @@ public class DistributedLogsPersistentVolumeSizeExpansionValidator
   }
 
   @Override
-  public boolean isOperationUpdate(StackGresDistributedLogsReview review) {
+  protected boolean isOperationUpdate(StackGresDistributedLogsReview review) {
     return review.getRequest().getOperation() == Operation.UPDATE;
   }
 
   @Override
-  public void throwValidationError(String message) throws ValidationFailed {
+  protected void throwValidationError(String message) throws ValidationFailed {
     fail(message);
   }
 
   @Override
-  public ResourceFinder<StorageClass> getStorageClassFinder() {
+  protected ResourceFinder<StorageClass> getStorageClassFinder() {
     return finder;
   }
 
   @Override
-  public LabelFactoryForCluster<StackGresDistributedLogs> getLabelFactory() {
+  protected LabelFactoryForCluster<StackGresDistributedLogs> getLabelFactory() {
     return labelFactory;
   }
 
@@ -89,7 +89,7 @@ public class DistributedLogsPersistentVolumeSizeExpansionValidator
   }
 
   @Override
-  public ResourceScanner<PersistentVolumeClaim> getPvcScanner() {
+  protected ResourceScanner<PersistentVolumeClaim> getPvcScanner() {
     return pvcScanner;
   }
 }

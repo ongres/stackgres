@@ -9,6 +9,7 @@ import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -18,7 +19,7 @@ class SgProfileMutationResourceTest
 
   @Override
   protected MutationResource<StackGresProfile, SgProfileReview> getResource() {
-    return new SgProfileMutationResource(pipeline);
+    return new SgProfileMutationResource(JsonUtil.jsonMapper(), pipeline);
   }
 
   @Override

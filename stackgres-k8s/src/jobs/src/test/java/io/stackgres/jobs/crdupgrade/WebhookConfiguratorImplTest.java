@@ -18,7 +18,10 @@ import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionSpec;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.ServiceReference;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.WebhookClientConfig;
+import io.stackgres.common.CrdLoader;
 import io.stackgres.common.StringUtil;
+import io.stackgres.common.YamlMapperProvider;
+import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.common.resource.SecretFinder;
 import io.stackgres.jobs.app.JobsProperty;
@@ -41,8 +44,10 @@ class WebhookConfiguratorImplTest {
   @Mock
   private SecretFinder secretFinder;
 
-  private final MockCustomResourceDefinitionFinder crdFinder =
-      new MockCustomResourceDefinitionFinder();
+  private final CrdLoader crdLoader = new CrdLoader(new YamlMapperProvider().get());
+
+  @Mock
+  private ResourceFinder<CustomResourceDefinition> crdFinder;
 
   @Mock
   private ResourceWriter<CustomResourceDefinition> crdWriter;
@@ -52,7 +57,7 @@ class WebhookConfiguratorImplTest {
   @BeforeEach
   void setUp() {
     webhookConfigurator =
-        new WebhookConfiguratorImpl(secretFinder, crdFinder, crdWriter, crdFinder);
+        new WebhookConfiguratorImpl(secretFinder, crdFinder, crdWriter, crdLoader);
   }
 
   @Test
@@ -96,37 +101,40 @@ class WebhookConfiguratorImplTest {
 
   @Test
   void configureWebhook_shouldNotFail() {
+    crdLoader.scanCrds().forEach(definition -> {
+      final String certificate = StringUtil.generateRandom();
 
-    var definition = crdFinder.scanDefinitions().get(0);
+      ArgumentCaptor<CustomResourceDefinition> crdCaptor = ArgumentCaptor
+          .forClass(CustomResourceDefinition.class);
 
-    final String certificate = StringUtil.generateRandom();
+      when(crdFinder.findByName(definition.getMetadata().getName()))
+          .thenReturn(Optional.of(crdLoader.getCrd(definition.getSpec().getNames().getKind())));
+      when(crdWriter.update(crdCaptor.capture())).thenReturn(definition);
 
-    ArgumentCaptor<CustomResourceDefinition> crdCaptor = ArgumentCaptor
-        .forClass(CustomResourceDefinition.class);
+      webhookConfigurator.configureWebhook(definition.getMetadata().getName(),
+          certificate);
 
-    when(crdWriter.update(crdCaptor.capture())).thenReturn(definition);
+      CustomResourceDefinition crd = crdCaptor.getValue();
 
-    webhookConfigurator.configureWebhook(definition.getMetadata().getName(),
-        certificate);
-
-    CustomResourceDefinition crd = crdCaptor.getValue();
-
-    final CustomResourceDefinitionSpec spec = crd.getSpec();
-    final CustomResourceConversion conversion = spec.getConversion();
-    final WebhookClientConfig clientConfig = conversion.getWebhook().getClientConfig();
-    final ServiceReference service = clientConfig.getService();
-    assertEquals("Webhook", conversion.getStrategy());
-    assertEquals(OPERATOR_NAME, service.getName());
-    assertEquals(OPERATOR_NAMESPACE, service.getNamespace());
-    assertEquals("/stackgres/conversion/" + definition.getSpec().getNames().getSingular(),
-        service.getPath());
-    assertEquals(certificate, clientConfig.getCaBundle());
-    assertFalse(spec.getPreserveUnknownFields());
-
+      final CustomResourceDefinitionSpec spec = crd.getSpec();
+      final CustomResourceConversion conversion = spec.getConversion();
+      final WebhookClientConfig clientConfig = conversion.getWebhook().getClientConfig();
+      final ServiceReference service = clientConfig.getService();
+      assertEquals("Webhook", conversion.getStrategy());
+      assertEquals(OPERATOR_NAME, service.getName());
+      assertEquals(OPERATOR_NAMESPACE, service.getNamespace());
+      assertEquals("/stackgres/conversion/" + definition.getSpec().getNames().getSingular(),
+          service.getPath());
+      assertEquals(certificate, clientConfig.getCaBundle());
+      assertFalse(spec.getPreserveUnknownFields());
+    });
   }
 
   @Test
   void configureWebhooks_shouldNotFail() {
+    crdLoader.scanCrds().forEach(definition -> when(
+        crdFinder.findByName(definition.getMetadata().getName()))
+        .thenReturn(Optional.of(crdLoader.getCrd(definition.getSpec().getNames().getKind()))));
     final String certificate = StringUtil.generateRandom();
     when(secretFinder.findByNameAndNamespace(OPERATOR_SECRET_NAME, OPERATOR_NAMESPACE))
         .thenReturn(Optional.of(new SecretBuilder()

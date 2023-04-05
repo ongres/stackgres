@@ -10,278 +10,69 @@ metadata:
 spec:
   instances: {{ .Values.cluster.instances }}
   postgres:
-    version: '{{ .Values.cluster.postgres.version }}'
-    {{- with .Values.cluster.postgres.flavor }}
-    flavor: {{ . }}
-    {{- end }}
-    {{- if not .Values.cluster.postgres.extensions }}
-    extensions: []
-    {{- else }}
-    {{- if eq (len .Values.cluster.postgres.extensions) 0 }}
-    extensions: []
-    {{- else }}
-    extensions:
-    {{- range .Values.cluster.postgres.extensions }}
-      - name: "{{ .name }}"
-        {{- with .publisher }}
-        publisher: "{{ . }}"
-        {{- end }}
-        {{- with .version }}
-        version: "{{ . }}"
-        {{- end }}
-        {{- with .repository }}
-        repository: "{{ . }}"
-        {{- end }}
-    {{- end }}
-    {{- end }}
-    {{- end }}
-    {{- if .Values.cluster.postgres.ssl }}
-    ssl:
-      enabled: {{ .Values.cluster.postgres.ssl.enabled }}
-      {{- if .Values.cluster.postgres.ssl.certificateSecretKeySelector }}
-      certificateSecretKeySelector:
-        name: {{ .Values.cluster.postgres.ssl.certificateSecretKeySelector.name }}
-        key: {{ .Values.cluster.postgres.ssl.certificateSecretKeySelector.key }}
-      {{- end }}
-      {{- if .Values.cluster.postgres.ssl.privateKeySecretKeySelector }}
-      privateKeySecretKeySelector:
-        name: {{ .Values.cluster.postgres.ssl.privateKeySecretKeySelector.name }}
-        key: {{ .Values.cluster.postgres.ssl.privateKeySecretKeySelector.key }}
-      {{- end }}
-    {{- end }}
+    {{- toYaml .Values.cluster.postgres | nindent 4 }}
+  {{- with .Values.cluster.replication }}
   replication:
-    mode: '{{ .Values.cluster.replication.mode }}'
-    role: '{{ .Values.cluster.replication.role }}'
-    {{- with .Values.cluster.replication.syncInstances }}
-    syncInstances: {{ . }}
-    {{- end }}
-    {{- if .Values.cluster.replication.groups }}
-    groups:
-    {{- range .Values.cluster.replication.groups }}
-    - instances: {{ .instances }}
-      {{- with .role }}
-      role: {{ . }}
-      {{- end }}
-      {{- with .name }}
-      name: {{ . }}
-      {{- end }}
-    {{- end }}
-    {{- end }}
-  {{- if .Values.cluster.replicateFrom }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.cluster.replicateFrom }}
   replicateFrom:
-    {{- if .Values.cluster.replicateFrom.instance }}
-    instance:
-      {{- with .Values.cluster.replicateFrom.instance.sgCluster }}
-      sgCluster: {{ . }}
-      {{- end }}
-      {{- if .Values.cluster.replicateFrom.instance.external }}
-      external:
-        host: {{ .Values.cluster.replicateFrom.instance.external.host }}
-        port: {{ .Values.cluster.replicateFrom.instance.external.port }}
-      {{- end }}
-    {{- end }}
-    {{- if .Values.cluster.replicateFrom.storage }}
-    storage:
-      {{- with .Values.cluster.replicateFrom.storage.compression }}
-      compression: '{{ . }}'
-      {{- end }}
-      {{- if .Values.cluster.replicateFrom.storage.performance }}
-      performance: 
-        {{- with .Values.cluster.replicateFrom.storage.performance.downloadConcurrency }}
-        downloadConcurrency: {{ . }}
-        {{- end }}
-        {{- with .Values.cluster.replicateFrom.storage.performance.maxNetworkBandwidth }}
-        maxNetworkBandwidth: {{ . }}
-        {{- end }}
-        {{- with .Values.cluster.replicateFrom.storage.performance.maxDiskBandwidth }}
-        maxDiskBandwidth: {{ . }}
-        {{- end }}
-      {{- end }}
-      sgObjectStorage: '{{ .Values.cluster.replicateFrom.storage.sgObjectStorage }}'
-      path: '{{ .Values.cluster.replicateFrom.storage.path }}'
-    {{- end }}
-    {{- if .Values.cluster.replicateFrom.users }}
-    users:
-      superuser:
-        username:
-          name: {{ .Values.cluster.replicateFrom.users.superuser.username.name }}
-          key: {{ .Values.cluster.replicateFrom.users.superuser.username.key }}
-        password:
-          name: {{ .Values.cluster.replicateFrom.users.superuser.password.name }}
-          key: {{ .Values.cluster.replicateFrom.users.superuser.password.key }}
-      replication:
-        username:
-          name: {{ .Values.cluster.replicateFrom.users.replication.username.name }}
-          key: {{ .Values.cluster.replicateFrom.users.replication.username.key }}
-        password:
-          name: {{ .Values.cluster.replicateFrom.users.replication.password.name }}
-          key: {{ .Values.cluster.replicateFrom.users.replication.password.key }}
-      authenticator:
-        username:
-          name: {{ .Values.cluster.replicateFrom.users.authenticator.username.name }}
-          key: {{ .Values.cluster.replicateFrom.users.authenticator.username.key }}
-        password:
-          name: {{ .Values.cluster.replicateFrom.users.authenticator.password.name }}
-          key: {{ .Values.cluster.replicateFrom.users.authenticator.password.key }}
-    {{- end }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
   configurations: 
-    sgPostgresConfig: '{{ .Values.cluster.configurations.sgPostgresConfig }}'
-    sgPoolingConfig: '{{ .Values.cluster.configurations.sgPoolingConfig }}'
-    {{- if .Values.cluster.configurations.backups.sgObjectStorage }}
+    sgPostgresConfig: {{ quote .Values.cluster.configurations.sgPostgresConfig }}
+    sgPoolingConfig: {{ quote .Values.cluster.configurations.sgPoolingConfig }}
+    {{- with .Values.cluster.configurations.backups }}
+    {{- if .sgObjectStorage }}
     backups:
-    - retention: {{ .Values.cluster.configurations.backups.retention }}
-      cronSchedule: '{{ .Values.cluster.configurations.backups.cronSchedule }}'
-      compression: '{{ .Values.cluster.configurations.backups.compression }}'
-      performance: 
-        uploadDiskConcurrency: {{ .Values.cluster.configurations.backups.performance.uploadDiskConcurrency }}
-        {{- with .Values.cluster.configurations.backups.performance.maxNetworkBandwidth }}
-        maxNetworkBandwidth: {{ . }}
-        {{- end }}
-        {{- with .Values.cluster.configurations.backups.performance.maxDiskBandwidth }}
-        maxDiskBandwidth: {{ . }}
-        {{- end }}
-      sgObjectStorage: '{{ .Values.cluster.configurations.backups.sgObjectStorage }}'
-      {{- with .Values.cluster.configurations.backups.path }}
-      path: '{{ . }}'
-      {{- end }}
+    - {{- toYaml . | nindent 6 }}
     {{- end }}
-  sgInstanceProfile: '{{ .Values.cluster.sgInstanceProfile }}'
-  {{- if .Values.cluster.initialData }}
+    {{- end }}
+  sgInstanceProfile: {{ quote .Values.cluster.sgInstanceProfile }}
+  {{- with .Values.cluster.initialData }}
   initialData:
-    {{- if .Values.cluster.initialData.restore }}
-    restore:
-      {{- if .Values.cluster.initialData.restore.fromBackup }}
-      fromBackup:
-        name: {{ .Values.cluster.initialData.restore.fromBackup.name }}
-        {{- with .Values.cluster.initialData.restore.fromBackup.pointInTimeRecovery }}
-        pointInTimeRecovery:
-          restoreToTimestamp: {{ .restoreToTimestamp }}
-        {{- end }}
-      {{- end }}
-      {{- with .Values.cluster.initialData.restore.downloadDiskConcurrency }}
-      downloadDiskConcurrency: {{ . }}
-      {{- end }}
-    {{- end }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if .Values.cluster.managedSql }}
+  {{- with .Values.cluster.managedSql }}
   managedSql:
-  {{- with .Values.cluster.managedSql.continueOnSGScriptError }}
+  {{- with .continueOnSGScriptError }}
     continueOnSGScriptError: {{ . }}
   {{- end }}
-  {{- if .Values.cluster.managedSql.scripts }}
+  {{- if .scripts }}
     scripts:
     - sgScript: {{ $.Release.Name }}-scripts
   {{- end }}
   {{- end }}
-  {{- if .Values.cluster.postgresServices }}
+  {{- with .Values.cluster.postgresServices }}
   postgresServices:
-    {{- if .Values.cluster.postgresServices.primary }}
-    primary:
-      enabled: {{ .Values.cluster.postgresServices.primary.enabled }}
-      {{- with .Values.cluster.postgresServices.primary.type }}
-      type:  {{ . }}
-      {{- end }}
-      {{- with .Values.cluster.postgresServices.primary.externalIPs }}
-      externalIPs:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.cluster.postgresServices.primary.loadBalancerIP }}
-      loadBalancerIP: {{ . }}
-      {{- end }}
-      {{- with .Values.cluster.postgresServices.primary.customPorts }}
-      customPorts:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-    {{- end }}
-    {{- if .Values.cluster.postgresServices.replicas }}
-    replicas:
-      enabled: {{ .Values.cluster.postgresServices.replicas.enabled }}
-      {{- with .Values.cluster.postgresServices.replicas.type }}
-      type:  {{ . }}
-      {{- end }}
-      {{- with .Values.cluster.postgresServices.replicas.externalIPs }}
-      externalIPs:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.cluster.postgresServices.replicas.annotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.cluster.postgresServices.replicas.loadBalancerIP }}
-      loadBalancerIP: {{ . }}
-      {{- end }}
-      {{- with .Values.cluster.postgresServices.replicas.customPorts }}
-      customPorts:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-    {{- end }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if .Values.cluster.metadata }}
+  {{- with .Values.cluster.metadata }}
   metadata:
-    {{- if .Values.cluster.metadata.annotations }}
-    annotations:
-      {{- with .Values.cluster.metadata.annotations.allResources }}
-      allResources: 
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.cluster.metadata.annotations.clusterPods }}
-      clusterPods:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.cluster.metadata.annotations.services }}
-      services:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.cluster.metadata.annotations.primaryService }}
-      primaryService:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.cluster.metadata.annotations.replicasService }}
-      replicasService:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-    {{- end }}
-    {{- if .Values.cluster.metadata.labels }}
-    labels:
-      {{- with .Values.cluster.metadata.labels.clusterPods }}
-      clusterPods:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-    {{- end }} 
+    {{- toYaml . | nindent 4 }}
   {{- end }}
   pods:
     persistentVolume:
-      size: '{{ .Values.cluster.pods.persistentVolume.size }}'
-      {{- if .Values.cluster.pods.persistentVolume.storageClass }}
-      {{- if eq "-" .Values.cluster.pods.persistentVolume.storageClass }}
+      size: {{ quote .Values.cluster.pods.persistentVolume.size }}
+      {{- with .Values.cluster.pods.persistentVolume.storageClass }}
+      {{- if eq "-" . }}
       storageClass: ""
       {{- else }}
-      storageClass: {{ .Values.cluster.pods.persistentVolume.storageClass }}
+      storageClass: {{ . }}
       {{- end }}
       {{- end }}
-    disableConnectionPooling: {{ .Values.cluster.pods.disableConnectionPooling }}
-    disablePostgresUtil: {{ .Values.cluster.pods.disablePostgresUtil }}
-    disableMetricsExporter: {{ .Values.cluster.pods.disableMetricsExporter }}
-    {{- if .Values.cluster.pods.scheduling }}
+    {{- with .Values.cluster.pods.disableConnectionPooling }}
+    disableConnectionPooling: {{ . }}
+    {{- end }}
+    {{- with .Values.cluster.pods.disablePostgresUtil }}
+    disablePostgresUtil: {{ . }}
+    {{- end }}
+    {{- with .Values.cluster.pods.disableMetricsExporter }}
+    disableMetricsExporter: {{ . }}
+    {{- end }}
+    {{- with .Values.cluster.pods.scheduling }}
     scheduling:
-      {{- with .Values.cluster.pods.scheduling.nodeAffinity }}
-      nodeAffinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.cluster.pods.scheduling.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.cluster.pods.scheduling.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.cluster.pods.scheduling.backup }}
-      backup:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-
+      {{- toYaml . | nindent 6 }}
     {{- end }}
     {{- with .Values.cluster.pods.managementPolicy }}
     managementPolicy: {{ . }}
@@ -299,35 +90,16 @@ spec:
       {{- toYaml . | nindent 6 }}
     {{- end }}
   {{- if .Values.distributedLogs.enabled }}
+  {{- with .Values.cluster.distributedLogs }}
   distributedLogs:
-    sgDistributedLogs: {{ .Values.cluster.distributedLogs.sgDistributedLogs }}
-    {{- with .Values.cluster.distributedLogs.retention }}
-    retention: {{ . }}
-    {{- end }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
-  prometheusAutobind: {{ .Values.cluster.prometheusAutobind }}
-  {{- if .Values.nonProductionOptions }}
+  {{- end }}
+  {{- with .Values.cluster.prometheusAutobind }}
+  prometheusAutobind: {{ . }}
+  {{- end }}
+  {{- with .Values.nonProductionOptions }}
   nonProductionOptions:
-  {{- if not .Values.nonProductionOptions.disableClusterPodAntiAffinity }}
-    disableClusterPodAntiAffinity: false
-  {{- else }}
-    disableClusterPodAntiAffinity: {{ .Values.nonProductionOptions.disableClusterPodAntiAffinity }}
-  {{- end }}
-  {{- if not .Values.nonProductionOptions.disablePatroniResourceRequirements }}
-    disablePatroniResourceRequirements: false
-  {{- else }}
-    disablePatroniResourceRequirements: {{ .Values.nonProductionOptions.disablePatroniResourceRequirements }}
-  {{- end }}
-  {{- if not .Values.nonProductionOptions.disableClusterResourceRequirements }}
-    disableClusterResourceRequirements: false
-  {{- else }}
-    disableClusterResourceRequirements: {{ .Values.nonProductionOptions.disableClusterResourceRequirements }}
-  {{- end }}
-  {{- if .Values.nonProductionOptions.enabledFeatureGates }}
-    enabledFeatureGates:
-  {{- range .Values.nonProductionOptions.enabledFeatureGates }}
-    - '{{ . }}'
-  {{- end }}
-  {{- end }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
 {{- end }}

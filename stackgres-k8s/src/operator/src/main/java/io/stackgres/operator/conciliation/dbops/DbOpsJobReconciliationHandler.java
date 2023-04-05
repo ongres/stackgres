@@ -15,8 +15,8 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.labels.LabelFactoryForDbOps;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
-import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operator.conciliation.AbstractJobReconciliationHandler;
+import io.stackgres.operator.conciliation.ReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 
 @ReconciliationScope(value = StackGresDbOps.class, kind = "Job")
@@ -26,12 +26,12 @@ public class DbOpsJobReconciliationHandler
 
   @Inject
   public DbOpsJobReconciliationHandler(
+      @ReconciliationScope(value = StackGresDbOps.class, kind = "HasMetadata")
+      ReconciliationHandler<StackGresDbOps> handler,
       LabelFactoryForDbOps labelFactory,
       ResourceFinder<Job> jobFinder,
-      ResourceWriter<Job> jobWriter,
-      ResourceScanner<Pod> podScanner,
-      ResourceWriter<Pod> podWriter) {
-    super(labelFactory, jobFinder, jobWriter, podScanner, podWriter);
+      ResourceScanner<Pod> podScanner) {
+    super(handler, labelFactory, jobFinder, podScanner);
   }
 
   @Override

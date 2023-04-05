@@ -28,7 +28,7 @@ public class DistributedLogsHandlerDelegator implements HandlerDelegator<StackGr
   public DistributedLogsHandlerDelegator(
       @Any Instance<ReconciliationHandler<StackGresDistributedLogs>> handlers,
       @ReconciliationScope(value = StackGresDistributedLogs.class, kind = "HasMetadata")
-          ReconciliationHandler<StackGresDistributedLogs> defaultHandler) {
+      ReconciliationHandler<StackGresDistributedLogs> defaultHandler) {
     this.handlers = handlers;
     this.defaultHandler = defaultHandler;
   }

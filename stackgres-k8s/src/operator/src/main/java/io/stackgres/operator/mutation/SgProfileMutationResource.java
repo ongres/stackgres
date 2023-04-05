@@ -13,6 +13,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -29,12 +30,13 @@ public class SgProfileMutationResource
 
   @Inject
   public SgProfileMutationResource(
+      ObjectMapper objectMapper,
       MutationPipeline<StackGresProfile, SgProfileReview> pipeline) {
-    super(pipeline);
+    super(objectMapper, pipeline);
   }
 
   public SgProfileMutationResource() {
-    super(null);
+    super(null, null);
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
   }
 

@@ -73,7 +73,6 @@ cluster:
     primary:
       enabled: true
       type: ClusterIP
-      # loadBalancerIP:
       # customPorts:
       # - name:
       #   protocol:
@@ -84,7 +83,6 @@ cluster:
     replicas:
       enabled: true
       type: ClusterIP
-      # loadBalancerIP:
       # customPorts:
       # - name:
       #   protocol:

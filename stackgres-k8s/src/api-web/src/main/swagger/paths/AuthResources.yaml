@@ -17,6 +17,28 @@ paths:
               schema:
                 description: |
                   The JWT bearer token that is needed to authenticate a user request.
+  /stackgres/auth/type:
+    get:
+      tags:
+      - auth
+      summary: Auth type
+      description: |
+        Return the configured auth mechanism type.
+
+        ### RBAC permissions required
+
+        None
+  /stackgres/auth/external:
+    get:
+      tags:
+      - auth
+      summary: External auth
+      description: |
+        Return the URL for external authentication.
+
+        ### RBAC permissions required
+
+        None
   /stackgres/auth/rbac/can-i:
     get:
       tags:
