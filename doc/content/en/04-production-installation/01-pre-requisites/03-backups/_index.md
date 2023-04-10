@@ -93,7 +93,7 @@ In particular, apart from the obvious part of having to change the namespace, yo
 
 The following is shows how to copy an SGBackup from the `source` namespace to the `target` namespace using `kubectl` and [`jq`](https://stedolan.github.io/jq/):
 
-```shell
+```
 kubectl get sgbackup -n source source -o json \
   | jq '.spec.sgCluster = .metadata.namespace + "." + .spec.sgCluster | .metadata.namespace = "target"' \
   | kubectl create -f -

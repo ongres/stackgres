@@ -57,13 +57,13 @@ pvc-7528761f-48a3-4aaa-a071-74cb0dd1a65b   50Gi       RWO            Retain     
 
 Delete the current StackGres cluster:
 
-```bash
+```
 kubectl delete sgcluster -n demo-db demo-db
 ```
 
 Check that the PVC no longer exists:
 
-```bash
+```
 $ kubectl get pvc -n demo-db
 NAME                                     STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
 distributedlogs-data-distributedlogs-0   Bound    pvc-1b9b4811-c618-4869-ae02-819f5b8c8cd3   50Gi       RWO            standard       7m12s
@@ -71,7 +71,7 @@ distributedlogs-data-distributedlogs-0   Bound    pvc-1b9b4811-c618-4869-ae02-81
 
 Check that the PV now is in state `Released`:
 
-```bash
+```
 $ kubectl get pv
 NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS     CLAIM                                            STORAGECLASS   REASON   AGE
 pvc-1b9b4811-c618-4869-ae02-819f5b8c8cd3   50Gi       RWO            Delete           Bound      demo-db/distributedlogs-data-distributedlogs-0   standard                8m20s
@@ -83,7 +83,7 @@ pvc-7528761f-48a3-4aaa-a071-74cb0dd1a65b   50Gi       RWO            Retain     
 
 Create a new cluster with 1 instance.
 
-```bash
+```
 $ kubectl get pods -n demo-db
 NAME                READY   STATUS    RESTARTS   AGE
 demo-db-0           7/7     Running   0          87s
@@ -92,7 +92,7 @@ distributedlogs-0   3/3     Running   0          31m
 
 Check that it is a new and empty cluster:
 
-```bash
+```
 $ kubectl exec -it -n demo-db demo-db-0 -c postgres-util -- psql -c '\l'
                               List of databases
    Name    |  Owner   | Encoding | Collate |  Ctype  |   Access privileges
@@ -107,7 +107,7 @@ $ kubectl exec -it -n demo-db demo-db-0 -c postgres-util -- psql -c '\l'
 
 Check the new PVC:
 
-```bash
+```
 $ kubectl get pvc -n demo-db
 NAME                                     STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
 demo-db-data-demo-db-0                   Bound    pvc-13949341-8e30-4100-bdd8-dea148ea6894   50Gi       RWO            ssd-data       2m19s
@@ -117,7 +117,7 @@ distributedlogs-data-distributedlogs-0   Bound    pvc-1b9b4811-c618-4869-ae02-81
 
 Check the PVs:
 
-```bash
+```
 $ kubectl get pv
 NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS     CLAIM                                            STORAGECLASS   REASON   AGE
 pvc-13949341-8e30-4100-bdd8-dea148ea6894   50Gi       RWO            Retain           Bound      demo-db/demo-db-data-demo-db-0                   ssd-data                2m37s
@@ -131,7 +131,7 @@ pvc-7528761f-48a3-4aaa-a071-74cb0dd1a65b   50Gi       RWO            Retain     
 
 Backup the PVC and PV definitions, for the volume that we need to recover:
 
-```bash
+```
 $ kubectl get pvc -n demo-db demo-db-data-demo-db-0 -o yaml > demo-pvc-backup.yaml
 $ kubectl get pvc -n demo-db demo-db-data-demo-db-0 -o yaml > demo-pvc.yaml
 $ kubectl get pv pvc-7528761f-48a3-4aaa-a071-74cb0dd1a65b -o yaml > demo-0-pv-backup.yaml
@@ -144,21 +144,21 @@ $ kubectl get pv pvc-7528761f-48a3-4aaa-a071-74cb0dd1a65b -o yaml > demo-0-pv.ya
 
 Stop the reconciliation cycle for StackGres clusters:
 
-```bash
+```
 $ kubectl annotate sgclusters.stackgres.io -n demo-db demo-db stackgres.io/reconciliation-pause="true"
 sgcluster.stackgres.io/demo-db annotated
 ```
 
 This will allow to scale the stateful set to zero.
 
-```bash
+```
 $ kubectl scale sts -n demo-db --replicas=0 demo-db
 statefulset.apps/demo-db scaled
 ```
 
 Check that the pod no longer exists:
 
-```bash
+```
 $ kubectl get pods -n demo-db
 NAME                READY   STATUS    RESTARTS   AGE
 distributedlogs-0   3/3     Running   0          20m
@@ -166,7 +166,7 @@ distributedlogs-0   3/3     Running   0          20m
 
 Check the PVC:
 
-```bash
+```
 $ kubectl get pvc -n demo-db
 NAME                                     STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
 demo-db-data-demo-db-0                   Bound    pvc-13949341-8e30-4100-bdd8-dea148ea6894   50Gi       RWO            ssd-data       12m
@@ -175,7 +175,7 @@ distributedlogs-data-distributedlogs-0   Bound    pvc-1b9b4811-c618-4869-ae02-81
 
 Check the PVs:
 
-```bash
+```
 $ kubectl get pv
 NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS     CLAIM                                            STORAGECLASS   REASON   AGE
 pvc-13949341-8e30-4100-bdd8-dea148ea6894   50Gi       RWO            Retain           Bound      demo-db/demo-db-data-demo-db-0                   ssd-data                12m
@@ -191,14 +191,14 @@ The main idea is to:
 
 Delete the PVC with no data:
 
-```bash
+```
 $ kubectl delete pvc -n demo-db demo-db-data-demo-db-0
 persistentvolumeclaim "demo-db-data-demo-db-0" deleted
 ```
 
 Check the PVs, you'll see that both are now in a `Released` state:
 
-```bash
+```
 $ kubectl get pv
 NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS     CLAIM                                            STORAGECLASS   REASON   AGE
 pvc-13949341-8e30-4100-bdd8-dea148ea6894   50Gi       RWO            Retain           Released   demo-db/demo-db-data-demo-db-0                   ssd-data                18m
@@ -208,7 +208,7 @@ pvc-7528761f-48a3-4aaa-a071-74cb0dd1a65b   50Gi       RWO            Retain     
 
 Delete the PV with no data:
 
-```bash
+```
 $ kubectl delete pv pvc-13949341-8e30-4100-bdd8-dea148ea6894
 persistentvolume "pvc-13949341-8e30-4100-bdd8-dea148ea6894" deleted
 ```
@@ -223,14 +223,14 @@ Modify the `demo-0-pvc.yaml` file:
 
 Create the PVC:
 
-```bash
+```
 $ kubectl create -f demo-0-pvc.yaml
 persistentvolumeclaim/demo-db-data-demo-db-0 created
 ```
 
 Check the state of the PVC:
 
-```bash
+```
 $ kubectl get pvc -n demo-db
 NAME                                     STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
 demo-db-data-demo-db-0                   Lost     pvc-13949341-8e30-4100-bdd8-dea148ea6894   0                         ssd-data       7s
@@ -249,14 +249,14 @@ claimRef:
 
 then replace the PV:
 
-```bash
+```
 $ kubectl replace -f demo-0-pv.yaml
 persistentvolume/pvc-7528761f-48a3-4aaa-a071-74cb0dd1a65b replaced
 ```
 
 Now, the PV should have the state `Bound`:
 
-```bash
+```
 $ kubectl get pv
 NAME                                       CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                                            STORAGECLASS   REASON   AGE
 pvc-1b9b4811-c618-4869-ae02-819f5b8c8cd3   50Gi       RWO            Delete           Bound    demo-db/distributedlogs-data-distributedlogs-0   standard                55m
@@ -268,7 +268,7 @@ Update the `demo-db-config` endpoint:
 - Remove the `initialize` annotation
 - If present, set the `history` to []
 
-```bash
+```
 $ kubectl edit endpoints -n demo-db demo-db-config
 endpoints/demo-db-config edited
 ```
@@ -277,14 +277,14 @@ endpoints/demo-db-config edited
 
 Scale the StackGres cluster to 1:
 
-```bash
+```
 $ kubectl scale sts -n demo-db --replicas=1 demo-db
 statefulset.apps/demo-db scaled
 ```
 
 You should now see your pod running normally:
 
-```bash
+```
 $ kubectl get pods -n demo-db
 NAME                READY   STATUS    RESTARTS   AGE
 demo-db-0           7/7     Running   0          37s
@@ -293,7 +293,7 @@ distributedlogs-0   3/3     Running   0          70m
 
 and your data recovered:
 
-```bash
+```
 $ kubectl exec -it -n demo-db demo-db-0 -c postgres-util -- psql -c '\l'
                               List of databases
    Name    |  Owner   | Encoding | Collate |  Ctype  |   Access privileges
@@ -307,7 +307,7 @@ $ kubectl exec -it -n demo-db demo-db-0 -c postgres-util -- psql -c '\l'
 (4 rows)
 ```
 
-```bash
+```
 $ kubectl exec -it -n demo-db demo-db-0 -c postgres-util -- psql -d demo -c 'select * from person;'
  i |                        name
 ---+----------------------------------------------------
@@ -328,6 +328,6 @@ with the ones in the [secrets](https://stackgres.io/doc/latest/administration/pa
 
 And, update the StackGres cluster `reconciliation-pause` annotation to `false` to re-enable the reconciliation cycle.
 
-```bash
+```
 $ kubectl annotate sgclusters.stackgres.io -n demo-db demo-db stackgres.io/reconciliation-pause="false" --overwrite
 ```

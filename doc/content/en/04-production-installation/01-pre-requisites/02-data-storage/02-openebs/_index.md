@@ -26,7 +26,7 @@ helm install openebs --namespace openebs openebs/openebs --create-namespace
 
 The Helm chart will install the OpenEBS operator in the namespace `openebs`:
 
-```bash
+```
 kubectl get pods -n openebs
 NAME                                           READY   STATUS    RESTARTS   AGE
 openebs-localpv-provisioner-6f686f7697-q4htl   1/1     Running   0          59m
@@ -38,7 +38,7 @@ openebs-ndm-wznp6                              1/1     Running   0          59m
 
 And also will add two storage classes:
 
-```bash
+```
 kubectl get storageclasses.storage.k8s.io -l "app.kubernetes.io/managed-by=Helm"
 NAME               PROVISIONER        RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
 openebs-device     openebs.io/local   Delete          WaitForFirstConsumer   false                  80m
@@ -55,7 +55,7 @@ There are two ways to use OpenEBS Local PV.
 
 To check the available devices, execute:
 
-```bash
+```
 kubectl get blockdevices.openebs.io -n openebs
 
 NAME                    NODENAME                                    SIZE           CLAIMSTATE   STATUS     AGE
@@ -73,7 +73,7 @@ You can check the required parameters in [SGCluster]({{% relref "06-crd-referenc
 
 After you've created your cluster, you can check that the storage devices were claimed:
 
-```bash
+```
 kubectl get blockdevices.openebs.io -n openebs
 
 NAME                    NODENAME                                    SIZE           CLAIMSTATE   STATUS     AGE

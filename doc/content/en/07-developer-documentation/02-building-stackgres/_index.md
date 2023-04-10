@@ -14,14 +14,14 @@ For submitting merge requests, you need to use the GitLab repository.
 
 Clone the sources from GitLab (or alternatively, GitHub):
 
-```bash
+```
 git clone https://gitlab.com/ongresinc/stackgres.git
 cd stackgres/
 ```
 
 Build StackGres via Maven (using the `mvnw` wrapper):
 
-```bash
+```
 cd stackgres-k8s/src/
 ./mvnw clean install
 ```
@@ -32,6 +32,6 @@ In order to contribute to StackGres, you need to build with code checks.
 The StackGres CI will also run these checks.
 Run the Maven build with the `safer` profile:
 
-```bash
+```
 ./mvnw clean install -P safer
 ```

@@ -26,7 +26,7 @@ spec:
 
 and deploy it to Kubernetes:
 
-```bash
+```
 kubectl apply -f sginstanceprofile-small.yaml
 ```
 
@@ -34,7 +34,7 @@ You may create other instance profiles with other sizes if you wish.
 
 You can list the created (available) instance profiles from the web console or via:
 
-```bash
+```
 $ kubectl -n demo get sginstanceprofiles
 ```
 
@@ -43,11 +43,11 @@ It also enforces resource requests for all the other containers under the sectio
 Those sections contain the default values specified by `cpu` and `memory`, and can be tuned later depending on the requirements of your particular use case.
 You may use `kubectl describe` on the created resource to inspect the values that are injected (tuned by default):
 
-```bash
+```
 kubectl -n demo describe sginstanceprofile size-small
 ```
 
-```plain
+```
 Name:         size-small
 Namespace:    demo
 Labels:       <none>

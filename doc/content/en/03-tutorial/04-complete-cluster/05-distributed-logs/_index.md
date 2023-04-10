@@ -27,18 +27,18 @@ spec:
 
 and deploy it to Kubernetes:
 
-```plain
+```
 kubectl apply -f sgdistributedlogs-server1.yaml
 ```
 
 This last command will trigger the creation of multiple Kubernetes resources (other than metadata).
 In particular, it will create a pod for storing the mentioned distributed logs:
 
-```bash
+```
 kubectl -n demo get pods
 ```
 
-```plain
+```
 NAME                READY   STATUS    RESTARTS   AGE
 distributedlogs-0   3/3     Running   1          73s
 ```

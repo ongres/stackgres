@@ -62,11 +62,11 @@ $ kubectl -n demo run psql --env $PGPASSWORD --rm -it --image ongres/postgres-ut
 
 Now that we're in `psql`, we can query the logs with SQL.
 The following commands will list the databases, connect to the database for our current cluster, count the Postgres log entries, describe the logs table, and select all logs of type `ERROR`.
-There will be one database per every cluster that is sending logs to this distributed logs server, with the naming scheme `$namespace_$cluster`.
+There will be one database per every cluster that is sending logs to this distributed logs server, with the naming scheme `<namespace>_<cluster>`.
 You can generate `ERROR` logs by typing any SQL error into the SQL console of the source cluster (not this one).
 Logs may take a few seconds to propagate.
 
-```sql
+```
 \l+
 \c demo_cluster
 \dt log_postgres
@@ -86,7 +86,7 @@ Postgres extensions are awesome and possibly one of the most recognized Postgres
 
 Let's first connect to the `cluster` cluster, and run a command to list the extensions available:
 
-```sql
+```
 postgres=# select * from pg_available_extensions();
         name        | default_version |                           comment                            
 --------------------+-----------------+--------------------------------------------------------------

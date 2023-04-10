@@ -13,7 +13,7 @@ Certain set of applications, particularly those for reporting or OLAP, may not n
  pooling by setting `disableConnectionPooling` to `true` at the Cluster configuration (for more
  information, see [CRD Cluster Pods configuration]({{% relref "06-crd-reference/01-sgcluster/" %}}) ).
 
-```bash
+```
 apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
@@ -33,7 +33,7 @@ Either way, if your application does internal pooling or it already has a poolin
 
 This configuration is recommended for most efficient pool allocations:
 
-```bash
+```
 cat << EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1
 kind: SGPoolingConfig
@@ -62,7 +62,7 @@ You'll notice that the bellow is ordered from variables that affect client-side 
  applications within different connection handlings.
 
 
-```bash
+```
 cat << EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1
 kind: SGPoolingConfig

@@ -33,17 +33,17 @@ spec:
 
 and deploy it to Kubernetes:
 
-```bash
+```
 kubectl apply -f sgpoolingconfig-pgbouncer1.yaml
 ```
 
 You may inspect the default values provided by StackGres by describing the created custom resource:
 
-```bash
+```
 kubectl -n demo describe sgpoolconfig poolconfig1
 ```
 
-```plain
+```
 Name:         poolconfig1
 Namespace:    demo
 Labels:       <none>

@@ -33,7 +33,7 @@ Here is a list of categories for each StackGres component:
 
 To set a log level for a specific category you can use the following command on the operator deployment:
 
-```bash
+```
 kubectl set env -n stackgres deployment/stackgres-operator "APP_OPTS=-Dquarkus.log.category.\"$CATEGORY\".level=$LOG_LEVEL"
 ```
 
@@ -42,7 +42,7 @@ The necessity to restart is indicated in the `PendingRestart` condition of the `
 
 If you need to a set log level in the REST API controller, use following command:
 
-```bash
+```
 kubectl set env -n stackgres deployment/stackgres-restapi "APP_OPTS=-Dquarkus.log.category.\"$CATEGORY\".level=$LOG_LEVEL"
 ```
 

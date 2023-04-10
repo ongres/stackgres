@@ -24,7 +24,7 @@ spec:
 
 and deploy it to Kubernetes:
 
-```bash
+```
 kubectl apply -f sgcluster-with-script.yaml
 ```
 
@@ -48,7 +48,7 @@ spec:
 
 and deploy it to Kubernetes:
 
-```bash
+```
 kubectl apply -f sgscript-with-raw-script.yaml
 ```
 
@@ -58,7 +58,7 @@ kubectl apply -f sgscript-with-raw-script.yaml
 
 Using this method you need to create the secret first:
 
-```bash
+```
 kubectl create secret generic database-user \
 --from-literal=create-user.sql="create user demo password 'demo'"
 ```
@@ -83,7 +83,7 @@ spec:
 
 and deploy it to Kubernetes:
 
-```bash
+```
 kubectl apply -f sgscript-with-secret-script.yaml
 ```
 
@@ -91,7 +91,7 @@ kubectl apply -f sgscript-with-secret-script.yaml
 
 First create a configmap:
 
-```bash
+```
 kubectl create configmap init-tables \
 --from-literal=create-init-tables.sql="create table company(id integer, name char(50));"
 ```
@@ -116,6 +116,6 @@ spec:
 
 and deploy it to Kubernetes:
 
-```bash
+```
 kubectl apply -f sgscript-with-script-from-configmap.yaml
 ```

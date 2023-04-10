@@ -28,7 +28,7 @@ spec:
 
 After adding an extension this way it will be downloaded and will become available:
 
-```shell
+```
 # select * from pg_available_extensions;
         name        | default_version | installed_version |                               comment                               
 --------------------+-----------------+-------------------+---------------------------------------------------------------------
@@ -44,7 +44,7 @@ After adding an extension this way it will be downloaded and will become availab
 As usual, to use an extension on a database use the [`CREATE EXTENSION`](https://www.postgresql.org/docs/current/sql-createextension.html)
  command like below:
 
-```sql
+```
 postgres=# create extension postgis;
 CREATE EXTENSION
 ```
@@ -64,7 +64,7 @@ Some extensions needs extra files to be installed and configured before they can
 Some extensions, such as `timescale` needs to update some configuration to work, as shown in the error
  below:
 
-```sql
+```
 postgres=# create extension timescaledb;
 FATAL:  extension "timescaledb" must be preloaded
 HINT:  Please preload the timescaledb library via shared_preload_libraries.
@@ -95,14 +95,14 @@ To fix that is necessary to find the configuration used in the `SGCluster`, upda
 Assuming that my cluster name is named `my-db-cluster`, execute the command below to find its current
  postgres configuration:
 
-```bash
+```
 $ kubectl get sgcluster/my-db-cluster -o jsonpath="{ .spec.configurations.sgPostgresConfig }"
 postgres-12-generated-from-default-1622494739858
 ```
 
 Once found the config, edit it, adding the extra configs:
 
-```bash
+```
 kubectl edit sgPgConfig/postgres-12-generated-from-default-1622494739858
 ```
 
@@ -144,14 +144,14 @@ spec:
 
 You can wait for the completion of the task using `kubectl wait` command:
 
-```bash
+```
 $ kubectl wait sgdbops/restart-1622494739858 --for=condition=Completed 
 sgdbops.stackgres.io/restart-1622494739858 condition met
 ```
 
 Connect in the `psql` and run the following commands:
 
-```sql
+```
 postgres=# show shared_preload_libraries ;
           shared_preload_libraries           
 ---------------------------------------------

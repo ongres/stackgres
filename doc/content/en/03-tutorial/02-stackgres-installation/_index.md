@@ -5,15 +5,9 @@ url: tutorial/stackgres-installation
 description: Details about the operator installation.
 ---
 
-<<<<<<< HEAD
-The recommended way to install StackGres is to use the official Helm chart. Additional parameters can be passed to the default installation:
+The recommended way to install StackGres is to use the official Helm chart or through OperatorHub (this option is only available if [OLM](https://olm.operatorframework.io/) is installed). Additional parameters can be passed to the default installation:
 * Access to Grafana. StackGres uses this access to install StackGres specific dashboards as well as to embed Grafana into the web console. If you've installed Prometheus as shown in the previous step, the host and credentials are set to the default values (Grafana service: `prometheus-grafana.monitoring`, username: `admin`, password: `prom-operator`).
 * How to expose the web console. You can choose `LoadBalancer` if you're using a Kubernetes setup that supports creating load balancers. Otherwise, you can choose `ClusterIP` (the default), or omit this parameter, in which case you will need to create a custom routing to the console, or use mechanisms such as a port forward, in order to access the web console.
-=======
-StackGres recommended installation is performed from the published Helm chart or using through OperatorHub (this second option is only available if [OLM](https://olm.operatorframework.io/) is installed). Some parameters may be passed to the default installation, which basically can be summarized as:
-* Username and password to access Grafana (this is used by StackGres to install StackGres specific dashboards as well as to embed Grafana into the Web Console). If you installed Prometheus following the previous step, they will be at their default values (username: `admin`, password: `prom-operator`). Also the Grafana host where it is running (by default, exposed as a service at `prometheus-grafana.namespace`, i.e. `prometheus-grafana.monitoring` here).
-* How to expose the Web Console. Select `LoadBalancer` if using a cloud Kubernetes cluster or your Kubernetes environment supports creating load balancers. Otherwise, select `ClusterIP` (in this case you will later need to do a port forward to access the Web Console).
->>>>>>> 2fe230c30... doc: included notes for OpenShift 4.6+ and OperatorHub in tutorial
 
 ## Installation with Helm
 
@@ -44,9 +38,6 @@ helm install --create-namespace --namespace stackgres stackgres-operator \
 
 Note that using `adminui.service.type=LoadBalancer` will create a network load balancer, which may incur in additional costs. You may alternatively use `ClusterIP` if that's your preference.
 
-<<<<<<< HEAD
-The StackGres installation may take a few minutes. The output will be similar to:
-=======
 > In some managed Kubernetes clusters and Kubernetes distribution a LoadBalancer may not be available, in such case replace `LoadBalancer` for `NodePort` and 
 >  you will be able to connect directly to the node port that will be assigned to the service. To retrieve such port use the following command:
 
@@ -54,10 +45,9 @@ The StackGres installation may take a few minutes. The output will be similar to
 kubectl get service -n stackgres stackgres-restapi --template '{{ (index .spec.ports 0).nodePort }}{{ printf "\n" }}'
 ```
 
-StackGres installation may take a few minutes. The output will be similar to:
->>>>>>> 2fe230c30... doc: included notes for OpenShift 4.6+ and OperatorHub in tutorial
+The StackGres installation may take a few minutes. The output will be similar to:
 
-```plain
+```
 NAME: stackgres-operator
 LAST DEPLOYED: Mon Oct 1 00:25:10 2021
 NAMESPACE: stackgres

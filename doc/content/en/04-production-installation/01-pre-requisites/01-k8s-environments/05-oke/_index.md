@@ -24,7 +24,7 @@ We use the following characteristics which you might change:
 
 Create the necessary environment variables and replace the values with your tenancy information:
 
-```bash
+```
 export compartment_id=[compartment-OCID]
 export vnc_id=[VNC-OCID]
 export endpoint_subnet_id=[endpoint-subnet-OCID]
@@ -34,7 +34,7 @@ export nodes_subnet_id=[nodes-subnet-OCID]
 
 Create the Kubernetes Cluster:
 
-```bash
+```
 oci ce cluster create \
  --compartment-id $compartment_id \
  --kubernetes-version v1.21.5 \
@@ -48,7 +48,7 @@ oci ce cluster create \
 
 The output will be similar to this:
 
-```plain
+```
    {
   ""opc-work-request-id": "ocid1.clustersworkrequest.oc1.[OCI-Regions].aaaaaaaa2p26em5geexn...""
    }
@@ -56,7 +56,7 @@ The output will be similar to this:
 
 After the Cluster creation, create the node pool for the Kubernetes worker nodes:
 
-```bash
+```
 oci ce node-pool create \
  --cluster-id $(oci ce cluster list --compartment-id $compartment_id --name stackgres --lifecycle-state ACTIVE --query data[0].id --raw-output) \
  --compartment-id $compartment_id \
@@ -72,7 +72,7 @@ oci ce node-pool create \
 
 The output will be similar to this:
 
-```plain
+```
    {
   "opc-work-request-id": "ocid1.clustersworkrequest.oc1.[OCI-Regions].aaaaaaaa2p26em5geexn..."
    }
@@ -80,7 +80,7 @@ The output will be similar to this:
 
 > After the cluster provisioning, it is highly recommend to change the default Kubernetes storage class:
 
-```bash
+```
 kubectl patch storageclass oci -p '{"metadata": {"annotations":{"storageclass.beta.kubernetes.io/is-default-class":"false"}}}'
 kubectl patch storageclass oci-bv -p '{"metadata": {"annotations":{"storageclass.beta.kubernetes.io/is-default-class":"true"}}}'
 ```
@@ -89,7 +89,7 @@ To clean up the Kubernetes cluster you can issue following:
 
 Delete the node pool:
 
-```bash
+```
 oci ce node-pool delete \
  --node-pool-id $(oci ce node-pool list --cluster-id $(oci ce cluster list --compartment-id $compartment_id --name stackgres --lifecycle-state ACTIVE --query data[0].id --raw-output) --compartment-id $compartment_id --query data[0].id --raw-output) \
  --force
@@ -97,7 +97,7 @@ oci ce node-pool delete \
 
 Delete the Kubernetes cluster:
 
-```bash
+```
 oci ce cluster delete \
  --cluster-id $(oci ce cluster list --compartment-id $compartment_id --name stackgres --lifecycle-state ACTIVE --query data[0].id --raw-output) \
  --force
@@ -107,7 +107,7 @@ You may also want to clean up compute disks used by persistence volumes that may
 
 > This code terminates all Block Volumes with the Free Form Tag {"stackgres":"OKE"}, if you had provisioned more than one cluster in the same compartment with the code above, this may delete all your PV data.
 
-```shell
+```
 oci bv volume list \
  --compartment-id $compartment_id \
  --lifecycle-state AVAILABLE \

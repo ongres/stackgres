@@ -10,7 +10,7 @@ showToc: true
 
 You can use the command below to change the password:
 
-```bash
+```
 NEW_USER=admin
 NEW_PASSWORD=password
 kubectl create secret generic -n stackgres stackgres-restapi  --dry-run=client -o json \
@@ -22,7 +22,7 @@ kubectl patch secret -n stackgres stackgres-restapi -p "$(cat password.patch)" &
 
 Remember to remove the generated password hint from the secret to avoid security flaws:
 
-```bash
+```
 kubectl patch secrets --namespace stackgres stackgres-restapi --type json -p '[{"op":"remove","path":"/data/clearPassword"}]'
 ```
 

@@ -8,7 +8,7 @@ description: Details about how to upgrade the database node of a distributed log
 This procedure can be used to upgrade a `SGDistributedLogs` after upgrading the StackGres operator
  to a newer version.
 
-```shell
+```
 kubectl get sgdistributedlogs.stackgres.io -A --template '
 {{- range $item := .items }}
   {{- range $item.status.conditions }}
@@ -25,7 +25,7 @@ The service disruption will end when Patroni elects the new primary instance.
 The procedure includes some shell script snippet examples. In those snippet we assume the
  following environment variables are set with values of the StackGres cluster you want to restart:
 
-```shell
+```
 NAMESPACE=default
 DISTRIBUTED_LOGS_NAME=example
 ```
@@ -34,7 +34,7 @@ DISTRIBUTED_LOGS_NAME=example
 
 Change the `SGDistributedLogs` to indicate to use the new operator version.
 
-```shell
+```
 OPERATOR_VERSION="$(helm list -o json -n stackgres \
   | jq -r '.[]|select(.name == "stackgres-operator").app_version')"
 kubectl annotate sgdistributedlogs.stackgres.io -n "$NAMESPACE" "$DISTRIBUTED_LOGS_NAME" \
@@ -43,13 +43,13 @@ kubectl annotate sgdistributedlogs.stackgres.io -n "$NAMESPACE" "$DISTRIBUTED_LO
 
 ## 2. Delete the StatefulSet and wait for the primary to be recreated
 
-```shell
+```
 kubectl delete sts -n "$NAMESPACE" "$DISTRIBUTED_LOGS_NAME" --wait=true
 ```
 
 Wait until the new instance is created and operational, receiving traffic from the service.
 This new primary has already been initialized with the new components.
 
-```shell
+```
 kubectl wait --for=condition=Ready -n "$NAMESPACE" "pod/$DISTRIBUTED_LOGS_NAME-0"
 ```

@@ -21,7 +21,7 @@ We use the following characteristics which you might change:
  * Disk size: 100 GB
  * Node auto upgrade/repair disabled
 
-```bash
+```
 gcloud container clusters create "stackgres" \
  --project "my-project" \
  --region "us-west1" \
@@ -39,7 +39,7 @@ gcloud container clusters create "stackgres" \
 ```
 
 The output will be similar to the following:
-```plain
+```
 Note: Your Pod address range (`--cluster-ipv4-cidr`) can accommodate at most 1008 node(s).
 Creating cluster stackgres in us-west1... Cluster is being health-checked (master is healthy)...done.                                                                                                              
 Created [https://container.googleapis.com/v1beta1/projects/my-project/zones/us-west1/clusters/stackgres].
@@ -53,7 +53,7 @@ stackgres  us-west1  1.25.6-gke.200  34.105.42.91  e2-standard-4  1.25.6-gke.200
 
 To access your cluster via `kubectl`, you can conveniently configure your kubeconfig via the following command:
 
-```bash
+```
 gcloud container clusters get-credentials --region us-west1 --project my-project stackgres
 
 # if your gcloud / GKE version expects to use the GKE gcloud auth plugin, you might need to set this env variable:
@@ -62,7 +62,7 @@ export USE_GKE_GCLOUD_AUTH_PLUGIN=True; gcloud container clusters get-credential
 
 Then you should be able to access your cluster via `kubectl`:
 
-```bash
+```
 $ kubectl get nodes
 NAME                                       STATUS   ROLES    AGE   VERSION
 gke-stackgres-default-pool-2b3329f9-1v10   Ready    <none>   91s   v1.25.6-gke.200
@@ -78,7 +78,7 @@ gke-stackgres-default-pool-e04d99f3-g1gr   Ready    <none>   91s   v1.25.6-gke.2
 
 To clean up the Kubernetes cluster you can run the following command:
 
-```bash
+```
 gcloud container clusters delete stackgres \
  --project my-project \
  --region us-west1 \
@@ -87,7 +87,7 @@ gcloud container clusters delete stackgres \
 
 You may also want to clean up compute disks used by persistence volumes that may have been created:
 
-```bash
+```
 gcloud compute disks list --project my-project --filter "zone:us-west1" --quiet | tail -n+2 | sed 's/ \+/|/g' | cut -d '|' -f 1-2 \
   | grep '^gke-stackgres-[0-9a-f]\{4\}-pvc-[0-9a-f]\{8\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{4\}-[0-9a-f]\{12\}|' \
   | xargs -r -n 1 -I % sh -ec "gcloud -q compute disks delete --project my-project --zone \"\$(echo '%' | cut -d '|' -f 2)\" \"\$(echo '%' | cut -d '|' -f 1)\""

@@ -17,7 +17,7 @@ S3, GCP, Azure Blob, and S3-compatible object storages are supported.
 
 First, let's create the IAM policy that would allow the appropriate level of access to the S3 bucket:
 
-```bash
+```
 export S3_BACKUP_BUCKET=YOUR_BUCKET_NAME
 
 read -d '' policy <<EOF
@@ -41,7 +41,7 @@ EOF
 
 Let's then create an IAM user and attach the above policy:
 
-```bash
+```
 export AWS_PROFILE=     # optional
 export AWS_REGION= #YOUR_REGION
 export S3_BACKUP_BUCKET_USER=stackgres-s3-user
@@ -55,19 +55,19 @@ aws iam put-user-policy --region $AWS_REGION --user-name $S3_BACKUP_BUCKET_USER 
 Then, let's create an access key that will be used to access the bucket.
 The following command will create and output the credentials, which we save in a file `credentials.json`:
 
-```bash
+```
 aws --output json iam create-access-key --region $AWS_REGION --user-name $S3_BACKUP_BUCKET_USER > credentials.json
 ```
 
 Finally, create the bucket (`mb` stands for 'make bucket'):
 
-```bash
+```
 aws s3 mb s3://$S3_BACKUP_BUCKET --region $AWS_REGION
 ```
 
 Now we create a secret with the contents of our credentials:
 
-```bash
+```
 export CLUSTER_NAMESPACE=demo
 export CREDENTIALS_FILE=credentials.json    # your credentials file
 accessKeyId=$(jq -r '.AccessKey.AccessKeyId' "$CREDENTIALS_FILE")
@@ -109,7 +109,7 @@ spec:
 
 and deploy it to Kubernetes:
 
-```bash
+```
 kubectl apply -f sgobjectstorage-backupconfig1.yaml
 ```
 

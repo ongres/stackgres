@@ -26,7 +26,7 @@ kubectl port-forward ${POD_NAME} --address 0.0.0.0 8443:9443 --namespace stackgr
 
 You can connect to `https://localhost:8443/admin/` and log in with the StackGres credentials:
 
-```bash
+```
 kubectl get secret -n stackgres stackgres-restapi --template '{{ printf "username = %s\n" (.data.k8sUsername | base64decode) }}'
 kubectl get secret -n stackgres stackgres-restapi --template '{{ printf "password = %s\n" (.data.clearPassword | base64decode) }}'
 ```

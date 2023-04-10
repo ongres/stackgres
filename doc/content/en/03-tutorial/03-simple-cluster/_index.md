@@ -34,14 +34,14 @@ A StackGres cluster with name `simple` will be created in the `default` namespac
 StackGres will internally resolve `latest` to the latest Postgres version available, and modify your CR to note the specific version used.
 For the pod, a 5Gi _PersistentVolume_ will be created and attached to it.
 
-```bash
+```
 kubectl apply -f simple.yaml -n stackgres
 sgcluster.stackgres.io/simple created
 ```
 
 This operation will take some around a minute. At the end, you will be able to see one instance (pod) created in the `stackgres` namespace. You can track the progress with:
 
-```bash
+```
 $ kubectl get pods -n stackgres --watch
 NAME       READY   STATUS     RESTARTS   AGE
 simple-0   0/6     Pending    0          5s
@@ -57,7 +57,7 @@ You can also check the Pod creation from the Web Console:
 
 When the process finished, you should see one Pod with 6 containers:
 
-```bash
+```
 $ kubectl get pods
 NAME       READY   STATUS    RESTARTS   AGE
 simple-0   6/6     Running   0          82s
@@ -65,7 +65,7 @@ simple-0   6/6     Running   0          82s
 
 You should be able to see the resolved Postgres version and other details about your StackGres cluster by inspecting the created CR (Custom Resource):
 
-```bash
+```
 kubectl describe sgcluster simple -n stackgres 
 ```
 
@@ -74,7 +74,7 @@ kubectl describe sgcluster simple -n stackgres
 Now it's time to connect to Postgres. In its simplest form, we can do that by running the Postgres command line, `psql`, in one of the containers of the pod. StackGres creates within the pods a container called `postgres-util` with usual Postgres administration tools, including `psql`. Since this container runs in the same pod, it uses Unix Domain Sockets to connect to the Postgres instance, and leverages Postgres `peer` authentication method, that will authenticate the user via the operating system username, without requiring any password:
 
 
-```bash
+```
 $ kubectl exec -it simple-0 -n stackgres -c postgres-util -- psql
 psql (14.0 OnGres Inc.)
 Type "help" for help.
@@ -87,7 +87,7 @@ Here you have your Postgres database! Feel free to play around with it. You can 
 
 We can actually create a database and some data. Within the previous Postgres console you can run the following commands
 
-```sql
+```
 create database stackgres;
 \c stackgres
 create table stackgres1 as select * from generate_series(1,1000*1000);
@@ -102,7 +102,7 @@ $ kubectl exec -it simple-1 -n stackgres -c postgres-util -- psql
 
 > Note that we're connecting to `simple-1`, the replica! If `simple-1` is not the replica which may happen, see the next section below to consult Patroni which instance is the replica.
 
-```sql
+```
 postgres=# select pg_is_in_recovery();
  pg_is_in_recovery 
 -------------------
@@ -135,7 +135,7 @@ $ kubectl exec -it simple-0 -n stackgres -c patroni -- patronictl list
 
 Here you can see the two nodes, that `simple-0` is the leader node, the Postgres timeline and the lag. Let's trigger now a failover. For example, let's kill the `simple-0` pod:
 
-```bash
+```
 $ kubectl delete pod simple-0 -n stackgres
 pod "simple-0" deleted
 ```
@@ -152,7 +152,7 @@ If, however, the lock expired before `simple-0` was re-created, `simple-1` will 
 In any case, the situation should restore back to normal, just with a timeline increased and a potential inversion of the Leader.
 You may repeat this process as you wish, killing either a primary or replica pod.
 
-```bash
+```
 $ kubectl exec -it simple-1 -n stackgres -c patroni -- patronictl list 
 + Cluster: simple (6979461716096839850) ---+---------+----+-----------+
 | Member   | Host                | Role    | State   | TL | Lag in MB |

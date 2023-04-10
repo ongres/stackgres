@@ -24,7 +24,7 @@ For a full Prometheus Stack (State Metrics, Node Exporter and Grafana), there is
 
 First, add the Prometheus Community repositories:
 
-```bash
+```
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo add stable https://charts.helm.sh/stable
 helm repo update
@@ -32,7 +32,7 @@ helm repo update
 
 Install the [Prometheus Server Operator](https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus):
 
-```bash
+```
 helm install --create-namespace --namespace monitoring \
  --set grafana.enabled=true \
  --version 12.10.6 \
@@ -43,7 +43,7 @@ helm install --create-namespace --namespace monitoring \
 
 Once the operator is installed, you can retrieve the generated credentials. By default, they are user `admin` and password `prom-operator`.
 
-```bash
+```
 kubectl get secret prometheus-grafana \
  --namespace monitoring \
  --template '{{ printf "user = %s\npassword = %s\n" (index .data "admin-user" | base64decode) (index .data "admin-password" | base64decode) }}'
@@ -66,7 +66,7 @@ In a production setup, is very likely that you will be installing all the resour
 
 To access Grafana's dashboard locally, you can forward the pod's port, so that it will be available at `localhost:9999`:
 
-```bash
+```
 GRAFANA_POD=$(kubectl get pods --namespace monitoring -l "app.kubernetes.io/name=grafana" -o jsonpath="{.items[0].metadata.name}")
 kubectl port-forward "$GRAFANA_POD" 9999:3000 --namespace monitoring
 ```
@@ -75,7 +75,7 @@ kubectl port-forward "$GRAFANA_POD" 9999:3000 --namespace monitoring
 
 You can also access the Prometheus server, by forwarding the port of the Prometheus pod:
 
-```bash
+```
 POD_NAME=$(kubectl get pods --namespace monitoring -l "app=prometheus" -o jsonpath="{.items[0].metadata.name}")
 kubectl --namespace monitoring port-forward $POD_NAME 9090
 ```
@@ -88,7 +88,7 @@ Inside the cluster, the Prometheus server is available via the `prometheus-opera
 
 You can also access the Prometheus alert manager, by forwarding the following port:
 
-```bash
+```
 export POD_NAME=$(kubectl get pods --namespace monitoring -l "app=alertmanager" -o jsonpath="{.items[0].metadata.name}")
 kubectl --namespace monitoring port-forward $POD_NAME --address 0.0.0.0 9093
 ```
@@ -101,7 +101,7 @@ Inside the cluster, the Prometheus alert manager can be accessed via `prometheus
 
 If you already have a Grafana installation in your system, you can embed it automatically in the StackGres UI by setting the property `grafana.autoEmbed=true`:
 
-```bash
+```
 helm install --create-namespace --namespace stackgres stackgres-operator \
    --set grafana.autoEmbed=true \
    https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm/stackgres-operator.tgz
@@ -133,26 +133,26 @@ If you already installed the `prometheus-community/kube-prometheus-stack`, you c
 
 Add the Grafana charts' source repository:
 
-```bash
+```
 helm repo add grafana https://grafana.github.io/helm-charts
 helm repo update
 ```
 
 And install the chart:
 
-```bash
+```
 helm install --namespace monitoring grafana grafana/grafana
 ```
 
 Get the `admin` credential:
 
-```bash
+```
 kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
 ```
 
 Expose your Grafana service (`grafana.monitoring`) in your cluster setup or port-forward to port `3000` locally:
 
-```bash
+```
 POD_NAME=$(kubectl get pods --namespace monitoring -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=grafana" -o jsonpath="{.items[0].metadata.name}")
 kubectl --namespace monitoring port-forward $POD_NAME --address 0.0.0.0 3000
 ```
@@ -163,7 +163,7 @@ You will need the admin credential to log into the web console (at `localhost:30
 
 The following script, will create a basic PostgreSQL dashboard using Grafana's API (you can change the `grafana_host` to point to your remote location):
 
-```bash
+```
 grafana_host=http://localhost:3000
 grafana_admin_cred=$(kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)
 grafana_credentials=admin:${grafana_admin_cred}

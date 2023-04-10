@@ -37,7 +37,7 @@ spec:
 
 Once applied, the service configuration is updated to `NodePort`:
 
-```bash
+```
 kubectl get services -l cluster=true,cluster-name=my-db-cluster
 # NAME                     TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)                         AGE
 # my-db-cluster            NodePort   10.101.139.224   <none>        5432:31884/TCP,5433:31998/TCP   35m
@@ -47,7 +47,7 @@ kubectl get services -l cluster=true,cluster-name=my-db-cluster
 
 Get the node ip address (kind ip address on the example below):
 
-```bash
+```
 kubectl get nodes -o wide
 # NAME                 STATUS   ROLES    AGE    VERSION    INTERNAL-IP   EXTERNAL-IP   OS-IMAGE                                     KERNEL-VERSION     CONTAINER-RUNTIME
 # kind-control-plane   Ready    master   115s   v1.17.11   172.18.0.3    <none>        Ubuntu Groovy Gorilla (development branch)   5.8.0-36-generic   containerd://1.4.0
@@ -60,7 +60,7 @@ kubectl get nodes -o wide
 
 Connect on the cluster using `psql` with the `INTERNAL IP` of any node (172.18.0.2 per example) and the service port (`31884` will point to `my-db-cluster` on port `5432`):
 
-```bash
+```
 psql -h 172.18.0.2 -U postgres -p 31884
 ```
 
@@ -91,7 +91,7 @@ spec:
 
 Once updated, get the service information:
 
-```bash
+```
 kubectl get services -l cluster=true,cluster-name=my-db-cluster
 # NAME                     TYPE           CLUSTER-IP      EXTERNAL-IP    PORT(S)                         AGE
 # my-db-cluster            LoadBalancer   10.108.32.129   172.18.0.102   5432:30219/TCP,5433:30886/TCP   8m13s
@@ -102,7 +102,7 @@ kubectl get services -l cluster=true,cluster-name=my-db-cluster
 
 To connect on the database, just use the `EXTERNAL-IP`, like below:
 
-```bash
+```
 psql -h 172.18.0.102 -U postgres
 ```
 

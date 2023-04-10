@@ -21,19 +21,19 @@ Create the required permissions and the user with following characteristics (tha
 
 Create the `stackgres-demo-k8s-user` user:
 
-```bash
+```
 oci iam user create --name stackgres-demo-k8s-user --description 'Stackgres backup user'
 ```
 
 Create the group that the user will be a part of, which will have access to the bucket:
 
-```bash
+```
 oci iam group create --name stackgres-backup-group --description 'Stackgres backup group'
 ```
 
 Add the user to the group:
 
-```bash
+```
 oci iam group add-user \
  --group-id $( oci iam group list --name stackgres-backup-group --query data[0].id --raw-output) \
  --user-id $(oci iam user list --name stackgres-demo-k8s-user --query data[0].id --raw-output)
@@ -42,13 +42,13 @@ oci iam group add-user \
 OCI Object Storage is compatible with AWS S3.
 You need to find out the S3 compartment ID:
 
-```bash
+```
 export s3compartment_id=$(oci os ns get-metadata --query 'data."default-s3-compartment-id"' --raw-output)
 ```
 
 Create the bucket inside the compartment that has S3 compatibility.
 
-```bash
+```
 oci os bucket create \
  --compartment-id $s3compartment_id \
  --name backup-demo-of-stackgres-io
@@ -56,7 +56,7 @@ oci os bucket create \
 
 Create a policy to allow the created group to use the bucket:
 
-```bash
+```
   oci iam policy create \
   --compartment-id $s3compartment_id \
   --name stackfres-backup-policy \
@@ -67,7 +67,7 @@ Create a policy to allow the created group to use the bucket:
 Now we need to create the access key that is used for the backup creation.
 The following creates a key and saves it to a file `access_key.json`:
 
-```bash
+```
 oci iam customer-secret-key create \
  --display-name oci-backup-bucket-secret \
  --user-id $(oci iam user list --name stackgres-demo-k8s-user --query data[0].id --raw-output) \
@@ -77,7 +77,7 @@ oci iam customer-secret-key create \
 
 Create the full endpoint URL that will be used in the `sgobjectstorage-backupconfig1.yaml` file below.
 
-```bash
+```
 echo 'https://'$(oci os ns get --query data --raw-output)'.compat.objectstorage.'$(oci iam region-subscription list | jq -r '.data[0]."region-name"')'.oraclecloud.com'
 ```
 
@@ -85,7 +85,7 @@ echo 'https://'$(oci os ns get --query data --raw-output)'.compat.objectstorage.
 
 Create a Kubernetes secret with the following contents:
 
-```bash
+```
 kubectl create secret generic oke-backup-bucket-secret \
  --from-literal="accessKeyId=<YOUR_ACCESS_KEY_HERE>" \
  --from-literal="secretAccessKey=<YOUR_SECRET_KEY_HERE>"
@@ -120,7 +120,7 @@ spec:
 
 and deploy it to Kubernetes:
 
-```bash
+```
 kubectl apply -f sgobjectstorage-backupconfig1.yaml
 ```
 

@@ -11,7 +11,7 @@ These files can be organized according to your infrastructure's environments.
 
 This example shows a directory structure for two environmens, production and staging. 
 
-```text
+```
 stackgres/
 ├── production
 │   ├── cluster

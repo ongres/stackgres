@@ -12,7 +12,7 @@ This section shows how to upgrade the StackGres operator using Helm.
 
 Upgrade the Helm repository:
 
-```bash
+```
 helm repo update stackgres-charts
 ```
 
@@ -20,7 +20,7 @@ helm repo update stackgres-charts
 
 Upgrade the StackGres operator:
 
-```bash
+```
 helm upgrade --namespace stackgres stackgres-operator \
   --values my-operator-values.yml \
   stackgres-charts/stackgres-operator

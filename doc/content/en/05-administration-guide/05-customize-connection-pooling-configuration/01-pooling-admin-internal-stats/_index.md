@@ -14,7 +14,7 @@ alike environment.
 
 Access the console through container socket and `pgbouncer` (this is not a database user) user:
 
-```bash
+```
 kubectl exec -it  -c postgres-util test-0 -- psql  -p 6432 -d pgbouncer pgbouncer
 psql (12.4 OnGres Inc., server 1.13.0/bouncer)
 Type "help" for help.
@@ -26,7 +26,7 @@ Expanded display is on.
 ## Getting valuable pool information
 
 
-```bash
+```
 pgbouncer=# show stats;
 -[ RECORD 1 ]-----+----------
 database          | pgbouncer
@@ -98,7 +98,7 @@ Other useful commands:
 
 Available commands:
 
-```bash
+```
         SHOW HELP|CONFIG|DATABASES|POOLS|CLIENTS|SERVERS|USERS|VERSION
         SHOW FDS|SOCKETS|ACTIVE_SOCKETS|LISTS|MEM
         SHOW DNS_HOSTS|DNS_ZONES

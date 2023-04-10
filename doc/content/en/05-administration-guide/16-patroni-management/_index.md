@@ -13,7 +13,7 @@ Once you hace a StackGres cluster installed you'll have a Full HA PostgreSQL con
 
 These represents the containers of the StackGres cluster and you can list them using `kubectl` command like:
 
-```bash
+```
 kubectl get pods -n default -l app=StackGresCluster,stackgres.io/cluster=true
 ````
 
@@ -21,7 +21,7 @@ kubectl get pods -n default -l app=StackGresCluster,stackgres.io/cluster=true
 
 And we'll get an output like:
 
-```bash
+```
 NAME          READY   STATUS    RESTARTS   AGE
 stackgres-0   5/5     Running   0          163m
 stackgres-1   5/5     Running   0          163m
@@ -36,13 +36,13 @@ We have two differents ways to acomplish this. The first one is with the `kubect
 
 To identify the master node:
 
-```bash
+```
 kubectl get pods -n default -l app=StackGresCluster -l role=master
 ```
 
 output:
 
-```bash
+```
 NAME          READY   STATUS    RESTARTS   AGE
 stackgres-0   5/5     Running   0          165m
 ```
@@ -63,19 +63,19 @@ stackgres-2   5/5     Running   0          165m
 
 The other way is to use the own patroni commands. But first we need to connect to the patroni container:
 
-```bash
+```
 kubectl exec -it stackgres-0 -c patroni -- bash
 ```
 
 Once you are connected to it run the patroni command:
 
-```bash
+```
 patronictl list
 ```
 
 That will result:
 
-```bash
+```
 +-----------+-------------+------------------+--------+---------+----+-----------+
 |  Cluster  |    Member   |       Host       |  Role  |  State  | TL | Lag in MB |
 +-----------+-------------+------------------+--------+---------+----+-----------+

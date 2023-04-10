@@ -15,7 +15,7 @@ In this page, we are going through all the necessary steps to set up a productio
 
 Add the StackGres Helm repository:
 
-```bash
+```
 helm repo add stackgres-charts https://stackgres.io/downloads/stackgres-k8s/stackgres/helm/
 ```
 
@@ -23,7 +23,7 @@ helm repo add stackgres-charts https://stackgres.io/downloads/stackgres-k8s/stac
 
 Install the operator: 
 
-```bash
+```
 helm install --create-namespace --namespace stackgres stackgres-operator stackgres-charts/stackgres-operator
 ```
 
@@ -37,7 +37,7 @@ If you want to integrate Prometheus and Grafana into StackGres, please read the 
 
 Install the operator with the Grafana-specific values:
 
-```bash
+```
 helm install --namespace stackgres stackgres-operator \
  --set grafana.autoEmbed=true \
  --set-string grafana.webHost=prometheus-grafana.monitoring \
@@ -194,7 +194,7 @@ Last but not least, StackGres lets you include several `initialData` scripts, to
 
 In this example, we're creating a Postgres user, using a Kubernetes secret:
 
-```bash
+```
 kubectl -n my-cluster create secret generic pgbench-user-password-secret \
   --from-literal=pgbench-create-user-sql="create user pgbench password 'admin123'"
 ```

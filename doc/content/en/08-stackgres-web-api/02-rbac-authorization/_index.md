@@ -49,7 +49,7 @@ StackGres allows to authenticate the users of the web UI by redirecting them to 
 
 You can enable the OIDC auth type when installing StackGres using Helm, e.g.:
 
-```bash
+```
 helm install --namespace stackgres stackgres-operator \
   --set-string authentication.type=oidc \
   --set-string authentication.oidc.authServerUrl=https://auth.example.com/realms/stackgres \
