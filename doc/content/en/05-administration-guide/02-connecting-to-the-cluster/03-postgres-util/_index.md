@@ -60,7 +60,7 @@ At this point we already checked that sidecar `postgres-util` is up and running.
     To access the sidecar console run the next command:
 
     ```bash
-    ➜ kubectl exec -it simple-0 -c postgres-util -- bash
+    $ kubectl exec -it simple-0 -c postgres-util -- bash
     bash-4.4$ 
     ```
 

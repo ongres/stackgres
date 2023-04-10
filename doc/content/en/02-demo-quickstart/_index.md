@@ -37,7 +37,7 @@ kubectl wait -n stackgres deployment -l group=stackgres.io --for=condition=Avail
 Once it's ready you will see that the pods are `Running`:
 
 ```bash
-➜ kubectl get pods -n stackgres -l group=stackgres.io
+$ kubectl get pods -n stackgres -l group=stackgres.io
 NAME                                  READY   STATUS    RESTARTS   AGE
 stackgres-operator-78d57d4f55-pm8r2   1/1     Running   0          3m34s
 stackgres-restapi-6ffd694fd5-hcpgp    2/2     Running   0          3m30s
