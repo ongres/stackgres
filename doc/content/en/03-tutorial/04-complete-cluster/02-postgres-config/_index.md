@@ -30,18 +30,18 @@ spec:
 
 and deploy to Kubernetes:
 
-```bash
+```
 kubectl apply -f sgpostgresconfig-config1.yaml
 ```
 
 You may use `kubectl describe` on the created resource to inspect the values that are injected (tuned by default), as
 well as an indication in the `status` field of which values are using StackGres defaults:
 
-```bash
+```
 kubectl -n demo describe sgpgconfig pgconfig1
 ```
 
-```plain
+```
 Name:         pgconfig1
 Namespace:    demo
 Labels:       <none>

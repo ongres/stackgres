@@ -9,7 +9,7 @@ installed and configured, with the appropriate credentials to be able to create 
 
 To create a cluster, run the following commands, making any necessary adjustment to the variables:
 
-```bash
+```
 export DO_REGION=nyc1
 export DO_NODE_SIZE=s-4vcpu-8gb
 export DIGITALOCEAN_CONTEXT=default ## change if needed
@@ -27,7 +27,7 @@ doctl kubernetes cluster create ${K8S_CLUSTER_NAME} \
 
 This process takes around 6 minutes. The output should be similar to:
 
-```plain
+```
 Notice: Cluster is provisioning, waiting for cluster to be running
 ..................................................................
 Notice: Cluster created, fetching credentials
@@ -39,21 +39,22 @@ ID                                      Name         Region    Version         A
 
 Once your cluster is created, you should have your `~/.kube/config` populated, being able to run:
 
-```bash
+```
 kubectl cluster-info
 ```
 
 and get an output similar to:
 
-```plain
+```
 Kubernetes control plane is running at https://00a86a85-28e8-45f4-a118-e718a1f46609.k8s.ondigitalocean.com
 CoreDNS is running at https://00a86a85-28e8-45f4-a118-e718a1f46609.k8s.ondigitalocean.com/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 
 To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 ```
 
-To cleanup the kubernetes cluster you may issue following command:
-```bash
+To clean up the Kubernetes cluster you can run the following command:
+
+```
 doctl kubernetes cluster delete ${K8S_CLUSTER_NAME} \
 	--region ${DO_REGION} \
 	--wait

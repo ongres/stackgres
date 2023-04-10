@@ -15,7 +15,7 @@ Assuming that your cluster is running on the `default` namespace, execute the co
 
 List the available clusters:
 
-```bash
+```
 kubectl get sgcluster -n default
 ```
 
@@ -28,7 +28,7 @@ my-db-cluster   4m27s
 
 List the pods for the cluster:
 
-```bash
+```
 kubectl get pods -n default
 ```
 
@@ -41,7 +41,7 @@ my-db-cluster-2   5/5     Running   0          74s
 
 Delete the cluster:
 
-```bash
+```
 kubectl delete sgcluster my-db-cluster -n default
 ```
 
@@ -51,7 +51,7 @@ sgcluster.stackgres.io "my-db-cluster" deleted
 
 Check if the pods were deleted:
 
-```bash
+```
 kubectl get pods -n default
 ```
 
@@ -65,7 +65,7 @@ Assuming that your distributed logs cluster is running on the `default` namespac
 
 List the available distributed logs clusters:
 
-```bash
+```
 kubectl get sgdistributedlogs -n default
 ```
 
@@ -78,7 +78,7 @@ my-dl-cluster   4m27s
 
 List the pods for the cluster:
 
-```bash
+```
 kubectl get pods -n default
 ```
 
@@ -89,7 +89,7 @@ my-dl-cluster-0   5/5     Running   1          2m59s
 
 Delete the distributed logs cluster:
 
-```bash
+```
 kubectl delete sgdistributedlogs my-dl-cluster -n default
 ```
 
@@ -99,7 +99,7 @@ sgdistributedlogs.stackgres.io "my-dl-cluster" deleted
 
 Check if the pods were deleted:
 
-```bash
+```
 kubectl get pods -n default
 ```
 
@@ -117,7 +117,7 @@ The `SGCluster` depends on other objects to work properly, such as [instance pro
 
 List all StackGres objects:
 
-```bash
+```
 kubectl get sgobjectstorages,sgbackups,sginstanceprofiles,sgpgconfigs,sgpoolconfigs,sgscripts -n default
 ```
 
@@ -158,7 +158,7 @@ To delete them all:
 > **IMPORTANT:** this WILL remove the backups too!
 > **PROCEED WITH CARE.**
 
-```bash
+```
 kubectl get sgobjectstorages,sgbackups,sgclusters,sginstanceprofiles,sgpgconfigs,sgpoolconfigs,sgscripts -n default -o name | xargs kubectl delete
 ```
 
@@ -193,7 +193,7 @@ The missing part are the ServiceMonitors and PodMonitors that the operator creat
 
 List all StackGres ServiceMonitors and PodMonitors:
 
-```bash
+```
 kubectl get servicemonitors,podmonitors -A -l app=StackGresCluster
 ```
 
@@ -205,7 +205,7 @@ stackgres   servicemonitor.monitoring.coreos.com/ui-ui-stackgres-postgres-export
 
 To delete all:
 
-```bash
+```
 kubectl get configmap -l app=StackGresCluster -o name -A | xargs kubectl delete
 ```
 
@@ -220,7 +220,7 @@ configmap "my-db-cluster-prometheus-postgres-exporter-config" deleted
 
 Execute the steps below to remove the helm chart release:
 
-```bash
+```
 ## locate the namespace that the operator was installed
 ## our doc always points to `stackgres`
 helm list --all-namespaces | grep '^\(stackgres-operator\|NAME\)\s'
@@ -235,7 +235,7 @@ stackgres-operator      stackgres       1               2021-01-05 10:55:09.5435
 
 Uninstall the operator:
 
-```bash
+```
 helm delete stackgres-operator --namespace stackgres
 ```
 
@@ -245,7 +245,7 @@ release "stackgres-operator" uninstalled
 
 Ensure that there isn't any object left on the `stackgres` namespace
 
-```bash
+```
 kubectl get all -n stackgres
 ```
 
@@ -263,7 +263,7 @@ Execute the commands below to find and remove the operator deployments.
 
 List the deployments in the `stackgres` namespace:
 
-```bash
+```
 kubectl get deployments -n stackgres
 ```
 
@@ -277,7 +277,7 @@ stackgres-restapi    1/1     1            1           171m
 
 Delete the deployments in the `stackgres` namespace:
 
-```bash
+```
 kubectl get deployments -n stackgres -o name | xargs kubectl delete -n stackgres
 ```
 
@@ -297,7 +297,7 @@ StackGres `MutatingWebhookConfiguration` and `ValidatingWebhookConfiguration` ar
 
 List all StackGres MutatingWebhookConfigurations and ValidatingWebhookConfigurations:
 
-```bash
+```
 kubectl get mutatingwebhookconfiguration,validatingwebhookconfiguration | grep -F stackgres-
 ```
 
@@ -310,7 +310,7 @@ validatingwebhookconfiguration.admissionregistration.k8s.io/stackgres-operator  
 
 Remove all StackGres MutatingWebhookConfigurations and ValidatingWebhookConfigurations:
 
-```bash
+```
 kubectl get mutatingwebhookconfiguration,validatingwebhookconfiguration -o name | grep stackgres- | xargs kubectl delete
 ```
 
@@ -323,7 +323,7 @@ validatingwebhookconfiguration.admissionregistration.k8s.io "stackgres-operator"
 
 Execute the commands below to find and remove the Custom Resource Definitions (CRDs):
 
-```bash
+```
 ## list all *.stackgres.io CRDs
 kubectl get crds | grep -F .stackgres.io
 ```
@@ -342,7 +342,7 @@ sgpoolconfigs.stackgres.io                  2021-01-05T13:55:07Z
 
 Delete the StackGres CRDs:
 
-```bash
+```
 kubectl get crds -o name | grep -F .stackgres.io | xargs kubectl delete
 ```
 
@@ -362,7 +362,7 @@ Execute the commands below to find and remove the Custom Resource Definitions (C
 
 List all StackGres ClusterRoleBindings:
 
-```bash
+```
 kubectl get clusterrolebinding | grep -F stackgres-
 ```
 
@@ -376,7 +376,7 @@ stackgres-restapi-admin                                3h14m
 
 Delete the StackGres ClusterRoleBindings:
 
-```bash
+```
 kubectl get clusterrolebinding -o name | grep stackgres- | xargs kubectl delete
 ```
 
@@ -392,7 +392,7 @@ Execute the commands below to find and remove the Custom Resource Definitions (C
 
 List all StackGres ClusterRoles:
 
-```bash
+```
 kubectl get clusterrole | grep -F stackgres-
 ```
 
@@ -405,7 +405,7 @@ stackgres-restapi                                                      3h21m
 
 Delete all StackGres ClusterRoles:
 
-```bash
+```
 kubectl get clusterrole -o name | grep stackgres- | xargs kubectl delete
 ```
 
@@ -418,6 +418,6 @@ clusterrole.rbac.authorization.k8s.io "stackgres-restapi" deleted
 
 Remove the stackgres namespace:
 
-```bash
+```
 kubectl delete namespace stackgres
 ```

@@ -7,7 +7,7 @@ description: "Details about use initialData section to create a cluster from a b
 
 The `initialData` section allows you to create a new cluster and initilized the `PGDATA` from an existing backup. First you need to identify the backup you want to restore and get the backup's `UID`:
 
-```bash
+```
 kubectl get sgbackups --namespace $NAMESPACE $CLUSTER_BACKUP_NAME -o jsonpath="{.metadata.uid}"
 ```
 
@@ -32,7 +32,7 @@ spec:
 
 and deploy it to Kubernetes:
 
-```bash
+```
 kubectl apply -f sgcluster-from-backup.yaml
 ```
 

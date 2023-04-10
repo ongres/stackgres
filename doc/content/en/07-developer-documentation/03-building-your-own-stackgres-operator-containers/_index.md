@@ -17,7 +17,7 @@ Using the JVM build compiles faster but leads to a higher memory footprint in th
 
 You can build the JVM versions using the script in the corresponding components (such as operator, REST API, etc.):
 
-```bash
+```
 stackgres-k8s/src/operator/src/main/docker/build-image-jvm.sh
 ```
 
@@ -31,7 +31,7 @@ The native image use GraalVM but at the expense of some limitations. So once you
 
 To generate a native image simpleme run:
 
-```bash
+```
 stackgres-k8s/src/operator/src/main/docker/build-image-native.sh
 ```
 

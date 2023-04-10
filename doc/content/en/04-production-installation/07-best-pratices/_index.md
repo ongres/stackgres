@@ -10,7 +10,7 @@ A complete StackGres cluster configurations could be organized as a collections 
 
 The next example shows a file distribution with two environmens, production and staging. 
 
-```text
+```
 stackgres/
 ├── production
 │   ├── cluster

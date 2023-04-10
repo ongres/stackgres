@@ -95,7 +95,7 @@ A backup is only accesible from the namespace where it belongs. In order to make
  an example on how to copy an SGBackup from `source` namespace to `target` namespace using the commands `kubectl`
  and [`jq`](https://stedolan.github.io/jq/):
 
-```shell
+```
 kubectl get sgbackup -n source source -o json \
   | jq '.spec.sgCluster = .metadata.namespace + "." + .spec.sgCluster | .metadata.namespace = "target"' \
   | kubectl create -f -

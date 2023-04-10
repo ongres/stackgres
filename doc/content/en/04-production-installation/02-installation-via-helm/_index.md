@@ -15,7 +15,7 @@ In this page, we are going through all the necessary steps to setup a Production
 
 Add the StackGres helm repo:
 
-```bash
+```
 helm repo add stackgres-charts https://stackgres.io/downloads/stackgres-k8s/stackgres/helm/
 ```
 
@@ -26,7 +26,7 @@ we can proceed to the StackGres Operator itself!
 
 - Install the Operator: 
 
-```bash
+```
 helm install --create-namespace --namespace stackgres stackgres-operator stackgres-charts/stackgres-operator
 ```
 
@@ -47,7 +47,7 @@ we can proceed to the StackGres Operator itself!
 
 - Install the Operator: 
 
-```bash
+```
 helm install --namespace stackgres stackgres-operator \
     --set grafana.autoEmbed=true \
     --set-string grafana.webHost=prometheus-grafana.monitoring \
@@ -303,7 +303,7 @@ But that is not all, StackGres lets you include several `initialData` script to 
 
 In the given example, we are creating an user to perform some queries using the k8s secret capabilities.
 
-```bash
+```
 kubectl -n my-cluster create secret generic pgbench-user-password-secret \
   --from-literal=pgbench-create-user-sql="create user pgbench password 'admin123'"
 ```

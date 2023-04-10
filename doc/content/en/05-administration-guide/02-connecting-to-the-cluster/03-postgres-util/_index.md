@@ -15,7 +15,7 @@ This main container only have the required binaries and utilities to be able to 
 
 First we'll check the if the container is present in the pods, for these example we have a cluster named stackgres, composed of three pods and installed in the default namespace:
 
-```bash
+```
 kubectl get pods -n default -l app=StackGresCluster,stackgres.io/cluster=true
 ```
 
@@ -30,7 +30,7 @@ stackgres-2   5/5     Running   0          11m
 
 As you can see in the list we have `5/5` containers (sidecars) ready. To check the list of these containers we can run the next command:
 
-```bash
+```
 kubectl get pods stackgres-0 -n default -o jsonpath='{.spec.containers[*].name}*'
 ```
 
@@ -59,7 +59,7 @@ At this point we already checked that sidecar `postgres-util` is up and running.
 
     To access the sidecar console run the next command:
 
-    ```bash
+    ```
     $ kubectl exec -it simple-0 -c postgres-util -- bash
     bash-4.4$ 
     ```
@@ -68,7 +68,7 @@ At this point we already checked that sidecar `postgres-util` is up and running.
 
     Connect to postgres console:
 
-    ```bash
+    ```
     bash-4.4$ psql
     psql (12.3 OnGres Inc.)
     Type "help" for help.

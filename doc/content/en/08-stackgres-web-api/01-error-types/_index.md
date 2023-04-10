@@ -326,7 +326,7 @@ There are some invalid parameters in the configuration for the corresponding ver
 
 For example, assume the following configuration:
 
-```yml
+```yaml
 apiVersion: stackgres.io/v1
 kind: SGPostgresConfig
 metadata:

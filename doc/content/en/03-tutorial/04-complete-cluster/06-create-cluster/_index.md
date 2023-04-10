@@ -46,7 +46,7 @@ spec:
 
 and deploy to Kubernetes:
 
-```plain
+```
 kubectl apply -f sgcluster-cluster1.yaml
 ```
 

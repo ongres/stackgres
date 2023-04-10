@@ -8,7 +8,19 @@ showToc: true
 
 To build stackgres run the following command inside folder `stackgres-k8s/src`:
 
+## Get the Source Code
+
+Clone the sources from GitLab (or alternatively, GitHub):
+
 ```
+git clone https://gitlab.com/ongresinc/stackgres.git
+cd stackgres/
+```
+
+Build StackGres via Maven (using the `mvnw` wrapper):
+
+```
+cd stackgres-k8s/src/
 ./mvnw clean install
 ```
 

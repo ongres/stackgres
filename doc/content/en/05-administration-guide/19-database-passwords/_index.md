@@ -19,19 +19,19 @@ Assuming that we have a Stackgres cluster named `stackgres` in the namespace `de
 
  - **superuser:**
 
-   ```bash
+   ```
    kubectl get secrets -n demo stackgres -o jsonpath='{.data.superuser-password}' | base64 -d
    ```
    > **Note:** the superuser's password is the same as the postgres password
 
  - **replication:** 
 
-   ```bash
+   ```
    kubectl get secrets -n demo stackgres -o jsonpath='{.data.replication-password}' | base64 -d
    ```
  - **authenticator:**
    
-   ```bash
+   ```
    kubectl get secrets -n demo stackgres -o jsonpath='{.data.authenticator-password}' | base64 -d
    ```
 

@@ -12,7 +12,7 @@ This procedure can be used in general after a configuration change that requires
  required when the cluster condition `PendingRestart` inside `.status.conditions` property is
  `True`.
 
-```shell
+```
 kubectl get sgclusters.stackgres.io -A --template '
 {{- range $item := .items }}
   {{- range $item.status.conditions }}
@@ -46,7 +46,7 @@ There are two restart strategy:
 Those procedures includes some shell script snippet examples. In those snippet we assume the
  following environment variables are set with values of the StackGres cluster you want to restart:
 
-```shell
+```
 NAMESPACE=default
 SGCLUSTER=example
 ```
@@ -61,7 +61,7 @@ SGCLUSTER=example
 
 Edit the `SGCluster` and increment by one the number of instances.
 
-```shell
+```
 INSTANCES="$(kubectl get sgcluster -n "$NAMESPACE" "$SGCLUSTER" --template "{{ .spec.instances }}")"
 echo "Inreasing cluster instances from $INSTANCES to $((INSTANCES+1))"
 kubectl patch sgcluster -n "$NAMESPACE" "$SGCLUSTER" --type merge -p "spec: { instances: $((INSTANCES+1)) }"
@@ -70,7 +70,7 @@ kubectl patch sgcluster -n "$NAMESPACE" "$SGCLUSTER" --type merge -p "spec: { in
 Wait until the new instance is created and operational, receiving traffic from the Service. This new
  replica has already been initialized with the new components.
 
-```shell
+```
 READ_ONLY_POD="$SGCLUSTER-$INSTANCES"
 echo "Waiting for pod $READ_ONLY_POD"
 kubectl wait --for=condition=Ready -n "$NAMESPACE" "pod/$READ_ONLY_POD"
@@ -84,7 +84,7 @@ while kubectl get pod -n "$NAMESPACE" \
 **\[Optional, if `max_connections`, `max_prepared_transactions`, `max_wal_senders`,
  `max_wal_senders` or `max_locks_per_transaction` are changed to a lower value than they were set\]**
 
-```shell
+```
 PRIMARY_POD="$(kubectl get pod -n "$NAMESPACE" \
     -l "app=StackGresCluster,cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=master" -o name | head -n 1)"
 PRIMARY_POD="${PRIMARY_POD#pod/}"
@@ -100,7 +100,7 @@ kubectl wait --for=condition=Ready -n "$NAMESPACE" "pod/$PRIMARY_POD"
 
 Check which read-only pods requires to be restarted.
 
-```shell
+```
 READ_ONLY_PODS="$([ -z "$READ_ONLY_PODS" ] \
   && kubectl get pod -n "$NAMESPACE" --sort-by '{.metadata.name}' \
     -l "app=StackGresCluster,cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=replica" \
@@ -117,14 +117,14 @@ READ_ONLY_POD="$(echo "$READ_ONLY_PODS" | head -n 1)"
 
 Delete one of the read-only pods.
 
-```shell
+```
 echo "Deleting read-only pod $READ_ONLY_POD"
 kubectl delete -n "$NAMESPACE" pod "$READ_ONLY_POD"
 ```
 
 A new one will be created, and will also have the new components. Wait until fully operational.
 
-```shell
+```
 echo "Waiting for pod $READ_ONLY_POD"
 kubectl wait --for=condition=Ready -n "$NAMESPACE" "pod/$READ_ONLY_POD"
 ```
@@ -139,7 +139,7 @@ Repeat the previous two steps until no more read-only pods requires restart. In 
 
 If you have at least a read-only pod perform a switchover of the primary pod.
 
-```shell
+```
 READ_ONLY_POD="$(kubectl get pod -n "$NAMESPACE" \
     -l "app=StackGresCluster,cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=replica" -o name | head -n 1)"
 PRIMARY_POD="$(kubectl get pod -n "$NAMESPACE" \
@@ -162,7 +162,7 @@ fi
 Delete the primary pod.
 
 
-```shell
+```
 if [ -n "$READ_ONLY_POD" ]
 then
   echo "Deleting read-only pod $PRIMARY_POD"
@@ -174,7 +174,7 @@ kubectl delete -n "$NAMESPACE" pod "$PRIMARY_POD"
 
 A new read-only (or primary if there were only a single instance) instance will be created. Wait until it is fully operational.
 
-```shell
+```
 echo "Waiting for pod $PRIMARY_POD"
 kubectl wait --for=condition=Ready -n "$NAMESPACE" pod "$PRIMARY_POD"
 ```
@@ -186,7 +186,7 @@ kubectl wait --for=condition=Ready -n "$NAMESPACE" pod "$PRIMARY_POD"
 Scale back the cluster size, editing the `SGCluster` and decrementing by one the number of
  instances.
 
-```shell
+```
 INSTANCES="$(kubectl get sgcluster -n "$NAMESPACE" "$SGCLUSTER" --template "{{ .spec.instances }}")"
 echo "Decreasing cluster instances from $INSTANCES to $((INSTANCES-1))"
 kubectl patch sgcluster -n "$NAMESPACE" "$SGCLUSTER" --type merge -p "spec: { instances: $((INSTANCES-1)) }"

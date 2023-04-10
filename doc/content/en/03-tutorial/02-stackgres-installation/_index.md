@@ -47,7 +47,7 @@ kubectl get service -n stackgres stackgres-restapi --template '{{ (index .spec.p
 
 StackGres installation may take a few minutes. The output will be similar to:
 
-```plain
+```
 NAME: stackgres-operator
 LAST DEPLOYED: Mon Oct 1 00:25:10 2021
 NAMESPACE: stackgres

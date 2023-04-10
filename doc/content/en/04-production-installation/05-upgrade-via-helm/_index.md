@@ -8,7 +8,7 @@ showToc: true
 
 ## Upgrade StackGres Helm repository
 
-```bash
+```
 helm repo update stackgres-charts
 ```
 
@@ -16,7 +16,7 @@ helm repo update stackgres-charts
 
 To upgrade the operator you may use the following command:
 
-```bash
+```
 helm upgrade --namespace stackgres stackgres-operator \
   --values my-operator-values.yml \
   stackgres-charts/stackgres-operator

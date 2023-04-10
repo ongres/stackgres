@@ -14,7 +14,7 @@ Go the [API page](https://cloud.digitalocean.com/settings/api/tokens) and create
 
 Create the bucket with following characteristics (that you may change):
 
-```bash
+```
 export DO_SPACES_BACKUP_BUCKET=stackgres-tutorial
 s3cmd mb s3://${DO_SPACES_BACKUP_BUCKET}
 ```
@@ -23,7 +23,7 @@ s3cmd mb s3://${DO_SPACES_BACKUP_BUCKET}
 
 To proceed, a Kubernetes `Secret` with the folling shape needs to be created:
 
-```bash
+```
 ACCESS_KEY="**********" ## fix me
 SECRET_KEY="**********" ## fix me
 CLUSTER_NAMESPACE=demo
@@ -60,7 +60,7 @@ spec:
 
 and deploy to Kubernetes:
 
-```bash
+```
 kubectl apply -f sgobjectstorage-backupconfig1.yaml
 ```
 

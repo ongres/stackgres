@@ -16,7 +16,7 @@ Create the bucket with following characteristics (that you may change):
 * Zone: us-west1
 * Bucket name: backup-demo-of-stackgres-io
 
-```bash
+```
 gsutil mb \
     -p my-project \
     -b on \
@@ -35,7 +35,7 @@ To proceed, a Kubernetes `Secret` with the folling shape needs to be created:
 * K8s Bucket Secret Credentials: gcp-backup-bucket-secret
 * Cluster namespace: stackgres
 
-```bash
+```
 kubectl create namespace stackgres
 
 kubectl create serviceaccount --namespace stackgres stackgres-demo-k8s-sa-user
@@ -84,7 +84,7 @@ spec:
 
 and deploy to Kubernetes:
 
-```bash
+```
 kubectl apply -f sgobjectstorage-backupconfig1.yaml
 ```
 
