@@ -44,26 +44,29 @@ change the configuration based on their needs.
 ## Connection Pooling
 
 Connecting directly to PostgreSQL does not scale very well.
+Once you reach the configured `max_connections` limit (100 per default), connections above this number will be rejected, which must be avoided.
+While a lot of enterprise application frameworks offer functionalities to pool their database connections, multiple application deployments hardly ever share their connection pools.
 
-![Connection pooling](connection-pooling.png "Connection pooling")
+Configuring a very high number of allowed connections doesn't quite solve this issue, as we'll notice that the connection latency increases disproportionately to the load, as shown in the following graph (the green line):
 
-{{% notice info %}}pg_bench, scale 2000, m4.large (2 vCPU, 8GB RAM, 1k IOPS){{% /notice %}}
+![Connection pooling"](connection-pooling.png "Connection pooling (pg_bench, scale 2000, m4.large (2 vCPU, 8GB RAM, 1k IOPS))")
 
-Connection pooling is required in order to not saturate PostgreSQL processes by creating queue of sessions, transactions
-or statements (depending on the application requirements).
+This is due to the fact that PostgreSQL manages one process per connection, which for a high number of connections leads to contention on the CPU cores and operating system scheduling overhead.
 
-There are three alternatives solutions:
+For these reasons, it is highly recommended to use a proper connection pooling in front of our database instances.
+
+These are the three common connection pooling solutions for PostgreSQL:
 
 * [PgPool](https://www.pgpool.net)
 * [PgBouncer](https://www.pgbouncer.org/)
 * [Odyssey](https://github.com/yandex/odyssey)
 
-Which one to choose?
+Now, which one to choose?
 
-The StackGres chosen solution is PgBouncer. It is simple enough and stable to be used for connection pooling.
-PgBouncer's disadvantage is the lack of multithreading that can lead to CPU saturation when connections increase over a certain limit
-which depends on the performance of a single CPU's core where it is running. Odyssey might be a good candidate to replace
-PgBouncer when the former becomes more mature.
+The solution chosen by StackGres is PgBouncer.
+It is simple enough and stable to be used for connection pooling.
+PgBouncer's disadvantage is the lack of multithreading that can lead to CPU saturation when connections increase over a certain limit which depends on the performance of a single CPU's core where it is running.
+Odyssey might be a good candidate to replace PgBouncer when the former becomes more mature.
 
 ## High Availability
 
