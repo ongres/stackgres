@@ -604,7 +604,7 @@ $(document).ready(function(){
       if($(this).parent('label'))
         $(this).parent('label').removeClass('notValid');
       
-      let fieldset = $(this).parents('fieldset[data-fieldset]')
+      let fieldset = $(this).parents('fieldset[data-fieldset]').last();
       let notValidFields = fieldset.find('.notValid')
       
       if(!notValidFields.length) {
