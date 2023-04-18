@@ -63,7 +63,7 @@ export const mixin = {
     methods: {
 
       isNull(el) {
-        return ( (el === null) || ( (typeof el === 'string') && !el.length ) );
+        return ( (el === null) || ( (typeof el === 'string') && !el.length ) || (Array.isArray(el) && !el.length) || ((typeof el === 'object') && !Object.keys(el).length) );
       },
 
       isNullObject(obj) {
@@ -1271,11 +1271,10 @@ export const mixin = {
         });
 
         if(!isValid && ($('#notifications .message.show.title').text != 'Please fill every mandatory field in the form') ) {
+          vc.checkValidSteps(vc._data, 'submit')
           setTimeout(function() {
             vc.notify('Please fill every mandatory field in the form', 'message', 'general');
           }, 100);
-
-          vc.checkValidSteps(vc._data, 'submit')
         }
 
         return isValid
@@ -1308,8 +1307,7 @@ export const mixin = {
             let fieldset = $(this);
             let fieldsetAttr = fieldset.attr('data-fieldset'); 
             let notValidFields = fieldset.find('.notValid');
-  
-          
+                      
             if(notValidFields.length) {
               if(!data.errorStep.includes(fieldsetAttr))
                 data.errorStep.push(fieldsetAttr);

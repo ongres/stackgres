@@ -291,6 +291,10 @@ pre {
     margin-bottom: 25px !important;
 }
 
+.noPaddingBottom {
+    padding-bottom: 0 !important;
+}
+
 .blue {
     color: var(--blue);
 }
@@ -2299,7 +2303,6 @@ label.switch {
     padding: 10px;
     position: relative;
     border-radius: 6px;
-    margin-bottom: 20px;
     cursor: pointer;
 }
 

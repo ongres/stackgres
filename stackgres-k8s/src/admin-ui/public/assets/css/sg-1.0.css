@@ -806,7 +806,7 @@ ul.steps li.notValid, ul.steps li.active.notValid {
     left: 10px;
 }
 
-form .header .helpTooltip, label .helpTooltip {
+h2 .helpTooltip, h3 .helpTooltip, h4 .helpTooltip, h5 .helpTooltip, h6 .helpTooltip, label .helpTooltip {
     float: none !important;
     transform: none !important;
     margin-left: 5px;

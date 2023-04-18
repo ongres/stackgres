@@ -650,7 +650,13 @@
                         </li>
                     </ul>
 
-                    <ul class="section" v-if="cluster.data.spec.pods.hasOwnProperty('customVolumes') && !isNull(cluster.data.spec.pods.customVolumes)">
+                    <ul
+                        class="section"
+                        v-if="( 
+                            (cluster.data.spec.pods.hasOwnProperty('customVolumes') && !isNull(cluster.data.spec.pods.customVolumes)) || 
+                            (cluster.data.spec.pods.hasOwnProperty('customInitContainers') && !isNull(cluster.data.spec.pods.customInitContainers)) || 
+                            (cluster.data.spec.pods.hasOwnProperty('customContainers') && !isNull(cluster.data.spec.pods.customContainers)) )
+                        ">
                         <li>
                             <strong class="sectionTitle">
                                 User-Supplied Pods' Sidecars
@@ -807,7 +813,7 @@
                                                 </strong>
 
                                                 <ul>
-                                                    <li v-if="container.hasOwnProperty('name') && !isNull(container.image)">
+                                                    <li v-if="container.hasOwnProperty('name') && !isNull(container.name)">
                                                         <strong class="label">Name:</strong>
                                                         <span class="value">{{ container.name }}</span>
                                                     </li>
@@ -823,7 +829,7 @@
                                                         <strong class="label">Working Directory:</strong>
                                                         <span class="value">{{ container.workingDir }}</span>
                                                     </li>
-                                                    <li v-if="container.hasOwnProperty('args') && container.args.length">
+                                                    <li v-if="container.hasOwnProperty('args') && !isNull(container.args)">
                                                         <strong class="sectionTitle">
                                                             Arguments
                                                         </strong>
@@ -836,7 +842,7 @@
                                                             </template>
                                                         </ul>
                                                     </li>
-                                                    <li v-if="container.hasOwnProperty('command') && container.command.length">
+                                                    <li v-if="container.hasOwnProperty('command') && !isNull(container.command)">
                                                         <strong class="sectionTitle">
                                                             Command
                                                         </strong>
@@ -849,7 +855,7 @@
                                                             </template>
                                                         </ul>
                                                     </li>
-                                                    <li v-if="container.hasOwnProperty('env') && container.env.length">
+                                                    <li v-if="container.hasOwnProperty('env') && !isNull(container.env)">
                                                         <strong class="sectionTitle">
                                                             Environment Variables
                                                         </strong>
@@ -863,7 +869,7 @@
                                                             </template>
                                                         </ul>
                                                     </li>
-                                                    <li v-if="container.hasOwnProperty('ports') && container.ports.length">
+                                                    <li v-if="container.hasOwnProperty('ports') && !isNull(container.ports)">
                                                         <strong class="sectionTitle">
                                                             Ports
                                                         </strong>
@@ -901,7 +907,7 @@
                                                             </template>
                                                         </ul>
                                                     </li>
-                                                    <li v-if="container.hasOwnProperty('volumeMounts') && container.volumeMounts.length">
+                                                    <li v-if="container.hasOwnProperty('volumeMounts') && !isNull(container.volumeMounts)">
                                                         <strong class="sectionTitle">
                                                             Volume Mounts
                                                         </strong>
@@ -930,13 +936,13 @@
                                                                             <strong class="label">Mount Propagation:</strong>
                                                                             <span class="value">{{ vol.mountPropagation }}</span>
                                                                         </li>
-                                                                        <li v-if="vol.hasOwnProperty('path') && !isNull(vol.path)">
-                                                                            <strong class="label">Path:</strong>
-                                                                            <span class="value">{{ vol.path }}</span>
+                                                                        <li v-if="vol.hasOwnProperty('subPath') && !isNull(vol.subPath)">
+                                                                            <strong class="label">Sub Path:</strong>
+                                                                            <span class="value">{{ vol.subPath }}</span>
                                                                         </li>
-                                                                        <li v-if="vol.hasOwnProperty('expandedPath') && !isNull(vol.expandedPath)">
-                                                                            <strong class="label">Expanded Path:</strong>
-                                                                            <span class="value">{{ vol.expandedPath }}</span>
+                                                                        <li v-if="vol.hasOwnProperty('subPathExpr') && !isNull(vol.subPathExpr)">
+                                                                            <strong class="label">Sub Path Expr:</strong>
+                                                                            <span class="value">{{ vol.subPathExpr }}</span>
                                                                         </li>
                                                                     </ul>
                                                                 </li>
@@ -961,7 +967,7 @@
                                                 </strong>
 
                                                 <ul>
-                                                    <li v-if="container.hasOwnProperty('name') && !isNull(container.image)">
+                                                    <li v-if="container.hasOwnProperty('name') && !isNull(container.name)">
                                                         <strong class="label">Name:</strong>
                                                         <span class="value">{{ container.name }}</span>
                                                     </li>
@@ -977,7 +983,7 @@
                                                         <strong class="label">Working Directory:</strong>
                                                         <span class="value">{{ container.workingDir }}</span>
                                                     </li>
-                                                    <li v-if="container.hasOwnProperty('args') && container.args.length">
+                                                    <li v-if="container.hasOwnProperty('args') && !isNull(container.args)">
                                                         <strong class="sectionTitle">
                                                             Arguments
                                                         </strong>
@@ -990,7 +996,7 @@
                                                             </template>
                                                         </ul>
                                                     </li>
-                                                    <li v-if="container.hasOwnProperty('command') && container.command.length">
+                                                    <li v-if="container.hasOwnProperty('command') && !isNull(container.command)">
                                                         <strong class="sectionTitle">
                                                             Command
                                                         </strong>
@@ -1003,7 +1009,7 @@
                                                             </template>
                                                         </ul>
                                                     </li>
-                                                    <li v-if="container.hasOwnProperty('env') && container.env.length">
+                                                    <li v-if="container.hasOwnProperty('env') && !isNull(container.env)">
                                                         <strong class="sectionTitle">
                                                             Environment Variables
                                                         </strong>
@@ -1017,7 +1023,7 @@
                                                             </template>
                                                         </ul>
                                                     </li>
-                                                    <li v-if="container.hasOwnProperty('ports') && container.ports.length">
+                                                    <li v-if="container.hasOwnProperty('ports') && !isNull(container.ports)">
                                                         <strong class="sectionTitle">
                                                             Ports
                                                         </strong>
@@ -1055,7 +1061,7 @@
                                                             </template>
                                                         </ul>
                                                     </li>
-                                                    <li v-if="container.hasOwnProperty('volumeMounts') && container.volumeMounts.length">
+                                                    <li v-if="container.hasOwnProperty('volumeMounts') && !isNull(container.volumeMounts)">
                                                         <strong class="sectionTitle">
                                                             Volume Mounts
                                                         </strong>
@@ -1084,13 +1090,13 @@
                                                                             <strong class="label">Mount Propagation:</strong>
                                                                             <span class="value">{{ vol.mountPropagation }}</span>
                                                                         </li>
-                                                                        <li v-if="vol.hasOwnProperty('path') && !isNull(vol.path)">
-                                                                            <strong class="label">Path:</strong>
-                                                                            <span class="value">{{ vol.path }}</span>
+                                                                        <li v-if="vol.hasOwnProperty('subPath') && !isNull(vol.subPath)">
+                                                                            <strong class="label">Sub Path:</strong>
+                                                                            <span class="value">{{ vol.subPath }}</span>
                                                                         </li>
-                                                                        <li v-if="vol.hasOwnProperty('expandedPath') && !isNull(vol.expandedPath)">
-                                                                            <strong class="label">Expanded Path:</strong>
-                                                                            <span class="value">{{ vol.expandedPath }}</span>
+                                                                        <li v-if="vol.hasOwnProperty('subPathExpr') && !isNull(vol.subPathExpr)">
+                                                                            <strong class="label">Sub Path Expr:</strong>
+                                                                            <span class="value">{{ vol.subPathExpr }}</span>
                                                                         </li>
                                                                     </ul>
                                                                 </li>

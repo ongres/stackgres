@@ -1114,7 +1114,7 @@
                         </div>
                     </div>
 
-                    <div class="warning noMarginTop" v-if="!enableMonitoring">
+                    <div class="warning" v-if="!enableMonitoring">
                         In order to enable monitoring from within the web console, both of these options should be enabled.
                     </div>
 
@@ -1167,6 +1167,7 @@
                     
                     <div class="repeater">
                         <fieldset
+                            class="noPaddingBottom"
                             v-if="pods.customVolumes.length"
                             data-fieldset="spec.pods.customVolumes"
                         >
@@ -1189,7 +1190,7 @@
                                             <select v-model="customVolumesType[index]" @change="initCustomVolume(index)" :data-field="'spec.pods.customVolumes[' + index + '].type'">
                                                 <option :value="null" disabled selected>Choose one...</option>
                                                 <option value="emptyDir">Empty Directory</option>
-                                                <option value="configMap">Config Map</option>
+                                                <option value="configMap">ConfigMap</option>
                                                 <option value="secret">Secret</option>
                                             </select>
                                             <span class="helpTooltip" data-tooltip="Specifies the type of volume to be used"></span>
@@ -1220,7 +1221,7 @@
                                     <template v-else-if="(customVolumesType[index] == 'configMap')">
                                         <div class="header">
                                             <h5 for="spec.pods.customVolumes.configMap">
-                                                Config Map
+                                                ConfigMap
                                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap')"></span>
                                             </h5>
                                         </div>
@@ -1242,7 +1243,7 @@
                                             </div>
                                             <div class="col">
                                                 <label>Default Mode</label>
-                                                <input type="number" v-model="vol.configMap.defaultMode" autocomplete="off" :data-field="'spec.pods.customVolumes[' + index + '].configMap.defaultMode'">
+                                                <input type="number" v-model="vol.configMap.defaultMode" min="0" autocomplete="off" :data-field="'spec.pods.customVolumes[' + index + '].configMap.defaultMode'">
                                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.defaultMode')"></span>
                                             </div>
                                         </div>
@@ -1274,7 +1275,7 @@
                                                         </div>
                                                         <div class="col">
                                                             <label>Mode</label>
-                                                            <input type="number" v-model="item.mode" autocomplete="off" :data-field="'spec.pods.customVolumes[' + index + '].configMap.items[' + itemIndex + '].mode'">
+                                                            <input type="number" v-model="item.mode" min="0" autocomplete="off" :data-field="'spec.pods.customVolumes[' + index + '].configMap.items[' + itemIndex + '].mode'">
                                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.items.items.properties.mode')"></span>
                                                         </div>
                                                         <div class="col">
@@ -1325,7 +1326,7 @@
                                             </div>
                                             <div class="col">
                                                 <label>Default Mode</label>
-                                                <input type="number" v-model="vol.secret.defaultMode" autocomplete="off" :data-field="'spec.pods.customVolumes[' + index + '].secret.defaultMode'">
+                                                <input type="number" v-model="vol.secret.defaultMode" min="0" autocomplete="off" :data-field="'spec.pods.customVolumes[' + index + '].secret.defaultMode'">
                                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.defaultMode')"></span>
                                             </div>
                                         </div>
@@ -1429,7 +1430,7 @@
 
                                             <div class="col">
                                                 <label>Image</label>
-                                                <input :disabled="editMode" v-model="container.image" autocomplete="off" :data-field="'spec.pods.customInitContainers[' + index + '].image'">
+                                                <input v-model="container.image" autocomplete="off" :data-field="'spec.pods.customInitContainers[' + index + '].image'">
                                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.image')"></span>
                                             </div>
 
@@ -1445,7 +1446,7 @@
                                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.workingDir')"></span>
                                             </div>
 
-                                            <div class="col repeater">
+                                            <div class="col repeater" v-if="!editMode || container.hasOwnProperty('args')">
                                                 <fieldset :data-field="'spec.pods.customInitContainers[' + index + '].args'">
                                                     <div class="header" :class="[container.args.length ? 'marginBottom' : 'no-margin' ]">
                                                         <h5 :for="'spec.pods.customInitContainers[' + index + '].args'">
@@ -1471,7 +1472,7 @@
                                                 </div>
                                             </div>
 
-                                            <div class="col repeater">
+                                            <div class="col repeater" v-if="!editMode || container.hasOwnProperty('command')">
                                                 <fieldset :data-field="'spec.pods.customInitContainers[' + index + '].command'">
                                                     <div class="header" :class="[container.command.length ? 'marginBottom' : 'no-margin' ]">
                                                         <h5 :for="'spec.pods.customInitContainers[' + index + '].command'">
@@ -1498,7 +1499,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="repeater marginBottom marginTop">
+                                        <div class="repeater marginBottom marginTop" v-if="!editMode || container.hasOwnProperty('env')">
                                             <fieldset :data-field="'spec.pods.customInitContainers[' + index + '].env'">
                                                 <div class="header">
                                                     <h5 :for="'spec.pods.customInitContainers[' + index + '].env'">
@@ -1509,7 +1510,7 @@
                                                 <div class="variable" v-if="container.env.length">
                                                     <div class="row" v-for="(env, envIndex) in container.env" :data-field="'spec.pods.customInitContainers[' + index + '].env[' + envIndex + ']'">
                                                         <label>Name</label>
-                                                        <input :disabled="editMode" class="label" v-model="env.name" autocomplete="off" :data-field="'spec.pods.customInitContainers[' + index + '].env[' + envIndex + '].name'">
+                                                        <input :required="!isNull(env.value)" :disabled="editMode" class="label" v-model="env.name" autocomplete="off" :data-field="'spec.pods.customInitContainers[' + index + '].env[' + envIndex + '].name'">
 
                                                         <span class="eqSign"></span>
 
@@ -1527,143 +1528,148 @@
 
                                         <br/>
                                         
-                                        <div class="header">
-                                            <h5>
-                                                Ports
-                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports')"></span>
-                                            </h5>
-                                        </div>
-
-                                        <div class="repeater marginBottom">
-                                            <fieldset
-                                                data-field="spec.pods.customInitContainers.ports"
-                                                v-if="container.hasOwnProperty('ports') && container.ports.length"
-                                            >
-                                                <div class="section" v-for="(port, portIndex) in container.ports" :data-field="'spec.pods.customInitContainers[' + index + '].ports[' + portIndex + ']'">
-                                                    <div class="header">
-                                                        <h6>Port #{{ portIndex + 1 }}{{ !isNull(port.name) ? (': ' + port.name) : '' }}</h6>
-                                                        <a v-if="!editMode" class="addRow delete" @click="spliceArray(container.ports, portIndex)">Delete</a>
-                                                    </div>
-
-                                                    <div class="row-50">
-                                                        <div class="col">
-                                                            <label for="spec.pods.customInitContainers.ports.name">Name</label>  
-                                                            <input :disabled="editMode" v-model="port.name" :data-field="'spec.pods.customInitContainers[' + index + '].ports[' + portIndex + '].name'" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports.items.properties.name')"></span>
-                                                        </div>
-                                                        <div class="col">
-                                                            <label for="spec.pods.customInitContainers.ports.hostIP">Host IP</label>  
-                                                            <input :disabled="editMode" v-model="port.hostIP" :data-field="'spec.pods.customInitContainers[' + index + '].ports[' + portIndex + '].hostIP'" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports.items.properties.hostIP')"></span>
-                                                        </div>
-                                                        <div class="col">
-                                                            <label for="spec.pods.customInitContainers.ports.hostPort">Host Port</label>  
-                                                            <input :disabled="editMode" type="number" v-model="port.hostPort" :data-field="'spec.pods.customInitContainers[' + index + '].ports[' + portIndex + '].hostPort'" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports.items.properties.hostPort')"></span>
-                                                        </div>
-                                                        <div class="col">
-                                                            <label for="spec.pods.customInitContainers.ports.containerPort">Container Port</label>  
-                                                            <input :disabled="editMode" type="number" v-model="port.containerPort" :data-field="'spec.pods.customInitContainers[' + index + '].ports[' + portIndex + '].containerPort'" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports.items.properties.containerPort')"></span>
-                                                        </div>
-                                                        <div class="col">
-                                                            <label for="spec.pods.customInitContainers.ports.protocol">Protocol</label>  
-                                                            <select :disabled="editMode" v-model="port.protocol" :data-field="'spec.pods.customInitContainers[' + index + '].ports[' + portIndex + '].protocol'">
-                                                                <option :value="nullVal" selected>Choose one...</option>
-                                                                <option>TCP</option>
-                                                                <option>UDP</option>
-                                                                <option>SCTP</option>
-                                                            </select>
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports.items.properties.protocol')"></span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </fieldset>
-                                            <div v-if="!editMode" class="fieldsetFooter" :class="(container.hasOwnProperty('ports') && !container.ports.length) && 'topBorder'">
-                                                <a class="addRow" @click="!container.hasOwnProperty('ports') && (container['ports'] = []); container.ports.push({
-                                                    name: null,
-                                                    hostIP: null,
-                                                    hostPort: null,
-                                                    containerPort: null,
-                                                    protocol: null
-                                                })">
-                                                    Add Port
-                                                </a>
+                                        <template v-if="!editMode || container.hasOwnProperty('ports')">
+                                            <div class="header">
+                                                <h5>
+                                                    Ports
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports')"></span>
+                                                </h5>
                                             </div>
-                                        </div>
 
-                                        <br/>
+                                            <div class="repeater marginBottom">
+                                                <fieldset
+                                                    class="noPaddingBottom"
+                                                    data-field="spec.pods.customInitContainers.ports"
+                                                    v-if="container.ports.length"
+                                                >
+                                                    <div class="section" v-for="(port, portIndex) in container.ports" :data-field="'spec.pods.customInitContainers[' + index + '].ports[' + portIndex + ']'">
+                                                        <div class="header">
+                                                            <h6>Port #{{ portIndex + 1 }}{{ !isNull(port.name) ? (': ' + port.name) : '' }}</h6>
+                                                            <a v-if="!editMode" class="addRow delete" @click="spliceArray(container.ports, portIndex)">Delete</a>
+                                                        </div>
+
+                                                        <div class="row-50">
+                                                            <div class="col">
+                                                                <label for="spec.pods.customInitContainers.ports.name">Name</label>  
+                                                                <input :disabled="editMode" v-model="port.name" :data-field="'spec.pods.customInitContainers[' + index + '].ports[' + portIndex + '].name'" autocomplete="off">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports.items.properties.name')"></span>
+                                                            </div>
+                                                            <div class="col">
+                                                                <label for="spec.pods.customInitContainers.ports.hostIP">Host IP</label>  
+                                                                <input :disabled="editMode" v-model="port.hostIP" :data-field="'spec.pods.customInitContainers[' + index + '].ports[' + portIndex + '].hostIP'" autocomplete="off">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports.items.properties.hostIP')"></span>
+                                                            </div>
+                                                            <div class="col">
+                                                                <label for="spec.pods.customInitContainers.ports.hostPort">Host Port</label>  
+                                                                <input :disabled="editMode" type="number" v-model="port.hostPort" :data-field="'spec.pods.customInitContainers[' + index + '].ports[' + portIndex + '].hostPort'" autocomplete="off">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports.items.properties.hostPort')"></span>
+                                                            </div>
+                                                            <div class="col">
+                                                                <label for="spec.pods.customInitContainers.ports.containerPort">Container Port</label>  
+                                                                <input :disabled="editMode" type="number" v-model="port.containerPort" :data-field="'spec.pods.customInitContainers[' + index + '].ports[' + portIndex + '].containerPort'" autocomplete="off">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports.items.properties.containerPort')"></span>
+                                                            </div>
+                                                            <div class="col">
+                                                                <label for="spec.pods.customInitContainers.ports.protocol">Protocol</label>  
+                                                                <select :disabled="editMode" v-model="port.protocol" :data-field="'spec.pods.customInitContainers[' + index + '].ports[' + portIndex + '].protocol'">
+                                                                    <option :value="nullVal" selected>Choose one...</option>
+                                                                    <option>TCP</option>
+                                                                    <option>UDP</option>
+                                                                    <option>SCTP</option>
+                                                                </select>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports.items.properties.protocol')"></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </fieldset>
+                                                <div v-if="!editMode" class="fieldsetFooter" :class="(container.hasOwnProperty('ports') && !container.ports.length) && 'topBorder'">
+                                                    <a class="addRow" @click="!container.hasOwnProperty('ports') && (container['ports'] = []); container.ports.push({
+                                                        name: null,
+                                                        hostIP: null,
+                                                        hostPort: null,
+                                                        containerPort: null,
+                                                        protocol: null
+                                                    })">
+                                                        Add Port
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <br/>
+                                        </template>
                                         
-                                        <div class="header">
-                                            <h5>
-                                                Volume Mounts
-                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts')"></span>
-                                            </h5>
-                                        </div>
-
-                                        <div class="repeater marginBottom">
-                                            <fieldset
-                                                :data-field="'spec.pods.customInitContainers[' + index + '].volumeMounts'"
-                                                v-if="container.hasOwnProperty('volumeMounts') && container.volumeMounts.length"
-                                            >
-                                                <div class="section" v-for="(mount, mountIndex) in container.volumeMounts" :data-field="'spec.pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + ']'">
-                                                    <div class="header">
-                                                        <h6>Mount #{{ mountIndex + 1 }}{{ !isNull(mount.name) ? (': ' + mount.name) : '' }}</h6>
-                                                        <a v-if="!editMode" class="addRow delete" @click="spliceArray(container.volumeMounts, mountIndex)">Delete</a>
-                                                    </div>
-
-                                                    <div class="row-50">
-                                                        <div class="col">
-                                                            <label for="spec.pods.customInitContainers.volumeMounts.name">Name</label>  
-                                                            <input :disabled="editMode" v-model="mount.name" :data-field="'spec.pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].name'" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.name')"></span>
-                                                        </div>
-                                                        <div class="col">                    
-                                                            <label :for="'spec.pods.customInitContainers[' + index + '].volumeMounts.readOnly'">
-                                                                Read Only
-                                                            </label>  
-                                                            <label :disabled="editMode" :for="'spec.pods.customVolumes[' + index + '].volumeMounts[' + mountIndex + '].readOnly'" class="switch yes-no">
-                                                                Enable
-                                                                <input :disabled="editMode" type="checkbox" :id="'spec.pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].readOnly'" v-model="mount.readOnly" data-switch="NO" :data-field="'spec.pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].readOnly'">
-                                                            </label>
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.readOnly')"></span>
-                                                        </div>
-                                                        <div class="col">
-                                                            <label for="spec.pods.customInitContainers.volumeMounts.mountPath">Mount Path</label>  
-                                                            <input :disabled="editMode" v-model="mount.mountPath" :data-field="'spec.pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].mountPath'" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.mountPath')"></span>
-                                                        </div>
-                                                        <div class="col">
-                                                            <label for="spec.pods.customInitContainers.volumeMounts.mountPropagation">Mount Propagation</label>  
-                                                            <input :disabled="editMode" v-model="mount.mountPropagation" :data-field="'spec.pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].mountPropagation'" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.mountPropagation')"></span>
-                                                        </div>
-                                                        <div class="col">
-                                                            <label for="spec.pods.customInitContainers.volumeMounts.subPath">Path</label>  
-                                                            <input :disabled="editMode || (mount.hasOwnProperty('subPathExpr') && !isNull(mount.subPathExpr))" v-model="mount.subPath" :data-field="'spec.pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].subPath'" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.subPath')"></span>
-                                                        </div>
-                                                        <div class="col">
-                                                            <label for="spec.pods.customInitContainers.volumeMounts.subPathExpr">Expanded Path</label>  
-                                                            <input :disabled="editMode || (mount.hasOwnProperty('subPath') && !isNull(mount.subPath))" v-model="mount.subPathExpr" :data-field="'spec.pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].subPathExpr'" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.subPathExpr')"></span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </fieldset>
-                                            <div v-if="!editMode" class="fieldsetFooter" :class="(container.hasOwnProperty('volumeMounts') && !container.volumeMounts.length) && 'topBorder'">
-                                                <a class="addRow" @click="!container.hasOwnProperty('volumeMounts') && (container['volumeMounts'] = []); container.volumeMounts.push({
-                                                    mountPath: null,
-                                                    mountPropagation: null,
-                                                    name: null,
-                                                    readOnly: false,
-                                                    subPath: null,
-                                                    subPathExpr: null
-                                                })">
-                                                    Add Volume
-                                                </a>
+                                        <template v-if="!editMode || container.hasOwnProperty('volumeMounts')">
+                                            <div class="header">
+                                                <h5>
+                                                    Volume Mounts
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts')"></span>
+                                                </h5>
                                             </div>
-                                        </div>
+
+                                            <div class="repeater">
+                                                <fieldset
+                                                    class="noPaddingBottom"
+                                                    :data-field="'spec.pods.customInitContainers[' + index + '].volumeMounts'"
+                                                    v-if="container.hasOwnProperty('volumeMounts') && container.volumeMounts.length"
+                                                >
+                                                    <div class="section" v-for="(mount, mountIndex) in container.volumeMounts" :data-field="'spec.pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + ']'">
+                                                        <div class="header">
+                                                            <h6>Mount #{{ mountIndex + 1 }}{{ !isNull(mount.name) ? (': ' + mount.name) : '' }}</h6>
+                                                            <a v-if="!editMode" class="addRow delete" @click="spliceArray(container.volumeMounts, mountIndex)">Delete</a>
+                                                        </div>
+
+                                                        <div class="row-50">
+                                                            <div class="col">
+                                                                <label for="spec.pods.customInitContainers.volumeMounts.name">Name</label>  
+                                                                <input :required="!isNull(mount.mountPath)" :disabled="editMode" v-model="mount.name" :data-field="'spec.pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].name'" autocomplete="off">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.name')"></span>
+                                                            </div>
+                                                            <div class="col">                    
+                                                                <label :for="'spec.pods.customInitContainers[' + index + '].volumeMounts.readOnly'">
+                                                                    Read Only
+                                                                </label>  
+                                                                <label :disabled="editMode" :for="'spec.pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].readOnly'" class="switch yes-no">
+                                                                    Enable
+                                                                    <input :disabled="editMode" type="checkbox" :id="'spec.pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].readOnly'" v-model="mount.readOnly" data-switch="NO" :data-field="'spec.pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].readOnly'">
+                                                                </label>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.readOnly')"></span>
+                                                            </div>
+                                                            <div class="col">
+                                                                <label for="spec.pods.customInitContainers.volumeMounts.mountPath">Mount Path</label>  
+                                                                <input :required="!isNull(mount.name)" :disabled="editMode" v-model="mount.mountPath" :data-field="'spec.pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].mountPath'" autocomplete="off">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.mountPath')"></span>
+                                                            </div>
+                                                            <div class="col">
+                                                                <label for="spec.pods.customInitContainers.volumeMounts.mountPropagation">Mount Propagation</label>  
+                                                                <input :disabled="editMode" v-model="mount.mountPropagation" :data-field="'spec.pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].mountPropagation'" autocomplete="off">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.mountPropagation')"></span>
+                                                            </div>
+                                                            <div class="col">
+                                                                <label for="spec.pods.customInitContainers.volumeMounts.subPath">Sub Path</label>  
+                                                                <input :disabled="editMode || (mount.hasOwnProperty('subPathExpr') && !isNull(mount.subPathExpr))" v-model="mount.subPath" :data-field="'spec.pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].subPath'" autocomplete="off">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.subPath')"></span>
+                                                            </div>
+                                                            <div class="col">
+                                                                <label for="spec.pods.customInitContainers.volumeMounts.subPathExpr">Sub Path Expr</label>  
+                                                                <input :disabled="editMode || (mount.hasOwnProperty('subPath') && !isNull(mount.subPath))" v-model="mount.subPathExpr" :data-field="'spec.pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].subPathExpr'" autocomplete="off">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.subPathExpr')"></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </fieldset>
+                                                <div v-if="!editMode" class="fieldsetFooter" :class="(container.hasOwnProperty('volumeMounts') && !container.volumeMounts.length) && 'topBorder'">
+                                                    <a class="addRow" @click="!container.hasOwnProperty('volumeMounts') && (container['volumeMounts'] = []); container.volumeMounts.push({
+                                                        mountPath: null,
+                                                        mountPropagation: null,
+                                                        name: null,
+                                                        readOnly: false,
+                                                        subPath: null,
+                                                        subPathExpr: null
+                                                    })">
+                                                        Add Volume
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </template>
                                     </div>
                                 </template>
                             </fieldset>
@@ -1711,7 +1717,7 @@
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers')"></span>
                             </h3>
                         </div>
-                        <p>A list of custom application Containers that run within the cluster’s Pods</p>
+                        <p>A list of custom application containers that run within the cluster’s Pods</p>
 
                         <br/>
                         
@@ -1736,7 +1742,7 @@
 
                                             <div class="col">
                                                 <label>Image</label>
-                                                <input :disabled="editMode" v-model="container.image" autocomplete="off" :data-field="'spec.pods.customContainers[' + index + '].image'">
+                                                <input v-model="container.image" autocomplete="off" :data-field="'spec.pods.customContainers[' + index + '].image'">
                                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.image')"></span>
                                             </div>
 
@@ -1752,7 +1758,7 @@
                                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.workingDir')"></span>
                                             </div>
 
-                                            <div class="col repeater">
+                                            <div class="col repeater" v-if="!editMode || container.hasOwnProperty('args')">
                                                 <fieldset :data-field="'spec.pods.customContainers[' + index + '].args'">
                                                     <div class="header" :class="[container.args.length ? 'marginBottom' : 'no-margin' ]">
                                                         <h5 :for="'spec.pods.customContainers[' + index + '].args'">
@@ -1778,7 +1784,7 @@
                                                 </div>
                                             </div>
 
-                                            <div class="col repeater">
+                                            <div class="col repeater" v-if="!editMode || container.hasOwnProperty('command')">
                                                 <fieldset :data-field="'spec.pods.customContainers[' + index + '].command'">
                                                     <div class="header" :class="[container.command.length ? 'marginBottom' : 'no-margin' ]">
                                                         <h5 :for="'spec.pods.customContainers[' + index + '].command'">
@@ -1805,7 +1811,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="repeater marginBottom marginTop">
+                                        <div class="repeater marginBottom marginTop" v-if="!editMode || container.hasOwnProperty('env')">
                                             <fieldset :data-field="'spec.pods.customContainers[' + index + '].env'">
                                                 <div class="header">
                                                     <h5 :for="'spec.pods.customContainers[' + index + '].env'">
@@ -1816,7 +1822,7 @@
                                                 <div class="variable" v-if="container.env.length">
                                                     <div class="row" v-for="(env, envIndex) in container.env" :data-field="'spec.pods.customContainers[' + index + '].env[' + envIndex + ']'">
                                                         <label>Name</label>
-                                                        <input :disabled="editMode" class="label" v-model="env.name" autocomplete="off" :data-field="'spec.pods.customContainers[' + index + '].env[' + envIndex + '].name'">
+                                                        <input :required="!isNull(env.value)" :disabled="editMode" class="label" v-model="env.name" autocomplete="off" :data-field="'spec.pods.customContainers[' + index + '].env[' + envIndex + '].name'">
 
                                                         <span class="eqSign"></span>
 
@@ -1834,143 +1840,148 @@
 
                                         <br/>
                                         
-                                        <div class="header">
-                                            <h5>
-                                                Ports
-                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports')"></span>
-                                            </h5>
-                                        </div>
-
-                                        <div class="repeater marginBottom">
-                                            <fieldset
-                                                data-field="spec.pods.customContainers.ports"
-                                                v-if="container.hasOwnProperty('ports') && container.ports.length"
-                                            >
-                                                <div class="section" v-for="(port, portIndex) in container.ports" :data-field="'spec.pods.customContainers[' + index + '].ports[' + portIndex + ']'">
-                                                    <div class="header">
-                                                        <h6>Port #{{ portIndex + 1 }}{{ !isNull(port.name) ? (': ' + port.name) : '' }}</h6>
-                                                        <a v-if="!editMode" class="addRow delete" @click="spliceArray(container.ports, portIndex)">Delete</a>
-                                                    </div>
-
-                                                    <div class="row-50">
-                                                        <div class="col">
-                                                            <label for="spec.pods.customContainers.ports.name">Name</label>  
-                                                            <input :disabled="editMode" v-model="port.name" :data-field="'spec.pods.customContainers[' + index + '].ports[' + portIndex + '].name'" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports.items.properties.name')"></span>
-                                                        </div>
-                                                        <div class="col">
-                                                            <label for="spec.pods.customContainers.ports.hostIP">Host IP</label>  
-                                                            <input :disabled="editMode" v-model="port.hostIP" :data-field="'spec.pods.customContainers[' + index + '].ports[' + portIndex + '].hostIP'" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports.items.properties.hostIP')"></span>
-                                                        </div>
-                                                        <div class="col">
-                                                            <label for="spec.pods.customContainers.ports.hostPort">Host Port</label>  
-                                                            <input :disabled="editMode" type="number" v-model="port.hostPort" :data-field="'spec.pods.customContainers[' + index + '].ports[' + portIndex + '].hostPort'" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports.items.properties.hostPort')"></span>
-                                                        </div>
-                                                        <div class="col">
-                                                            <label for="spec.pods.customContainers.ports.containerPort">Container Port</label>  
-                                                            <input :disabled="editMode" type="number" v-model="port.containerPort" :data-field="'spec.pods.customContainers[' + index + '].ports[' + portIndex + '].containerPort'" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports.items.properties.containerPort')"></span>
-                                                        </div>
-                                                        <div class="col">
-                                                            <label for="spec.pods.customContainers.ports.protocol">Protocol</label>  
-                                                            <select :disabled="editMode" v-model="port.protocol" :data-field="'spec.pods.customContainers[' + index + '].ports[' + portIndex + '].protocol'">
-                                                                <option :value="nullVal" selected>Choose one...</option>
-                                                                <option>TCP</option>
-                                                                <option>UDP</option>
-                                                                <option>SCTP</option>
-                                                            </select>
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports.items.properties.protocol')"></span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </fieldset>
-                                            <div v-if="!editMode" class="fieldsetFooter" :class="(container.hasOwnProperty('ports') && !container.ports.length) && 'topBorder'">
-                                                <a class="addRow" @click="!container.hasOwnProperty('ports') && (container['ports'] = []); container.ports.push({
-                                                    name: null,
-                                                    hostIP: null,
-                                                    hostPort: null,
-                                                    containerPort: null,
-                                                    protocol: null
-                                                })">
-                                                    Add Port
-                                                </a>
+                                        <template v-if="!editMode || container.hasOwnProperty('ports')">
+                                            <div class="header">
+                                                <h5>
+                                                    Ports
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports')"></span>
+                                                </h5>
                                             </div>
-                                        </div>
 
-                                        <br/>
+                                            <div class="repeater marginBottom">
+                                                <fieldset
+                                                    class="noPaddingBottom"
+                                                    data-field="spec.pods.customContainers.ports"
+                                                    v-if="container.ports.length"
+                                                >
+                                                    <div class="section" v-for="(port, portIndex) in container.ports" :data-field="'spec.pods.customContainers[' + index + '].ports[' + portIndex + ']'">
+                                                        <div class="header">
+                                                            <h6>Port #{{ portIndex + 1 }}{{ !isNull(port.name) ? (': ' + port.name) : '' }}</h6>
+                                                            <a v-if="!editMode" class="addRow delete" @click="spliceArray(container.ports, portIndex)">Delete</a>
+                                                        </div>
+
+                                                        <div class="row-50">
+                                                            <div class="col">
+                                                                <label for="spec.pods.customContainers.ports.name">Name</label>  
+                                                                <input :disabled="editMode" v-model="port.name" :data-field="'spec.pods.customContainers[' + index + '].ports[' + portIndex + '].name'" autocomplete="off">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports.items.properties.name')"></span>
+                                                            </div>
+                                                            <div class="col">
+                                                                <label for="spec.pods.customContainers.ports.hostIP">Host IP</label>  
+                                                                <input :disabled="editMode" v-model="port.hostIP" :data-field="'spec.pods.customContainers[' + index + '].ports[' + portIndex + '].hostIP'" autocomplete="off">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports.items.properties.hostIP')"></span>
+                                                            </div>
+                                                            <div class="col">
+                                                                <label for="spec.pods.customContainers.ports.hostPort">Host Port</label>  
+                                                                <input :disabled="editMode" type="number" v-model="port.hostPort" :data-field="'spec.pods.customContainers[' + index + '].ports[' + portIndex + '].hostPort'" autocomplete="off">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports.items.properties.hostPort')"></span>
+                                                            </div>
+                                                            <div class="col">
+                                                                <label for="spec.pods.customContainers.ports.containerPort">Container Port</label>  
+                                                                <input :disabled="editMode" type="number" v-model="port.containerPort" :data-field="'spec.pods.customContainers[' + index + '].ports[' + portIndex + '].containerPort'" autocomplete="off">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports.items.properties.containerPort')"></span>
+                                                            </div>
+                                                            <div class="col">
+                                                                <label for="spec.pods.customContainers.ports.protocol">Protocol</label>  
+                                                                <select :disabled="editMode" v-model="port.protocol" :data-field="'spec.pods.customContainers[' + index + '].ports[' + portIndex + '].protocol'">
+                                                                    <option :value="nullVal" selected>Choose one...</option>
+                                                                    <option>TCP</option>
+                                                                    <option>UDP</option>
+                                                                    <option>SCTP</option>
+                                                                </select>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports.items.properties.protocol')"></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </fieldset>
+                                                <div v-if="!editMode" class="fieldsetFooter" :class="(container.hasOwnProperty('ports') && !container.ports.length) && 'topBorder'">
+                                                    <a class="addRow" @click="!container.hasOwnProperty('ports') && (container['ports'] = []); container.ports.push({
+                                                        name: null,
+                                                        hostIP: null,
+                                                        hostPort: null,
+                                                        containerPort: null,
+                                                        protocol: null
+                                                    })">
+                                                        Add Port
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <br/>
+                                        </template>
                                         
-                                        <div class="header">
-                                            <h5>
-                                                Volume Mounts
-                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts')"></span>
-                                            </h5>
-                                        </div>
-
-                                        <div class="repeater marginBottom">
-                                            <fieldset
-                                                :data-field="'spec.pods.customContainers[' + index + '].volumeMounts'"
-                                                v-if="container.hasOwnProperty('volumeMounts') && container.volumeMounts.length"
-                                            >
-                                                <div class="section" v-for="(mount, mountIndex) in container.volumeMounts" :data-field="'spec.pods.customContainers[' + index + '].volumeMounts[' + mountIndex + ']'">
-                                                    <div class="header">
-                                                        <h6>Mount #{{ mountIndex + 1 }}{{ !isNull(mount.name) ? (': ' + mount.name) : '' }}</h6>
-                                                        <a v-if="!editMode" class="addRow delete" @click="spliceArray(container.volumeMounts, mountIndex)">Delete</a>
-                                                    </div>
-
-                                                    <div class="row-50">
-                                                        <div class="col">
-                                                            <label for="spec.pods.customContainers.volumeMounts.name">Name</label>  
-                                                            <input :disabled="editMode" v-model="mount.name" :data-field="'spec.pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].name'" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.name')"></span>
-                                                        </div>
-                                                        <div class="col">                    
-                                                            <label :for="'spec.pods.customContainers[' + index + '].volumeMounts.readOnly'">
-                                                                Read Only
-                                                            </label>  
-                                                            <label :disabled="editMode" :for="'spec.pods.customVolumes[' + index + '].volumeMounts[' + mountIndex + '].readOnly'" class="switch yes-no">
-                                                                Enable
-                                                                <input :disabled="editMode" type="checkbox" :id="'spec.pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].readOnly'" v-model="mount.readOnly" data-switch="NO" :data-field="'spec.pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].readOnly'">
-                                                            </label>
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.readOnly')"></span>
-                                                        </div>
-                                                        <div class="col">
-                                                            <label for="spec.pods.customContainers.volumeMounts.mountPath">Mount Path</label>  
-                                                            <input :disabled="editMode" v-model="mount.mountPath" :data-field="'spec.pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].mountPath'" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.mountPath')"></span>
-                                                        </div>
-                                                        <div class="col">
-                                                            <label for="spec.pods.customContainers.volumeMounts.mountPropagation">Mount Propagation</label>  
-                                                            <input :disabled="editMode" v-model="mount.mountPropagation" :data-field="'spec.pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].mountPropagation'" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.mountPropagation')"></span>
-                                                        </div>
-                                                        <div class="col">
-                                                            <label for="spec.pods.customContainers.volumeMounts.subPath">Path</label>  
-                                                            <input :disabled="editMode || (mount.hasOwnProperty('subPathExpr') && !isNull(mount.subPathExpr))" v-model="mount.subPath" :data-field="'spec.pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].subPath'" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.subPath')"></span>
-                                                        </div>
-                                                        <div class="col">
-                                                            <label for="spec.pods.customContainers.volumeMounts.subPathExpr">Expanded Path</label>  
-                                                            <input :disabled="editMode || (mount.hasOwnProperty('subPath') && !isNull(mount.subPath))" v-model="mount.subPathExpr" :data-field="'spec.pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].subPathExpr'" autocomplete="off">
-                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.subPathExpr')"></span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </fieldset>
-                                            <div v-if="!editMode" class="fieldsetFooter" :class="(container.hasOwnProperty('volumeMounts') && !container.volumeMounts.length) && 'topBorder'">
-                                                <a class="addRow" @click="!container.hasOwnProperty('volumeMounts') && (container['volumeMounts'] = []); container.volumeMounts.push({
-                                                    mountPath: null,
-                                                    mountPropagation: null,
-                                                    name: null,
-                                                    readOnly: false,
-                                                    subPath: null,
-                                                    subPathExpr: null
-                                                })">
-                                                    Add Volume
-                                                </a>
+                                        <template v-if="!editMode || container.hasOwnProperty('volumeMounts')">
+                                            <div class="header">
+                                                <h5>
+                                                    Volume Mounts
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts')"></span>
+                                                </h5>
                                             </div>
-                                        </div>
+
+                                            <div class="repeater">
+                                                <fieldset
+                                                    class="noPaddingBottom"
+                                                    :data-field="'spec.pods.customContainers[' + index + '].volumeMounts'"
+                                                    v-if="container.hasOwnProperty('volumeMounts') && container.volumeMounts.length"
+                                                >
+                                                    <div class="section" v-for="(mount, mountIndex) in container.volumeMounts" :data-field="'spec.pods.customContainers[' + index + '].volumeMounts[' + mountIndex + ']'">
+                                                        <div class="header">
+                                                            <h6>Mount #{{ mountIndex + 1 }}{{ !isNull(mount.name) ? (': ' + mount.name) : '' }}</h6>
+                                                            <a v-if="!editMode" class="addRow delete" @click="spliceArray(container.volumeMounts, mountIndex)">Delete</a>
+                                                        </div>
+
+                                                        <div class="row-50">
+                                                            <div class="col">
+                                                                <label for="spec.pods.customContainers.volumeMounts.name">Name</label>  
+                                                                <input :required="!isNull(mount.mountPath)" :disabled="editMode" v-model="mount.name" :data-field="'spec.pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].name'" autocomplete="off">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.name')"></span>
+                                                            </div>
+                                                            <div class="col">                    
+                                                                <label :for="'spec.pods.customContainers[' + index + '].volumeMounts.readOnly'">
+                                                                    Read Only
+                                                                </label>  
+                                                                <label :disabled="editMode" :for="'spec.pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].readOnly'" class="switch yes-no">
+                                                                    Enable
+                                                                    <input :disabled="editMode" type="checkbox" :id="'spec.pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].readOnly'" v-model="mount.readOnly" data-switch="NO" :data-field="'spec.pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].readOnly'">
+                                                                </label>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.readOnly')"></span>
+                                                            </div>
+                                                            <div class="col">
+                                                                <label for="spec.pods.customContainers.volumeMounts.mountPath">Mount Path</label>  
+                                                                <input :required="!isNull(mount.name)" :disabled="editMode" v-model="mount.mountPath" :data-field="'spec.pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].mountPath'" autocomplete="off">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.mountPath')"></span>
+                                                            </div>
+                                                            <div class="col">
+                                                                <label for="spec.pods.customContainers.volumeMounts.mountPropagation">Mount Propagation</label>  
+                                                                <input :disabled="editMode" v-model="mount.mountPropagation" :data-field="'spec.pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].mountPropagation'" autocomplete="off">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.mountPropagation')"></span>
+                                                            </div>
+                                                            <div class="col">
+                                                                <label for="spec.pods.customContainers.volumeMounts.subPath">Sub Path</label>  
+                                                                <input :disabled="editMode || (mount.hasOwnProperty('subPathExpr') && !isNull(mount.subPathExpr))" v-model="mount.subPath" :data-field="'spec.pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].subPath'" autocomplete="off">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.subPath')"></span>
+                                                            </div>
+                                                            <div class="col">
+                                                                <label for="spec.pods.customContainers.volumeMounts.subPathExpr">Sub Path Expr</label>  
+                                                                <input :disabled="editMode || (mount.hasOwnProperty('subPath') && !isNull(mount.subPath))" v-model="mount.subPathExpr" :data-field="'spec.pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].subPathExpr'" autocomplete="off">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.subPathExpr')"></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </fieldset>
+                                                <div v-if="!editMode" class="fieldsetFooter" :class="(container.hasOwnProperty('volumeMounts') && !container.volumeMounts.length) && 'topBorder'">
+                                                    <a class="addRow" @click="!container.hasOwnProperty('volumeMounts') && (container['volumeMounts'] = []); container.volumeMounts.push({
+                                                        mountPath: null,
+                                                        mountPropagation: null,
+                                                        name: null,
+                                                        readOnly: false,
+                                                        subPath: null,
+                                                        subPathExpr: null
+                                                    })">
+                                                        Add Volume
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </template>
                                     </div>
                                 </template>
                             </fieldset>
@@ -2006,6 +2017,9 @@
                                 </a>
                             </div>
                         </div>
+
+                        <br/><br/><br/>
+
                     </template>
                 </div>
             </fieldset>
@@ -3440,7 +3454,7 @@
                         }
                     });
                 }
-
+                
                 return cluster
             },
 
@@ -3596,7 +3610,7 @@
                 return hasScripts
             },
 
-            cleanupScripts(managedSql) {
+            cleanUpScripts(managedSql) {
                 const vc = this;
                 managedSql.scripts.forEach( (baseScript, baseIndex) => {
                     if(baseScript.hasOwnProperty('scriptSpec')) {
@@ -3611,6 +3625,52 @@
                 })
 
                 return managedSql;
+
+            },
+
+            cleanUpUserSuppliedSidecars(pods) {
+
+                if( pods.hasOwnProperty('customVolumes') ) {
+                    let customVolumes = pods.customVolumes.filter( (v) => !this.isNull(v.name));
+                    pods.customVolumes = customVolumes.length ? customVolumes : null;
+                }
+
+                ['customInitContainers', 'customContainers'].forEach( (containerType) => {
+                    if(pods.hasOwnProperty(containerType) & !this.isNull(pods[containerType])) {
+                        pods[containerType].forEach( (container) => {
+                            if(container.hasOwnProperty('args') && !this.isNull(container.args)) {
+                                let args = container.args.filter( (a) => !this.isNull(a) );
+                                container.args = args.length ? args : null;
+                            }
+
+                            if(container.hasOwnProperty('command') && !this.isNull(container.command)) {
+                                let command = container.command.filter( (c) => !this.isNull(c) );
+                                container.command = command.length ? command : null;
+                            }
+                            
+                            if(container.hasOwnProperty('env') && !this.isNull(container.env)) {
+                                let env = container.env.filter( (v) => !this.isNull(v.name) );
+                                container.env = env.length ? env : null;
+                            }
+
+                            if(container.hasOwnProperty('ports') && !this.isNull(container.ports)) {
+                                let ports = container.ports.filter( (p) => !this.isNullObject(p) );
+                                container.ports = ports.length ? ports : null;
+                            }
+
+                            if(container.hasOwnProperty('volumeMounts') && !this.isNull(container.volumeMounts)) {
+                                let volumeMounts = container.volumeMounts.filter( (v) =>
+                                    !this.isNull(v.name) && !this.isNull(v.mountPath)
+                                );
+                                container.volumeMounts = volumeMounts.length ? volumeMounts : null;
+                            }
+                        })
+
+                        pods[containerType] = pods[containerType].filter( (c) => !this.isNull(c.name));
+                    }
+                })
+
+                return pods;
 
             },
 
@@ -3652,7 +3712,8 @@
 
                 let requiredAffinity = vc.cleanNodeAffinity(this.requiredAffinity);
                 let preferredAffinity = vc.cleanNodeAffinity(this.preferredAffinity);
-                let managedSql = vc.cleanupScripts($.extend(true,{},this.managedSql));
+                let managedSql = vc.cleanUpScripts($.extend(true,{},this.managedSql));
+                let pods = vc.cleanUpUserSuppliedSidecars($.extend(true,{},this.pods));
                 
                 var cluster = {
                     "metadata": {
@@ -3698,21 +3759,18 @@
                                 }
                             } ),
                             ...((
-                                this.pods.hasOwnProperty('customVolumes') && 
-                                (this.pods.customVolumes.filter( (v) => (v.name !== null) ).length > 0) && {
-                                    "customVolumes": this.pods.customVolumes
+                                pods.hasOwnProperty('customVolumes') && !this.isNull(pods.customVolumes) && {
+                                    "customVolumes": pods.customVolumes
                                 } || { "customVolumes": null }
                             )),
                             ...((
-                                this.pods.hasOwnProperty('customInitContainers') &&
-                                (this.pods.customInitContainers.filter( (c) => (c.name !== null) ).length > 0) && {
-                                    "customInitContainers": this.pods.customInitContainers
+                                pods.hasOwnProperty('customInitContainers') && pods.customInitContainers.length && {
+                                    "customInitContainers": pods.customInitContainers
                                 } || { "customInitContainers": null }
                             )),
                             ...((
-                                this.pods.hasOwnProperty('customContainers') &&
-                                (this.pods.customContainers.filter( (c) => (c.name !== null) ).length > 0) && {
-                                    "customContainers": this.pods.customContainers
+                                pods.hasOwnProperty('customContainers') && pods.customContainers.length && {
+                                    "customContainers": pods.customContainers
                                 } || { "customContainers": null }
                             )),
                         },
@@ -3873,8 +3931,6 @@
                         .catch(function (error) {
                             console.log(error.response);
                             vc.notify(error.response.data,'error', 'sgclusters');
-
-                            vc.checkValidSteps(vc._data, 'submit')
                         });
                     } else {
                         sgApi
@@ -3889,8 +3945,6 @@
                         .catch(function (error) {
                             console.log(error.response);
                             vc.notify(error.response.data,'error','sgclusters');
-
-                            vc.checkValidSteps(vc._data, 'submit')
                         });
                     }
                     

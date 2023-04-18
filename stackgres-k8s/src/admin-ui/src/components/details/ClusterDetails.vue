@@ -605,7 +605,7 @@
                     <table class="crdDetails" :key="'customVolume-' + index">
                         <tbody>
                             <tr>
-                                <td class="label" v-if="!index" rowspan="0">
+                                <td class="label" rowspan="0">
                                     Volume #{{ index + 1 }}
                                 </td>
                                 <td class="label" v-if="vol.hasOwnProperty('name')">
@@ -636,7 +636,7 @@
                             <template v-if="vol.hasOwnProperty('configMap')">
                                 <template v-for="(val, key, vIndex) in vol.configMap">
                                     <tr :key="'configMap-' + index + '-' + vIndex">
-                                        <td v-if="!index" class="label" :rowspan="Object.keys(vol.configMap).length">
+                                        <td v-if="!vIndex" class="label" :rowspan="Object.keys(vol.configMap).length">
                                             Config Map
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap')"></span>
                                         </td>
@@ -650,7 +650,7 @@
                                                     <template v-for="(el, iIndex) in val">
                                                         <li :key="'item-' + index + '-' + vIndex + '-' + iIndex">
                                                             <span class="label">
-                                                                Item #{{ index + 1 }}
+                                                                Item #{{ iIndex + 1 }}
                                                             </span>
                                                             <span class="value">
                                                                 <ul class="tableCells">
@@ -681,7 +681,7 @@
                             <template v-if="vol.hasOwnProperty('secret')">
                                 <template v-for="(val, key, sIndex) in vol.secret">
                                     <tr :key="'secret-' + index + '-' + sIndex">
-                                        <td v-if="!index" class="label" rowspan="0">
+                                        <td v-if="!sIndex" class="label" rowspan="0">
                                             Secret
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret')"></span>
                                         </td>
@@ -695,7 +695,7 @@
                                                     <template v-for="(el, iIndex) in val">
                                                         <li :key="'item-' + index + '-' + sIndex + '-' + iIndex">
                                                             <span class="label">
-                                                                Item #{{ index + 1 }}
+                                                                Item #{{ iIndex + 1 }}
                                                             </span>
                                                             <span class="value">
                                                                 <ul class="tableCells">
@@ -820,7 +820,7 @@
                             <template v-if="container.hasOwnProperty('ports') && container.ports.length">
                                 <template v-for="(port, pIndex) in container.ports">
                                     <tr :key="'port-containerPort' + index + '-' + pIndex">
-                                        <td class="label" :rowspan="5 * container.ports.length" v-if="!pIndex">
+                                        <td class="label" :rowspan="getRowSpan(container.ports)" v-if="!pIndex">
                                             Ports
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports')"></span>
                                         </td>
@@ -869,6 +869,71 @@
                                         </td>
                                         <td colspan="100%">
                                             {{ port.protocol }}
+                                        </td>
+                                    </tr>
+                                </template>
+                            </template>
+                            <template v-if="container.hasOwnProperty('volumeMounts') && container.volumeMounts.length">
+                                <template v-for="(volume, vIndex) in container.volumeMounts">
+                                    <tr :key="'volume-' + index + '-' + vIndex">
+                                        <td class="label" :rowspan="5 * container.volumeMounts.length" v-if="!vIndex">
+                                            Volume Mounts
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts')"></span>
+                                        </td>
+                                        <td class="label" :rowspan="Object.keys(volume).length">
+                                            Mount #{{ vIndex + 1 }}
+                                        </td>
+                                        <td>
+                                            Name
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.name')"></span>
+                                        </td>
+                                        <td colspan="100%">
+                                            {{ volume.name }}
+                                        </td>
+                                    </tr>
+                                    <tr v-if="volume.hasOwnProperty('readOnly')" :key="'volume-read-only-' + index + '-' + vIndex">
+                                        <td>
+                                            Read Only
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.readOnly')"></span>
+                                        </td>
+                                        <td colspan="100%">
+                                            {{ isEnabled(volume.readOnly) }}
+                                        </td>
+                                    </tr>
+                                    <tr v-if="volume.hasOwnProperty('mountPath')" :key="'volume-mount-path-' + index + '-' + vIndex">
+                                        <td>
+                                            Mount Path
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.mountPath')"></span>
+                                        </td>
+                                        <td colspan="100%">
+                                            {{ volume.mountPath }}
+                                        </td>
+                                    </tr>
+                                    <tr v-if="volume.hasOwnProperty('mountPropagation')" :key="'volume-mount-propagation-' + index + '-' + vIndex">
+                                        <td>
+                                            Mount Propagation
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.mountPropagation')"></span>
+                                        </td>
+                                        <td colspan="100%">
+                                            {{ volume.mountPropagation }}
+                                        </td>
+                                    </tr>
+                                    <tr v-if="volume.hasOwnProperty('subPath')" :key="'volume-sub-path-' + index + '-' + vIndex">
+                                        <td>
+                                            Sub Path
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.subPath')"></span>
+                                        </td>
+                                        <td colspan="100%">
+                                            {{ volume.subPath }}
+                                        </td>
+                                    </tr>
+                                    <tr v-if="volume.hasOwnProperty('subPathExpr')" :key="'volume-sub-path-expr-' + index + '-' + vIndex">
+                                        <td>
+                                            Sub Path Expr
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.subPathExpr')"></span>
+                                        </td>
+                                        <td colspan="100%">
+                                            {{ volume.subPathExpr }}
                                         </td>
                                     </tr>
                                 </template>
@@ -970,7 +1035,7 @@
                             <template v-if="container.hasOwnProperty('ports') && container.ports.length">
                                 <template v-for="(port, pIndex) in container.ports">
                                     <tr :key="'port-containerPort' + index + '-' + pIndex">
-                                        <td class="label" :rowspan="5 * container.ports.length" v-if="!pIndex">
+                                        <td class="label" :rowspan="getRowSpan(container.ports)" v-if="!pIndex">
                                             Ports
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports')"></span>
                                         </td>
@@ -1019,6 +1084,71 @@
                                         </td>
                                         <td colspan="100%">
                                             {{ port.protocol }}
+                                        </td>
+                                    </tr>
+                                </template>
+                            </template>
+                            <template v-if="container.hasOwnProperty('volumeMounts') && container.volumeMounts.length">
+                                <template v-for="(volume, vIndex) in container.volumeMounts">
+                                    <tr :key="'volume-' + index + '-' + vIndex">
+                                        <td class="label" :rowspan="5 * container.volumeMounts.length" v-if="!vIndex">
+                                            Volume Mounts
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts')"></span>
+                                        </td>
+                                        <td class="label" :rowspan="Object.keys(volume).length">
+                                            Mount #{{ vIndex + 1 }}
+                                        </td>
+                                        <td>
+                                            Name
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.name')"></span>
+                                        </td>
+                                        <td colspan="100%">
+                                            {{ volume.name }}
+                                        </td>
+                                    </tr>
+                                    <tr v-if="volume.hasOwnProperty('readOnly')" :key="'volume-read-only-' + index + '-' + vIndex">
+                                        <td>
+                                            Read Only
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.readOnly')"></span>
+                                        </td>
+                                        <td colspan="100%">
+                                            {{ isEnabled(volume.readOnly) }}
+                                        </td>
+                                    </tr>
+                                    <tr v-if="volume.hasOwnProperty('mountPath')" :key="'volume-mount-path-' + index + '-' + vIndex">
+                                        <td>
+                                            Mount Path
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.mountPath')"></span>
+                                        </td>
+                                        <td colspan="100%">
+                                            {{ volume.mountPath }}
+                                        </td>
+                                    </tr>
+                                    <tr v-if="volume.hasOwnProperty('mountPropagation')" :key="'volume-mount-propagation-' + index + '-' + vIndex">
+                                        <td>
+                                            Mount Propagation
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.mountPropagation')"></span>
+                                        </td>
+                                        <td colspan="100%">
+                                            {{ volume.mountPropagation }}
+                                        </td>
+                                    </tr>
+                                    <tr v-if="volume.hasOwnProperty('subPath')" :key="'volume-sub-path-' + index + '-' + vIndex">
+                                        <td>
+                                            Sub Path
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.subPath')"></span>
+                                        </td>
+                                        <td colspan="100%">
+                                            {{ volume.subPath }}
+                                        </td>
+                                    </tr>
+                                    <tr v-if="volume.hasOwnProperty('subPathExpr')" :key="'volume-sub-path-expr-' + index + '-' + vIndex">
+                                        <td>
+                                            Sub Path Expr
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.subPathExpr')"></span>
+                                        </td>
+                                        <td colspan="100%">
+                                            {{ volume.subPathExpr }}
                                         </td>
                                     </tr>
                                 </template>
@@ -1812,15 +1942,15 @@
             getRowSpan(el) {
                 let count = 0;
 
-                if (typeof el == 'object') {
-                    Object.keys(el).forEach( (item) => {
-                        count += this.getRowSpan(item);
-                    })
-                } else if (Array.isArray(el)) {
+                if (Array.isArray(el)) {
                     el.forEach( (item) => {
                         count += this.getRowSpan(item);
                     })
-                }
+                } else if (typeof el == 'object') {
+                    Object.keys(el).forEach( (item) => {
+                        count += this.getRowSpan(item) + 1;
+                    })
+                } 
 
                 return count;
             }
