@@ -173,7 +173,7 @@
                                     <strong class="label">Cron Schedule:</strong>
                                     <span class="value">{{ tzCrontab(backup.cronSchedule) }} ({{ tzCrontab(backup.cronSchedule) | prettyCRON(false) }})</span>
                                 </li>
-                                <li v-if="backup.path.length">
+                                <li v-if="!isNull(backup.path)">
                                     <strong class="label">
                                         Path:
                                     </strong>

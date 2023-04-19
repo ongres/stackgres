@@ -422,7 +422,7 @@
 
                             <div class="col">
                                 <label for="spec.configurations.backups.path">Backups Path</label>
-                                <input v-model="backups[0].path" data-field="spec.configurations.backups.path" autocomplete="off">
+                                <input v-model="backups[0].path" @change="!backups[0].path.length && (backups[0].path = null)" data-field="spec.configurations.backups.path" autocomplete="off">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.path')"></span>
                             </div>
 
@@ -3166,7 +3166,7 @@
                 ],
                 managedBackups: false,
                 backups: [{
-                    path: '',
+                    path: null,
                     compression: 'lz4',
                     cronSchedule: '0 5 * * *',
                     retention: 5,
