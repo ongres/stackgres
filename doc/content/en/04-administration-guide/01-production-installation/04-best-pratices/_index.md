@@ -1,0 +1,69 @@
+---
+title: Best Practices
+weight: 4
+url: install/best-practices
+aliases: [ install/cluster/best-practices ]
+description: Recommendations about how organize all configuration files.
+showToc: true
+---
+
+A complete StackGres cluster configuration should be organized as a collection of files inside a directory.
+These files can be organized according to your infrastructure's environments.
+
+This example shows a directory structure for two environmens, production and staging. 
+
+```
+stackgres/
+├── production
+│   ├── cluster
+│   │   ├── PodDisruptionBudget.yaml
+│   │   ├── SGCluster.yaml
+│   │   └── StackGres-alerts.yaml
+│   ├── configurations
+│   │   ├── 01-CreateNameSpaces.yaml
+│   │   ├── 02-StorageClass.yaml
+│   │   ├── 03-SGInstanceProfile.yaml
+│   │   ├── 04-SGPostgresConfig.yaml
+│   │   ├── 05-SGPoolingConfig.yaml
+│   │   ├── 06-SGDistributedLogs.yaml
+│   │   └── 07-SGObjectStorage.yaml
+│   ├── maintenance-jobs
+│   │   └── maintenance-vacuum-freeze.yaml
+│   └── operator
+│       └── helmfile.yaml
+└── staging
+    ├── cluster
+    │   └── SGCluster.yaml
+    ├── configurations
+    │   ├── 01-CreateNameSpaces.yaml
+    │   ├── 02-StorageClass.yaml
+    │   ├── 03-SGInstanceProfile.yaml
+    │   ├── 04-SGPostgresConfig.yaml
+    │   ├── 05-SGPoolingConfig.yaml
+    │   ├── 06-SGDistributedLogs.yaml
+    │   └── 07-SGObjectStorage.yaml
+    └── operator
+        └── helmfile.yaml
+```
+
+The directory structure consists of four sections, or directories, per environment.
+
+## Cluster
+
+This directory is mainly for the `SGCluster` manifest and other cluster-related resources such as pod disruption budgets and alert definitions.
+
+## Configurations
+
+This directory contains configuration required by the `SGCluster`, such as Postgres configurarion, pooling, instance profiles, backups, and distributed logs, but also Kubernetes namespaces or storage classes.
+The YAML files in this directory will be applied before the cluster resources.
+The file name numbering helps ensuring that the resources are created in the correct order.
+
+## Maintenance jobs 
+
+This directory contains all day-2 operation manifests. 
+
+## Operator
+
+This directory contains StackGres operator installation manifests that can include any other required operator installation configuration, for example the Prometheus operator definitions.
+
+You can see full manifest definition examples [here](https://gitlab.com/ongresinc/stackgres/-/tree/main/stackgres-k8s/examples/full_example).

@@ -11,7 +11,7 @@ This runbook will show you how to recover Postgres data from an existing volume.
 
 ## Scenario
 
-For this runbook we'll asume that you already have a StackGres cluster running following our recommendations for the storage class mentioned [Here]({{% relref "/04-production-installation/01-pre-requisites/02-data-storage/01-storage-classes" %}}), especially with the `reclaimPolicy` set to `Retain` to avoid that the volumes are deleted.
+For this runbook we'll asume that you already have a StackGres cluster running following our recommendations for the storage class mentioned [Here]({{% relref "/04-administration-guide/01-production-installation/01-pre-requisites/02-data-storage/01-storage-classes" %}}), especially with the `reclaimPolicy` set to `Retain` to avoid that the volumes are deleted.
 
 ### StackGres Cluster
 
