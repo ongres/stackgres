@@ -812,10 +812,6 @@ h2 .helpTooltip, h3 .helpTooltip, h4 .helpTooltip, h5 .helpTooltip, h6 .helpTool
     margin-left: 5px;
 }
 
-form.form label.switch + .helpTooltip {
-    transform: translate(20px, -47px);
-}
-
 form.form .row-50 .col {
     margin-bottom: 10px;
 }
