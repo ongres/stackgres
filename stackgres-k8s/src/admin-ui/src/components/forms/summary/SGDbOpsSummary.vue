@@ -158,7 +158,7 @@
                         <strong class="label">Check Clusters:</strong>
                         <span class="value">{{ isEnabled(crd.data.spec.majorVersionUpgrade.check) }}</span>
                     </li>
-                    <li v-if="crd.data.spec.majorVersionUpgrade.backupPath.length">
+                    <li v-if="!isNull(crd.data.spec.majorVersionUpgrade.backupPath)">
                         <strong class="label">Backup Path:</strong>
                         <span class="value">{{ crd.data.spec.majorVersionUpgrade.backupPath }}</span>
                     </li>
