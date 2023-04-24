@@ -237,7 +237,7 @@ mkfifo "$TARGET_PATH/specs_to_run.pipe"
 rm -f "$TARGET_PATH/specs_to_run.result"
 rm -f "$TARGET_PATH/specs_to_run.tail.pid"
 
-spec_controller() {
+spec_emitter() {
   echo 'Run started!'
   COUNT=1
   OVERALL_RESULT=true
@@ -246,6 +246,12 @@ spec_controller() {
   SPEC_COUNT="$(printf '%s\n' "$SPECS" | tr '\n' ' ' | wc -w)"
   while true
   do
+    printf %s "$COUNT" > "$TARGET_PATH/count"
+    printf %s "$COMPLETED_COUNT" > "$TARGET_PATH/completed-count"
+    printf %s "$SPEC_COUNT" > "$TARGET_PATH/spec-count"
+    printf %s "$SPECS" > "$TARGET_PATH/specs"
+    printf %s "$SPECS_TO_COMPLETE" > "$TARGET_PATH/specs-to-complete"
+    printf %s "$OVERALL_RESULT" > "$TARGET_PATH/overall-result"
     if [ "$COMPLETED_COUNT" -ge "$SPEC_COUNT" ]
     then
       if [ "$E2E_DISABLE_LOGS_SNAPSHOTS" != true ]
@@ -274,6 +280,7 @@ spec_controller() {
     then
       COUNT="$((COUNT+1))"
       SPEC_NAME="${SPEC_TO_RUN##*/}"
+      rm -f "$TARGET_PATH/$SPEC_NAME.lock"
       rm -f "$TARGET_PATH/$SPEC_NAME.completed"
       rm -f "$TARGET_PATH/$SPEC_NAME.failed"
       if ! [ -f "$SPEC_TO_RUN" ]
@@ -291,12 +298,14 @@ spec_controller() {
     for SPEC_TO_COMPLETE in $SPECS_TO_COMPLETE
     do
       SPEC_NAME="${SPEC_TO_COMPLETE##*/}"
-      if [ ! -f "$TARGET_PATH/$SPEC_NAME.completed" ]
+      if ! [ -f "$TARGET_PATH/$SPEC_NAME.lock" ] \
+        || ! flock -n "$TARGET_PATH/$SPEC_NAME.lock" true
       then
         continue
       fi
       SPEC_FAILED=false
-      if [ -f "$TARGET_PATH/$SPEC_NAME.failed" ]
+      if ! [ -f "$TARGET_PATH/$SPEC_NAME.completed" ] \
+        || [ -f "$TARGET_PATH/$SPEC_NAME.failed" ]
       then
         SPEC_FAILED=true
       fi
@@ -315,8 +324,10 @@ spec_controller() {
         if [ "$RETRIES" -lt "$E2E_RETRY" ]
         then
           SPECS="$SPECS $SPEC_PATH/$SPEC_NAME"
-          rm "$TARGET_PATH/$SPEC_NAME.completed"
-          rm "$TARGET_PATH/$SPEC_NAME.failed"
+          SPECS="$(printf '%s' "$SPECS" | tr ' ' '\n')"
+          rm -f "$TARGET_PATH/$SPEC_NAME.lock"
+          rm -f "$TARGET_PATH/$SPEC_NAME.completed"
+          rm -f "$TARGET_PATH/$SPEC_NAME.failed"
           echo "$RETRIES" > "$TARGET_PATH/$SPEC_NAME.retries"
         else
           cat << EOF >> "$TARGET_PATH/e2e-tests-junit-report.results.xml"
@@ -354,17 +365,17 @@ EOF
 }
 
 (
-  notrace_function spec_controller
+  notrace_function spec_emitter
 ) &
 SPEC_EMITTER_PID="$!"
 trap_kill "$SPEC_EMITTER_PID"
 
 set +e
 OVERALL_RESULT=true
-shell -c '
+"$SHELL" -c '
   echo $$ > "'"$TARGET_PATH/specs_to_run.tail.pid"'"
-  exec tail -f "'"$TARGET_PATH/specs_to_run.pipe"'"
-  ' | xargs_parallel_shell % -c "'$SHELL' $SHELL_XTRACE '$E2E_PATH/e2e' spec '%'"
+  exec tail -n +1 -f "'"$TARGET_PATH/specs_to_run.pipe"'"
+  ' | xargs_parallel_shell % "$E2E_PATH/e2e" spec_with_lock %
 set -e
 
 if ! wait "$SPEC_EMITTER_PID"

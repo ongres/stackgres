@@ -196,12 +196,18 @@ to_e2e_test_batch() {
       done
 }
 
+spec_with_lock() {
+  local SPEC_FILE="$1"
+  local SPEC_NAME="${SPEC_FILE##*/}"
+  flock "$TARGET_PATH/$SPEC_NAME.lock" "$SHELL" "$E2E_PATH/e2e" spec "$SPEC_FILE"
+}
+
 spec() {
   local RESULT
   local EXIT_CODE
   local SPEC_FILE="$1"
-  local SPEC_VALUES_FILE="$1.values.yaml"
   local SPEC_NAME="${SPEC_FILE##*/}"
+  local SPEC_VALUES_FILE="$1.values.yaml"
   SPEC_FILE="$SPEC_PATH/$SPEC_NAME"
   local CLUSTER_NAMESPACE="$SPEC_NAME-$(printf '%x' "$(date +%s)")"
   local CLUSTER_NAME

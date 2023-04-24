@@ -87,7 +87,7 @@ copy_from_image() {
     --user "$(id -u):$(id -g)" \
     "$SOURCE_IMAGE_NAME" \
     sh -ec $(echo "$-" | grep -v -q x || printf '%s' '-x') \
-      'cp -rd /project/. /project-target/.'
+      'cp -a /project/. /project-target/.'
 }
 
 pre_build_in_container() {

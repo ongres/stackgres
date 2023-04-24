@@ -421,7 +421,7 @@ modules:
       10: stackgres-k8s/install/helm/stackgres-cluster/cluster-restart.sh
       11: stackgres-k8s/install/helm/stackgres-cluster/.helmignore
       12: stackgres-k8s/install/helm/build-helm-packages.sh
-    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.16
+    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.17
     build_commands:
       - export HOME=/project
       - sh $SHELL_XTRACE stackgres-k8s/install/helm/build-helm-packages.sh
@@ -450,7 +450,7 @@ modules:
       9: stackgres-k8s/install/helm/stackgres-cluster/cluster-restart.sh
       10: stackgres-k8s/install/helm/stackgres-cluster/.helmignore
       11: stackgres-k8s/install/helm/build-helm-templates.sh
-    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.16
+    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.17
     build_commands:
       - export HOME=/project
       - sh $SHELL_XTRACE stackgres-k8s/install/helm/build-helm-templates.sh
@@ -461,7 +461,7 @@ modules:
     target_image: registry.access.redhat.com/ubi8-micro:8.7-6
     sources:
       - stackgres-k8s/install/operator-sdk/stackgres-operator
-    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.16
+    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.17
     build_commands:
       - make -C stackgres-k8s/install/operator-sdk/stackgres-operator bundle
     artifacts:
@@ -495,7 +495,7 @@ modules:
     target_image: registry.access.redhat.com/ubi8-micro:8.7-6
     sources:
       - stackgres-k8s/install/operator-sdk/stackgres-operator
-    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.16
+    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.17
     build_commands:
       - make -C stackgres-k8s/install/operator-sdk/stackgres-operator bundle-openshift
     artifacts:
