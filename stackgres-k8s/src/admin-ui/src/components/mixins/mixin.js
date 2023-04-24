@@ -250,17 +250,6 @@ export const mixin = {
                     
                     if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
                       store.commit('updateNamespaces', item.metadata.namespace);
-      
-                    if( (item.status !== null) && item.status.hasOwnProperty('process')) {
-                      if( item.status.process.status === 'Completed' ) {
-                        start = moment(item.status.process.timing.start);
-                        finish = moment(item.status.process.timing.stored);
-                        duration = new Date(moment.duration(finish.diff(start))).toISOString();
-                      } else {
-                        duration = '';
-                      }
-                      
-                    }
     
                     if(!index)
                       store.commit('flushResource', 'sgbackups')
@@ -268,7 +257,6 @@ export const mixin = {
                     store.commit('updateBackups', { 
                       name: item.metadata.name,
                       data: item,
-                      duration: duration,
                       show: true
                     });
       

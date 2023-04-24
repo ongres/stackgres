@@ -334,17 +334,60 @@
 								</tr>
 								<tr>
 									<td class="label">
+										End Time
+										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.timing.end')"></span>
+									</td>
+									<td class="timestamp">
+										<span class='date'>
+											{{ back.data.status.process.timing.end | formatTimestamp('date') }}
+										</span>
+										<span class='time'>
+											{{ back.data.status.process.timing.end | formatTimestamp('time') }}
+										</span>
+										<span class='ms'>
+											{{ back.data.status.process.timing.end | formatTimestamp('ms') }}
+										</span>
+										<span class='tzOffset'>{{ showTzOffset() }}</span>
+									</td>
+								</tr>
+								<tr>
+									<td class="label">
+										Stored Time
+										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.timing.stored')"></span>
+									</td>
+									<td class="timestamp">
+										<span class='date'>
+											{{ back.data.status.process.timing.stored | formatTimestamp('date') }}
+										</span>
+										<span class='time'>
+											{{ back.data.status.process.timing.stored | formatTimestamp('time') }}
+										</span>
+										<span class='ms'>
+											{{ back.data.status.process.timing.stored | formatTimestamp('ms') }}
+										</span>
+										<span class='tzOffset'>{{ showTzOffset() }}</span>
+									</td>
+								</tr>
+								<tr v-if="(back.data.status.process.status === 'Completed' )" :set="duration = getBackupDuration(back)">
+									<td class="label">
 										Elapsed
 										<span class="helpTooltip" data-tooltip="Total time transcurred between the start time of backup and the time at which the backup is safely stored in the object storage."></span>
 									</td>
-									<td class="timestamp">
-										<span class='time'>
-											{{ back.duration | formatTimestamp('time', false) }}
-										</span>
-										<span class='ms'>
-											{{ back.duration | formatTimestamp('ms', false) }}
-										</span>
-									</td>
+									<template v-if="duration.length">
+										<td class="timestamp">
+											<span class='time'>
+												{{ duration | formatTimestamp('time') }}
+											</span>
+											<span class='ms'>
+												{{ duration | formatTimestamp('ms') }}
+											</span>
+										</td>
+									</template>
+									<template v-else>
+										<td>
+											The time spent taking the backup could not be calculated
+										</td>
+									</template>
 								</tr>
 								<tr>
 									<td class="label">
@@ -414,42 +457,6 @@
 									</td>
 									<td>
 										{{ back.data.status.process.managedLifecycle ? 'Enabled' : 'Disabled' }}
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										End Time
-										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.timing.end')"></span>
-									</td>
-									<td class="timestamp">
-										<span class='date'>
-											{{ back.data.status.process.timing.end | formatTimestamp('date') }}
-										</span>
-										<span class='time'>
-											{{ back.data.status.process.timing.end | formatTimestamp('time') }}
-										</span>
-										<span class='ms'>
-											{{ back.data.status.process.timing.end | formatTimestamp('ms') }}
-										</span>
-										<span class='tzOffset'>{{ showTzOffset() }}</span>
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										Stored Time
-										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.timing.stored')"></span>
-									</td>
-									<td class="timestamp">
-										<span class='date'>
-											{{ back.data.status.process.timing.stored | formatTimestamp('date') }}
-										</span>
-										<span class='time'>
-											{{ back.data.status.process.timing.stored | formatTimestamp('time') }}
-										</span>
-										<span class='ms'>
-											{{ back.data.status.process.timing.stored | formatTimestamp('ms') }}
-										</span>
-										<span class='tzOffset'>{{ showTzOffset() }}</span>
 									</td>
 								</tr>
 								<tr>
@@ -717,10 +724,15 @@
 				
 			},
 
-			getBackupDuration( start, stored ) {
-				let begin = moment(start);
-				let finish = moment(stored);
-				return(new Date(moment.duration(finish.diff(begin))).toISOString());
+			getBackupDuration( backup ) {
+				if ( this.hasProp(backup, 'data.status.process.timing.start') && this.hasProp(backup, 'data.status.process.timing.stored') ) {
+					let start = moment(backup.data.status.process.timing.start);
+					let finish = moment(backup.data.status.process.timing.stored);
+
+					return new Date(moment.duration(finish.diff(start))).toISOString();
+				} else {
+					return '';
+				}
 			},
 
 			getActiveFilters() {
