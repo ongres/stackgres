@@ -209,8 +209,9 @@ class PatroniConfigMapTest {
     cluster.getSpec().getPostgresServices().getPrimary().setCustomPorts(List.of(csPort));
     IllegalArgumentException exception =
         assertThrows(IllegalArgumentException.class, () -> generator.buildSource(context));
-    assertEquals(exception.getMessage(),
-        "Can not find any custom container with port named " + csPort.getTargetPort().getStrVal());
+    assertEquals(
+        "Can not find any custom container with port named " + csPort.getTargetPort().getStrVal(),
+        exception.getMessage());
   }
 
   @Test

@@ -13,11 +13,11 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import io.stackgres.operator.conciliation.ResourceDiscoverer;
+import io.stackgres.operator.conciliation.AbstractResourceDiscoverer;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 
 @ApplicationScoped
-public class BenchmarkJobDiscovererImpl extends ResourceDiscoverer<JobFactory>
+public class BenchmarkJobDiscovererImpl extends AbstractResourceDiscoverer<JobFactory>
     implements BenchmarkJobDiscoverer {
 
   @Inject

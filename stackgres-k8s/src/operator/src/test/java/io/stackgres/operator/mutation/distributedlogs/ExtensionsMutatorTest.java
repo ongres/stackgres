@@ -15,7 +15,7 @@ import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.operator.common.OperatorExtensionMetadataManager;
+import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
@@ -38,7 +38,7 @@ class ExtensionsMutatorTest {
   private StackGresDistributedLogsReview review;
 
   @Mock
-  private OperatorExtensionMetadataManager extensionMetadataManager;
+  private ExtensionMetadataManager extensionMetadataManager;
 
   private ExtensionsMutator mutator;
 

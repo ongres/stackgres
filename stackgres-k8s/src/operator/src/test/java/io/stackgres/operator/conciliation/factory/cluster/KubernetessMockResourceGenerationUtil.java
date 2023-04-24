@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PodBuilder;
@@ -25,34 +26,52 @@ import io.fabric8.kubernetes.api.model.batch.v1.CronJobBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContainer;
+import io.stackgres.common.StringUtil;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
+import io.stackgres.common.labels.ClusterLabelFactory;
+import io.stackgres.common.labels.ClusterLabelMapper;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 public class KubernetessMockResourceGenerationUtil {
 
-  public static List<HasMetadata> buildResources(String cluster, String namespace) {
+  public static List<HasMetadata> buildResources(String name, String namespace) {
+    StackGresCluster cluster = new StackGresClusterBuilder()
+        .withNewMetadata()
+        .withNamespace(namespace)
+        .withName(name)
+        .withUid(StringUtil.generateRandom())
+        .endMetadata()
+        .build();
+    ClusterLabelFactory labelFactory = new ClusterLabelFactory(new ClusterLabelMapper());
     return Stream.of(
         new SecretBuilder()
             .withData(ImmutableMap.of(generateRandom(), generateRandom()))
             .withNewMetadata()
-            .withName(cluster)
+            .withName(name)
             .withNamespace(namespace)
+            .withOwnerReferences(List.of(ResourceUtil.getControllerOwnerReference(cluster)))
             .endMetadata().build(),
         new ConfigMapBuilder()
             .withData(ImmutableMap.of(generateRandom(), generateRandom()))
             .withNewMetadata()
-            .withName(cluster)
+            .withName(name)
             .withNamespace(namespace)
+            .withOwnerReferences(List.of(ResourceUtil.getControllerOwnerReference(cluster)))
             .endMetadata()
             .build(),
         new ConfigMapBuilder()
             .withData(ImmutableMap.of(generateRandom(), generateRandom()))
-            .withNewMetadata().withName(cluster + "-templates")
+            .withNewMetadata().withName(name + "-templates")
             .withNamespace(namespace)
+            .withOwnerReferences(List.of(ResourceUtil.getControllerOwnerReference(cluster)))
             .endMetadata()
             .build(),
         new StatefulSetBuilder()
             .withNewMetadata()
-            .withName(cluster)
+            .withName(name)
             .withNamespace(namespace)
+            .withOwnerReferences(List.of(ResourceUtil.getControllerOwnerReference(cluster)))
             .endMetadata()
             .withNewSpec()
             .withReplicas(2)
@@ -85,20 +104,48 @@ public class KubernetessMockResourceGenerationUtil {
             .endSpec().build(),
         new ServiceBuilder()
             .withNewMetadata()
-            .withName(cluster + "-" + PatroniUtil.DEPRECATED_READ_WRITE_SERVICE)
+            .withName(name + PatroniUtil.DEPRECATED_READ_WRITE_SERVICE)
             .withLabels(ImmutableMap.of(generateRandom(), generateRandom()))
             .withNamespace(namespace)
+            .withOwnerReferences(List.of(ResourceUtil.getControllerOwnerReference(cluster)))
             .endMetadata()
             .build(),
         new ServiceBuilder()
             .withNewMetadata()
             .withLabels(ImmutableMap.of(generateRandom(), generateRandom()))
-            .withName(cluster + "-" + PatroniUtil.READ_ONLY_SERVICE)
+            .withName(name + PatroniUtil.READ_ONLY_SERVICE)
+            .withNamespace(namespace)
+            .withOwnerReferences(List.of(ResourceUtil.getControllerOwnerReference(cluster)))
+            .endMetadata()
+            .build(),
+        new EndpointsBuilder()
+            .withNewMetadata()
+            .withName(name + PatroniUtil.DEPRECATED_READ_WRITE_SERVICE)
+            .withLabels(ImmutableMap.of(generateRandom(), generateRandom()))
+            .withNamespace(namespace)
+            .endMetadata()
+            .build(),
+        new EndpointsBuilder()
+            .withNewMetadata()
+            .withLabels(ImmutableMap.of(generateRandom(), generateRandom()))
+            .withName(name + PatroniUtil.READ_ONLY_SERVICE)
             .withNamespace(namespace)
             .endMetadata()
             .build(),
         new PodBuilder()
-            .withNewMetadata().withName(cluster + "-0").withNamespace(namespace)
+            .withNewMetadata().withName(name + "-0").withNamespace(namespace)
+            .withLabels(labelFactory.clusterReplicaLabels(cluster))
+            .endMetadata()
+            .withSpec(new PodSpecBuilder()
+                .addNewContainer()
+                .withImage(generateRandom())
+                .endContainer()
+                .build())
+            .build(),
+        new PodBuilder()
+            .withNewMetadata().withName(name + "-1").withNamespace(namespace)
+            .withLabels(labelFactory.clusterPrimaryLabels(cluster))
+            .withOwnerReferences(List.of(ResourceUtil.getOwnerReference(cluster)))
             .endMetadata()
             .withSpec(new PodSpecBuilder()
                 .addNewContainer()
@@ -108,8 +155,9 @@ public class KubernetessMockResourceGenerationUtil {
             .build(),
         new CronJobBuilder()
             .withNewMetadata()
-            .withName(cluster + "-backup")
+            .withName(name + "-backup")
             .withNamespace(namespace)
+            .withOwnerReferences(List.of(ResourceUtil.getControllerOwnerReference(cluster)))
             .endMetadata()
             .withNewSpec()
             .withNewJobTemplate()
@@ -128,7 +176,7 @@ public class KubernetessMockResourceGenerationUtil {
             .build(),
         new JobBuilder()
             .withNewMetadata()
-            .withName(cluster)
+            .withName(name)
             .withNamespace(namespace)
             .endMetadata()
             .withNewSpec()
@@ -144,4 +192,5 @@ public class KubernetessMockResourceGenerationUtil {
             .build()
     ).collect(Collectors.toList());
   }
+
 }

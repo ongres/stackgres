@@ -19,6 +19,8 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher.Action;
@@ -150,6 +152,13 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
         EndpointsList.class,
         onCreateOrUpdate(
             reconcileEndpointsShardedClusters())));
+
+    monitors.add(createWatcher(
+        Pod.class,
+        PodList.class,
+        onDelete(
+            reconcilePodClusters()
+            .andThen(reconcilePodDistributedLogs()))));
   }
 
   private <T extends CustomResource<?, ?>,
@@ -178,6 +187,14 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
   private <T> BiConsumer<Action, T> onCreateOrUpdate(BiConsumer<Action, T> consumer) {
     return (action, resource) -> {
       if (action != Action.DELETED) {
+        consumer.accept(action, resource);
+      }
+    };
+  }
+
+  private <T> BiConsumer<Action, T> onDelete(BiConsumer<Action, T> consumer) {
+    return (action, resource) -> {
+      if (action == Action.DELETED) {
         consumer.accept(action, resource);
       }
     };
@@ -382,6 +399,38 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
             endpoints.getMetadata().getLabels().get(clusterScopeKey),
             shardedCluster.getMetadata().getName()))
         .forEach(shardedCluster -> reconcileShardedCluster().accept(action, shardedCluster));
+  }
+
+  private BiConsumer<Action, Pod> reconcilePodClusters() {
+    String clusterNameKey =
+        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.CLUSTER_NAME_KEY;
+    return (action, pod) -> client
+        .resources(StackGresCluster.class, StackGresClusterList.class)
+        .inNamespace(pod.getMetadata().getNamespace())
+        .list()
+        .getItems()
+        .stream()
+        .filter(cluster -> pod.getMetadata().getLabels() != null)
+        .filter(cluster -> Objects.equals(
+            pod.getMetadata().getLabels().get(clusterNameKey),
+            cluster.getMetadata().getName()))
+        .forEach(cluster -> reconcileCluster().accept(action, cluster));
+  }
+
+  private BiConsumer<Action, Pod> reconcilePodDistributedLogs() {
+    String distributedLogsNameKey =
+        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.DISTRIBUTED_LOGS_CLUSTER_NAME_KEY;
+    return (action, pod) -> client
+        .resources(StackGresDistributedLogs.class, StackGresDistributedLogsList.class)
+        .inNamespace(pod.getMetadata().getNamespace())
+        .list()
+        .getItems()
+        .stream()
+        .filter(distributedLogs -> pod.getMetadata().getLabels() != null)
+        .filter(distributedLogs -> Objects.equals(
+            pod.getMetadata().getLabels().get(distributedLogsNameKey),
+            distributedLogs.getMetadata().getName()))
+        .forEach(distributedLogs -> reconcileDistributedLogs().accept(action, distributedLogs));
   }
 
   @Override

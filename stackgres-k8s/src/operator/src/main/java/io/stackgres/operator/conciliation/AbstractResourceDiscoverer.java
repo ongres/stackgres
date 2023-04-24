@@ -18,7 +18,7 @@ import javax.enterprise.inject.Instance;
 import com.google.common.base.Predicates;
 import io.stackgres.common.StackGresVersion;
 
-public abstract class ResourceDiscoverer<T> implements AnnotationFinder {
+public abstract class AbstractResourceDiscoverer<T> implements AnnotationFinder {
 
   protected final Map<StackGresVersion, List<T>> resourceHub =
       Arrays.stream(StackGresVersion.values())

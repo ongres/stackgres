@@ -10,7 +10,7 @@ import java.lang.annotation.Annotation;
 import javax.enterprise.inject.Instance;
 
 public abstract class AnnotatedResourceDiscoverer<T, A extends Annotation>
-    extends ResourceDiscoverer<T> {
+    extends AbstractResourceDiscoverer<T> {
 
   @Override
   protected void init(Instance<T> instance) {

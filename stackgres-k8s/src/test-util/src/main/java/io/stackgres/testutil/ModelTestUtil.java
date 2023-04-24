@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
@@ -213,7 +214,7 @@ public class ModelTestUtil {
         return new Quantity(String.valueOf(RANDOM.nextInt()),
             QUANTITY_UNITS[RANDOM.nextInt(QUANTITY_UNITS.length)]);
       } else if (valueClass == String.class || valueClass == Object.class) {
-        return StringUtils.getRandomString(10);
+        return "rnd-" + StringUtils.getRandomString(10).toLowerCase(Locale.US);
       } else if (valueClass == Boolean.class) {
         return RANDOM.nextBoolean();
       } else if (Number.class.isAssignableFrom(valueClass)) {

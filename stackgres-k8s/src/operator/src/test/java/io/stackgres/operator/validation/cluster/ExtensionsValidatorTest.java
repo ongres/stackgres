@@ -18,9 +18,9 @@ import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.extension.ExtensionRequest;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
-import io.stackgres.operator.common.OperatorExtensionMetadataManager;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.utils.ValidationUtils;
@@ -52,7 +52,7 @@ class ExtensionsValidatorTest {
   private List<StackGresClusterInstalledExtension> installedExtensions;
 
   @Mock
-  private OperatorExtensionMetadataManager extensionMetadataManager;
+  private ExtensionMetadataManager extensionMetadataManager;
 
   @BeforeEach
   void setUp() {

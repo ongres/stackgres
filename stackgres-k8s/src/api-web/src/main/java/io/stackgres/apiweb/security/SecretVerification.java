@@ -18,7 +18,7 @@ import io.quarkus.security.AuthenticationFailedException;
 import io.stackgres.apiweb.config.WebApiProperty;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.resource.ResourceScanner;
-import io.stackgres.common.resource.ResourceUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @ApplicationScoped
 public class SecretVerification {

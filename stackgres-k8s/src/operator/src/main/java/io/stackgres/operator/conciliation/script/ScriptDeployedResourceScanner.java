@@ -5,26 +5,40 @@
 
 package io.stackgres.operator.conciliation.script;
 
-import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgscript.StackGresScript;
-import io.stackgres.operator.conciliation.DeployedResourcesScanner;
+import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
+import io.stackgres.operator.conciliation.DeployedResourcesCache;
+import io.stackgres.operator.conciliation.DeployedResourcesSnapshot;
 
 @ApplicationScoped
-public class ScriptDeployedResourceScanner extends DeployedResourcesScanner<StackGresScript> {
+public class ScriptDeployedResourceScanner
+    extends AbstractDeployedResourcesScanner<StackGresScript> {
+
+  @Inject
+  public ScriptDeployedResourceScanner(DeployedResourcesCache deployedResourcesCache) {
+    super(deployedResourcesCache);
+  }
+
+  public ScriptDeployedResourceScanner() {
+    super(null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+  }
 
   @Override
-  public List<HasMetadata> getDeployedResources(StackGresScript config) {
-    return List.of();
+  public DeployedResourcesSnapshot getDeployedResources(StackGresScript config) {
+    return DeployedResourcesSnapshot.emptySnapshot();
   }
 
   @Override

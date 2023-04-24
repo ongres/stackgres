@@ -48,6 +48,10 @@
       <artifactId>quarkus-rest-client</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-caffeine</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk15on</artifactId>
     </dependency>
@@ -146,9 +150,6 @@
   <profiles>
     <profile>
       <id>safer</id>
-      <properties>
-        <check-operator-values>true</check-operator-values>
-      </properties>
     </profile>
     <profile>
       <id>native</id>

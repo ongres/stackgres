@@ -33,7 +33,7 @@ export E2E_WAIT_OPERATOR="${E2E_WAIT_OPERATOR:-true}"
 
 export E2E_INCLUDE_ONLY_POSTGRES_VERSIONS="12.9 12.12 13.4 13.5 14.3 14.4 ${E2E_POSTGRES_VERSION:-15.2} $E2E_UI_POSTGRES_VERSOIN"
 
-export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-1.4.3}"
+export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-1.5.0}"
 
 export E2E_LOCAL_OPERATOR_IP="${E2E_LOCAL_OPERATOR_IP:-172.20.0.1}"
 export E2E_LOCAL_OPERATOR_PORT="${E2E_LOCAL_OPERATOR_PORT:-9080}"
@@ -469,6 +469,7 @@ install_operator_only() {
       # shellcheck disable=SC2015
       [ "$E2E_LOG_OPERATOR_HTTP" = true ] && echo TRACE || echo INFO)" \
     --set-string developer.extraOpts[10]='-Dquarkus.log.category."stackgres-extensions-cache".level=DEBUG' \
+    --set-string developer.extraOpts[11]='-Dquarkus.log.category."io.stackgres.operator.conciliation".level=TRACE' \
     --set extensions.cache.enabled="$(
       # shellcheck disable=SC2015
       [ "$EXTENSIONS_CACHE_ENABLED" = true ] && echo true || echo false)" \
@@ -612,6 +613,7 @@ upgrade_operator() {
       # shellcheck disable=SC2015
       [ "$E2E_LOG_OPERATOR_HTTP" = true ] && echo TRACE || echo INFO)" \
     --set-string developer.extraOpts[10]='-Dquarkus.log.category."stackgres-extensions-cache".level=DEBUG' \
+    --set-string developer.extraOpts[11]='-Dquarkus.log.category."io.stackgres.operator.conciliation".level=TRACE' \
     --set extensions.cache.enabled="$(
       # shellcheck disable=SC2015
       [ "$EXTENSIONS_CACHE_ENABLED" = true ] && echo true || echo false)" \
@@ -722,6 +724,7 @@ upgrade_operator_from_private_repository() {
         # shellcheck disable=SC2015
         [ "$E2E_LOG_OPERATOR_HTTP" = true ] && echo TRACE || echo INFO)" \
       --set-string developer.extraOpts[10]='-Dquarkus.log.category."stackgres-extensions-cache".level=DEBUG' \
+      --set-string developer.extraOpts[11]='-Dquarkus.log.category."io.stackgres.operator.conciliation".level=TRACE' \
       --set extensions.cache.enabled="$(
         # shellcheck disable=SC2015
         [ "$EXTENSIONS_CACHE_ENABLED" = true ] && echo true || echo false)" \

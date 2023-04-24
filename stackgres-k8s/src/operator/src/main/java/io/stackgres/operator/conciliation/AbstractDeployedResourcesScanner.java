@@ -19,49 +19,65 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import org.jooq.lambda.Seq;
 
-public abstract class DeployedResourcesScanner<T extends CustomResource<?, ?>> {
+public abstract class AbstractDeployedResourcesScanner<T extends CustomResource<?, ?>> {
 
-  public List<HasMetadata> getDeployedResources(T config) {
+  private final DeployedResourcesCache deployedResourcesCache;
+
+  protected AbstractDeployedResourcesScanner(DeployedResourcesCache deployedResourcesCache) {
+    this.deployedResourcesCache = deployedResourcesCache;
+  }
+
+  public DeployedResourcesSnapshot getDeployedResources(T config) {
     final String kind = HasMetadata.getKind(config.getClass());
     final Map<String, String> genericLabels = getGenericLabels(config);
     final Map<String, String> crossNamespaceLabels = getCrossNamespaceLabels(config);
 
     KubernetesClient client = getClient();
 
-    Stream<HasMetadata> inNamespace = getInNamepspaceResourceOperations()
+    List<HasMetadata> inNamespace = getInNamepspaceResourceOperations()
         .values()
         .stream()
         .filter(op -> !genericLabels.isEmpty())
-        .flatMap(emptyOnNotFound(op -> op.apply(client)
+        .<HasMetadata>flatMap(emptyOrNotFound(op -> op.apply(client)
             .inNamespace(config.getMetadata().getNamespace())
             .withLabels(genericLabels)
             .list()
             .getItems()
-            .stream()));
+            .stream()))
+        .toList();
 
-    Stream<HasMetadata> inAnyNamespace = getInAnyNamespaceResourceOperations(config)
+    List<HasMetadata> inAnyNamespace = getInAnyNamespaceResourceOperations(config)
         .values()
         .stream()
         .filter(op -> !crossNamespaceLabels.isEmpty())
-        .flatMap(emptyOnNotFound(op -> op.apply(client)
+        .<HasMetadata>flatMap(emptyOrNotFound(op -> op.apply(client)
             .inAnyNamespace()
             .withLabels(crossNamespaceLabels)
             .list()
             .getItems()
-            .stream()));
+            .stream()))
+        .toList();
 
     List<HasMetadata> deployedResources = Seq.seq(inNamespace)
+        .append(inAnyNamespace)
+        .toList();
+    List<HasMetadata> ownedDeployedResources = deployedResources.stream()
         .filter(resource -> resource.getMetadata().getOwnerReferences()
             .stream().anyMatch(ownerReference -> ownerReference.getKind().equals(kind)
                 && ownerReference.getName().equals(config.getMetadata().getName())
-                && ownerReference.getUid().equals(config.getMetadata().getUid())))
-        .append(inAnyNamespace)
+                && ownerReference.getUid().equals(config.getMetadata().getUid())
+                && ownerReference.getController() != null && ownerReference.getController()))
         .toList();
 
-    return deployedResources;
+    deployedResourcesCache.removeWithLabelsNotIn(genericLabels, deployedResources);
+    DeployedResourcesSnapshot deployedResourcesSnapshot =
+        deployedResourcesCache.createDeployedResourcesSnapshot(
+            ownedDeployedResources, deployedResources);
+
+    return deployedResourcesSnapshot;
   }
 
-  private <P, R> Function<P, Stream<R>> emptyOnNotFound(Function<P, Stream<R>> function) {
+  private <P, R> Function<P, Stream<R>> emptyOrNotFound(Function<P, Stream<R>> function) {
     return param -> {
       try {
         return function.apply(param);

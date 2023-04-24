@@ -16,24 +16,36 @@ import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.labels.LabelFactoryForCluster;
-import io.stackgres.operator.conciliation.DeployedResourcesScanner;
+import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
+import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.ReconciliationOperations;
 
 @ApplicationScoped
 public class DistributedLogsDeployedResourceScanner
-    extends DeployedResourcesScanner<StackGresDistributedLogs>
+    extends AbstractDeployedResourcesScanner<StackGresDistributedLogs>
     implements ReconciliationOperations {
 
   private final KubernetesClient client;
   private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
   @Inject
-  public DistributedLogsDeployedResourceScanner(KubernetesClient client,
+  public DistributedLogsDeployedResourceScanner(
+      DeployedResourcesCache deployedResourcesCache,
+      KubernetesClient client,
       LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
+    super(deployedResourcesCache);
     this.client = client;
     this.labelFactory = labelFactory;
+  }
+
+  public DistributedLogsDeployedResourceScanner() {
+    super(null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.client = null;
+    this.labelFactory = null;
   }
 
   @Override

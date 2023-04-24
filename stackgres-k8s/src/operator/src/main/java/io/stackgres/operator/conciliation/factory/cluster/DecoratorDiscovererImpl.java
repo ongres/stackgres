@@ -13,14 +13,14 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import io.stackgres.operator.conciliation.ResourceDiscoverer;
+import io.stackgres.operator.conciliation.AbstractResourceDiscoverer;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.Decorator;
 import io.stackgres.operator.conciliation.factory.DecoratorDiscoverer;
 
 @ApplicationScoped
 public class DecoratorDiscovererImpl
-    extends ResourceDiscoverer<Decorator<StackGresClusterContext>>
+    extends AbstractResourceDiscoverer<Decorator<StackGresClusterContext>>
     implements DecoratorDiscoverer<StackGresClusterContext> {
 
   @Inject

@@ -28,8 +28,8 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtensionBuilder;
+import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
-import io.stackgres.operator.common.OperatorExtensionMetadataManager;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
@@ -77,7 +77,7 @@ class ExtensionsMutatorTest {
   private StackGresClusterReview review;
 
   @Mock
-  private OperatorExtensionMetadataManager extensionMetadataManager;
+  private ExtensionMetadataManager extensionMetadataManager;
 
   private ExtensionsMutator mutator;
 

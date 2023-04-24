@@ -29,8 +29,8 @@ import io.stackgres.common.JdbcStatementTemplate;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.postgres.PostgresConnectionManager;
 import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.distributedlogs.common.StackGresDistributedLogsContext;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @ApplicationScoped
 public class DistributedLogsDatabaseManager {

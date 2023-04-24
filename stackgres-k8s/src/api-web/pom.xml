@@ -214,9 +214,6 @@
   <profiles>
     <profile>
       <id>safer</id>
-      <properties>
-        <check-operator-values>true</check-operator-values>
-      </properties>
     </profile>
     <profile>
       <id>native</id>

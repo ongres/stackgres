@@ -41,7 +41,10 @@ class AbstractConciliatorTest {
   private CustomResourceFinder<TestResource> finder;
 
   @Mock
-  private Conciliator<TestResource> conciliator;
+  private AbstractConciliator<TestResource> conciliator;
+
+  @Mock
+  private DeployedResourcesCache deployedResourcesCache;
 
   @Mock
   private HandlerDelegator<TestResource> handlerDelegator;
@@ -333,7 +336,8 @@ class AbstractConciliatorTest {
 
   private AbstractReconciliator<TestResource> buildConciliator() {
     final AbstractReconciliator<TestResource> reconciliator =
-        new TestReconciliator(scanner, finder, conciliator, handlerDelegator, null);
+        new TestReconciliator(scanner, finder, conciliator, deployedResourcesCache,
+            handlerDelegator, null);
     return reconciliator;
   }
 
@@ -343,10 +347,12 @@ class AbstractConciliatorTest {
     TestReconciliator(
         CustomResourceScanner<TestResource> scanner,
         CustomResourceFinder<TestResource> finder,
-        Conciliator<TestResource> conciliator,
+        AbstractConciliator<TestResource> conciliator,
+        DeployedResourcesCache deployedResourcesCache,
         HandlerDelegator<TestResource> handlerDelegator,
         KubernetesClient client) {
-      super(scanner, finder, conciliator, handlerDelegator, client, "Test");
+      super(scanner, finder, conciliator, deployedResourcesCache,
+          handlerDelegator, client, "Test");
     }
 
     @Override

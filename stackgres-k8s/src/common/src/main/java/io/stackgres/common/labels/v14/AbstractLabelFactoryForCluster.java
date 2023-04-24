@@ -5,7 +5,7 @@
 
 package io.stackgres.common.labels.v14;
 
-import static io.stackgres.common.resource.ResourceUtil.labelValue;
+import static io.stackgres.operatorframework.resource.ResourceUtil.labelValue;
 
 import java.util.Map;
 

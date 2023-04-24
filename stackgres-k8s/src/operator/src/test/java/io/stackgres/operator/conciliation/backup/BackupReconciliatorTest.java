@@ -22,11 +22,12 @@ import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
-import io.stackgres.operator.conciliation.ComparisonDelegator;
-import io.stackgres.operator.conciliation.Conciliator;
+import io.stackgres.operator.conciliation.AbstractConciliator;
+import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
+import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,15 +43,15 @@ class BackupReconciliatorTest {
   @Mock
   CustomResourceFinder<StackGresBackup> finder;
   @Mock
-  Conciliator<StackGresBackup> conciliator;
+  AbstractConciliator<StackGresBackup> conciliator;
+  @Mock
+  DeployedResourcesCache deployedResourcesCache;
   @Mock
   HandlerDelegator<StackGresBackup> handlerDelegator;
   @Mock
   EventEmitter<StackGresBackup> eventController;
   @Mock
   CustomResourceScheduler<StackGresBackup> backupScheduler;
-  @Mock
-  ComparisonDelegator<StackGresBackup> resourceComparator;
   @Mock
   CustomResourceFinder<StackGresCluster> clusterFinder;
   @Mock
@@ -66,10 +67,11 @@ class BackupReconciliatorTest {
     parameters.finder = finder;
     parameters.backupScheduler = backupScheduler;
     parameters.conciliator = conciliator;
+    parameters.deployedResourcesCache = deployedResourcesCache;
     parameters.handlerDelegator = handlerDelegator;
     parameters.eventController = eventController;
     parameters.backupScheduler = backupScheduler;
-    parameters.resourceComparator = resourceComparator;
+    parameters.objectMapper = JsonUtil.jsonMapper();
     parameters.statusManager = statusManager;
     reconciliator = spy(new BackupReconciliator(parameters));
   }

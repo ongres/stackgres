@@ -39,7 +39,8 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
 
   private final CustomResourceScanner<T> scanner;
   private final CustomResourceFinder<T> finder;
-  private final Conciliator<T> conciliator;
+  private final AbstractConciliator<T> conciliator;
+  private final DeployedResourcesCache deployedResourcesCache;
   private final HandlerDelegator<T> handlerDelegator;
   private final KubernetesClient client;
   private final String reconciliationName;
@@ -54,13 +55,15 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
   protected AbstractReconciliator(
       CustomResourceScanner<T> scanner,
       CustomResourceFinder<T> finder,
-      Conciliator<T> conciliator,
+      AbstractConciliator<T> conciliator,
+      DeployedResourcesCache deployedResourcesCache,
       HandlerDelegator<T> handlerDelegator,
       KubernetesClient client,
       String reconciliationName) {
     this.scanner = scanner;
     this.finder = finder;
     this.conciliator = conciliator;
+    this.deployedResourcesCache = deployedResourcesCache;
     this.handlerDelegator = handlerDelegator;
     this.client = client;
     this.reconciliationName = reconciliationName;
@@ -73,6 +76,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     this.scanner = null;
     this.finder = null;
     this.conciliator = null;
+    this.deployedResourcesCache = null;
     this.handlerDelegator = null;
     this.client = null;
     this.reconciliationName = null;
@@ -195,7 +199,8 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
                   resource.getMetadata().getNamespace(),
                   resource.getMetadata().getName(),
                   resource.getKind());
-              handlerDelegator.create(config, resource);
+              var created = handlerDelegator.create(config, resource);
+              deployedResourcesCache.put(resource, created);
             });
 
         result.getPatches()
@@ -207,7 +212,8 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
                   resource.v2.getMetadata().getNamespace(),
                   resource.v2.getMetadata().getName(),
                   resource.v2.getKind());
-              handlerDelegator.patch(config, resource.v1, resource.v2);
+              var patched = handlerDelegator.patch(config, resource.v1, resource.v2);
+              deployedResourcesCache.put(resource.v1, patched);
             });
 
         result.getDeletions()
@@ -219,7 +225,11 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
                   resource.getMetadata().getNamespace(),
                   resource.getMetadata().getName(),
                   resource.getKind());
-              handlerDelegator.delete(config, resource);
+              try {
+                handlerDelegator.delete(config, resource);
+              } finally {
+                deployedResourcesCache.remove(resource);
+              }
             });
         if (result.getDeletions().isEmpty() && result.getPatches().isEmpty()) {
           onConfigCreated(config, result);

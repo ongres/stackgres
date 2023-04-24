@@ -5,41 +5,66 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.conciliation.Conciliator;
-import io.stackgres.operator.conciliation.ReconciliationResult;
-import io.stackgres.operator.conciliation.ReconciliationUtil;
+import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.operator.conciliation.AbstractConciliator;
+import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
+import io.stackgres.operator.conciliation.DeployedResourceValue;
+import io.stackgres.operator.conciliation.DeployedResourcesCache;
+import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 
 @ApplicationScoped
-public class ClusterConciliator extends Conciliator<StackGresCluster> {
+public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
 
-  private final ClusterStatusManager statusManager;
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Inject
-  public ClusterConciliator(ClusterStatusManager statusManager) {
-    this.statusManager = statusManager;
+  public ClusterConciliator(
+      RequiredResourceGenerator<StackGresCluster> requiredResourceGenerator,
+      AbstractDeployedResourcesScanner<StackGresCluster> deployedResourcesScanner,
+      DeployedResourcesCache deployedResourcesCache,
+      LabelFactoryForCluster<StackGresCluster> labelFactory) {
+    super(requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
+    this.labelFactory = labelFactory;
   }
 
   @Override
-  public ReconciliationResult evalReconciliationState(StackGresCluster config) {
-    final ReconciliationResult reconciliationResult = super.evalReconciliationState(config);
-
-    if (statusManager.isPendingRestart(config)) {
-      reconciliationResult.setDeletions(reconciliationResult.getDeletions().stream()
-          .filter(ReconciliationUtil::isResourceReconciliationNotPausedUntilRestart)
-          .collect(Collectors.toUnmodifiableList()));
-
-      reconciliationResult.setPatches(reconciliationResult.getPatches().stream()
-          .filter(tuple -> ReconciliationUtil
-              .isResourceReconciliationNotPausedUntilRestart(tuple.v2))
-          .collect(Collectors.toUnmodifiableList()));
+  protected boolean forceChange(HasMetadata requiredResource, StackGresCluster config) {
+    if (requiredResource instanceof StatefulSet requiredStatefulSet
+        && requiredStatefulSet.getMetadata().getName().equals(
+            config.getMetadata().getName())) {
+      Map<String, String> primaryLabels =
+          labelFactory.clusterPrimaryLabelsWithoutUidAndScope(config);
+      boolean result = deployedResourcesCache
+          .stream()
+          .map(DeployedResourceValue::latestDeployed)
+          .noneMatch(latestDeployedResource -> latestDeployedResource instanceof Pod lastDeployedPod
+              && Optional.of(lastDeployedPod.getMetadata())
+              .map(ObjectMeta::getLabels)
+              .filter(labels -> primaryLabels.entrySet().stream()
+                  .allMatch(primaryLabel -> labels.entrySet().stream()
+                      .anyMatch(primaryLabel::equals)))
+              .isPresent());
+      if (result && LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Will force StatefulSet reconciliation since no primary pod with labels {} was"
+            + " found for SGCluster {}.{}",
+            primaryLabels,
+            config.getMetadata().getNamespace(),
+            config.getMetadata().getName());
+      }
+      return result;
     }
-
-    return reconciliationResult;
+    return false;
   }
+
 }

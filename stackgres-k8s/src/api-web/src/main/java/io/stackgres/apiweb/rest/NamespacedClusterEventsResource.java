@@ -29,7 +29,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.ResourceScanner;
-import io.stackgres.common.resource.ResourceUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -79,7 +79,7 @@ public class NamespacedClusterEventsResource {
 
   private boolean isClusterEvent(EventDto event, String namespace, @NotNull String name,
       Map<String, List<ObjectMeta>> relatedResources) {
-    Pattern namePattern = Pattern.compile(ResourceUtil.getNameWithIndexPattern(name));
+    Pattern namePattern = ResourceUtil.getNameWithIndexPattern(name);
     ObjectReference involvedObject = event.getInvolvedObject();
     return Objects.equals(involvedObject.getNamespace(), namespace)
         && ((Objects.equals(involvedObject.getKind(), StackGresCluster.KIND)

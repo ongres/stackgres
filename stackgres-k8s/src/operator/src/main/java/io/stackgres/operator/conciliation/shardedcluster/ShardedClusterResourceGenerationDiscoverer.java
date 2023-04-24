@@ -13,14 +13,14 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.client.VersionInfo;
+import io.stackgres.operator.conciliation.AbstractResourceDiscoverer;
 import io.stackgres.operator.conciliation.KubernetesVersionBinder;
-import io.stackgres.operator.conciliation.ResourceDiscoverer;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 
 @ApplicationScoped
 public class ShardedClusterResourceGenerationDiscoverer
-    extends ResourceDiscoverer<ResourceGenerator<StackGresShardedClusterContext>>
+    extends AbstractResourceDiscoverer<ResourceGenerator<StackGresShardedClusterContext>>
     implements ResourceGenerationDiscoverer<StackGresShardedClusterContext> {
 
   @Inject

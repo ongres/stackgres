@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
@@ -24,7 +25,7 @@ import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.operator.conciliation.ComparisonDelegator;
+import io.fabric8.zjsonpatch.JsonDiff;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import org.apache.commons.compress.utils.Lists;
 import org.jooq.lambda.Seq;
@@ -51,11 +52,10 @@ public class PatchResumer<T extends CustomResource<?, ?>> {
 
   static final long MAX_RESUME_LENGTH = 256;
 
-  private final ComparisonDelegator<T> resourceComparator;
+  private final ObjectMapper objectMapper;
 
-  public PatchResumer(ComparisonDelegator<T> resourceComparator) {
-    super();
-    this.resourceComparator = resourceComparator;
+  public PatchResumer(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
   }
 
   public String resourceChanged(T customResource, ReconciliationResult result) {
@@ -66,7 +66,9 @@ public class PatchResumer<T extends CustomResource<?, ?>> {
         .sorted((v1, v2) -> compareResourceByKind(v1, v2, customResource))
         .map(r -> Tuple.tuple("-" + r.getKind() + ":" + r.getMetadata().getName(), "deleted"));
     var patched = Seq.seq(result.getPatches())
-        .flatMap(t -> Seq.seq(resourceComparator.getJsonDiff(t.v1, t.v2))
+        .flatMap(t -> Seq.seq(JsonDiff.asJson(
+            objectMapper.valueToTree(t.v1),
+            objectMapper.valueToTree(t.v2)))
             .map(patch -> Tuple.tuple(t.v2, patch)))
         .map(t -> resumeResourcePatch(t.v1, t.v2, customResource))
         .sorted((t1, t2) -> compareResourceByKind(t1.v1, t2.v1, customResource))

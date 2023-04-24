@@ -15,7 +15,7 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import io.stackgres.common.StackGresGroupKind;
-import io.stackgres.operator.conciliation.ResourceDiscoverer;
+import io.stackgres.operator.conciliation.AbstractResourceDiscoverer;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.VolumeDiscoverer;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
@@ -23,7 +23,7 @@ import io.stackgres.operator.conciliation.factory.VolumePair;
 
 @ApplicationScoped
 public class ClusterVolumeDiscoverer
-    extends ResourceDiscoverer<VolumeFactory<StackGresClusterContext>>
+    extends AbstractResourceDiscoverer<VolumeFactory<StackGresClusterContext>>
     implements VolumeDiscoverer<StackGresClusterContext> {
 
   @Inject
