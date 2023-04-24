@@ -3,35 +3,144 @@
 #
 # Build the image with:
 #
-# docker build -f stackgres-k8s/ci/build/Dockerfile-ci -t "registry.gitlab.com/ongresinc/stackgres/ci:1.16-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)" stackgres-k8s/ci/build/
+# docker build -f stackgres-k8s/ci/build/Dockerfile-ci -t "registry.gitlab.com/ongresinc/stackgres/ci:1.17-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)" stackgres-k8s/ci/build/
 #
 ###
 
-FROM docker.io/docker:20.10
-   RUN apk add coreutils gnupg openssl jq curl bash zsh sed libc6-compat
-    RUN apk add attr-dev e2fsprogs-dev glib-dev libtirpc-dev openssl-dev util-linux-dev \
-      gcc libc-dev make automake autoconf libtool linux-headers
-    RUN uname -a | grep -qxF aarch64 \
-      || wget -q -O /bin/yajsv https://github.com/neilpa/yajsv/releases/download/v1.4.0/yajsv.linux.amd64
-    RUN chmod a+x /bin/yajsv
-    RUN apk add py3-pip
-    RUN pip3 install yamllint yq
-    RUN mkdir -p "$HOME/.docker"; echo '{"experimental":"enabled"}' > "$HOME/.docker/config.json"
-    RUN apk add git
-    RUN apk add xz
-    RUN mkdir -p ~/.docker/cli-plugins
-    RUN wget -q -O ~/.docker/cli-plugins/docker-buildx "https://github.com/docker/buildx/releases/download/v0.8.2/buildx-v0.8.2.linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
-    RUN chmod a+x ~/.docker/cli-plugins/docker-buildx
-    RUN echo '{"experimental":"enabled"}' > ~/.docker/config.json
-    RUN wget -q -O /bin/kubectl "https://dl.k8s.io/release/v1.24.1/bin/linux/$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/kubectl"
-    RUN chmod a+x /bin/kubectl
-    RUN wget -q -O /bin/kind "https://github.com/kubernetes-sigs/kind/releases/download/v0.15.0/kind-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
-    RUN chmod a+x /bin/kind
-    RUN wget -q -O /bin/k3d "https://github.com/rancher/k3d/releases/download/v4.4.7/k3d-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
-    RUN chmod a+x /bin/k3d
-    RUN wget -q "https://get.helm.sh/helm-v3.9.0-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64).tar.gz" -O -|tar xz --strip-components=1 -C /bin -f - "linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/helm"
-    RUN wget -q -O /bin/k9s "https://github.com/derailed/k9s/releases/download/v0.25.18/k9s_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo x86_64).tar.gz"
-    RUN chmod a+x /bin/k9s
-    RUN apk add aws-cli
-    RUN wget https://github.com/operator-framework/operator-sdk/releases/download/v1.26.0/operator-sdk_linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64) -O /bin/operator-sdk
-    RUN chmod a+x /bin/operator-sdk
+FROM registry.access.redhat.com/ubi8-minimal:8.7-1107
+  # From https://github.com/docker-library/docker/blob/master/20.10/cli/Dockerfile
+  RUN microdnf install -y \
+      ca-certificates \
+      openssh-clients \
+      wget \
+      tar
+  # RUN [ -e /etc/nsswitch.conf ] && grep '^hosts: files dns' /etc/nsswitch.conf
+  ENV DOCKER_VERSION 20.10.24
+  RUN set -eux; \
+    wget -O 'docker.tgz' "https://download.docker.com/linux/static/stable/$(uname -m)/docker-20.10.24.tgz"; \
+    tar --extract \
+      --file docker.tgz \
+      --strip-components 1 \
+      --directory /usr/local/bin/ \
+      --no-same-owner \
+      'docker/docker' \
+    ; \
+    rm docker.tgz; \
+    docker --version
+
+  ENV DOCKER_BUILDX_VERSION 0.10.4
+  RUN set -eux; \
+    wget -O 'docker-buildx' "https://github.com/docker/buildx/releases/download/v0.10.4/buildx-v0.10.4.linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"; \
+    plugin='/usr/local/libexec/docker/cli-plugins/docker-buildx'; \
+    mkdir -p "$(dirname "$plugin")"; \
+    mv -vT 'docker-buildx' "$plugin"; \
+    chmod +x "$plugin"; \
+    docker buildx version
+
+  ENV DOCKER_COMPOSE_VERSION 2.17.3
+  RUN set -eux; \
+  	wget -O 'docker-compose' "https://github.com/docker/compose/releases/download/v2.17.3/docker-compose-linux-$(uname -m)"; \
+  	plugin='/usr/local/libexec/docker/cli-plugins/docker-compose'; \
+  	mkdir -p "$(dirname "$plugin")"; \
+  	mv -vT 'docker-compose' "$plugin"; \
+  	chmod +x "$plugin"; \
+  	ln -sv "$plugin" /usr/local/bin/; \
+  	docker-compose --version; \
+  	docker compose version
+
+  # COPY modprobe.sh /usr/local/bin/modprobe
+  RUN wget -O /usr/local/bin/modprobe https://raw.githubusercontent.com/docker-library/docker/master/20.10/cli/modprobe.sh
+  RUN chmod +x /usr/local/bin/modprobe
+  # COPY docker-entrypoint.sh /usr/local/bin/
+  RUN wget -O /usr/local/bin/docker-entrypoint.sh https://raw.githubusercontent.com/docker-library/docker/master/20.10/cli/docker-entrypoint.sh
+  RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+  # https://github.com/docker-library/docker/pull/166
+  #   dockerd-entrypoint.sh uses DOCKER_TLS_CERTDIR for auto-generating TLS certificates
+  #   docker-entrypoint.sh uses DOCKER_TLS_CERTDIR for auto-setting DOCKER_TLS_VERIFY and DOCKER_CERT_PATH
+  # (For this to work, at least the "client" subdirectory of this path needs to be shared between the client and server containers via a volume, "docker cp", or other means of data sharing.)
+  ENV DOCKER_TLS_CERTDIR=/certs
+  # also, ensure the directory pre-exists and has wide enough permissions for "dockerd-entrypoint.sh" to create subdirectories, even when run in "rootless" mode
+  RUN mkdir /certs /certs/client && chmod 1777 /certs /certs/client
+  # (doing both /certs and /certs/client so that if Docker does a "copy-up" into a volume defined on /certs/client, it will "do the right thing" by default in a way that still works for rootless users)
+
+  ENTRYPOINT ["docker-entrypoint.sh"]
+  CMD ["sh"]
+
+  # From https://github.com/docker-library/docker/blob/master/20.10/dind/Dockerfile
+  RUN microdnf install -y \
+      iptables \
+      openssl \
+      xz \
+  # pigz: https://github.com/moby/moby/pull/35697 (faster gzip implementation)
+      pigz \
+    ;
+
+  RUN set -eux; \
+    groupadd -r dockremap; \
+    useradd -r -g dockremap dockremap; \
+    echo 'dockremap:165536:65536' >> /etc/subuid; \
+    echo 'dockremap:165536:65536' >> /etc/subgid
+
+  RUN set -eux; \
+    wget -O 'docker.tgz' "https://download.docker.com/linux/static/stable/$(uname -m)/docker-20.10.24.tgz"; \
+    tar --extract \
+      --file docker.tgz \
+      --strip-components 1 \
+      --directory /usr/local/bin/ \
+      --no-same-owner \
+  # we exclude the CLI binary because we already extracted that over in the "docker:20.10-cli" image that we're FROM and we don't want to duplicate those bytes again in this layer
+      --exclude 'docker/docker' \
+    ; \
+    rm docker.tgz; \
+    dockerd --version; \
+    containerd --version; \
+    ctr --version; \
+    runc --version
+
+  # https://github.com/docker/docker/tree/master/hack/dind
+  ENV DIND_COMMIT 1f32e3c95d72a29b3eaacba156ed675dba976cb5
+
+  RUN set -eux; \
+    wget -O /usr/local/bin/dind "https://raw.githubusercontent.com/docker/docker/${DIND_COMMIT}/hack/dind"; \
+    chmod +x /usr/local/bin/dind
+
+  # COPY dockerd-entrypoint.sh /usr/local/bin/
+  RUN wget -O /usr/local/bin/dockerd-entrypoint.sh https://raw.githubusercontent.com/docker-library/docker/master/20.10/dind/dockerd-entrypoint.sh
+  RUN chmod +x /usr/local/bin/dockerd-entrypoint.sh
+
+  VOLUME /var/lib/docker
+  EXPOSE 2375 2376
+
+  ENTRYPOINT ["dockerd-entrypoint.sh"]
+  CMD []
+
+  # StackGres CI Tools
+  RUN microdnf install -y gnupg openssl jq curl bash zsh sed
+  RUN uname -a | grep -qxF aarch64 \
+    || wget -q -O /bin/yajsv https://github.com/neilpa/yajsv/releases/download/v1.4.0/yajsv.linux.amd64
+  RUN chmod a+x /bin/yajsv
+  RUN microdnf install -y python39-pip
+  RUN pip3 install yamllint yq
+  RUN mkdir -p "$HOME/.docker"; echo '{"experimental":"enabled"}' > "$HOME/.docker/config.json"
+  RUN microdnf install -y git
+  RUN microdnf install -y xz
+  RUN mkdir -p ~/.docker/cli-plugins
+  RUN wget -q -O ~/.docker/cli-plugins/docker-buildx "https://github.com/docker/buildx/releases/download/v0.8.2/buildx-v0.8.2.linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
+  RUN chmod a+x ~/.docker/cli-plugins/docker-buildx
+  RUN echo '{"experimental":"enabled"}' > ~/.docker/config.json
+  RUN wget -q -O /bin/kubectl "https://dl.k8s.io/release/v1.24.1/bin/linux/$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/kubectl"
+  RUN chmod a+x /bin/kubectl
+  RUN wget -q -O /bin/kind "https://github.com/kubernetes-sigs/kind/releases/download/v0.15.0/kind-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
+  RUN chmod a+x /bin/kind
+  RUN wget -q -O /bin/k3d "https://github.com/rancher/k3d/releases/download/v4.4.7/k3d-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
+  RUN chmod a+x /bin/k3d
+  RUN wget -q "https://get.helm.sh/helm-v3.9.0-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64).tar.gz" -O -|tar xz --strip-components=1 -C /bin -f - "linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/helm"
+  RUN wget -q -O /bin/k9s "https://github.com/derailed/k9s/releases/download/v0.25.18/k9s_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo x86_64).tar.gz"
+  RUN chmod a+x /bin/k9s
+  RUN pip3 install awscli
+  RUN wget https://github.com/operator-framework/operator-sdk/releases/download/v1.26.0/operator-sdk_linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64) -O /bin/operator-sdk
+  RUN chmod a+x /bin/operator-sdk
+  RUN wget https://github.com/operator-framework/operator-registry/releases/download/v1.26.5/linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)-opm -O /bin/opm
+  RUN chmod a+x /bin/opm
+  RUN microdnf install -y findutils make

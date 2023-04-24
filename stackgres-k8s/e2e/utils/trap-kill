@@ -18,11 +18,12 @@ trap_callback_and_exit() {
 }
 
 trap_kill_all() {
-  local file
-  for file in $(find "$TARGET_PATH" -name 'trap-kill-*')
+  local FILE
+  for FILE in $(find "$TARGET_PATH" -name 'trap-kill-*')
   do
-    kill $(cat "$file") >/dev/null 2>&1 || true
+    kill $(cat "$FILE") >/dev/null 2>&1 || true
   done
+  rm -f "$TARGET_PATH/trap-kill-"* 2>&1 || true
   exit "$1"
 }
 
