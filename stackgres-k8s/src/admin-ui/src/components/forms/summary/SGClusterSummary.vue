@@ -352,6 +352,19 @@
                                                                         </li>                                                                            
                                                                     </ul>
                                                                 </li>
+                                                                <li v-if="hasProp(script, 'scriptFrom.configMapScript')">
+                                                                    <strong class="label">
+                                                                        Config Map Script:
+                                                                    </strong>
+                                                                    <span class="value script">
+                                                                        <span>
+                                                                            <a @click="setContentTooltip('#script-' + baseIndex + '-' + index)">View Script</a>
+                                                                        </span>
+                                                                        <div :id="'script-' + baseIndex + '-' + index" class="hidden">
+                                                                            <pre>{{ script.scriptFrom.configMapScript }}</pre>
+                                                                        </div>
+                                                                    </span>
+                                                                </li>
                                                             </ul>
                                                         </li>
                                                     </ul>
