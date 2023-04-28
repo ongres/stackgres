@@ -2874,6 +2874,28 @@ fieldset.podsScheduling .row a.help {
     margin: 0 auto 20px;
 }
 
+span.orOption {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+span.orOption:before, span.orOption:after {
+    content: " ";
+    height: 1px;
+    background: var(--borderColor);
+    display: inline-block;
+    width: calc(50% - 20px);
+}
+
+span.orOption:before {
+    transform: translate(-10px, -5px);
+}
+
+span.orOption:after {
+    transform: translate(10px, -5px);
+}
 
 /* Help Tooltips */
 

@@ -157,6 +157,28 @@
                                 </div>
                             </span>
                         </li>
+                        <li v-else-if="hasProp(crd, 'data.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON')">
+                            <strong class="label">Secret Key Selectors</strong>
+                            <ul>
+                                <li>
+                                    <strong class="label">Service Account JSON</strong>
+                                    <ul>
+                                        <li>
+                                            <strong class="label">Name:</strong>
+                                            <span class="value">
+                                                {{ crd.data.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.name }}
+                                            </span>
+                                        </li>
+                                        <li>
+                                            <strong class="label">Key:</strong>
+                                            <span class="value">
+                                                {{ crd.data.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.key }}
+                                            </span>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
                     </template>
 
                     <template v-else-if="(crd.data.spec.type == 'azureBlob')">
