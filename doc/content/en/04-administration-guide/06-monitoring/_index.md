@@ -41,7 +41,6 @@ Install the [Prometheus Server Operator](https://github.com/prometheus-community
 ```
 helm install --create-namespace --namespace monitoring \
  --set grafana.enabled=true \
- --version 12.10.6 \
  prometheus prometheus-community/kube-prometheus-stack
 ```
 
