@@ -121,7 +121,7 @@ spec:
 kubectl apply -f 05-sgcluster.yaml
 ```
 
-The cluster should be brought up:
+After some seconds to a few minutes, the cluster should be brought up:
 
 ```sh
 kubectl -n ferretdb get pods
@@ -195,7 +195,26 @@ kubectl apply -f 06-ferretdb.yaml
 
 Note the line where we pass the `FERRETDB_POSTGRESQL_URL` environment variable to FerretDB's container, set with the value `postgres://postgres/ferretdb`: the second `postgres` on the string is the `Service` name that StackGres exposes pointing to the primary instance of the created cluster, which is named after the `SGCluster`'s name; and `ferretdb` is the name of the database.
 
-If all goes well, you should see the pod up & running. To test it, we need to run a MongoDB client. We can use `kubectl run` to run a `mongosh` image. Let's obtain first FerretDB's `Service` address:
+If all goes well, you should see the pod up & running. To test it, we need to run a MongoDB client. For example, we can use `kubectl run` to run a `mongosh` image:
+
+```sh
+kubectl -n ferretdb run mongosh --image=rtsp/mongosh --rm -it -- bash
+13:01:14 mongosh:/#
+```
+
+FerretDB exposes at the MongoDB wire protocol level the same database, username and passwords that exist in the Postgres database. Therefore, we can use the user, password and database that were created before via the `SGScript`. At the terminal prompt, type the command:
+
+```sh
+mongosh mongodb://ferretdb:${PASSWORD}@${FERRETDB_SVC}/ferretdb?authMechanism=PLAIN
+```
+
+where `${PASSWORD}` is the randomly generated password of the `ferretdb` user in Postgres:
+
+```sh
+kubectl -n ferretdb get secret createuser --template '{{ printf "%s\n" (.data.sql | base64decode) }}'
+```
+
+and `${FERRETDB_SVC}` is the address exposed by the FerretDB `Service` (`10.43.178.142` in the example below):
 
 ```sh
 kubectl -n ferretdb get svc ferretdb
@@ -203,25 +222,8 @@ NAME       TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)     AGE
 ferretdb   ClusterIP   10.43.178.142   <none>        27017/TCP   23m
 ```
 
-and the randomly generated password of the `ferretdb` user in Postgres:
 
-```sh
-kubectl -n ferretdb get secret createuser --template '{{ printf "%s\n" (.data.sql | base64decode) }}'
-```
-
-You can now run any MongoDB client, like in:
-
-```sh
-kubectl -n ferretdb run mongosh --image=rtsp/mongosh --rm -it -- bash
-```
-
-FerretDB exposes at the MongoDB wire protocol level the same database, username and passwords that exist in the Postgres database. Therefore, we can use the user, password and database that was created before via the `SGScript`. At the prompt, type the command:
-
-```sh
-mongosh mongodb://ferretdb:**********@10.43.178.142/ferretdb?authMechanism=PLAIN
-```
-
-and it should connect! Try to insert and query some data:
+The `mongosh` command should connect. You can now try to insert and query some data:
 
 ```js
 ferretdb> db.test.insertOne({a:1})
