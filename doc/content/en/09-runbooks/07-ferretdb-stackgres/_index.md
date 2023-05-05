@@ -61,7 +61,7 @@ Let's start by creating a `Secret` that contains the SQL command to create the u
 ```sh
 #!/bin/sh
 
-PASSWORD=`dd if=/dev/urandom bs=1 count=8 status=none |base64`
+PASSWORD="$(dd if=/dev/urandom bs=1 count=8 status=none | base64 | tr / 0)"
 
 kubectl -n ferretdb create secret generic createuser \
   --from-literal=sql="create user ferretdb with password '"${PASSWORD}"'"
