@@ -1,0 +1,99 @@
+#!/bin/sh
+
+e2e_test_install() {
+  kubectl create ns "$CLUSTER_NAMESPACE"
+
+  local PASSWORD
+  PASSWORD="$(dd if=/dev/urandom bs=1 count=8 status=none | base64 | tr -d /)"
+  E2E_FERRETDB_PASSWORD="${E2E_FERRETDB_PASSWORD:-$PASSWORD}"
+
+  echo "Creating ferretdb user with password $E2E_FERRETDB_PASSWORD"
+
+  kubectl -n "$CLUSTER_NAMESPACE" create secret generic createuser \
+    --from-literal=sql="create user ferretdb with password '"${E2E_FERRETDB_PASSWORD}"'"
+
+  create_or_replace_cluster "postgres" "$CLUSTER_NAMESPACE" "1" \
+    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.ignore_startup_parameters=extra_float_digits\,search_path' \
+    --set-string 'cluster.managedSql.scripts[0].name=create-user' \
+    --set-string 'cluster.managedSql.scripts[0].scriptFrom.secretKeyRef.name=createuser' \
+    --set-string 'cluster.managedSql.scripts[0].scriptFrom.secretKeyRef.key=sql' \
+    --set-string 'cluster.managedSql.scripts[1].name=create-database' \
+    --set-string 'cluster.managedSql.scripts[1].script'="create database ferretdb owner ferretdb encoding 'UTF8' locale 'en_US.UTF-8' template template0;"
+
+  cat << EOF | kubectl create -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ferretdb-dep
+  namespace: $CLUSTER_NAMESPACE
+  labels:
+    app: ferretdb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ferretdb
+  template:
+    metadata:
+      labels:
+        app: ferretdb
+    spec:
+      containers:
+        - name: ferretdb
+          image: ghcr.io/ferretdb/ferretdb
+          ports:
+            - containerPort: 27017
+          env:
+            - name: FERRETDB_POSTGRESQL_URL
+              value: postgres://postgres/ferretdb
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ferretdb
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  selector:
+    app: ferretdb
+  ports:
+    - name: mongo
+      protocol: TCP
+      port: 27017
+      targetPort: 27017
+EOF
+
+  kubectl -n "$CLUSTER_NAMESPACE" run mongosh --image=rtsp/mongosh -- bash -c 'while true; do sleep 300; done'
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
+}
+
+e2e_test_uninstall() {
+  if [ "$E2E_CLEANUP_RUNBOOKS" = true ]
+  then
+    helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+    k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
+  fi
+}
+
+e2e_test() {
+  run_test "Checking that is possible to connect and run queries using mongosh on service" service_check
+}
+
+service_check() {
+  test "$(kubectl -n "$CLUSTER_NAMESPACE" exec mongosh -- \
+    mongosh "mongodb://ferretdb:${E2E_FERRETDB_PASSWORD}@ferretdb/ferretdb?authMechanism=PLAIN" \
+    --eval 'db.getMongo().getDBNames().indexOf("mydb")' --quiet)" != 0
+  kubectl -n "$CLUSTER_NAMESPACE" exec mongosh -- \
+    mongosh "mongodb://ferretdb:${E2E_FERRETDB_PASSWORD}@ferretdb/ferretdb?authMechanism=PLAIN" \
+    --eval '
+db.test.insertOne({a:1})
+db.test.find()
+'
+
+  kubectl -n "$CLUSTER_NAMESPACE" exec "postgres-0" -c postgres-util -- psql ferretdb -c '\dt ferretdb.*'
+  local TABLE
+  TABLE="$(kubectl -n "$CLUSTER_NAMESPACE" exec "postgres-0" -c postgres-util -- \
+    psql ferretdb -c '\dt ferretdb.*' -tA | grep '^ferretdb|test_' | cut -d '|' -f 2)"
+  kubectl -n "$CLUSTER_NAMESPACE" exec "postgres-0" -c postgres-util -- psql ferretdb -c "SELECT * FROM ferretdb.$TABLE"
+}
