@@ -11,7 +11,8 @@ StackGres comes with a fully-featured web console that allows you to read any in
 
 This web console is targeted for internal use by DBAs and can be exposed via `LoadBalancer` or other Kubernetes routing mechanisms.
 
-The web console can be accessed via default admin credentials or via Kubernetes RBAC for user authentication.
+The web console can be accessed via default admin credentials, via Kubernetes RBAC for user authentication, or SSO integration.
+It also comes with a REST API for further flexibility.
 
 Have a look at the [Admin UI Guide]({{% relref "04-administration-guide/10-admin-ui" %}}) to learn more about how to access and use it.
 
