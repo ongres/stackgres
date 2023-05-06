@@ -1,6 +1,6 @@
 ---
 title: Sharding (Beta)
-weight: 12
+weight: 11
 url: features/sharding
 description: Create sharded clusters from a single cluster configuration
 draft: true

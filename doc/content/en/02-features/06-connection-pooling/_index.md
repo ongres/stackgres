@@ -5,7 +5,7 @@ url: features/connection-pooling
 description: Integrated server-side connection pooling
 ---
 
-Due to the Postgres process model, it is highly recommended to make use of connection pooling for most production scenarios.
+Due to the Postgres process model, it is highly recommended to make use of connection pooling for production scenarios.
 
 StackGres ships with integrated server-side connection pooling out of the box.
 [PgBouncer](https://www.pgbouncer.org/) is deployed as a sidecar container alongside the Postgres container.

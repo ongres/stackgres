@@ -5,7 +5,7 @@ url: features/observability
 description: "Observability: Prometheus Grafana integration, Envoy proxy"
 ---
 
-StackGres makes Postgres metrics available for enhanced observability.
+StackGres makes Postgres metrics available for enhanced observability and fully integrates with the Prometheus stack, including pre-defined, Postgres-specific dashboards and alerts.
 
 StackGres utilizes an Envoy sidecar to transparently proxy all Postgres traffic.
 The OnGres team has developed, in collaboration with the Envoy Community, the first [Postgres filter for Envoy](https://www.cncf.io/blog/2020/08/13/envoy-1-15-introduces-a-new-postgres-extension-with-monitoring-support/).

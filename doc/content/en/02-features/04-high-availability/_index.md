@@ -8,7 +8,7 @@ description: High availability and automated failover
 StackGres integrates the most renowned and production-tested high availability software for Postgres: [Patroni](https://github.com/zalando/patroni).
 
 StackGres fully integrates Patroni, and for you there's nothing else to do.
-If any pod, any node, anything fails, the cluster will re-heal automatically in a matter of seconds, without human intervention.
+If any pod, any node, anything fails, the cluster will perform a failover and re-heal automatically in a matter of seconds, without human intervention.
 
 StackGres exposes one read-write (master) and one read-only (replicas) connection for the applications via Kubernetes services, that will automatically be updated after any disruptive event happens.
 

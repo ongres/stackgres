@@ -7,7 +7,9 @@ description: Very active ecosystem (open source, public issue tracking, Slack, c
 
 StackGres users benefit from a very active, friendly, and supportive ecosystem.
 
-All of StackGres is free open source with an open-source-friendly license.
+100% of StackGres is free open source with an open-source-friendly license.
+There is no "premium version with advanced features", or any production usage restriction.
+It's just Open Source.
 
 If you want to learn more about how StackGres works internally, or even contribute yourself, you can check out the official repositories, issue trackers, or community Slack:
 
@@ -15,6 +17,7 @@ If you want to learn more about how StackGres works internally, or even contribu
 - [Issue Tracker](https://gitlab.com/ongresinc/stackgres/-/issues)
 - [GitHub Mirror Repository](https://github.com/ongres/stackgres)
 - [FAQ]({{% relref "faq" %}})
-- [StackGres Community Slack](https://slack.stackgres.io/)
-- [Enterprise Support](https://stackgres.io/support/)
+- [Community Slack](https://slack.stackgres.io/)
+- [Community Discord](https://discord.stackgres.io/)
+- [24/7 Enterprise Support](https://stackgres.io/support/)
 
