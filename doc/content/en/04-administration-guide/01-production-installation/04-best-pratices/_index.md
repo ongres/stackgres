@@ -2,14 +2,14 @@
 title: Best Practices
 weight: 4
 url: install/best-practices
-aliases: [ install/cluster/best-practices ]
+aliases: [ /install/cluster/best-practices ]
 description: Recommendations about how organize all configuration files.
 showToc: true
 ---
 
 A complete StackGres cluster configurations could be organized as a collections of files inside a directory, this files could be distributed according with the environments in your infrastructure.
 
-The next example shows a file distribution with two environmens, production and staging. 
+This example shows a directory structure for two environments, production and staging. 
 
 ```
 stackgres/
