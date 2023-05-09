@@ -5,7 +5,19 @@
 
 package io.stackgres.operator.conciliation.factory.cluster;
 
-import io.fabric8.kubernetes.api.model.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.Map;
+
+import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.PodSecurityContext;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMount;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
@@ -23,13 +35,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class PodTemplateSpecFactoryTest {
@@ -111,5 +116,28 @@ class PodTemplateSpecFactoryTest {
     assertTrue(
         podTemplateSpec.getSpec().getSpec().getVolumes().get(0).getName().equals("used-volume"));
     assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().get(0).equals(usedVolume));
+  }
+
+  @Test
+  void clusterWithVolumes_failUsingUndeclaredVolume() {
+    VolumeMount undeclaredVolumeMount = new VolumeMountBuilder()
+        .withName("undeclared-volume")
+        .build();
+    when(containerFactoryDiscoverer.discoverContainers(clusterContainerContext))
+        .thenReturn(List.of(patroniContainerFactory));
+    when(patroniContainerFactory.getContainer(clusterContainerContext))
+        .thenReturn(patroniContainer);
+    when(patroniContainer.getVolumeMounts()).thenReturn(List.of(undeclaredVolumeMount));
+
+    Volume availableVolume = new VolumeBuilder()
+        .withName("available-volume")
+        .build();
+    var availableVolumes = Map.of(
+        "available-volume",
+        JsonUtil.copy(availableVolume));
+    when(clusterContainerContext.availableVolumes()).thenReturn(availableVolumes);
+    when(clusterContainerContext.getDataVolumeName()).thenReturn("available-volume");
+    assertThrows(IllegalStateException.class,
+        () -> podTemplateSpecFactory.getPodTemplateSpec(clusterContainerContext));
   }
 }
