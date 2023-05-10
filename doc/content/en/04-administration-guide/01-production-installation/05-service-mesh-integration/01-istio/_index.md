@@ -2,7 +2,7 @@
 title: Istio
 weight: 1
 url: install/services-mesh-integration/istio
-aliases: [ install/prerequisites/services-mesh-integration/istio ]
+aliases: [ /install/prerequisites/services-mesh-integration/istio ]
 description: Details about how to work in a K8s cluster with Istio
 ---
 

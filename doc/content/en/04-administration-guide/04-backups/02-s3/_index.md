@@ -1,7 +1,8 @@
 ---
 title: AWS S3
 weight: 2
-url: install/prerequisites/backups/eks
+url: administration/backups/eks
+aliases: [ /install/prerequisites/backups/eks ]
 description: Details about how to set up and configure backups on AWS S3.
 showToc: true
 ---

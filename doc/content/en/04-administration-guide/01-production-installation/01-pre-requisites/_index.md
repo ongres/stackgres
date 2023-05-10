@@ -2,6 +2,7 @@
 title: Pre-requisites
 weight: 1
 url: install/prerequisites
+aliases: [ /tutorial/setting-up-env ]
 description: Details about the requirements to set up the StackGres operator.
 ---
 

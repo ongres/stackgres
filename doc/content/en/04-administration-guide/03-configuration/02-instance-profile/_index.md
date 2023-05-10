@@ -2,6 +2,7 @@
 title: Instance Profile
 weight: 2
 url: administration/configuration/instance
+aliases: [ /tutorial/complete-cluster/instance-profile ]
 ---
 
 An Instance Profile is an abstraction over the resource characteristics of an instance (basically, as of today, CPU "cores" and RAM).
