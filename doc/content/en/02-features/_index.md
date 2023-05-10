@@ -3,6 +3,7 @@ title: "Features"
 weight: 2
 chapter: true
 url: features
+aliases: [ /intro/features ]
 ---
 
 ### Chapter 2

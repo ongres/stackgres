@@ -1,8 +1,9 @@
 ---
 title: DigitalOcean
 weight: 1
-url: install/prerequisites/backups/do
-description: Details about how to setup and configure the backups on DigitalOcean Spaces.
+url: administration/backups/do
+aliases: [ /install/prerequisites/backups/do ]
+description: Details about how to set up and configure the backups on DigitalOcean Spaces.
 showToc: true
 ---
 

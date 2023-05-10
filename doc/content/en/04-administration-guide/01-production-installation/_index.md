@@ -2,7 +2,7 @@
 title: Production Installation
 weight: 1
 url: install
-aliases: [ administration/install ]
+aliases: [ /administration/install ]
 description: Documentation how to install the StackGres operator and create clusters for production environments.
 ---
 

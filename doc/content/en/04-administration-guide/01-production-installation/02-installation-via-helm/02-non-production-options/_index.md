@@ -2,7 +2,7 @@
 title: Non-Production Options
 weight: 2
 url: install/helm/nonproduction
-aliases: [ install/prerequisites/nonproduction ]
+aliases: [ /install/prerequisites/nonproduction ]
 description: Important notes for non-production options in the production environment.
 ---
 

@@ -1,7 +1,8 @@
 ---
 title: Pooling Administration and Internal Stats
 weight: 1
-url: administration/cluster/pool/admin
+url: administration/configuration/pool/admin
+aliases: [ /administration/cluster/pool/admin ]
 description: Details about how to check the pool configuration.
 showToc: true
 ---

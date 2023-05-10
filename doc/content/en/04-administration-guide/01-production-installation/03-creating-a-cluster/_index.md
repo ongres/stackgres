@@ -2,6 +2,7 @@
 title: Creating a Cluster
 weight: 3
 url: install/cluster-creation
+aliases: [ /tutorial/simple-cluster , /tutorial/complete-cluster, /tutorial/complete-cluster/create-cluster ]
 description: Details about how to create a production StackGres cluster.
 showToc: true
 ---
