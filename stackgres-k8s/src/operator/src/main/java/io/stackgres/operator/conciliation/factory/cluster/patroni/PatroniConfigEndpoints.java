@@ -80,7 +80,7 @@ public class PatroniConfigEndpoints
         .build());
   }
 
-  private PatroniConfig getPatroniConfig(StackGresClusterContext context) {
+  protected PatroniConfig getPatroniConfig(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getCluster();
     PatroniConfig patroniConf = new PatroniConfig();
     patroniConf.setTtl(30);
@@ -90,11 +90,18 @@ public class PatroniConfigEndpoints
       patroniConf.setCheckTimeline(true);
     }
     patroniConf.setSynchronousMode(
-        cluster.getSpec().getReplication().isSynchronousMode());
+        cluster.getSpec().getReplication().isSynchronousMode()
+        || (cluster.getSpec().getReplication().isSynchronousModeAll()
+            && cluster.getSpec().getInstances() > 1));
     patroniConf.setSynchronousModeStrict(
-        cluster.getSpec().getReplication().isStrictSynchronousMode());
+        cluster.getSpec().getReplication().isStrictSynchronousMode()
+        || (cluster.getSpec().getReplication().isStrictSynchronousModeAll()
+            && cluster.getSpec().getInstances() > 1));
     patroniConf.setSynchronousNodeCount(
-        cluster.getSpec().getReplication().getSyncInstances());
+        cluster.getSpec().getReplication().isSynchronousModeAll()
+        && cluster.getSpec().getInstances() > 1
+        ? Integer.valueOf(cluster.getSpec().getInstances() - 1)
+            : cluster.getSpec().getReplication().getSyncInstances());
 
     context.getReplicateCluster()
         .ifPresent(replicateCluster -> {

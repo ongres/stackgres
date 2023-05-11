@@ -81,7 +81,7 @@ sharded_check() {
     return 1
   fi
 
-  try_function wait_until eval 'run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME-primary" -i 1 -p 5432 \
+  try_function wait_until eval 'run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME" -i 1 -p 5432 \
     -d citus -q "SELECT COUNT(*) FROM master_get_active_worker_nodes()" | grep -xF 2'
 
   if [ "$EXIT_CODE" = 0 ]
@@ -103,7 +103,7 @@ sharded_check() {
     return 1
   fi
 
-  try_function wait_until eval 'run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME-primary" -i 1 -p 5432 \
+  try_function wait_until eval 'run_query -c "$CLUSTER_NAME-coord" -h "$CLUSTER_NAME-reads" -i 1 -p 5432 \
     -d citus -q "SELECT setting FROM pg_settings WHERE name = '"'"'citus.max_client_connections'"'"'" | grep -xF 30'
 
   if [ "$EXIT_CODE" = 0 ]

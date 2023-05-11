@@ -83,8 +83,19 @@ public class StackGresClusterReplication {
   }
 
   @JsonIgnore
+  public boolean isSynchronousModeAll() {
+    return Objects.equals(StackGresReplicationMode.SYNC_ALL.toString(), mode)
+        || Objects.equals(StackGresReplicationMode.STRICT_SYNC_ALL.toString(), mode);
+  }
+
+  @JsonIgnore
   public boolean isStrictSynchronousMode() {
     return Objects.equals(StackGresReplicationMode.STRICT_SYNC.toString(), mode);
+  }
+
+  @JsonIgnore
+  public boolean isStrictSynchronousModeAll() {
+    return Objects.equals(StackGresReplicationMode.STRICT_SYNC_ALL.toString(), mode);
   }
 
   public String getMode() {

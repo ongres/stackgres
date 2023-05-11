@@ -12,6 +12,9 @@ e2e_test_extra_hash() {
 }
 
 e2e_test_install() {
+  NODE_LABEL_KEY="$(random_string)"
+  NODE_LABEL_VALUE="$(random_string)"
+
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1"
 
   wait_pods_running "$CLUSTER_NAMESPACE" "1"
@@ -45,6 +48,10 @@ e2e_test() {
   run_test "Checking that old primary in ha group is not exposed in replicas service after changing role" check_old_primary_in_ha_group_not_in_replicas_service_after_changing_role
 
   run_test "Checking that strict synchronous replication is working" check_strict_sync_replication_is_working
+
+  run_test "Checking that synchronous all replication is working" check_sync_all_replication_is_working
+
+  run_test "Checking that strict synchronous all replication is working" check_strict_sync_all_replication_is_working
 
   run_test "Checking that cluster can restart without replicas in any ha or ha-read group" check_cluster_can_restart_without_replicas_in_any_ha_group
 }
@@ -131,8 +138,13 @@ check_replica_in_none_group_not_in_replicas_service() {
 }
 
 check_replica_in_none_group_not_elegible_as_primary() {
-  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
-    -p '[{"op":"add","path":"/spec/pods/scheduling","value":{"nodeSelector":{"'"$(random_string)"'": "'"$(random_string)"'"}}}]'
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" \
+    --set cluster.replication.mode=sync \
+    --set cluster.replication.role=ha-read \
+    --set cluster.replication.syncInstances=2 \
+    --set cluster.replication.groups[0].instances=1 \
+    --set cluster.replication.groups[0].role=none \
+    --set cluster.pods.scheduling.nodeSelector."$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
   kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0"
   local RESULT EXIT_CODE
   try_function wait_until eval '[ $(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" --template "{{ .metadata.labels.role }}") = master ]'
@@ -146,8 +158,13 @@ check_replica_in_none_group_not_elegible_as_primary() {
 }
 
 check_replica_in_readonly_group_in_replicas_service_after_changing_role() {
-  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
-    -p '[{"op":"replace","path":"/spec/replication/groups/0/role","value":"readonly"}]'
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" \
+    --set cluster.replication.mode=sync \
+    --set cluster.replication.role=ha-read \
+    --set cluster.replication.syncInstances=2 \
+    --set cluster.replication.groups[0].instances=1 \
+    --set cluster.replication.groups[0].role=readonly \
+    --set cluster.pods.scheduling.nodeSelector."$NODE_LABEL_KEY=$NODE_LABEL_VALUE"
   local RESULT EXIT_CODE
   try_function wait_until eval 'check_pod_ip_exposed_by_service "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2" "$CLUSTER_NAME-replicas"'
   if "$RESULT"
@@ -160,9 +177,20 @@ check_replica_in_readonly_group_in_replicas_service_after_changing_role() {
 }
 
 check_old_primary_in_ha_group_not_in_replicas_service_after_changing_role() {
-  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
-    -p '[{"op":"replace","path":"/spec/replication/role","value":"ha"},
-         {"op":"remove","path":"/spec/pods/scheduling"}]'
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" \
+    --set cluster.replication.mode=sync \
+    --set cluster.replication.role=ha-read \
+    --set cluster.replication.syncInstances=2 \
+    --set cluster.replication.groups[0].instances=1 \
+    --set cluster.replication.groups[0].role=ha \
+    --set cluster.pods.scheduling.nodeSelector."$NODE_LABEL_KEY=null"
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" \
+    --set cluster.replication.mode=sync \
+    --set cluster.replication.role=ha-read \
+    --set cluster.replication.syncInstances=2 \
+    --set cluster.replication.groups[0].instances=1 \
+    --set cluster.replication.groups[0].role=ha \
+    --set cluster.pods.scheduling.nodeSelector."$NODE_LABEL_KEY=null"
   until kubectl wait -n "$CLUSTER_NAMESPACE" pod "$CLUSTER_NAME-0" --for=condition=PodScheduled --timeout 0
   do
     kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0"
@@ -180,11 +208,13 @@ check_old_primary_in_ha_group_not_in_replicas_service_after_changing_role() {
 }
 
 check_strict_sync_replication_is_working() {
-  kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
-    -p '[{"op":"replace","path":"/spec/replication/mode","value":"strict-sync"},
-         {"op":"replace","path":"/spec/replication/role","value":"ha-read"},
-         {"op":"replace","path":"/spec/replication/groups/0/instances","value":2},
-         {"op":"replace","path":"/spec/replication/groups/0/role","value":"readonly"}]'
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" \
+    --set cluster.replication.mode=strict-sync \
+    --set cluster.replication.role=ha-read \
+    --set cluster.replication.syncInstances=2 \
+    --set cluster.replication.groups[0].instances=2 \
+    --set cluster.replication.groups[0].role=readonly \
+    --set cluster.pods.scheduling.nodeSelector=null
   local RESULT EXIT_CODE
   try_function wait_until -t 10 eval 'kubectl wait -n "$CLUSTER_NAMESPACE" sgcluster "$CLUSTER_NAME" --for=condition=PendingRestart --timeout 0'
   if "$RESULT"
@@ -203,7 +233,7 @@ check_strict_sync_replication_is_working() {
     psql -At -c "SHOW synchronous_standby_names" | grep -q "^2 (\"[^\"]\+\",\"[^\"]\+\")$"'
   if "$RESULT"
   then
-    echo "SUCCESS: sync replication is set for primary"
+    echo "SUCCESS: strict sync replication is set for primary"
   else
     echo "FAIL: strict sync replication is not set for primary"
     return 1
@@ -230,6 +260,124 @@ check_strict_sync_replication_is_working() {
     echo "SUCCESS: strict sync replication is working"
   else
     echo "FAIL: strict sync replication is not working. The records don't match between primary and replica for the fibonacci_strict table"
+    return 1
+  fi
+}
+
+check_sync_all_replication_is_working() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" \
+    --set cluster.replication.mode=sync-all \
+    --set cluster.replication.role=ha-read \
+    --set cluster.replication.syncInstances=1 \
+    --set cluster.replication.groups[0].instances=2 \
+    --set cluster.replication.groups[0].role=readonly \
+    --set cluster.pods.scheduling.nodeSelector=null
+  wait_until check_connectivity -i 0
+
+  if wait_until eval 'kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
+    psql -At -c "SHOW synchronous_standby_names" | grep -q '"'"'^2 ("[^"]\+","[^"]\+")$'"'"
+  then
+    echo "SUCCESS: sync all replication is set for primary"
+  else
+    echo "FAIL: sync all replication is not set for primary"
+    return 1
+  fi
+
+  local RESULT EXIT_CODE
+  try_function run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "CREATE DATABASE test_all;"
+  if "$RESULT"
+  then
+    echo "SUCCESS: It's possible to create a database in the primary node"
+  else
+    echo "FAIL: It should be possible to create a database in the primary node" 
+    return 1
+  fi
+
+  wait_until check_connectivity -i 1
+  try_function run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "CREATE TABLE fibonacci(num integer);" -d test_all > "${LOG_PATH}/test_all1.log"
+  if "$RESULT"
+  then
+    echo "FAIL: It's possible to create a table in the replica node"
+    return 1
+  else
+    echo "SUCCESS: It's not be possible to create a table in the replica node" 
+  fi
+
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "CREATE TABLE fibonacci(num integer);" -d test_all
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci(num) VALUES (1);" -d test_all
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci(num) VALUES (2);" -d test_all
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci(num) VALUES (3);" -d test_all
+
+  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test_all")"
+  REPLICA_RESPONSE="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test_all")"
+
+  if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
+  then
+    echo "SUCCESS: inserts on the primary with sync replication where sucessful."
+  else
+    echo "FAIL: inserts on the primary with sync replication where not sucessful."
+    return 1
+  fi
+
+  if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" ]
+  then
+    echo "SUCCESS: sync replication is working"
+  else
+    echo "FAIL: sync replication is not working. The records don't match between primary and replica for the fibonacci table"
+    return 1
+  fi
+}
+
+check_strict_sync_all_replication_is_working() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" \
+    --set cluster.replication.mode=strict-sync-all \
+    --set cluster.replication.role=ha-read \
+    --set cluster.replication.syncInstances=1 \
+    --set cluster.replication.groups[0].instances=2 \
+    --set cluster.replication.groups[0].role=readonly \
+    --set cluster.pods.scheduling.nodeSelector=null
+  local RESULT EXIT_CODE
+  try_function wait_until -t 10 eval 'kubectl wait -n "$CLUSTER_NAMESPACE" sgcluster "$CLUSTER_NAME" --for=condition=PendingRestart --timeout 0'
+  if "$RESULT"
+  then
+    echo "FAIL: cluster is pending restart after changing the replication mode"
+    return 1
+  else
+    echo "SUCCESS: cluster is not pending restart after changing the replication mode"
+  fi
+
+  local RESULT EXIT_CODE
+  try_function wait_until eval 'kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
+    psql -At -c "SHOW synchronous_standby_names" | grep -q "^2 (\"[^\"]\+\",\"[^\"]\+\")$"'
+  if "$RESULT"
+  then
+    echo "SUCCESS: strict sync all replication is set for primary"
+  else
+    echo "FAIL: strict sync all replication is not set for primary"
+    return 1
+  fi
+
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "CREATE TABLE fibonacci_strict(num integer);" -d test_all
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci_strict(num) VALUES (1);" -d test_all
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci_strict(num) VALUES (2);" -d test_all
+  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci_strict(num) VALUES (3);" -d test_all
+
+  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -q "SELECT num FROM fibonacci_strict ORDER BY num;" -d "test_all")"
+  REPLICA_RESPONSE="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "SELECT num FROM fibonacci_strict ORDER BY num;" -d "test_all")"
+
+  if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
+  then
+    echo "SUCCESS: inserts on the primary with strict sync all replication where sucessful."
+  else
+    echo "FAIL: inserts on the primary with strict sync all replication where not sucessful."
+    return 1
+  fi
+
+  if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "$(echo "$REPLICA_RESPONSE" | tr -d '\n')" ]
+  then
+    echo "SUCCESS: strict sync all replication is working"
+  else
+    echo "FAIL: strict sync all replication is not working. The records don't match between primary and replica for the fibonacci_strict table"
     return 1
   fi
 }
