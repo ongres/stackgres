@@ -85,6 +85,7 @@ copy_from_image() {
     --platform "$SOURCE_IMAGE_PLATFORM" \
     --volume "${PROJECT_PATH:-$(pwd)}:/project-target" \
     --user "$(id -u):$(id -g)" \
+    --env HOME=/tmp \
     "$SOURCE_IMAGE_NAME" \
     sh -ec $(echo "$-" | grep -v -q x || printf '%s' '-x') \
       'cp -a /project/. /project-target/.'
@@ -157,6 +158,7 @@ EOF
     --volume "${PROJECT_PATH:-$(pwd)}:/project" \
     --workdir /project \
     --user "$BUILD_UID" \
+    --env HOME=/tmp \
     --env "PRE_BUILD_COMMANDS=$PRE_BUILD_COMMANDS" \
     --env "BUILD_COMMANDS=$BUILD_COMMANDS" \
     --env "POST_BUILD_COMMANDS=$POST_BUILD_COMMANDS" \
@@ -393,6 +395,7 @@ extract_from_image() {
   IMAGE_PLATFORM="$(get_image_platform "$IMAGE_NAME")"
   docker_run --rm --entrypoint /bin/sh --platform "$IMAGE_PLATFORM" \
     --user "$(id -u):$(id -g)" \
+    --env HOME=/tmp \
     -v "${PROJECT_PATH:-$(pwd)}:/out" \
     "$IMAGE_NAME" \
     -c "$(cat << EOF

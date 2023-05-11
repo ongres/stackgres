@@ -157,7 +157,7 @@ spec:
                                 The key of Secret that contains the private key for SSL connections
                           required: [ "name", "key" ]
                   required: [ "version" ]
-                replication:
+                replication: &replication
                   type: object
                   description: |
                     This section allows to configure the global Postgres replication mode.
@@ -175,6 +175,8 @@ spec:
                         * `async` (default)
                         * `sync`
                         * `strict-sync`
+                        * `sync-all`
+                        * `string-sync-all`
                         
                         ### `async` Mode
                         
@@ -216,6 +218,16 @@ spec:
                          transactions even when using strict synchronous mode. If the PostgreSQL backend is cancelled while waiting to acknowledge
                          replication (as a result of packet cancellation due to client timeout or backend failure) transaction changes become
                          visible for other backends. Such changes are not yet replicated and may be lost in case of standby promotion.
+                        
+                        ### `sync-all` Mode
+                        
+                        The same as `sync` but `syncInstances` is ignored and the number of synchronous instances is equals to the total number
+                         of instances less one.
+                        
+                        ### `strict-sync-all` Mode
+                        
+                        The same as `strict-sync` but `syncInstances` is ignored and the number of synchronous instances is equals to the total number
+                         of instances less one.
                     syncInstances:
                       type: integer
                       minimum: 1
@@ -234,7 +246,7 @@ spec:
                         any:
                           type: object
                           description: |
-                            Configure the coordinator service to any instance of the coordinator with the same name as the SGShardedCluster.
+                            Configure the coordinator service to any instance of the coordinator with the same name as the SGShardedCluster plus the `-reads` suffix.
                             
                             It provides a stable connection (regardless of node failures) to any Postgres server of the coordinator cluster. Servers are load-balanced via this service.
 
@@ -269,7 +281,7 @@ spec:
                         primary:
                           type: object
                           description: |
-                            Configure the coordinator service to the primary of the coordinator with the name as the SGShardedCluster plus the `-primary` suffix.
+                            Configure the coordinator service to the primary of the coordinator with the name as the SGShardedCluster.
                             
                             It provides a stable connection (regardless of primary failures or switchovers) to the read-write Postgres server of the coordinator cluster.
 
@@ -767,71 +779,7 @@ spec:
                             Name of the [SGPoolingConfig](https://stackgres.io/doc/latest/reference/crd/sgpoolconfig) used for this cluster. Each pod contains a sidecar with a connection pooler (currently: [PgBouncer](https://www.pgbouncer.org/)). The connection pooler is implemented as a sidecar.
     
                             If not set, a default configuration will be used. Disabling connection pooling altogether is possible if the disableConnectionPooling property of the pods object is set to true.
-                    replication:
-                      type: object
-                      description: |
-                        This section allows to configure Postgres replication mode for the coordinator.
-    
-                        The main replication group is implicit and contains the total number of instances less the sum of all
-                         instances in other replication groups.
-    
-                        The total number of instances is always specified by `.spec.instances`.
-                      properties:
-                        mode:
-                          type: string
-                          description: |
-                            The replication mode applied to the whole cluster.
-                            Possible values are:
-                            * `async` (default)
-                            * `sync`
-                            * `strict-sync`
-                            
-                            ### `async` Mode
-                            
-                            When in asynchronous mode the cluster is allowed to lose some committed transactions.
-                             When the primary server fails or becomes unavailable for any other reason a sufficiently healthy standby
-                             will automatically be promoted to primary. Any transactions that have not been replicated to that standby
-                             remain in a "forked timeline" on the primary, and are effectively unrecoverable (the data is still there,
-                             but recovering it requires a manual recovery effort by data recovery specialists).
-                            
-                            ### `sync` Mode
-                            
-                            When in synchronous mode a standby will not be promoted unless it is certain that the standby contains all
-                             transactions that may have returned a successful commit status to client (clients can change the behavior
-                             per transaction using PostgreSQL’s `synchronous_commit` setting. Transactions with `synchronous_commit`
-                             values of `off` and `local` may be lost on fail over, but will not be blocked by replication delays). This
-                             means that the system may be unavailable for writes even though some servers are available. System
-                             administrators can still use manual failover commands to promote a standby even if it results in transaction
-                             loss.
-                            
-                            Synchronous mode does not guarantee multi node durability of commits under all circumstances. When no suitable
-                             standby is available, primary server will still accept writes, but does not guarantee their replication. When
-                             the primary fails in this mode no standby will be promoted. When the host that used to be the primary comes
-                             back it will get promoted automatically, unless system administrator performed a manual failover. This behavior
-                             makes synchronous mode usable with 2 node clusters.
-                            
-                            When synchronous mode is used and a standby crashes, commits will block until the primary is switched to standalone
-                             mode. Manually shutting down or restarting a standby will not cause a commit service interruption. Standby will
-                             signal the primary to release itself from synchronous standby duties before PostgreSQL shutdown is initiated.
-                            
-                            ### `strict-sync` Mode
-                            
-                            When it is absolutely necessary to guarantee that each write is stored durably on at least two nodes, use the strict
-                             synchronous mode. This mode prevents synchronous replication to be switched off on the primary when no synchronous
-                             standby candidates are available. As a downside, the primary will not be available for writes (unless the Postgres
-                             transaction explicitly turns off `synchronous_mode` parameter), blocking all client write requests until at least one
-                             synchronous replica comes up.
-    
-                            **Note**: Because of the way synchronous replication is implemented in PostgreSQL it is still possible to lose
-                             transactions even when using strict synchronous mode. If the PostgreSQL backend is cancelled while waiting to acknowledge
-                             replication (as a result of packet cancellation due to client timeout or backend failure) transaction changes become
-                             visible for other backends. Such changes are not yet replicated and may be lost in case of standby promotion.
-                        syncInstances:
-                          type: integer
-                          minimum: 1
-                          description: |
-                            Number of synchronous standby instances. Must be less than the total number of instances. It is set to 1 by default.
-                             Only setteable if mode is `sync` or `strict-sync`.
+                    replication: *replication
                     metadata:
                       type: object
                       description: Metadata information from coordinator cluster created resources.
@@ -1027,71 +975,7 @@ spec:
                             Name of the [SGPoolingConfig](https://stackgres.io/doc/latest/reference/crd/sgpoolconfig) used for this cluster. Each pod contains a sidecar with a connection pooler (currently: [PgBouncer](https://www.pgbouncer.org/)). The connection pooler is implemented as a sidecar.
     
                             If not set, a default configuration will be used. Disabling connection pooling altogether is possible if the disableConnectionPooling property of the pods object is set to true.
-                    replication:
-                      type: object
-                      description: |
-                        This section allows to configure Postgres replication mode for the shards.
-    
-                        The main replication group is implicit and contains the total number of instances less the sum of all
-                         instances in other replication groups.
-    
-                        The total number of instances is always specified by `.spec.instances`.
-                      properties:
-                        mode:
-                          type: string
-                          description: |
-                            The replication mode applied to the whole cluster.
-                            Possible values are:
-                            * `async` (default)
-                            * `sync`
-                            * `strict-sync`
-                            
-                            ### `async` Mode
-                            
-                            When in asynchronous mode the cluster is allowed to lose some committed transactions.
-                             When the primary server fails or becomes unavailable for any other reason a sufficiently healthy standby
-                             will automatically be promoted to primary. Any transactions that have not been replicated to that standby
-                             remain in a "forked timeline" on the primary, and are effectively unrecoverable (the data is still there,
-                             but recovering it requires a manual recovery effort by data recovery specialists).
-                            
-                            ### `sync` Mode
-                            
-                            When in synchronous mode a standby will not be promoted unless it is certain that the standby contains all
-                             transactions that may have returned a successful commit status to client (clients can change the behavior
-                             per transaction using PostgreSQL’s `synchronous_commit` setting. Transactions with `synchronous_commit`
-                             values of `off` and `local` may be lost on fail over, but will not be blocked by replication delays). This
-                             means that the system may be unavailable for writes even though some servers are available. System
-                             administrators can still use manual failover commands to promote a standby even if it results in transaction
-                             loss.
-                            
-                            Synchronous mode does not guarantee multi node durability of commits under all circumstances. When no suitable
-                             standby is available, primary server will still accept writes, but does not guarantee their replication. When
-                             the primary fails in this mode no standby will be promoted. When the host that used to be the primary comes
-                             back it will get promoted automatically, unless system administrator performed a manual failover. This behavior
-                             makes synchronous mode usable with 2 node clusters.
-                            
-                            When synchronous mode is used and a standby crashes, commits will block until the primary is switched to standalone
-                             mode. Manually shutting down or restarting a standby will not cause a commit service interruption. Standby will
-                             signal the primary to release itself from synchronous standby duties before PostgreSQL shutdown is initiated.
-                            
-                            ### `strict-sync` Mode
-                            
-                            When it is absolutely necessary to guarantee that each write is stored durably on at least two nodes, use the strict
-                             synchronous mode. This mode prevents synchronous replication to be switched off on the primary when no synchronous
-                             standby candidates are available. As a downside, the primary will not be available for writes (unless the Postgres
-                             transaction explicitly turns off `synchronous_mode` parameter), blocking all client write requests until at least one
-                             synchronous replica comes up.
-    
-                            **Note**: Because of the way synchronous replication is implemented in PostgreSQL it is still possible to lose
-                             transactions even when using strict synchronous mode. If the PostgreSQL backend is cancelled while waiting to acknowledge
-                             replication (as a result of packet cancellation due to client timeout or backend failure) transaction changes become
-                             visible for other backends. Such changes are not yet replicated and may be lost in case of standby promotion.
-                        syncInstances:
-                          type: integer
-                          minimum: 1
-                          description: |
-                            Number of synchronous standby instances. Must be less than the total number of instances. It is set to 1 by default.
-                             Only setteable if mode is `sync` or `strict-sync`.
+                    replication: *replication
                     metadata:
                       type: object
                       description: Metadata information from shards cluster created resources.
@@ -1287,71 +1171,7 @@ spec:
                                   Name of the [SGPoolingConfig](https://stackgres.io/doc/latest/reference/crd/sgpoolconfig) used for this cluster. Each pod contains a sidecar with a connection pooler (currently: [PgBouncer](https://www.pgbouncer.org/)). The connection pooler is implemented as a sidecar.
           
                                   If not set, a default configuration will be used. Disabling connection pooling altogether is possible if the disableConnectionPooling property of the pods object is set to true.
-                          replication:
-                            type: object
-                            description: |
-                              This section allows to configure Postgres replication mode for the shards.
-          
-                              The main replication group is implicit and contains the total number of instances less the sum of all
-                               instances in other replication groups.
-          
-                              The total number of instances is always specified by `.spec.instances`.
-                            properties:
-                              mode:
-                                type: string
-                                description: |
-                                  The replication mode applied to the whole cluster.
-                                  Possible values are:
-                                  * `async` (default)
-                                  * `sync`
-                                  * `strict-sync`
-                                  
-                                  ### `async` Mode
-                                  
-                                  When in asynchronous mode the cluster is allowed to lose some committed transactions.
-                                   When the primary server fails or becomes unavailable for any other reason a sufficiently healthy standby
-                                   will automatically be promoted to primary. Any transactions that have not been replicated to that standby
-                                   remain in a "forked timeline" on the primary, and are effectively unrecoverable (the data is still there,
-                                   but recovering it requires a manual recovery effort by data recovery specialists).
-                                  
-                                  ### `sync` Mode
-                                  
-                                  When in synchronous mode a standby will not be promoted unless it is certain that the standby contains all
-                                   transactions that may have returned a successful commit status to client (clients can change the behavior
-                                   per transaction using PostgreSQL’s `synchronous_commit` setting. Transactions with `synchronous_commit`
-                                   values of `off` and `local` may be lost on fail over, but will not be blocked by replication delays). This
-                                   means that the system may be unavailable for writes even though some servers are available. System
-                                   administrators can still use manual failover commands to promote a standby even if it results in transaction
-                                   loss.
-                                  
-                                  Synchronous mode does not guarantee multi node durability of commits under all circumstances. When no suitable
-                                   standby is available, primary server will still accept writes, but does not guarantee their replication. When
-                                   the primary fails in this mode no standby will be promoted. When the host that used to be the primary comes
-                                   back it will get promoted automatically, unless system administrator performed a manual failover. This behavior
-                                   makes synchronous mode usable with 2 node clusters.
-                                  
-                                  When synchronous mode is used and a standby crashes, commits will block until the primary is switched to standalone
-                                   mode. Manually shutting down or restarting a standby will not cause a commit service interruption. Standby will
-                                   signal the primary to release itself from synchronous standby duties before PostgreSQL shutdown is initiated.
-                                  
-                                  ### `strict-sync` Mode
-                                  
-                                  When it is absolutely necessary to guarantee that each write is stored durably on at least two nodes, use the strict
-                                   synchronous mode. This mode prevents synchronous replication to be switched off on the primary when no synchronous
-                                   standby candidates are available. As a downside, the primary will not be available for writes (unless the Postgres
-                                   transaction explicitly turns off `synchronous_mode` parameter), blocking all client write requests until at least one
-                                   synchronous replica comes up.
-          
-                                  **Note**: Because of the way synchronous replication is implemented in PostgreSQL it is still possible to lose
-                                   transactions even when using strict synchronous mode. If the PostgreSQL backend is cancelled while waiting to acknowledge
-                                   replication (as a result of packet cancellation due to client timeout or backend failure) transaction changes become
-                                   visible for other backends. Such changes are not yet replicated and may be lost in case of standby promotion.
-                              syncInstances:
-                                type: integer
-                                minimum: 1
-                                description: |
-                                  Number of synchronous standby instances. Must be less than the total number of instances. It is set to 1 by default.
-                                   Only setteable if mode is `sync` or `strict-sync`.
+                          replication: *replication
                           metadata:
                             type: object
                             description: Metadata information from shards cluster created resources.

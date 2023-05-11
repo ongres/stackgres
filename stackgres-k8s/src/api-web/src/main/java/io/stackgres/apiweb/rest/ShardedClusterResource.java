@@ -179,7 +179,7 @@ public class ShardedClusterResource
     var foundCluster = shardedClusterFinder.findByNameAndNamespace(clusterName, namespace);
     foundCluster
         .flatMap(cluster -> serviceFinder.findByNameAndNamespace(
-            StackGresShardedClusterForCitusUtil.anyCoordinatorServiceName(cluster), namespace))
+            StackGresShardedClusterForCitusUtil.primaryCoordinatorServiceName(cluster), namespace))
         .ifPresent(service -> info.setPrimaryDns(StackGresUtil.getServiceDnsName(service)));
 
     info.setSuperuserUsername(SUPERUSER_USERNAME);
