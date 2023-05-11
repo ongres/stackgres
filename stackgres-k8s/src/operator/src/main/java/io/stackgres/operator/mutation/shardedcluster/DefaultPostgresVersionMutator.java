@@ -5,22 +5,14 @@
 
 package io.stackgres.operator.mutation.shardedcluster;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavor;
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
-import java.util.List;
+import java.util.Objects;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.fge.jackson.jsonpointer.JsonPointer;
-import com.github.fge.jsonpatch.JsonPatchOperation;
-import com.google.common.collect.ImmutableList;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
@@ -28,52 +20,35 @@ import io.stackgres.operatorframework.admissionwebhook.Operation;
 @ApplicationScoped
 public class DefaultPostgresVersionMutator implements ShardedClusterMutator {
 
-  private ObjectMapper jsonMapper;
-
-  private JsonPointer postgresVersionPointer;
-
-  @PostConstruct
-  public void init() throws NoSuchFieldException {
-    final String postgresJson = getJsonMappingField("postgres",
-        StackGresClusterSpec.class);
-
-    final String postgresVersionJson = getJsonMappingField("version",
-        StackGresClusterPostgres.class);
-    postgresVersionPointer = SPEC_POINTER.append(postgresJson)
-        .append(postgresVersionJson);
-  }
-
   @Override
-  public List<JsonPatchOperation> mutate(StackGresShardedClusterReview review) {
-    final StackGresShardedCluster cluster = review.getRequest().getObject();
-    final String postgresVersion = cluster.getSpec().getPostgres().getVersion();
+  public StackGresShardedCluster mutate(
+      StackGresShardedClusterReview review, StackGresShardedCluster resource) {
+    if (review.getRequest().getOperation() != Operation.CREATE
+        && review.getRequest().getOperation() != Operation.UPDATE) {
+      return resource;
+    }
+    final String postgresVersion = resource.getSpec().getPostgres().getVersion();
+    final String postgresFlavor = resource.getSpec().getPostgres().getFlavor();
 
-    if (review.getRequest().getOperation() == Operation.CREATE
-        || review.getRequest().getOperation() == Operation.UPDATE) {
-      final ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList
-          .builderWithExpectedSize(2);
-      if (postgresVersion != null) {
-        final String calculatedPostgresVersion = getPostgresFlavorComponent(cluster)
-            .get(cluster).getVersion(postgresVersion);
+    if (postgresVersion != null) {
+      final String calculatedPostgresVersion = getPostgresFlavorComponent(resource)
+          .get(resource).getVersion(postgresVersion);
 
-        if (!calculatedPostgresVersion.equals(postgresVersion)) {
-          JsonNode target = jsonMapper.valueToTree(calculatedPostgresVersion);
-          operations.add(applyReplaceValue(postgresVersionPointer, target));
-        }
-      } else {
-        JsonNode target = jsonMapper.valueToTree(getPostgresFlavorComponent(cluster)
-            .get(cluster).getVersion(StackGresComponent.LATEST));
-        operations.add(applyAddValue(postgresVersionPointer, target));
+      if (!calculatedPostgresVersion.equals(postgresVersion)) {
+        resource.getSpec().getPostgres().setVersion(calculatedPostgresVersion);
       }
-
-      return operations.build();
+    } else {
+      final String calculatedPostgresVersion = getPostgresFlavorComponent(resource)
+          .get(resource).getVersion(StackGresComponent.LATEST);
+      resource.getSpec().getPostgres().setVersion(calculatedPostgresVersion);
     }
 
-    return List.of();
+    if (!Objects.equals(postgresFlavor, getPostgresFlavor(resource).toString())) {
+      final String calculatedPostgresFlavor = getPostgresFlavor(resource).toString();
+      resource.getSpec().getPostgres().setFlavor(calculatedPostgresFlavor);
+    }
+
+    return resource;
   }
 
-  @Inject
-  public void setObjectMapper(ObjectMapper jsonMapper) {
-    this.jsonMapper = jsonMapper;
-  }
 }

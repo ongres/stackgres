@@ -6,7 +6,6 @@
 package io.stackgres.operator.mutation.script;
 
 import java.util.Map;
-import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 
@@ -25,12 +24,12 @@ public class ScriptAnnotationMutator
   private static final long VERSION_1_3 = StackGresVersion.V_1_3.getVersionAsNumber();
 
   @Override
-  public Optional<Map<String, String>> getAnnotationsToOverwrite(StackGresScript resource) {
+  public Map<String, String> getAnnotationsToOverwrite(StackGresScript resource) {
     final long version = StackGresVersion.getStackGresVersionAsNumber(resource);
     if (VERSION_1_3 > version) {
-      return Optional.of(Map.of(StackGresContext.VERSION_KEY, StackGresVersion.V_1_3.getVersion()));
+      return Map.of(StackGresContext.VERSION_KEY, StackGresVersion.V_1_3.getVersion());
     }
-    return Optional.empty();
+    return Map.of();
   }
 
 }

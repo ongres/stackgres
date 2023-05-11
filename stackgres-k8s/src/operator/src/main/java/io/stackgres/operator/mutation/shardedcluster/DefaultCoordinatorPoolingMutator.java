@@ -5,29 +5,23 @@
 
 package io.stackgres.operator.mutation.shardedcluster;
 
-import java.util.List;
-
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.github.fge.jackson.jsonpointer.JsonPointer;
-import com.github.fge.jsonpatch.JsonPatchOperation;
-import com.google.common.collect.ImmutableList;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinator;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.AbstractDefaultResourceMutator;
-import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 @ApplicationScoped
 public class DefaultCoordinatorPoolingMutator
     extends AbstractDefaultResourceMutator<
-        StackGresPoolingConfig, StackGresShardedCluster, StackGresShardedClusterReview>
-    implements ShardedClusterCoordinatorConfigurationMutator {
+        StackGresPoolingConfig, StackGresShardedCluster, StackGresShardedClusterReview> {
 
   @Inject
   public DefaultCoordinatorPoolingMutator(
@@ -37,31 +31,25 @@ public class DefaultCoordinatorPoolingMutator
     super(resourceFactory, finder, scheduler);
   }
 
-  @PostConstruct
   @Override
-  public void init() {
-    super.init();
-  }
-
-  @Override
-  public List<JsonPatchOperation> mutate(StackGresShardedClusterReview review) {
-    if (review.getRequest().getOperation() == Operation.CREATE) {
-      ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
-      operations.addAll(ensureConfigurationNode(review));
-      operations.addAll(super.mutate(review));
-      return operations.build();
+  protected void setValueSection(StackGresShardedCluster resource) {
+    if (resource.getSpec().getCoordinator() == null) {
+      resource.getSpec().setCoordinator(new StackGresShardedClusterCoordinator());
     }
-
-    return ImmutableList.of();
+    if (resource.getSpec().getCoordinator().getConfiguration() == null) {
+      resource.getSpec().getCoordinator().setConfiguration(new StackGresClusterConfiguration());
+    }
   }
 
   @Override
-  protected String getTargetPropertyValue(StackGresShardedCluster targetCluster) {
-    return targetCluster.getSpec().getCoordinator().getConfiguration().getConnectionPoolingConfig();
+  protected String getTargetPropertyValue(StackGresShardedCluster resource) {
+    return resource.getSpec().getCoordinator().getConfiguration().getConnectionPoolingConfig();
   }
 
   @Override
-  public JsonPointer getTargetPointer() {
-    return getConfigurationTargetPointer("connectionPoolingConfig");
+  protected void setTargetProperty(StackGresShardedCluster resource, String defaultResourceName) {
+    resource.getSpec().getCoordinator().getConfiguration().setConnectionPoolingConfig(
+        defaultResourceName);
   }
+
 }

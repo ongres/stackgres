@@ -26,7 +26,9 @@ import io.sundr.builder.annotations.Buildable;
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
+@Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
+    lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
+    builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterReplication {
 
   @JsonProperty("mode")
@@ -35,8 +37,6 @@ public class StackGresClusterReplication {
   private String mode;
 
   @JsonProperty("role")
-  @ValidEnum(enumClass = StackGresMainReplicationRole.class, allowNulls = false,
-      message = "role must be ha or ha-read")
   private String role;
 
   @JsonProperty("syncInstances")
@@ -47,8 +47,26 @@ public class StackGresClusterReplication {
   @Valid
   private List<StackGresClusterReplicationGroup> groups;
 
+  @ReferencedField("role")
+  interface Role extends FieldReference { }
+
   @ReferencedField("syncInstances")
   interface SyncInstances extends FieldReference { }
+
+  @JsonIgnore
+  @AssertTrue(message = "role must be ha or ha-read",
+      payload = { Role.class })
+  public boolean isRoleValid() {
+    if (role == null) {
+      return false;
+    }
+    try {
+      StackGresMainReplicationRole.fromString(role);
+    } catch (IllegalArgumentException ex) {
+      return false;
+    }
+    return true;
+  }
 
   @JsonIgnore
   @AssertTrue(message = "syncInstances must be set when mode is sync or strict-sync",

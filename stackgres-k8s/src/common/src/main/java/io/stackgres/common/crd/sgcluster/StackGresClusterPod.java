@@ -9,27 +9,30 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.AssertTrue;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CustomContainer;
-import io.stackgres.common.crd.CustomInitContainer;
 import io.stackgres.common.crd.CustomVolume;
+import io.stackgres.common.validation.FieldReference;
+import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.stackgres.common.validation.ValidEnum;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
+@Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
+    lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
+    builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterPod {
 
   @JsonProperty("persistentVolume")
-  @NotNull(message = "Pod's persistent volume must be specified")
   @Valid
   private StackGresPodPersistentVolume persistentVolume;
 
@@ -65,7 +68,18 @@ public class StackGresClusterPod {
 
   @JsonProperty("customInitContainers")
   @Valid
-  private List<CustomInitContainer> customInitContainers;
+  private List<CustomContainer> customInitContainers;
+
+  @ReferencedField("persistentVolume")
+  interface PersistentVolume extends FieldReference {
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "persistentVolume is required",
+      payload = { PersistentVolume.class })
+  public boolean isPersistentVolumeSectionPresent() {
+    return persistentVolume != null;
+  }
 
   public StackGresPodPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -139,11 +153,11 @@ public class StackGresClusterPod {
     this.customContainers = customContainers;
   }
 
-  public List<CustomInitContainer> getCustomInitContainers() {
+  public List<CustomContainer> getCustomInitContainers() {
     return customInitContainers;
   }
 
-  public void setCustomInitContainers(List<CustomInitContainer> customInitContainers) {
+  public void setCustomInitContainers(List<CustomContainer> customInitContainers) {
     this.customInitContainers = customInitContainers;
   }
 

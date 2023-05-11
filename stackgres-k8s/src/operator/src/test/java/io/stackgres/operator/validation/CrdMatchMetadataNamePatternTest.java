@@ -10,27 +10,21 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.stackgres.common.resource.ResourceUtil;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 class CrdMatchMetadataNamePatternTest extends CrdMatchTestHelper {
 
-  @ParameterizedTest
-  @ValueSource(
-      strings = {"SGCluster.yaml", "SGDistributedLogs.yaml", "SGBackup.yaml", "SGDbOps.yaml"})
-  void stackGresClusterCrd_ShouldHasMetadataNamePatterAttribute(String crdFilename)
+  void stackGresClusterCrd_ShouldHasMetadataNamePatterAttribute()
       throws IOException {
-
     withEveryYaml(crdTree -> {
       JsonNode metadataNamepattern = extractMetadataNamePattern(crdTree);
-      assertNotNull(format("%s need to have metadata.name.pattern attribute", crdFilename),
+      assertNotNull(format("%s need to have metadata.name.pattern attribute",
+          crdTree.get("metadata").get("name")),
           metadataNamepattern);
       assertEquals(ResourceUtil.DNS_LABEL_NAME.pattern(), metadataNamepattern.asText());
-    }, Arrays.asList(crdFilename));
+    });
   }
 
   private JsonNode extractMetadataNamePattern(JsonNode crdTree) {

@@ -23,9 +23,10 @@ import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.quarkus.test.Mock;
+import io.stackgres.common.CrdLoader;
 import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.operator.AbstractStackGresOperatorIt;
-import io.stackgres.testutil.CrdUtils;
 import io.stackgres.testutil.KubernetesServerSupplier;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
@@ -54,7 +55,12 @@ public class MockKubernetesClientFactory {
       return;
     }
     try (KubernetesClient client = serverSupplier.get().getClient()) {
-      CrdUtils.installCrds(client);
+      for (var crd : new CrdLoader(new YamlMapperProvider().get()).scanCrds()) {
+        client.apiextensions().v1()
+            .customResourceDefinitions()
+            .resource(crd)
+            .create();
+      }
     }
   }
 

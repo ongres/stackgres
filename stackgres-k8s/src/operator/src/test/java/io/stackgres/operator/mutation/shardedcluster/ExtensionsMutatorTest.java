@@ -5,12 +5,12 @@
 
 package io.stackgres.operator.mutation.shardedcluster;
 
-import static io.stackgres.common.StackGresShardedClusterUtil.getCoordinatorCluster;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
@@ -19,9 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.github.fge.jsonpatch.AddOperation;
-import com.github.fge.jsonpatch.JsonPatchOperation;
-import com.github.fge.jsonpatch.ReplaceOperation;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.OperatorProperty;
@@ -29,6 +26,8 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtensionBuilder;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.operator.common.OperatorExtensionMetadataManager;
@@ -58,6 +57,8 @@ class ExtensionsMutatorTest {
   private static final List<String> SUPPORTED_POSTGRES_VERSIONS =
       StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions()
           .toList();
+  private static final List<String> SUPPORTED_BABELFISH_VERSIONS =
+      StackGresComponent.BABELFISH.getLatest().streamOrderedVersions().toList();
   private static final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
       ALL_SUPPORTED_POSTGRES_VERSIONS =
       ImmutableMap.of(
@@ -66,7 +67,13 @@ class ExtensionsMutatorTest {
               Seq.of(StackGresComponent.LATEST)
               .append(StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions())
               .append(SUPPORTED_POSTGRES_VERSIONS)
-              .collect(ImmutableList.toImmutableList())));
+              .toList()),
+          StackGresComponent.BABELFISH, ImmutableMap.of(
+              StackGresVersion.LATEST,
+              Seq.of(StackGresComponent.LATEST)
+              .append(StackGresComponent.BABELFISH.getLatest().streamOrderedMajorVersions())
+              .append(SUPPORTED_BABELFISH_VERSIONS)
+              .toList()));
 
   private StackGresShardedClusterReview review;
 
@@ -87,33 +94,50 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
     review.getRequest().getObject().setStatus(new StackGresShardedClusterStatus());
 
-    mutator = new ExtensionsMutator(extensionMetadataManager, JsonUtil.jsonMapper(),
+    mutator = new ExtensionsMutator(extensionMetadataManager,
         ALL_SUPPORTED_POSTGRES_VERSIONS);
 
-    extensions = List.of();
+    extensions = Seq.of(
+        "citus",
+        "citus_columnar",
+        "plpgsql",
+        "pg_stat_statements",
+        "dblink",
+        "plpython3u")
+        .map(this::getExtension)
+        .toList();
     existingExtensions = Seq.of(
+        "citus",
+        "citus_columnar",
         "plpgsql",
         "pg_stat_statements",
         "dblink",
         "plpython3u")
         .map(this::getInstalledExtension)
-        .collect(ImmutableList.toImmutableList());
+        .toList();
     toInstallExtensions = Seq.of(
         "citus",
+        "citus_columnar",
         "plpgsql",
         "pg_stat_statements",
         "dblink",
         "plpython3u")
         .map(this::getInstalledExtensionWithoutBuild)
-        .collect(ImmutableList.toImmutableList());
+        .toList();
     lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        same(getCoordinatorCluster(review.getRequest().getObject())),
-            any(), anyBoolean()))
+        any(), argThat(this::isClusterAlreadyExistingExtension), anyBoolean()))
         .then(this::getDefaultExtensionMetadata);
+  }
+
+  private boolean isClusterAlreadyExistingExtension(StackGresClusterExtension extension) {
+    return extension != null && extensions.contains(extension);
   }
 
   private Optional<StackGresExtensionMetadata> getDefaultExtensionMetadata(
       InvocationOnMock invocation) {
+    if (invocation.getArgument(1) == null) {
+      return Optional.empty();
+    }
     return Optional.of(new StackGresExtensionMetadata(existingExtensions.stream()
         .filter(defaultExtension -> defaultExtension.getName()
             .equals(((StackGresClusterExtension) invocation.getArgument(1)).getName()))
@@ -127,29 +151,30 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
 
-    final List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(1, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
+    assertEquals(toInstallExtensions, result.getStatus().getToInstallPostgresExtensions());
   }
 
   @Test
   void clusterWithIncorrectVersion_shouldNotDoNothing() {
     review.getRequest().getObject().getSpec().getPostgres().setVersion("test");
 
-    final List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(0, operations.size());
+    assertEquals(review.getRequest().getObject(), result);
   }
 
   @Test
   void clusterWithoutExtensionsAndState_shouldCreateTheStateWithDefaultExtensions() {
     review.getRequest().getObject().getSpec().getPostgres().setExtensions(extensions);
 
-    final List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(1, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof AddOperation).count());
+    assertEquals(toInstallExtensions, result.getStatus().getToInstallPostgresExtensions());
   }
 
   @Test
@@ -162,20 +187,24 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
 
-    var coordinator = getCoordinatorCluster(review.getRequest().getObject());
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        eq(coordinator), same(extension), anyBoolean()))
+        any(),
+        argThat(anExtension -> extension.getName().equals(anExtension.getName())),
+        anyBoolean()))
         .thenReturn(Optional.of(getExtensionMetadata()));
 
-    final List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(2, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
-    assertEquals(1, operations.stream().filter(o -> o instanceof AddOperation).count());
+    result.getSpec().getPostgres().getExtensions()
+        .forEach(anExtension -> assertNotNull(anExtension.getVersion()));
+    assertEquals(
+        Seq.seq(toInstallExtensions).append(getInstalledExtensionWithoutBuild()).toList(),
+        result.getStatus().getToInstallPostgresExtensions());
   }
 
   @Test
-  void clusterWithAnExtensionAlreadyInstalled_shouldAddCitusExtension() throws Exception {
+  void clusterWithAnExtensionAlreadyInstalled_shouldNotDoAnything() throws Exception {
     final StackGresClusterInstalledExtension installedExtension =
         getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
@@ -189,15 +218,16 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
         .add(installedExtension);
 
-    var coordinator = getCoordinatorCluster(review.getRequest().getObject());
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        eq(coordinator), same(extension), anyBoolean()))
+        any(),
+        argThat(anExtension -> extension.getName().equals(anExtension.getName())),
+        anyBoolean()))
         .thenReturn(Optional.of(getExtensionMetadata()));
 
-    final List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(1, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
+    assertEquals(review.getRequest().getObject(), result);
   }
 
   @Test
@@ -222,20 +252,27 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
-    var coordinator = getCoordinatorCluster(review.getRequest().getObject());
     final StackGresExtensionMetadata extensionTestMetadata = getExtensionMetadata();
     extensionTestMetadata.getExtension().setName("test");
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        eq(coordinator), same(testExtension), anyBoolean()))
+        any(), eq(testExtension), anyBoolean()))
         .thenReturn(Optional.of(extensionTestMetadata));
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        eq(coordinator), same(extension), anyBoolean()))
+        any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
-    final List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(1, operations.size());
+    assertEquals(
+        Seq.seq(toInstallExtensions)
+        .append(getInstalledExtensionWithoutBuild())
+        .append(new StackGresClusterInstalledExtensionBuilder(getInstalledExtensionWithoutBuild())
+            .withName("test")
+            .build())
+        .toList(),
+        result.getStatus().getToInstallPostgresExtensions());
   }
 
   @Test
@@ -252,10 +289,12 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
         .add(installedExtension);
 
-    final List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(1, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
+    result.getSpec().getPostgres().getExtensions()
+        .forEach(anExtension -> assertNotNull(anExtension.getVersion()));
+    assertEquals(toInstallExtensions, result.getStatus().getToInstallPostgresExtensions());
   }
 
   @Test
@@ -277,15 +316,18 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
-    var coordinator = getCoordinatorCluster(review.getRequest().getObject());
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        eq(coordinator), same(extension), anyBoolean()))
+        any(),
+        argThat(anExtension -> extension.getName().equals(anExtension.getName())),
+        anyBoolean()))
         .thenReturn(Optional.of(getExtensionMetadata()));
 
-    final List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(1, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
+    assertEquals(
+        Seq.seq(toInstallExtensions).append(getInstalledExtensionWithoutBuild()).toList(),
+        result.getStatus().getToInstallPostgresExtensions());
   }
 
   @Test
@@ -312,15 +354,18 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
         .add(installedTestExtension2);
 
-    var coordinator = getCoordinatorCluster(review.getRequest().getObject());
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        eq(coordinator), same(extension), anyBoolean()))
+        any(),
+        argThat(anExtension -> extension.getName().equals(anExtension.getName())),
+        anyBoolean()))
         .thenReturn(Optional.of(getExtensionMetadata()));
 
-    final List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(1, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
+    assertEquals(
+        Seq.seq(toInstallExtensions).append(getInstalledExtensionWithoutBuild()).toList(),
+        result.getStatus().getToInstallPostgresExtensions());
   }
 
   @Test
@@ -343,16 +388,21 @@ class ExtensionsMutatorTest {
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
-    extensionMetadata.getVersion().setExtraMounts(ImmutableList.of("test"));
-    var coordinator = getCoordinatorCluster(review.getRequest().getObject());
+    extensionMetadata.getVersion().setExtraMounts(List.of("test"));
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        eq(coordinator), same(extension), anyBoolean()))
+        any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
-    final List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(1, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
+    assertEquals(
+        Seq.seq(toInstallExtensions)
+        .append(new StackGresClusterInstalledExtensionBuilder(getInstalledExtensionWithoutBuild())
+            .withExtraMounts(List.of("test"))
+            .build())
+        .toList(),
+        result.getStatus().getToInstallPostgresExtensions());
   }
 
   @Test
@@ -371,20 +421,21 @@ class ExtensionsMutatorTest {
     final StackGresClusterInstalledExtension installedTestExtension =
         getInstalledExtensionWithoutBuild();
     installedTestExtension.setName("test");
-    installedTestExtension.setExtraMounts(ImmutableList.of("test"));
+    installedTestExtension.setExtraMounts(List.of("test"));
     review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
-    var coordinator = getCoordinatorCluster(review.getRequest().getObject());
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        eq(coordinator), same(extension), anyBoolean()))
+        any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
-    final List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(1, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
+    assertEquals(
+        Seq.seq(toInstallExtensions).append(getInstalledExtensionWithoutBuild()).toList(),
+        result.getStatus().getToInstallPostgresExtensions());
   }
 
   @Test
@@ -403,21 +454,26 @@ class ExtensionsMutatorTest {
     final StackGresClusterInstalledExtension installedTestExtension =
         getInstalledExtensionWithoutBuild();
     installedTestExtension.setName("test");
-    installedTestExtension.setExtraMounts(ImmutableList.of("test"));
+    installedTestExtension.setExtraMounts(List.of("test"));
     review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
-    extensionMetadata.getVersion().setExtraMounts(ImmutableList.of("test"));
-    var coordinator = getCoordinatorCluster(review.getRequest().getObject());
+    extensionMetadata.getVersion().setExtraMounts(List.of("test"));
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        eq(coordinator), same(extension), anyBoolean()))
+        any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
-    final List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(1, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
+    assertEquals(
+        Seq.seq(toInstallExtensions)
+        .append(new StackGresClusterInstalledExtensionBuilder(getInstalledExtensionWithoutBuild())
+            .withExtraMounts(List.of("test"))
+            .build())
+        .toList(),
+        result.getStatus().getToInstallPostgresExtensions());
   }
 
   @Test
@@ -441,15 +497,16 @@ class ExtensionsMutatorTest {
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
-    var coordinator = getCoordinatorCluster(review.getRequest().getObject());
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        eq(coordinator), same(extension), anyBoolean()))
+        any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
-    final List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(1, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
+    assertEquals(
+        Seq.seq(toInstallExtensions).append(getInstalledExtensionWithoutBuild()).toList(),
+        result.getStatus().getToInstallPostgresExtensions());
   }
 
   @Test
@@ -473,15 +530,16 @@ class ExtensionsMutatorTest {
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
     extensionMetadata.getTarget().setBuild(null);
-    var coordinator = getCoordinatorCluster(review.getRequest().getObject());
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        eq(coordinator), same(extension), anyBoolean()))
+        any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
-    final List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(1, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
+    assertEquals(
+        Seq.seq(toInstallExtensions).append(getInstalledExtensionWithoutBuild()).toList(),
+        result.getStatus().getToInstallPostgresExtensions());
   }
 
   @Test
@@ -501,14 +559,14 @@ class ExtensionsMutatorTest {
 
     final StackGresExtensionMetadata extensionTestMetadata = getExtensionMetadata();
     extensionTestMetadata.getExtension().setName("test");
-    var coordinator = getCoordinatorCluster(review.getRequest().getObject());
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        eq(coordinator), same(testExtension), anyBoolean()))
+        any(), eq(testExtension), anyBoolean()))
         .thenReturn(Optional.empty());
-    final List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    assertEquals(1, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
+
+    assertEquals(review.getRequest().getObject(), result);
   }
 
   @Test
@@ -530,19 +588,29 @@ class ExtensionsMutatorTest {
 
     final StackGresExtensionMetadata extensionTestMetadata = getExtensionMetadata();
     extensionTestMetadata.getExtension().setName("test");
-    var coordinator = getCoordinatorCluster(review.getRequest().getObject());
     when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        eq(coordinator), same(testExtension), anyBoolean()))
+        any(), eq(testExtension), anyBoolean()))
         .thenReturn(Optional.empty());
-    final List<JsonPatchOperation> operations = mutator.mutate(review);
 
-    assertEquals(1, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
+    StackGresShardedCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
+
+    result.getSpec().getPostgres().getExtensions()
+        .forEach(anExtension -> assertNotNull(anExtension.getVersion()));
+    assertEquals(toInstallExtensions, result.getStatus().getToInstallPostgresExtensions());
   }
 
   private StackGresClusterExtension getExtension() {
     final StackGresClusterExtension extension = new StackGresClusterExtension();
     extension.setName("timescaledb");
+    return extension;
+  }
+
+  private StackGresClusterExtension getExtension(String name) {
+    final StackGresClusterExtension extension =
+        new StackGresClusterExtension();
+    extension.setName(name);
+    extension.setVersion("1.0.0");
     return extension;
   }
 

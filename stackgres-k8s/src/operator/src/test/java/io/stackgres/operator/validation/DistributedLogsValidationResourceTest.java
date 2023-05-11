@@ -22,8 +22,8 @@ class DistributedLogsValidationResourceTest
 
   @BeforeEach
   public void setUp() {
-    final DistributedLogsValidationResource resource = new DistributedLogsValidationResource();
-    resource.setPipeline(pipeline);
+    final DistributedLogsValidationResource resource =
+        new DistributedLogsValidationResource(pipeline);
     this.resource = resource;
 
     review = AdmissionReviewFixtures.distributedLogs().loadCreate().get();

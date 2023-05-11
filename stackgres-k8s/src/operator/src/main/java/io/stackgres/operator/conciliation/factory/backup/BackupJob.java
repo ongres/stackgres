@@ -306,8 +306,8 @@ public class BackupJob
                         .withValue(PatroniUtil.REPLICA_ROLE)
                         .build(),
                     new EnvVarBuilder()
-                        .withName("PATRONI_CLUSTER_LABELS")
-                        .withValue(labelFactoryForCluster.patroniClusterLabels(cluster)
+                        .withName("CLUSTER_LABELS")
+                        .withValue(labelFactoryForCluster.clusterLabels(cluster)
                             .entrySet()
                             .stream()
                             .map(e -> e.getKey() + "=" + e.getValue())

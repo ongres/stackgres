@@ -74,3 +74,30 @@ paths:
           type: string
       security:
       - JWT: []
+  /stackgres/namespaces/{namespace}/sgdbops/{name}/events:
+    get:
+      tags:
+      - sgdbops
+      summary: Get events related to a sgdbops
+      description: |
+        Get events related to a sgdbops including `Pod`s and `Job`s.
+
+        ### RBAC permissions required
+
+        * events list
+      parameters:
+      - name: namespace
+        description: The namespace to retrieve the resource from
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: name
+        description: The name of the resource to retrieve
+        in: path
+        required: true
+        schema:
+          type: string
+      security:
+      - JWT: []
+      

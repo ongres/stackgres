@@ -26,7 +26,7 @@
     "requestSubResource": null,
     "name": null,
     "namespace": "default",
-    "operation": "CREATE",
+    "operation": "UPDATE",
     "userInfo": {
       "groups": [
         "system:serviceaccounts",

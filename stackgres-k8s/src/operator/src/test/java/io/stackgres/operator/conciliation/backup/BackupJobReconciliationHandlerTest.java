@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
@@ -38,7 +39,6 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.LabelFactoryForBackup;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
-import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.testutil.StringUtils;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
@@ -59,16 +59,13 @@ class BackupJobReconciliationHandlerTest {
       BackupJobReconciliationHandlerTest.class);
 
   @Mock
+  private BackupDefaultReconciliationHandler defaultHandler;
+
+  @Mock
   private LabelFactoryForBackup labelFactory;
 
   @Mock
-  private ResourceWriter<Job> jobWriter;
-
-  @Mock
   private ResourceScanner<Pod> podScanner;
-
-  @Mock
-  private ResourceWriter<Pod> podWriter;
 
   @Mock
   private ResourceFinder<Job> jobFinder;
@@ -86,8 +83,7 @@ class BackupJobReconciliationHandlerTest {
   @BeforeEach
   void setUp() {
     handler = new BackupJobReconciliationHandler(
-        labelFactory, jobFinder, jobWriter,
-        podScanner, podWriter);
+        defaultHandler, labelFactory, jobFinder, podScanner);
     requiredJob = Fixtures.job().loadRequired().get();
 
     backup = new StackGresBackup();
@@ -107,13 +103,13 @@ class BackupJobReconciliationHandlerTest {
 
     assertEquals("Resource must be a Job instance", ex.getMessage());
 
-    verify(jobWriter, never()).create(any(Job.class));
-    verify(podWriter, never()).update(any());
+    verify(defaultHandler, never()).create(any(), any(Job.class));
+    verify(defaultHandler, never()).patch(any(), any(Pod.class), any());
   }
 
   @Test
   void createResource_shouldCreateTheResource() {
-    when(jobWriter.create(requiredJob)).thenReturn(requiredJob);
+    when(defaultHandler.create(any(), any(Job.class))).thenReturn(requiredJob);
 
     HasMetadata job = handler.create(backup, requiredJob);
 
@@ -122,11 +118,11 @@ class BackupJobReconciliationHandlerTest {
 
   @Test
   void delete_shouldNotFail() {
-    doNothing().when(jobWriter).delete(requiredJob);
+    doNothing().when(defaultHandler).delete(any(), any(Job.class));
 
     handler.delete(backup, requiredJob);
 
-    verify(jobWriter, times(1)).delete(any());
+    verify(defaultHandler, times(1)).delete(any(), any(Job.class));
   }
 
   @Test
@@ -148,13 +144,13 @@ class BackupJobReconciliationHandlerTest {
         .map(Tuple2::v2)
         .orElseThrow();
 
-    when(jobWriter.update(any())).thenReturn(requiredJob);
+    when(defaultHandler.patch(any(), any(Job.class), any())).thenReturn(requiredJob);
 
     handler.patch(backup, requiredJob, deployedJob);
 
     ArgumentCaptor<Job> jobArgumentCaptor =
         ArgumentCaptor.forClass(Job.class);
-    verify(jobWriter, times(1)).update(jobArgumentCaptor.capture());
+    verify(defaultHandler, times(1)).patch(any(), jobArgumentCaptor.capture(), any());
     jobArgumentCaptor.getAllValues().forEach(job -> {
       assertEquals(Seq.seq(deployedAnnotations)
           .filter(annotation -> !requiredAnnotations.containsKey(annotation.v1))
@@ -163,7 +159,7 @@ class BackupJobReconciliationHandlerTest {
           job.getMetadata().getAnnotations());
     });
 
-    verify(podWriter, times(0)).update(any());
+    verify(defaultHandler, times(0)).patch(any(), any(Pod.class), any());
   }
 
   @Test
@@ -185,15 +181,16 @@ class BackupJobReconciliationHandlerTest {
         .map(t -> t.map1(pod -> pod.getMetadata().getName()))
         .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2));
 
-    when(jobWriter.update(any())).thenReturn(requiredJob);
+    when(defaultHandler.patch(any(), any(Job.class), any())).thenReturn(requiredJob);
 
     handler.patch(backup, requiredJob, deployedJob);
 
-    verify(jobWriter, times(1)).update(any());
+    verify(defaultHandler, times(1)).patch(any(), any(Job.class), any());
 
-    ArgumentCaptor<Pod> podArgumentCaptor = ArgumentCaptor.forClass(Pod.class);
-    verify(podWriter, times(1)).update(podArgumentCaptor.capture());
-    podArgumentCaptor.getAllValues().forEach(pod -> {
+    verify(defaultHandler, times(1)).patch(any(), any(Pod.class), any());
+    ArgumentCaptor<HasMetadata> podArgumentCaptor = ArgumentCaptor.forClass(HasMetadata.class);
+    verify(defaultHandler, atLeastOnce()).patch(any(), podArgumentCaptor.capture(), any());
+    podArgumentCaptor.getAllValues().stream().filter(Pod.class::isInstance).forEach(pod -> {
       assertEquals(Seq.seq(deployedAnnotations.get(pod.getMetadata().getName()))
           .filter(annotation -> !requiredAnnotations.containsKey(annotation.v1))
           .append(Seq.seq(requiredAnnotations))
@@ -214,8 +211,8 @@ class BackupJobReconciliationHandlerTest {
         eq(requiredJob.getMetadata().getNamespace())))
         .thenReturn(Optional.of(
             returnRequiredJob ? requiredJob : deployedJob));
-    lenient().when(jobWriter.create(any())).thenReturn(requiredJob);
-    lenient().when(jobWriter.update(any())).thenReturn(requiredJob);
+    lenient().when(defaultHandler.create(any(), any(Job.class))).thenReturn(requiredJob);
+    lenient().when(defaultHandler.patch(any(), any(Job.class), any())).thenReturn(requiredJob);
   }
 
   @SuppressWarnings("unchecked")
@@ -239,7 +236,7 @@ class BackupJobReconciliationHandlerTest {
     lenient().doAnswer(arguments -> {
       podList.remove(arguments.getArgument(0));
       return null;
-    }).when(podWriter).delete(any());
+    }).when(defaultHandler).delete(any(), any(Pod.class));
   }
 
   private void addPod() {

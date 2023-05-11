@@ -184,6 +184,7 @@ bundle: kustomize ## Generate bundle manifests and metadata, then validate gener
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle $(BUNDLE_GEN_FLAGS)
+	for CRD in bundle/manifests/stackgres.io_*; do cp "config/crd/bases/$$(yq -r .spec.names.kind "$$CRD").yaml" "$$CRD"; done
 	operator-sdk bundle validate ./bundle
 
 .PHONY: bundle-openshift

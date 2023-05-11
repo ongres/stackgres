@@ -49,7 +49,7 @@
         "uid": "e5b0892e-0f62-41a0-9350-cb866c876cf2"
       },
       "spec": {
-        "postgresVersion": "11.5",
+        "postgresVersion": "12",
         "postgresql.conf": {
           "password_encryption": "scram-sha-256",
           "random_page_cost": "1.5",

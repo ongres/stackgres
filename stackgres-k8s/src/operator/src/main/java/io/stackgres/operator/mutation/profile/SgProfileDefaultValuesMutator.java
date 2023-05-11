@@ -5,22 +5,19 @@
 
 package io.stackgres.operator.mutation.profile;
 
-import java.util.List;
-
+import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
-import io.stackgres.operator.mutation.DefaultValuesMutator;
+import io.stackgres.operator.mutation.AbstractValuesMutator;
 
 @ApplicationScoped
 public class SgProfileDefaultValuesMutator
-    extends DefaultValuesMutator<StackGresProfile, SgProfileReview>
+    extends AbstractValuesMutator<StackGresProfile, SgProfileReview>
     implements ProfileMutator {
 
   @Inject
@@ -30,20 +27,15 @@ public class SgProfileDefaultValuesMutator
     super(factory, jsonMapper);
   }
 
+  @PostConstruct
   @Override
-  public JsonNode getSourceNode(StackGresProfile resource) {
-    return toNode(resource)
-        .get("spec");
+  public void init() {
+    super.init();
   }
 
   @Override
-  public JsonNode getTargetNode(StackGresProfile resource) {
-    return getSourceNode(resource);
-  }
-
-  @Override
-  public List<JsonPatchOperation> mutate(SgProfileReview review) {
-    return mutate(SPEC_POINTER, review.getRequest().getObject());
+  protected Class<StackGresProfile> getResourceClass() {
+    return StackGresProfile.class;
   }
 
 }

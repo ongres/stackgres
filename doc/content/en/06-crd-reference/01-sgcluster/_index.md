@@ -189,11 +189,32 @@ spec:
 
 ### Replicate From Users
 
+| <div style="width:7rem">Property</div>              | Required | Updatable | <div style="width:4rem">Type</div> | Default  | Description |
+|:----------------------------------------------------|----------|-----------|:-----------------------------------|:---------|:------------|
+| [superuser](replicate-from-users-superuser)         | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.replicateFrom.users.superuser >}}       |
+| [replication](replicate-from-users-replication)     | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.replicateFrom.users.replication >}}       |
+| [authenticator](replicate-from-users-authenticator) | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.replicateFrom.users.authenticator >}}       |
+
+### Replicate From Users Superuser
+
 | <div style="width:7rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default  | Description |
 |:---------------------------------------|----------|-----------|:-----------------------------------|:---------|:------------|
-| superuser                              | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.replicateFrom.users.superuser >}}       |
-| replication                            | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.replicateFrom.users.replication >}}       |
-| authenticator                          | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.replicateFrom.users.authenticator >}}       |
+| username                               | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.replicateFrom.users.superuser.username >}}       |
+| password                               | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.replicateFrom.users.superuser.password >}}       |
+
+### Replicate From Users Replication
+
+| <div style="width:7rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default  | Description |
+|:---------------------------------------|----------|-----------|:-----------------------------------|:---------|:------------|
+| username                               | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.replicateFrom.users.replication.username >}}       |
+| password                               | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.replicateFrom.users.replication.password >}}       |
+
+### Replicate From Users Authenticator
+
+| <div style="width:7rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default  | Description |
+|:---------------------------------------|----------|-----------|:-----------------------------------|:---------|:------------|
+| username                               | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.replicateFrom.users.authenticator.username >}}       |
+| password                               | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.replicateFrom.users.authenticator.password >}}       |
 
 ### Metadata
 
@@ -239,6 +260,7 @@ Defines custom labels for StackGres generated Kubernetes resources.
 | Property                      | Required | Updatable | Type     | Default        | Description |
 |:------------------------------|----------|-----------|:---------|:---------------|:------------|
 | clusterPods                   |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.metadata.labels.clusterPods >}} |
+| services                      |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.metadata.labels.services >}} |
 
 ```yaml
 apiVersion: stackgres.io/v1
@@ -250,6 +272,8 @@ spec:
     labels:
       clusterPods:
         customLabel: customLabelValue
+      services:
+        customLabel: customLabelValue
 ```
 
 ## Postgres Services
@@ -258,28 +282,27 @@ Specifies the service configuration for the cluster:
 
 | <div style="width:5rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | <div style="width:4rem">Default</div> | Description                                                            |
 |:---------------------------------------|----------|-----------|:-----------------------------------|:--------------------------------------|:-----------------------------------------------------------------------|
-| [Primary](#primary-service-type)       |          | ✓         | object                             | [primary](#primary-service-type)      | {{< crd-field-description SGCluster.spec.postgresServices.primary >}}  |
-| [Replicas](#replicas-service-type)     |          | ✓         | object                             | [replicas](#replicas-service-type)    | {{< crd-field-description SGCluster.spec.postgresServices.replicas >}} |
+| [primary](#postgres-service)           |          | ✓         | object                             | See [primary service](#postgres-service)      | {{< crd-field-description SGCluster.spec.postgresServices.primary >}}  |
+| [replicas](#postgres-service)          |          | ✓         | object                             | See [replicas service](#postgres-service)     | {{< crd-field-description SGCluster.spec.postgresServices.replicas >}} |
 
-### Primary Service Type
+### Postgres Service
 
 | <div style="width:8rem">Property</div> | Required | Updatable | <div style="width:5rem">Type</div> | <div style="width:5rem">Default</div> | Description                                                                 |
 |:---------------------------------------|----------|-----------|:-----------------------------------|:--------------------------------------|:----------------------------------------------------------------------------|
 | enabled                                |          | ✓         | boolean                            | true                                  | {{< crd-field-description SGCluster.spec.postgresServices.primary.enabled >}}  |
 | type                                   |          | ✓         | string                             | ClusterIP                             | {{< crd-field-description SGCluster.spec.postgresServices.primary.type >}}  |
+| allocateLoadBalancerNodePorts          |          | ✓         | boolean                            |                                       | {{< crd-field-description SGCluster.spec.postgresServices.primary.allocateLoadBalancerNodePorts >}}  |
 | externalIPs                            |          | ✓         | array                              |                                       | {{< crd-field-description SGCluster.spec.postgresServices.primary.externalIPs >}}  |
+| healthCheckNodePort                    |          | ✓         | integer                            |                                       | {{< crd-field-description SGCluster.spec.postgresServices.primary.healthCheckNodePort >}}  |
+| internalTrafficPolicy                  |          | ✓         | string                             |                                       | {{< crd-field-description SGCluster.spec.postgresServices.primary.internalTrafficPolicy >}}  |
+| ipFamilies                             |          | ✓         | array                              |                                       | {{< crd-field-description SGCluster.spec.postgresServices.primary.ipFamilies >}}  |
+| ipFamilyPolicy                         |          | ✓         | string                             |                                       | {{< crd-field-description SGCluster.spec.postgresServices.primary.ipFamilyPolicy >}}  |
+| loadBalancerClass                      |          | ✓         | string                             |                                       | {{< crd-field-description SGCluster.spec.postgresServices.primary.loadBalancerClass >}}  |
 | loadBalancerIP                         |          | ✓         | string                             |                                       | {{< crd-field-description SGCluster.spec.postgresServices.primary.loadBalancerIP >}}  |
-| customPorts                            |          | ✓         | array                              |                                       | {{< crd-field-description SGCluster.spec.postgresServices.primary.customPorts >}}  |
-
-### Replicas Service Type
-
-| <div style="width:8rem">Property</div> | Required | Updatable | <div style="width:5rem">Type</div> | <div style="width:5rem">Default</div> | Description                                                                 |
-|:---------------------------------------|----------|-----------|:-----------------------------------|:--------------------------------------|:----------------------------------------------------------------------------|
-| enabled                                |          | ✓         | boolean                            | true                                  | {{< crd-field-description SGCluster.spec.postgresServices.replicas.enabled >}}  |
-| type                                   |          | ✓         | string                             | ClusterIP                             | {{< crd-field-description SGCluster.spec.postgresServices.replicas.type >}}  |
-| externalIPs                            |          | ✓         | array                              |                                       | {{< crd-field-description SGCluster.spec.postgresServices.replicas.externalIPs >}}  |
-| loadBalancerIP                         |          | ✓         | string                             |                                       | {{< crd-field-description SGCluster.spec.postgresServices.replicas.loadBalancerIP >}}  |
-| customPorts                            |          | ✓         | array                              |                                       | {{< crd-field-description SGCluster.spec.postgresServices.replicas.customPorts >}}  |
+| loadBalancerSourceRanges               |          | ✓         | array                              |                                       | {{< crd-field-description SGCluster.spec.postgresServices.primary.loadBalancerSourceRanges >}}  |
+| sessionAffinity                        |          | ✓         | string                             |                                       | {{< crd-field-description SGCluster.spec.postgresServices.primary.sessionAffinity >}}  |
+| sessionAffinityConfig                  |          | ✓         | object                             |                                       | {{< crd-field-description SGCluster.spec.postgresServices.primary.sessionAffinityConfig >}}  |
+| customPorts                            |          | ✓         | object                             |                                       | {{< crd-field-description SGCluster.spec.postgresServices.primary.customPorts >}}  |
 
 ## Pods
 
@@ -293,6 +316,7 @@ Cluster's pod configuration
 | disablePostgresUtil                     |          | ✓         | boolean                            | false                                 | {{< crd-field-description SGCluster.spec.pods.disablePostgresUtil >}} |
 | [scheduling](#scheduling)               |          | ✓         | object                             |                                       | {{< crd-field-description SGCluster.spec.pods.scheduling >}} |
 | managementPolicy                        |          | ✓         | string                             | OrderedReady                          | {{< crd-field-description SGCluster.spec.pods.managementPolicy >}} |
+| [resources](#resources)                  |          | ✓         | object                             |                                       | {{< crd-field-description SGCluster.spec.pods.resources >}} |
 | customVolumes                           |          | ✓         | array                              |                                       | {{< crd-field-description SGCluster.spec.pods.customVolumes >}}  |
 | customInitContainers                    |          | ✓         | array                              |                                       | {{< crd-field-description SGCluster.spec.pods.customInitContainers >}}  |
 | customContainers                        |          | ✓         | array                              |                                       | {{< crd-field-description SGCluster.spec.pods.customContainers >}}  |
@@ -373,9 +397,17 @@ StackGres backup pod scheduling configuration.
 | podAffinity                            |          | ✓         | object                             |                | {{< crd-field-description SGCluster.spec.pods.scheduling.backup.podAffinity >}} |
 | podAntiAffinity                        |          | ✓         | object                             |                | {{< crd-field-description SGCluster.spec.pods.scheduling.backup.podAntiAffinity >}} |
 
+### Resources
+
+StackGres pod resources configuration.
+
+| <div style="width:14rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default | Description |
+|:----------------------------------------|----------|-----------|:-----------------------------------|:--------|:------------|
+| enableClusterLimitsRequirements         |          | ✓         | boolean                            |         | {{< crd-field-description SGCluster.spec.pods.resources.enableClusterLimitsRequirements >}} |
+
 ## Configurations
 
-Custom Postgres configuration.
+Custom configurations.
 
 | <div style="width:9rem">Property</div>                                    | Required | Updatable | <div style="width:4rem">Type</div> | Default           | Description |
 |:--------------------------------------------------------------------------|----------|-----------|:-----------------------------------|:------------------|:------------|
@@ -384,6 +416,8 @@ Custom Postgres configuration.
 | [sgBackupConfig]({{% relref "06-crd-reference/05-sgbackupconfig" %}})     |          | ✓         | string                             |                   | {{< crd-field-description SGCluster.spec.configurations.sgBackupConfig >}}   |
 | backupPath                                                                |          | ✓         | string                             |                   | {{< crd-field-description SGCluster.spec.configurations.backupPath >}}   |
 | [backups](#backups)                                                       |          | ✓         | array                              |                   | {{< crd-field-description SGCluster.spec.configurations.backups >}}   |
+| [credentials](#credentials)                                               |          |           | object                             |                   | {{< crd-field-description SGCluster.spec.configurations.credentials >}}   |
+| [patroni](#patroni)                                                       |          |           | object                             |                                       | {{< crd-field-description SGCluster.spec.configurations.patroni >}} |
 
 Example:
 
@@ -420,6 +454,69 @@ spec:
 | uploadDiskConcurrency                   |          | ✓         | integer                                | 1                                 | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.uploadDiskConcurrency >}} |
 | uploadConcurrency                       |          | ✓         | integer                                | 16                                | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.uploadConcurrency >}} |
 | downloadConcurrency                     |          | ✓         | integer                                | min(10, # of objects to download) | {{< crd-field-description SGCluster.spec.configurations.backups.items.performance.downloadConcurrency >}} |
+
+### Credentials
+
+| <div style="width:9rem">Property</div>                                    | Required | Updatable | <div style="width:4rem">Type</div> | <div style="width:5rem">Default</div> | Description |
+|:--------------------------------------------------------------------------|----------|-----------|:-----------------------------------|:--------------------------------------|:------------|
+| [patroni](#patroni-credentials)                                           |          |           | object                             |                                       | {{< crd-field-description SGCluster.spec.configurations.credentials.patroni >}} |
+| [users](#users-credentials)                                               |          |           | object                             |                                       | {{< crd-field-description SGCluster.spec.configurations.credentials.users >}} |
+
+### Patroni Credentials
+
+| <div style="width:7rem">Property</div>              | Required | Updatable | <div style="width:4rem">Type</div> | Default  | Description |
+|:----------------------------------------------------|----------|-----------|:-----------------------------------|:---------|:------------|
+| restApiPassword                                     | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.configurations.credentials.patroni.restApiPassword >}}       |
+
+### Users Credentials Superuser
+
+| <div style="width:7rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default  | Description |
+|:---------------------------------------|----------|-----------|:-----------------------------------|:---------|:------------|
+| username                               | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.configurations.credentials.users.superuser.username >}}       |
+| password                               | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.configurations.credentials.users.superuser.password >}}       |
+
+### Users Credentials
+
+| <div style="width:7rem">Property</div>              | Required | Updatable | <div style="width:4rem">Type</div> | Default  | Description |
+|:----------------------------------------------------|----------|-----------|:-----------------------------------|:---------|:------------|
+| [superuser](users-credentials-superuser)         | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.configurations.credentials.users.superuser >}}       |
+| [replication](users-credentials-replication)     | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.configurations.credentials.users.replication >}}       |
+| [authenticator](users-credentials-authenticator) | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.configurations.credentials.users.authenticator >}}       |
+
+### Users Credentials Superuser
+
+| <div style="width:7rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default  | Description |
+|:---------------------------------------|----------|-----------|:-----------------------------------|:---------|:------------|
+| username                               | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.configurations.credentials.users.superuser.username >}}       |
+| password                               | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.configurations.credentials.users.superuser.password >}}       |
+
+### Users Credentials Replication
+
+| <div style="width:7rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default  | Description |
+|:---------------------------------------|----------|-----------|:-----------------------------------|:---------|:------------|
+| username                               | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.configurations.credentials.users.replication.username >}}       |
+| password                               | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.configurations.credentials.users.replication.password >}}       |
+
+### Users Credentials Authenticator
+
+| <div style="width:7rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default  | Description |
+|:---------------------------------------|----------|-----------|:-----------------------------------|:---------|:------------|
+| username                               | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.configurations.credentials.users.authenticator.username >}}       |
+| password                               | ✓        | ✓         | object                             |          | {{< crd-field-description SGCluster.spec.configurations.credentials.users.authenticator.password >}}       |
+
+### Users Credentials
+
+| <div style="width:7rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default  | Description |
+|:---------------------------------------|----------|-----------|:-----------------------------------|:---------|:------------|
+| superuser                              |          |           | object                             |          | {{< crd-field-description SGCluster.spec.configurations.credentials.users.superuser >}}       |
+| replication                            |          |           | object                             |          | {{< crd-field-description SGCluster.spec.configurations.credentials.users.replication >}}       |
+| authenticator                          |          |           | object                             |          | {{< crd-field-description SGCluster.spec.configurations.credentials.users.authenticator >}}       |
+
+### Patroni
+
+| <div style="width:9rem">Property</div>                                    | Required | Updatable | <div style="width:4rem">Type</div> | <div style="width:5rem">Default</div> | Description |
+|:--------------------------------------------------------------------------|----------|-----------|:-----------------------------------|:--------------------------------------|:------------|
+| initialConfig                                                             |          |           | object                             |                                       | {{< crd-field-description SGCluster.spec.configurations.patroni.initialConfig >}} |
 
 ## Initial Data
 

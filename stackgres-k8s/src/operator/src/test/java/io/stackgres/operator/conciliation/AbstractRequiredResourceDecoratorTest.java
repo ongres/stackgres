@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.resource.ResourceUtil;
 import junit.framework.AssertionFailedError;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,16 +32,18 @@ import org.junit.jupiter.api.Test;
 public abstract class AbstractRequiredResourceDecoratorTest<T> {
 
   private int sgClusterMaxLength;
+  private int sgScriptMaxLength;
 
   @BeforeEach
   void setUp() throws Exception {
-    sgClusterMaxLength = getMaxLengthResourceNameFrom("SGCluster.yaml");
+    sgClusterMaxLength = getMaxLengthResourceNameFrom(StackGresCluster.KIND);
+    sgScriptMaxLength = getMaxLengthResourceNameFrom(StackGresScript.KIND);
   }
 
   @Test
   void shouldCreateResourceSuccessfully_OnceUsingTheCurrentCrdMaxLength() throws IOException {
     String validClusterName =
-        getRandomClusterNameWithExactlySize(getMaxLengthResourceNameFrom(usingCrdFilename()));
+        getRandomClusterNameWithExactlySize(getMaxLengthResourceNameFrom(usingKind()));
     getResource().getMetadata().setName(validClusterName);
 
     List<HasMetadata> decorateResources =
@@ -52,7 +55,7 @@ public abstract class AbstractRequiredResourceDecoratorTest<T> {
   void shouldGetAnExceededNameMessage_OnceUsingAnExceededMaxLengthName()
       throws JsonProcessingException, IOException {
     String invalidClusterName =
-        getRandomClusterNameWithExactlySize(getMaxLengthResourceNameFrom(usingCrdFilename()) + 1);
+        getRandomClusterNameWithExactlySize(getMaxLengthResourceNameFrom(usingKind()) + 1);
     getResource().getMetadata().setName(invalidClusterName);
 
     assertThrows(AssertionFailedError.class, () -> {
@@ -62,7 +65,7 @@ public abstract class AbstractRequiredResourceDecoratorTest<T> {
     });
   }
 
-  protected abstract String usingCrdFilename();
+  protected abstract String usingKind();
 
   protected abstract HasMetadata getResource();
 
@@ -103,6 +106,12 @@ public abstract class AbstractRequiredResourceDecoratorTest<T> {
       Preconditions.checkArgument(name.length() <= sgClusterMaxLength,
           format("Valid name must be %s characters or less. But was %d (%s)",
               sgClusterMaxLength, name.length(), name));
+    } else if (resource instanceof StackGresScript) {
+      final String name = resource.getMetadata().getName();
+      ResourceUtil.nameIsValidDnsSubdomain(name);
+      Preconditions.checkArgument(name.length() <= sgScriptMaxLength,
+          format("Valid name must be %s characters or less. But was %d (%s)",
+              sgScriptMaxLength, name.length(), name));
     } else {
       ResourceUtil.nameIsValidDnsSubdomain(resource.getMetadata().getName());
     }

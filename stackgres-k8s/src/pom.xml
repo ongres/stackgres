@@ -82,7 +82,7 @@
     <immutables.version>2.9.3</immutables.version>
     <checkstyle.version>10.8.0</checkstyle.version>
     <spotbugs.version>4.7.3</spotbugs.version>
-    <pmd.version>6.55.0</pmd.version>
+    <pmd.version>6.49.0</pmd.version>
     <docker-junit-extension.version>1.2.15</docker-junit-extension.version>
     <fluent-process.version>1.0.1</fluent-process.version>
     <jooq.version>3.13.4</jooq.version>

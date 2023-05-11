@@ -53,8 +53,13 @@ class PodWatcherImplTest {
     namespace = StringUtils.getRandomNamespace();
     clusterName = StringUtils.getRandomClusterName();
     podName = clusterName + "-" + new Random().nextInt(128);
-    client.namespaces().withName(namespace).create(
-        new NamespaceBuilder().withNewMetadata().withName(namespace).endMetadata().build());
+    client.namespaces()
+        .resource(new NamespaceBuilder()
+            .withNewMetadata()
+            .withName(namespace)
+            .endMetadata()
+            .build())
+        .create();
     testExecutor = Executors.newSingleThreadExecutor();
   }
 
@@ -78,8 +83,9 @@ class PodWatcherImplTest {
   @Test
   @Timeout(3)
   void givenAPodCreated_waitUntilIsCreatedShouldPass() {
-    client.pods().inNamespace(namespace).withName(podName)
-        .create(new PodBuilder().withNewMetadata().withName(podName).endMetadata().build());
+    client.pods().inNamespace(namespace)
+        .resource(new PodBuilder().withNewMetadata().withName(podName).endMetadata().build())
+        .create();
 
     var pod = podWatcher.waitUntilIsCreated(podName, namespace)
         .runSubscriptionOn(Executors.newSingleThreadExecutor())
@@ -99,13 +105,14 @@ class PodWatcherImplTest {
     Thread.sleep(100);
     subscriber.assertNotTerminated();
 
-    client.pods().inNamespace(namespace).withName(podName)
-        .create(new PodBuilder()
+    client.pods().inNamespace(namespace)
+        .resource(new PodBuilder()
             .withNewMetadata()
             .withNamespace(namespace)
             .withName(podName)
             .endMetadata()
-            .build());
+            .build())
+        .create();
 
     Pod pod = subscriber.awaitItem().assertCompleted().getItem();
 
@@ -124,13 +131,14 @@ class PodWatcherImplTest {
 
   @Test
   void givenPodCreated_waitUntilIsRemovedShouldWaitForThePodToBeRemoved() throws Exception {
-    client.pods().inNamespace(namespace).withName(podName)
-        .create(new PodBuilder()
+    client.pods().inNamespace(namespace)
+        .resource(new PodBuilder()
             .withNewMetadata()
             .withNamespace(namespace)
             .withName(podName)
             .endMetadata()
-            .build());
+            .build())
+        .create();
 
     UniAssertSubscriber<Void> subscriber = podWatcher.waitUntilIsRemoved(podName, namespace)
         .runSubscriptionOn(Executors.newSingleThreadExecutor())
@@ -147,13 +155,15 @@ class PodWatcherImplTest {
   @Test
   @Timeout(3)
   void givenAPodReplaced_waitUntilIsReplacedShouldPass() {
-    Pod pod = client.pods().inNamespace(namespace).withName(podName)
-        .create(new PodBuilder().withNewMetadata()
-            .withName(podName).endMetadata().build());
+    Pod pod = client.pods().inNamespace(namespace)
+        .resource(new PodBuilder().withNewMetadata()
+            .withName(podName).endMetadata().build())
+        .create();
     client.pods().inNamespace(namespace).withName(podName).delete();
-    client.pods().inNamespace(namespace).withName(podName)
-        .create(new PodBuilder().withNewMetadata()
-            .withName(podName).endMetadata().build());
+    client.pods().inNamespace(namespace)
+        .resource(new PodBuilder().withNewMetadata()
+            .withName(podName).endMetadata().build())
+        .create();
 
     Pod returnedPod = podWatcher.waitUntilIsReplaced(pod)
         .runSubscriptionOn(Executors.newSingleThreadExecutor())
@@ -169,9 +179,10 @@ class PodWatcherImplTest {
   @Test
   void givenADelayedPodReplacement_waitUntilIsReplacedShouldWaitForTheReplacement()
       throws Exception {
-    Pod pod = client.pods().inNamespace(namespace).withName(podName)
-        .create(new PodBuilder().withNewMetadata()
-            .withName(podName).endMetadata().build());
+    Pod pod = client.pods().inNamespace(namespace)
+        .resource(new PodBuilder().withNewMetadata()
+            .withName(podName).endMetadata().build())
+        .create();
 
     UniAssertSubscriber<Pod> subscriber = podWatcher.waitUntilIsReplaced(pod)
         .runSubscriptionOn(Executors.newSingleThreadExecutor())
@@ -185,9 +196,10 @@ class PodWatcherImplTest {
     Thread.sleep(100);
     subscriber.assertNotTerminated();
 
-    client.pods().inNamespace(namespace).withName(podName)
-        .create(new PodBuilder().withNewMetadata()
-            .withName(podName).endMetadata().build());
+    client.pods().inNamespace(namespace)
+        .resource(new PodBuilder().withNewMetadata()
+            .withName(podName).endMetadata().build())
+        .create();
 
     Pod returnedPod = subscriber.awaitItem().assertCompleted().getItem();
 
@@ -199,8 +211,8 @@ class PodWatcherImplTest {
   @Test
   @Timeout(3)
   void givenAPodReady_waitUntilIsReadyShouldPass() {
-    client.pods().inNamespace(namespace).withName(podName)
-        .create(new PodBuilder().withNewMetadata()
+    client.pods().inNamespace(namespace)
+        .resource(new PodBuilder().withNewMetadata()
             .withName(podName).endMetadata()
             .withNewStatus()
             .withConditions(ImmutableList.of(
@@ -208,7 +220,8 @@ class PodWatcherImplTest {
                 .withType("Ready")
                 .withStatus("true")
                 .build()))
-            .endStatus().build());
+            .endStatus().build())
+        .create();
 
     var returnedPod = podWatcher.waitUntilIsReady(clusterName, podName, namespace, false)
         .runSubscriptionOn(Executors.newSingleThreadExecutor())
@@ -222,8 +235,8 @@ class PodWatcherImplTest {
   @Test
   void givenADelayedPodReady_waitUntilIsReadyShouldWaitForTheReadiness()
       throws Exception {
-    Pod pod = client.pods().inNamespace(namespace).withName(podName)
-        .create(new PodBuilder().withNewMetadata()
+    Pod pod = client.pods().inNamespace(namespace)
+        .resource(new PodBuilder().withNewMetadata()
             .withName(podName).endMetadata()
             .withNewStatus()
             .withConditions(ImmutableList.of(
@@ -231,7 +244,8 @@ class PodWatcherImplTest {
                 .withType("Ready")
                 .withStatus("false")
                 .build()))
-            .endStatus().build());
+            .endStatus().build())
+        .create();
 
     UniAssertSubscriber<Pod> subscriber = podWatcher
         .waitUntilIsReady(clusterName, podName, namespace, false)
@@ -241,13 +255,14 @@ class PodWatcherImplTest {
     Thread.sleep(100);
     subscriber.assertNotTerminated();
 
-    client.pods().inNamespace(namespace).withName(podName)
-        .replace(new PodBuilder(pod)
+    client.pods().inNamespace(namespace)
+        .resource(new PodBuilder(pod)
             .editStatus()
             .editCondition(0)
             .withStatus("true")
             .endCondition()
-            .endStatus().build());
+            .endStatus().build())
+        .replace();
 
     Pod returnedPod = subscriber.awaitItem().assertCompleted().getItem();
 
@@ -257,8 +272,8 @@ class PodWatcherImplTest {
   @Test
   void givenAnUnchangedStatefulSet_waitUntilIsReadyShouldNotThrowAnExceptionWhenCheckEnabled()
       throws Exception {
-    Pod pod = client.pods().inNamespace(namespace).withName(podName)
-        .create(new PodBuilder().withNewMetadata()
+    Pod pod = client.pods().inNamespace(namespace)
+        .resource(new PodBuilder().withNewMetadata()
             .withName(podName)
             .withLabels(ImmutableMap.of("controller-revision-hash", "test"))
             .endMetadata()
@@ -268,14 +283,16 @@ class PodWatcherImplTest {
                 .withType("Ready")
                 .withStatus("false")
                 .build()))
-            .endStatus().build());
+            .endStatus().build())
+        .create();
     client.apps().statefulSets()
-        .inNamespace(namespace).withName(clusterName)
-        .create(new StatefulSetBuilder().withNewMetadata()
+        .inNamespace(namespace)
+        .resource(new StatefulSetBuilder().withNewMetadata()
             .withName(clusterName).endMetadata()
             .withNewStatus()
             .withUpdateRevision("test")
-            .endStatus().build());
+            .endStatus().build())
+        .create();
 
     UniAssertSubscriber<Pod> subscriber = podWatcher
         .waitUntilIsReady(clusterName, podName, namespace, true)
@@ -285,13 +302,14 @@ class PodWatcherImplTest {
     Thread.sleep(100);
     subscriber.assertNotTerminated();
 
-    client.pods().inNamespace(namespace).withName(podName)
-        .replace(new PodBuilder(pod)
+    client.pods().inNamespace(namespace)
+        .resource(new PodBuilder(pod)
             .editStatus()
             .editCondition(0)
             .withStatus("true")
             .endCondition()
-            .endStatus().build());
+            .endStatus().build())
+        .replace();
 
     Pod returnedPod = subscriber.awaitItem().assertCompleted().getItem();
 
@@ -301,8 +319,8 @@ class PodWatcherImplTest {
   @Test
   void givenAChangedStatefulSet_waitUntilIsReadyShouldThrowAnExceptionWhenCheckEnabled()
       throws Exception {
-    client.pods().inNamespace(namespace).withName(podName)
-        .create(new PodBuilder().withNewMetadata()
+    client.pods().inNamespace(namespace)
+        .resource(new PodBuilder().withNewMetadata()
             .withName(podName)
             .withLabels(ImmutableMap.of("controller-revision-hash", "wrong"))
             .endMetadata()
@@ -312,14 +330,16 @@ class PodWatcherImplTest {
                 .withType("Ready")
                 .withStatus("false")
                 .build()))
-            .endStatus().build());
+            .endStatus().build())
+        .create();
     client.apps().statefulSets()
-        .inNamespace(namespace).withName(clusterName)
-        .create(new StatefulSetBuilder().withNewMetadata()
+        .inNamespace(namespace)
+        .resource(new StatefulSetBuilder().withNewMetadata()
             .withName(clusterName).endMetadata()
             .withNewStatus()
             .withUpdateRevision("test")
-            .endStatus().build());
+            .endStatus().build())
+        .create();
 
     podWatcher.waitUntilIsReady(clusterName, podName, namespace, true)
         .runSubscriptionOn(Executors.newSingleThreadExecutor())

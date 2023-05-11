@@ -29,7 +29,16 @@ public class ShardedClusterClusterComparator extends AbstractComparator {
           "add"),
       new SimpleIgnorePatch("/spec/postgresServices",
           "add"),
+      new SimpleIgnorePatch("/spec/postgresServices/primary/type",
+          "add"),
+      new SimpleIgnorePatch("/spec/postgresServices/replicas/type",
+          "add"),
+      new SimpleIgnorePatch("/spec/replication/role",
+          "add"),
       new SimpleIgnorePatch("/status",
+          "add"),
+      new PatchPattern(Pattern
+          .compile("/spec/managedSql/scripts/\\d+"),
           "add"),
       new PatchPattern(Pattern
           .compile("/spec/toInstallPostgresExtensions/\\d+/build"),

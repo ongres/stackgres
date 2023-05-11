@@ -46,10 +46,18 @@ class PgConfigConstraintValidatorTest extends ConstraintValidationTest<PgConfigR
   }
 
   @Test
-  void emptyPosgrestConf_shouldFail() {
+  void nullPosgrestConf_shouldFail() {
+    PgConfigReview review = getValidReview();
+    review.getRequest().getObject().getSpec().setPostgresqlConf(null);
+
+    checkNotNullErrorCause(StackGresPostgresConfigSpec.class, "spec.postgresql\\.conf", review);
+  }
+
+  @Test
+  void emptyPosgrestConf_shouldPass() throws Exception {
     PgConfigReview review = getValidReview();
     review.getRequest().getObject().getSpec().setPostgresqlConf(new HashMap<>());
 
-    checkNotEmptyErrorCause(StackGresPostgresConfigSpec.class, "spec.postgresql\\.conf", review);
+    validator.validate(review);
   }
 }

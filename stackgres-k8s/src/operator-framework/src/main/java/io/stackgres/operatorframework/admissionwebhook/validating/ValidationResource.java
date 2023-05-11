@@ -16,18 +16,26 @@ import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public interface ValidationResource<T extends AdmissionReview<?>> {
+public abstract class ValidationResource<T extends AdmissionReview<?>> {
 
-  default Logger getLogger() {
+  private final ValidationPipeline<T> pipeline;
+
+  protected ValidationResource(ValidationPipeline<T> pipeline) {
+    this.pipeline = pipeline;
+  }
+
+  Logger getLogger() {
     return LoggerFactory.getLogger(getClass());
   }
 
-  AdmissionReviewResponse validate(T admissionReview);
+  public AdmissionReviewResponse validate(T admissionReview) {
+    return validate(admissionReview, pipeline);
+  }
 
   /**
    * Validate a review using a {@code ValidationPipeline}.
    */
-  default AdmissionReviewResponse validate(T admissionReview, ValidationPipeline<T> pipeline) {
+  protected AdmissionReviewResponse validate(T admissionReview, ValidationPipeline<T> pipeline) {
     AdmissionRequest<?> request = admissionReview.getRequest();
     UUID requestUid = request.getUid();
 

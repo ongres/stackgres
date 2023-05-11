@@ -5,86 +5,43 @@
 
 package io.stackgres.operator.mutation.backupconfig;
 
-import java.util.List;
 import java.util.Optional;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 
-import com.github.fge.jackson.jsonpointer.JsonPointer;
-import com.github.fge.jsonpatch.JsonPatchOperation;
-import com.google.common.collect.ImmutableList;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupPerformance;
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 @ApplicationScoped
 public class BackupPerformanceMutator implements BackupConfigMutator {
 
-  private JsonPointer maxDiskBandwidthPointer;
-  private JsonPointer maxDiskBandwitdhPointer;
-  private JsonPointer maxNetworkBandwidthPointer;
-  private JsonPointer maxNetworkBandwitdhPointer;
-
-  @PostConstruct
-  public void init() throws NoSuchFieldException {
-    String baseBackupsJson = getJsonMappingField("baseBackups",
-        StackGresBackupConfigSpec.class);
-    String performanceJson = getJsonMappingField("performance",
-        StackGresBaseBackupConfig.class);
-    String maxDiskBandwidthJson = getJsonMappingField("maxDiskBandwidth",
-        StackGresBaseBackupPerformance.class);
-    String maxDiskBandwitdhJson = getJsonMappingField("maxDiskBandwitdh",
-        StackGresBaseBackupPerformance.class);
-    String maxNetworkBandwidthJson = getJsonMappingField("maxNetworkBandwidth",
-        StackGresBaseBackupPerformance.class);
-    String maxNetworkBandwitdhJson = getJsonMappingField("maxNetworkBandwitdh",
-        StackGresBaseBackupPerformance.class);
-
-    maxDiskBandwidthPointer = SPEC_POINTER.append(baseBackupsJson)
-        .append(performanceJson).append(maxDiskBandwidthJson);
-    maxDiskBandwitdhPointer = SPEC_POINTER.append(baseBackupsJson)
-        .append(performanceJson).append(maxDiskBandwitdhJson);
-    maxNetworkBandwidthPointer = SPEC_POINTER.append(baseBackupsJson)
-        .append(performanceJson).append(maxNetworkBandwidthJson);
-    maxNetworkBandwitdhPointer = SPEC_POINTER.append(baseBackupsJson)
-        .append(performanceJson).append(maxNetworkBandwitdhJson);
-  }
-
   @Override
-  public List<JsonPatchOperation> mutate(BackupConfigReview review) {
-    if (review.getRequest().getOperation() == Operation.CREATE
-        || review.getRequest().getOperation() == Operation.UPDATE) {
-      final StackGresBaseBackupPerformance performance =
-          Optional.ofNullable(review.getRequest().getObject().getSpec().getBaseBackups())
-              .map(StackGresBaseBackupConfig::getPerformance)
-              .orElseGet(StackGresBaseBackupPerformance::new);
-
-      ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
-
-      if (performance.getMaxDiskBandwitdh() != null) {
-        operations.add(applyRemoveValue(maxDiskBandwitdhPointer));
-        if (performance.getMaxDiskBandwidth() == null) {
-          operations.add(applyAddValue(
-              maxDiskBandwidthPointer,
-              FACTORY.numberNode(performance.getMaxDiskBandwitdh())));
-        }
-      }
-      if (performance.getMaxNetworkBandwitdh() != null) {
-        operations.add(applyRemoveValue(maxNetworkBandwitdhPointer));
-        if (performance.getMaxNetworkBandwidth() == null) {
-          operations.add(applyAddValue(
-              maxNetworkBandwidthPointer,
-              FACTORY.numberNode(performance.getMaxNetworkBandwitdh())));
-        }
-      }
-
-      return operations.build();
+  public StackGresBackupConfig mutate(BackupConfigReview review, StackGresBackupConfig resource) {
+    if (review.getRequest().getOperation() != Operation.CREATE
+        && review.getRequest().getOperation() != Operation.UPDATE) {
+      return resource;
     }
-
-    return ImmutableList.of();
+    Optional.of(resource.getSpec())
+        .map(StackGresBackupConfigSpec::getBaseBackups)
+        .map(StackGresBaseBackupConfig::getPerformance)
+        .ifPresent(performance -> {
+          if (performance.getMaxDiskBandwitdh() != null) {
+            if (performance.getMaxDiskBandwidth() == null) {
+              performance.setMaxDiskBandwidth(performance.getMaxDiskBandwitdh());
+            }
+            performance.setMaxDiskBandwitdh(null);
+          }
+          if (performance.getMaxNetworkBandwitdh() != null) {
+            if (performance.getMaxNetworkBandwidth() == null) {
+              performance.setMaxNetworkBandwidth(performance.getMaxNetworkBandwitdh());
+            }
+            performance.setMaxNetworkBandwitdh(null);
+          }
+        });
+    return resource;
   }
 
 }

@@ -40,7 +40,8 @@ public class CustomResourceDefinitionFinder implements ResourceFinder<CustomReso
   public CustomResourceDefinition create(CustomResourceDefinition resource) {
     return client.apiextensions().v1()
         .customResourceDefinitions()
-        .create(resource);
+        .resource(resource)
+        .create();
   }
 
   @Override

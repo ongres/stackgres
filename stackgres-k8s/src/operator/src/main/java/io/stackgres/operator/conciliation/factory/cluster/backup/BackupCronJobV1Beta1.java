@@ -262,8 +262,8 @@ public class BackupCronJobV1Beta1
                             .withValue(StackGresContext.RIGHT_VALUE)
                             .build(),
                         new EnvVarBuilder()
-                            .withName("PATRONI_CLUSTER_LABELS")
-                            .withValue(labelFactory.patroniClusterLabels(cluster)
+                            .withName("CLUSTER_LABELS")
+                            .withValue(labelFactory.clusterLabels(cluster)
                                 .entrySet()
                                 .stream()
                                 .map(e -> e.getKey() + "=" + e.getValue())

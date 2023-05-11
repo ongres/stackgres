@@ -52,12 +52,12 @@ public class ClusterPersistentVolumeSizeExpansionValidator
   }
 
   @Override
-  public @NotNull String getVolumeSize(StackGresCluster cluster) {
+  protected @NotNull String getVolumeSize(StackGresCluster cluster) {
     return cluster.getSpec().getPod().getPersistentVolume().getSize();
   }
 
   @Override
-  public Optional<String> getStorageClass(StackGresCluster cluster) {
+  protected Optional<String> getStorageClass(StackGresCluster cluster) {
     return Optional.of(cluster)
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPod)
@@ -66,22 +66,22 @@ public class ClusterPersistentVolumeSizeExpansionValidator
   }
 
   @Override
-  public boolean isOperationUpdate(StackGresClusterReview review) {
+  protected boolean isOperationUpdate(StackGresClusterReview review) {
     return review.getRequest().getOperation() == Operation.UPDATE;
   }
 
   @Override
-  public void throwValidationError(String message) throws ValidationFailed {
+  protected void throwValidationError(String message) throws ValidationFailed {
     fail(message);
   }
 
   @Override
-  public ResourceFinder<StorageClass> getStorageClassFinder() {
+  protected ResourceFinder<StorageClass> getStorageClassFinder() {
     return finder;
   }
 
   @Override
-  public LabelFactoryForCluster<StackGresCluster> getLabelFactory() {
+  protected LabelFactoryForCluster<StackGresCluster> getLabelFactory() {
     return labelFactory;
   }
 
@@ -91,7 +91,7 @@ public class ClusterPersistentVolumeSizeExpansionValidator
   }
 
   @Override
-  public ResourceScanner<PersistentVolumeClaim> getPvcScanner() {
+  protected ResourceScanner<PersistentVolumeClaim> getPvcScanner() {
     return pvcScanner;
   }
 }

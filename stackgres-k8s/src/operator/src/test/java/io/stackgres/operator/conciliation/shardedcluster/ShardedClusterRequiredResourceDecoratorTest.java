@@ -15,7 +15,7 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
-import io.stackgres.common.StackGresShardedClusterUtil;
+import io.stackgres.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -59,6 +59,7 @@ class ShardedClusterRequiredResourceDecoratorTest
   protected StackGresShardedClusterContext getResourceContext() {
     return ImmutableStackGresShardedClusterContext.builder()
         .source(resource)
+        .coordinatorConfig(pgConfig)
         .coordinator(getCoordinatorContext())
         .shards(getShardsContext())
         .build();
@@ -66,7 +67,7 @@ class ShardedClusterRequiredResourceDecoratorTest
 
   private StackGresClusterContext getCoordinatorContext() {
     return ImmutableStackGresClusterContext.builder()
-        .source(StackGresShardedClusterUtil.getCoordinatorCluster(resource))
+        .source(StackGresShardedClusterForCitusUtil.getCoordinatorCluster(resource))
         .postgresConfig(pgConfig)
         .profile(profile)
         .poolingConfig(pooling)
@@ -77,7 +78,7 @@ class ShardedClusterRequiredResourceDecoratorTest
   private List<StackGresClusterContext> getShardsContext() {
     return Seq.range(0, resource.getSpec().getShards().getClusters())
         .<StackGresClusterContext>map(index -> ImmutableStackGresClusterContext.builder()
-            .source(StackGresShardedClusterUtil.getShardsCluster(resource, index))
+            .source(StackGresShardedClusterForCitusUtil.getShardsCluster(resource, index))
             .postgresConfig(pgConfig)
             .profile(profile)
             .poolingConfig(pooling)
@@ -86,8 +87,8 @@ class ShardedClusterRequiredResourceDecoratorTest
   }
 
   @Override
-  protected String usingCrdFilename() {
-    return "SGShardedCluster.yaml";
+  protected String usingKind() {
+    return StackGresShardedCluster.KIND;
   }
 
   @Override

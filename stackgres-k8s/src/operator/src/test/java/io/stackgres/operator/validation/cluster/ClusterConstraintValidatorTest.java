@@ -7,7 +7,10 @@ package io.stackgres.operator.validation.cluster;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.Min;
@@ -45,6 +48,7 @@ import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.gradle.internal.impldep.com.google.common.collect.Lists;
+import org.jooq.lambda.tuple.Tuple;
 import org.junit.jupiter.api.Test;
 
 class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresClusterReview> {
@@ -80,7 +84,10 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().setResourceProfile(null);
 
-    checkNotNullErrorCause(StackGresClusterSpec.class, "spec.sgInstanceProfile", review);
+    checkErrorCause(StackGresClusterSpec.class,
+        "spec.sgInstanceProfile",
+        "isResourceProfilePresent", review,
+        AssertTrue.class);
   }
 
   @Test
@@ -359,7 +366,8 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
 
     checkErrorCause(StackGresClusterReplication.class,
         "spec.replication.role",
-        review, ValidEnum.class);
+        "isRoleValid",
+        review, AssertTrue.class);
   }
 
   @Test
@@ -530,6 +538,114 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
     checkErrorCause(StackGresClusterReplication.class,
         "spec.replication.syncInstances",
         review, Min.class, "must be greater than or equal to 1");
+  }
+
+  @Test
+  void fromBackupWithTargetName_shouldPass() throws ValidationFailed {
+    StackGresClusterReview review = getValidReview();
+    setTargetName(review);
+
+    validator.validate(review);
+  }
+
+  @Test
+  void fromBackupWithTargetXid_shouldPass() throws ValidationFailed {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getInitData().getRestore().getFromBackup()
+        .setTargetXid("test");
+
+    validator.validate(review);
+  }
+
+  @Test
+  void fromBackupWithTargetLsn_shouldPass() throws ValidationFailed {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getInitData().getRestore().getFromBackup()
+        .setTargetLsn("test");
+
+    validator.validate(review);
+  }
+
+  @Test
+  void fromBackupWithPointInTimeRecovery_shouldPass() throws ValidationFailed {
+    StackGresClusterReview review = getValidReview();
+    setPointInTimeRecovery(review);
+
+    validator.validate(review);
+  }
+
+  @Test
+  void nullRestoreToTimestamp_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    review.getRequest().getObject().getSpec().getInitData().getRestore().getFromBackup()
+        .setPointInTimeRecovery(new StackGresClusterRestorePitr());
+
+    checkErrorCause(StackGresClusterRestorePitr.class,
+        "spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp",
+        review, NotNull.class, "must not be null");
+  }
+
+  @Test
+  void givenTwoRestoreTargets_shouldFail() {
+    StackGresClusterReview review = getValidReview();
+    var map = Map.<String, Consumer<StackGresClusterReview>>of(
+        "targetName", this::setTargetName,
+        "targetXid", this::setTargetXid,
+        "targetLsn", this::setTargetLsn,
+        "pointInTimeRecovery", this::setPointInTimeRecovery);
+    map
+        .entrySet()
+        .stream()
+        .flatMap(entry -> map.entrySet()
+            .stream()
+            .filter(Predicate.not(entry::equals))
+            .map(otherEntry -> Tuple.tuple(entry, otherEntry)))
+        .forEach(t -> {
+          resetRestoreFromBackup(review);
+          t.v1.getValue().accept(review);
+          t.v2.getValue().accept(review);
+
+          checkErrorCause(StackGresClusterRestoreFromBackup.class,
+              new String[] {
+                  "spec.initialData.restore.fromBackup.targetName",
+                  "spec.initialData.restore.fromBackup.targetXid",
+                  "spec.initialData.restore.fromBackup.targetLsn",
+                  "spec.initialData.restore.fromBackup.pointInTimeRecovery",
+              },
+              "isJustOneTarget",
+              review, AssertTrue.class,
+              "targetName, targetLsn, targetXid pointInTimeRecovery"
+                  + " are mutually exclusive");
+        });
+  }
+
+  private void resetRestoreFromBackup(StackGresClusterReview review) {
+    review.getRequest().getObject().getSpec().getInitData().getRestore()
+        .setFromBackup(new StackGresClusterRestoreFromBackup());
+    review.getRequest().getObject().getSpec().getInitData().getRestore().getFromBackup()
+        .setName("test");
+  }
+
+  private void setTargetName(StackGresClusterReview review) {
+    review.getRequest().getObject().getSpec().getInitData().getRestore().getFromBackup()
+        .setTargetName("test");
+  }
+
+  private void setTargetXid(StackGresClusterReview review) {
+    review.getRequest().getObject().getSpec().getInitData().getRestore().getFromBackup()
+        .setTargetXid("test");
+  }
+
+  private void setTargetLsn(StackGresClusterReview review) {
+    review.getRequest().getObject().getSpec().getInitData().getRestore().getFromBackup()
+        .setTargetLsn("test");
+  }
+
+  private void setPointInTimeRecovery(StackGresClusterReview review) {
+    review.getRequest().getObject().getSpec().getInitData().getRestore().getFromBackup()
+        .setPointInTimeRecovery(new StackGresClusterRestorePitr());
+    review.getRequest().getObject().getSpec().getInitData().getRestore().getFromBackup()
+        .getPointInTimeRecovery().setRestoreToTimestamp("2022-04-16T17:27:22Z");
   }
 
   @Test

@@ -5,22 +5,25 @@
 
 package io.stackgres.operator.mutation;
 
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.operator.common.DbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import org.junit.jupiter.api.BeforeEach;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DbOpsMutationResourceTest extends MutationResourceTest<DbOpsReview> {
+class DbOpsMutationResourceTest extends MutationResourceTest<StackGresDbOps, DbOpsReview> {
 
-  @BeforeEach
-  void setUp() {
-    final DbOpsMutationResource resource = new DbOpsMutationResource();
-    resource.setPipeline(pipeline);
-    this.resource = resource;
+  @Override
+  protected MutationResource<StackGresDbOps, DbOpsReview> getResource() {
+    return new DbOpsMutationResource(JsonUtil.jsonMapper(), pipeline);
+  }
 
-    review = AdmissionReviewFixtures.dbOps().loadRestartCreate().get();
+  @Override
+  protected DbOpsReview getReview() {
+    return AdmissionReviewFixtures.dbOps().loadRestartCreate().get();
   }
 
 }

@@ -44,11 +44,40 @@ then
     recovery_conf:
       restore_command: 'exec-with-env "${RESTORE_ENV}" -- wal-g wal-fetch %f %p'
 $(
+  [ -z "$RECOVERY_TARGET" ] || cat << RECOVERY_TARGET_EOF
+      recovery_target: '$RECOVERY_TARGET'
+RECOVERY_TARGET_EOF
+)
+$(
+  [ -z "$RECOVERY_TARGET_TIMELINE" ] || cat << RECOVERY_TARGET_TIMELINE_EOF
+      recovery_target_timeline: '$RECOVERY_TARGET_TIMELINE'
+RECOVERY_TARGET_TIMELINE_EOF
+)
+$(
+  [ -z "$RECOVERY_TARGET_INCUSIVE" ] || cat << RECOVERY_TARGET_INCUSIVE_EOF
+      recovery_target_incusive: '$RECOVERY_TARGET_INCUSIVE'
+RECOVERY_TARGET_INCUSIVE_EOF
+)
+$(
+  [ -z "$RECOVERY_TARGET_NAME" ] || cat << RECOVERY_TARGET_NAME_EOF
+      recovery_target_name: '$RECOVERY_TARGET_NAME'
+RECOVERY_TARGET_NAME_EOF
+)
+$(
+  [ -z "$RECOVERY_TARGET_XID" ] || cat << RECOVERY_TARGET_XID_EOF
+      recovery_target_xid: '$RECOVERY_TARGET_XID'
+RECOVERY_TARGET_XID_EOF
+)
+$(
+  [ -z "$RECOVERY_TARGET_LSN" ] || cat << RECOVERY_TARGET_LSN_EOF
+      recovery_target_lsn: '$RECOVERY_TARGET_LSN'
+RECOVERY_TARGET_LSN_EOF
+)
+$(
   [ -z "$RECOVERY_TARGET_TIME" ] || cat << RECOVERY_TARGET_TIME_EOF
       recovery_target_time: '$RECOVERY_TARGET_TIME'
 RECOVERY_TARGET_TIME_EOF
 )
-      recovery_target_timeline: 'latest'
       recovery_target_action: 'promote'
 RECOVERY_EOF
 fi
@@ -101,11 +130,40 @@ then
     recovery_conf:
       restore_command: 'exec-with-env "${RESTORE_ENV}" -- wal-g wal-fetch %f %p'
 $(
+  [ -z "$RECOVERY_TARGET" ] || cat << RECOVERY_TARGET_EOF
+      recovery_target: '$RECOVERY_TARGET'
+RECOVERY_TARGET_EOF
+)
+$(
+  [ -z "$RECOVERY_TARGET_TIMELINE" ] || cat << RECOVERY_TARGET_TIMELINE_EOF
+      recovery_target_timeline: '$RECOVERY_TARGET_TIMELINE'
+RECOVERY_TARGET_TIMELINE_EOF
+)
+$(
+  [ -z "$RECOVERY_TARGET_INCUSIVE" ] || cat << RECOVERY_TARGET_INCUSIVE_EOF
+      recovery_target_incusive: '$RECOVERY_TARGET_INCUSIVE'
+RECOVERY_TARGET_INCUSIVE_EOF
+)
+$(
+  [ -z "$RECOVERY_TARGET_NAME" ] || cat << RECOVERY_TARGET_NAME_EOF
+      recovery_target_name: '$RECOVERY_TARGET_NAME'
+RECOVERY_TARGET_NAME_EOF
+)
+$(
+  [ -z "$RECOVERY_TARGET_XID" ] || cat << RECOVERY_TARGET_XID_EOF
+      recovery_target_xid: '$RECOVERY_TARGET_XID'
+RECOVERY_TARGET_XID_EOF
+)
+$(
+  [ -z "$RECOVERY_TARGET_LSN" ] || cat << RECOVERY_TARGET_LSN_EOF
+      recovery_target_lsn: '$RECOVERY_TARGET_LSN'
+RECOVERY_TARGET_LSN_EOF
+)
+$(
   [ -z "$RECOVERY_TARGET_TIME" ] || cat << RECOVERY_TARGET_TIME_EOF
       recovery_target_time: '$RECOVERY_TARGET_TIME'
 RECOVERY_TARGET_TIME_EOF
 )
-      recovery_target_timeline: 'latest'
       recovery_target_action: 'shutdown'
 RECOVERY_EOF
 fi

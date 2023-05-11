@@ -2,7 +2,7 @@ paths:
   /stackgres/sgobjectstorages:
     get:
       tags:
-        - sgobjectstorages
+        - sgobjectstorage
       summary: List sgobjectstorages
       description: |
         List sgobjectstorages and read values from the referenced secrets.
@@ -15,7 +15,7 @@ paths:
       - JWT: []
     put:
       tags:
-        - sgobjectstorages
+        - sgobjectstorage
       summary: Update a sgobjectstorages
       description: |
         Update a sgobjectstorages.
@@ -31,7 +31,7 @@ paths:
       - JWT: []
     post:
       tags:
-        - sgobjectstorages
+        - sgobjectstorage
       summary: Create a sgobjectstorages
       description: |
         Create a sgobjectstorages.
@@ -47,7 +47,7 @@ paths:
       - JWT: []
     delete:
       tags:
-        - sgobjectstorages
+        - sgobjectstorage
       summary: Delete a sgobjectstorages
       description: |
         Delete a sgobjectstorages.
@@ -64,7 +64,7 @@ paths:
   /stackgres/namespaces/{namespace}/sgobjectstorages/{name}:
     get:
       tags:
-        - sgobjectstorages
+        - sgobjectstorage
       summary: Get a sgobjectstorages
       description: |
         Get a sgobjectstorages and read values from the referenced secrets.

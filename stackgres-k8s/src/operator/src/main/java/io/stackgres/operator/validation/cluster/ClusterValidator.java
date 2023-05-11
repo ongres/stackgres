@@ -28,7 +28,8 @@ public interface ClusterValidator extends Validator<StackGresClusterReview> {
   default void failWithFields(String message, String...fields) throws ValidationFailed {
     ValidationType validationType = this.getClass().getAnnotation(ValidationType.class);
     String errorTypeUri = ErrorType.getErrorTypeUri(validationType.value());
-    failWithFields(HasMetadata.getKind(StackGresCluster.class), errorTypeUri, message, fields);
+    failWithMessageAndFields(HasMetadata.getKind(StackGresCluster.class),
+        errorTypeUri, message, fields);
   }
 
 }

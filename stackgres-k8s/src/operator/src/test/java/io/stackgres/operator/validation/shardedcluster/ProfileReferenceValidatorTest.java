@@ -14,9 +14,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardBuilder;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
@@ -84,6 +86,28 @@ class ProfileReferenceValidatorTest {
   }
 
   @Test
+  void givenValidOverrideShardsStackGresReferenceOnCreation_shouldNotFail()
+      throws ValidationFailed {
+    final StackGresShardedClusterReview review =
+        AdmissionReviewFixtures.shardedCluster().loadCreate().get();
+
+    String resourceProfile = review.getRequest().getObject().getSpec().getShards()
+        .getResourceProfile();
+    review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
+        new StackGresShardedClusterShardBuilder()
+        .withResourceProfile(resourceProfile)
+        .build()));
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
+
+    when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
+        .thenReturn(Optional.of(profileSizeXs));
+
+    validator.validate(review);
+
+    verify(profileFinder, times(3)).findByNameAndNamespace(anyString(), anyString());
+  }
+
+  @Test
   void giveInvalidCoordinatorStackGresReferenceOnCreation_shouldFail() {
     final StackGresShardedClusterReview review =
         AdmissionReviewFixtures.shardedCluster().loadCreate().get();
@@ -135,10 +159,45 @@ class ProfileReferenceValidatorTest {
   }
 
   @Test
+  void giveInvalidOverrideShardsStackGresReferenceOnCreation_shouldFail() {
+    final StackGresShardedClusterReview review =
+        AdmissionReviewFixtures.shardedCluster().loadCreate().get();
+
+    review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
+        new StackGresShardedClusterShardBuilder()
+        .withResourceProfile("test")
+        .build()));
+    String ovverideResourceProfile = review.getRequest().getObject().getSpec().getShards()
+        .getOverrides().get(0).getResourceProfile();
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
+
+    when(profileFinder.findByNameAndNamespace(review.getRequest().getObject().getSpec()
+        .getCoordinator().getResourceProfile(), namespace))
+        .thenReturn(Optional.of(profileSizeXs));
+    when(profileFinder.findByNameAndNamespace(review.getRequest().getObject().getSpec()
+        .getShards().getResourceProfile(), namespace))
+        .thenReturn(Optional.of(profileSizeXs));
+    when(profileFinder.findByNameAndNamespace(ovverideResourceProfile, namespace))
+        .thenReturn(Optional.empty());
+
+    ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
+      validator.validate(review);
+    });
+
+    String resultMessage = ex.getMessage();
+
+    assertEquals("Invalid profile " + ovverideResourceProfile + " for shard 0", resultMessage);
+
+    verify(profileFinder, times(3)).findByNameAndNamespace(anyString(), anyString());
+  }
+
+  @Test
   void giveAnAttemptToUpdateCoordinatorToAnUnknownProfile_shouldFail() {
     final StackGresShardedClusterReview review =
         AdmissionReviewFixtures.shardedCluster().loadProfileConfigUpdate().get();
 
+    review.getRequest().getObject().getSpec().getCoordinator()
+        .setResourceProfile("test");
     String resourceProfile = review.getRequest().getObject().getSpec().getCoordinator()
         .getResourceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
@@ -169,9 +228,6 @@ class ProfileReferenceValidatorTest {
         .getResourceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
-    when(profileFinder.findByNameAndNamespace(review.getRequest().getObject().getSpec()
-        .getCoordinator().getResourceProfile(), namespace))
-        .thenReturn(Optional.of(profileSizeXs));
     when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
         .thenReturn(Optional.empty());
 
@@ -184,47 +240,63 @@ class ProfileReferenceValidatorTest {
     assertEquals("Cannot update shards to profile " + resourceProfile
         + " because it doesn't exists", resultMessage);
 
-    verify(profileFinder, times(2)).findByNameAndNamespace(anyString(), anyString());
+    verify(profileFinder, times(1)).findByNameAndNamespace(anyString(), anyString());
   }
 
   @Test
-  void giveAnAttemptToUpdateCoordinatorToAnKnownProfile_shouldNotFail() throws ValidationFailed {
-
+  void giveAnAttemptToUpdateOverrideShardsToAnUnknownProfile_shouldFail() {
     final StackGresShardedClusterReview review =
         AdmissionReviewFixtures.shardedCluster().loadProfileConfigUpdate().get();
 
-    String resourceProfile = review.getRequest().getObject().getSpec().getCoordinator()
-        .getResourceProfile();
+    review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
+        new StackGresShardedClusterShardBuilder()
+        .withResourceProfile("test")
+        .build()));
+    String ovverideResourceProfile = review.getRequest().getObject().getSpec().getShards()
+        .getOverrides().get(0).getResourceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
-    StackGresProfile profileSizeS = Fixtures.instanceProfile().loadSizeS().get();
+    when(profileFinder.findByNameAndNamespace(ovverideResourceProfile, namespace))
+        .thenReturn(Optional.empty());
 
-    when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
-        .thenReturn(Optional.of(profileSizeS));
+    ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
+      validator.validate(review);
+    });
 
-    validator.validate(review);
+    String resultMessage = ex.getMessage();
 
-    verify(profileFinder, times(2)).findByNameAndNamespace(anyString(), anyString());
+    assertEquals("Cannot update shard 0 to profile " + ovverideResourceProfile
+        + " because it doesn't exists", resultMessage);
+
+    verify(profileFinder, times(1)).findByNameAndNamespace(anyString(), anyString());
   }
 
   @Test
-  void giveAnAttemptToUpdateShardsToAnKnownProfile_shouldNotFail() throws ValidationFailed {
+  void giveAnAttemptToUpdateToKnownProfiles_shouldNotFail() throws ValidationFailed {
+    final StackGresShardedClusterReview review =
+        AdmissionReviewFixtures.shardedCluster().loadProfileConfigUpdate().get();
+
+    validator.validate(review);
+
+    verify(profileFinder, never()).findByNameAndNamespace(anyString(), anyString());
+  }
+
+  @Test
+  void giveAnAttemptToUpdateOverrideShardsToAnKnownProfile_shouldNotFail() throws ValidationFailed {
 
     final StackGresShardedClusterReview review =
         AdmissionReviewFixtures.shardedCluster().loadProfileConfigUpdate().get();
 
     String resourceProfile = review.getRequest().getObject().getSpec().getShards()
         .getResourceProfile();
-    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
-
-    StackGresProfile profileSizeS = Fixtures.instanceProfile().loadSizeS().get();
-
-    when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
-        .thenReturn(Optional.of(profileSizeS));
+    review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
+        new StackGresShardedClusterShardBuilder()
+        .withResourceProfile(resourceProfile)
+        .build()));
 
     validator.validate(review);
 
-    verify(profileFinder, times(2)).findByNameAndNamespace(anyString(), anyString());
+    verify(profileFinder, never()).findByNameAndNamespace(anyString(), anyString());
   }
 
   @Test

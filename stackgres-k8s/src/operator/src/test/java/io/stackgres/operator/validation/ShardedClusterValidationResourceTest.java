@@ -22,8 +22,8 @@ class ShardedClusterValidationResourceTest
 
   @BeforeEach
   public void setUp() {
-    final ShardedClusterValidationResource resource = new ShardedClusterValidationResource();
-    resource.setPipeline(pipeline);
+    final ShardedClusterValidationResource resource =
+        new ShardedClusterValidationResource(pipeline);
     this.resource = resource;
 
     review = AdmissionReviewFixtures.shardedCluster().loadCreate().get();

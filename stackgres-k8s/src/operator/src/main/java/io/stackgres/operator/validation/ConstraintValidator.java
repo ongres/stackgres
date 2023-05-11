@@ -17,7 +17,6 @@ import javax.inject.Inject;
 import javax.validation.ConstraintViolation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
@@ -103,9 +102,9 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
           .map(FieldReference.ReferencedField::value)
           .map(field -> basePath + "." + field)
           .map(field -> replacePropertyPathWithJsonProperties(object, field))
-          .collect(ImmutableList.toImmutableList());
+          .toList();
     }
-    return ImmutableList.of(replacePropertyPathWithJsonProperties(object, propertyPath));
+    return List.of(replacePropertyPathWithJsonProperties(object, propertyPath));
   }
 
   private String replacePropertyPathWithJsonProperties(

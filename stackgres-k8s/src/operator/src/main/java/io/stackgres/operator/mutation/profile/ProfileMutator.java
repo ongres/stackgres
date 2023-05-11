@@ -5,8 +5,10 @@
 
 package io.stackgres.operator.mutation.profile;
 
+import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.common.SgProfileReview;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
+import io.stackgres.operatorframework.admissionwebhook.mutating.Mutator;
 
-public interface ProfileMutator extends JsonPatchMutator<SgProfileReview> {
+public interface ProfileMutator extends Mutator<StackGresProfile, SgProfileReview> {
+
 }

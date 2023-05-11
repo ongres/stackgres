@@ -5,24 +5,19 @@
 
 package io.stackgres.operator.mutation.shardedcluster;
 
-import java.util.List;
-
-import com.github.fge.jackson.jsonpointer.JsonPointer;
-import com.github.fge.jsonpatch.JsonPatchOperation;
-import com.google.common.collect.ImmutableList;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShards;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.AbstractDefaultResourceMutator;
-import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 public class DefaultShardsPostgresMutator
     extends AbstractDefaultResourceMutator<
-        StackGresPostgresConfig, StackGresShardedCluster, StackGresShardedClusterReview>
-    implements ShardedClusterShardsConfigurationMutator {
+        StackGresPostgresConfig, StackGresShardedCluster, StackGresShardedClusterReview> {
 
   public DefaultShardsPostgresMutator(
       DefaultCustomResourceFactory<StackGresPostgresConfig> resourceFactory,
@@ -32,24 +27,25 @@ public class DefaultShardsPostgresMutator
   }
 
   @Override
-  public List<JsonPatchOperation> mutate(StackGresShardedClusterReview review) {
-    if (review.getRequest().getOperation() == Operation.CREATE) {
-      ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
-      operations.addAll(ensureConfigurationNode(review));
-      operations.addAll(super.mutate(review));
-      return operations.build();
-
+  protected void setValueSection(StackGresShardedCluster resource) {
+    if (resource.getSpec().getShards() == null) {
+      resource.getSpec().setShards(
+          new StackGresShardedClusterShards());
     }
-    return ImmutableList.of();
+    if (resource.getSpec().getShards().getConfiguration() == null) {
+      resource.getSpec().getShards().setConfiguration(
+          new StackGresClusterConfiguration());
+    }
   }
 
   @Override
-  protected String getTargetPropertyValue(StackGresShardedCluster targetCluster) {
-    return targetCluster.getSpec().getShards().getConfiguration().getPostgresConfig();
+  protected String getTargetPropertyValue(StackGresShardedCluster resource) {
+    return resource.getSpec().getShards().getConfiguration().getPostgresConfig();
   }
 
   @Override
-  public JsonPointer getTargetPointer() {
-    return getConfigurationTargetPointer("postgresConfig");
+  protected void setTargetProperty(StackGresShardedCluster resource, String defaultResourceName) {
+    resource.getSpec().getShards().getConfiguration().setPostgresConfig(defaultResourceName);
   }
+
 }

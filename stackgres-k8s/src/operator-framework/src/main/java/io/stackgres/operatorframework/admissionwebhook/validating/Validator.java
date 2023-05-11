@@ -29,29 +29,11 @@ public interface Validator<T extends AdmissionReview<?>> {
 
   @SuppressWarnings("unchecked")
   default String getFieldPath(
-      Class<?> clazz1, String field1) {
-    return getFieldPath(
-        Tuple.tuple(clazz1, field1));
-  }
-
-  @SuppressWarnings("unchecked")
-  default String getFieldPath(
       Class<?> clazz1, String field1,
       Class<?> clazz2, String field2) {
     return getFieldPath(
         Tuple.tuple(clazz1, field1),
         Tuple.tuple(clazz2, field2));
-  }
-
-  @SuppressWarnings("unchecked")
-  default String getFieldPath(
-      Class<?> clazz1, String field1,
-      Class<?> clazz2, String field2,
-      Class<?> clazz3, String field3) {
-    return getFieldPath(
-        Tuple.tuple(clazz1, field1),
-        Tuple.tuple(clazz2, field2),
-        Tuple.tuple(clazz3, field3));
   }
 
   @SuppressWarnings("unchecked")
@@ -91,7 +73,8 @@ public interface Validator<T extends AdmissionReview<?>> {
     throw new ValidationFailed(status);
   }
 
-  default void failWithFields(String kind, String reason, String message, String... fields)
+  default void failWithMessageAndFields(
+      String kind, String reason, String message, String... fields)
       throws ValidationFailed {
     StatusDetailsBuilder statusDetailsBuilder = new StatusDetailsBuilder();
     Arrays.asList(fields).forEach(field -> statusDetailsBuilder

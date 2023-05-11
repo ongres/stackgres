@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs.patroni.v14;
 
-import static io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType.CLUSTER_IP;
-
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -23,7 +21,6 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
-import io.stackgres.common.crd.postgres.service.StackGresPostgresServices;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServices;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
@@ -41,7 +38,12 @@ public class PatroniServices implements
 
   public static final int PATRONI_SERVICE_PORT = 8008;
 
-  private LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
+  private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
+
+  @Inject
+  public PatroniServices(LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
+    this.labelFactory = labelFactory;
+  }
 
   public static String name(StackGresDistributedLogsContext clusterContext) {
     return PatroniUtil.readWriteName(clusterContext.getSource());
@@ -72,8 +74,8 @@ public class PatroniServices implements
     final Map<String, String> labels = labelFactory.genericLabels(cluster);
 
     Service config = createConfigService(namespace, configName(context), labels);
-    Service patroni = createPatroniService(context);
-    Service primary = createPrimaryService(context);
+    Service patroni = createPrimaryService(context);
+    Service primary = createDeprecatedPrimaryService(context);
     Seq<HasMetadata> services = Seq.of(config, patroni, primary);
 
     boolean isReplicasServiceEnabled = Optional.of(cluster)
@@ -104,16 +106,10 @@ public class PatroniServices implements
         .build();
   }
 
-  private Service createPatroniService(StackGresDistributedLogsContext context) {
+  private Service createPrimaryService(StackGresDistributedLogsContext context) {
     StackGresDistributedLogs cluster = context.getSource();
 
     final Map<String, String> primaryLabels = labelFactory.patroniPrimaryLabels(cluster);
-
-    String serviceType = Optional.ofNullable(cluster.getSpec())
-        .map(StackGresDistributedLogsSpec::getPostgresServices)
-        .map(StackGresPostgresServices::getPrimary)
-        .map(StackGresPostgresService::getType)
-        .orElse(CLUSTER_IP.toString());
 
     return new ServiceBuilder()
         .withNewMetadata()
@@ -121,7 +117,8 @@ public class PatroniServices implements
         .withName(name(context))
         .withLabels(primaryLabels)
         .endMetadata()
-        .withNewSpec()
+        .withSpec(cluster.getSpec().getPostgresServices().getPrimary())
+        .editSpec()
         .withPorts(
             new ServicePortBuilder()
                 .withProtocol("TCP")
@@ -135,13 +132,11 @@ public class PatroniServices implements
                 .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME))
                 .build())
-        .withType(serviceType)
         .endSpec()
         .build();
   }
 
-  private Service createPrimaryService(StackGresDistributedLogsContext context) {
-
+  private Service createDeprecatedPrimaryService(StackGresDistributedLogsContext context) {
     StackGresDistributedLogs cluster = context.getSource();
 
     final Map<String, String> labels = labelFactory.genericLabels(cluster);
@@ -161,7 +156,6 @@ public class PatroniServices implements
   }
 
   private Service createReplicaService(StackGresDistributedLogsContext context) {
-
     StackGresDistributedLogs cluster = context.getSource();
 
     final Map<String, String> replicaLabels = labelFactory.patroniReplicaLabels(cluster);
@@ -169,19 +163,14 @@ public class PatroniServices implements
     final String namespace = cluster.getMetadata().getNamespace();
     final String serviceName = readOnlyName(context);
 
-    String serviceType = Optional.ofNullable(cluster.getSpec())
-        .map(StackGresDistributedLogsSpec::getPostgresServices)
-        .map(StackGresPostgresServices::getReplicas)
-        .map(StackGresPostgresService::getType)
-        .orElse(CLUSTER_IP.toString());
-
     return new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(serviceName)
         .withLabels(replicaLabels)
         .endMetadata()
-        .withNewSpec()
+        .withSpec(cluster.getSpec().getPostgresServices().getReplicas())
+        .editSpec()
         .withSelector(replicaLabels)
         .withPorts(new ServicePortBuilder()
             .withProtocol("TCP")
@@ -195,13 +184,8 @@ public class PatroniServices implements
                 .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
                 .withTargetPort(new IntOrString(PatroniConfigMap.POSTGRES_REPLICATION_PORT_NAME))
                 .build())
-        .withType(serviceType)
         .endSpec()
         .build();
   }
 
-  @Inject
-  public void setLabelFactory(LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
-    this.labelFactory = labelFactory;
-  }
 }

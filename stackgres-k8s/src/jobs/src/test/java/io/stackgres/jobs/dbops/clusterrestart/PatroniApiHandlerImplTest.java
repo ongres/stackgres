@@ -83,11 +83,11 @@ class PatroniApiHandlerImplTest {
         .handler(BodyHandler.create())
         .handler(basicAuthHandler)
         .handler(ctx -> {
-          if (ctx.getBodyAsString() == null) {
+          if (ctx.body().asString() == null) {
             ctx.response().setStatusCode(400)
                 .end("Switchover endpoint should not have an empty body");
           } else {
-            String candidateName = ctx.getBodyAsJson().getString("candidate");
+            String candidateName = ctx.body().asJsonObject().getString("candidate");
             ctx.response()
                 .setStatusCode(200)
                 .end("Successfully switched over to " + candidateName);

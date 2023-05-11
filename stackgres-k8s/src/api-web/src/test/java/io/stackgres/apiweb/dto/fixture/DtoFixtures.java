@@ -39,4 +39,8 @@ public interface DtoFixtures {
     return new ScriptDtoFixture();
   }
 
+  static ShardedClusterDtoFixture shardedCluster() {
+    return new ShardedClusterDtoFixture();
+  }
+
 }

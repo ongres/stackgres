@@ -68,7 +68,7 @@ public class KubernetesClientProducer {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
       if ("close".equals(method.getName())) {
-        LOGGER.trace("Ignoring close call of KuberneteClient instance.");
+        LOGGER.trace("Ignoring close call of KubernetesClient instance.");
         return null;
       }
       try {

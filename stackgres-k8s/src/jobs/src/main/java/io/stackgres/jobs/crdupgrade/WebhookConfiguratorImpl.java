@@ -13,6 +13,7 @@ import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition
 import io.fabric8.kubernetes.api.model.apiextensions.v1.ServiceReferenceBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.WebhookClientConfigBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.WebhookConversionBuilder;
+import io.stackgres.common.CrdLoader;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.common.resource.SecretFinder;
@@ -52,7 +53,7 @@ public class WebhookConfiguratorImpl implements WebhookConfigurator {
     String webhookCaCert = getWebhookCaCert()
         .orElseThrow(() -> new RuntimeException("Operator certificates secret not found"));
 
-    crdLoader.scanDefinitions()
+    crdLoader.scanCrds()
         .forEach(crd -> configureWebhook(crd.getMetadata().getName(), webhookCaCert));
   }
 

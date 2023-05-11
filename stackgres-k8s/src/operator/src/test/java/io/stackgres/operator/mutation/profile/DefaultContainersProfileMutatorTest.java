@@ -5,17 +5,8 @@
 
 package io.stackgres.operator.mutation.profile;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.io.IOException;
-import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.github.fge.jsonpatch.AddOperation;
-import com.github.fge.jsonpatch.JsonPatch;
-import com.github.fge.jsonpatch.JsonPatchOperation;
-import com.github.fge.jsonpatch.ReplaceOperation;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.SgProfileReview;
@@ -47,17 +38,12 @@ class DefaultContainersProfileMutatorTest {
   void alreadyFilledContainersProfiles_shouldSetNothing() throws Exception {
     StackGresProfile expectedProfile = JsonUtil.copy(review.getRequest().getObject());
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
-
-    assertTrue(operations.isEmpty());
-
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
-    JsonNode newConfig = new JsonPatch(operations).apply(crJson);
-    StackGresProfile actualProfile = JsonUtil.fromJson(newConfig, StackGresProfile.class);
+    StackGresProfile result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
     JsonUtil.assertJsonEquals(
         JsonUtil.toJson(expectedProfile),
-        JsonUtil.toJson(actualProfile));
+        JsonUtil.toJson(result));
   }
 
   @Test
@@ -66,18 +52,12 @@ class DefaultContainersProfileMutatorTest {
     review.getRequest().getObject().getSpec().setContainers(null);
     review.getRequest().getObject().getSpec().setInitContainers(null);
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
-
-    assertEquals(2, operations.size());
-    assertEquals(2, operations.stream().filter(AddOperation.class::isInstance).count());
-
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
-    JsonNode newConfig = new JsonPatch(operations).apply(crJson);
-    StackGresProfile actualProfile = JsonUtil.fromJson(newConfig, StackGresProfile.class);
+    StackGresProfile result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
     JsonUtil.assertJsonEquals(
         JsonUtil.toJson(expectedProfile),
-        JsonUtil.toJson(actualProfile));
+        JsonUtil.toJson(result));
   }
 
   @Test
@@ -88,18 +68,12 @@ class DefaultContainersProfileMutatorTest {
     review.getRequest().getObject().getSpec().getInitContainers().values()
         .forEach(container -> container.setCpu(null));
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
-
-    assertEquals(2, operations.size());
-    assertEquals(2, operations.stream().filter(ReplaceOperation.class::isInstance).count());
-
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
-    JsonNode newConfig = new JsonPatch(operations).apply(crJson);
-    StackGresProfile actualProfile = JsonUtil.fromJson(newConfig, StackGresProfile.class);
+    StackGresProfile result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
     JsonUtil.assertJsonEquals(
         JsonUtil.toJson(expectedProfile),
-        JsonUtil.toJson(actualProfile));
+        JsonUtil.toJson(result));
   }
 
   @Test
@@ -110,18 +84,12 @@ class DefaultContainersProfileMutatorTest {
     review.getRequest().getObject().getSpec().getInitContainers().values()
         .forEach(container -> container.setMemory(null));
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
-
-    assertEquals(2, operations.size());
-    assertEquals(2, operations.stream().filter(ReplaceOperation.class::isInstance).count());
-
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
-    JsonNode newConfig = new JsonPatch(operations).apply(crJson);
-    StackGresProfile actualProfile = JsonUtil.fromJson(newConfig, StackGresProfile.class);
+    StackGresProfile result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
     JsonUtil.assertJsonEquals(
         JsonUtil.toJson(expectedProfile),
-        JsonUtil.toJson(actualProfile));
+        JsonUtil.toJson(result));
   }
 
 }

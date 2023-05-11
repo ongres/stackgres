@@ -56,6 +56,13 @@ public class ModelTestUtil {
     public Void onObject(Class<?> clazz, Field[] fields) {
       if (clazz.getPackage().getName().startsWith("io.stackgres.")) {
         JsonIgnoreProperties jsonIgnoreProperties = clazz.getAnnotation(JsonIgnoreProperties.class);
+        for (var currentClazz = clazz; jsonIgnoreProperties == null;) {
+          if (currentClazz == Object.class) {
+            break;
+          }
+          currentClazz = currentClazz.getSuperclass();
+          jsonIgnoreProperties = currentClazz.getAnnotation(JsonIgnoreProperties.class);
+        }
         assertNotNull(jsonIgnoreProperties,
             "Annotation " + JsonIgnoreProperties.class.getSimpleName()
             + " is not present for class " + clazz.getName());

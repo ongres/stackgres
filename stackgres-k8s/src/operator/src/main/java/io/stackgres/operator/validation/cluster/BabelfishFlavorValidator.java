@@ -18,6 +18,7 @@ import io.stackgres.common.crd.sgcluster.StackGresFeatureGates;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.validation.ValidationType;
+import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @Singleton
@@ -26,13 +27,15 @@ public class BabelfishFlavorValidator implements ClusterValidator {
 
   @Override
   public void validate(StackGresClusterReview review) throws ValidationFailed {
-    boolean hasBabelfishFlavor = Optional.of(review.getRequest().getObject())
+    boolean hasBabelfishFlavor = Optional.of(review.getRequest())
+        .map(AdmissionRequest::getObject)
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPostgres)
         .map(StackGresClusterPostgres::getFlavor)
         .map(flavor -> flavor.equals(StackGresPostgresFlavor.BABELFISH.toString()))
         .orElse(false);
-    boolean hasBabelfishFlavorFeatureGateEnabled = Optional.of(review.getRequest().getObject())
+    boolean hasBabelfishFlavorFeatureGateEnabled = Optional.of(review.getRequest())
+        .map(AdmissionRequest::getObject)
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getNonProductionOptions)
         .map(StackGresClusterNonProduction::getEnabledFeatureGates)

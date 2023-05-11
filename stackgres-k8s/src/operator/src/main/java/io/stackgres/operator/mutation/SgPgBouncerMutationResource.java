@@ -13,22 +13,31 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.CdiUtil;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 
 @Path(MutationUtil.CONNPOOLCONFIG_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class SgPgBouncerMutationResource implements MutationResource<PoolingReview> {
-
-  private JsonPatchMutationPipeline<PoolingReview> pipeline;
+public class SgPgBouncerMutationResource
+    extends MutationResource<StackGresPoolingConfig, PoolingReview> {
 
   @Inject
-  public void setPipeline(JsonPatchMutationPipeline<PoolingReview> pipeline) {
-    this.pipeline = pipeline;
+  public SgPgBouncerMutationResource(
+      ObjectMapper objectMapper,
+      MutationPipeline<StackGresPoolingConfig, PoolingReview> pipeline) {
+    super(objectMapper, pipeline);
+  }
+
+  public SgPgBouncerMutationResource() {
+    super(null, null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
   }
 
   void onStart(@Observes StartupEvent ev) {
@@ -38,6 +47,11 @@ public class SgPgBouncerMutationResource implements MutationResource<PoolingRevi
   @POST
   @Override
   public AdmissionReviewResponse mutate(PoolingReview admissionReview) {
-    return mutate(admissionReview, pipeline);
+    return super.mutate(admissionReview);
+  }
+
+  @Override
+  protected Class<StackGresPoolingConfig> getResourceClass() {
+    return StackGresPoolingConfig.class;
   }
 }

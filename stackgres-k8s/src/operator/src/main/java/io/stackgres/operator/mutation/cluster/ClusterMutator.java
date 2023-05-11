@@ -5,16 +5,10 @@
 
 package io.stackgres.operator.mutation.cluster;
 
-import com.github.fge.jackson.jsonpointer.JsonPointer;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresClusterReview;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
+import io.stackgres.operatorframework.admissionwebhook.mutating.Mutator;
 
-public interface ClusterMutator extends JsonPatchMutator<StackGresClusterReview> {
-
-  default JsonPointer getTargetPointer(String field) {
-    String jsonField = getJsonMappingField(field, StackGresClusterSpec.class);
-    return SPEC_POINTER.append(jsonField);
-  }
+public interface ClusterMutator extends Mutator<StackGresCluster, StackGresClusterReview> {
 
 }

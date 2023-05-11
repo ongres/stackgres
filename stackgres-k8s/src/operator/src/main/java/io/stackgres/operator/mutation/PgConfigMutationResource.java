@@ -13,22 +13,31 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.CdiUtil;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 
 @Path(MutationUtil.PGCONFIG_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class PgConfigMutationResource implements MutationResource<PgConfigReview> {
-
-  private JsonPatchMutationPipeline<PgConfigReview> pipeline;
+public class PgConfigMutationResource
+    extends MutationResource<StackGresPostgresConfig, PgConfigReview> {
 
   @Inject
-  public void setPipeline(JsonPatchMutationPipeline<PgConfigReview> pipeline) {
-    this.pipeline = pipeline;
+  public PgConfigMutationResource(
+      ObjectMapper objectMapper,
+      MutationPipeline<StackGresPostgresConfig, PgConfigReview> pipeline) {
+    super(objectMapper, pipeline);
+  }
+
+  public PgConfigMutationResource() {
+    super(null, null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
   }
 
   void onStart(@Observes StartupEvent ev) {
@@ -38,6 +47,11 @@ public class PgConfigMutationResource implements MutationResource<PgConfigReview
   @POST
   @Override
   public AdmissionReviewResponse mutate(PgConfigReview admissionReview) {
-    return mutate(admissionReview, pipeline);
+    return super.mutate(admissionReview);
+  }
+
+  @Override
+  protected Class<StackGresPostgresConfig> getResourceClass() {
+    return StackGresPostgresConfig.class;
   }
 }

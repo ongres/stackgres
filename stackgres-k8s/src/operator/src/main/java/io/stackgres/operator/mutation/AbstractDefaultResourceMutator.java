@@ -5,11 +5,6 @@
 
 package io.stackgres.operator.mutation;
 
-import java.util.Collections;
-import java.util.List;
-
-import com.github.fge.jackson.jsonpointer.JsonPointer;
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -17,19 +12,17 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
+import io.stackgres.operatorframework.admissionwebhook.mutating.Mutator;
 
 public abstract class AbstractDefaultResourceMutator<C extends CustomResource<?, ?>,
         T extends CustomResource<?, ?>, R extends AdmissionReview<T>>
-    implements JsonPatchMutator<R> {
+    implements Mutator<T, R> {
 
   protected final DefaultCustomResourceFactory<C> resourceFactory;
 
   protected final CustomResourceFinder<C> finder;
 
   protected final CustomResourceScheduler<C> scheduler;
-
-  private transient JsonPointer targetPointer;
 
   protected AbstractDefaultResourceMutator(
       DefaultCustomResourceFactory<C> resourceFactory,
@@ -47,45 +40,38 @@ public abstract class AbstractDefaultResourceMutator<C extends CustomResource<?,
     this.scheduler = null;
   }
 
-  public void init() {
-    this.targetPointer = getTargetPointer();
-  }
-
   @Override
-  public List<JsonPatchOperation> mutate(R review) {
-    if (review.getRequest().getOperation() == Operation.CREATE) {
-      C defaultResource = resourceFactory.buildResource();
+  public T mutate(R review, T resource) {
+    if (review.getRequest().getOperation() != Operation.CREATE) {
+      return resource;
+    }
+    C defaultResource = resourceFactory.buildResource();
 
-      T target = review.getRequest().getObject();
-      String targetNamespace = target.getMetadata().getNamespace();
+    String targetNamespace = resource.getMetadata().getNamespace();
+    String defaultResourceName = defaultResource.getMetadata().getName();
 
-      String defaultResourceName = defaultResource.getMetadata().getName();
-
-      if (applyDefault(target)) {
-
-        if (!finder.findByNameAndNamespace(defaultResourceName, targetNamespace).isPresent()) {
-          defaultResource.getMetadata().setNamespace(targetNamespace);
-          scheduler.create(defaultResource);
-        }
-
-        return Collections.singletonList(
-            buildAddOperation(targetPointer, defaultResourceName));
+    setValueSection(resource);
+    if (isTargetPropertyEmpty(resource)) {
+      if (!finder.findByNameAndNamespace(defaultResourceName, targetNamespace).isPresent()) {
+        defaultResource.getMetadata().setNamespace(targetNamespace);
+        scheduler.create(defaultResource);
       }
 
+      setTargetProperty(resource, defaultResourceName);
     }
-    return List.of();
+
+    return resource;
   }
 
-  protected boolean applyDefault(T targetCluster) {
-    return isTargetPropertyEmpty(targetCluster);
+  protected void setValueSection(T resource) {
   }
 
-  protected boolean isTargetPropertyEmpty(T targetCluster) {
-    return isEmpty(getTargetPropertyValue(targetCluster));
+  private boolean isTargetPropertyEmpty(T resource) {
+    return getTargetPropertyValue(resource) == null;
   }
 
-  protected abstract String getTargetPropertyValue(T targetCluster);
+  protected abstract String getTargetPropertyValue(T resource);
 
-  protected abstract JsonPointer getTargetPointer();
+  protected abstract void setTargetProperty(T resource, String defaultResourceName);
 
 }
