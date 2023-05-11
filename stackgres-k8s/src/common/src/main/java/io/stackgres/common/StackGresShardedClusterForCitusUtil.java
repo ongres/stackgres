@@ -62,15 +62,15 @@ public interface StackGresShardedClusterForCitusUtil {
   }
 
   static String primaryCoordinatorServiceName(StackGresShardedCluster cluster) {
-    return ResourceUtil.nameIsValidService(cluster.getMetadata().getName() + "-primary");
+    return primaryCoordinatorServiceName(cluster.getMetadata().getName());
+  }
+
+  static String primaryCoordinatorServiceName(String clusterName) {
+    return ResourceUtil.nameIsValidService(clusterName);
   }
 
   static String anyCoordinatorServiceName(StackGresShardedCluster cluster) {
-    return anyCoordinatorServiceName(cluster.getMetadata().getName());
-  }
-
-  static String anyCoordinatorServiceName(String clusterName) {
-    return ResourceUtil.nameIsValidService(clusterName);
+    return ResourceUtil.nameIsValidService(cluster.getMetadata().getName() + "-reads");
   }
 
   static String primariesShardsServiceName(StackGresShardedCluster cluster) {

@@ -110,7 +110,8 @@ class ShardedClusterResourceMockedTest extends
     servicePrimary = new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(getResourceNamespace())
-        .withName(StackGresShardedClusterForCitusUtil.anyCoordinatorServiceName(getResourceName()))
+        .withName(StackGresShardedClusterForCitusUtil
+            .primaryCoordinatorServiceName(getResourceName()))
         .endMetadata()
         .withNewSpec()
         .withType("ClusterIP")
@@ -622,8 +623,8 @@ class ShardedClusterResourceMockedTest extends
   protected void checkDto(ShardedClusterDto dto) {
     if (dto.getInfo() != null) {
       String appendDns = "." + "stackgres";
-      String expectedPrimaryDns = StackGresShardedClusterForCitusUtil.anyCoordinatorServiceName(
-          "stackgres") + appendDns;
+      String expectedPrimaryDns = StackGresShardedClusterForCitusUtil
+          .primaryCoordinatorServiceName("stackgres") + appendDns;
       assertEquals(expectedPrimaryDns, dto.getInfo().getPrimaryDns());
       assertEquals("postgres", dto.getInfo().getSuperuserUsername());
       assertEquals("superuser-password", dto.getInfo().getSuperuserPasswordKey());

@@ -234,7 +234,7 @@ spec:
                         any:
                           type: object
                           description: |
-                            Configure the coordinator service to any instance of the coordinator with the same name as the SGShardedCluster.
+                            Configure the coordinator service to any instance of the coordinator with the same name as the SGShardedCluster plus the `-reads` suffix.
                             
                             It provides a stable connection (regardless of node failures) to any Postgres server of the coordinator cluster. Servers are load-balanced via this service.
 
@@ -269,7 +269,7 @@ spec:
                         primary:
                           type: object
                           description: |
-                            Configure the coordinator service to the primary of the coordinator with the name as the SGShardedCluster plus the `-primary` suffix.
+                            Configure the coordinator service to the primary of the coordinator with the name as the SGShardedCluster.
                             
                             It provides a stable connection (regardless of primary failures or switchovers) to the read-write Postgres server of the coordinator cluster.
 
