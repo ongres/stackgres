@@ -1,16 +1,15 @@
 <!--
-Replace ${DATE} with `date +%Y-%m-%d`, ${VERSION} with the target StackGres version and run the following before any script snippet:
+
+Set title to:
 
 ```
-export DATE="$(date +%Y-%m-%d)" VERSION \
-  && until [ -n "$VERSION" ]; do read -p 'Please set the target version: ' VERSION; done \
-  && MINOR_VERSION="$(printf %s "$VERSION" | cut -d . -f 1-2)" \
-  && NEXT_MINOR_VERSION="$(printf %s "$VERSION" | cut -d . -f 1).$(( $(printf %s "$VERSION" | cut -d . -f 2) + 1 ))" \
-  && NEXT_PATCH_VERSION="$(printf %s "$VERSION" | cut -d . -f 1-2).$(( $(printf %s "$VERSION" | cut -d - -f 1 | cut -d . -f 3) + 1 ))" \
-  && TO_REMOVE_MINOR_VERSION="$(printf %s "$VERSION" | cut -d . -f 1).$(( $(printf %s "$VERSION" | cut -d . -f 2) - 2 ))" \
-  && IS_NEW_MINOR_VERSION="${IS_NEW_MINOR_VERSION:-$(printf %s "$VERSION" | grep -q '\.0-beta1$' && printf true || printf false)}" \
-  && IS_UPGRADE_VERSION="$(printf %s "$VERSION" | grep -q '[-]\(alpha\|beta\)[0-9]\+$' && printf false || printf true)" \
-  && echo "Target version $VERSION (minor $MINOR_VERSION) (is new minor: $IS_NEW_MINOR_VERSION) (is upgrade: $IS_UPGRADE_VERSION) (next minor: $NEXT_MINOR_VERSION) (removed minor: $TO_REMOVE_MINOR_VERSION)"
+Release StackGres 1.5.0-RC1
+```
+
+Generate template using the command:
+
+```
+sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
 ```
 
 -->
@@ -44,7 +43,7 @@ export DATE="$(date +%Y-%m-%d)" VERSION \
      **This step requires at least one ARM instance with docker installed and a gitlab runner registered with the StackGres project. All this setup is already built in a template. The only action we need to do is scale up the auto-scaling group `sg-army-builder` auto scaling group.** 
 
      ```
-     for ASG in sg-army-builder; do aws --profile ongres --region us-east-1 autoscaling set-desired-capacity --desired-capacity 1 --auto-scaling-group-name ""; done
+     for ASG in sg-army-builder; do aws --profile ongres --region us-east-1 autoscaling set-desired-capacity --desired-capacity 1 --auto-scaling-group-name "$ASG"; done
      ```
 
      **As an alternative approach [here](https://gitlab.com/snippets/1985684) is a handy snippet that allows to spin up such an instance in AWS.**
@@ -75,10 +74,10 @@ export DATE="$(date +%Y-%m-%d)" VERSION \
     ```
     git checkout "main-1.5" && git pull && git merge --ff-only "release-1.5.0-RC1"
     ```
-1. [ ] Update version to be `1.5.1-SNAPSHOT`:
+1. [ ] Update version to be `1.5.0-SNAPSHOT`:
     ```
-    sh -x stackgres-k8s/ci/utils/update-version.sh "1.5.1-SNAPSHOT" "main-1.5"
-    git commit -a -m "version: 1.5.1-SNAPSHOT"
+    sh -x stackgres-k8s/ci/utils/update-version.sh "1.5.0-SNAPSHOT" "main-1.5"
+    git commit -a -m "version: 1.5.0-SNAPSHOT"
     git push
     ```
 1. [ ] Create branch `merge-1.5.0-RC1` from `main`:

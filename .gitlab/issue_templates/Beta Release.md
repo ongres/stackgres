@@ -3,7 +3,7 @@
 Set title to:
 
 ```
-Release StackGres 1.5.0-beta1
+Release StackGres 1.5.0-beta3
 ```
 
 Generate template using the command:
@@ -16,34 +16,34 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
 
 # Pre Checks
 
-1. [ ] Make sure all tasks marked with label ~"target_version::1.5.0-beta1" are done.
+1. [ ] Make sure all tasks marked with label ~"target_version::1.5.0-beta3" are done.
 
 # Release steps
 
-1. [ ] Create local branch `release-1.5.0-beta1` from `main`:
+1. [ ] Create local branch `release-1.5.0-beta3` from `main-1.5`:
     ```
-    git checkout "main" && git pull && git checkout -b "release-1.5.0-beta1"
+    git checkout "main-1.5" && git pull && git checkout -b "release-1.5.0-beta3"
     ```
-1. [ ] Update project version to `1.5.0-beta1`:
+1. [ ] Update project version to `1.5.0-beta3`:
     ```
-    sh -x stackgres-k8s/ci/utils/update-version.sh "1.5.0-beta1"
+    sh -x stackgres-k8s/ci/utils/update-version.sh "1.5.0-beta3"
     ```
 1. [ ] Update `CHANGELOG.md` (review commit messages to populate the changelog: `git log`)
-1. [ ] Add 1.5.0-beta1 section in `doc/content/en/01-introduction/06-versions/_index.md` with values from `stackgres-k8s/src/common/src/main/resources/versions.properties`
+1. [ ] Add 1.5.0-beta3 section in `doc/content/en/01-introduction/06-versions/_index.md` with values from `stackgres-k8s/src/common/src/main/resources/versions.properties`
 1. [ ] Check the changes to ensure everything is correct before commit:
     ```
     git diff
     ```
-1. [ ] Commit changes with message `version: 1.5.0-beta1`:
+1. [ ] Commit changes with message `version: 1.5.0-beta3`:
     ```
-    git commit -S -a -m "version: 1.5.0-beta1"
+    git commit -S -a -m "version: 1.5.0-beta3"
     ```
-1. [ ] Push `release-1.5.0-beta1` branch:
+1. [ ] Push `release-1.5.0-beta3` branch:
 
      **This step requires at least one ARM instance with docker installed and a gitlab runner registered with the StackGres project. All this setup is already built in a template. The only action we need to do is scale up the auto-scaling group `sg-army-builder` auto scaling group.** 
 
      ```
-     for ASG in sg-army-builder; do aws --profile ongres --region us-east-1 autoscaling set-desired-capacity --desired-capacity 1 --auto-scaling-group-name ""; done
+     for ASG in sg-army-builder; do aws --profile ongres --region us-east-1 autoscaling set-desired-capacity --desired-capacity 1 --auto-scaling-group-name "$ASG"; done
      ```
 
      **As an alternative approach [here](https://gitlab.com/snippets/1985684) is a handy snippet that allows to spin up such an instance in AWS.**
@@ -53,117 +53,49 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
      curl -s https://gitlab.com/snippets/1985684/raw | bash -s -- -r "" -t m6gd.4xlarge -i "" -d 14400 -df internal -dp /dev/nvme1n1 -rn army-builder -tl 'docker-junit-extension-runner, oci-image, ongresinc, stackgres-maven-runner, stackgres-native-build-runner, stackgres-quarkus-test-runner, stackgres-runner-v2, linux-arm64, stackgres-e2e-runner'
      ```
 
-     Now we can push `release-1.5.0-beta1` branch and wait for the pipeline to complete:
+     Now we can push `release-1.5.0-beta3` branch and wait for the pipeline to complete:
     ```
-    git push origin "release-1.5.0-beta1" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true"
+    git push origin "release-1.5.0-beta3" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true"
     ```
-1. [ ] Create tag `1.5.0-beta1`:
+1. [ ] Create tag `1.5.0-beta3`:
     ```
-    git tag "1.5.0-beta1"
+    git tag "1.5.0-beta3"
     ```
-1. [ ] Push tag `1.5.0-beta1` to the origin and wait for the pipeline to complete:
+1. [ ] Push tag `1.5.0-beta3` to the origin and wait for the pipeline to complete:
     ```
-    git push origin "1.5.0-beta1"
+    git push origin "1.5.0-beta3"
     ```
 1. [ ] After pipeline succeeded, scale down the ARM runners (or terminate the instance created with the script):
     ```
      aws autoscaling update-auto-scaling-group      --auto-scaling-group-name sg-army-builder      --min-size 0      --max-size 0       --desired-capacity 0
     ```
-1. [ ] Edit the [release notes of tag 1.5.0-beta1](https://gitlab.com/ongresinc/stackgres/-/releases/new?tag_name=1.5.0-beta1) by Copying and Pasting `CHANGELOG.md` section for version `1.5.0-beta1` (GitLab)
-1. [ ] Create branch `main-1.5` from `release-1.5.0-beta1`:
+1. [ ] Edit the [release notes of tag 1.5.0-beta3](https://gitlab.com/ongresinc/stackgres/-/releases/new?tag_name=1.5.0-beta3) by Copying and Pasting `CHANGELOG.md` section for version `1.5.0-beta3` (GitLab)
+1. [ ] Merge local branch `release-1.5.0-beta3` into `main-1.5`:
     ```
-    git checkout -b "main-1.5"
+    git checkout "main-1.5" && git pull && git merge --ff-only "release-1.5.0-beta3"
     ```
-1. [ ] Update project version to `1.5.1-SNAPSHOT`:
+1. [ ] Update version to be `1.5.0-SNAPSHOT`:
     ```
-    sh -x stackgres-k8s/ci/utils/update-version.sh "1.5.1-SNAPSHOT" "main-1.5"
-    ```
-1. [ ] Commit changes with message `version: 1.5.1-SNAPSHOT`:
-    ```
-    git commit -S -a -m "version: 1.5.1-SNAPSHOT"
-    ```
-1. [ ] Push `main-1.5` branch:
-    ```
-    git push --set-upstream origin "main-1.5"
-    ```
-1. [ ] Create branch `add-version-1.6` and merge local branch `release-1.5.0-beta1` into it:
-    ```
-    git checkout main && git pull && git checkout -b "add-version-1.6" && git merge release-1.5.0-beta1
-    ```
-1. [ ] Update project version to `1.6.0-SNAPSHOT`:
-    ```
-    sh -x stackgres-k8s/ci/utils/update-version.sh "1.6.0"-SNAPSHOT main
-    ```
-1. Add support for version 1.6 and remove support for version 1.3
-    * [ ] Edit file `stackgres-k8s/src/common/src/main/java/io/stackgres/common/StackGresVersion.java` to add suppor for version 1.6, remove support for version 1.3 and fix the failing code and tests
-    * [ ] Edit file `stackgres-k8s/src/common/src/main/java/io/stackgres/common/component/Components.java` to add version 1.6 and fix the failing code and tests
-    * [ ] Edit file `stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/conciliation/factory/cluster/patroni/parameters/PostgresDefaultValues.java` to add version 1.6 and fix the failing code and tests
-    * [ ] Edit file `stackgres-k8s/install/helm/stackgres-operator/templates/check-upgrade.yaml` to add support for upgrade from version 1.6 and remove support to upgrade from version 1.3
-    * [ ] Update the e2e test `stackgres-k8s/e2e/spec/operator` to check support for upgrade from version 1.5 and remove check for support to upgrade from version 1.3.
-    * [ ] Add support for previous version 1.5 in e2e tests
-        ```
-        mkdir -p stackgres-k8s/e2e/spec/previous/1.5/spec
-        cp stackgres-k8s/e2e/spec/* stackgres-k8s/e2e/spec/previous/1.5/spec/.
-        cp -a stackgres-k8s/e2e/spec/abstract stackgres-k8s/e2e/spec/previous/1.5/spec/abstract
-        cp -a stackgres-k8s/e2e/spec/aks stackgres-k8s/e2e/spec/previous/1.5/spec/aks
-        cp -a stackgres-k8s/e2e/spec/eks stackgres-k8s/e2e/spec/previous/1.5/spec/eks
-        cp -a stackgres-k8s/e2e/spec/gke stackgres-k8s/e2e/spec/previous/1.5/spec/gke
-        ```
-    * [ ] Remove support for previous version 1.3 in e2e tests:
-        ```
-        rm -rf stackgres-k8s/e2e/spec/previous/1.3    
-        ```
-1. [ ] Commit changes with message `version: 1.6.0-SNAPSHOT`:
-    ```
-    git add .
-    git commit -S -a -m "version: 1.6.0-SNAPSHOT"
-    ```
-1. [ ] Push branch `add-version-1.6`:
-    ```
-    git push origin add-version-1.6
-    ```
-1. [ ] Wait for the pipeline of `add-version-1.6` branch to complete
-1. [ ] Merge local branch `add-version-1.6` into `main`:
-    ```
-    git checkout main && git pull && git merge --ff-only add-version-1.6
-    ```
-1. [ ] Push `main` to origin:
-    ```
+    sh -x stackgres-k8s/ci/utils/update-version.sh "1.5.0-SNAPSHOT" "main-1.5"
+    git commit -a -m "version: 1.5.0-SNAPSHOT"
     git push
     ```
-1. [ ] Change scheduled pipeline to test previous version `1.3` to use branch `main-1.5`: https://gitlab.com/ongresinc/stackgres/-/pipeline_schedules
-1. [ ] Create scheduled pipeline to test previous version `1.5`: https://gitlab.com/ongresinc/stackgres/-/pipeline_schedules
-1. [ ] Remove scheduled pipeline to test previous version `1.2`: https://gitlab.com/ongresinc/stackgres/-/pipeline_schedules
+1. [ ] Create branch `merge-1.5.0-beta3` from `main`:
+    ```
+    git checkout main && git pull && git checkout -b "merge-1.5.0-beta3"
+    ```
+1. [ ] Merge branch `main-1.5` into `merge-1.5.0-beta3`:
+    ```
+    git merge "main-1.5"
+    ```
+1. [ ] Push `merge-1.5.0-beta3` to origin, create the merge request to merge it into `main` and wait for the pipeline to complete fixing any encountered issues:
+    ```
+    git push origin "merge-1.5.0-beta3"
+    ```
 
 # Deploy Web
 
-1. [ ] Checkout [stackgres-web](https://gitlab.com/ongresinc/web/stackgres) project
-1. [ ] Checkout and update `development` branch:
-    ```
-    git checkout development && git pull
-    ```
-1. [ ] Set `STACKGRES_REFS` in `.gitlab-ci.yml` by setting `main-1.5` as the first value.
-1. [ ] Set `STACKGRES_FULL_VERSIONS` in `.gitlab-ci.yml` by setting `1.5.0-beta1` as the first value.
-1. [ ] Set `STACKGRES_STABLE_VERSION_INDEX` to `0`
-1. [ ] Commit changes with message `version: 1.5.0-beta1`: `git commit -a -m 'version: 1.5.0-beta1'`
-1. [ ] Push development to origin: `git push`
-1. [ ] Check staging Web: `https://ongresinc.gitlab.io/web/stackgres/`
-1. [ ] Merge `development` branch into `master`:
-    ```
-    git checkout master && git pull && git merge --ff-only development
-    ```
-1. [ ] Create tag `1.5.0-beta1`:
-    ```
-    git tag 1.5.0-beta1
-    ```
-1. [ ] Push master to origin:
-    ```
-    git push
-    ```
-1. [ ] Push tag `1.5.0-beta1` to origin:
-    ```
-    git push origin 1.5.0-beta1
-    ```
+1. [ ] Run [stackgres-web pipeline](https://gitlab.com/ongresinc/web/stackgres/-/pipelines/new)
 
 # Post Checks
 
@@ -177,11 +109,11 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
 # Changelog
 
 ~~~
-# :rocket: Release 1.5.0-beta1 (${DATE})
+# :rocket: Release 1.5.0-beta3 (${DATE})
 
 ## :notepad_spiral: NOTES
 
-StackGres 1.5.0-beta1 is out! :confetti_ball: :champagne: 
+StackGres 1.5.0-beta3 is out! :confetti_ball: :champagne: 
 
 So, what you are waiting for to try this release and have a look to the future of StackGres! 
 
@@ -214,5 +146,5 @@ Alpha or beta version should not be used to upgrade since the upgrade process wi
 
 Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
 
-## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.5.0-beta1)
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.5.0-beta3)
 ~~~
