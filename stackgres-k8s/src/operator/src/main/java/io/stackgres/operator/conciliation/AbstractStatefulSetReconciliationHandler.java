@@ -201,8 +201,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
 
       removeStatefulSetPlaceholderReplicas(context, requiredSts);
     } else {
-      updatedSts = statefulSetFinder
-          .findByNameAndNamespace(requiredSts.getMetadata().getName(), namespace).orElseThrow();
+      updatedSts = writer.apply(context, requiredSts);
     }
 
     fixPods(context, requiredSts, updatedSts, appLabel, patroniConfigEndpoints);
