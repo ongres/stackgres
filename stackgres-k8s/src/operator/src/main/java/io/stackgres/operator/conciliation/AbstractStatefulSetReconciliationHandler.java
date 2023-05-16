@@ -226,7 +226,6 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
           latestPrimaryIndexFromPatroni, namespace, name);
       final String podManagementPolicy = requiredSts.getSpec().getPodManagementPolicy();
       final var nodeSelector = requiredSts.getSpec().getTemplate().getSpec().getNodeSelector();
-      final int replicas = requiredSts.getSpec().getReplicas();
       LOGGER.debug("Create placeholder Pods before primary Pod that was at index {}"
           + " for StatefulSet {}.{}", latestPrimaryIndexFromPatroni, namespace, name);
       requiredSts.getSpec().setPodManagementPolicy("Parallel");
@@ -242,7 +241,6 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
       waitStatefulSetReplicasToBeCreated(requiredSts);
       requiredSts.getSpec().setPodManagementPolicy(podManagementPolicy);
       requiredSts.getSpec().getTemplate().getSpec().setNodeSelector(nodeSelector);
-      requiredSts.getSpec().setReplicas(replicas);
     }
   }
 
