@@ -21,7 +21,7 @@ kind: SGCluster
 metadata:
   name: simple
 spec:
-  instances: 2
+  instances: 1
   postgres:
     version: 'latest'
   pods:
@@ -29,14 +29,14 @@ spec:
       size: '5Gi'
 ```
 
-The contents of the file should be easily understandable. A StackGres cluster with name `simple` will be created in the `default` namespace (none specified), with two StackGres instances (which will lead to two pods), using the `latest` Postgres version -- this is a handy shortcut you may use. StackGres will internally resolve this to the latest version available, and modify your CR to note the specific version used. For each pod, a 5Gi _PersistentVolume_ will be created and attached to the pods.
+The contents of the file should be easily understandable. A StackGres cluster with name `simple` will be created in the `default` namespace (none specified), with one StackGres instance (which will lead to one Pod), using the `latest` Postgres version --this is a handy shortcut you may use. StackGres will internally resolve this to the latest version available, and modify your CR to note the specific version used. For each Pod, a 5Gi _PersistentVolume_ will be created and attached to it.
 
 ```bash
 kubectl apply -f simple.yaml -n stackgres
 sgcluster.stackgres.io/simple created
 ```
 
-This operation will take some around a minute. At the end, you will be able to see two instances (pods) created on the default namespace. You can track the progress with:
+This operation will take some around a minute. At the end, you will be able to see one instance (Pod) created on the default namespace. You can track the progress with:
 
 ```bash
 $ kubectl get pods -n stackgres --watch
@@ -48,17 +48,16 @@ simple-0   0/6     Init:1/5   0          26s
 ...
 ```
 
-You can also check the pod creation from the Web Console:
+You can also check the Pod creation from the Web Console:
 
-![Simple Cluster](simple-cluster.png "Simple Cluster")
+![Simple Cluster](simple-cluster-one-instance.png "Simple Cluster")
 
-When the process finished, you should see two pods, each with 6 containers:
+When the process finished, you should see one Pod with 6 containers:
 
 ```bash
 $ kubectl get pods
 NAME       READY   STATUS    RESTARTS   AGE
 simple-0   6/6     Running   0          82s
-simple-1   6/6     Running   0          36s
 ```
 
 You should be able to see the resolved Postgres version and other details about your StackGres cluster by inspecting the created CR (Custom Resource):
@@ -156,9 +155,10 @@ $ kubectl exec -it simple-1 -n stackgres -c patroni -- patronictl list
 
 ## Scaling the cluster
 
-Let's add a new node to the Postgres cluster. Just edit the `simple.yaml` file and change the number of instances from `2` to `3`:
+Let's add some new Pods to the Postgres cluster. Just edit the `simple.yaml` file and change the number of instances from `1` to `3`:
 
 ```yaml
+spec:
   instances: 3
 ```
 
@@ -169,13 +169,13 @@ $ kubectl apply -f simple.yaml -n stackgres
 sgcluster.stackgres.io/simple configured
 ```
 
-In a few seconds, a third node would have been spinned up:
+In a few seconds, a second and third Pods would have been spinned up:
 
 ```
 $ kubectl get pods -n stackgres --watch
 NAME       READY   STATUS    RESTARTS   AGE
 simple-0   6/6     Running   0          55m
-simple-1   6/6     Running   0          74m
+simple-1   6/6     Running   0          32s
 simple-2   6/6     Running   0          61s
 ```
 
@@ -190,6 +190,33 @@ $ kubectl exec -it simple-0 -n stackgres -c patroni -- patronictl list
 | simple-1 | 192.168.12.150:7433 | Replica | running |  2 |         0 |
 | simple-2 | 192.168.71.214:7433 | Replica | running |  2 |         0 |
 +----------+---------------------+---------+---------+----+-----------+
+```
+
+### Scaling with limited resources
+
+By default StackGres enforces some rules and resource requirements and limitatios in order to be production Ready by default. In case you are testing StackGres functionality it is possible to configure StackGres so that it does not prevent Pods from being scheduled in a Kubernetes cluster with insufficient resources.
+
+Normally StackGres requires each Pod of a Postgres cluster to be scheduled on a separate node using a Pod anti affinity rule. To disable such rule you may set the following options:
+
+```yaml
+spec:
+  nonProductionOptions:
+    disableClusterPodAntiAffinity: true
+```
+
+Another aspect that may prevent Postgres cluster Pods from being scheduled are the resource requests and limits requirements. To disable such requirements you may set the following options:
+
+```yaml
+spec:
+  nonProductionOptions:
+    disablePatroniResourceRequirements: true
+    disableClusterResourceRequirements: true
+```
+
+After setting those options you will have to restart the Postgres cluster Pods by simply deleting them (or using a [restart SGDbOps]()):
+
+```bash
+kubectl delete pod -l app=StackGresCluster,stackgres.io/cluster-name=simple
 ```
 
 ## Cleaning up
