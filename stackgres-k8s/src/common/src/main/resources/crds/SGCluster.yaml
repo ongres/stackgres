@@ -814,6 +814,24 @@ spec:
                                  recovery target (true), or just before the recovery target (false). Applies when targetLsn, pointInTimeRecovery, or targetXid is specified. This
                                  setting controls whether transactions having exactly the target WAL location (LSN), commit time, or transaction ID, respectively, will be included
                                  in the recovery. Default is true.
+                            targetName:
+                              type: string
+                              description: |
+                                [recovery_target_name](https://postgresqlco.nf/doc/en/param/recovery_target_name/) specifies the named restore point
+                                 (created with pg_create_restore_point()) to which recovery will proceed.
+                            targetXid:
+                              type: string
+                              description: |
+                                [recovery_target_xid](https://postgresqlco.nf/doc/en/param/recovery_target_xid/) specifies the transaction ID up to which recovery will proceed.
+                                 Keep in mind that while transaction IDs are assigned sequentially at transaction start, transactions can complete in a different numeric order.
+                                 The transactions that will be recovered are those that committed before (and optionally including) the specified one. The precise stopping point
+                                 is also influenced by targetInclusive.
+                            targetLsn:
+                              type: string
+                              description: |
+                                [recovery_target_lsn](https://postgresqlco.nf/doc/en/param/recovery_target_lsn/) specifies the LSN of the write-ahead log location up to which
+                                 recovery will proceed. The precise stopping point is also influenced by targetInclusive. This parameter is parsed using the system data type
+                                 pg_lsn.
                             pointInTimeRecovery:
                               type: object
                               description: |
