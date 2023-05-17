@@ -62,6 +62,7 @@
   </module>
 
   <module name="TreeWalker">
+    <module name="SuppressionCommentFilter"/>
     <module name="OuterTypeFilename" />
     <module name="IllegalTokenText">
       <property name="tokens" value="STRING_LITERAL, CHAR_LITERAL" />

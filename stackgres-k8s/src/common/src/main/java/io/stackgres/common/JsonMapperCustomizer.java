@@ -26,4 +26,5 @@ public class JsonMapperCustomizer implements ObjectMapperCustomizer {
     objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     objectMapper.enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
   }
+
 }

@@ -17,31 +17,6 @@ spec:
   continueOnError: {{ .Values.cluster.managedSql.continueOnError }}
   {{- end }}
   scripts:
-  {{- range .Values.cluster.managedSql.scripts }}
-  - {{- if .name }}
-    name: {{ .name }}
-    {{- end }}
-    {{- if .database }}
-    database: {{ .database }}
-    {{- end }}
-    {{- if .script }}
-    script: {{ .script }}
-    {{- end }}
-    {{- if .scriptFrom }}
-    {{- if or .scriptFrom.secretKeyRef .scriptFrom.configMapKeyRef }}
-    scriptFrom:
-      {{- if .scriptFrom.secretKeyRef }}
-      secretKeyRef:
-        name: {{ .scriptFrom.secretKeyRef.name }}
-        key: {{ .scriptFrom.secretKeyRef.key }}
-      {{- end }}
-      {{- if .scriptFrom.configMapKeyRef }}
-      configMapKeyRef:
-        name: {{ .scriptFrom.configMapKeyRef.name }}
-        key: {{ .scriptFrom.configMapKeyRef.key }}
-      {{- end }}
-    {{- end }}
-    {{- end }}
-  {{- end }}
+  {{- toYaml .Values.cluster.managedSql.scripts | nindent 2 }}
 {{- end }}
 {{- end }}

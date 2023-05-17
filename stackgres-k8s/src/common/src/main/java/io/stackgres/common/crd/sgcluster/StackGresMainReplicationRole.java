@@ -22,4 +22,15 @@ public enum StackGresMainReplicationRole {
   public @NotNull String toString() {
     return role.toString();
   }
+
+  public static StackGresMainReplicationRole fromString(String value) {
+    for (StackGresMainReplicationRole role : StackGresMainReplicationRole.values()) {
+      if (role.toString().equals(value)) {
+        return role;
+      }
+    }
+    throw new IllegalArgumentException(value + " can not be converted to a "
+        + StackGresMainReplicationRole.class.getName());
+  }
+
 }

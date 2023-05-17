@@ -176,7 +176,7 @@ check_manual_backup() {
   local ACTUAL_BACKUP_NAME
 
   # Avoid automatic backups while testing manual backups
-  disable_cronSchedule
+  disable_cron_schedule
   
   kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true" --ignore-not-found
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" --all
@@ -263,8 +263,8 @@ check_manual_backup() {
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_2_NAME"
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_3_NAME"
 
-  # Enable automatic backups after testing manual backups
-  enable_cronSchedule
+  # Avoid automatic backups while testing manual backups
+  enable_cron_schedule
   
   if wait_until eval '[ "$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-${NODE}" -c patroni -- \
       exec-with-env backup -- wal-g backup-list | grep "^$ACTUAL_BACKUP_NAME " | wc -l)" -eq 0 ]'
@@ -354,13 +354,13 @@ get_completed_backup_count() {
     | grep 'Completed' | wc -l
 }
 
-enable_cronSchedule() {
+enable_cron_schedule() {
   # Sets the value At every minute.
   kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
     --patch '[{"op":"replace","path":"/spec/configurations/backups/0/cronSchedule","value":"*/1 * * * *"}]'
 }
 
-disable_cronSchedule() {
+disable_cron_schedule() {
   # Sets the value At 05:00 on day-of-month 31 in February.
   kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
     --patch '[{"op":"replace","path":"/spec/configurations/backups/0/cronSchedule","value":"0 5 31 2 *"}]'

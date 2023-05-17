@@ -165,9 +165,6 @@ public class DbOpsMajorVersionUpgradeJob extends AbstractDbOpsJob {
                 .withName("MAJOR_VERSION_UPGRADE_CONTAINER_NAME")
                 .withValue(StackGresInitContainer.MAJOR_VERSION_UPGRADE.getName())
                 .build(),
-            ClusterStatefulSetPath.PG_UPGRADE_PATH.envVar(),
-            ClusterStatefulSetPath.PG_RELOCATED_BASE_PATH.envVar(),
-            ClusterStatefulSetPath.PG_EXTENSIONS_BASE_PATH.envVar(),
             new EnvVarBuilder()
                 .withName("POSTGRES_VERSION_KEY")
                 .withValue(StackGresContext.POSTGRES_VERSION_KEY)

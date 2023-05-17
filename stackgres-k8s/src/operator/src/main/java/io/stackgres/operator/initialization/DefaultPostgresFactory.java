@@ -7,17 +7,20 @@ package io.stackgres.operator.initialization;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigBuilder;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,19 +50,24 @@ public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackG
 
   @Override
   StackGresPostgresConfig buildResource(String namespace) {
-    StackGresPostgresConfigSpec spec = new StackGresPostgresConfigSpec();
-    spec.setPostgresVersion(postgresVersion);
-    spec.setPostgresqlConf(Map.of());
-    StackGresPostgresConfigStatus status = new StackGresPostgresConfigStatus();
-    status.setDefaultParameters(getDefaultValues());
-
-    StackGresPostgresConfig pgConfig = new StackGresPostgresConfig();
-    pgConfig.getMetadata().setName(generateDefaultName());
-    pgConfig.getMetadata().setNamespace(namespace);
-    pgConfig.setSpec(spec);
-    pgConfig.setStatus(status);
-
-    return pgConfig;
+    Map<String, String> defaultValues = getDefaultValues();
+    Set<String> blockedValues = PostgresBlocklist.getBlocklistParameters();
+    return new StackGresPostgresConfigBuilder()
+        .withMetadata(new ObjectMetaBuilder()
+            .withNamespace(namespace)
+            .withName(generateDefaultName())
+            .build())
+        .withNewSpec()
+        .withPostgresVersion(postgresVersion)
+        .withPostgresqlConf(defaultValues.entrySet()
+            .stream()
+            .filter(e -> !blockedValues.contains(e.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
+        .endSpec()
+        .withNewStatus()
+        .withDefaultParameters(defaultValues)
+        .endStatus()
+        .build();
   }
 
   @Override

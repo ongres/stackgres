@@ -14,10 +14,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,12 +25,21 @@ import org.slf4j.LoggerFactory;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ShardedClusterValidationResource
-    implements ValidationResource<StackGresShardedClusterReview> {
+    extends AbstractValidationResource<StackGresShardedClusterReview> {
 
   private static final Logger LOGGER =
       LoggerFactory.getLogger(ShardedClusterValidationResource.class);
 
-  private ValidationPipeline<StackGresShardedClusterReview> pipeline;
+  @Inject
+  public ShardedClusterValidationResource(
+      ValidationPipeline<StackGresShardedClusterReview> pipeline) {
+    super(pipeline);
+  }
+
+  public ShardedClusterValidationResource() {
+    super(null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+  }
 
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("Sharded Cluster validation resource started");
@@ -41,13 +50,8 @@ public class ShardedClusterValidationResource
    */
   @POST
   public AdmissionReviewResponse validate(StackGresShardedClusterReview admissionReview) {
-
-    return validate(admissionReview, pipeline);
+    return super.validate(admissionReview);
 
   }
 
-  @Inject
-  public void setPipeline(ValidationPipeline<StackGresShardedClusterReview> pipeline) {
-    this.pipeline = pipeline;
-  }
 }

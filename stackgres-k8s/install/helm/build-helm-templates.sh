@@ -43,6 +43,8 @@ helm template --namespace stackgres stackgres-operator \
     BLOCK_SEPARATOR_INDEX="$(printf '%s' "$BLOCK_SEPARATOR_INDEXES" | head -n "$INDEX" | tail -n 1)"
     if [ "$BLOCK_SEPARATOR_INDEX" = "$PREVIOUS_BLOCK_SEPARATOR_INDEX" ]
     then
+      tail -n +"$((PREVIOUS_BLOCK_SEPARATOR_INDEX+1))" "target/templates/stackgres-operator-demo-template.yml" \
+        > "target/templates/stackgres-operator-demo-template-$INDEX.yml"
       break
     fi
     if [ -n "$PREVIOUS_BLOCK_SEPARATOR_INDEX" ]

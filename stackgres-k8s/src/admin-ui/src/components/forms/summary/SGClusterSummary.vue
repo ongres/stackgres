@@ -173,7 +173,7 @@
                                     <strong class="label">Cron Schedule:</strong>
                                     <span class="value">{{ tzCrontab(backup.cronSchedule) }} ({{ tzCrontab(backup.cronSchedule) | prettyCRON(false) }})</span>
                                 </li>
-                                <li v-if="backup.path.length">
+                                <li v-if="!isNull(backup.path)">
                                     <strong class="label">
                                         Path:
                                     </strong>
@@ -351,6 +351,19 @@
                                                                             <span class="value">{{ script.scriptFrom.configMapKeyRef.key }}</span>
                                                                         </li>                                                                            
                                                                     </ul>
+                                                                </li>
+                                                                <li v-if="hasProp(script, 'scriptFrom.configMapScript')">
+                                                                    <strong class="label">
+                                                                        Config Map Script:
+                                                                    </strong>
+                                                                    <span class="value script">
+                                                                        <span>
+                                                                            <a @click="setContentTooltip('#script-' + baseIndex + '-' + index)">View Script</a>
+                                                                        </span>
+                                                                        <div :id="'script-' + baseIndex + '-' + index" class="hidden">
+                                                                            <pre>{{ script.scriptFrom.configMapScript }}</pre>
+                                                                        </div>
+                                                                    </span>
                                                                 </li>
                                                             </ul>
                                                         </li>
@@ -650,6 +663,468 @@
                         </li>
                     </ul>
 
+                    <ul
+                        class="section"
+                        v-if="( 
+                            (cluster.data.spec.pods.hasOwnProperty('customVolumes') && !isNull(cluster.data.spec.pods.customVolumes)) || 
+                            (cluster.data.spec.pods.hasOwnProperty('customInitContainers') && !isNull(cluster.data.spec.pods.customInitContainers)) || 
+                            (cluster.data.spec.pods.hasOwnProperty('customContainers') && !isNull(cluster.data.spec.pods.customContainers)) )
+                        ">
+                        <li>
+                            <strong class="sectionTitle">
+                                User-Supplied Pods' Sidecars
+                            </strong>
+                            <ul>
+                                <li v-if="cluster.data.spec.pods.hasOwnProperty('customVolumes') && !isNull(cluster.data.spec.pods.customVolumes)">
+                                    <strong class="sectionTitle">
+                                        Custom Volumes
+                                    </strong>
+
+                                    <ul>
+                                        <template v-for="(vol, index) in cluster.data.spec.pods.customVolumes">
+                                            <li :key="index">
+                                                <strong class="sectionTitle">
+                                                    Volume #{{ index + 1 }}
+                                                </strong>
+
+                                                <ul>
+                                                    <li v-if="vol.hasOwnProperty('name')">
+                                                        <strong class="label">Name:</strong>
+                                                        <span class="value">{{ vol.name }}</span>
+                                                    </li>
+                                                    <li v-if="vol.hasOwnProperty('emptyDir') && Object.keys(vol.emptyDir).length && (!isNull(vol.emptyDir.medium) || !isNull(vol.emptyDir.sizeLimit))">
+                                                        <strong class="sectionTitle">
+                                                            Empty Directory
+                                                        </strong>
+
+                                                        <ul>
+                                                            <li v-if="vol.emptyDir.hasOwnProperty('medium') && !isNull(vol.emptyDir.medium)">
+                                                                <strong class="label">Medium:</strong>
+                                                                <span class="value">{{ vol.emptyDir.medium }}</span>
+                                                            </li>
+                                                            <li v-if="vol.emptyDir.hasOwnProperty('sizeLimit') && !isNull(vol.emptyDir.sizeLimit)">
+                                                                <strong class="label">Size Limit:</strong>
+                                                                <span class="value">{{ vol.emptyDir.sizeLimit }}</span>
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                    <li v-if="vol.hasOwnProperty('configMap') && Object.keys(vol.configMap).length">
+                                                        <strong class="sectionTitle">
+                                                            Config Map
+                                                        </strong>
+
+                                                        <ul>
+                                                            <li v-if="vol.configMap.hasOwnProperty('name') && !isNull(vol.configMap.name)">
+                                                                <strong class="label">Name:</strong>
+                                                                <span class="value">{{ vol.configMap.name }}</span>
+                                                            </li>
+                                                            <li v-if="vol.configMap.hasOwnProperty('optional')">
+                                                                <strong class="label">Optional:</strong>
+                                                                <span class="value">{{ isEnabled(vol.configMap.optional) }}</span>
+                                                            </li>
+                                                            <li v-if="vol.configMap.hasOwnProperty('defaultMode') && !isNull(vol.configMap.defaultMode)">
+                                                                <strong class="label">Default Mode:</strong>
+                                                                <span class="value">{{ vol.configMap.defaultMode }}</span>
+                                                            </li>
+                                                            <li v-if="vol.configMap.hasOwnProperty('items') && vol.configMap.items.length">
+                                                                <strong class="sectionTitle">
+                                                                    Items
+                                                                </strong>
+
+                                                                <ul>
+                                                                    <template v-for="(item, index) in vol.configMap.items">
+                                                                        <li :key="index">
+                                                                            <strong class="sectionTitle">
+                                                                                Item #{{ index + 1 }}
+                                                                            </strong>
+
+                                                                            <ul>
+                                                                                <li v-if="item.hasOwnProperty('key') && !isNull(item.key)">
+                                                                                    <strong class="label">Key:</strong>
+                                                                                    <span class="value">{{ item.key }}</span>
+                                                                                </li>
+                                                                                <li v-if="item.hasOwnProperty('mode') && !isNull(item.mode)">
+                                                                                    <strong class="label">Mode:</strong>
+                                                                                    <span class="value">{{ item.mode }}</span>
+                                                                                </li>
+                                                                                <li v-if="item.hasOwnProperty('path') && !isNull(item.path)">
+                                                                                    <strong class="label">Path:</strong>
+                                                                                    <span class="value">{{ item.path }}</span>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                    </template>
+                                                                </ul>
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                    <li v-if="vol.hasOwnProperty('secret') && Object.keys(vol.secret).length">
+                                                        <strong class="sectionTitle">
+                                                            Secret
+                                                        </strong>
+
+                                                        <ul>
+                                                            <li v-if="vol.secret.hasOwnProperty('name') && !isNull(vol.secret.secretName)">
+                                                                <strong class="label">Secret Name:</strong>
+                                                                <span class="value">{{ vol.secret.secretName }}</span>
+                                                            </li>
+                                                            <li v-if="vol.secret.hasOwnProperty('optional')">
+                                                                <strong class="label">Optional:</strong>
+                                                                <span class="value">{{ isEnabled(vol.secret.optional) }}</span>
+                                                            </li>
+                                                            <li v-if="vol.secret.hasOwnProperty('defaultMode') && !isNull(vol.secret.defaultMode)">
+                                                                <strong class="label">Default Mode:</strong>
+                                                                <span class="value">{{ vol.secret.defaultMode }}</span>
+                                                            </li>
+                                                            <li v-if="vol.secret.hasOwnProperty('items') && vol.secret.items.length">
+                                                                <strong class="sectionTitle">
+                                                                    Items
+                                                                </strong>
+
+                                                                <ul>
+                                                                    <template v-for="(item, index) in vol.secret.items">
+                                                                        <li :key="index">
+                                                                            <strong class="sectionTitle">
+                                                                                Item #{{ index + 1 }}
+                                                                            </strong>
+
+                                                                            <ul>
+                                                                                <li v-if="item.hasOwnProperty('key') && !isNull(item.key)">
+                                                                                    <strong class="label">Key:</strong>
+                                                                                    <span class="value">{{ item.key }}</span>
+                                                                                </li>
+                                                                                <li v-if="item.hasOwnProperty('mode') && !isNull(item.mode)">
+                                                                                    <strong class="label">Mode:</strong>
+                                                                                    <span class="value">{{ item.mode }}</span>
+                                                                                </li>
+                                                                                <li v-if="item.hasOwnProperty('path') && !isNull(item.path)">
+                                                                                    <strong class="label">Path:</strong>
+                                                                                    <span class="value">{{ item.path }}</span>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                    </template>
+                                                                </ul>
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </li>
+                                <li v-if="cluster.data.spec.pods.hasOwnProperty('customInitContainers') && !isNull(cluster.data.spec.pods.customInitContainers)">
+                                    <strong class="sectionTitle">
+                                        Custom Init Containers
+                                    </strong>
+
+                                    <ul>
+                                        <template v-for="(container, index) in cluster.data.spec.pods.customInitContainers">
+                                            <li :key="'container-' + index">
+                                                <strong class="sectionTitle">
+                                                    Init Container #{{ index + 1 }}
+                                                </strong>
+
+                                                <ul>
+                                                    <li v-if="container.hasOwnProperty('name') && !isNull(container.name)">
+                                                        <strong class="label">Name:</strong>
+                                                        <span class="value">{{ container.name }}</span>
+                                                    </li>
+                                                    <li v-if="container.hasOwnProperty('image') && !isNull(container.image)">
+                                                        <strong class="label">Image:</strong>
+                                                        <span class="value">{{ container.image }}</span>
+                                                    </li>
+                                                    <li v-if="container.hasOwnProperty('imagePullPolicy') && !isNull(container.imagePullPolicy)">
+                                                        <strong class="label">Image Pull Policy:</strong>
+                                                        <span class="value">{{ container.imagePullPolicy }}</span>
+                                                    </li>
+                                                    <li v-if="container.hasOwnProperty('workingDir') && !isNull(container.workingDir)">
+                                                        <strong class="label">Working Directory:</strong>
+                                                        <span class="value">{{ container.workingDir }}</span>
+                                                    </li>
+                                                    <li v-if="container.hasOwnProperty('args') && !isNull(container.args)">
+                                                        <strong class="sectionTitle">
+                                                            Arguments
+                                                        </strong>
+
+                                                        <ul>
+                                                            <template v-for="(arg, aIndex) in container.args">
+                                                                <li :key="'argument-' + index + '-' + aIndex">
+                                                                    <span class="value">{{ arg }}</span>
+                                                                </li>
+                                                            </template>
+                                                        </ul>
+                                                    </li>
+                                                    <li v-if="container.hasOwnProperty('command') && !isNull(container.command)">
+                                                        <strong class="sectionTitle">
+                                                            Command
+                                                        </strong>
+
+                                                        <ul>
+                                                            <template v-for="(command, cIndex) in container.command">
+                                                                <li :key="'command-' + index + '-' + cIndex">
+                                                                    <span class="value">{{ command }}</span>
+                                                                </li>
+                                                            </template>
+                                                        </ul>
+                                                    </li>
+                                                    <li v-if="container.hasOwnProperty('env') && !isNull(container.env)">
+                                                        <strong class="sectionTitle">
+                                                            Environment Variables
+                                                        </strong>
+
+                                                        <ul>
+                                                            <template v-for="(envVar, vIndex) in container.env">
+                                                                <li :key="'var-' + index + '-' + vIndex">
+                                                                    <strong class="label">{{ envVar.name }}:</strong>
+                                                                    <span class="value">{{ envVar.value }}</span>
+                                                                </li>
+                                                            </template>
+                                                        </ul>
+                                                    </li>
+                                                    <li v-if="container.hasOwnProperty('ports') && !isNull(container.ports)">
+                                                        <strong class="sectionTitle">
+                                                            Ports
+                                                        </strong>
+
+                                                        <ul>
+                                                            <template v-for="(port, pIndex) in container.ports">
+                                                                <li :key="'port-' + index + '-' + pIndex">
+                                                                    <strong class="sectionTitle">
+                                                                        Port #{{ pIndex + 1 }}
+                                                                    </strong>
+
+                                                                    <ul>
+                                                                        <li v-if="port.hasOwnProperty('name') && !isNull(port.name)">
+                                                                            <strong class="label">Name:</strong>
+                                                                            <span class="value">{{ port.name }}</span>
+                                                                        </li>
+                                                                        <li v-if="port.hasOwnProperty('hostIP') && !isNull(port.hostIP)">
+                                                                            <strong class="label">Host IP:</strong>
+                                                                            <span class="value">{{ port.hostIP }}</span>
+                                                                        </li>
+                                                                        <li v-if="port.hasOwnProperty('hostPort') && !isNull(port.hostPort)">
+                                                                            <strong class="label">Host Port:</strong>
+                                                                            <span class="value">{{ port.hostPort }}</span>
+                                                                        </li>
+                                                                        <li v-if="port.hasOwnProperty('containerPort') && !isNull(port.containerPort)">
+                                                                            <strong class="label">Container Port:</strong>
+                                                                            <span class="value">{{ port.containerPort }}</span>
+                                                                        </li>
+                                                                        <li v-if="port.hasOwnProperty('protocol') && !isNull(port.protocol)">
+                                                                            <strong class="label">Protocol:</strong>
+                                                                            <span class="value">{{ port.protocol }}</span>
+                                                                        </li>
+                                                                    </ul>
+                                                                </li>
+                                                            </template>
+                                                        </ul>
+                                                    </li>
+                                                    <li v-if="container.hasOwnProperty('volumeMounts') && !isNull(container.volumeMounts)">
+                                                        <strong class="sectionTitle">
+                                                            Volume Mounts
+                                                        </strong>
+
+                                                        <ul>
+                                                            <template v-for="(vol, vIndex) in container.volumeMounts">
+                                                                <li :key="'vol-' + index + '-' + vIndex">
+                                                                    <strong class="sectionTitle">
+                                                                        Volume #{{ vIndex + 1 }}
+                                                                    </strong>
+
+                                                                    <ul>
+                                                                        <li v-if="vol.hasOwnProperty('name') && !isNull(vol.name)">
+                                                                            <strong class="label">Name:</strong>
+                                                                            <span class="value">{{ vol.name }}</span>
+                                                                        </li>
+                                                                        <li v-if="vol.hasOwnProperty('readOnly')">
+                                                                            <strong class="label">Read Only:</strong>
+                                                                            <span class="value">{{ isEnabled(vol.readOnly) }}</span>
+                                                                        </li>
+                                                                        <li v-if="vol.hasOwnProperty('mountPath') && !isNull(vol.mountPath)">
+                                                                            <strong class="label">Mount Path:</strong>
+                                                                            <span class="value">{{ vol.mountPath }}</span>
+                                                                        </li>
+                                                                        <li v-if="vol.hasOwnProperty('mountPropagation') && !isNull(vol.mountPropagation)">
+                                                                            <strong class="label">Mount Propagation:</strong>
+                                                                            <span class="value">{{ vol.mountPropagation }}</span>
+                                                                        </li>
+                                                                        <li v-if="vol.hasOwnProperty('subPath') && !isNull(vol.subPath)">
+                                                                            <strong class="label">Sub Path:</strong>
+                                                                            <span class="value">{{ vol.subPath }}</span>
+                                                                        </li>
+                                                                        <li v-if="vol.hasOwnProperty('subPathExpr') && !isNull(vol.subPathExpr)">
+                                                                            <strong class="label">Sub Path Expr:</strong>
+                                                                            <span class="value">{{ vol.subPathExpr }}</span>
+                                                                        </li>
+                                                                    </ul>
+                                                                </li>
+                                                            </template>
+                                                        </ul>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </li>
+                                <li v-if="cluster.data.spec.pods.hasOwnProperty('customContainers') && !isNull(cluster.data.spec.pods.customContainers)">
+                                    <strong class="sectionTitle">
+                                        Custom Containers
+                                    </strong>
+
+                                    <ul>
+                                        <template v-for="(container, index) in cluster.data.spec.pods.customContainers">
+                                            <li :key="'container-' + index">
+                                                <strong class="sectionTitle">
+                                                    Container #{{ index + 1 }}
+                                                </strong>
+
+                                                <ul>
+                                                    <li v-if="container.hasOwnProperty('name') && !isNull(container.name)">
+                                                        <strong class="label">Name:</strong>
+                                                        <span class="value">{{ container.name }}</span>
+                                                    </li>
+                                                    <li v-if="container.hasOwnProperty('image') && !isNull(container.image)">
+                                                        <strong class="label">Image:</strong>
+                                                        <span class="value">{{ container.image }}</span>
+                                                    </li>
+                                                    <li v-if="container.hasOwnProperty('imagePullPolicy') && !isNull(container.imagePullPolicy)">
+                                                        <strong class="label">Image Pull Policy:</strong>
+                                                        <span class="value">{{ container.imagePullPolicy }}</span>
+                                                    </li>
+                                                    <li v-if="container.hasOwnProperty('workingDir') && !isNull(container.workingDir)">
+                                                        <strong class="label">Working Directory:</strong>
+                                                        <span class="value">{{ container.workingDir }}</span>
+                                                    </li>
+                                                    <li v-if="container.hasOwnProperty('args') && !isNull(container.args)">
+                                                        <strong class="sectionTitle">
+                                                            Arguments
+                                                        </strong>
+
+                                                        <ul>
+                                                            <template v-for="(arg, aIndex) in container.args">
+                                                                <li :key="'argument-' + index + '-' + aIndex">
+                                                                    <span class="value">{{ arg }}</span>
+                                                                </li>
+                                                            </template>
+                                                        </ul>
+                                                    </li>
+                                                    <li v-if="container.hasOwnProperty('command') && !isNull(container.command)">
+                                                        <strong class="sectionTitle">
+                                                            Command
+                                                        </strong>
+
+                                                        <ul>
+                                                            <template v-for="(command, cIndex) in container.command">
+                                                                <li :key="'command-' + index + '-' + cIndex">
+                                                                    <span class="value">{{ command }}</span>
+                                                                </li>
+                                                            </template>
+                                                        </ul>
+                                                    </li>
+                                                    <li v-if="container.hasOwnProperty('env') && !isNull(container.env)">
+                                                        <strong class="sectionTitle">
+                                                            Environment Variables
+                                                        </strong>
+
+                                                        <ul>
+                                                            <template v-for="(envVar, vIndex) in container.env">
+                                                                <li :key="'var-' + index + '-' + vIndex">
+                                                                    <strong class="label">{{ envVar.name }}:</strong>
+                                                                    <span class="value">{{ envVar.value }}</span>
+                                                                </li>
+                                                            </template>
+                                                        </ul>
+                                                    </li>
+                                                    <li v-if="container.hasOwnProperty('ports') && !isNull(container.ports)">
+                                                        <strong class="sectionTitle">
+                                                            Ports
+                                                        </strong>
+
+                                                        <ul>
+                                                            <template v-for="(port, pIndex) in container.ports">
+                                                                <li :key="'port-' + index + '-' + pIndex">
+                                                                    <strong class="sectionTitle">
+                                                                        Port #{{ pIndex + 1 }}
+                                                                    </strong>
+
+                                                                    <ul>
+                                                                        <li v-if="port.hasOwnProperty('name') && !isNull(port.name)">
+                                                                            <strong class="label">Name:</strong>
+                                                                            <span class="value">{{ port.name }}</span>
+                                                                        </li>
+                                                                        <li v-if="port.hasOwnProperty('hostIP') && !isNull(port.hostIP)">
+                                                                            <strong class="label">Host IP:</strong>
+                                                                            <span class="value">{{ port.hostIP }}</span>
+                                                                        </li>
+                                                                        <li v-if="port.hasOwnProperty('hostPort') && !isNull(port.hostPort)">
+                                                                            <strong class="label">Host Port:</strong>
+                                                                            <span class="value">{{ port.hostPort }}</span>
+                                                                        </li>
+                                                                        <li v-if="port.hasOwnProperty('containerPort') && !isNull(port.containerPort)">
+                                                                            <strong class="label">Container Port:</strong>
+                                                                            <span class="value">{{ port.containerPort }}</span>
+                                                                        </li>
+                                                                        <li v-if="port.hasOwnProperty('protocol') && !isNull(port.protocol)">
+                                                                            <strong class="label">Protocol:</strong>
+                                                                            <span class="value">{{ port.protocol }}</span>
+                                                                        </li>
+                                                                    </ul>
+                                                                </li>
+                                                            </template>
+                                                        </ul>
+                                                    </li>
+                                                    <li v-if="container.hasOwnProperty('volumeMounts') && !isNull(container.volumeMounts)">
+                                                        <strong class="sectionTitle">
+                                                            Volume Mounts
+                                                        </strong>
+
+                                                        <ul>
+                                                            <template v-for="(vol, vIndex) in container.volumeMounts">
+                                                                <li :key="'vol-' + index + '-' + vIndex">
+                                                                    <strong class="sectionTitle">
+                                                                        Volume #{{ vIndex + 1 }}
+                                                                    </strong>
+
+                                                                    <ul>
+                                                                        <li v-if="vol.hasOwnProperty('name') && !isNull(vol.name)">
+                                                                            <strong class="label">Name:</strong>
+                                                                            <span class="value">{{ vol.name }}</span>
+                                                                        </li>
+                                                                        <li v-if="vol.hasOwnProperty('readOnly')">
+                                                                            <strong class="label">Read Only:</strong>
+                                                                            <span class="value">{{ isEnabled(vol.readOnly) }}</span>
+                                                                        </li>
+                                                                        <li v-if="vol.hasOwnProperty('mountPath') && !isNull(vol.mountPath)">
+                                                                            <strong class="label">Mount Path:</strong>
+                                                                            <span class="value">{{ vol.mountPath }}</span>
+                                                                        </li>
+                                                                        <li v-if="vol.hasOwnProperty('mountPropagation') && !isNull(vol.mountPropagation)">
+                                                                            <strong class="label">Mount Propagation:</strong>
+                                                                            <span class="value">{{ vol.mountPropagation }}</span>
+                                                                        </li>
+                                                                        <li v-if="vol.hasOwnProperty('subPath') && !isNull(vol.subPath)">
+                                                                            <strong class="label">Sub Path:</strong>
+                                                                            <span class="value">{{ vol.subPath }}</span>
+                                                                        </li>
+                                                                        <li v-if="vol.hasOwnProperty('subPathExpr') && !isNull(vol.subPathExpr)">
+                                                                            <strong class="label">Sub Path Expr:</strong>
+                                                                            <span class="value">{{ vol.subPathExpr }}</span>
+                                                                        </li>
+                                                                    </ul>
+                                                                </li>
+                                                            </template>
+                                                        </ul>
+                                                    </li>
+                                                </ul>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+
                     <ul class="section" v-if="( showDefaults || ( (cluster.data.spec.replication.role != 'ha-read') || (cluster.data.spec.replication.mode != 'async') || cluster.data.spec.replication.hasOwnProperty('groups') ) )">
                         <li>
                             <strong class="sectionTitle">
@@ -720,15 +1195,15 @@
                                                 <li v-for="(port, index) in cluster.data.spec.postgresServices.primary.customPorts">
                                                     <strong class="sectionTitle">Port #{{ index + 1 }}</strong>
                                                     <ul>
-                                                        <li v-if="port.hasOwnProperty('appProtocol')">
+                                                        <li v-if="port.hasOwnProperty('appProtocol') && (port.appProtocol != null)">
                                                             <strong class="label">Application Protocol:</strong>
                                                             <span class="value">{{ port.appProtocol }}</span>
                                                         </li>
-                                                        <li v-if="port.hasOwnProperty('name')">
+                                                        <li v-if="port.hasOwnProperty('name') && (port.name != null)">
                                                             <strong class="label">Name:</strong>
                                                             <span class="value">{{ port.name }}</span>
                                                         </li>
-                                                        <li v-if="port.hasOwnProperty('nodePort')">
+                                                        <li v-if="port.hasOwnProperty('nodePort') && (port.nodePort != null)">
                                                             <strong class="label">Node Port:</strong>
                                                             <span class="value">{{ port.nodePort }}</span>
                                                         </li>
@@ -736,11 +1211,11 @@
                                                             <strong class="label">Port:</strong>
                                                             <span class="value">{{ port.port }}</span>
                                                         </li>
-                                                        <li v-if="port.hasOwnProperty('protocol')">
+                                                        <li v-if="port.hasOwnProperty('protocol') && (port.protocol != null)">
                                                             <strong class="label">Protocol:</strong>
                                                             <span class="value">{{ port.protocol }}</span>
                                                         </li>
-                                                        <li v-if="port.hasOwnProperty('targetPort')">
+                                                        <li v-if="port.hasOwnProperty('targetPort') && (port.targetPort != null)">
                                                             <strong class="label">Target Port:</strong>
                                                             <span class="value">{{ port.targetPort }}</span>
                                                         </li>
@@ -769,15 +1244,15 @@
                                                 <li v-for="(port, index) in cluster.data.spec.postgresServices.replicas.customPorts">
                                                     <strong class="sectionTitle">Port #{{ index + 1 }}</strong>
                                                     <ul>
-                                                        <li v-if="port.hasOwnProperty('appProtocol')">
+                                                        <li v-if="port.hasOwnProperty('appProtocol') && (port.appProtocol != null)">
                                                             <strong class="label">Application Protocol:</strong>
                                                             <span class="value">{{ port.appProtocol }}</span>
                                                         </li>
-                                                        <li v-if="port.hasOwnProperty('name')">
+                                                        <li v-if="port.hasOwnProperty('name') && (port.name != null)">
                                                             <strong class="label">Name:</strong>
                                                             <span class="value">{{ port.name }}</span>
                                                         </li>
-                                                        <li v-if="port.hasOwnProperty('nodePort')">
+                                                        <li v-if="port.hasOwnProperty('nodePort') && (port.nodePort != null)">
                                                             <strong class="label">Node Port:</strong>
                                                             <span class="value">{{ port.nodePort }}</span>
                                                         </li>
@@ -785,11 +1260,11 @@
                                                             <strong class="label">Port:</strong>
                                                             <span class="value">{{ port.port }}</span>
                                                         </li>
-                                                        <li v-if="port.hasOwnProperty('protocol')">
+                                                        <li v-if="port.hasOwnProperty('protocol') && (port.protocol != null)">
                                                             <strong class="label">Protocol:</strong>
                                                             <span class="value">{{ port.protocol }}</span>
                                                         </li>
-                                                        <li v-if="port.hasOwnProperty('targetPort')">
+                                                        <li v-if="port.hasOwnProperty('targetPort') && (port.targetPort != null)">
                                                             <strong class="label">Target Port:</strong>
                                                             <span class="value">{{ port.targetPort }}</span>
                                                         </li>

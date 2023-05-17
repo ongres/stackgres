@@ -5,18 +5,10 @@
 
 package io.stackgres.operator.mutation.script;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.util.ArrayList;
-import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.fge.jsonpatch.JsonPatch;
-import com.github.fge.jsonpatch.JsonPatchException;
-import com.github.fge.jsonpatch.JsonPatchOperation;
-import com.github.fge.jsonpatch.ReplaceOperation;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntryStatus;
@@ -36,109 +28,81 @@ class ScriptsConfigMutatorTest {
   private ScriptsConfigMutator mutator = new ScriptsConfigMutator();
 
   @Test
-  void createScriptAlreadyValid_shouldDoNothing() throws JsonPatchException {
-    StackGresScriptReview review = AdmissionReviewFixtures.script()
-        .loadCreate().get();
+  void createScriptAlreadyValid_shouldDoNothing() {
+    StackGresScriptReview review = AdmissionReviewFixtures.script().loadCreate().get();
 
     JsonNode expectedScript = JsonUtil.toJson(review.getRequest().getObject());
 
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
+    StackGresScript result = mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
-
-    assertTrue(operations.isEmpty());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualScript = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedScript, actualScript);
+    JsonUtil.assertJsonEquals(
+        JsonUtil.toJson(expectedScript),
+        JsonUtil.toJson(result));
   }
 
   @Test
-  void createScriptWithNullManagedVersions_shouldSetItToTrue() throws JsonPatchException {
-    StackGresScriptReview review = AdmissionReviewFixtures.script()
-        .loadCreate().get();
+  void createScriptWithNullManagedVersions_shouldSetItToTrue() {
+    StackGresScriptReview review = AdmissionReviewFixtures.script().loadCreate().get();
 
     JsonNode expectedScript = JsonUtil.toJson(review.getRequest().getObject());
 
     review.getRequest().getObject().getSpec().setManagedVersions(null);
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresScript result = mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(1, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualScript = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedScript, actualScript);
+    JsonUtil.assertJsonEquals(
+        expectedScript,
+        JsonUtil.toJson(result));
   }
 
   @Test
-  void createScriptWithFalseManagedVersions_shouldDoNothing() throws JsonPatchException {
-    StackGresScriptReview review = AdmissionReviewFixtures.script()
-        .loadCreate().get();
+  void createScriptWithFalseManagedVersions_shouldDoNothing() {
+    StackGresScriptReview review = AdmissionReviewFixtures.script().loadCreate().get();
     review.getRequest().getObject().getSpec().setManagedVersions(false);
 
     JsonNode expectedScript = JsonUtil.toJson(review.getRequest().getObject());
 
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
+    StackGresScript result = mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
-
-    assertTrue(operations.isEmpty());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualScript = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedScript, actualScript);
+    JsonUtil.assertJsonEquals(
+        expectedScript,
+        JsonUtil.toJson(result));
   }
 
   @Test
-  void createScriptWithoutScriptsAndScriptsStatuses_shouldDoNothing() throws JsonPatchException {
+  void createScriptWithoutScriptsAndScriptsStatuses_shouldDoNothing() {
     StackGresScriptReview review = AdmissionReviewFixtures.script()
         .loadCreate().get();
     review.getRequest().getObject().getSpec().setScripts(null);
-    review.getRequest().getObject().getStatus().setScripts(null);
+    review.getRequest().getObject().getStatus().setScripts(new ArrayList<>());
 
     JsonNode expectedScript = JsonUtil.toJson(review.getRequest().getObject());
 
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
+    StackGresScript result = mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
-
-    assertTrue(operations.isEmpty());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualScript = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedScript, actualScript);
+    JsonUtil.assertJsonEquals(
+        expectedScript,
+        JsonUtil.toJson(result));
   }
 
   @Test
-  void createScriptWithoutScriptsAndStatus_shouldDoNothing() throws JsonPatchException {
+  void createScriptWithoutScriptsAndStatus_shouldDoNothing() {
     StackGresScriptReview review = AdmissionReviewFixtures.script()
         .loadCreate().get();
     review.getRequest().getObject().getSpec().setScripts(null);
-    review.getRequest().getObject().setStatus(null);
+    review.getRequest().getObject().setStatus(new StackGresScriptStatus());
 
     JsonNode expectedScript = JsonUtil.toJson(review.getRequest().getObject());
 
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
+    StackGresScript result = mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
-
-    assertTrue(operations.isEmpty());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualScript = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedScript, actualScript);
+    JsonUtil.assertJsonEquals(
+        expectedScript,
+        JsonUtil.toJson(result));
   }
 
   @Test
-  void createScriptWithouIds_shouldAddThem() throws JsonPatchException {
+  void createScriptWithouIds_shouldAddThem() {
     StackGresScriptReview review = AdmissionReviewFixtures.script()
         .loadCreate().get();
 
@@ -148,40 +112,29 @@ class ScriptsConfigMutatorTest {
         .forEach(scriptEntry -> scriptEntry.setId(null));
     review.getRequest().getObject().setStatus(new StackGresScriptStatus());
 
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
+    StackGresScript result = mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
-
-    assertEquals(2, operations.size());
-    assertEquals(2, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualScript = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedScript, actualScript);
+    JsonUtil.assertJsonEquals(
+        expectedScript,
+        JsonUtil.toJson(result));
   }
 
   @Test
-  void updateScriptWithoutModification_shouldDoNothing() throws JsonPatchException {
+  void updateScriptWithoutModification_shouldDoNothing() {
     StackGresScriptReview review = AdmissionReviewFixtures.script()
         .loadUpdate().get();
 
     JsonNode expectedScript = JsonUtil.toJson(review.getRequest().getObject());
 
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
+    StackGresScript result = mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
-
-    assertTrue(operations.isEmpty());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualScript = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedScript, actualScript);
+    JsonUtil.assertJsonEquals(
+        expectedScript,
+        JsonUtil.toJson(result));
   }
 
   @Test
-  void updateScriptRemovingScripts_shouldRemoveTheScriptsStatuses() throws JsonPatchException {
+  void updateScriptRemovingScripts_shouldRemoveTheScriptsStatuses() {
     StackGresScriptReview review = AdmissionReviewFixtures.script()
         .loadUpdate().get();
     review.getRequest().getObject().getSpec().setScripts(null);
@@ -191,43 +144,32 @@ class ScriptsConfigMutatorTest {
     expected.getStatus().setScripts(new ArrayList<>());
     JsonNode expectedScript = JsonUtil.toJson(expected);
 
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
+    StackGresScript result = mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
-
-    assertEquals(1, operations.size());
-    assertEquals(1, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualScript = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedScript, actualScript);
+    JsonUtil.assertJsonEquals(
+        expectedScript,
+        JsonUtil.toJson(result));
   }
 
   @Test
-  void updateScriptWithoutStatusAndScriptsStatuses_shouldDoNothing() throws JsonPatchException {
+  void updateScriptWithoutStatusAndScriptsStatuses_shouldDoNothing() {
     StackGresScriptReview review = AdmissionReviewFixtures.script()
         .loadUpdate().get();
     review.getRequest().getObject().getSpec().setScripts(null);
-    review.getRequest().getObject().getStatus().setScripts(null);
+    review.getRequest().getObject().getStatus().setScripts(new ArrayList<>());
     review.getRequest().getOldObject().getSpec().setScripts(null);
 
     JsonNode expectedScript = JsonUtil.toJson(review.getRequest().getObject());
 
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
+    StackGresScript result = mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
-
-    assertTrue(operations.isEmpty());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualScript = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedScript, actualScript);
+    JsonUtil.assertJsonEquals(
+        expectedScript,
+        JsonUtil.toJson(result));
   }
 
   @Test
-  void updateScriptAddingAnEntry_shouldSetIdAndVersion() throws JsonPatchException {
+  void updateScriptAddingAnEntry_shouldSetIdAndVersion() {
     StackGresScriptReview review = AdmissionReviewFixtures.script()
         .loadUpdate().get();
     review.getRequest().getObject().getSpec().getScripts().add(1, new StackGresScriptEntry());
@@ -239,21 +181,15 @@ class ScriptsConfigMutatorTest {
     expected.getStatus().getScripts().get(1).setId(3);
     JsonNode expectedScript = JsonUtil.toJson(expected);
 
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
+    StackGresScript result = mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
-
-    assertEquals(2, operations.size());
-    assertEquals(2, operations.stream().filter(o -> o instanceof ReplaceOperation).count());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualScript = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedScript, actualScript);
+    JsonUtil.assertJsonEquals(
+        expectedScript,
+        JsonUtil.toJson(result));
   }
 
   @Test
-  void updateScriptRemovingAnEntryAndItsStatus_shouldDoNothing() throws JsonPatchException {
+  void updateScriptRemovingAnEntryAndItsStatus_shouldDoNothing() {
     StackGresScriptReview review = AdmissionReviewFixtures.script()
         .loadUpdate().get();
     review.getRequest().getObject().getSpec().getScripts().remove(1);
@@ -261,16 +197,11 @@ class ScriptsConfigMutatorTest {
 
     JsonNode expectedScript = JsonUtil.toJson(review.getRequest().getObject());
 
-    JsonNode crJson = JsonUtil.toJson(review.getRequest().getObject());
+    StackGresScript result = mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
-
-    assertTrue(operations.isEmpty());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode actualScript = jp.apply(crJson);
-
-    JsonUtil.assertJsonEquals(expectedScript, actualScript);
+    JsonUtil.assertJsonEquals(
+        expectedScript,
+        JsonUtil.toJson(result));
   }
 
 }

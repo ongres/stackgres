@@ -96,7 +96,7 @@
 							</h2>
 							<table>
 								<tbody>
-									<tr v-for="param in conf.data.status.pgBouncer['pgbouncer.ini']" v-if="!conf.data.status.pgBouncer.defaultParameters.hasOwnProperty(param.parameter)">
+									<tr v-for="param in conf.data.status.pgBouncer['pgbouncer.ini']" v-if="(!conf.data.status.pgBouncer.defaultParameters.hasOwnProperty(param.parameter) || (conf.data.status.pgBouncer.defaultParameters.hasOwnProperty(param.parameter) && (conf.data.status.pgBouncer.defaultParameters[param.parameter] != param.value)) )">
 										<td class="label">
 											{{ param.parameter }}
 										</td>
@@ -115,7 +115,7 @@
 							</h2>
 							<table class="defaultParams">
 								<tbody>
-									<tr v-for="param in conf.data.status.pgBouncer['pgbouncer.ini']" v-if="conf.data.status.pgBouncer.defaultParameters.hasOwnProperty(param.parameter)">
+									<tr v-for="param in conf.data.status.pgBouncer['pgbouncer.ini']" v-if="( conf.data.status.pgBouncer.defaultParameters.hasOwnProperty(param.parameter) && (conf.data.status.pgBouncer.defaultParameters[param.parameter] == param.value))">
 										<td class="label">
 											{{ param.parameter }}
 										</td>

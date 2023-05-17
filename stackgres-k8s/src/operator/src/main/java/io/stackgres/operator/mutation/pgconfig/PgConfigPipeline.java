@@ -5,34 +5,23 @@
 
 package io.stackgres.operator.mutation.pgconfig;
 
-import java.util.Collection;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
+import io.stackgres.operator.mutation.AbstractMutationPipeline;
 
 @ApplicationScoped
-public class PgConfigPipeline implements JsonPatchMutationPipeline<PgConfigReview> {
-
-  private final Instance<PgConfigMutator> mutators;
+public class PgConfigPipeline
+    extends AbstractMutationPipeline<StackGresPostgresConfig, PgConfigReview> {
 
   @Inject
-  public PgConfigPipeline(Instance<PgConfigMutator> mutators) {
-    this.mutators = mutators;
+  public PgConfigPipeline(
+      @Any Instance<PgConfigMutator> mutators) {
+    super(mutators);
   }
 
-  @Override
-  public Optional<String> mutate(PgConfigReview review) {
-    return mutators.stream()
-        .sorted(JsonPatchMutationPipeline.weightComparator())
-        .map(m -> m.mutate(review))
-        .flatMap(Collection::stream)
-        .collect(Collectors.collectingAndThen(Collectors.toList(),
-            JsonPatchMutationPipeline::join));
-  }
 }

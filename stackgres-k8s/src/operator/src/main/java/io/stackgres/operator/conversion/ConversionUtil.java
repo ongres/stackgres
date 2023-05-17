@@ -44,7 +44,6 @@ public interface ConversionUtil {
   /**
    * Extract the StackGres API version and convert it to a number that allow
    * to obtain an absolute ordering among all versions.
-   * <p>
    * The conversion algorithm uses following format:
    * <pre>
    *                       0000000000 00 0000000000
@@ -68,10 +67,9 @@ public interface ConversionUtil {
    * </pre>
    * so that, for example, following statements will result to `true`:
    * <pre>
-   *   apiVersionAsNumber("stackgres.io/v1") > apiVersionAsNumber("stackgres.io/v1beta1");
-   *   apiVersionAsNumber("stackgres.io/v1beta1") < apiVersionAsNumber("stackgres.io/v1");
+   *   apiVersionAsNumber("stackgres.io/v1") &gt; apiVersionAsNumber("stackgres.io/v1beta1");
+   *   apiVersionAsNumber("stackgres.io/v1beta1") &lt; apiVersionAsNumber("stackgres.io/v1");
    * </pre>
-   * </p>
    */
   static long apiVersionAsNumber(String apiVersion) {
     if (!apiVersion.startsWith(API_VERSION_PREFIX)) {

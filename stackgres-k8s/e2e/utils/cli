@@ -439,15 +439,15 @@ cli() {
   fi
   if "$DO_BUILD"
   then
-    E2E_BUILD_IMAGES=true E2E_PUSH_IMAGES=false setup_images
+    E2E_BUILD_IMAGES=true E2E_PUSH_IMAGES=false "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" setup_images
   fi
   if "$DO_PUSH"
   then
-    E2E_BUILD_IMAGES=false E2E_PUSH_IMAGES=true setup_images
+    E2E_BUILD_IMAGES=false E2E_PUSH_IMAGES=true "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" setup_images
   fi
   if "$DO_TEST"
   then
-    if ! "$E2E_USE_TEST_CACHE"
+    if [ "$E2E_USE_TEST_CACHE" != true ]
     then
       E2E_TEST_REGISTRY=
       E2E_TEST_REGISTRY_PATH=

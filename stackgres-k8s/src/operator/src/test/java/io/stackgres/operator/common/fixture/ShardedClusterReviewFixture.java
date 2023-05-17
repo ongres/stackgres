@@ -29,9 +29,20 @@ public class ShardedClusterReviewFixture extends VersionedFixture<StackGresShard
     return this;
   }
 
+  public ShardedClusterReviewFixture loadDistributedLogsUpdate() {
+    fixture = readFromJson(
+        STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_DISTRIBUTED_LOGS_UPDATE_JSON);
+    return this;
+  }
+
   public ShardedClusterReviewFixture loadConnectionPoolingConfigUpdate() {
     fixture = readFromJson(
         STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_CONNECTION_POOLING_CONFIG_UPDATE_JSON);
+    return this;
+  }
+
+  public ShardedClusterReviewFixture loadCreateWithManagedSql() {
+    fixture = readFromJson(STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_CREATE_WITH_MANAGED_SQL_JSON);
     return this;
   }
 
@@ -86,6 +97,17 @@ public class ShardedClusterReviewFixture extends VersionedFixture<StackGresShard
   public ShardedClusterReviewFixture loadStorageClassConfigUpdate() {
     fixture = readFromJson(
         STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_STORAGE_CLASS_CONFIG_UPDATE_JSON);
+    return this;
+  }
+
+  public ShardedClusterReviewFixture loadUpdateWithManagedSql() {
+    fixture = readFromJson(STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_UPDATE_WITH_MANAGED_SQL_JSON);
+    return this;
+  }
+
+  public ShardedClusterReviewFixture loadSslUpdate() {
+    fixture = readFromJson(
+        STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_SSL_UPDATE_JSON);
     return this;
   }
 

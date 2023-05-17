@@ -123,7 +123,7 @@ describe('Create SGCluster', () => {
             })
 
         cy.location('pathname').should('eq', '/admin/' + namespace + '/sgclusters')
-    });
+    }); 
 
     it('Creating a SGCluster with Babelfish should be possible', () => {
         // Test Cluster Name
@@ -177,8 +177,9 @@ describe('Create SGCluster', () => {
             .type('tls.key')
         
         // Test instances
-        cy.get('select[data-field="spec.instances"]')
-            .select('4')
+        cy.get('input[data-field="spec.instances"]')
+            .clear()
+            .type('4')    
         
         // Test Volume Size
         cy.get('input[data-field="spec.pods.persistentVolume.size"]')
@@ -365,6 +366,376 @@ describe('Create SGCluster', () => {
             .click()
 
         cy.get('input[data-field="spec.prometheusAutobind"]')
+            .click()
+
+        // Test User-Supplied Pods Sidecars
+        cy.get('form#createCluster li[data-step="pods"]')
+            .click()
+
+        // Test Custom volumes
+        cy.get('input[data-field="spec.pods.customVolumes[0].name"]')
+            .type('vol1')
+
+        cy.get('select[data-field="spec.pods.customVolumes[0].type"]')
+            .select('emptyDir')
+
+        cy.get('input[data-field="spec.pods.customVolumes[0].emptyDir.medium"]')
+            .type('medium')
+        
+        cy.get('input[data-field="spec.pods.customVolumes[0].emptyDir.sizeLimit"]')
+            .type('sizeLimit')
+        
+        cy.get('fieldset[data-fieldset="spec.pods.customVolumes"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customVolumes[1].name"]')
+            .type('vol2')
+
+        cy.get('select[data-field="spec.pods.customVolumes[1].type"]')
+            .select('configMap')
+
+        cy.get('input[data-field="spec.pods.customVolumes[1].configMap.name"]')
+            .type('name')
+
+        cy.get('input[data-field="spec.pods.customVolumes[1].configMap.optional"]')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customVolumes[1].configMap.defaultMode"]')
+            .type('0')
+        
+        cy.get('input[data-field="spec.pods.customVolumes[1].configMap.items[0].key"]')
+            .type('key1')
+        
+        cy.get('input[data-field="spec.pods.customVolumes[1].configMap.items[0].mode"]')
+            .type('0')
+
+        cy.get('input[data-field="spec.pods.customVolumes[1].configMap.items[0].path"]')
+            .type('path')
+        
+        // Note: Disabled until repeater gets optimized. Causes test to wait and fail
+        /* cy.get('fieldset[data-field="spec.pods.customVolumes[1].configMap.items"] + .fieldsetFooter a.addRow')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customVolumes[1].configMap.items[1].key"]')
+            .type('key2')
+        
+        cy.get('input[data-field="spec.pods.customVolumes[1].configMap.items[1].mode"]')
+            .type('0')
+
+        cy.get('input[data-field="spec.pods.customVolumes[1].configMap.items[1].path"]')
+            .type('path2')
+        
+        cy.get('fieldset[data-field="spec.pods.customVolumes[1].configMap.items"] + .fieldsetFooter a.addRow')
+            .click()
+
+        cy.get('div[data-field="spec.pods.customVolumes[1].configMap.items[2]"] a.delete')
+            .click() */
+
+        cy.get('fieldset[data-fieldset="spec.pods.customVolumes"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customVolumes[2].name"]')
+            .type('vol3')
+
+        cy.get('select[data-field="spec.pods.customVolumes[2].type"]')
+            .select('secret')
+
+        cy.get('input[data-field="spec.pods.customVolumes[2].secret.secretName"]')
+            .type('name')
+
+        cy.get('input[data-field="spec.pods.customVolumes[2].secret.optional"]')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customVolumes[2].secret.defaultMode"]')
+            .type('0')
+        
+        cy.get('input[data-field="spec.pods.customVolumes[2].secret.items[0].key"]')
+            .type('key1')
+        
+        cy.get('input[data-field="spec.pods.customVolumes[2].secret.items[0].mode"]')
+            .type('0')
+
+        cy.get('input[data-field="spec.pods.customVolumes[2].secret.items[0].path"]')
+            .type('path')
+        
+        // Note: Disabled until repeater gets optimized. Causes test to wait and fail
+        /* cy.get('fieldset[data-field="spec.pods.customVolumes[2].secret.items"] + .fieldsetFooter a.addRow')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customVolumes[2].secret.items[1].key"]')
+            .type('key2')
+        
+        cy.get('input[data-field="spec.pods.customVolumes[2].secret.items[1].mode"]')
+            .type('0')
+
+        cy.get('input[data-field="spec.pods.customVolumes[2].secret.items[1].path"]')
+            .type('path2')
+        
+        cy.get('fieldset[data-field="spec.pods.customVolumes[2].secret.items"] + .fieldsetFooter a.addRow')
+            .click()
+
+        cy.get('div[data-field="spec.pods.customVolumes[2].secret.items[2]"] a.delete')
+            .click()
+        */
+
+        // Test Custom Init Containers
+        cy.get('input[data-field="spec.pods.customInitContainers[0].name"]')
+            .type('container1')
+
+        cy.get('input[data-field="spec.pods.customInitContainers[0].image"]')
+            .type('image1')
+
+        cy.get('input[data-field="spec.pods.customInitContainers[0].imagePullPolicy"]')
+            .type('imagePullPolicy1')
+
+        cy.get('input[data-field="spec.pods.customInitContainers[0].workingDir"]')
+            .type('workingDir1')
+        
+        cy.get('input[data-field="spec.pods.customInitContainers[0].args[0]"]')
+            .type('arg1')
+
+        cy.get('fieldset[data-field="spec.pods.customInitContainers[0].args"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customInitContainers[0].args[1]"]')
+            .type('arg2')
+        
+        cy.get('fieldset[data-field="spec.pods.customInitContainers[0].args"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customInitContainers[0].args[2]"] + a.delete')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customInitContainers[0].command[0]"]')
+            .type('command1')
+
+        cy.get('fieldset[data-field="spec.pods.customInitContainers[0].command"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customInitContainers[0].command[1]"]')
+            .type('command2')
+
+        cy.get('fieldset[data-field="spec.pods.customInitContainers[0].command"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customInitContainers[0].command[2]"] + a.delete')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customInitContainers[0].env[0].name"]')
+            .type('var1')
+        
+        cy.get('input[data-field="spec.pods.customInitContainers[0].env[0].value"]')
+            .type('val1')
+
+        cy.get('fieldset[data-field="spec.pods.customInitContainers[0].env"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customInitContainers[0].env[1].name"]')
+            .type('var2')
+        
+        cy.get('input[data-field="spec.pods.customInitContainers[0].env[1].value"]')
+            .type('val2')
+
+        cy.get('fieldset[data-field="spec.pods.customInitContainers[0].env"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('div[data-field="spec.pods.customInitContainers[0].env[2]"] a.delete')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customInitContainers[0].ports[0].name"]')
+            .type('port1')
+
+        cy.get('input[data-field="spec.pods.customInitContainers[0].ports[0].hostIP"]')
+            .type('ip1')
+        
+        cy.get('input[data-field="spec.pods.customInitContainers[0].ports[0].hostPort"]')
+            .type('1')
+
+        cy.get('input[data-field="spec.pods.customInitContainers[0].ports[0].containerPort"]')
+            .type('1')
+        
+        cy.get('select[data-field="spec.pods.customInitContainers[0].ports[0].protocol"]')
+            .select('TCP')
+
+        cy.get('fieldset[data-field="spec.pods.customInitContainers.ports"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customInitContainers[0].ports[1].name"]')
+            .type('port2')
+
+        cy.get('input[data-field="spec.pods.customInitContainers[0].ports[1].hostIP"]')
+            .type('ip2')
+        
+        cy.get('input[data-field="spec.pods.customInitContainers[0].ports[1].hostPort"]')
+            .type('2')
+
+        cy.get('input[data-field="spec.pods.customInitContainers[0].ports[1].containerPort"]')
+            .type('2')
+        
+        cy.get('select[data-field="spec.pods.customInitContainers[0].ports[1].protocol"]')
+            .select('UDP')
+
+        cy.get('fieldset[data-field="spec.pods.customInitContainers.ports"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('div[data-field="spec.pods.customInitContainers[0].ports[2]"] a.delete')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customInitContainers[0].volumeMounts[0].name"]')
+            .type('vol1')
+
+        cy.get('input[data-field="spec.pods.customInitContainers[0].volumeMounts[0].readOnly"]')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customInitContainers[0].volumeMounts[0].mountPath"]')
+            .type('mountPath')
+
+        cy.get('input[data-field="spec.pods.customInitContainers[0].volumeMounts[0].mountPropagation"]')
+            .type('mountPropagation')
+        
+        cy.get('input[data-field="spec.pods.customInitContainers[0].volumeMounts[0].subPath"]')
+            .type('subPath')
+
+        cy.get('fieldset[data-field="spec.pods.customInitContainers[0].volumeMounts"] + .fieldsetFooter a.addRow')
+            .click()
+
+        cy.get('div[data-field="spec.pods.customInitContainers[0].volumeMounts[1]"] a.delete')
+            .click()
+
+        cy.get('fieldset[data-fieldset="spec.pods.customInitContainers"] + .fieldsetFooter a.addRow')
+            .click()
+
+        cy.get('div[data-field="spec.pods.customInitContainers[1]"] > .header a.delete')
+            .click()
+
+        // Test Custom Containers
+        cy.get('input[data-field="spec.pods.customContainers[0].name"]')
+            .type('container1')
+
+        cy.get('input[data-field="spec.pods.customContainers[0].image"]')
+            .type('image1')
+
+        cy.get('input[data-field="spec.pods.customContainers[0].imagePullPolicy"]')
+            .type('imagePullPolicy1')
+
+        cy.get('input[data-field="spec.pods.customContainers[0].workingDir"]')
+            .type('workingDir1')
+        
+        cy.get('input[data-field="spec.pods.customContainers[0].args[0]"]')
+            .type('arg1')
+
+        cy.get('fieldset[data-field="spec.pods.customContainers[0].args"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customContainers[0].args[1]"]')
+            .type('arg2')
+        
+        cy.get('fieldset[data-field="spec.pods.customContainers[0].args"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customContainers[0].args[2]"] + a.delete')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customContainers[0].command[0]"]')
+            .type('command1')
+
+        cy.get('fieldset[data-field="spec.pods.customContainers[0].command"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customContainers[0].command[1]"]')
+            .type('command2')
+
+        cy.get('fieldset[data-field="spec.pods.customContainers[0].command"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customContainers[0].command[2]"] + a.delete')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customContainers[0].env[0].name"]')
+            .type('var1')
+        
+        cy.get('input[data-field="spec.pods.customContainers[0].env[0].value"]')
+            .type('val1')
+
+        cy.get('fieldset[data-field="spec.pods.customContainers[0].env"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customContainers[0].env[1].name"]')
+            .type('var2')
+        
+        cy.get('input[data-field="spec.pods.customContainers[0].env[1].value"]')
+            .type('val2')
+
+        cy.get('fieldset[data-field="spec.pods.customContainers[0].env"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('div[data-field="spec.pods.customContainers[0].env[2]"] a.delete')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customContainers[0].ports[0].name"]')
+            .type('port1')
+
+        cy.get('input[data-field="spec.pods.customContainers[0].ports[0].hostIP"]')
+            .type('ip1')
+        
+        cy.get('input[data-field="spec.pods.customContainers[0].ports[0].hostPort"]')
+            .type('1')
+
+        cy.get('input[data-field="spec.pods.customContainers[0].ports[0].containerPort"]')
+            .type('1')
+        
+        cy.get('select[data-field="spec.pods.customContainers[0].ports[0].protocol"]')
+            .select('TCP')
+
+        cy.get('fieldset[data-field="spec.pods.customContainers.ports"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customContainers[0].ports[1].name"]')
+            .type('port2')
+
+        cy.get('input[data-field="spec.pods.customContainers[0].ports[1].hostIP"]')
+            .type('ip2')
+        
+        cy.get('input[data-field="spec.pods.customContainers[0].ports[1].hostPort"]')
+            .type('2')
+
+        cy.get('input[data-field="spec.pods.customContainers[0].ports[1].containerPort"]')
+            .type('2')
+        
+        cy.get('select[data-field="spec.pods.customContainers[0].ports[1].protocol"]')
+            .select('UDP')
+
+        cy.get('fieldset[data-field="spec.pods.customContainers.ports"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('div[data-field="spec.pods.customContainers[0].ports[2]"] a.delete')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customContainers[0].volumeMounts[0].name"]')
+            .type('vol1')
+
+        cy.get('input[data-field="spec.pods.customContainers[0].volumeMounts[0].readOnly"]')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customContainers[0].volumeMounts[0].mountPath"]')
+            .type('mountPath')
+
+        cy.get('input[data-field="spec.pods.customContainers[0].volumeMounts[0].mountPropagation"]')
+            .type('mountPropagation')
+        
+        cy.get('input[data-field="spec.pods.customContainers[0].volumeMounts[0].subPath"]')
+            .type('subPath')
+
+        cy.get('fieldset[data-field="spec.pods.customContainers[0].volumeMounts"] + .fieldsetFooter a.addRow')
+            .click()
+
+        cy.get('div[data-field="spec.pods.customContainers[0].volumeMounts[1]"] a.delete')
+            .click()
+
+        cy.get('fieldset[data-fieldset="spec.pods.customContainers"] + .fieldsetFooter a.addRow')
+            .click()
+
+        cy.get('div[data-field="spec.pods.customContainers[1]"] > .header a.delete')
             .click()
 
         // Test Replication
@@ -686,6 +1057,87 @@ describe('Create SGCluster', () => {
             .its('request.body.spec.prometheusAutobind')
             .should('eq', true)
         cy.get('@postCluster')
+            .its('request.body.spec.pods')
+            .should('nested.include', {"customVolumes[0].name": 'vol1'})
+            .and('nested.include', {"customVolumes[0].emptyDir.medium": 'medium'})
+            .and('nested.include', {"customVolumes[0].emptyDir.sizeLimit": 'sizeLimit'})
+            .and('nested.include', {"customVolumes[1].name": 'vol2'})
+            .and('nested.include', {"customVolumes[1].configMap.name": 'name'})
+            .and('nested.include', {"customVolumes[1].configMap.optional": false})
+            .and('nested.include', {"customVolumes[1].configMap.defaultMode": '0'})
+            .and('nested.include', {"customVolumes[1].configMap.items[0].key": 'key1'})
+            .and('nested.include', {"customVolumes[1].configMap.items[0].mode": '0'})
+            .and('nested.include', {"customVolumes[1].configMap.items[0].path": 'path'})
+            // Note: Disabled until repeater gets optimized. Causes test to wait and fail
+            /* .and('nested.include', {"customVolumes[1].configMap.items[1].key": 'key2'})
+            .and('nested.include', {"customVolumes[1].configMap.items[1].mode": '0'})
+            .and('nested.include', {"customVolumes[1].configMap.items[1].path": 'path2'}) */
+            .and('nested.include', {"customVolumes[2].name": 'vol3'})
+            .and('nested.include', {"customVolumes[2].secret.secretName": 'name'})
+            .and('nested.include', {"customVolumes[2].secret.optional": false})
+            .and('nested.include', {"customVolumes[2].secret.defaultMode": '0'})
+            .and('nested.include', {"customVolumes[2].secret.items[0].key": 'key1'})
+            .and('nested.include', {"customVolumes[2].secret.items[0].mode": '0'})
+            .and('nested.include', {"customVolumes[2].secret.items[0].path": 'path'})
+            // Note: Disabled until repeater gets optimized. Causes test to wait and fail
+            /* .and('nested.include', {"customVolumes[2].secret.items[1].key": 'key2'})
+            .and('nested.include', {"customVolumes[2].secret.items[1].mode": '0'})
+            .and('nested.include', {"customVolumes[2].secret.items[1].path": 'path2'}) */
+            .and('nested.include', {"customInitContainers[0].name": 'container1'})
+            .and('nested.include', {"customInitContainers[0].image": 'image1'})
+            .and('nested.include', {"customInitContainers[0].imagePullPolicy": 'imagePullPolicy1'})
+            .and('nested.include', {"customInitContainers[0].workingDir": 'workingDir1'})
+            .and('nested.include', {"customInitContainers[0].args[0]": 'arg1'})
+            .and('nested.include', {"customInitContainers[0].args[1]": 'arg2'})
+            .and('nested.include', {"customInitContainers[0].command[0]": 'command1'})
+            .and('nested.include', {"customInitContainers[0].command[1]": 'command2'})
+            .and('nested.include', {"customInitContainers[0].env[0].name": 'var1'})
+            .and('nested.include', {"customInitContainers[0].env[0].value": 'val1'})
+            .and('nested.include', {"customInitContainers[0].env[1].name": 'var2'})
+            .and('nested.include', {"customInitContainers[0].env[1].value": 'val2'})
+            .and('nested.include', {"customInitContainers[0].ports[0].name": 'port1'})
+            .and('nested.include', {"customInitContainers[0].ports[0].hostIP": 'ip1'})
+            .and('nested.include', {"customInitContainers[0].ports[0].hostPort": '1'})
+            .and('nested.include', {"customInitContainers[0].ports[0].containerPort": '1'})
+            .and('nested.include', {"customInitContainers[0].ports[0].protocol": 'TCP'})
+            .and('nested.include', {"customInitContainers[0].ports[1].name": 'port2'})
+            .and('nested.include', {"customInitContainers[0].ports[1].hostIP": 'ip2'})
+            .and('nested.include', {"customInitContainers[0].ports[1].hostPort": '2'})
+            .and('nested.include', {"customInitContainers[0].ports[1].containerPort": '2'})
+            .and('nested.include', {"customInitContainers[0].ports[1].protocol": 'UDP'})
+            .and('nested.include', {"customInitContainers[0].volumeMounts[0].name": 'vol1'})
+            .and('nested.include', {"customInitContainers[0].volumeMounts[0].readOnly": true})
+            .and('nested.include', {"customInitContainers[0].volumeMounts[0].mountPath": 'mountPath'})
+            .and('nested.include', {"customInitContainers[0].volumeMounts[0].mountPropagation": 'mountPropagation'})
+            .and('nested.include', {"customInitContainers[0].volumeMounts[0].subPath": 'subPath'})
+            .and('nested.include', {"customContainers[0].name": 'container1'})
+            .and('nested.include', {"customContainers[0].image": 'image1'})
+            .and('nested.include', {"customContainers[0].imagePullPolicy": 'imagePullPolicy1'})
+            .and('nested.include', {"customContainers[0].workingDir": 'workingDir1'})
+            .and('nested.include', {"customContainers[0].args[0]": 'arg1'})
+            .and('nested.include', {"customContainers[0].args[1]": 'arg2'})
+            .and('nested.include', {"customContainers[0].command[0]": 'command1'})
+            .and('nested.include', {"customContainers[0].command[1]": 'command2'})
+            .and('nested.include', {"customContainers[0].env[0].name": 'var1'})
+            .and('nested.include', {"customContainers[0].env[0].value": 'val1'})
+            .and('nested.include', {"customContainers[0].env[1].name": 'var2'})
+            .and('nested.include', {"customContainers[0].env[1].value": 'val2'})
+            .and('nested.include', {"customContainers[0].ports[0].name": 'port1'})
+            .and('nested.include', {"customContainers[0].ports[0].hostIP": 'ip1'})
+            .and('nested.include', {"customContainers[0].ports[0].hostPort": '1'})
+            .and('nested.include', {"customContainers[0].ports[0].containerPort": '1'})
+            .and('nested.include', {"customContainers[0].ports[0].protocol": 'TCP'})
+            .and('nested.include', {"customContainers[0].ports[1].name": 'port2'})
+            .and('nested.include', {"customContainers[0].ports[1].hostIP": 'ip2'})
+            .and('nested.include', {"customContainers[0].ports[1].hostPort": '2'})
+            .and('nested.include', {"customContainers[0].ports[1].containerPort": '2'})
+            .and('nested.include', {"customContainers[0].ports[1].protocol": 'UDP'})
+            .and('nested.include', {"customContainers[0].volumeMounts[0].name": 'vol1'})
+            .and('nested.include', {"customContainers[0].volumeMounts[0].readOnly": true})
+            .and('nested.include', {"customContainers[0].volumeMounts[0].mountPath": 'mountPath'})
+            .and('nested.include', {"customContainers[0].volumeMounts[0].mountPropagation": 'mountPropagation'})
+            .and('nested.include', {"customContainers[0].volumeMounts[0].subPath": 'subPath'})
+        cy.get('@postCluster')
             .its('request.body.spec.replicateFrom')
             .should('nested.include', {"instance.external.host": 'host'})
             .and('nested.include', {"instance.external.port": '1111'})
@@ -780,6 +1232,7 @@ describe('Create SGCluster', () => {
             .should('eq', true)
     });
 
+    
     it('Updating an advanced SGCluster should be possible', () => {
         // Edit advanced cluster
         cy.visit(namespace + '/sgcluster/advanced-' + resourceName + '/edit')
@@ -793,9 +1246,10 @@ describe('Create SGCluster', () => {
             .should('be.disabled')
 
         // Test instances
-        cy.get('select[data-field="spec.instances"]')
+        cy.get('input[data-field="spec.instances"]')
             .should('have.value', '4')
-            .select('5')
+            .clear()
+            .type('5')
         
         // Test Volume Size
         cy.get('input[data-field="spec.pods.persistentVolume.size"]')
@@ -907,6 +1361,69 @@ describe('Create SGCluster', () => {
         // Performance details
         cy.get('input[data-field="spec.initialData.restore.downloadDiskConcurrency"]') 
             .should('be.disabled')
+
+        // Test User-Supplied Pods Sidecars
+        cy.get('form#createCluster li[data-step="pods"]')
+            .click()
+
+        // Test Custom volumes
+        cy.get('input[data-field="spec.pods.customVolumes[0].emptyDir.medium"]')
+            .should('have.value', 'medium')
+            .clear()
+            .type('edit-medium')
+        
+        cy.get('input[data-field="spec.pods.customVolumes[1].configMap.optional"]')
+            .should('be.enabled')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customVolumes[1].configMap.defaultMode"]')
+            .should('have.value', '0')
+            .clear()
+            .type('1')
+        
+        cy.get('input[data-field="spec.pods.customVolumes[1].configMap.items[0].key"]')
+            .should('have.value', 'key1')
+            .clear()
+            .type('edit-1')
+        
+        cy.get('input[data-field="spec.pods.customVolumes[1].configMap.items[0].mode"]')
+            .should('have.value', '0')
+            .clear()
+            .type('1')
+
+        cy.get('input[data-field="spec.pods.customVolumes[1].configMap.items[0].path"]')
+            .should('have.value', 'path')
+            .clear()
+            .type('edit-path')
+        
+        cy.get('input[data-field="spec.pods.customVolumes[2].secret.secretName"]')
+            .should('have.value', 'name')
+            .clear()
+            .type('edit-name')
+
+        cy.get('input[data-field="spec.pods.customVolumes[2].secret.optional"]')
+            .should('be.enabled')
+            .click()
+
+        cy.get('input[data-field="spec.pods.customVolumes[2].secret.defaultMode"]')
+            .should('have.value', '0')
+            .clear()
+            .type('1')
+        
+        cy.get('input[data-field="spec.pods.customVolumes[2].secret.items[0].key"]')
+            .should('have.value', 'key1')
+            .clear()
+            .type('edit-1')
+        
+        cy.get('input[data-field="spec.pods.customVolumes[2].secret.items[0].mode"]')
+            .should('have.value', '0')
+            .clear()
+            .type('1')
+
+        cy.get('input[data-field="spec.pods.customVolumes[2].secret.items[0].path"]')
+            .should('have.value', 'path')
+            .clear()
+            .type('edit-path')
 
         // Test replicate from external instance
         cy.get('form#createCluster li[data-step="replicate-from"]')
@@ -1347,6 +1864,20 @@ describe('Create SGCluster', () => {
             .and('nested.include', {"downloadDiskConcurrency": 2})
             .and('have.nested.property', "fromBackup.pointInTimeRecovery.restoreToTimestamp")
         cy.get('@putCluster')
+            .its('request.body.spec.pods')
+            .should('nested.include', {'customVolumes[0].emptyDir.medium': 'edit-medium'})
+            .and('nested.include', {'customVolumes[1].configMap.optional': true})
+            .and('nested.include', {'customVolumes[1].configMap.defaultMode': '1'})
+            .and('nested.include', {'customVolumes[1].configMap.items[0].key': 'edit-1'})
+            .and('nested.include', {'customVolumes[1].configMap.items[0].mode': '1'})
+            .and('nested.include', {'customVolumes[1].configMap.items[0].path': 'edit-path'})
+            .and('nested.include', {'customVolumes[2].secret.secretName': 'edit-name'})
+            .and('nested.include', {'customVolumes[2].secret.optional': true})
+            .and('nested.include', {'customVolumes[2].secret.defaultMode': '1'})
+            .and('nested.include', {'customVolumes[2].secret.items[0].key': 'edit-1'})
+            .and('nested.include', {'customVolumes[2].secret.items[0].mode': '1'})
+            .and('nested.include', {'customVolumes[2].secret.items[0].path': 'edit-path'})
+        cy.get('@putCluster')
             .its('request.body.spec.replicateFrom')
             .should('nested.include', {"instance.sgCluster": 'rep-sgcluster-' + resourceName})
         cy.get('@putCluster')
@@ -1515,5 +2046,6 @@ describe('Create SGCluster', () => {
         cy.get('select[data-field="spec.managedSql.scripts.scriptSource[0]"]')
             .should('have.value', 'createNewScript')
     });
+   
 
   })

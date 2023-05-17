@@ -11,7 +11,9 @@ public enum StackGresReplicationMode {
 
   ASYNC("async"),
   SYNC("sync"),
-  STRICT_SYNC("strict-sync");
+  STRICT_SYNC("strict-sync"),
+  SYNC_ALL("sync-all"),
+  STRICT_SYNC_ALL("strict-sync-all");
 
   private final @NotNull String type;
 

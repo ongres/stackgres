@@ -13,7 +13,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CustomContainer;
-import io.stackgres.common.crd.CustomInitContainer;
 import io.stackgres.common.crd.CustomVolume;
 import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
 
@@ -51,7 +50,7 @@ public class ClusterPod {
   private List<CustomContainer> customContainers;
 
   @JsonProperty("customInitContainers")
-  private List<CustomInitContainer> customInitContainers;
+  private List<CustomContainer> customInitContainers;
 
   public ClusterPodPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -125,11 +124,11 @@ public class ClusterPod {
     this.customContainers = customContainers;
   }
 
-  public List<CustomInitContainer> getCustomInitContainers() {
+  public List<CustomContainer> getCustomInitContainers() {
     return customInitContainers;
   }
 
-  public void setCustomInitContainers(List<CustomInitContainer> customInitContainers) {
+  public void setCustomInitContainers(List<CustomContainer> customInitContainers) {
     this.customInitContainers = customInitContainers;
   }
 

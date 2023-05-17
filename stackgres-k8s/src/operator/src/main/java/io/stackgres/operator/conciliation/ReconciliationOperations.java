@@ -27,6 +27,8 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptList;
 import io.stackgres.common.prometheus.PodMonitor;
@@ -47,7 +49,9 @@ public interface ReconciliationOperations {
       Job.class,
       CronJob.class,
       StatefulSet.class,
-      StackGresScript.class
+      StackGresScript.class,
+      StackGresPostgresConfig.class,
+      StackGresCluster.class
       );
 
   Comparator<HasMetadata> RESOURCES_COMPARATOR = Comparator.comparingInt(

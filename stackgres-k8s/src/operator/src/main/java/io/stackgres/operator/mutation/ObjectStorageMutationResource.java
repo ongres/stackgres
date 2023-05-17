@@ -13,22 +13,31 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.CdiUtil;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.operator.common.ObjectStorageReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 
 @Path(MutationUtil.OBJECT_STORAGE_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class ObjectStorageMutationResource implements MutationResource<ObjectStorageReview> {
-
-  private JsonPatchMutationPipeline<ObjectStorageReview> pipeline;
+public class ObjectStorageMutationResource
+    extends MutationResource<StackGresObjectStorage, ObjectStorageReview> {
 
   @Inject
-  public void setPipeline(JsonPatchMutationPipeline<ObjectStorageReview> pipeline) {
-    this.pipeline = pipeline;
+  public ObjectStorageMutationResource(
+      ObjectMapper objectMapper,
+      MutationPipeline<StackGresObjectStorage, ObjectStorageReview> pipeline) {
+    super(objectMapper, pipeline);
+  }
+
+  public ObjectStorageMutationResource() {
+    super(null, null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
   }
 
   void onStart(@Observes StartupEvent ev) {
@@ -38,6 +47,11 @@ public class ObjectStorageMutationResource implements MutationResource<ObjectSto
   @POST
   @Override
   public AdmissionReviewResponse mutate(ObjectStorageReview admissionReview) {
-    return mutate(admissionReview, pipeline);
+    return super.mutate(admissionReview);
+  }
+
+  @Override
+  protected Class<StackGresObjectStorage> getResourceClass() {
+    return StackGresObjectStorage.class;
   }
 }

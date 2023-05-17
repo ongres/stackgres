@@ -17,8 +17,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BiFunction;
 import java.util.function.BooleanSupplier;
-import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -42,7 +42,6 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
-import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
@@ -61,77 +60,72 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
   public static final Map<String, String> PLACEHOLDER_NODE_SELECTOR =
       Map.of("schedule", "this-pod-is-a-placeholder");
 
+  private final ReconciliationHandler<T> handler;
+
   private final LabelFactoryForCluster<T> labelFactory;
 
   private final ResourceFinder<StatefulSet> statefulSetFinder;
 
-  private final ResourceWriter<StatefulSet> statefulSetWriter;
-
   private final ResourceScanner<Pod> podScanner;
 
-  private final ResourceWriter<Pod> podWriter;
-
   private final ResourceScanner<PersistentVolumeClaim> pvcScanner;
-
-  private final ResourceWriter<PersistentVolumeClaim> pvcWriter;
 
   private final ResourceFinder<Endpoints> endpointsFinder;
 
   private final ObjectMapper objectMapper;
 
   protected AbstractStatefulSetReconciliationHandler(
+      ReconciliationHandler<T> handler,
       LabelFactoryForCluster<T> labelFactory,
       ResourceFinder<StatefulSet> statefulSetFinder,
-      ResourceWriter<StatefulSet> statefulSetWriter,
       ResourceScanner<Pod> podScanner,
-      ResourceWriter<Pod> podWriter,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,
-      ResourceWriter<PersistentVolumeClaim> pvcWriter,
       ResourceFinder<Endpoints> endpointsFinder,
       ObjectMapper objectMapper) {
+    this.handler = handler;
     this.labelFactory = labelFactory;
     this.statefulSetFinder = statefulSetFinder;
-    this.statefulSetWriter = statefulSetWriter;
     this.podScanner = podScanner;
-    this.podWriter = podWriter;
     this.pvcScanner = pvcScanner;
-    this.pvcWriter = pvcWriter;
     this.endpointsFinder = endpointsFinder;
     this.objectMapper = objectMapper;
   }
 
   public AbstractStatefulSetReconciliationHandler() {
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.handler = null;
     this.labelFactory = null;
     this.statefulSetFinder = null;
-    this.statefulSetWriter = null;
     this.podScanner = null;
-    this.podWriter = null;
     this.pvcScanner = null;
-    this.pvcWriter = null;
     this.endpointsFinder = null;
     this.objectMapper = null;
   }
 
   @Override
   public HasMetadata create(T context, HasMetadata resource) {
-    return concileSts(context, resource, this::updateStatefulSet);
+    return concileSts(context, resource, (c, sts) -> updateStatefulSet(c, sts));
   }
 
   @Override
   public HasMetadata patch(T context, HasMetadata newResource,
       HasMetadata oldResource) {
-    return concileSts(context, newResource, this::updateStatefulSet);
+    return concileSts(context, newResource, (c, sts) -> updateStatefulSet(c, sts));
   }
 
   @Override
   public HasMetadata replace(T context, HasMetadata resource) {
-    return concileSts(context, resource, this::replaceStatefulSet);
+    return concileSts(context, resource, (c, sts) -> replaceStatefulSet(c, sts));
   }
 
   @Override
   public void delete(T context, HasMetadata resource) {
-    statefulSetWriter.delete(safeCast(resource));
+    handler.delete(context, safeCast(resource));
+  }
+
+  @Override
+  public void deleteWithOrphans(T context, HasMetadata resource) {
+    handler.deleteWithOrphans(context, safeCast(resource));
   }
 
   private StatefulSet safeCast(HasMetadata resource) {
@@ -141,22 +135,22 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     return (StatefulSet) resource;
   }
 
-  private StatefulSet updateStatefulSet(StatefulSet requiredSts) {
+  private StatefulSet updateStatefulSet(T context, StatefulSet requiredSts) {
     try {
-      return statefulSetWriter.update(requiredSts);
+      return (StatefulSet) handler.patch(context, requiredSts, null);
     } catch (KubernetesClientException ex) {
       if (ex.getCode() == 422) {
-        return replaceStatefulSet(requiredSts);
+        return replaceStatefulSet(context, requiredSts);
       } else {
         throw ex;
       }
     }
   }
 
-  private StatefulSet replaceStatefulSet(StatefulSet statefulSet) {
-    statefulSetWriter.deleteWithoutCascading(statefulSet);
+  private StatefulSet replaceStatefulSet(T context, StatefulSet statefulSet) {
+    handler.deleteWithOrphans(context, statefulSet);
     waitStatefulSetToBeDeleted(statefulSet);
-    return statefulSetWriter.create(statefulSet);
+    return (StatefulSet) handler.create(context, statefulSet);
   }
 
   private void waitStatefulSetToBeDeleted(StatefulSet statefulSet) {
@@ -169,7 +163,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
   }
 
   private StatefulSet concileSts(T context, HasMetadata resource,
-      UnaryOperator<StatefulSet> writer) {
+      BiFunction<T, StatefulSet, StatefulSet> writer) {
     final StatefulSet requiredSts = safeCast(resource);
     final StatefulSetSpec spec = requiredSts.getSpec();
     final Map<String, String> appLabel = labelFactory.appLabel();
@@ -183,7 +177,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
         .findByNameAndNamespace(PatroniUtil.configName(context), namespace);
     final int latestPrimaryIndexFromPatroni =
         PatroniUtil.getLatestPrimaryIndexFromPatroni(patroniConfigEndpoints, objectMapper);
-    startPrimaryIfRemoved(requiredSts, appLabel, latestPrimaryIndexFromPatroni, writer);
+    startPrimaryIfRemoved(context, requiredSts, appLabel, latestPrimaryIndexFromPatroni, writer);
 
     var pods = findStatefulSetPods(requiredSts, appLabel);
     final boolean existsPodWithPrimaryRole =
@@ -203,23 +197,23 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
       int replicas = (int) (desiredReplicas - nonDisruptablePodsRemaining);
       spec.setReplicas(replicas);
 
-      updatedSts = writer.apply(requiredSts);
+      updatedSts = writer.apply(context, requiredSts);
 
-      removeStatefulSetPlaceholderReplicas(requiredSts);
+      removeStatefulSetPlaceholderReplicas(context, requiredSts);
     } else {
-      updatedSts = statefulSetFinder
-          .findByNameAndNamespace(requiredSts.getMetadata().getName(), namespace).orElseThrow();
+      updatedSts = writer.apply(context, requiredSts);
     }
 
     fixPods(context, requiredSts, updatedSts, appLabel, patroniConfigEndpoints);
 
-    fixPvcs(requiredSts, appLabel);
+    fixPvcs(context, requiredSts, appLabel);
 
     return updatedSts;
   }
 
-  private void startPrimaryIfRemoved(StatefulSet requiredSts, Map<String, String> appLabel,
-      int latestPrimaryIndexFromPatroni, UnaryOperator<StatefulSet> updater) {
+  private void startPrimaryIfRemoved(T context, StatefulSet requiredSts,
+      Map<String, String> appLabel, int latestPrimaryIndexFromPatroni,
+      BiFunction<T, StatefulSet, StatefulSet> writer) {
     final String namespace = requiredSts.getMetadata().getNamespace();
     final String name = requiredSts.getMetadata().getName();
     if (latestPrimaryIndexFromPatroni <= 0) {
@@ -232,23 +226,21 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
           latestPrimaryIndexFromPatroni, namespace, name);
       final String podManagementPolicy = requiredSts.getSpec().getPodManagementPolicy();
       final var nodeSelector = requiredSts.getSpec().getTemplate().getSpec().getNodeSelector();
-      final int replicas = requiredSts.getSpec().getReplicas();
       LOGGER.debug("Create placeholder Pods before primary Pod that was at index {}"
           + " for StatefulSet {}.{}", latestPrimaryIndexFromPatroni, namespace, name);
       requiredSts.getSpec().setPodManagementPolicy("Parallel");
       requiredSts.getSpec().getTemplate().getSpec().setNodeSelector(PLACEHOLDER_NODE_SELECTOR);
       requiredSts.getSpec().setReplicas(latestPrimaryIndexFromPatroni);
-      updater.apply(requiredSts);
+      writer.apply(context, requiredSts);
       waitStatefulSetReplicasToBeCreated(requiredSts);
       LOGGER.debug("Creating primary Pod that was at index {} for StatefulSet {}.{}",
           latestPrimaryIndexFromPatroni, namespace, name);
       requiredSts.getSpec().getTemplate().getSpec().setNodeSelector(nodeSelector);
       requiredSts.getSpec().setReplicas(latestPrimaryIndexFromPatroni + 1);
-      updater.apply(requiredSts);
+      writer.apply(context, requiredSts);
       waitStatefulSetReplicasToBeCreated(requiredSts);
       requiredSts.getSpec().setPodManagementPolicy(podManagementPolicy);
       requiredSts.getSpec().getTemplate().getSpec().setNodeSelector(nodeSelector);
-      requiredSts.getSpec().setReplicas(replicas);
     }
   }
 
@@ -274,7 +266,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     }).run();
   }
 
-  private void removeStatefulSetPlaceholderReplicas(StatefulSet statefulSet) {
+  private void removeStatefulSetPlaceholderReplicas(T context, StatefulSet statefulSet) {
     final String namespace = statefulSet.getMetadata().getNamespace();
     final Map<String, String> stsMatchLabels = statefulSet.getSpec().getSelector().getMatchLabels();
     podScanner.findByLabelsAndNamespace(namespace, stsMatchLabels).stream()
@@ -286,7 +278,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
             LOGGER.debug("Removing placeholder Pod {}.{} for StatefulSet {}.{}", namespace, podName,
                 namespace, name);
           }
-          podWriter.delete(pod);
+          handler.delete(context, pod);
         });
   }
 
@@ -301,7 +293,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     final Map<String, String> primaryPodLabels = primaryPod.getMetadata().getLabels();
     primaryPodLabels.put(labelFactory.labelMapper().disruptibleKey(context),
         StackGresContext.WRONG_VALUE);
-    podWriter.update(primaryPod);
+    handler.patch(context, primaryPod, null);
   }
 
   private long countNonDisruptablePods(T context, List<Pod> pods,
@@ -326,7 +318,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     Seq.seq(disruptablePodsToPatch).append(podAnnotationsToPatch)
         .append(podOwnerReferencesToPatch).append(podSelectorMatchLabelsToPatch)
         .grouped(pod -> pod.getMetadata().getName()).map(Tuple2::v2).map(Seq::findFirst)
-        .map(Optional::get).forEach(podWriter::update);
+        .map(Optional::get).forEach(pod -> handler.patch(context, pod, null));
   }
 
   private List<Pod> fixNonDisruptablePods(T context,
@@ -459,7 +451,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     return pod;
   }
 
-  private void fixPvcs(final StatefulSet statefulSet, final Map<String, String> appLabel) {
+  private void fixPvcs(T context, StatefulSet statefulSet, Map<String, String> appLabel) {
     var pods = findStatefulSetPods(statefulSet, appLabel);
     final String namespace = statefulSet.getMetadata().getNamespace();
     var expectedPvcNames = Optional.of(statefulSet)
@@ -483,7 +475,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
         statefulSet, pvcsToFix);
     Seq.seq(pvcAnnotationsToPatch).append(pvcLabelsToPatch)
         .grouped(pvc -> pvc.getMetadata().getName()).map(Tuple2::v2).map(Seq::findFirst)
-        .map(Optional::get).forEach(pvcWriter::update);
+        .map(Optional::get).forEach(pvc -> handler.patch(context, pvc, null));
   }
 
   private List<PersistentVolumeClaim> fixPvcsAnnotations(StatefulSet statefulSet,

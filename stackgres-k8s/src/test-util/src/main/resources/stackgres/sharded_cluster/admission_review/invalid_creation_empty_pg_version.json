@@ -50,7 +50,29 @@
         "type": "citus",
         "database": "citus",
         "postgres": {
-          "version": ""
+          "version": "",
+          "flavor": "vanilla"
+        },
+        "postgresServices": {
+          "coordinator": {
+            "any": {
+              "enabled": true,
+              "type": "ClusterIP"
+            },
+            "primary": {
+              "enabled": true,
+              "type": "ClusterIP"
+            }
+          },
+          "shards": {
+            "primaries": {
+              "enabled": true,
+              "type": "ClusterIP"
+            }
+          }
+        },
+        "replication": {
+          "mode": "async"
         },
         "coordinator": {
           "instances": 1,

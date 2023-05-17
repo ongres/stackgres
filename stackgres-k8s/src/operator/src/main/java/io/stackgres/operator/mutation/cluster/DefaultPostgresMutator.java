@@ -5,28 +5,19 @@
 
 package io.stackgres.operator.mutation.cluster;
 
-import java.util.List;
-
-import javax.inject.Inject;
-
-import com.github.fge.jackson.jsonpointer.JsonPointer;
-import com.github.fge.jsonpatch.JsonPatchOperation;
-import com.google.common.collect.ImmutableList;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.AbstractDefaultResourceMutator;
-import io.stackgres.operatorframework.admissionwebhook.Operation;
 
 public class DefaultPostgresMutator
     extends AbstractDefaultResourceMutator<StackGresPostgresConfig, StackGresCluster,
-        StackGresClusterReview>
-    implements ClusterConfigurationMutator {
+        StackGresClusterReview> {
 
-  @Inject
   public DefaultPostgresMutator(
       DefaultCustomResourceFactory<StackGresPostgresConfig> resourceFactory,
       CustomResourceFinder<StackGresPostgresConfig> finder,
@@ -35,24 +26,20 @@ public class DefaultPostgresMutator
   }
 
   @Override
-  public List<JsonPatchOperation> mutate(StackGresClusterReview review) {
-    if (review.getRequest().getOperation() == Operation.CREATE) {
-      ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
-      operations.addAll(ensureConfigurationNode(review));
-      operations.addAll(super.mutate(review));
-      return operations.build();
-
+  protected void setValueSection(StackGresCluster resource) {
+    if (resource.getSpec().getConfiguration() == null) {
+      resource.getSpec().setConfiguration(new StackGresClusterConfiguration());
     }
-    return ImmutableList.of();
   }
 
   @Override
-  protected String getTargetPropertyValue(StackGresCluster targetCluster) {
-    return targetCluster.getSpec().getConfiguration().getPostgresConfig();
+  protected String getTargetPropertyValue(StackGresCluster resource) {
+    return resource.getSpec().getConfiguration().getPostgresConfig();
   }
 
   @Override
-  public JsonPointer getTargetPointer() {
-    return getConfigurationTargetPointer("postgresConfig");
+  protected void setTargetProperty(StackGresCluster resource, String defaultResourceName) {
+    resource.getSpec().getConfiguration().setPostgresConfig(defaultResourceName);
   }
+
 }

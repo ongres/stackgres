@@ -7,19 +7,19 @@ package io.stackgres.operator.initialization;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerPgbouncerIni;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerStatus;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigBuilder;
+import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerBlocklist;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
 
 @ApplicationScoped
@@ -39,24 +39,29 @@ public class DefaultPoolingFactory
 
   @Override
   StackGresPoolingConfig buildResource(String namespace) {
-    StackGresPoolingConfig config = new StackGresPoolingConfig();
-    config.getMetadata().setName(generateDefaultName());
-    config.getMetadata().setNamespace(namespace);
-
-    final var spec = new StackGresPoolingConfigSpec();
-    final var pgBouncer = new StackGresPoolingConfigPgBouncer();
-    final var pgbouncerIni = new StackGresPoolingConfigPgBouncerPgbouncerIni();
-    pgbouncerIni.setParameters(Map.of());
-    pgBouncer.setPgbouncerIni(pgbouncerIni);
-    spec.setPgBouncer(pgBouncer);
-    config.setSpec(spec);
-    final var status = new StackGresPoolingConfigStatus();
-    final var pgBouncerStatus = new StackGresPoolingConfigPgBouncerStatus();
-    pgBouncerStatus.setDefaultParameters(getDefaultValues());
-    status.setPgBouncer(pgBouncerStatus);
-    config.setStatus(status);
-
-    return config;
+    Map<String, String> defaultValues = getDefaultValues();
+    Set<String> blockedValues = PgBouncerBlocklist.getBlocklistParameters();
+    return new StackGresPoolingConfigBuilder()
+        .withMetadata(new ObjectMetaBuilder()
+            .withNamespace(namespace)
+            .withName(generateDefaultName())
+            .build())
+        .withNewSpec()
+        .withNewPgBouncer()
+        .withNewPgbouncerIni()
+        .withParameters(defaultValues.entrySet()
+            .stream()
+            .filter(e -> !blockedValues.contains(e.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
+        .endPgbouncerIni()
+        .endPgBouncer()
+        .endSpec()
+        .withNewStatus()
+        .withNewPgBouncer()
+        .withDefaultParameters(defaultValues)
+        .endPgBouncer()
+        .endStatus()
+        .build();
   }
 
   @Override

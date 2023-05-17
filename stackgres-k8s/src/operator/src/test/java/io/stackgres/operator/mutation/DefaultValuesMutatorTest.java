@@ -5,21 +5,15 @@
 
 package io.stackgres.operator.mutation;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
-
-import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.github.fge.jsonpatch.JsonPatch;
-import com.github.fge.jsonpatch.JsonPatchException;
-import com.github.fge.jsonpatch.JsonPatchOperation;
-import com.google.common.collect.Streams;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.testutil.JsonUtil;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -29,7 +23,7 @@ public abstract class DefaultValuesMutatorTest
 
   protected static final JsonMapper JSON_MAPPER = JsonUtil.jsonMapper();
 
-  protected DefaultValuesMutator<R, T> mutator;
+  protected AbstractValuesMutator<R, T> mutator;
 
   @Mock
   protected DefaultCustomResourceFactory<R> factory;
@@ -38,9 +32,10 @@ public abstract class DefaultValuesMutatorTest
   void setUp() {
     when(factory.buildResource()).thenReturn(getDefaultResource());
     mutator = getMutatorInstance(factory, JSON_MAPPER);
+    mutator.init();
   }
 
-  protected abstract DefaultValuesMutator<R, T> getMutatorInstance(
+  protected abstract AbstractValuesMutator<R, T> getMutatorInstance(
       DefaultCustomResourceFactory<R> factory,
       JsonMapper jsonMapper);
 
@@ -51,49 +46,30 @@ public abstract class DefaultValuesMutatorTest
   protected abstract R getDefaultResource();
 
   @Test
-  void givenAnEmptyConf_itShouldReturnAPatchForEveryDefaultsProperty() {
-
+  void givenAnEmptyConf_itShouldReturnAModfiedObjectWithDefaultSpec() {
     T review = getEmptyReview();
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
+    JsonNode expected = JsonUtil.toJson(getDefaultResource().getSpec());
 
-    JsonNode targetNode = mutator.getTargetNode(getDefaultReview().getRequest().getObject());
+    R result = mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(Streams.stream(targetNode.fieldNames()).count(), operations.size());
-
+    Assertions.assertNotEquals(review.getRequest().getObject(), result);
+    JsonUtil.assertJsonEquals(
+        expected,
+        JsonUtil.toJson(result.getSpec()));
   }
 
   @Test
-  void givenAConfWithAllDefaultsValuesSettled_itShouldNotReturnAnyPatch() {
-
+  void givenAConfWithAllDefaultsValuesSettled_itShouldReturnTheSameObject() {
     T review = getDefaultReview();
 
-    List<JsonPatchOperation> operators = mutator.mutate(review);
+    JsonNode expected = JsonUtil.toJson(review.getRequest().getObject().getSpec());
 
-    assertEquals(0, operators.size());
+    R result = mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
 
+    JsonUtil.assertJsonEquals(
+        expected,
+        JsonUtil.toJson(result.getSpec()));
   }
-
-  @Test
-  void returnedOperationsMustBeValidJsonPatches() throws JsonPatchException {
-
-    T review = getEmptyReview();
-
-    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
-
-    List<JsonPatchOperation> operations = mutator.mutate(review);
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode newConfig = jp.apply(crJson);
-
-    JsonNode targetNode = getConfJson(newConfig);
-
-    JsonNode defaultTarget = mutator.getTargetNode(getDefaultReview().getRequest().getObject());
-
-    assertEquals(targetNode, defaultTarget);
-
-  }
-
-  protected abstract JsonNode getConfJson(JsonNode crJson);
 
 }

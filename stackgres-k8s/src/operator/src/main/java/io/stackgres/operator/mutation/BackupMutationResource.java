@@ -13,22 +13,30 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.CdiUtil;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 
 @Path(MutationUtil.BACKUP_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class BackupMutationResource implements MutationResource<BackupReview> {
-
-  private JsonPatchMutationPipeline<BackupReview> pipeline;
+public class BackupMutationResource extends MutationResource<StackGresBackup, BackupReview> {
 
   @Inject
-  public void setPipeline(JsonPatchMutationPipeline<BackupReview> pipeline) {
-    this.pipeline = pipeline;
+  public BackupMutationResource(
+      ObjectMapper objectMapper,
+      MutationPipeline<StackGresBackup, BackupReview> pipeline) {
+    super(objectMapper, pipeline);
+  }
+
+  public BackupMutationResource() {
+    super(null, null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
   }
 
   void onStart(@Observes StartupEvent ev) {
@@ -38,6 +46,11 @@ public class BackupMutationResource implements MutationResource<BackupReview> {
   @POST
   @Override
   public AdmissionReviewResponse mutate(BackupReview admissionReview) {
-    return mutate(admissionReview, pipeline);
+    return super.mutate(admissionReview);
+  }
+
+  @Override
+  protected Class<StackGresBackup> getResourceClass() {
+    return StackGresBackup.class;
   }
 }

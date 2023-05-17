@@ -283,6 +283,18 @@ pre {
     margin: 0 !important;
 }
 
+.marginTop {
+    margin-top: 25px !important;
+}
+
+.marginBottom {
+    margin-bottom: 25px !important;
+}
+
+.noPaddingBottom {
+    padding-bottom: 0 !important;
+}
+
 .blue {
     color: var(--blue);
 }
@@ -424,6 +436,10 @@ svg.background circle {
 
 .noPadding {
     padding: 0 !important;
+}
+
+.noMargin {
+    margin: 0;
 }
 
 .clearfix {
@@ -2287,7 +2303,6 @@ label.switch {
     padding: 10px;
     position: relative;
     border-radius: 6px;
-    margin-bottom: 20px;
     cursor: pointer;
 }
 
@@ -2585,7 +2600,7 @@ fieldset {
     margin-bottom: 0;
 }
 
-.form .header h3 span {
+.form .header span.helpTooltip {
     display: inline-block;
     margin-top: 2px;
 }
@@ -2706,15 +2721,19 @@ a.addRow, .addRow > a {
     display: block;
 }
 
-.repeater .row {
+.repeater .row, .inputContainer {
     position: relative;
     display: inline-block;
+    width: 100%;
 }
 
-.repeater .eqSign ~ a.addRow {
+.repeater .eqSign ~ a.addRow, .inputContainer a.addRow.topRight {
     position: absolute;
     top: 0;
     right: 0;
+}
+.inputContainer a.addRow.topRight {
+    top: -20px;
 }
 
 input.annotation, input.annotationValue, input.label, input.labelValue {
@@ -2855,6 +2874,28 @@ fieldset.podsScheduling .row a.help {
     margin: 0 auto 20px;
 }
 
+span.orOption {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+span.orOption:before, span.orOption:after {
+    content: " ";
+    height: 1px;
+    background: var(--borderColor);
+    display: inline-block;
+    width: calc(50% - 20px);
+}
+
+span.orOption:before {
+    transform: translate(-10px, -5px);
+}
+
+span.orOption:after {
+    transform: translate(10px, -5px);
+}
 
 /* Help Tooltips */
 
@@ -3467,19 +3508,39 @@ td ul.tableCells {
     margin: -10px;
 }
 
+td ul.tableCells li {
+    display: flex;
+}
+
+td ul.tableCells + ul.tableCells {
+    border-top: 1px solid var(--borderColor);
+    margin-top: 10px;
+}
+
 td ul.tableCells li:not(:last-child) {
     border-bottom: 1px solid var(--borderColor);
 }
 
-td ul.tableCells li span {
+td ul.tableCells li span:not(.helpTooltip) {
     padding: 10px;
     width: 50%;
     display: inline-block;
+    min-width: 90px;
 }
 
 td ul.tableCells li span.label {
     font-weight: bold;
-    border-right: 1px solid var(--borderColor);
+    display: inline-block;
+}
+
+td ul.tableCells li span.value {
+    border-left: 1px solid var(--borderColor);
+}
+
+td ul.tableCells li span.value:last-child {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 tr:nth-child(odd) ul.tableCells li:nth-child(odd), tr:nth-child(even) ul.tableCells li:nth-child(even) {
@@ -4809,7 +4870,7 @@ thead:not(.sort) th:not(.label) .helpTooltip {
     right: -10px;
 }
 
-td.label .helpTooltip {
+td.label .helpTooltip, td ul.tableCells .helpTooltip {
     float: right;
     margin-left: 10px;
 }
@@ -4948,6 +5009,10 @@ fieldset .section:last-child {
     margin-bottom: 0;
 }
 
+fieldset .section > .fieldsetFooter:last-child {
+    margin-bottom: 20px;
+}
+
 fieldset.accordion {
     padding: 0;
 }
@@ -4997,10 +5062,6 @@ fieldset.accordion .fields {
 .header + .fieldsetFooter, .fieldsetFooter.topBorder {
     border-top: 1px solid var(--borderColor);
     border-radius: 5px;
-}
-
-.section .fieldsetFooter {
-    margin-top: 10px;
 }
 
 .repeater > fieldset {

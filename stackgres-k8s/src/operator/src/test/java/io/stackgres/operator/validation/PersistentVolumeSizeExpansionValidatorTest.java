@@ -27,6 +27,7 @@ import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -47,7 +48,7 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
 
   protected T clusterReview;
 
-  protected PersistentVolumeSizeExpansionValidator<T, R, S> validator;
+  protected Validator<T> validator;
 
   @BeforeEach
   void setUp() {
@@ -57,7 +58,7 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
 
   protected abstract T getAdmissionReview();
 
-  protected abstract PersistentVolumeSizeExpansionValidator<T, R, S> getValidator();
+  protected abstract Validator<T> getValidator();
 
   @Test
   @DisplayName("Given an increase PVC expansion it should allow it, "
@@ -77,7 +78,7 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
     /*
      * Since the storage class was given in the SGCluster it should look for it
      */
-    verityStorageClassRequest(storageClassName);
+    verifyStorageClassRequest(storageClassName);
     /*
      * Since the storage class was given is not need to look for the implemented storage class in
      * the PVC.
@@ -120,7 +121,7 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
      * After the looking in for the SGCluster's PVC we should look the storage class to check if
      * it allows expansion
      */
-    verityStorageClassRequest(storageClassName);
+    verifyStorageClassRequest(storageClassName);
   }
 
   @Test
@@ -149,7 +150,7 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
     /*
      * We need to make sure that the storage class was looked
      */
-    verityStorageClassRequest(storageClassName);
+    verifyStorageClassRequest(storageClassName);
 
     /*
      * Since the storage is present in SGCluster we don't need to look for persistence volume claims
@@ -244,8 +245,8 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
     /*
      * Since there is no PVC created yet, we should not look for a storage class
      */
-    verityStorageClassRequest(expandableStorageClassName);
-    verityStorageClassRequest(nonExpandableStorageClassName);
+    verifyStorageClassRequest(expandableStorageClassName);
+    verifyStorageClassRequest(nonExpandableStorageClassName);
 
     verify(pvcScanner).findByLabelsAndNamespace(
         eq(clusterNamespace),
@@ -394,7 +395,7 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
     ));
   }
 
-  private void verityStorageClassRequest(String storageClassName) {
+  private void verifyStorageClassRequest(String storageClassName) {
     verify(finder).findByName(storageClassName);
   }
 

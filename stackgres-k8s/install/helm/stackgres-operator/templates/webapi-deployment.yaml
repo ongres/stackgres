@@ -6,7 +6,7 @@ metadata:
     meta.helm.sh/release-name: {{ .Release.Name }}
     meta.helm.sh/release-namespace: {{ .Release.Namespace }}
     {{- with .Values.restapi.annotations }}
-    {{ toYaml . | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
     {{- end }}
   labels:
     app.kubernetes.io/managed-by: Helm
@@ -16,7 +16,7 @@ metadata:
   name: {{ .Values.restapi.name }}
   namespace: {{ .Release.Namespace }}
 spec:
-  replicas: {{ if or (eq "true" (include "stackgres.operator.resetCerts" .)) (eq "true" (include "stackgres.operator.upgradeCrds" .)) }}0{{ else }}1{{ end }}
+  replicas: 1
   selector:
     matchLabels:
       app: {{ .Values.restapi.name }}
@@ -69,6 +69,10 @@ spec:
           {{- end }}
           {{- end }}
         env:
+          {{- if eq "true" (include "stackgres.operator.resetCerts" .) }}
+          - name: RESET_CERTS
+            value: "true"
+          {{- end }}
           - name: RESTAPI_NAMESPACE
             valueFrom:
               fieldRef:
@@ -285,15 +289,6 @@ spec:
           secret:
             secretName: {{ include "web-cert-name" . }}
             optional: false
-            items:
-              - key: tls.key
-                path: root.key
-              - key: tls.crt
-                path: server.crt
-              - key: jwt-rsa.key
-                path: jwt-rsa.key
-              - key: jwt-rsa.pub
-                path: jwt-rsa.pub
         - name: operator-nginx
           configMap:
             name: {{ .Values.restapi.name }}-nginx

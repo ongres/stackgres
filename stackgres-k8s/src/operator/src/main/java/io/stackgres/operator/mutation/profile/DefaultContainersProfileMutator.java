@@ -8,7 +8,6 @@ package io.stackgres.operator.mutation.profile;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -18,12 +17,7 @@ import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.github.fge.jackson.jsonpointer.JsonPointer;
-import com.github.fge.jsonpatch.AddOperation;
-import com.github.fge.jsonpatch.JsonPatchOperation;
-import com.github.fge.jsonpatch.ReplaceOperation;
 import com.google.common.base.Predicates;
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContainerProfile;
@@ -43,9 +37,6 @@ public class DefaultContainersProfileMutator implements ProfileMutator {
 
   private StackGresProfile defaultProfile;
 
-  private JsonPointer containersPointer;
-  private JsonPointer initContainersPointer;
-
   @Inject
   public DefaultContainersProfileMutator(
       DefaultCustomResourceFactory<StackGresProfile> factory) {
@@ -55,124 +46,83 @@ public class DefaultContainersProfileMutator implements ProfileMutator {
   @PostConstruct
   public void init() throws NoSuchFieldException {
     defaultProfile = factory.buildResource();
-
-    String containersJson = getJsonMappingField("containers",
-        StackGresProfileSpec.class);
-    String initContainersJson = getJsonMappingField("initContainers",
-        StackGresProfileSpec.class);
-
-    containersPointer = SPEC_POINTER
-        .append(containersJson);
-    initContainersPointer = SPEC_POINTER
-        .append(initContainersJson);
   }
 
   @Override
-  public List<JsonPatchOperation> mutate(SgProfileReview review) {
+  public StackGresProfile mutate(SgProfileReview review, StackGresProfile resource) {
     if (review.getRequest().getOperation() == Operation.CREATE
         || review.getRequest().getOperation() == Operation.UPDATE) {
-      final StackGresProfile profile = review.getRequest().getObject();
-      final ImmutableList.Builder<JsonPatchOperation> operations = ImmutableList.builder();
-
-      final BigDecimal cpu = Optional.of(profile.getSpec())
+      final BigDecimal cpu = Optional.of(resource.getSpec())
           .map(StackGresProfileSpec::getCpu)
           .or(() -> Optional.of(defaultProfile.getSpec().getCpu()))
           .flatMap(this::tryParseQuantity)
           .map(Quantity::getAmountInBytes)
           .orElse(BigDecimal.ZERO);
-      final BigDecimal memory = Optional.of(profile.getSpec())
+      final BigDecimal memory = Optional.of(resource.getSpec())
           .map(StackGresProfileSpec::getMemory)
           .or(() -> Optional.of(defaultProfile.getSpec().getMemory()))
           .flatMap(this::tryParseQuantity)
           .map(Quantity::getAmountInBytes)
           .orElse(BigDecimal.ZERO);
 
-      final var containers = Optional.of(profile.getSpec())
+      final var containers = Optional.of(resource.getSpec())
           .map(StackGresProfileSpec::getContainers)
           .orElseGet(HashMap::new);
-      final var initContainers = Optional.of(profile.getSpec())
+      final var initContainers = Optional.of(resource.getSpec())
           .map(StackGresProfileSpec::getInitContainers)
           .orElseGet(HashMap::new);
 
-      boolean setContainersCpuAndMemory = setContainersCpuAndMemory(
-          cpu, memory, containers);
-      boolean setInitContainersCpuAndMemory = setInitContainersCpuAndMemory(
-          cpu, memory, initContainers);
-
-      if (setContainersCpuAndMemory) {
-        if (profile.getSpec().getContainers() == null) {
-          operations.add(new AddOperation(
-              containersPointer, FACTORY.pojoNode(containers)));
-        } else {
-          operations.add(new ReplaceOperation(
-              containersPointer, FACTORY.pojoNode(containers)));
-        }
-      }
-
-      if (setInitContainersCpuAndMemory) {
-        if (profile.getSpec().getInitContainers() == null) {
-          operations.add(new AddOperation(
-              initContainersPointer, FACTORY.pojoNode(initContainers)));
-        } else {
-          operations.add(new ReplaceOperation(
-              initContainersPointer, FACTORY.pojoNode(initContainers)));
-        }
-      }
-
-      return operations.build();
+      setContainersCpuAndMemory(resource, cpu, memory, containers);
+      setInitContainersCpuAndMemory(resource, cpu, memory, initContainers);
     }
 
-    return List.of();
+    return resource;
   }
 
-  private boolean setContainersCpuAndMemory(
+  private void setContainersCpuAndMemory(
+      StackGresProfile resource,
       BigDecimal cpu, BigDecimal memory,
       Map<String, StackGresProfileContainer> containers) {
-    boolean result = false;
     for (var container : Stream.of(StackGresContainer.values())
         .filter(Predicates.not(StackGresContainer.PATRONI::equals))
         .toList()) {
       var containerProfile = Optional.of(containers
           .computeIfAbsent(
               container.getNameWithPrefix(), k -> new StackGresProfileContainer()));
-      boolean setContainerCpu = setContainerCpu(cpu, container, containerProfile);
-      boolean setContainerMemory = setContainerMemory(memory, container, containerProfile);
-      result = result || setContainerCpu || setContainerMemory;
+      setContainerCpu(cpu, container, containerProfile);
+      setContainerMemory(memory, container, containerProfile);
     }
-    return result;
+    resource.getSpec().setContainers(containers);
   }
 
-  private boolean setInitContainersCpuAndMemory(
+  private void setInitContainersCpuAndMemory(
+      StackGresProfile resource,
       BigDecimal cpu, BigDecimal memory,
       Map<String, StackGresProfileContainer> initContainers) {
-    boolean result = false;
     for (var container : Stream.of(StackGresInitContainer.values())
         .toList()) {
       var containerProfile = Optional.of(initContainers
           .computeIfAbsent(container.getNameWithPrefix(), k -> new StackGresProfileContainer()));
-      boolean setInitContainerCpu = setContainerCpu(cpu, container, containerProfile);
-      boolean setInitContainerMemory = setContainerMemory(memory, container, containerProfile);
-      result = result || setInitContainerCpu || setInitContainerMemory;
+      setContainerCpu(cpu, container, containerProfile);
+      setContainerMemory(memory, container, containerProfile);
     }
-    return result;
+    resource.getSpec().setInitContainers(initContainers);
   }
 
-  private boolean setContainerCpu(BigDecimal cpu, StackGresContainerProfile container,
+  private void setContainerCpu(BigDecimal cpu, StackGresContainerProfile container,
       Optional<StackGresProfileContainer> containerProfile) {
     var containerProfileWithCpu = containerProfile
         .filter(profile -> Objects.isNull(profile.getCpu()));
     containerProfileWithCpu.ifPresent(profile -> profile.setCpu(
         toCpuValue(container.getCpuFormula().apply(cpu))));
-    return containerProfileWithCpu.isPresent();
   }
 
-  private boolean setContainerMemory(BigDecimal memory, StackGresContainerProfile container,
+  private void setContainerMemory(BigDecimal memory, StackGresContainerProfile container,
       Optional<StackGresProfileContainer> containerProfile) {
     var containerProfileWithMemory = containerProfile
         .filter(profile -> Objects.isNull(profile.getMemory()));
     containerProfileWithMemory.ifPresent(profile -> profile.setMemory(
         toMemoryValue(container.getMemoryFormula().apply(memory))));
-    return containerProfileWithMemory.isPresent();
   }
 
   private String toCpuValue(BigDecimal value) {

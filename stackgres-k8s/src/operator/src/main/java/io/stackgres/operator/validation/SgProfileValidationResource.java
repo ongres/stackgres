@@ -6,7 +6,6 @@
 package io.stackgres.operator.validation;
 
 import javax.enterprise.event.Observes;
-import javax.enterprise.inject.Any;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -15,21 +14,29 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Path(ValidationUtil.PROFILE_VALIDATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class SgProfileValidationResource implements ValidationResource<SgProfileReview> {
+public class SgProfileValidationResource extends AbstractValidationResource<SgProfileReview> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(SgProfileValidationResource.class);
 
-  private ValidationPipeline<SgProfileReview> pipeline;
+  @Inject
+  public SgProfileValidationResource(ValidationPipeline<SgProfileReview> pipeline) {
+    super(pipeline);
+  }
+
+  public SgProfileValidationResource() {
+    super(null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+  }
 
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("SgProfile validation resource started");
@@ -38,11 +45,7 @@ public class SgProfileValidationResource implements ValidationResource<SgProfile
   @Override
   @POST
   public AdmissionReviewResponse validate(SgProfileReview admissionReview) {
-    return validate(admissionReview, pipeline);
+    return super.validate(admissionReview);
   }
 
-  @Inject
-  public void setPipeline(@Any ValidationPipeline<SgProfileReview> pipeline) {
-    this.pipeline = pipeline;
-  }
 }

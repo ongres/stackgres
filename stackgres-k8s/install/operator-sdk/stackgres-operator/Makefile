@@ -138,6 +138,7 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
 .PHONY: kustomize
 KUSTOMIZE = $(shell pwd)/bin/kustomize
 kustomize: ## Download kustomize locally if necessary.
+	rm -rf bundle
 ifeq (,$(wildcard $(KUSTOMIZE)))
 ifeq (,$(shell which kustomize 2>/dev/null))
 	@{ \
@@ -169,27 +170,28 @@ endif
 
 .PHONY: bundle
 bundle: kustomize ## Generate bundle manifests and metadata, then validate generated files.
-	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat config/manifests/bases/stackgres.clusterserviceversion.template.yaml)\nEOF")" \
+	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat config/manifests/bases/stackgres.clusterserviceversion.template.yaml)\nMAKE_EOF")" \
 		> config/manifests/bases/stackgres.clusterserviceversion.yaml
-	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat config/manager/kustomization.template.yaml)\nEOF")" \
+	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat config/manager/kustomization.template.yaml)\nMAKE_EOF")" \
 		> config/manager/kustomization.yaml
 	cp -a "$(PROJECT_DIR)/stackgres-k8s/src/common/src/main/resources/crds/." config/crd/bases/.
-	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat config/crd/kustomization.template.yaml)\nEOF")" \
+	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat config/crd/kustomization.template.yaml)\nMAKE_EOF")" \
 		> config/crd/kustomization.yaml
-	VERSION="$(VERSION)" OPENSHIFT_BUNDLE="$(OPENSHIFT_BUNDLE)" eval "$$(printf "cat << EOF\n$$(cat config/manager/manager.template.yaml)\nEOF")" \
+	VERSION="$(VERSION)" OPENSHIFT_BUNDLE="$(OPENSHIFT_BUNDLE)" eval "$$(printf "cat << MAKE_EOF\n$$(cat config/manager/manager.template.yaml)\nMAKE_EOF")" \
 		> config/manager/manager.yaml
-	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat watches.template.yaml)\nEOF")" \
+	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat watches.template.yaml)\nMAKE_EOF")" \
 		> watches.yaml
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
 	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle $(BUNDLE_GEN_FLAGS)
+	for CRD in bundle/manifests/stackgres.io_*; do cp "config/crd/bases/$$(yq -r .spec.names.kind "$$CRD").yaml" "$$CRD"; done
 	operator-sdk bundle validate ./bundle
 
 .PHONY: bundle-openshift
 bundle-openshift: IMAGE_TAG := $(IMAGE_TAG)-openshift
 bundle-openshift: OPENSHIFT_BUNDLE := true
 bundle-openshift: bundle
-	VERSION="$(VERSION)" eval "$$(printf "cat << EOF\n$$(cat openshift-operator-bundle/manifests/stackgres.clusterserviceversion.template.yaml)\nEOF")" \
+	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat openshift-operator-bundle/manifests/stackgres.clusterserviceversion.template.yaml)\nMAKE_EOF")" \
 		> openshift-operator-bundle/manifests/stackgres.clusterserviceversion.yaml
 	yq -y -s '.[0] * .[1]' \
 		bundle/manifests/stackgres.clusterserviceversion.yaml \

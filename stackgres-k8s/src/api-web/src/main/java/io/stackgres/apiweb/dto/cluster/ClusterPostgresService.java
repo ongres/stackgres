@@ -8,6 +8,7 @@ package io.stackgres.apiweb.dto.cluster;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.postgres.service.PostgresService;
 import io.stackgres.common.StackGresUtil;
@@ -15,7 +16,11 @@ import io.stackgres.common.crd.CustomServicePort;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@SuppressFBWarnings(value = "EQ_DOESNT_OVERRIDE_EQUALS",
+    justification = "equals and hashCode are unused")
 public class ClusterPostgresService extends PostgresService {
+
+  private static final long serialVersionUID = 1L;
 
   private List<CustomServicePort> customPorts;
 

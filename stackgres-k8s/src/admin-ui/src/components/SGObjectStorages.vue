@@ -84,7 +84,7 @@
 										Name 
 										<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.metadata.name')"></span>
 									</td>
-									<td colspan="2">
+									<td colspan="100%">
 										{{ conf.name }}
 									</td>
 								</tr>
@@ -93,7 +93,7 @@
 										Storage Type
 										<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.type')"></span>
 									</td>
-									<td colspan="2">
+									<td colspan="100%">
 										{{ conf.data.spec.type }}
 									</td>
 								</tr>
@@ -223,23 +223,49 @@
 											Bucket
 											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.gcs.bucket')"></span>
 										</td>
-										<td colspan="2">
+										<td colspan="3">
 											{{ conf.data.spec.gcs.bucket }}
 										</td>
 									</tr>
-									<tr>
-										<td class="label">
-											GCS Credentials
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.gcs.gcpCredentials')"></span>
-										</td>
-										<td class="label">
-											Service Account JSON
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON')"></span>
-										</td>
-										<td>
-											********
-										</td>
-									</tr>
+									<template v-if="hasProp(conf, 'data.spec.gcs.gcpCredentials.secretKeySelectors')">
+										<tr>
+											<td class="label" rowspan="2">
+												GCS Credentials
+												<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.gcs.gcpCredentials')"></span>
+											</td>
+											<td class="label" rowspan="2">
+												Service Account JSON
+												<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON')"></span>
+											</td>
+											<td class="label">
+												Name
+												<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.name')"></span>
+											</td>
+											<td>
+												{{ conf.data.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.name }}
+											</td>
+										</tr>
+										<tr>
+											<td class="label">
+												Key
+												<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.key')"></span>
+											</td>
+											<td>
+												{{ conf.data.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.key }}
+											</td>
+										</tr>
+									</template>
+									<template v-else-if="hasProp(conf, 'data.spec.gcs.gcpCredentials.fetchCredentialsFromMetadataService')">
+										<tr>
+											<td class="label" rowspan="2">
+												Fetch Credentials From Metadata Service
+												<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.gcs.gcpCredentials.fetchCredentialsFromMetadataService')"></span>
+											</td>
+											<td>
+												{{ isEnabled(conf.data.spec.gcs.gcpCredentials.fetchCredentialsFromMetadataService) }}
+											</td>
+										</tr>
+									</template>
 								</template>
 								<template v-else-if="conf.data.spec.type === 'azureBlob'">
 									<tr>

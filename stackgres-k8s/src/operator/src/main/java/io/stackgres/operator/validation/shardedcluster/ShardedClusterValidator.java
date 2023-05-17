@@ -28,7 +28,7 @@ public interface ShardedClusterValidator extends Validator<StackGresShardedClust
   default void failWithFields(String message, String...fields) throws ValidationFailed {
     ValidationType validationType = this.getClass().getAnnotation(ValidationType.class);
     String errorTypeUri = ErrorType.getErrorTypeUri(validationType.value());
-    failWithFields(HasMetadata.getKind(StackGresShardedCluster.class),
+    failWithMessageAndFields(HasMetadata.getKind(StackGresShardedCluster.class),
         errorTypeUri, message, fields);
   }
 

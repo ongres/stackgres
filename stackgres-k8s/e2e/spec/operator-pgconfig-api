@@ -329,7 +329,7 @@ test_api_delete_pgconfig_is_invible() {
 test_constraint_violation_api_error() {
   INVALID_PGCONFIG="$(cat "$LOG_PATH/default-pgconfig.json" | jq 'del (.spec.postgresVersion)' )"
 
-  echo "$INVALID_PGCONFIG" > "$LOG_PATH/invalid-pgconfig.json"
+  echo_raw "$INVALID_PGCONFIG" > "$LOG_PATH/invalid-pgconfig.json"
 
   local HTTP_STATUS
 

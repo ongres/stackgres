@@ -117,8 +117,128 @@ class ClusterPatroniEnvVarFactoryTest {
   }
 
   @Test
+  void patroniRecoveryTargetEnvVar_shouldNotBeReturned() {
+    assertNotPresent("RECOVERY_TARGET");
+  }
+
+  @Test
+  void patroniRecoveryTargetTimelineEnvVar_shouldNotBeReturned() {
+    assertNotPresent("RECOVERY_TARGET_TIMELINE");
+  }
+
+  @Test
+  void patroniRecoveryTargetInclusiveEnvVar_shouldNotBeReturned() {
+    assertNotPresent("RECOVERY_TARGET_INCLUSIVE");
+  }
+
+  @Test
+  void patroniRecoveryTargetNameEnvVar_shouldNotBeReturned() {
+    assertNotPresent("RECOVERY_TARGET_NAME");
+  }
+
+  @Test
+  void patroniRecoveryTargetXidEnvVar_shouldNotBeReturned() {
+    assertNotPresent("RECOVERY_TARGET_XID");
+  }
+
+  @Test
+  void patroniRecoveryTargetLsnEnvVar_shouldNotBeReturned() {
+    assertNotPresent("RECOVERY_TARGET_LSN");
+  }
+
+  @Test
   void patroniRecoveryTargetTimeEnvVar_shouldNotBeReturned() {
     assertNotPresent("RECOVERY_TARGET_TIME");
+  }
+
+  @Test
+  void patroniRecoveryTargetEnvVar_shouldBeReturned() {
+    cluster.setSpec(new StackGresClusterSpecBuilder(cluster.getSpec())
+        .withNewInitData()
+        .withNewRestore()
+        .withNewFromBackup()
+        .withTarget("test")
+        .endFromBackup()
+        .endRestore()
+        .endInitData()
+        .build());
+    EnvVar envVar = getEnvVar("RECOVERY_TARGET");
+    assertValue(envVar, "test");
+  }
+
+  @Test
+  void patroniRecoveryTargetTimelineEnvVar_shouldBeReturned() {
+    cluster.setSpec(new StackGresClusterSpecBuilder(cluster.getSpec())
+        .withNewInitData()
+        .withNewRestore()
+        .withNewFromBackup()
+        .withTargetTimeline("test")
+        .endFromBackup()
+        .endRestore()
+        .endInitData()
+        .build());
+    EnvVar envVar = getEnvVar("RECOVERY_TARGET_TIMELINE");
+    assertValue(envVar, "test");
+  }
+
+  @Test
+  void patroniRecoveryTargetInclusiveEnvVar_shouldBeReturned() {
+    cluster.setSpec(new StackGresClusterSpecBuilder(cluster.getSpec())
+        .withNewInitData()
+        .withNewRestore()
+        .withNewFromBackup()
+        .withTargetInclusive(true)
+        .endFromBackup()
+        .endRestore()
+        .endInitData()
+        .build());
+    EnvVar envVar = getEnvVar("RECOVERY_TARGET_INCLUSIVE");
+    assertValue(envVar, "on");
+  }
+
+  @Test
+  void patroniRecoveryTargetNameEnvVar_shouldBeReturned() {
+    cluster.setSpec(new StackGresClusterSpecBuilder(cluster.getSpec())
+        .withNewInitData()
+        .withNewRestore()
+        .withNewFromBackup()
+        .withTargetName("test")
+        .endFromBackup()
+        .endRestore()
+        .endInitData()
+        .build());
+    EnvVar envVar = getEnvVar("RECOVERY_TARGET_NAME");
+    assertValue(envVar, "test");
+  }
+
+  @Test
+  void patroniRecoveryTargetXidEnvVar_shouldBeReturned() {
+    cluster.setSpec(new StackGresClusterSpecBuilder(cluster.getSpec())
+        .withNewInitData()
+        .withNewRestore()
+        .withNewFromBackup()
+        .withTargetXid("test")
+        .endFromBackup()
+        .endRestore()
+        .endInitData()
+        .build());
+    EnvVar envVar = getEnvVar("RECOVERY_TARGET_XID");
+    assertValue(envVar, "test");
+  }
+
+  @Test
+  void patroniRecoveryTargetLsnEnvVar_shouldBeReturned() {
+    cluster.setSpec(new StackGresClusterSpecBuilder(cluster.getSpec())
+        .withNewInitData()
+        .withNewRestore()
+        .withNewFromBackup()
+        .withTargetLsn("test")
+        .endFromBackup()
+        .endRestore()
+        .endInitData()
+        .build());
+    EnvVar envVar = getEnvVar("RECOVERY_TARGET_LSN");
+    assertValue(envVar, "test");
   }
 
   @Test

@@ -2,7 +2,7 @@
 
 e2e_test_install() {
   echo "Check Operator Helm Chart properties"
-  OPERATOR_HELM_JOB_NAMES="stackgres-operator-wait-webhooks stackgres-operator-cr-updater stackgres-operator-crd-upgrade stackgres-operator-conversion-webhooks stackgres-operator-create-certificate stackgres-operator-set-crd-version stackgres-operator-wait stackgres-operator-wait-webhooks"
+  OPERATOR_HELM_JOB_NAMES="$(helm template -n "$OPERATOR_NAMESPACE" stackgres-operator "$OPERATOR_CHART_PATH" | yq -r 'select(.kind == "Job").metadata.name')"
 }
 
 e2e_test() {
@@ -179,21 +179,22 @@ check_operator_helm_service_annotations() {
 }
 
 check_operator_specific_property() {
-  PARAMETERS=$1
-  KIND=$2
-  KEY=$4
-  EXPECTED_VALUE=$5
+  local PARAMETERS=$1
+  local KIND=$2
+  local NAMES=$3
+  local KEY=$4
+  local EXPECTED_VALUE=$5
   
-  for app in $3; do
+  for NAME in $NAMES; do
     ACTUAL_VALUE="$(helm template -n "$OPERATOR_NAMESPACE" stackgres-operator "$OPERATOR_CHART_PATH" \
-        $PARAMETERS | yq -r 'select( select(.kind == "'$KIND'").metadata.name == "'$app'")'.$KEY)"  
+        $PARAMETERS | yq -r 'select( select(.kind == "'$KIND'").metadata.name == "'$NAME'")'.$KEY)"  
 
     if [ -z "$ACTUAL_VALUE" ] || [ "$ACTUAL_VALUE" != "$EXPECTED_VALUE" ] || [ "$ACTUAL_VALUE" == "null" ]
     then
-      echo "FAILURE! Property "$KEY" or it value was not found on restapi deployment"
+      echo "FAILURE! Property $KEY has no value $EXPECTED_VALUE (was $ACTUAL_VALUE) on $NAME $KIND"
       return 1
     else
-      echo "SUCCESS! Property "$KEY" found on "$TYPE" deployment with value $ACTUAL_VALUE"
+      echo "SUCCESS! Property $KEY has value $EXPECTED_VALUE on $NAME $KIND"
     fi
   done;
 }

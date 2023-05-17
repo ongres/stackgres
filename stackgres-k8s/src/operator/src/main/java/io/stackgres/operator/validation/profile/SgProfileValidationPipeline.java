@@ -5,38 +5,22 @@
 
 package io.stackgres.operator.validation.profile;
 
-import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import io.stackgres.operator.common.SgProfileReview;
-import io.stackgres.operator.validation.SimpleValidationPipeline;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
+import io.stackgres.operator.validation.AbstractValidationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 @ApplicationScoped
-public class SgProfileValidationPipeline implements ValidationPipeline<SgProfileReview> {
-
-  private SimpleValidationPipeline<SgProfileReview, SgProfileValidator> pipeline;
-
-  private Instance<SgProfileValidator> validators;
-
-  @PostConstruct
-  public void init() {
-    pipeline = new SimpleValidationPipeline<>(validators);
-  }
-
-  @Override
-  public void validate(SgProfileReview review) throws ValidationFailed {
-
-    pipeline.validate(review);
-
-  }
+public class SgProfileValidationPipeline extends AbstractValidationPipeline<SgProfileReview> {
 
   @Inject
-  public void setValidators(@Any Instance<SgProfileValidator> validators) {
-    this.validators = validators;
+  public SgProfileValidationPipeline(
+      @Any Instance<Validator<SgProfileReview>> validatorInstances) {
+    super(validatorInstances);
   }
+
 }

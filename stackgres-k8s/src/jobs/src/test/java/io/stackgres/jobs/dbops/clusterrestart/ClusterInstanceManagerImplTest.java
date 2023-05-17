@@ -29,11 +29,11 @@ import io.quarkus.test.junit.mockito.InjectSpy;
 import io.quarkus.test.kubernetes.client.KubernetesTestServer;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.Uni;
+import io.stackgres.common.StackGresKubernetesMockServerSetup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.jobs.dbops.lock.FakeClusterScheduler;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
-import io.stackgres.testutil.StackGresKubernetesMockServerSetup;
 import io.stackgres.testutil.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -355,20 +355,22 @@ class ClusterInstanceManagerImplTest {
   private void configureNonDisruptablePod(int index) {
     Pod primaryPod = podTestUtil.buildNonDisruptablePrimaryPod(cluster, index);
     mockServer.getClient().pods().inNamespace(namespace)
-        .withName(primaryPod.getMetadata().getName())
-        .replace(primaryPod);
+        .resource(primaryPod)
+        .replace();
   }
 
   private void configureNewPodCreated(Pod newPod) {
     kubeDb.watchCluster(clusterName, namespace, cluster -> mockServer.getClient().pods()
         .inNamespace(namespace)
-        .createOrReplace(newPod));
+        .resource(newPod)
+        .createOrReplace());
   }
 
   private void configurePodDeleted(Pod podToDelete) {
     kubeDb.watchCluster(clusterName, namespace, cluster -> mockServer.getClient().pods()
         .inNamespace(namespace)
-        .delete(podToDelete));
+        .resource(podToDelete)
+        .delete());
   }
 
   private void configureCreationPodWatchers() {

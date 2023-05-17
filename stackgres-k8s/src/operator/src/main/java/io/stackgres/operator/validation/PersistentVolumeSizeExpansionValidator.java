@@ -61,7 +61,7 @@ public abstract class PersistentVolumeSizeExpansionValidator<T extends Admission
    * @param message the error message
    * @throws ValidationFailed always throws this exception
    */
-  public abstract void throwValidationError(String message) throws ValidationFailed;
+  protected abstract void throwValidationError(String message) throws ValidationFailed;
 
   /**
    * Given a cluster it returns the configure persistent volume size.
@@ -69,7 +69,7 @@ public abstract class PersistentVolumeSizeExpansionValidator<T extends Admission
    * @param cluster the cluster to look into
    * @return the volume size
    */
-  public abstract String getVolumeSize(R cluster);
+  protected abstract String getVolumeSize(R cluster);
 
   /**
    * Given a cluster it returns the configured storage class if any.
@@ -77,28 +77,28 @@ public abstract class PersistentVolumeSizeExpansionValidator<T extends Admission
    * @param cluster the cluster to look
    * @return the configured storage class if any
    */
-  public abstract Optional<String> getStorageClass(R cluster);
+  protected abstract Optional<String> getStorageClass(R cluster);
 
   /**
    * Looks for a storage class finder.
    *
    * @return a storage class finder.
    */
-  public abstract ResourceFinder<StorageClass> getStorageClassFinder();
+  protected abstract ResourceFinder<StorageClass> getStorageClassFinder();
 
   /**
    * Looks for a LabelFactoryForCluster.
    *
    * @return a label factory for cluster.
    */
-  public abstract LabelFactoryForCluster<S> getLabelFactory();
+  protected abstract LabelFactoryForCluster<S> getLabelFactory();
 
   /**
    * Looks for a PersistentVolumeClaim scanner.
    *
    * @return a Persistent Volume Claim scanner.
    */
-  public abstract ResourceScanner<PersistentVolumeClaim> getPvcScanner();
+  protected abstract ResourceScanner<PersistentVolumeClaim> getPvcScanner();
 
   /**
    * Given an admission review it returns the storage class name configured.

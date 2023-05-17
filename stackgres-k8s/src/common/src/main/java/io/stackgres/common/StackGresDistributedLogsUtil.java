@@ -173,8 +173,19 @@ public interface StackGresDistributedLogsUtil {
     return new StackGresClusterPostgresServiceBuilder()
         .withEnabled(postgresService.getEnabled())
         .withType(postgresService.getType())
-        .withLoadBalancerIP(postgresService.getLoadBalancerIP())
+        .withAllocateLoadBalancerNodePorts(postgresService.getAllocateLoadBalancerNodePorts())
+        .withClusterIP(postgresService.getClusterIP())
+        .withClusterIPs(postgresService.getClusterIPs())
         .withExternalIPs(postgresService.getExternalIPs())
+        .withHealthCheckNodePort(postgresService.getHealthCheckNodePort())
+        .withInternalTrafficPolicy(postgresService.getInternalTrafficPolicy())
+        .withIpFamilies(postgresService.getIpFamilies())
+        .withIpFamilyPolicy(postgresService.getIpFamilyPolicy())
+        .withLoadBalancerClass(postgresService.getLoadBalancerClass())
+        .withLoadBalancerIP(postgresService.getLoadBalancerIP())
+        .withLoadBalancerSourceRanges(postgresService.getLoadBalancerSourceRanges())
+        .withSessionAffinity(postgresService.getSessionAffinity())
+        .withSessionAffinityConfig(postgresService.getSessionAffinityConfig())
         .build();
   }
 

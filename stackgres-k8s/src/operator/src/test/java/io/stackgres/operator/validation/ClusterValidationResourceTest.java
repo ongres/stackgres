@@ -21,8 +21,7 @@ class ClusterValidationResourceTest extends ValidationResourceTest<StackGresClus
 
   @BeforeEach
   public void setUp() {
-    final ClusterValidationResource resource = new ClusterValidationResource();
-    resource.setPipeline(pipeline);
+    final ClusterValidationResource resource = new ClusterValidationResource(pipeline);
     this.resource = resource;
 
     review = AdmissionReviewFixtures.cluster().loadCreate().get();

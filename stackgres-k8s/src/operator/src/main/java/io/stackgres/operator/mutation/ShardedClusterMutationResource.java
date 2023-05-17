@@ -13,37 +13,45 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.CdiUtil;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Path(MutationUtil.SHARDED_CLUSTER_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ShardedClusterMutationResource
-    implements MutationResource<StackGresShardedClusterReview> {
-
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(ShardedClusterMutationResource.class);
-
-  private JsonPatchMutationPipeline<StackGresShardedClusterReview> pipeline;
+    extends MutationResource<StackGresShardedCluster, StackGresShardedClusterReview> {
 
   @Inject
-  public void setPipeline(JsonPatchMutationPipeline<StackGresShardedClusterReview> pipeline) {
-    this.pipeline = pipeline;
+  public ShardedClusterMutationResource(
+      ObjectMapper objectMapper,
+      MutationPipeline<StackGresShardedCluster, StackGresShardedClusterReview> pipeline) {
+    super(objectMapper, pipeline);
+  }
+
+  public ShardedClusterMutationResource() {
+    super(null, null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
   }
 
   void onStart(@Observes StartupEvent ev) {
-    LOGGER.info("ShardedCluster mutation resource started");
+    getLogger().info("ShardedCluster mutation resource started");
   }
 
   @POST
   @Override
   public AdmissionReviewResponse mutate(StackGresShardedClusterReview admissionReview) {
-    return mutate(admissionReview, pipeline);
+    return super.mutate(admissionReview);
+  }
+
+  @Override
+  protected Class<StackGresShardedCluster> getResourceClass() {
+    return StackGresShardedCluster.class;
   }
 }

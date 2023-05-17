@@ -62,6 +62,11 @@ public class JsonUtil {
     return (T) fromJson(toJson(object), object.getClass());
   }
 
+  public static <T> T convert(Object original,
+      Class<T> clazz) {
+    return JSON_MAPPER.convertValue(original, clazz);
+  }
+
   public static void assertJsonEquals(JsonNode expected, JsonNode actual) {
     assertJsonEquals(expected, actual, null);
   }

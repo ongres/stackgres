@@ -806,14 +806,10 @@ ul.steps li.notValid, ul.steps li.active.notValid {
     left: 10px;
 }
 
-h2 .helpTooltip, h3 .helpTooltip, h4 .helpTooltip, label .helpTooltip {
+h2 .helpTooltip, h3 .helpTooltip, h4 .helpTooltip, h5 .helpTooltip, h6 .helpTooltip, label .helpTooltip {
     float: none !important;
     transform: none !important;
     margin-left: 5px;
-}
-
-form.form label.switch + .helpTooltip {
-    transform: translate(20px, -47px);
 }
 
 form.form .row-50 .col {
@@ -823,4 +819,9 @@ form.form .row-50 .col {
 form .sectionTitle {
     display: block;
     margin-bottom: 20px;
+}
+
+.darkmode select.plain {
+    background-color: var(--activeBg);
+    color: #e3e3e3;
 }

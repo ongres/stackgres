@@ -6,7 +6,6 @@
 package io.stackgres.operator.mutation.dbops;
 
 import java.util.Map;
-import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 
@@ -25,12 +24,12 @@ public class DbOpsAnnotationMutator
   private static final long VERSION_1_4 = StackGresVersion.V_1_4.getVersionAsNumber();
 
   @Override
-  public Optional<Map<String, String>> getAnnotationsToOverwrite(StackGresDbOps resource) {
+  public Map<String, String> getAnnotationsToOverwrite(StackGresDbOps resource) {
     final long version = StackGresVersion.getStackGresVersionAsNumber(resource);
     if (VERSION_1_4 > version) {
-      return Optional.of(Map.of(StackGresContext.VERSION_KEY, StackGresVersion.V_1_4.getVersion()));
+      return Map.of(StackGresContext.VERSION_KEY, StackGresVersion.V_1_4.getVersion());
     }
-    return Optional.empty();
+    return Map.of();
   }
 
 }

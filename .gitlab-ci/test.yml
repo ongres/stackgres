@@ -37,7 +37,7 @@ swagger validations:
     - stackgres-runner-v2
     - linux-amd64
   dependencies:
-    - build
+    - build amd64
   script:
     - |
       yajsv -s stackgres-k8s/src/api-web/src/main/swagger/schema.json stackgres-k8s/src/api-web/target/swagger-merged.json

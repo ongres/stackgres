@@ -12,4 +12,5 @@ resources:
 - bases/SGPostgresConfig.yaml
 - bases/SGObjectStorage.yaml
 - bases/SGScript.yaml
+- bases/SGShardedCluster.yaml
 #+kubebuilder:scaffold:crdkustomizeresource

@@ -5,20 +5,44 @@
 
 package io.stackgres.common.crd.sgshardedcluster;
 
+import java.util.Objects;
+
+import javax.validation.Valid;
+import javax.validation.constraints.AssertTrue;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.validation.FieldReference;
+import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
+@JsonIgnoreProperties(ignoreUnknown = true,
+    value = { "postgres", "postgresServices" })
+@Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
+    lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
+    builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresShardedClusterCoordinator extends StackGresClusterSpec {
+
+  @JsonProperty("replication")
+  @Valid
+  private StackGresShardedClusterReplication replicationForCoordinator;
+
+  @ReferencedField("replication.syncInstances")
+  interface SyncInstances extends FieldReference { }
 
   @Override
   public boolean isPosgresSectionPresent() {
+    return true;
+  }
+
+  @Override
+  public boolean isPostgresServicesPresent() {
     return true;
   }
 
@@ -35,6 +59,49 @@ public class StackGresShardedClusterCoordinator extends StackGresClusterSpec {
   @Override
   public boolean isSupportingRequiredSynchronousReplicas() {
     return true;
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "The total number synchronous replicas must be less or equals than the"
+      + " number of coordinator or any shard replicas",
+      payload = { SyncInstances.class })
+  public boolean isCoordinatorSupportingRequiredSynchronousReplicas() {
+    return replicationForCoordinator == null
+        || !replicationForCoordinator.isSynchronousMode()
+        || replicationForCoordinator.getSyncInstances() == null
+        || getInstances() > replicationForCoordinator.getSyncInstances();
+  }
+
+  public StackGresShardedClusterReplication getReplicationForCoordinator() {
+    return replicationForCoordinator;
+  }
+
+  public void setReplicationForCoordinator(
+      StackGresShardedClusterReplication replicationForCoordinator) {
+    this.replicationForCoordinator = replicationForCoordinator;
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(replicationForCoordinator);
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
+      return false;
+    }
+    if (!(obj instanceof StackGresShardedClusterCoordinator)) {
+      return false;
+    }
+    StackGresShardedClusterCoordinator other = (StackGresShardedClusterCoordinator) obj;
+    return Objects.equals(replicationForCoordinator, other.replicationForCoordinator);
   }
 
 }

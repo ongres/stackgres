@@ -6,7 +6,7 @@
 package io.stackgres.common;
 
 import static io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType.CLUSTER_IP;
-import static io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType.EXTERNAL_NAME;
+import static io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType.NODE_PORT;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,10 +27,10 @@ class StackGresDistributedLogsUtilTest {
   public void setup() {
     primary = Fixtures.cluster().loadDefault().get().getSpec().getPostgresServices().getPrimary();
     primary.setEnabled(false);
-    primary.setType(EXTERNAL_NAME.toString());
+    primary.setType(NODE_PORT.toString());
     replicas = Fixtures.cluster().loadDefault().get().getSpec().getPostgresServices().getReplicas();
-    primary.setEnabled(true);
-    primary.setType(CLUSTER_IP.toString());
+    replicas.setEnabled(true);
+    replicas.setType(CLUSTER_IP.toString());
   }
 
   @Test

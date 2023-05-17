@@ -11,7 +11,6 @@ import java.util.Optional;
 
 import javax.validation.Valid;
 import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -27,7 +26,9 @@ import io.sundr.builder.annotations.Buildable;
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
+@Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
+    lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
+    builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterSpec {
 
   @JsonProperty("postgres")
@@ -42,12 +43,10 @@ public class StackGresClusterSpec {
   private StackGresClusterReplication replication;
 
   @JsonProperty("configurations")
-  @NotNull(message = "configurations section is required")
   @Valid
   private StackGresClusterConfiguration configuration;
 
   @JsonProperty("sgInstanceProfile")
-  @NotNull(message = "resource profile is required")
   private String resourceProfile;
 
   @JsonProperty("initialData")
@@ -63,7 +62,6 @@ public class StackGresClusterSpec {
   private StackGresClusterManagedSql managedSql;
 
   @JsonProperty("pods")
-  @NotNull(message = "pods section is required")
   @Valid
   private StackGresClusterPod pod;
 
@@ -99,10 +97,40 @@ public class StackGresClusterSpec {
   @ReferencedField("instances")
   interface Instances extends FieldReference { }
 
+  @ReferencedField("resourceProfile")
+  interface ResourceProfile extends FieldReference { }
+
+  @ReferencedField("postgresServices")
+  interface PostgresServices extends FieldReference { }
+
+  @ReferencedField("configurations")
+  interface Configurations extends FieldReference { }
+
+  @ReferencedField("pods")
+  interface Pods extends FieldReference { }
+
   @JsonIgnore
-  @AssertTrue(message = "postgres section is required", payload = { Postgres.class })
+  @AssertTrue(message = "resourceProfile is required", payload = { ResourceProfile.class })
+  public boolean isResourceProfilePresent() {
+    return resourceProfile != null;
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "postgres is required", payload = { Postgres.class })
   public boolean isPosgresSectionPresent() {
     return postgres != null;
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "configurations is required", payload = { Configurations.class })
+  public boolean isConfigurationsSectionPresent() {
+    return configuration != null;
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "pods is required", payload = { Pods.class })
+  public boolean isPodsSectionPresent() {
+    return pod != null;
   }
 
   @JsonIgnore
@@ -113,7 +141,14 @@ public class StackGresClusterSpec {
   }
 
   @JsonIgnore
-  @AssertTrue(message = "replication section is required", payload = { Replication.class })
+  @AssertTrue(message = "postgresServices is required",
+      payload = { PostgresServices.class })
+  public boolean isPostgresServicesPresent() {
+    return postgresServices != null;
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "replication is required", payload = { Replication.class })
   public boolean isReplicationSectionPresent() {
     return replication != null;
   }

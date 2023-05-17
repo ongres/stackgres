@@ -5,10 +5,7 @@
 
 package io.stackgres.operator.validation;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -18,13 +15,12 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
+import io.stackgres.common.CrdLoader;
 import io.stackgres.common.YamlMapperProvider;
-import io.stackgres.testutil.CrdUtils;
 import org.opentest4j.AssertionFailedError;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
@@ -42,11 +38,10 @@ public class CrdMatchTestHelper {
     return Set.copyOf(reflections.getSubTypesOf(CustomResource.class));
   }
 
-  public static int getMaxLengthResourceNameFrom(String crdFilename)
+  public static int getMaxLengthResourceNameFrom(String kind)
       throws JsonProcessingException, IOException {
-    File[] listFiles = loadSpecificCrdFile(crdFilename);
-    YAMLMapper yamlMapper = new YamlMapperProvider().get();
-    JsonNode crdTree = yamlMapper.readTree(listFiles[0]);
+    var yamlMapper = new YamlMapperProvider().get();
+    JsonNode crdTree = yamlMapper.valueToTree(new CrdLoader(yamlMapper).getCrd(kind));
     JsonNode maxLengthResourceName = extractMetadataMaxLengthResourceName(crdTree);
     return Optional.of(maxLengthResourceName.intValue()).orElse(null);
   }
@@ -61,43 +56,12 @@ public class CrdMatchTestHelper {
     return SG_CR_CLASSES;
   }
 
-  public static void withEveryYaml(Consumer<JsonNode> crdDefinition, List<String> crdFileanames)
-      throws IOException {
-    YAMLMapper yamlMapper = new YamlMapperProvider().get();
-    File[] crdFiles = loadSpecificCrdFile(crdFileanames);
-    for (File crd : crdFiles) {
-      JsonNode crdTree = yamlMapper.readTree(crd);
-      crdDefinition.accept(crdTree);
-    }
-  }
-
   public static void withEveryYaml(Consumer<JsonNode> crdDefinition) throws IOException {
-    var crdFiles = loadAllCrdFiles();
-    YAMLMapper yamlMapper = new YamlMapperProvider().get();
-    for (File crd : crdFiles) {
-      JsonNode crdTree = yamlMapper.readTree(crd);
+    var yamlMapper = new YamlMapperProvider().get();
+    for (var crd : new CrdLoader(yamlMapper).scanCrds()) {
+      JsonNode crdTree = yamlMapper.valueToTree(crd);
       crdDefinition.accept(crdTree);
     }
-  }
-
-  private static File[] loadSpecificCrdFile(List<String> crdFilenames) {
-    List<File> files = new ArrayList<File>();
-    crdFilenames.stream().forEach(crdFilename -> {
-      files.add(loadSpecificCrdFile(crdFilename)[0]);
-    });
-    return files.toArray(new File[files.size()]);
-  }
-
-  private static File[] loadSpecificCrdFile(String crdFilename) {
-    File[] listFiles = CrdUtils.getCrdsFolder()
-        .listFiles(file -> file.getName().equals(crdFilename));
-    return listFiles;
-  }
-
-  private static File[] loadAllCrdFiles() {
-    var crdFiles = CrdUtils.getCrdsFolder()
-        .listFiles(file -> file.getName().endsWith(".yaml"));
-    return crdFiles;
   }
 
   private static Map<String, Class<? extends CustomResource>> getClassByKind() {

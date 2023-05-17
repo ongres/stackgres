@@ -21,6 +21,8 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -99,9 +101,7 @@ public class TransformerTestUtil {
     JsonUtil.assertJsonEquals(JsonUtil.toJson(target), JsonUtil.toJson(actualTarget),
         "Transformation from CRD to DTO doesn't "
             + "return the expected output. Which means that the transformer is not accurately "
-            + "transforming CRDs to DTOs. "
-            + "It could also mean that the transformed classes doesn't have implemented the "
-            + "equals method");
+            + "transforming CRDs to DTOs.");
 
     var actualSource = transformer.toCustomResource(target, source);
 
@@ -111,9 +111,7 @@ public class TransformerTestUtil {
     JsonUtil.assertJsonEquals(JsonUtil.toJson(target), JsonUtil.toJson(actualTarget),
         "Transformation from DTO to CRD doesn't return the "
             + "expected output. Which means that the "
-            + "transformer is not accurately transforming DTOs to CRDs. "
-            + "It could also mean that the transformed classes doesn't have implemented the "
-            + "equals method");
+            + "transformer is not accurately transforming DTOs to CRDs.");
   }
 
   public static TransformerTuple<Metadata, ObjectMeta> createMetadataTuple() {
@@ -152,13 +150,13 @@ public class TransformerTestUtil {
       }
 
       Field[] targetFields = getRepresentativeFields(targetClazz);
-      Field[] sourceField = getRepresentativeFields(sourceClazz);
+      Field[] sourceFields = getRepresentativeFields(sourceClazz);
 
       T targetInstance = targetClazz.getDeclaredConstructor().newInstance();
       S sourceInstance = sourceClazz.getDeclaredConstructor().newInstance();
 
       List<TransformerTuple<Field, Field>> commonFields = getCommonFields(
-          targetFields, sourceField);
+          targetFields, sourceFields);
 
       commonFields.forEach(
           fieldTuple -> setRandomDataForFields(fieldTuple, targetInstance, sourceInstance)
@@ -172,10 +170,18 @@ public class TransformerTestUtil {
   }
 
   public static Field[] getRepresentativeFields(Class<?> clazz) {
-    if (clazz != null) {
+    if (clazz != null && clazz != Object.class) {
       Field[] declaredFields = clazz.getDeclaredFields();
       Field[] parentFields = getRepresentativeFields(clazz.getSuperclass());
-      return Stream.concat(Arrays.stream(declaredFields), Arrays.stream(parentFields))
+      return Stream.concat(Arrays.stream(declaredFields),
+          Arrays.stream(parentFields)
+          .filter(parentField -> Arrays.stream(declaredFields)
+              .map(TransformerTestUtil::getJsonFieldName)
+              .noneMatch(getJsonFieldName(parentField)::equals)))
+          .filter(field -> !clazz.isAnnotationPresent(JsonIgnoreProperties.class)
+              || Stream.of(clazz.getAnnotation(JsonIgnoreProperties.class).value())
+              .noneMatch(getJsonFieldName(field)::equals))
+          .filter(field -> !field.isAnnotationPresent(JsonIgnore.class))
           .filter(field -> !Modifier.isStatic(field.getModifiers()))
           .filter(field -> !Modifier.isFinal(field.getModifiers()))
           .toArray(Field[]::new);
@@ -239,9 +245,9 @@ public class TransformerTestUtil {
     // If the performance becomes a problem this could be improved by using quick select, but is
     // unlikely
     for (Field targetField : targetFields) {
-      String targetFieldName = getFieldName(targetField);
+      String targetFieldName = getJsonFieldName(targetField);
       for (Field sourceField : sourceFields) {
-        String sourceFieldName = getFieldName(sourceField);
+        String sourceFieldName = getJsonFieldName(sourceField);
         if (Objects.equals(targetFieldName, sourceFieldName)) {
           commonFields.add(
               new TransformerTuple<>(targetField, sourceField)
@@ -366,7 +372,7 @@ public class TransformerTestUtil {
     return new TransformerTuple<>(targetMap, sourceMap);
   }
 
-  private static String getFieldName(Field field) {
+  private static String getJsonFieldName(Field field) {
     if (field.isAnnotationPresent(JsonProperty.class)) {
       JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
       final String configuredFieldName = jsonProperty.value();

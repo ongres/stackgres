@@ -13,10 +13,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.CdiUtil;
+import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.operator.common.StackGresScriptReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,16 +27,22 @@ import org.slf4j.LoggerFactory;
 @Path(MutationUtil.SCRIPT_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class ScriptMutationResource implements MutationResource<StackGresScriptReview> {
+public class ScriptMutationResource
+    extends MutationResource<StackGresScript, StackGresScriptReview> {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ScriptMutationResource.class);
 
-  private JsonPatchMutationPipeline<StackGresScriptReview> pipeline;
-
   @Inject
-  public void setPipeline(JsonPatchMutationPipeline<StackGresScriptReview> pipeline) {
-    this.pipeline = pipeline;
+  public ScriptMutationResource(
+      ObjectMapper objectMapper,
+      MutationPipeline<StackGresScript, StackGresScriptReview> pipeline) {
+    super(objectMapper, pipeline);
+  }
+
+  public ScriptMutationResource() {
+    super(null, null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
   }
 
   void onStart(@Observes StartupEvent ev) {
@@ -43,6 +52,11 @@ public class ScriptMutationResource implements MutationResource<StackGresScriptR
   @POST
   @Override
   public AdmissionReviewResponse mutate(StackGresScriptReview admissionReview) {
-    return mutate(admissionReview, pipeline);
+    return super.mutate(admissionReview);
+  }
+
+  @Override
+  protected Class<StackGresScript> getResourceClass() {
+    return StackGresScript.class;
   }
 }

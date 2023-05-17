@@ -13,22 +13,31 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.CdiUtil;
+import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 
 @Path(MutationUtil.BACKUPCONFIG_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class BackupConfigMutationResource implements MutationResource<BackupConfigReview> {
-
-  private JsonPatchMutationPipeline<BackupConfigReview> pipeline;
+public class BackupConfigMutationResource
+    extends MutationResource<StackGresBackupConfig, BackupConfigReview> {
 
   @Inject
-  public void setPipeline(JsonPatchMutationPipeline<BackupConfigReview> pipeline) {
-    this.pipeline = pipeline;
+  public BackupConfigMutationResource(
+      ObjectMapper objectMapper,
+      MutationPipeline<StackGresBackupConfig, BackupConfigReview> pipeline) {
+    super(objectMapper, pipeline);
+  }
+
+  public BackupConfigMutationResource() {
+    super(null, null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
   }
 
   void onStart(@Observes StartupEvent ev) {
@@ -38,6 +47,11 @@ public class BackupConfigMutationResource implements MutationResource<BackupConf
   @POST
   @Override
   public AdmissionReviewResponse mutate(BackupConfigReview admissionReview) {
-    return mutate(admissionReview, pipeline);
+    return super.mutate(admissionReview);
+  }
+
+  @Override
+  protected Class<StackGresBackupConfig> getResourceClass() {
+    return StackGresBackupConfig.class;
   }
 }
