@@ -35,7 +35,7 @@ spec:
   benchmark:
     type: pgbench
     pgbench:
-      databaseSize: 64Mi
+      databaseSize: 100Mi
       duration: PT10S
 EOF
 
@@ -63,7 +63,7 @@ spec:
   benchmark:
     type: pgbench
     pgbench:
-      databaseSize: 64Mi
+      databaseSize: 100Mi
       duration: PT10S
       concurrentClients: 10
       threads: 10
@@ -87,7 +87,7 @@ spec:
   benchmark:
     type: pgbench
     pgbench:
-      databaseSize: 64Mi
+      databaseSize: 100Mi
       duration: PT10S
       usePreparedStatements: true
 EOF
@@ -110,7 +110,7 @@ spec:
   benchmark:
     type: pgbench
     pgbench:
-      databaseSize: 64Mi
+      databaseSize: 100Mi
       duration: PT10S
     connectionType: replicas-service
 EOF
@@ -253,7 +253,7 @@ spec:
   benchmark:
     type: pgbench
     pgbench:
-      databaseSize: 64Mi
+      databaseSize: 100Mi
       duration: PT10S
 EOF
 
