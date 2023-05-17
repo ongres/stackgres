@@ -1,15 +1,17 @@
 ---
 title: Creating a Cluster
-weight: 3
-url: install/cluster-creation
-aliases: [ /tutorial/simple-cluster , /tutorial/complete-cluster, /tutorial/complete-cluster/create-cluster ]
+weight: 2
+url: /administration/cluster-creation
+aliases: [ /administration/install/cluster-creation , /tutorial/simple-cluster , /tutorial/complete-cluster, /tutorial/complete-cluster/create-cluster ]
 description: Details about how to create a production StackGres cluster.
 showToc: true
 ---
 
-## Creating and Customizing Your Postgres Clusters
+This page will guide you though the creation of a production-ready StackGres cluster using your custom configuration.
 
-The following shows some examples of StackGres' versatile configuration options.
+## Customizing Your Postgres Clusters
+
+The following shows examples of StackGres' versatile configuration options.
 In general, these steps are optional, but we do recommend to consider these features for production setups.
 
 The next step is an optional one, but it will show you how to play with the StackGres versatility.
@@ -256,7 +258,14 @@ kubectl -n my-cluster create secret generic pgbench-user-password-secret \
 
 As you can see, has been created a secret key and its value which will be used in the StackGres cluster creation.
 
-All the necessary steps were performed to create your first StackGres Cluster, lets do it.
+Note that we could equally well define the SQL script in a config map, however, since the password represents a credential, we're using a secret.
+
+
+## Creating the Cluster
+
+All the required steps were performed to create our StackGres Cluster.
+
+Create the SGCluster resource:
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -301,7 +310,7 @@ Look up to the yaml into the here doc above, every CR previously being included 
 And there is in place the script created through the secret, but StackGres includes an extra example for you, the second script
 show you how to run a SQL instruction directly into the yaml. 
 
-Another helpful configuration is the [prometheusAutobind: true]({{% relref "04-administration-guide/01-production-installation/02-installation-via-helm/01-operator-parameters" %}}) definition.
+Another helpful configuration is the [prometheusAutobind: true]({{% relref "04-administration-guide/01-stackgres-installation/02-installation-via-helm/01-operator-parameters" %}}) definition.
 This parameter automatically enables monitoring for our cluster.
 We can use this since we've installed the Prometheus operator on our Kubernetes environment.
 

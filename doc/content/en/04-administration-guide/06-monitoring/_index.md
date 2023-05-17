@@ -1,6 +1,6 @@
 ---
 title: Monitoring
-weight: 6
+weight: 8
 url: administration/monitoring
 aliases: [ /monitoring/metrics , /install/prerequisites/monitoring ]
 description: Details about monitoring and metrics automatically stored on Prometheus.
@@ -44,7 +44,7 @@ helm install --create-namespace --namespace monitoring \
  prometheus prometheus-community/kube-prometheus-stack
 ```
 
-> StackGres provides advanced options for monitoring installation, see [Operator installation with Helm]({{% relref "04-administration-guide/01-production-installation/02-installation-via-helm/#stackgres-operator-installation" %}}) in the [Production installation section]({{% relref "04-administration-guide/01-production-installation/#monitoring" %}}).
+> StackGres provides advanced options for monitoring installation, see [Operator installation with Helm]({{% relref "04-administration-guide/01-stackgres-installation/02-installation-via-helm/#stackgres-operator-installation" %}}) in the [Production installation section]({{% relref "04-administration-guide/01-stackgres-installation/#monitoring" %}}).
 
 Once the operator is installed, you can retrieve the generated credentials. By default, they are user `admin` and password `prom-operator`.
 
@@ -116,7 +116,7 @@ helm install --create-namespace --namespace stackgres stackgres-operator \
    https://stackgres.io/downloads/stackgres-k8s/stackgres/latest/helm/stackgres-operator.tgz
 ```
 
-This method requires the installation process to authenticate using Grafana's username and password (see [installation via helm]({{% relref "/04-administration-guide/01-production-installation/02-installation-via-helm" %}}) for more options related to automatic embedding of Grafana).
+This method requires the installation process to authenticate using Grafana's username and password (see [installation via helm]({{% relref "/04-administration-guide/01-stackgres-installation/02-installation-via-helm" %}}) for more options related to automatic embedding of Grafana).
 
 
 ### Manual integration

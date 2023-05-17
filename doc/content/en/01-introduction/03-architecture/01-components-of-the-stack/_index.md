@@ -155,7 +155,7 @@ and integrates as a sidecar offering an auto binding mechanism if prometheus is 
 Take in account that Prometheus is a dependency and that StackGres expects that you install and configure it separately.
 
 Of course, StackGres provides an option to deploy Prometheus alongside the StackGres Operator
-as part of the [Helm chart]({{% relref "04-administration-guide/01-production-installation/02-installation-via-helm" %}})
+as part of the [Helm chart]({{% relref "04-administration-guide/01-stackgres-installation/02-installation-via-helm" %}})
 and you can follow the steps described there to set the required parameters so that the monitoring integration works as expected.
 Please read and review the steps and notes for a successful installation.
 
@@ -169,8 +169,8 @@ By default helm chart of [prometheus operator](https://github.com/coreos/prometh
 
 StackGres includes two ways to perform such integration.
 
-- [Automatic integration]({{% relref "/04-administration-guide/01-production-installation/01-pre-requisites/#integrating-pre-existing-grafanas" %}})
-- [Manual integration]({{% relref "/04-administration-guide/01-production-installation/01-pre-requisites/#manual-integration" %}})
+- [Automatic integration]({{% relref "/04-administration-guide/01-stackgres-installation/01-pre-requisites/#integrating-pre-existing-grafanas" %}})
+- [Manual integration]({{% relref "/04-administration-guide/01-stackgres-installation/01-pre-requisites/#manual-integration" %}})
 
 Some manual steps are required in order to achieve such integration.
 

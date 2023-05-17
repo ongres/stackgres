@@ -13,7 +13,7 @@ aliases: [ /demo/quickstart ]
 On this page, you will learn how to get started with StackGres.
 We will install StackGres on a Kubernetes cluster and create a Postgres instance.
 
-> **NOTE:** To run this demo you need a [K8s environment]({{% relref "04-administration-guide/01-production-installation/01-pre-requisites/01-k8s-environments" %}}) that is already configured in `kubectl`.
+> **NOTE:** To run this demo you need a [K8s environment]({{% relref "04-administration-guide/01-stackgres-installation/01-pre-requisites/01-k8s-environments" %}}) that is already configured in `kubectl`.
 
 ## Operator Installation
 
@@ -144,7 +144,7 @@ kubectl port-forward "$POD_NAME" 8443:9443 --namespace stackgres
 
 Then open the browser at following address [`localhost:8443/admin/`](`https://localhost:8443/admin/`)
 
-<!-- TODO screenshot -->
+![Admin UI Dashboard](simple-cluster-one-instance.png "Admin UI Dashboard")
 
 
 ## Cleaning up
@@ -156,4 +156,4 @@ kubectl delete --ignore-not-found -f {{< download-url >}}/stackgres-operator-dem
 
 Check the [uninstall]({{% relref "/04-administration-guide/999999-uninstall" %}}) section for more details.
 
-Also, see the [installation via helm]({{% relref "/04-administration-guide/01-production-installation/02-installation-via-helm" %}}) section in order to change those.
+Also, see the [installation via helm]({{% relref "/04-administration-guide/01-stackgres-installation/02-installation-via-helm" %}}) section in order to change those.

@@ -1,6 +1,6 @@
 ---
 title: Manual Cluster Restart
-weight: 8
+weight: 10
 url: administration/manual-restart
 aliases: [ /install/restart , /install/manual-restart ]
 description: Details about how to restart manually the database nodes.
