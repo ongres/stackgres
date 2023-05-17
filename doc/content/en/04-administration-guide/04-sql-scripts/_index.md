@@ -1,6 +1,6 @@
 ---
 title: SQL Scripts
-weight: 4
+weight: 6
 url: administration/sql-scripts
 aliases: [ /tutorial/using-initialdata , /tutorial/using-initialdata/scripts , /tutorial/using-managed-sql , /tutorial/using-managed-sql/scripts ]
 description: "Details about how manage state and data using SQL scripts"

@@ -10,7 +10,7 @@ showToc: true
 The StackGres operator can be installed using [Helm](https://helm.sh/) version >= `3.1.1`.
 As you may expect, a production environment will require you to install and set up additional components alongside your StackGres operator and cluster resources.
 
-In this page, we are going through all the necessary steps to set up a production-grade StackGres environment using Helm.
+On this page, we are going through all the necessary steps to set up a production-grade StackGres environment using Helm.
 
 ## Set Up StackGres Helm Repository
 
@@ -30,7 +30,7 @@ helm install --create-namespace --namespace stackgres stackgres-operator stackgr
 
 > You can specify the version adding `--version <version, e.g. 1.0.0>` to the Helm command. 
 
-For more installation options have a look at the [Operator Parameters]({{% relref "04-administration-guide/01-production-installation/02-installation-via-helm/01-operator-parameters" %}}) section for more information.
+For more installation options have a look at the [Operator Parameters]({{% relref "04-administration-guide/01-stackgres-installation/02-installation-via-helm/01-operator-parameters" %}}) section for more information.
 
 If you want to integrate Prometheus and Grafana into StackGres, please read the next section. 
 
@@ -79,4 +79,4 @@ stackgres-restapi-6ffd694fd5-hcpgp    2/2     Running   0          3m30s
 
 ```
 
-Now we can continue with [creating a StackGres cluster]({{% relref "04-administration-guide/01-production-installation/03-creating-a-cluster" %}}).
+Now we can continue with [creating a StackGres cluster]({{% relref "04-administration-guide/02-cluster-creation" %}}).
