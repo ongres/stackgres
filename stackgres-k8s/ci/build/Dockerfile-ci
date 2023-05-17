@@ -49,10 +49,10 @@ FROM registry.access.redhat.com/ubi8-minimal:8.7-1107
   	docker compose version
 
   # COPY modprobe.sh /usr/local/bin/modprobe
-  RUN wget -O /usr/local/bin/modprobe https://raw.githubusercontent.com/docker-library/docker/master/20.10/cli/modprobe.sh
+  RUN wget -O /usr/local/bin/modprobe https://github.com/docker-library/docker/raw/30134778cc8dc4def905d0adb8f04d3a0b148447/20.10/cli/modprobe.sh
   RUN chmod +x /usr/local/bin/modprobe
   # COPY docker-entrypoint.sh /usr/local/bin/
-  RUN wget -O /usr/local/bin/docker-entrypoint.sh https://raw.githubusercontent.com/docker-library/docker/master/20.10/cli/docker-entrypoint.sh
+  RUN wget -O /usr/local/bin/docker-entrypoint.sh https://github.com/docker-library/docker/raw/30134778cc8dc4def905d0adb8f04d3a0b148447/20.10/cli/docker-entrypoint.sh
   RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
   # https://github.com/docker-library/docker/pull/166
@@ -106,7 +106,7 @@ FROM registry.access.redhat.com/ubi8-minimal:8.7-1107
     chmod +x /usr/local/bin/dind
 
   # COPY dockerd-entrypoint.sh /usr/local/bin/
-  RUN wget -O /usr/local/bin/dockerd-entrypoint.sh https://raw.githubusercontent.com/docker-library/docker/master/20.10/dind/dockerd-entrypoint.sh
+  RUN wget -O /usr/local/bin/dockerd-entrypoint.sh https://github.com/docker-library/docker/raw/30134778cc8dc4def905d0adb8f04d3a0b148447/20.10/dind/dockerd-entrypoint.sh
   RUN chmod +x /usr/local/bin/dockerd-entrypoint.sh
 
   VOLUME /var/lib/docker

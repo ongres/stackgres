@@ -6,6 +6,29 @@ description: Details about StackGres versions.
 showToc: true
 ---
 
+## StackGres 1.5.0-beta2
+
+| Component | Versions |
+| ------ | ----------- |
+| PostgreSQL 15 | 15.2, 15.1, 15.0 |
+| PostgreSQL 14 | 14.7, 14.6, 14.5, 14.4, ~14.2, 14.1, 14.0~ |
+| PostgreSQL 13 | 13.10, 13.9, 13.8, 13.7, 13.6, 13.5, 13.4, 13.3, 13.2, 13.1, 13.0 |
+| PostgreSQL 12 | 12.14, 12.13, 12.12, 12.11, 12.10, 12.9, 12.8, 12.7, 12.6, 12.5, 12.4, 12.3, 12.2 and 12.1 |
+| PostgreSQL for Babelfish 14 | 14.6 |
+| PostgreSQL for Babelfish 13 | 13.9 |
+| Patroni | 3.0.1, 2.1.4, 2.1.3, 2.1.2, 2.1.0 |
+| WAL-G | 2.0.1, 2.0.0, 1.1 |
+| PgBouncer | 1.18.0 |
+| Postgres Exporter | 0.11.1, 0.10.1 |
+| Envoy | 1.24.3 |
+| Fluent-Bit | 1.9.9 |
+| Fluentd | 1.15.3 |
+| Babelfish Compass | 2022.12 |
+
+### Additional extensions included on StackGres
+
+* [Extensions list]({{% relref "/01-introduction/08-extensions" %}})
+
 ## StackGres 1.5.0-beta1
 
 | Component | Versions |

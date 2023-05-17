@@ -127,7 +127,7 @@ check_replica_in_ha_read_group_not_in_replicas_service() {
 
 check_replica_in_none_group_not_in_replicas_service() {
   local RESULT EXIT_CODE
-  try_function wait_until eval '! check_pod_ip_exposed_by_service "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2" "$CLUSTER_NAME-replicas"'
+  try_function wait_until eval 'check_pod_ip_not_exposed_by_service "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2" "$CLUSTER_NAME-replicas"'
   if "$RESULT"
   then
     echo "SUCCESS: second replica IP was not exposed by replicas sevices"
@@ -155,6 +155,16 @@ check_replica_in_none_group_not_elegible_as_primary() {
     echo "FAIL: first replica IP was not elected as primary"
     return 1
   fi
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1"
+  local RESULT EXIT_CODE
+  try_function wait_until -t 10 eval '[ $(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2" --template "{{ .metadata.labels.role }}") = master ]'
+  if "$RESULT"
+  then
+    echo "FAIL: second replica IP was elected as primary"
+    return 1
+  else
+    echo "SUCCESS: second replica IP was not elected as primary"
+  fi
 }
 
 check_replica_in_readonly_group_in_replicas_service_after_changing_role() {
@@ -177,6 +187,7 @@ check_replica_in_readonly_group_in_replicas_service_after_changing_role() {
 }
 
 check_old_primary_in_ha_group_not_in_replicas_service_after_changing_role() {
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2"
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" \
     --set cluster.replication.mode=sync \
     --set cluster.replication.role=ha-read \
@@ -184,6 +195,7 @@ check_old_primary_in_ha_group_not_in_replicas_service_after_changing_role() {
     --set cluster.replication.groups[0].instances=1 \
     --set cluster.replication.groups[0].role=ha \
     --set cluster.pods.scheduling.nodeSelector."$NODE_LABEL_KEY=null"
+  # This is not a typo, helm does not support removing a property so we need to repeat the change in order to make it work :facepalm:
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" \
     --set cluster.replication.mode=sync \
     --set cluster.replication.role=ha-read \
@@ -191,13 +203,12 @@ check_old_primary_in_ha_group_not_in_replicas_service_after_changing_role() {
     --set cluster.replication.groups[0].instances=1 \
     --set cluster.replication.groups[0].role=ha \
     --set cluster.pods.scheduling.nodeSelector."$NODE_LABEL_KEY=null"
-  until kubectl wait -n "$CLUSTER_NAMESPACE" pod "$CLUSTER_NAME-0" --for=condition=PodScheduled --timeout 0
-  do
-    kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0"
-  done
-  wait_pods_running "$CLUSTER_NAMESPACE" "4"
+  wait_until delete_pod_and_wait_scheduled "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0"
+  wait_until delete_pod_and_wait_scheduled "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1"
+  wait_pods_running "$CLUSTER_NAMESPACE" "3"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
   local RESULT EXIT_CODE
-  try_function wait_until eval '! check_pod_ip_exposed_by_service "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" "$CLUSTER_NAME-replicas"'
+  try_function wait_until eval 'check_pod_ip_not_exposed_by_service "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" "$CLUSTER_NAME-replicas"'
   if "$RESULT"
   then
     echo "SUCCESS: old primary IP was not exposed by replicas sevices"
@@ -205,6 +216,8 @@ check_old_primary_in_ha_group_not_in_replicas_service_after_changing_role() {
     echo "FAIL: old primary IP was exposed by replicas sevices"
     return 1
   fi
+  wait_until delete_pod_and_wait_scheduled "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2"
+  wait_pods_running "$CLUSTER_NAMESPACE" "4"
 }
 
 check_strict_sync_replication_is_working() {
@@ -224,9 +237,6 @@ check_strict_sync_replication_is_working() {
   else
     echo "SUCCESS: cluster is not pending restart after changing the replication mode"
   fi
-
-  kubectl exec -ti -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- \
-    patronictl switchover "$CLUSTER_NAME" --master "$CLUSTER_NAME-1" --candidate "$CLUSTER_NAME-0" --force
 
   local RESULT EXIT_CODE
   try_function wait_until eval 'kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
@@ -416,6 +426,33 @@ check_pod_ip_exposed_by_service() {
     echo "SUCCESS: pod $POD_NAME IP was exposed by sevice $SERVICE_NAME"
   else
     echo "FAIL: pod $POD_NAME IP was not exposed by sevice $SERVICE_NAME"
+    return 1
+  fi
+}
+
+check_pod_ip_not_exposed_by_service() {
+  local CLUSTER_NAMESPACE="$1"
+  local POD_NAME="$2"
+  local SERVICE_NAME="$3"
+  local POD_2_IP SERVICE_IPS
+  POD_2_IP="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$POD_NAME" --template '{{ .status.podIP }}')"
+  SERVICE_IPS="$(kubectl get endpoints -n "$CLUSTER_NAMESPACE" "$SERVICE_NAME" \
+    --template '{{ range .subsets }}{{ range .addresses }}{{ printf "%s\n" .ip }}{{ end }}{{ end }}')"
+  if echo "$SERVICE_IPS" | grep -qxF "$POD_2_IP"
+  then
+    echo "FAIL: pod $POD_NAME IP was exposed by sevice $SERVICE_NAME"
+    return 1
+  else
+    echo "SUCCESS: pod $POD_NAME IP was not exposed by sevice $SERVICE_NAME"
+  fi
+}
+
+delete_pod_and_wait_scheduled() {
+  local CLUSTER_NAMESPACE="$1"
+  local POD_NAME="$2"
+  if ! kubectl wait -n "$CLUSTER_NAMESPACE" pod "$POD_NAME" --for=condition=PodScheduled --timeout 0
+  then
+    kubectl delete pod -n "$CLUSTER_NAMESPACE" "$POD_NAME"
     return 1
   fi
 }

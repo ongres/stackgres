@@ -321,10 +321,10 @@ class ClusterStatefulSetReconciliationHandlerTest {
     StatefulSet sts = (StatefulSet) handler.patch(
         cluster, requiredStatefulSet, deployedStatefulSet);
 
-    assertEquals(desiredReplicas, sts.getSpec().getReplicas());
+    assertEquals(desiredReplicas + 1, sts.getSpec().getReplicas());
 
     verify(podScanner, times(6)).findByLabelsAndNamespace(anyString(), anyMap());
-    verify(defaultHandler, times(2)).patch(any(), any(StatefulSet.class), any());
+    verify(defaultHandler, times(3)).patch(any(), any(StatefulSet.class), any());
     verify(defaultHandler, never()).patch(any(), any(Pod.class), any());
     verify(defaultHandler, never()).delete(any(), any(StatefulSet.class));
     verify(defaultHandler, never()).patch(any(), any(PersistentVolumeClaim.class), any());

@@ -46,8 +46,6 @@
 
 .e2e tests jvm amd64:
   extends: .e2e tests
-  dependencies:
-    - build amd64
   tags:
     - stackgres-e2e-runner
     - linux-amd64
@@ -63,10 +61,11 @@
     paths:
     - stackgres-k8s/e2e/target
 
+.e2e ex tests jvm amd64:
+  extends: .e2e tests jvm amd64
+
 .e2e tests native amd64:
   extends: .e2e tests
-  dependencies:
-    - build amd64
   tags:
     - stackgres-e2e-runner
     - linux-amd64
@@ -85,6 +84,60 @@
     when: always
     paths:
     - stackgres-k8s/e2e/target
+
+.e2e ex tests native amd64:
+  extends: .e2e tests native amd64
+
+.e2e tests jvm arm64:
+  extends: .e2e tests
+  tags:
+    - stackgres-e2e-runner
+    - linux-arm64
+  variables:
+    E2E_JOB: "jvm-image"
+    IMAGE_TAG_SUFFIX: "-jvm"
+  only:
+    variables:
+      - $DO_FULL_ARM && $SKIP_E2E != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_FULL_ARM && $DO_ARM
+  artifacts:
+    expire_in: 1 week
+    when: always
+    paths:
+    - stackgres-k8s/e2e/target
+
+.e2e ex tests jvm arm64:
+  extends: .e2e tests jvm arm64
+  only:
+    variables:
+      - $SKIP_E2E != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_ARM
+
+.e2e tests native arm64:
+  extends: .e2e tests
+  tags:
+    - stackgres-e2e-runner
+    - linux-arm64
+  variables:
+    E2E_JOB: "native-image"
+    IMAGE_TAG_SUFFIX: ""
+    IS_NATIVE: "true"
+  only:
+    variables:
+      - $DO_FULL_ARM && $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_FULL_ARM && $DO_NATIVE && $DO_ARM
+  artifacts:
+    expire_in: 1 week
+    when: always
+    paths:
+    - stackgres-k8s/e2e/target
+
+.e2e ex tests native arm64:
+  extends: .e2e tests native arm64
+  only:
+    variables:
+      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
+      - $DO_NATIVE && $DO_ARM
 
 e2e tests jvm 1 amd64:
   extends: .e2e tests jvm amd64
@@ -140,7 +193,7 @@ e2e tests jvm 6 amd64:
       - $E2E_JOBS =~ /^[12345]$/
 
 e2e ex tests jvm 1 amd64:
-  extends: .e2e tests jvm amd64
+  extends: .e2e ex tests jvm amd64
   variables:
     E2E_RUN_ONLY: exclusive:1/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -149,7 +202,7 @@ e2e ex tests jvm 1 amd64:
       - $E2E_TEST
 
 e2e ex tests jvm 2 amd64:
-  extends: .e2e tests jvm amd64
+  extends: .e2e ex tests jvm amd64
   variables:
     E2E_RUN_ONLY: exclusive:2/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -159,7 +212,7 @@ e2e ex tests jvm 2 amd64:
       - $E2E_EXCLUSIVE_JOBS =~ /^[1]$/
 
 e2e ex tests jvm 3 amd64:
-  extends: .e2e tests jvm amd64
+  extends: .e2e ex tests jvm amd64
   variables:
     E2E_RUN_ONLY: exclusive:3/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -169,7 +222,7 @@ e2e ex tests jvm 3 amd64:
       - $E2E_EXCLUSIVE_JOBS =~ /^[12]$/
 
 e2e ex tests jvm 4 amd64:
-  extends: .e2e tests jvm amd64
+  extends: .e2e ex tests jvm amd64
   variables:
     E2E_RUN_ONLY: exclusive:4/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -179,7 +232,7 @@ e2e ex tests jvm 4 amd64:
       - $E2E_EXCLUSIVE_JOBS =~ /^[123]$/
 
 e2e ex tests jvm 5 amd64:
-  extends: .e2e tests jvm amd64
+  extends: .e2e ex tests jvm amd64
   variables:
     E2E_RUN_ONLY: exclusive:5/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -189,7 +242,7 @@ e2e ex tests jvm 5 amd64:
       - $E2E_EXCLUSIVE_JOBS =~ /^[1234]$/
 
 e2e ex tests jvm 6 amd64:
-  extends: .e2e tests jvm amd64
+  extends: .e2e ex tests jvm amd64
   variables:
     E2E_RUN_ONLY: exclusive:6/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -199,7 +252,7 @@ e2e ex tests jvm 6 amd64:
       - $E2E_EXCLUSIVE_JOBS =~ /^[12345]$/
 
 e2e ui tests jvm amd64:
-  extends: .e2e tests jvm amd64
+  extends: .e2e ex tests jvm amd64
   variables:
     E2E_SKIP_OPERATOR_INSTALL: "true"
     E2E_RUN_ONLY: ui:1/1
@@ -259,7 +312,7 @@ e2e tests native 6 amd64:
       - $E2E_JOBS =~ /^[12345]$/
 
 e2e ex tests native 1 amd64:
-  extends: .e2e tests native amd64
+  extends: .e2e ex tests native amd64
   variables:
     E2E_RUN_ONLY: exclusive:1/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -268,7 +321,7 @@ e2e ex tests native 1 amd64:
       - $E2E_TEST
 
 e2e ex tests native 2 amd64:
-  extends: .e2e tests native amd64
+  extends: .e2e ex tests native amd64
   variables:
     E2E_RUN_ONLY: exclusive:2/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -278,7 +331,7 @@ e2e ex tests native 2 amd64:
       - $E2E_EXCLUSIVE_JOBS =~ /^[1]$/
 
 e2e ex tests native 3 amd64:
-  extends: .e2e tests native amd64
+  extends: .e2e ex tests native amd64
   variables:
     E2E_RUN_ONLY: exclusive:3/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -288,7 +341,7 @@ e2e ex tests native 3 amd64:
       - $E2E_EXCLUSIVE_JOBS =~ /^[12]$/
 
 e2e ex tests native 4 amd64:
-  extends: .e2e tests native amd64
+  extends: .e2e ex tests native amd64
   variables:
     E2E_RUN_ONLY: exclusive:4/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -298,7 +351,7 @@ e2e ex tests native 4 amd64:
       - $E2E_EXCLUSIVE_JOBS =~ /^[123]$/
 
 e2e ex tests native 5 amd64:
-  extends: .e2e tests native amd64
+  extends: .e2e ex tests native amd64
   variables:
     E2E_RUN_ONLY: exclusive:5/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -308,7 +361,7 @@ e2e ex tests native 5 amd64:
       - $E2E_EXCLUSIVE_JOBS =~ /^[1234]$/
 
 e2e ex tests native 6 amd64:
-  extends: .e2e tests native amd64
+  extends: .e2e ex tests native amd64
   variables:
     E2E_RUN_ONLY: exclusive:6/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -318,7 +371,7 @@ e2e ex tests native 6 amd64:
       - $E2E_EXCLUSIVE_JOBS =~ /^[12345]$/
 
 e2e ui tests native amd64:
-  extends: .e2e tests native amd64
+  extends: .e2e ex tests native amd64
   variables:
     E2E_SKIP_OPERATOR_INSTALL: "true"
     E2E_RUN_ONLY: ui:1/1
@@ -326,47 +379,6 @@ e2e ui tests native amd64:
   except:
     variables:
       - $E2E_TEST != null && $E2E_TEST !~ /(^ui$|^ui | ui | ui$)/
-
-.e2e tests jvm arm64:
-  extends: .e2e tests
-  dependencies:
-    - build arm64
-  tags:
-    - stackgres-e2e-runner
-    - linux-arm64
-  variables:
-    E2E_JOB: "jvm-image"
-    IMAGE_TAG_SUFFIX: "-jvm"
-  only:
-    variables:
-      - $SKIP_E2E != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_ARM
-  artifacts:
-    expire_in: 1 week
-    when: always
-    paths:
-    - stackgres-k8s/e2e/target
-
-.e2e tests native arm64:
-  extends: .e2e tests
-  dependencies:
-    - build arm64
-  tags:
-    - stackgres-e2e-runner
-    - linux-arm64
-  variables:
-    E2E_JOB: "native-image"
-    IMAGE_TAG_SUFFIX: ""
-    IS_NATIVE: "true"
-  only:
-    variables:
-      - $SKIP_E2E != "true" && $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
-      - $DO_NATIVE && $DO_ARM
-  artifacts:
-    expire_in: 1 week
-    when: always
-    paths:
-    - stackgres-k8s/e2e/target
 
 e2e tests jvm 1 arm64:
   extends: .e2e tests jvm arm64
@@ -422,7 +434,7 @@ e2e tests jvm 6 arm64:
       - $E2E_JOBS =~ /^[12345]$/
 
 e2e ex tests jvm 1 arm64:
-  extends: .e2e tests jvm arm64
+  extends: .e2e ex tests jvm arm64
   variables:
     E2E_RUN_ONLY: exclusive:1/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -431,7 +443,7 @@ e2e ex tests jvm 1 arm64:
       - $E2E_TEST
 
 e2e ex tests jvm 2 arm64:
-  extends: .e2e tests jvm arm64
+  extends: .e2e ex tests jvm arm64
   variables:
     E2E_RUN_ONLY: exclusive:2/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -441,7 +453,7 @@ e2e ex tests jvm 2 arm64:
       - $E2E_EXCLUSIVE_JOBS =~ /^[1]$/
 
 e2e ex tests jvm 3 arm64:
-  extends: .e2e tests jvm arm64
+  extends: .e2e ex tests jvm arm64
   variables:
     E2E_RUN_ONLY: exclusive:3/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -451,7 +463,7 @@ e2e ex tests jvm 3 arm64:
       - $E2E_EXCLUSIVE_JOBS =~ /^[12]$/
 
 e2e ex tests jvm 4 arm64:
-  extends: .e2e tests jvm arm64
+  extends: .e2e ex tests jvm arm64
   variables:
     E2E_RUN_ONLY: exclusive:4/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -461,7 +473,7 @@ e2e ex tests jvm 4 arm64:
       - $E2E_EXCLUSIVE_JOBS =~ /^[123]$/
 
 e2e ex tests jvm 5 arm64:
-  extends: .e2e tests jvm arm64
+  extends: .e2e ex tests jvm arm64
   variables:
     E2E_RUN_ONLY: exclusive:5/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -471,7 +483,7 @@ e2e ex tests jvm 5 arm64:
       - $E2E_EXCLUSIVE_JOBS =~ /^[1234]$/
 
 e2e ex tests jvm 6 arm64:
-  extends: .e2e tests jvm arm64
+  extends: .e2e ex tests jvm arm64
   variables:
     E2E_RUN_ONLY: exclusive:6/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -481,7 +493,7 @@ e2e ex tests jvm 6 arm64:
       - $E2E_EXCLUSIVE_JOBS =~ /^[12345]$/
 
 e2e ui tests jvm arm64:
-  extends: .e2e tests jvm arm64
+  extends: .e2e ex tests jvm arm64
   variables:
     E2E_SKIP_OPERATOR_INSTALL: "true"
     E2E_RUN_ONLY: ui:1/1
@@ -541,7 +553,7 @@ e2e tests native 6 arm64:
       - $E2E_JOBS =~ /^[12345]$/
 
 e2e ex tests native 1 arm64:
-  extends: .e2e tests native arm64
+  extends: .e2e ex tests native arm64
   variables:
     E2E_RUN_ONLY: exclusive:1/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -550,7 +562,7 @@ e2e ex tests native 1 arm64:
       - $E2E_TEST
 
 e2e ex tests native 2 arm64:
-  extends: .e2e tests native arm64
+  extends: .e2e ex tests native arm64
   variables:
     E2E_RUN_ONLY: exclusive:2/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -560,7 +572,7 @@ e2e ex tests native 2 arm64:
       - $E2E_EXCLUSIVE_JOBS =~ /^[1]$/
 
 e2e ex tests native 3 arm64:
-  extends: .e2e tests native arm64
+  extends: .e2e ex tests native arm64
   variables:
     E2E_RUN_ONLY: exclusive:3/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -570,7 +582,7 @@ e2e ex tests native 3 arm64:
       - $E2E_EXCLUSIVE_JOBS =~ /^[12]$/
 
 e2e ex tests native 4 arm64:
-  extends: .e2e tests native arm64
+  extends: .e2e ex tests native arm64
   variables:
     E2E_RUN_ONLY: exclusive:4/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -580,7 +592,7 @@ e2e ex tests native 4 arm64:
       - $E2E_EXCLUSIVE_JOBS =~ /^[123]$/
 
 e2e ex tests native 5 arm64:
-  extends: .e2e tests native arm64
+  extends: .e2e ex tests native arm64
   variables:
     E2E_RUN_ONLY: exclusive:5/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -590,7 +602,7 @@ e2e ex tests native 5 arm64:
       - $E2E_EXCLUSIVE_JOBS =~ /^[1234]$/
 
 e2e ex tests native 6 arm64:
-  extends: .e2e tests native arm64
+  extends: .e2e ex tests native arm64
   variables:
     E2E_RUN_ONLY: exclusive:6/$E2E_EXCLUSIVE_JOBS
     E2E_SKIP_OPERATOR_INSTALL: "true"
@@ -600,7 +612,7 @@ e2e ex tests native 6 arm64:
       - $E2E_EXCLUSIVE_JOBS =~ /^[12345]$/
 
 e2e ui tests native arm64:
-  extends: .e2e tests native arm64
+  extends: .e2e ex tests native arm64
   variables:
     E2E_SKIP_OPERATOR_INSTALL: "true"
     E2E_RUN_ONLY: ui:1/1
