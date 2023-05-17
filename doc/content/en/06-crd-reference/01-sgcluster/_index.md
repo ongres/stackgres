@@ -542,6 +542,9 @@ It works by indicating the backup CR name that we want to restore.
 | <div style="width:11rem">Property</div>                  | Required | Updatable | <div style="width:4rem">Type</div> | Default | Description |
 |:---------------------------------------------------------|----------|-----------|:-----------------------------------|:--------|:------------|
 | name                                                     | ✓        |           | string                             |         | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup.name >}} |
+| target                                                   |          |           | string                             |         | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup.target >}} |
+| targetTimeline                                           |          |           | string                             |         | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup.targetTimeline >}} |
+| targetInclusive                                          |          |           | boolean                            |         | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup.targetInclusive >}} |
 | [pointInTimeRecovery](#restore-from-backup-to-timestamp) |          |           | object                             |         | {{< crd-field-description SGCluster.spec.initialData.restore.fromBackup.pointInTimeRecovery >}} |
 
 #### Restore From Backup To Timestamp
