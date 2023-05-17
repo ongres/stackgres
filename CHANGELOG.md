@@ -1,4 +1,4 @@
-# :rocket: Release 1.5.0-beta2 (2023-03-27)
+# :rocket: Release 1.5.0-beta2 (2023-05-17)
 
 ## :notepad_spiral: NOTES
 
