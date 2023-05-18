@@ -15,7 +15,6 @@ import java.util.Map;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.Volume;
-import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.StackGresComponent;
@@ -29,6 +28,7 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.testutil.JsonUtil;
+import io.stackgres.testutil.ModelTestUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,7 +59,7 @@ class PodTemplateSpecFactoryTest {
       initContainerFactoryDiscoverer;
 
   @Mock
-  private ContainerFactory<ClusterContainerContext> patroniContainerFactory;
+  private ContainerFactory<ClusterContainerContext> containerFactory;
 
   @Mock
   private Container patroniContainer;
@@ -91,30 +91,28 @@ class PodTemplateSpecFactoryTest {
     when(clusterContext.getCluster()).thenReturn(cluster);
     when(labelFactory.labelMapper()).thenReturn(labelMapper);
     when(containerFactoryDiscoverer.discoverContainers(clusterContainerContext))
-        .thenReturn(List.of(patroniContainerFactory));
-    when(patroniContainerFactory.getContainer(clusterContainerContext))
+        .thenReturn(List.of(containerFactory));
+    when(containerFactory.getContainer(clusterContainerContext))
         .thenReturn(patroniContainer);
-    when(patroniContainer.getVolumeMounts()).thenReturn(List.of(
-        new VolumeMountBuilder()
-            .withName("used-volume")
-            .build()));
-
-    Volume usedVolume = new VolumeBuilder()
-        .withName("used-volume")
+    var requestedVolumeName = ModelTestUtil.createWithRandomData(String.class);
+    var usedVolumeMount = new VolumeMountBuilder()
+        .withName(requestedVolumeName)
         .build();
+    when(patroniContainer.getVolumeMounts()).thenReturn(List.of(usedVolumeMount));
+
+    Volume usedVolume = ModelTestUtil.createWithRandomData(Volume.class);
+    Volume unusedVolume = ModelTestUtil.createWithRandomData(Volume.class);
     var availableVolumes = Map.of(
-        "used-volume",
+        requestedVolumeName,
         JsonUtil.copy(usedVolume),
         "unused-volume",
-        new VolumeBuilder()
-            .withName("unused-volume")
-            .build());
+        unusedVolume);
 
     when(clusterContainerContext.availableVolumes()).thenReturn(availableVolumes);
     var podTemplateSpec = podTemplateSpecFactory.getPodTemplateSpec(clusterContainerContext);
     assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().size() == 1);
     assertTrue(
-        podTemplateSpec.getSpec().getSpec().getVolumes().get(0).getName().equals("used-volume"));
+        podTemplateSpec.getSpec().getSpec().getVolumes().get(0).getName().equals(usedVolume.getName()));
     assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().get(0).equals(usedVolume));
   }
 
@@ -124,14 +122,12 @@ class PodTemplateSpecFactoryTest {
         .withName("undeclared-volume")
         .build();
     when(containerFactoryDiscoverer.discoverContainers(clusterContainerContext))
-        .thenReturn(List.of(patroniContainerFactory));
-    when(patroniContainerFactory.getContainer(clusterContainerContext))
+        .thenReturn(List.of(containerFactory));
+    when(containerFactory.getContainer(clusterContainerContext))
         .thenReturn(patroniContainer);
     when(patroniContainer.getVolumeMounts()).thenReturn(List.of(undeclaredVolumeMount));
 
-    Volume availableVolume = new VolumeBuilder()
-        .withName("available-volume")
-        .build();
+    Volume availableVolume = ModelTestUtil.createWithRandomData(Volume.class);;
     var availableVolumes = Map.of(
         "available-volume",
         JsonUtil.copy(availableVolume));
