@@ -25,6 +25,8 @@ reset_cluster() {
   wait_pods_running "$CLUSTER_NAMESPACE" 3
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
+  set_restarted_pods
+
   generate_mock_data "$CLUSTER_NAME"
   check_mock_data_samehost "$CLUSTER_NAME"
   check_mock_data_replication "$CLUSTER_NAME"
@@ -45,10 +47,16 @@ EOF
 }
 
 check_restart() {
-  local RESTARTED_PODS="$1"
-  local NOT_RESTARTED_PODS="$2"
+  local NOT_RESTARTED_PODS="$1"
+  local SKIP_CHECK_DATA="$2"
+
+  test -n "$RESTARTED_PODS"
 
   assert_dbops_running "$DBOPS_NAME" "$CLUSTER_NAMESPACE"
+
+  local DBOPS_JOB_NAME
+  DBOPS_JOB_NAME="$(kubectl get job -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" -o name)"
 
   wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template "{{ if .metadata.annotations.lockTimestamp }}{{ .metadata.annotations.lockTimestamp }}{{ else }}0{{ end }}")" != 0 ]'
@@ -64,12 +72,16 @@ check_restart() {
 
   assert_dbops_completion "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
 
-  if [ -z "$RESTARTED_PODS" ]
+  local INITIAL_INSTANCES
+  INITIAL_INSTANCES="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" -o json)"
+  INITIAL_INSTANCES="$(printf '%s' "$INITIAL_INSTANCES" | jq '.status.restart.initialInstances | length')"
+  if printf '%s %s' "$RESTARTED_PODS" "$NOT_RESTARTED_PODS" | wc -w | grep -q "^$INITIAL_INSTANCES$"
   then
-     RESTARTED_PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" \
-      --template '{{ range .items }}{{ printf "%s " .metadata.name }}{{ end }}')"
+    echo "SUCCESS. Instances after minor version upgrade match the initial instances in status ($INITIAL_INSTANCES)"
+  else
+    echo "FAILED. Instances after minor version upgrade ($(printf '%s %s' "$RESTARTED_PODS" "$NOT_RESTARTED_PODS" | wc -w)) do not match the initial instances in status ($INITIAL_INSTANCES)"
+    return 1
   fi
-  printf '%s %s' "$RESTARTED_PODS" "$NOT_RESTARTED_PODS" | wc -w | grep -q '^2$'
 
   local DBOPS_CREATION_TIMESTAMP
   DBOPS_CREATION_TIMESTAMP="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --template='{{ .metadata.creationTimestamp }}')"
@@ -102,12 +114,23 @@ check_restart() {
   done
 
   if [ "$(kubectl get -n "$CLUSTER_NAMESPACE" job \
-    -l "stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
+    -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" \
     -o name 2>/dev/null | wc -l)" = 1 ]
   then
     echo "SUCCESS. minor version upgrade job was not removed after completion."
   else
     echo "FAILED. minor version upgrade job was removed after completion."
+    return 1
+  fi
+
+  local FINAL_DBOPS_JOB_NAME
+  FINAL_DBOPS_JOB_NAME="$(kubectl get job -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresDbOps,stackgres.io/dbops-name=$DBOPS_NAME,stackgres.io/db-ops=true" -o name)"
+  if [ "$DBOPS_JOB_NAME" = "$FINAL_DBOPS_JOB_NAME" ]
+  then
+    echo "SUCCESS. minor version upgrade Job was not re-created."
+  else
+    echo "FAILED. minor version upgrade Job was re-created. Was $DBOPS_JOB_NAME but ended being $FINAL_DBOPS_JOB_NAME."
     return 1
   fi
 
@@ -120,6 +143,22 @@ check_restart() {
     return 1
   fi
 
-  check_mock_data_samehost "$CLUSTER_NAME"
-  check_mock_data_replication "$CLUSTER_NAME"
+  if [ "$SKIP_CHECK_DATA" != true ]
+  then
+    check_mock_data_samehost "$CLUSTER_NAME"
+    if [ "$INITIAL_INSTANCES" -ge 2 ]
+    then
+      check_mock_data_replication "$CLUSTER_NAME"
+    fi
+  fi
+}
+
+set_restarted_pods() {
+  RESTARTED_PODS="$1"
+  NOT_RESTARTED_PODS="$2"
+  if [ -z "$RESTARTED_PODS" ]
+  then
+    RESTARTED_PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" \
+    --template '{{ range .items }}{{ printf "%s " .metadata.name }}{{ end }}')"
+  fi
 }

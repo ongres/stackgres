@@ -12,21 +12,27 @@ e2e_test_install() {
 }
 
 reset_cluster() {
+  local PODS_COUNT="${1:-2}"
   remove_cluster_if_exists "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   wait_until eval '[ "$(kubectl get pvc -n "$CLUSTER_NAMESPACE" --template "{{ .items | len }}")" = 0 ]'
 
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$PODS_COUNT" \
     --set instanceProfiles[0].name=size-xs \
     --set instanceProfiles[0].cpu=250m \
     --set instanceProfiles[0].memory=512Mi \
 
-  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_pods_running "$CLUSTER_NAMESPACE" "$((PODS_COUNT + 1))"
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  set_restarted_pods
 
   generate_mock_data "$CLUSTER_NAME"
   check_mock_data_samehost "$CLUSTER_NAME"
-  check_mock_data_replication "$CLUSTER_NAME"
+  if [ "$PODS_COUNT" -gt 1 ]
+  then
+    check_mock_data_replication "$CLUSTER_NAME"
+  fi
 }
 
 check_restart_ran_successfully() {
@@ -60,13 +66,13 @@ check_restart_completed() {
 }
 
 check_restart_without_data() {
-  check_restart "$1" "$2" true
+  check_restart true
 }
 
 check_restart() {
-  local RESTARTED_PODS="$1"
-  local NOT_RESTARTED_PODS="$2"
-  local SKIP_CHECK_DATA="$3"
+  local SKIP_CHECK_DATA="$2"
+
+  test -n "$RESTARTED_PODS"
 
   check_restart_is_running
 
@@ -78,15 +84,16 @@ check_restart() {
 
   check_restart_completed
 
-  if [ -z "$RESTARTED_PODS" ]
-  then
-     RESTARTED_PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" \
-      --template '{{ range .items }}{{ printf "%s " .metadata.name }}{{ end }}')"
-  fi
   local INITIAL_INSTANCES
   INITIAL_INSTANCES="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" -o json)"
   INITIAL_INSTANCES="$(printf '%s' "$INITIAL_INSTANCES" | jq '.status.restart.initialInstances | length')"
-  printf '%s %s' "$RESTARTED_PODS" "$NOT_RESTARTED_PODS" | wc -w | grep -q "^$INITIAL_INSTANCES$"
+  if printf '%s %s' "$RESTARTED_PODS" "$NOT_RESTARTED_PODS" | wc -w | grep -q "^$INITIAL_INSTANCES$"
+  then
+    echo "SUCCESS. Instances after restart match the initial instances in status ($INITIAL_INSTANCES)"
+  else
+    echo "FAILED. Instances after restart ($(printf '%s %s' "$RESTARTED_PODS" "$NOT_RESTARTED_PODS" | wc -w)) do not match the initial instances in status ($INITIAL_INSTANCES)"
+    return 1
+  fi
 
   local DBOPS_CREATION_TIMESTAMP
   DBOPS_CREATION_TIMESTAMP="$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --template='{{ .metadata.creationTimestamp }}')"
@@ -146,5 +153,15 @@ check_restart() {
     then
       check_mock_data_replication "$CLUSTER_NAME"
     fi
+  fi
+}
+
+set_restarted_pods() {
+  RESTARTED_PODS="$1"
+  NOT_RESTARTED_PODS="$2"
+  if [ -z "$RESTARTED_PODS" ]
+  then
+    RESTARTED_PODS="$(kubectl get pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" \
+    --template '{{ range .items }}{{ printf "%s " .metadata.name }}{{ end }}')"
   fi
 }
