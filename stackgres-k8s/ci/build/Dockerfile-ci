@@ -3,7 +3,7 @@
 #
 # Build the image with:
 #
-# docker build -f stackgres-k8s/ci/build/Dockerfile-ci -t "registry.gitlab.com/ongresinc/stackgres/ci:1.17-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)" stackgres-k8s/ci/build/
+# docker build -f stackgres-k8s/ci/build/Dockerfile-ci -t "registry.gitlab.com/ongresinc/stackgres/ci:1.18-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)" stackgres-k8s/ci/build/
 #
 ###
 
@@ -15,9 +15,9 @@ FROM registry.access.redhat.com/ubi8-minimal:8.7-1107
       wget \
       tar
   # RUN [ -e /etc/nsswitch.conf ] && grep '^hosts: files dns' /etc/nsswitch.conf
-  ENV DOCKER_VERSION 20.10.24
+  ENV DOCKER_VERSION 24.0.0
   RUN set -eux; \
-    wget -O 'docker.tgz' "https://download.docker.com/linux/static/stable/$(uname -m)/docker-20.10.24.tgz"; \
+    wget -O 'docker.tgz' "https://download.docker.com/linux/static/stable/$(uname -m)/docker-24.0.0.tgz"; \
     tar --extract \
       --file docker.tgz \
       --strip-components 1 \
@@ -49,10 +49,10 @@ FROM registry.access.redhat.com/ubi8-minimal:8.7-1107
   	docker compose version
 
   # COPY modprobe.sh /usr/local/bin/modprobe
-  RUN wget -O /usr/local/bin/modprobe https://github.com/docker-library/docker/raw/30134778cc8dc4def905d0adb8f04d3a0b148447/20.10/cli/modprobe.sh
+  RUN wget -O /usr/local/bin/modprobe https://github.com/docker-library/docker/raw/6964fd52030c2e6e9e0943eaac07d78c9841fbb3/24/cli/modprobe.sh
   RUN chmod +x /usr/local/bin/modprobe
   # COPY docker-entrypoint.sh /usr/local/bin/
-  RUN wget -O /usr/local/bin/docker-entrypoint.sh https://github.com/docker-library/docker/raw/30134778cc8dc4def905d0adb8f04d3a0b148447/20.10/cli/docker-entrypoint.sh
+  RUN wget -O /usr/local/bin/docker-entrypoint.sh https://github.com/docker-library/docker/raw/6964fd52030c2e6e9e0943eaac07d78c9841fbb3/24/cli/docker-entrypoint.sh
   RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
   # https://github.com/docker-library/docker/pull/166
@@ -83,7 +83,7 @@ FROM registry.access.redhat.com/ubi8-minimal:8.7-1107
     echo 'dockremap:165536:65536' >> /etc/subgid
 
   RUN set -eux; \
-    wget -O 'docker.tgz' "https://download.docker.com/linux/static/stable/$(uname -m)/docker-20.10.24.tgz"; \
+    wget -O 'docker.tgz' "https://download.docker.com/linux/static/stable/$(uname -m)/docker-24.0.0.tgz"; \
     tar --extract \
       --file docker.tgz \
       --strip-components 1 \
@@ -106,7 +106,7 @@ FROM registry.access.redhat.com/ubi8-minimal:8.7-1107
     chmod +x /usr/local/bin/dind
 
   # COPY dockerd-entrypoint.sh /usr/local/bin/
-  RUN wget -O /usr/local/bin/dockerd-entrypoint.sh https://github.com/docker-library/docker/raw/30134778cc8dc4def905d0adb8f04d3a0b148447/20.10/dind/dockerd-entrypoint.sh
+  RUN wget -O /usr/local/bin/dockerd-entrypoint.sh https://github.com/docker-library/docker/raw/6964fd52030c2e6e9e0943eaac07d78c9841fbb3/24/dind/dockerd-entrypoint.sh
   RUN chmod +x /usr/local/bin/dockerd-entrypoint.sh
 
   VOLUME /var/lib/docker
@@ -118,7 +118,7 @@ FROM registry.access.redhat.com/ubi8-minimal:8.7-1107
   # StackGres CI Tools
   RUN microdnf install -y gnupg openssl jq curl bash zsh sed
   RUN uname -a | grep -qxF aarch64 \
-    || wget -q -O /bin/yajsv https://github.com/neilpa/yajsv/releases/download/v1.4.0/yajsv.linux.amd64
+    || wget -O /bin/yajsv https://github.com/neilpa/yajsv/releases/download/v1.4.0/yajsv.linux.amd64
   RUN chmod a+x /bin/yajsv
   RUN microdnf install -y python39-pip
   RUN pip3 install yamllint yq
@@ -126,17 +126,17 @@ FROM registry.access.redhat.com/ubi8-minimal:8.7-1107
   RUN microdnf install -y git
   RUN microdnf install -y xz
   RUN mkdir -p ~/.docker/cli-plugins
-  RUN wget -q -O ~/.docker/cli-plugins/docker-buildx "https://github.com/docker/buildx/releases/download/v0.8.2/buildx-v0.8.2.linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
+  RUN wget -O ~/.docker/cli-plugins/docker-buildx "https://github.com/docker/buildx/releases/download/v0.8.2/buildx-v0.8.2.linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
   RUN chmod a+x ~/.docker/cli-plugins/docker-buildx
   RUN echo '{"experimental":"enabled"}' > ~/.docker/config.json
-  RUN wget -q -O /bin/kubectl "https://dl.k8s.io/release/v1.24.1/bin/linux/$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/kubectl"
+  RUN wget -O /bin/kubectl "https://dl.k8s.io/release/v1.24.1/bin/linux/$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/kubectl"
   RUN chmod a+x /bin/kubectl
-  RUN wget -q -O /bin/kind "https://github.com/kubernetes-sigs/kind/releases/download/v0.15.0/kind-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
+  RUN wget -O /bin/kind "https://github.com/kubernetes-sigs/kind/releases/download/v0.15.0/kind-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
   RUN chmod a+x /bin/kind
-  RUN wget -q -O /bin/k3d "https://github.com/rancher/k3d/releases/download/v4.4.7/k3d-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
+  RUN wget -O /bin/k3d "https://github.com/rancher/k3d/releases/download/v4.4.7/k3d-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
   RUN chmod a+x /bin/k3d
-  RUN wget -q "https://get.helm.sh/helm-v3.9.0-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64).tar.gz" -O -|tar xz --strip-components=1 -C /bin -f - "linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/helm"
-  RUN wget -q -O /bin/k9s "https://github.com/derailed/k9s/releases/download/v0.25.18/k9s_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo x86_64).tar.gz"
+  RUN wget "https://get.helm.sh/helm-v3.9.0-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64).tar.gz" -O -|tar xz --strip-components=1 -C /bin -f - "linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/helm"
+  RUN wget -O /bin/k9s "https://github.com/derailed/k9s/releases/download/v0.25.18/k9s_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo x86_64).tar.gz"
   RUN chmod a+x /bin/k9s
   RUN pip3 install awscli
   RUN wget https://github.com/operator-framework/operator-sdk/releases/download/v1.26.0/operator-sdk_linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64) -O /bin/operator-sdk
