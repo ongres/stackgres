@@ -131,7 +131,33 @@ class ClusterInstanceManagerImplTest {
   }
 
   @Test
-  void givenAClusterWithAFarDisruptablePod_itShouldWaitForTheRightPodToBeCreated() {
+  void givenAClusterWithASingleNonDisruptablePod_increaseInstancesShouldNotFail() {
+    cluster.getSpec().setInstances(1);
+    podTestUtil.preparePods(cluster, 1);
+    configureNonDisruptablePod(1);
+    final Pod newPod = podTestUtil.buildReplicaPod(cluster, 0);
+    final int initialInstances = cluster.getSpec().getInstances();
+    final String newPodName = newPod.getMetadata().getName();
+
+    configureCreationPodWatchers();
+    configureNewPodCreated(newPod);
+
+    Pod createdPod = clusterInstanceManager.increaseClusterInstances(clusterName, namespace)
+        .await().indefinitely();
+
+    PodTestUtil.assertPodEquals(newPod, createdPod);
+
+    final int actualInstances = kubeDb.getCluster(clusterName, namespace).getSpec().getInstances();
+    assertEquals(
+        initialInstances + 1, actualInstances);
+
+    InOrder order = inOrder(podWatcher);
+
+    order.verify(podWatcher).waitUntilIsReady(clusterName, newPodName, namespace, false);
+  }
+
+  @Test
+  void givenAClusterWithAFarNonDisruptablePod_itShouldWaitForTheRightPodToBeCreated() {
     podTestUtil.preparePods(cluster, 5, 0, 1);
     configureNonDisruptablePod(5);
     final Pod newPod = podTestUtil.buildReplicaPod(cluster, 2);

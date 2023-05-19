@@ -23,7 +23,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -82,8 +81,9 @@ public abstract class ClusterStateHandlerTest {
 
   public StackGresCluster cluster;
 
-  protected static void assertEqualsRestartState(ClusterRestartState expected,
-                                                 ClusterRestartState actual) {
+  protected static void assertEqualsRestartState(
+      ClusterRestartState expected,
+      ClusterRestartState actual) {
     assertEquals(expected.getClusterName(), actual.getClusterName());
     assertEquals(expected.getNamespace(), actual.getNamespace());
 
@@ -91,31 +91,31 @@ public abstract class ClusterStateHandlerTest {
 
     var expectedInitialInstances = expected.getInitialInstances()
         .stream().sorted(Comparator.comparing(pod -> pod.getMetadata().getName()))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
     var actualInitialInstances = actual.getInitialInstances().stream()
         .sorted(Comparator.comparing(pod -> pod.getMetadata().getName()))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
 
     Seq.zip(expectedInitialInstances, actualInitialInstances)
         .forEach(tuple -> assertPodEquals(tuple.v1, tuple.v2));
 
     final List<Pod> restartedInstances = expected.getRestartedInstances()
         .stream().sorted(Comparator.comparing(pod -> pod.getMetadata().getName()))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
 
     final List<Pod> actualRestartedInstances = actual.getRestartedInstances()
         .stream().sorted(Comparator.comparing(pod -> pod.getMetadata().getName()))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
 
     Seq.zip(restartedInstances, actualRestartedInstances)
         .forEach(tuple -> assertPodEquals(tuple.v1, tuple.v2));
 
     final List<Pod> expectedTotalInstances = expected.getTotalInstances()
         .stream().sorted(Comparator.comparing(pod -> pod.getMetadata().getName()))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
     final List<Pod> actualTotalInstances = actual.getTotalInstances()
         .stream().sorted(Comparator.comparing(pod -> pod.getMetadata().getName()))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
 
     Seq.zip(expectedTotalInstances, actualTotalInstances)
         .forEach(tuple -> assertPodEquals(tuple.v1, tuple.v2));
@@ -178,33 +178,33 @@ public abstract class ClusterStateHandlerTest {
     List<String> expectedInitialInstances = pods.stream().map(Pod::getMetadata)
         .map(ObjectMeta::getName)
         .sorted(String::compareTo)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
 
-    final DbOpsRestartStatus initializedSecurityUpgradeStatus = getRestartStatus(storedDbOps);
+    final DbOpsRestartStatus initializedRestartStatus = getRestartStatus(storedDbOps);
 
     Pod primaryPod = pods.stream()
         .filter(pod -> pod.getMetadata().getName().endsWith("-0"))
         .findAny().get();
 
-    assertEquals(primaryPod.getMetadata().getName(), initializedSecurityUpgradeStatus
+    assertEquals(primaryPod.getMetadata().getName(), initializedRestartStatus
         .getPrimaryInstance());
 
-    List<String> actualInitialInstances = initializedSecurityUpgradeStatus
+    List<String> actualInitialInstances = initializedRestartStatus
         .getInitialInstances();
 
     assertEquals(expectedInitialInstances, actualInitialInstances);
 
-    List<String> actualPendingRestartedInstances = initializedSecurityUpgradeStatus
+    List<String> actualPendingRestartedInstances = initializedRestartStatus
         .getPendingToRestartInstances();
 
     assertEquals(expectedInitialInstances, actualPendingRestartedInstances);
 
-    assertTrue(() -> initializedSecurityUpgradeStatus.getRestartedInstances() == null
-        || initializedSecurityUpgradeStatus.getRestartedInstances().isEmpty());
+    assertTrue(() -> initializedRestartStatus.getRestartedInstances() == null
+        || initializedRestartStatus.getRestartedInstances().isEmpty());
 
-    assertNull(initializedSecurityUpgradeStatus.getFailure());
+    assertNull(initializedRestartStatus.getFailure());
 
-    assertNull(initializedSecurityUpgradeStatus.getSwitchoverInitiated());
+    assertNull(initializedRestartStatus.getSwitchoverInitiated());
 
     assertEquals(dbOps, storedDbOps, "It should store the DBOps status changes");
   }
@@ -236,19 +236,19 @@ public abstract class ClusterStateHandlerTest {
     List<String> expectedInitialInstances = pods.stream().map(Pod::getMetadata)
         .map(ObjectMeta::getName)
         .sorted(String::compareTo)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
 
-    final ClusterDbOpsRestartStatus initializedSecurityUpgradeStatus =
+    final ClusterDbOpsRestartStatus initializedRestartStatus =
         getRestartStatus(cluster).orElseThrow();
 
     Pod primaryPod = pods.stream()
         .filter(pod -> pod.getMetadata().getName().endsWith("-0"))
         .findAny().get();
 
-    assertEquals(primaryPod.getMetadata().getName(), initializedSecurityUpgradeStatus
+    assertEquals(primaryPod.getMetadata().getName(), initializedRestartStatus
         .getPrimaryInstance());
 
-    List<String> actualInitialInstances = initializedSecurityUpgradeStatus
+    List<String> actualInitialInstances = initializedRestartStatus
         .getInitialInstances();
 
     assertEquals(expectedInitialInstances, actualInitialInstances);
@@ -270,7 +270,7 @@ public abstract class ClusterStateHandlerTest {
   }
 
   @Test
-  void givenAnInitializedClusterStatus_itShouldNotModifiedIt() {
+  void givenAnInitializedClusterStatus_itShouldReuseAndNotModifyIt() {
     podTestUtil.preparePods(cluster, 0, 1, 2);
 
     var pods = podTestUtil.getClusterPods(cluster);
@@ -278,18 +278,30 @@ public abstract class ClusterStateHandlerTest {
     initializeClusterStatus(dbOps, cluster, pods);
 
     List<StackGresCluster> storedCluster = Lists.newArrayList();
-    kubeDb.watchCluster(clusterName, namespace, storedCluster::add);
+    kubeDb.watchCluster(clusterName, namespace, c -> storedCluster.add(c));
+    List<StackGresDbOps> storedDbOps = Lists.newArrayList();
+    kubeDb.watchDbOps(dbOpsName, namespace, storedDbOps::add);
 
     getRestartStateHandler()
         .restartCluster(dbOps)
         .await()
-        .atMost(Duration.ofMillis(50));
+        .atMost(Duration.ofMillis(150));
 
     assertEquals(1, storedCluster.size());
+    assertNull(storedCluster.get(0).getStatus().getDbOps());
+    assertEquals(1, storedDbOps.size());
+    assertEquals(pods.stream().map(Pod::getMetadata).map(ObjectMeta::getName).toList(),
+        getDbOpsRestartStatus(storedDbOps.get(0)).getInitialInstances());
   }
 
   protected abstract void initializeClusterStatus(StackGresDbOps dbOps, StackGresCluster cluster,
       List<Pod> pods);
+
+  protected abstract ClusterDbOpsRestartStatus getClusterDbOpsRestartStatus(
+      StackGresCluster cluster);
+
+  protected abstract DbOpsRestartStatus getDbOpsRestartStatus(
+      StackGresDbOps dbOps);
 
   @Test
   void buildRestartState_shouldNotFail() {
@@ -381,7 +393,7 @@ public abstract class ClusterStateHandlerTest {
 
     var pods = podTestUtil.getClusterPods(cluster)
         .stream().sorted(Comparator.comparing(p -> p.getMetadata().getName()))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
 
     when(clusterRestart.restartCluster(any()))
         .thenReturn(Multi.createFrom()
@@ -460,7 +472,7 @@ public abstract class ClusterStateHandlerTest {
 
     var pods = podTestUtil.getClusterPods(cluster)
         .stream().sorted(Comparator.comparing(p -> p.getMetadata().getName()))
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
 
     when(clusterRestart.restartCluster(any()))
         .thenReturn(Multi.createFrom()

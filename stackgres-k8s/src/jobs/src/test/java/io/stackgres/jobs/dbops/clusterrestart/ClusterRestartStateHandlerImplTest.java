@@ -7,7 +7,6 @@ package io.stackgres.jobs.dbops.clusterrestart;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -70,12 +69,12 @@ class ClusterRestartStateHandlerImplTest extends ClusterStateHandlerTest {
     restartStatus.setInitialInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
-            .collect(Collectors.toList()));
+            .toList());
     restartStatus.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
     restartStatus.setPendingToRestartInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
-            .collect(Collectors.toList()));
+            .toList());
     restartStatus.setSwitchoverInitiated(Boolean.FALSE.toString());
 
     dbOps.getStatus().setRestart(restartStatus);
@@ -91,11 +90,22 @@ class ClusterRestartStateHandlerImplTest extends ClusterStateHandlerTest {
     restartStatus.setInitialInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
-            .collect(Collectors.toList()));
+            .limit(2)
+            .toList());
     restartStatus.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
     dbOpsStatus.setRestart(restartStatus);
     status.setDbOps(dbOpsStatus);
     cluster.setStatus(status);
+  }
+
+  @Override
+  protected ClusterDbOpsRestartStatus getClusterDbOpsRestartStatus(StackGresCluster cluster) {
+    return cluster.getStatus().getDbOps().getRestart();
+  }
+
+  @Override
+  protected DbOpsRestartStatus getDbOpsRestartStatus(StackGresDbOps dbOps) {
+    return dbOps.getStatus().getRestart();
   }
 
 }
