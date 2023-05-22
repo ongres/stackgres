@@ -15,7 +15,9 @@ The easiest way to run the e2e scripts is by executing the `stackgres-k8s/e2e/ru
  This script will configure a kuberentes cluster (by default kind), then it will generate jvm version
   of the operator and deploy it on the configured kubernetes cluster. 
 
-The E2E tests are grouped by specs, and they are contained in the folder stackgres-k8s/e2e/spec. 
+```
+sh stackgres-k8s/e2e/run-all-tests.sh
+```
 
 There is also several util functions which are localted in the folder stackgres-k8s/e2e/utils
 

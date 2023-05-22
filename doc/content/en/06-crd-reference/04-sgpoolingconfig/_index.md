@@ -66,29 +66,13 @@ spec:
           max_user_connections: '100'
 ```
 
-### Default values of `pgbouncer.ini` property:
+## Immutable Parameters
 
-```yaml
-  admin_users: "postgres",
-  application_name_add_host: "1",
-  auth_query: "SELECT usename, passwd FROM pg_shadow WHERE usename=$1",
-  auth_type: "md5",
-  auth_user: "authenticator",
-  default_pool_size: "50",
-  ignore_startup_parameters: "extra_float_digits",
-  listen_addr: "127.0.0.1",
-  max_client_conn: "200",
-  max_db_connections: "0",
-  max_user_connections: "0",
-  pool_mode: "transaction",
-  stats_users: "postgres"
-```
+To guarantee a functional PgBouncer configuration, most of the parameters specified in the [PgBouncer configuration documentation](https://www.pgbouncer.org/config.html#generic-settings) for section `pgbouncer` are not allowed to be changed.
+If these are specified in the CR configuration, they will be ignored and the default values will be used instead.
+The immutable PgBouncer parameters are:
 
-To guarantee a functional pgbouncer configuration most of the parameters specified in
- [pgbouncer configuration documentation](https://www.pgbouncer.org/config.html#generic-settings)
- for section `[pgbouncer]` are not allowed to change and will be ignored. The parameters that will be ignored are:
-
-| Deny list parameter        |
+| Immutable Parameters       |
 |:---------------------------|
 | admin_users                |
 | application_name_add_host  |

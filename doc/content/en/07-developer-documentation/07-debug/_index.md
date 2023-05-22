@@ -30,7 +30,7 @@ One of the best option to debug StackGres is by setting logs levels. Logs levels
 
 To set a log level for a category you can use the following command on the Operator deployment:
 
-```shell
+```
 kubectl set env -n stackgres deployment/stackgres-operator "APP_OPTS=-Dquarkus.log.category.\"$CATEGORY\".level=$LOG_LEVEL"
 ```
 
@@ -39,7 +39,7 @@ To make the change effective for components of a running cluster you will have t
 
 If you need to set log level for a category of the REST API Controller then use following command:
 
-```shell
+```
 kubectl set env -n stackgres deployment/stackgres-restapi "APP_OPTS=-Dquarkus.log.category.\"$CATEGORY\".level=$LOG_LEVEL"
 ```
 

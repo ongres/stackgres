@@ -9,6 +9,13 @@
 
 </script>
 
+<script>
+  // adds target _blank to all external links
+  Array.from(document.links)
+    .filter(link => link.hostname !== window.location.hostname)
+    .forEach(link => link.target = '_blank');
+</script>
+
 <a href="#top" id="goTop">
   <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="78" height="78" viewBox="0 0 78 78"><path d="M26.566,12.921H9.787l5.527-5.527L13.91,6,6,13.91l7.91,7.91L15.3,20.426,9.787,14.9H26.566Z" transform="translate(47 15) rotate(90)" fill="#060528"></path></svg>
 </a>

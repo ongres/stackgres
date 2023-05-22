@@ -49,7 +49,7 @@ authentication.
 
 You can enable the OIDC auth type when installing StackGres using Helm, eg.:
 
-```bash
+```
 helm install --namespace stackgres stackgres-operator \
   --set-string authentication.type=oidc \
   --set-string authentication.oidc.authServerUrl=https://auth.example.com/realms/stackgres \
