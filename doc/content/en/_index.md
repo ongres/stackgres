@@ -6,7 +6,7 @@ title: "StackGres Docs"
 
 > Enterprise Postgres made easy. On Kubernetes
 
-StackGres is a full stack PostgreSQL distribution for Kubernetes, packed into an easy deployment unit.
+StackGres is a full-stack PostgreSQL distribution for Kubernetes, packed into an easy deployment unit.
 With a carefully selected and tuned set of surrounding PostgreSQL components.
 
 An enterprise-grade PostgreSQL stack needs several other ecosystem components and significant tuning.

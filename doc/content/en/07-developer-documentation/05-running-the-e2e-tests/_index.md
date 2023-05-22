@@ -13,7 +13,7 @@ They are mainly POSIX-compliant scripts (the only exception is the use of local 
 
 The easiest way to run the e2e scripts is by executing the `stackgres-k8s/e2e/run-all-tests.sh` file:
 
-```bash
+```
 sh stackgres-k8s/e2e/run-all-tests.sh
 ```
 

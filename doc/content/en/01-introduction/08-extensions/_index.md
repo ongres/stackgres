@@ -2,6 +2,7 @@
 title: "Extensions"
 weight: 8
 url: intro/extensions
+description: The list of all available PostgreSQL extensions.
 ---
 
 The table below contains the list of all available extensions:
