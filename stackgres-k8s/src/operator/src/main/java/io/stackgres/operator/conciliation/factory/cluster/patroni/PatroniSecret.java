@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 public class PatroniSecret
     implements VolumeFactory<StackGresClusterContext>, StackGresPasswordKeys {
 
-  private LabelFactoryForCluster<StackGresCluster> factoryFactory;
+  private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   public static String name(StackGresClusterContext clusterContext) {
     return ResourceUtil.resourceName(clusterContext.getSource().getMetadata().getName());
@@ -84,7 +84,7 @@ public class PatroniSecret
     final StackGresCluster cluster = context.getSource();
     final String name = cluster.getMetadata().getName();
     final String namespace = cluster.getMetadata().getNamespace();
-    final Map<String, String> labels = factoryFactory.genericLabels(cluster);
+    final Map<String, String> labels = labelFactory.genericLabels(cluster);
 
     final Map<String, String> previousSecretData = context.getDatabaseSecret()
         .map(Secret::getData)
@@ -195,8 +195,8 @@ public class PatroniSecret
   }
 
   @Inject
-  public void setFactoryFactory(LabelFactoryForCluster<StackGresCluster> factoryFactory) {
-    this.factoryFactory = factoryFactory;
+  public void setFactoryFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+    this.labelFactory = labelFactory;
   }
 
 }

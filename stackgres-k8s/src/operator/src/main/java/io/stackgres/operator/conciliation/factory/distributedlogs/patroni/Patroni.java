@@ -65,7 +65,7 @@ public class Patroni implements ContainerFactory<DistributedLogsContainerContext
   public Patroni(
       ResourceFactory<StackGresDistributedLogsContext, ResourceRequirements>
           requirementsFactory,
-      @FactoryName(DistributedLogsEnvVarFactories.LATEST_PATRONI_ENV_VAR_FACTORY)
+      @FactoryName(DistributedLogsPatroniEnvironmentVariablesFactory.LATEST_PATRONI_ENV_VAR_FACTORY)
       ResourceFactory<StackGresDistributedLogsContext, List<EnvVar>> envVarFactory,
       PostgresSocketMount postgresSocket,
       PostgresExtensionMounts postgresExtensions,

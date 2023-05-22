@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 import io.stackgres.common.StackGresVolume;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class PatroniStaticVolumesFactory<T> implements VolumeFactory<T> {
+public abstract class AbstractPatroniStaticVolumesFactory<T> implements VolumeFactory<T> {
 
   @Override
   public @NotNull Stream<VolumePair> buildVolumes(T context) {

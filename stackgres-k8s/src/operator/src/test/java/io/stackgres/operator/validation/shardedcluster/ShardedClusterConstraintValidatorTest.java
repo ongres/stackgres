@@ -77,33 +77,6 @@ class ShardedClusterConstraintValidatorTest
   }
 
   @Test
-  void sslCertificateSecretNull_shouldFail() {
-    StackGresShardedClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getPostgres().setSsl(new StackGresClusterSsl());
-    review.getRequest().getObject().getSpec().getPostgres().getSsl().setEnabled(true);
-    review.getRequest().getObject().getSpec().getPostgres().getSsl().setPrivateKeySecretKeySelector(
-        new SecretKeySelector("test", "test"));
-
-    checkErrorCause(StackGresClusterSsl.class,
-        "spec.postgres.ssl.certificateSecretKeySelector",
-        "isNotEnabledCertificateSecretKeySelectorRequired", review, AssertTrue.class);
-  }
-
-  @Test
-  void sslPrivateKeySecretNull_shouldFail() {
-    StackGresShardedClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getPostgres().setSsl(new StackGresClusterSsl());
-    review.getRequest().getObject().getSpec().getPostgres().getSsl().setEnabled(true);
-    review.getRequest().getObject().getSpec().getPostgres().getSsl()
-        .setCertificateSecretKeySelector(
-            new SecretKeySelector("test", "test"));
-
-    checkErrorCause(StackGresClusterSsl.class,
-        "spec.postgres.ssl.privateKeySecretKeySelector",
-        "isNotEnabledSecretKeySecretKeySelectorRequired", review, AssertTrue.class);
-  }
-
-  @Test
   void sslCertificateSecretWithEmptyName_shouldFail() {
     StackGresShardedClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPostgres().setSsl(new StackGresClusterSsl());

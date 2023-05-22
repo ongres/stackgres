@@ -28,14 +28,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ClusterPatroniEnvVarFactoryTest {
+class PatroniEnvVarFactoryTest {
 
   @Mock
   private StackGresClusterContext context;
 
   private StackGresCluster cluster;
 
-  private final ClusterPatroniEnvVarFactory factory = new ClusterPatroniEnvVarFactory();
+  private final PatroniEnvironmentVariablesFactory factory =
+      new PatroniEnvironmentVariablesFactory();
 
   @BeforeEach
   void setUp() {

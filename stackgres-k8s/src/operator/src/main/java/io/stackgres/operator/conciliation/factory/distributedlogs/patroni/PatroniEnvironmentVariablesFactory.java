@@ -15,13 +15,13 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
+import io.stackgres.operator.conciliation.factory.AbstractPatroniEnvironmentVariablesFactory;
 import io.stackgres.operator.conciliation.factory.FactoryName;
-import io.stackgres.operator.conciliation.factory.PatroniEnvironmentVariablesFactory;
 
 @ApplicationScoped
-@FactoryName(DistributedLogsEnvVarFactories.LATEST_PATRONI_ENV_VAR_FACTORY)
-public class EnvVarFactory
-    extends PatroniEnvironmentVariablesFactory<StackGresDistributedLogsContext> {
+@FactoryName(DistributedLogsPatroniEnvironmentVariablesFactory.LATEST_PATRONI_ENV_VAR_FACTORY)
+public class PatroniEnvironmentVariablesFactory
+    extends AbstractPatroniEnvironmentVariablesFactory<StackGresDistributedLogsContext> {
 
   @Override
   public List<EnvVar> createResource(StackGresDistributedLogsContext context) {

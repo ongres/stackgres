@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.sidecars.controller;
+package io.stackgres.operator.conciliation.factory.cluster;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -19,8 +19,6 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
-import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
-import io.stackgres.operator.conciliation.factory.cluster.PostgresExtensionMounts;
 
 @Singleton
 @OperatorVersionBinder

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
+package io.stackgres.operator.conciliation.factory.distributedlogs;
 
 import java.util.List;
 
@@ -24,8 +24,6 @@ import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
-import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
-import io.stackgres.operator.conciliation.factory.distributedlogs.PostgresExtensionMounts;
 
 @Singleton
 @OperatorVersionBinder

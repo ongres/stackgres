@@ -16,7 +16,7 @@ import io.fabric8.kubernetes.api.model.SecretKeySelectorBuilder;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 
-public abstract class PatroniEnvironmentVariablesFactory<T>
+public abstract class AbstractPatroniEnvironmentVariablesFactory<T>
     implements ResourceFactory<T, List<EnvVar>> {
 
   protected List<EnvVar> createPatroniEnvVars(HasMetadata cluster) {
