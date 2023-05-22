@@ -440,6 +440,7 @@ install_operator_only() {
     # shellcheck disable=SC2086
     upgrade_operator_vanilla \
     --install \
+    --set-string developer.version="$STACKGRES_VERSION" \
     --set-string operator.image.name="${OPERATOR_IMAGE_NAME%:*}" --set-string operator.image.tag="${OPERATOR_IMAGE_NAME#*:}" \
     --set-string "operator.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string restapi.image.name="${RESTAPI_IMAGE_NAME%:*}" --set-string restapi.image.tag="${RESTAPI_IMAGE_NAME#*:}" \
@@ -573,6 +574,7 @@ upgrade_operator() {
 
   # shellcheck disable=SC2086
   upgrade_operator_vanilla \
+    --set-string developer.version="$STACKGRES_VERSION" \
     --set-string operator.image.name="${OPERATOR_IMAGE_NAME%:*}" --set-string operator.image.tag="${OPERATOR_IMAGE_NAME#*:}" \
     --set-string "operator.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string restapi.image.name="${RESTAPI_IMAGE_NAME%:*}" --set-string restapi.image.tag="${RESTAPI_IMAGE_NAME#*:}" \
@@ -680,6 +682,7 @@ upgrade_operator_from_private_repository() {
   export PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/cluster-controller"
   export PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/distributedlogs-controller"
   upgrade_operator_vanilla \
+      --set-string developer.version="$STACKGRES_VERSION" \
       --set-string operator.image.name="$PRIVATE_OPERATOR_IMAGE_NAME" --set-string operator.image.tag="$IMAGE_TAG" \
       --set-string "operator.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
       --set-string restapi.image.name="$PRIVATE_RESTAPI_IMAGE_NAME" --set-string restapi.image.tag="$IMAGE_TAG" \
