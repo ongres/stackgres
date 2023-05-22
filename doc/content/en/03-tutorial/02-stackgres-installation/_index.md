@@ -310,7 +310,44 @@ EOF
 kubectl get service -n openshift-operators stackgres-restapi --template '{{ (index .spec.ports 0).nodePort }}{{ printf "\n" }}'
 ```
 
-> *IMPORTANT*: When `SGCluster.spec.prometheusAutobind` is set to `true` StackGres create some PodMonitors in the same namespace as the `Prometheus` custom resources. This approach has to avoided in OpenShift since the PodMonitor will be created for the Prometheus that is used only for internal OpenShift metric storage. To correct this PodMonitors have to be created manually in the cluster namespace and the `SGCluster.spec.prometheusAutobind` have to be set to `false` in order to avoid duplicate entries. You may create a script named `create-podmonitors.sh` as follow:
+> *IMPORTANT*: When `SGCluster.spec.prometheusAutobind` is set to `true` StackGres create some PodMonitors in the same namespace as the `Prometheus` custom resources. This approach has to avoided in OpenShift since the PodMonitor will be created for the Prometheus that is used only for internal OpenShift metric storage. To correct this PodMonitors have to be created manually in the cluster namespace and the `SGCluster.spec.prometheusAutobind` have to be set to `false` in order to avoid duplicate entries.
+
+You may then create the following PodMonitors in order to scrape all te cluster created in a specific namespace:
+
+```
+cat << 'EOF' | kubectl create -n "$NAMESPACE" -f -
+apiVersion: v1
+items:
+- apiVersion: monitoring.coreos.com/v1
+  kind: PodMonitor
+  metadata:
+    name: sgcluster-envoy
+  spec:
+    podMetricsEndpoints:
+    - path: /stats/prometheus
+      port: envoy
+    selector:
+      matchLabels:
+        app: StackGresCluster
+        stackgres.io/cluster: "true"
+- apiVersion: monitoring.coreos.com/v1
+  kind: PodMonitor
+  metadata:
+    name: sgcluster-postgres-exporter
+  spec:
+    podMetricsEndpoints:
+    - port: pgexporter
+    selector:
+      matchLabels:
+        app: StackGresCluster
+        stackgres.io/cluster: "true"
+kind: List
+metadata:
+  resourceVersion: ""
+EOF
+```
+
+You may also create a script named `create-podmonitors.sh` that allow to create PodMonitos for a specific SGCluster as follow:
 
 ```
 cat << 'SCRIPT_EOF' > create-podmonitors.sh
