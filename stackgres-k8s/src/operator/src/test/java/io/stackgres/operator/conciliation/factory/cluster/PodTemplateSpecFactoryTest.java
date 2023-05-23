@@ -111,8 +111,8 @@ class PodTemplateSpecFactoryTest {
     when(clusterContainerContext.availableVolumes()).thenReturn(availableVolumes);
     var podTemplateSpec = podTemplateSpecFactory.getPodTemplateSpec(clusterContainerContext);
     assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().size() == 1);
-    assertTrue(
-        podTemplateSpec.getSpec().getSpec().getVolumes().get(0).getName().equals(usedVolume.getName()));
+    assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().get(0).getName()
+        .equals(usedVolume.getName()));
     assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().get(0).equals(usedVolume));
   }
 
