@@ -5,11 +5,15 @@
 
 package io.stackgres.operator.conciliation.shardedcluster;
 
+import static io.stackgres.common.StackGresShardedClusterForCitusUtil.CERTIFICATE_KEY;
+import static io.stackgres.common.StackGresShardedClusterForCitusUtil.PRIVATE_KEY_KEY;
 import static io.stackgres.common.StackGresShardedClusterForCitusUtil.getCoordinatorCluster;
 import static io.stackgres.common.StackGresShardedClusterForCitusUtil.getShardsCluster;
+import static io.stackgres.common.StackGresShardedClusterForCitusUtil.postgresSslSecretName;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
@@ -22,17 +26,26 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterCredentials;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniCredentials;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
+import io.stackgres.common.crd.sgcluster.StackGresClusterUserSecretKeyRef;
+import io.stackgres.common.crd.sgcluster.StackGresClusterUsersCredentials;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfiguration;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinator;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShards;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
@@ -40,6 +53,7 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@SuppressWarnings(value = "PMD.TooManyStaticImports")
 @ApplicationScoped
 public class ShardedClusterRequiredResourcesGenerator
     implements RequiredResourceGenerator<StackGresShardedCluster> {
@@ -113,6 +127,11 @@ public class ShardedClusterRequiredResourcesGenerator
                 PatroniUtil.readWriteName(shardsContext.getCluster()), clusterNamespace))
         .flatMap(Optional::stream)
         .toList();
+
+    final Credentials credentials = getCredentials(clusterNamespace, config.getSpec());
+
+    final PostgresSsl postgresSsl = getPostgresSsl(clusterNamespace, config);
+
     StackGresShardedClusterContext context = ImmutableStackGresShardedClusterContext.builder()
         .kubernetesVersion(kubernetesVersion)
         .source(config)
@@ -122,6 +141,15 @@ public class ShardedClusterRequiredResourcesGenerator
         .shards(shardsContexts)
         .coordinatorPrimaryService(coordinatorPrimaryService)
         .shardsPrimaryServices(shardsPrimaryServices)
+        .superuserUsername(credentials.superuserUsername)
+        .superuserPassword(credentials.superuserPassword)
+        .replicationUsername(credentials.replicationUsername)
+        .replicationPassword(credentials.replicationPassword)
+        .authenticatorUsername(credentials.authenticatorUsername)
+        .authenticatorPassword(credentials.authenticatorPassword)
+        .patroniRestApiPassword(credentials.patroniRestApiPassword)
+        .postgresSslCertificate(postgresSsl.certificate)
+        .postgresSslPrivateKey(postgresSsl.privateKey)
         .build();
 
     return decorator.decorateResources(context);
@@ -222,6 +250,205 @@ public class ShardedClusterRequiredResourcesGenerator
         .databaseSecret(databaseSecret)
         .build();
     return workersContext;
+  }
+
+  record Credentials(
+      Optional<String> superuserUsername,
+      Optional<String> superuserPassword,
+      Optional<String> replicationUsername,
+      Optional<String> replicationPassword,
+      Optional<String> authenticatorUsername,
+      Optional<String> authenticatorPassword,
+      Optional<String> patroniRestApiPassword) {
+  }
+
+  private Credentials getCredentials(
+      final String clusterNamespace,
+      final StackGresShardedClusterSpec spec) {
+    final Credentials credentials;
+
+    credentials = getCredentialsFromConfig(clusterNamespace, spec);
+
+    return credentials;
+  }
+
+  private Credentials getCredentialsFromConfig(final String clusterNamespace,
+      final StackGresShardedClusterSpec spec) {
+    final Credentials configuredUsers;
+    final var users =
+        Optional.ofNullable(spec)
+        .map(StackGresShardedClusterSpec::getConfiguration)
+        .map(StackGresShardedClusterConfiguration::getCredentials)
+        .map(StackGresClusterCredentials::getUsers);
+    final var patroni =
+        Optional.ofNullable(spec)
+        .map(StackGresShardedClusterSpec::getConfiguration)
+        .map(StackGresShardedClusterConfiguration::getCredentials)
+        .map(StackGresClusterCredentials::getPatroni);
+
+    final var superuserUsername = getSecretAndKeyOrThrow(clusterNamespace, users,
+        StackGresClusterUsersCredentials::getSuperuser,
+        StackGresClusterUserSecretKeyRef::getUsername,
+        secretKeySelector -> "Superuser username key " + secretKeySelector.getKey()
+        + " was not found in secret " + secretKeySelector.getName(),
+        secretKeySelector -> "Superuser username secret " + secretKeySelector.getName()
+        + " was not found");
+    final var superuserPassword = getSecretAndKeyOrThrow(clusterNamespace, users,
+        StackGresClusterUsersCredentials::getSuperuser,
+        StackGresClusterUserSecretKeyRef::getPassword,
+        secretKeySelector -> "Superuser password key " + secretKeySelector.getKey()
+        + " was not found in secret " + secretKeySelector.getName(),
+        secretKeySelector -> "Superuser password secret " + secretKeySelector.getName()
+        + " was not found");
+
+    final var replicationUsername = getSecretAndKeyOrThrow(clusterNamespace, users,
+        StackGresClusterUsersCredentials::getReplication,
+        StackGresClusterUserSecretKeyRef::getUsername,
+        secretKeySelector -> "Replication username key " + secretKeySelector.getKey()
+        + " was not found in secret " + secretKeySelector.getName(),
+        secretKeySelector -> "Replication username secret " + secretKeySelector.getName()
+        + " was not found");
+    final var replicationPassword = getSecretAndKeyOrThrow(clusterNamespace, users,
+        StackGresClusterUsersCredentials::getReplication,
+        StackGresClusterUserSecretKeyRef::getPassword,
+        secretKeySelector -> "Replication password key " + secretKeySelector.getKey()
+        + " was not found in secret " + secretKeySelector.getName(),
+        secretKeySelector -> "Replication password secret " + secretKeySelector.getName()
+        + " was not found");
+
+    final var authenticatorUsername = getSecretAndKeyOrThrow(clusterNamespace, users,
+        StackGresClusterUsersCredentials::getAuthenticator,
+        StackGresClusterUserSecretKeyRef::getUsername,
+        secretKeySelector -> "Authenticator username key " + secretKeySelector.getKey()
+        + " was not found in secret " + secretKeySelector.getName(),
+        secretKeySelector -> "Authenticator username secret " + secretKeySelector.getName()
+        + " was not found");
+    final var authenticatorPassword = getSecretAndKeyOrThrow(clusterNamespace, users,
+        StackGresClusterUsersCredentials::getAuthenticator,
+        StackGresClusterUserSecretKeyRef::getPassword,
+        secretKeySelector -> "Authenticator password key " + secretKeySelector.getKey()
+        + " was not found in secret " + secretKeySelector.getName(),
+        secretKeySelector -> "Authenticator password secret " + secretKeySelector.getName()
+        + " was not found");
+    final var patroniRestApiPassword = getSecretAndKeyOrThrow(clusterNamespace, patroni,
+        StackGresClusterPatroniCredentials::getRestApiPassword,
+        secretKeySelector -> "Patroni REST API password key " + secretKeySelector.getKey()
+        + " was not found in secret " + secretKeySelector.getName(),
+        secretKeySelector -> "Patroni REST API password secret " + secretKeySelector.getName()
+        + " was not found");
+    configuredUsers = new Credentials(
+        superuserUsername,
+        superuserPassword,
+        replicationUsername,
+        replicationPassword,
+        authenticatorUsername,
+        authenticatorPassword,
+        patroniRestApiPassword);
+    return configuredUsers;
+  }
+
+  record PostgresSsl(
+      Optional<String> certificate,
+      Optional<String> privateKey) {
+  }
+
+  private PostgresSsl getPostgresSsl(
+      final String clusterNamespace,
+      final StackGresShardedCluster cluster) {
+    var ssl = Optional.ofNullable(cluster)
+        .map(StackGresShardedCluster::getSpec)
+        .map(StackGresShardedClusterSpec::getPostgres)
+        .map(StackGresClusterPostgres::getSsl);
+    if (ssl.map(StackGresClusterSsl::getEnabled).orElse(false)) {
+      if (ssl.map(StackGresClusterSsl::getCertificateSecretKeySelector).isPresent()
+          && ssl.map(StackGresClusterSsl::getPrivateKeySecretKeySelector).isPresent()) {
+        return new PostgresSsl(
+            getSecretAndKeyOrThrow(clusterNamespace, ssl,
+                StackGresClusterSsl::getCertificateSecretKeySelector,
+                secretKeySelector -> "Certificate key " + secretKeySelector.getKey()
+                + " was not found in secret " + secretKeySelector.getName(),
+                secretKeySelector -> "Certificate secret " + secretKeySelector.getName()
+                + " was not found"),
+            getSecretAndKeyOrThrow(clusterNamespace, ssl,
+                StackGresClusterSsl::getPrivateKeySecretKeySelector,
+                secretKeySelector -> "Private key key " + secretKeySelector.getKey()
+                + " was not found in secret " + secretKeySelector.getName(),
+                secretKeySelector -> "Private key secret " + secretKeySelector.getName()
+                + " was not found"));
+      }
+      return new PostgresSsl(
+          getSecretAndKey(clusterNamespace, ssl,
+              s -> new SecretKeySelector(
+                  CERTIFICATE_KEY, postgresSslSecretName(cluster))),
+          getSecretAndKey(clusterNamespace, ssl,
+              s -> new SecretKeySelector(
+                  PRIVATE_KEY_KEY, postgresSslSecretName(cluster))));
+    }
+
+    return new PostgresSsl(Optional.empty(), Optional.empty());
+  }
+
+  private <T, S> Optional<String> getSecretAndKeyOrThrow(final String clusterNamespace,
+      final Optional<T> secretSection,
+      final Function<T, S> secretKeyRefGetter,
+      final Function<S, SecretKeySelector> secretKeySelectorGetter,
+      final Function<SecretKeySelector, String> onKeyNotFoundMessageGetter,
+      final Function<SecretKeySelector, String> onSecretNotFoundMessageGetter) {
+    return secretSection
+        .map(secretKeyRefGetter)
+        .map(secretKeySelectorGetter)
+        .map(secretKeySelector -> secretFinder
+            .findByNameAndNamespace(secretKeySelector.getName(), clusterNamespace)
+            .flatMap(secret -> getSecretKeyOrThrow(secret, secretKeySelector.getKey(),
+                onKeyNotFoundMessageGetter.apply(secretKeySelector)))
+            .orElseThrow(() -> new IllegalArgumentException(
+                onSecretNotFoundMessageGetter.apply(secretKeySelector))));
+  }
+
+  private <T> Optional<String> getSecretAndKeyOrThrow(final String clusterNamespace,
+      final Optional<T> credential,
+      final Function<T, SecretKeySelector> secretKeySelectorGetter,
+      final Function<SecretKeySelector, String> onKeyNotFoundMessageGetter,
+      final Function<SecretKeySelector, String> onSecretNotFoundMessageGetter) {
+    return credential
+        .map(secretKeySelectorGetter)
+        .map(secretKeySelector -> secretFinder
+            .findByNameAndNamespace(secretKeySelector.getName(), clusterNamespace)
+            .flatMap(secret -> getSecretKeyOrThrow(secret, secretKeySelector.getKey(),
+                onKeyNotFoundMessageGetter.apply(secretKeySelector)))
+            .orElseThrow(() -> new IllegalArgumentException(
+                onSecretNotFoundMessageGetter.apply(secretKeySelector))));
+  }
+
+  private Optional<String> getSecretKeyOrThrow(
+      final Secret secret,
+      final String key,
+      final String onKeyNotFoundMessage) {
+    return Optional.of(
+        Optional.of(secret)
+        .map(Secret::getData)
+        .map(data -> data.get(key))
+        .map(ResourceUtil::decodeSecret)
+        .orElseThrow(() -> new IllegalArgumentException(onKeyNotFoundMessage)));
+  }
+
+  private <T> Optional<String> getSecretAndKey(final String clusterNamespace,
+      final Optional<T> credential,
+      final Function<T, SecretKeySelector> secretKeySelectorGetter) {
+    return credential
+        .map(secretKeySelectorGetter)
+        .flatMap(secretKeySelector -> secretFinder
+            .findByNameAndNamespace(secretKeySelector.getName(), clusterNamespace)
+            .flatMap(secret -> getSecretKey(secret, secretKeySelector.getKey())));
+  }
+
+  private Optional<String> getSecretKey(
+      final Secret secret,
+      final String key) {
+    return Optional.of(secret)
+        .map(Secret::getData)
+        .map(data -> data.get(key))
+        .map(ResourceUtil::decodeSecret);
   }
 
 }

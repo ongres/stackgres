@@ -30,6 +30,7 @@ import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.common.resource.PoolingConfigFinder;
 import io.stackgres.common.resource.PostgresConfigFinder;
 import io.stackgres.common.resource.ProfileConfigFinder;
+import io.stackgres.common.resource.SecretFinder;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +48,9 @@ abstract class AbstractShardedClusterRequiredResourcesGeneratorTest {
 
   @InjectMock
   PoolingConfigFinder poolingConfigFinder;
+
+  @InjectMock
+  SecretFinder secretFinder;
 
   @Inject
   ShardedClusterRequiredResourcesGenerator generator;

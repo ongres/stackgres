@@ -8,7 +8,7 @@ package io.stackgres.common;
 import static io.stackgres.common.StackGresShardedClusterForCitusUtil.coordinatorConfigName;
 import static io.stackgres.common.StackGresShardedClusterForCitusUtil.getCoordinatorCluster;
 import static io.stackgres.common.StackGresShardedClusterForCitusUtil.getShardsCluster;
-import static io.stackgres.testutil.RandomObjectUtils.generateRandomObject;
+import static io.stackgres.testutil.ModelTestUtil.createWithRandomData;
 
 import java.util.List;
 import java.util.Optional;
@@ -215,13 +215,15 @@ class StackGresShardedClusterForCitusUtilTest {
 
   @Test
   void givedShardedClusterWithMinimalCoordinator_shouldCopyGlobalSettings() {
-    var shardedCluster = generateRandomObject(StackGresShardedCluster.class);
+    var shardedCluster = createWithRandomData(StackGresShardedCluster.class);
+    shardedCluster.getMetadata().setName(
+        "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
     shardedCluster.getSpec().getReplication().setGroups(null);
     shardedCluster.getSpec().getConfiguration().getBackups().get(0)
         .setPaths(List.of(
-            generateRandomObject(String.class),
-            generateRandomObject(String.class)));
+            createWithRandomData(String.class),
+            createWithRandomData(String.class)));
     setMinimalCoordinatorAndShards(shardedCluster);
     var coordinatorPrimary =
         shardedCluster.getSpec().getPostgresServices().getCoordinator().getPrimary();
@@ -247,13 +249,15 @@ class StackGresShardedClusterForCitusUtilTest {
 
   @Test
   void givedShardedClusterWithMinimalShards_shouldCopyGlobalSettings() {
-    var shardedCluster = generateRandomObject(StackGresShardedCluster.class);
+    var shardedCluster = createWithRandomData(StackGresShardedCluster.class);
+    shardedCluster.getMetadata().setName(
+        "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
     shardedCluster.getSpec().getReplication().setGroups(null);
     shardedCluster.getSpec().getConfiguration().getBackups().get(0)
         .setPaths(List.of(
-            generateRandomObject(String.class),
-            generateRandomObject(String.class)));
+            createWithRandomData(String.class),
+            createWithRandomData(String.class)));
     setMinimalCoordinatorAndShards(shardedCluster);
     var shardsPrimary =
         shardedCluster.getSpec().getPostgresServices().getShards().getPrimaries();
@@ -279,13 +283,15 @@ class StackGresShardedClusterForCitusUtilTest {
 
   @Test
   void givedShardedClusterWithCoordinator_shouldCopySettings() {
-    var shardedCluster = generateRandomObject(StackGresShardedCluster.class);
+    var shardedCluster = createWithRandomData(StackGresShardedCluster.class);
+    shardedCluster.getMetadata().setName(
+        "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
     shardedCluster.getSpec().getReplication().setGroups(null);
     shardedCluster.getSpec().getConfiguration().getBackups().get(0)
         .setPaths(List.of(
-            generateRandomObject(String.class),
-            generateRandomObject(String.class)));
+            createWithRandomData(String.class),
+            createWithRandomData(String.class)));
     shardedCluster.getSpec().getCoordinator().setReplication(null);
     shardedCluster.getSpec().getCoordinator().getReplicationForCoordinator().setRole(null);
     shardedCluster.getSpec().getCoordinator().getReplicationForCoordinator().setGroups(null);
@@ -302,13 +308,15 @@ class StackGresShardedClusterForCitusUtilTest {
 
   @Test
   void givedShardedClusterWithShards_shouldCopySettings() {
-    var shardedCluster = generateRandomObject(StackGresShardedCluster.class);
+    var shardedCluster = createWithRandomData(StackGresShardedCluster.class);
+    shardedCluster.getMetadata().setName(
+        "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
     shardedCluster.getSpec().getReplication().setGroups(null);
     shardedCluster.getSpec().getConfiguration().getBackups().get(0)
         .setPaths(List.of(
-            generateRandomObject(String.class),
-            generateRandomObject(String.class)));
+            createWithRandomData(String.class),
+            createWithRandomData(String.class)));
     shardedCluster.getSpec().getShards().setReplication(null);
     shardedCluster.getSpec().getShards().getReplicationForShards().setRole(null);
     shardedCluster.getSpec().getShards().getReplicationForShards().setGroups(null);
@@ -326,13 +334,15 @@ class StackGresShardedClusterForCitusUtilTest {
 
   @Test
   void givedShardedClusterWithShardsOverrides_shouldCopyOverrideSettings() {
-    var shardedCluster = generateRandomObject(StackGresShardedCluster.class);
+    var shardedCluster = createWithRandomData(StackGresShardedCluster.class);
+    shardedCluster.getMetadata().setName(
+        "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
     shardedCluster.getSpec().getReplication().setGroups(null);
     shardedCluster.getSpec().getConfiguration().getBackups().get(0)
         .setPaths(List.of(
-            generateRandomObject(String.class),
-            generateRandomObject(String.class)));
+            createWithRandomData(String.class),
+            createWithRandomData(String.class)));
     shardedCluster.getSpec().getShards().getOverrides().get(0)
         .setIndex(0);
     shardedCluster.getSpec().getShards().getOverrides().get(0)

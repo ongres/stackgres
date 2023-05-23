@@ -56,4 +56,8 @@ public interface StackGresShardedClusterContext
 
   Optional<String> getPatroniRestApiPassword();
 
+  Optional<String> getPostgresSslCertificate();
+
+  Optional<String> getPostgresSslPrivateKey();
+
 }
