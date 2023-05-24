@@ -10,6 +10,7 @@ EVAL_IN_PLACE_EOF
 }
 
 set_completed() {
+  create_event "DbOpCompleted" "Normal" "Database operation $OP_NAME completed"
   kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=merge \
     -p "$(cat << EOF
 {
@@ -23,10 +24,10 @@ set_completed() {
 }
 EOF
     )"
-  create_event "DbOpCompleted" "Normal" "Database operation $OP_NAME completed"
 }
 
 set_timed_out() {
+  create_event "DbOpTimeOut" "Warning" "Database operation $OP_NAME timed out"
   kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=merge \
     -p "$(cat << EOF
 {
@@ -40,11 +41,10 @@ set_timed_out() {
 }
 EOF
     )"
-
-  create_event "DbOpTimeOut" "Warning" "Database operation $OP_NAME timed out"
 }
 
 set_lock_lost() {
+  create_event "DbOpTimeOut" "Warning" "Database operation $OP_NAME lost the lock"
   kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=merge \
     -p "$(cat << EOF
 {
@@ -63,6 +63,7 @@ EOF
 set_failed() {
   if [ -z "$FAILURE" ]
   then
+    create_event "DbOpFailed" "Warning" "Database operation $OP_NAME failed"
     kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=merge \
       -p "$(cat << EOF
 {
@@ -76,9 +77,8 @@ set_failed() {
 }
 EOF
       )"
-
-    create_event "DbOpFailed" "Warning" "Database operation $OP_NAME failed"
   else
+    create_event "DbOpFailed" "Warning" "Database operation $OP_NAME failed: $FAILURE"
     kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=merge \
       -p "$(cat << EOF
 {
@@ -95,8 +95,6 @@ EOF
 }
 EOF
       )"
-
-    create_event "DbOpFailed" "Warning" "Database operation $OP_NAME failed: $FAILURE"
   fi
 }
 
