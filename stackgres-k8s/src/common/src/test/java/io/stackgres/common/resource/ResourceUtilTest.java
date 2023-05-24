@@ -46,6 +46,7 @@ class ResourceUtilTest {
             .toList());
   }
 
+  @SuppressWarnings("null")
   @Test
   void testBytesWithUnit() {
     Assertions.assertIterableEquals(

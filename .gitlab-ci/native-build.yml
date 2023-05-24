@@ -7,8 +7,6 @@
     MAVEN_EXTRA_ARGS: ""
     QUARKUS_NATIVE_NATIVE_IMAGE_XMX: 18g
   timeout: 1 hour
-  dependencies:
-    - build
   script:
     - |
       flock "/tmp/stackgres-build$NATIVE_IMAGE_EXTRA_PREFIX-native-executable" \
@@ -36,6 +34,8 @@
 
 .build native executable amd64:
   extends: .build native executable
+  dependencies:
+    - build amd64
   tags:
     - stackgres-runner-v2
     - stackgres-native-build-runner
@@ -84,6 +84,8 @@ build distributedlogs-controller native executable amd64:
 
 .build native executable arm64:
   extends: .build native executable
+  dependencies:
+    - build arm64
   tags:
     - stackgres-runner-v2
     - stackgres-native-build-runner

@@ -46,9 +46,12 @@ import org.jooq.lambda.Seq;
 public class PatroniServices implements
     ResourceGenerator<StackGresClusterContext> {
 
-  private static final String NO_CLUSTER_IP = "None";
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
-  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+  @Inject
+  public PatroniServices(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+    this.labelFactory = labelFactory;
+  }
 
   public static String readWriteName(ClusterContext clusterContext) {
     return PatroniUtil.readWriteName(clusterContext.getCluster());
@@ -81,8 +84,8 @@ public class PatroniServices implements
     Seq<HasMetadata> services = Seq.of(config, rest);
 
     if (isPrimaryServiceEnabled(cluster)) {
-      services = services.append(createPatroniService(context));
       services = services.append(createPrimaryService(context));
+      services = services.append(createDeprecatedPrimaryService(context));
     }
 
     if (isReplicaServiceEnabled(cluster)) {
@@ -120,7 +123,7 @@ public class PatroniServices implements
         .addToLabels(labelFactory.clusterLabels(cluster))
         .endMetadata()
         .withNewSpec()
-        .withClusterIP(NO_CLUSTER_IP)
+        .withClusterIP("None")
         .endSpec()
         .build();
   }
@@ -149,7 +152,7 @@ public class PatroniServices implements
         .build();
   }
 
-  private Service createPatroniService(StackGresClusterContext context) {
+  private Service createPrimaryService(StackGresClusterContext context) {
     StackGresCluster cluster = context.getSource();
     return new ServiceBuilder()
         .withNewMetadata()
@@ -159,7 +162,8 @@ public class PatroniServices implements
         .addToLabels(labelFactory.clusterLabels(cluster))
         .withAnnotations(getPrimaryServiceAnnotations(cluster))
         .endMetadata()
-        .withNewSpec()
+        .withSpec(cluster.getSpec().getPostgresServices().getPrimary())
+        .editSpec()
         .addAllToPorts(List.of(
             new ServicePortBuilder()
                 .withProtocol("TCP")
@@ -195,8 +199,6 @@ public class PatroniServices implements
             .map(this::setCustomPort)
             .map(ServicePortBuilder::build)
             .toList())
-        .withType(getPrimaryServiceType(cluster))
-        .withExternalIPs(getPrimaryExternalIps(cluster))
         .endSpec()
         .build();
   }
@@ -209,23 +211,7 @@ public class PatroniServices implements
         .orElse(Map.of());
   }
 
-  private List<String> getPrimaryExternalIps(StackGresCluster cluster) {
-    return Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getPostgresServices)
-        .map(StackGresClusterPostgresServices::getPrimary)
-        .map(StackGresPostgresService::getExternalIPs)
-        .orElse(List.of());
-  }
-
-  private String getPrimaryServiceType(StackGresCluster cluster) {
-    return Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getPostgresServices)
-        .map(StackGresClusterPostgresServices::getPrimary)
-        .map(StackGresPostgresService::getType)
-        .orElse(StackGresPostgresServiceType.CLUSTER_IP.toString());
-  }
-
-  private Service createPrimaryService(StackGresClusterContext context) {
+  private Service createDeprecatedPrimaryService(StackGresClusterContext context) {
     StackGresCluster cluster = context.getSource();
 
     return new ServiceBuilder()
@@ -237,27 +223,10 @@ public class PatroniServices implements
         .endMetadata()
         .withNewSpec()
         .withType("ExternalName")
-        .withLoadBalancerIP(getPrimaryLoadBalancerIP(cluster))
         .withExternalName(readWriteName(context) + "." + cluster.getMetadata().getNamespace()
             + StackGresUtil.domainSearchPath())
         .endSpec()
         .build();
-  }
-
-  private String getPrimaryLoadBalancerIP(StackGresCluster cluster) {
-    return Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getPostgresServices)
-        .map(StackGresClusterPostgresServices::getPrimary)
-        .map(StackGresPostgresService::getLoadBalancerIP)
-        .orElse(null);
-  }
-
-  private String getReplicaLoadBalancerIP(StackGresCluster cluster) {
-    return Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getPostgresServices)
-        .map(StackGresClusterPostgresServices::getReplicas)
-        .map(StackGresPostgresService::getLoadBalancerIP)
-        .orElse(null);
   }
 
   private Service createReplicaService(StackGresClusterContext context) {
@@ -271,7 +240,8 @@ public class PatroniServices implements
         .addToLabels(labelFactory.genericLabels(cluster))
         .withAnnotations(getReplicasServiceAnnotations(cluster))
         .endMetadata()
-        .withNewSpec()
+        .withSpec(cluster.getSpec().getPostgresServices().getReplicas())
+        .editSpec()
         .withSelector(labelFactory.patroniReplicaLabels(cluster))
         .addAllToPorts(List.of(
             new ServicePortBuilder()
@@ -308,9 +278,6 @@ public class PatroniServices implements
             .map(this::setCustomPort)
             .map(ServicePortBuilder::build)
             .toList())
-        .withType(getReplicasServiceType(cluster))
-        .withLoadBalancerIP(getReplicaLoadBalancerIP(cluster))
-        .withExternalIPs(getReplicasExternalIPs(cluster))
         .endSpec()
         .build();
   }
@@ -335,27 +302,6 @@ public class PatroniServices implements
         .map(StackGresClusterSpecMetadata::getAnnotations)
         .map(StackGresClusterSpecAnnotations::getReplicasService)
         .orElse(Map.of());
-  }
-
-  private String getReplicasServiceType(StackGresCluster cluster) {
-    return Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getPostgresServices)
-        .map(StackGresClusterPostgresServices::getReplicas)
-        .map(StackGresPostgresService::getType)
-        .orElse(StackGresPostgresServiceType.CLUSTER_IP.toString());
-  }
-
-  private List<String> getReplicasExternalIPs(StackGresCluster cluster) {
-    return Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getPostgresServices)
-        .map(StackGresClusterPostgresServices::getReplicas)
-        .map(StackGresPostgresService::getExternalIPs)
-        .orElse(List.of());
-  }
-
-  @Inject
-  public void setLabelFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
-    this.labelFactory = labelFactory;
   }
 
 }

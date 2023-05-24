@@ -38,7 +38,7 @@ class ShardedClusterRequiredResourcesGeneratorTest
 
     generator.getRequiredResources(cluster);
 
-    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(
+    verify(postgresConfigFinder, times(3)).findByNameAndNamespace(
         cluster.getSpec().getCoordinator().getConfiguration().getPostgresConfig(),
         clusterNamespace);
     verify(poolingConfigFinder, times(2)).findByNameAndNamespace(
@@ -75,7 +75,7 @@ class ShardedClusterRequiredResourcesGeneratorTest
                   .equals(Boolean.FALSE)));
     });
 
-    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(
+    verify(postgresConfigFinder, times(3)).findByNameAndNamespace(
         cluster.getSpec().getCoordinator().getConfiguration().getPostgresConfig(),
         clusterNamespace);
     verify(poolingConfigFinder, times(2)).findByNameAndNamespace(
@@ -127,7 +127,7 @@ class ShardedClusterRequiredResourcesGeneratorTest
         + " have a non existent SGPostgresConfig "
         + cluster.getSpec().getShards().getConfiguration().getPostgresConfig());
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(
         cluster.getSpec().getCoordinator().getConfiguration().getPostgresConfig(),
         clusterNamespace);
     verify(postgresConfigFinder, times(1)).findByNameAndNamespace(
@@ -156,7 +156,7 @@ class ShardedClusterRequiredResourcesGeneratorTest
         + clusterName + " have a non existent SGInstanceProfile "
         + cluster.getSpec().getShards().getResourceProfile());
 
-    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(
+    verify(postgresConfigFinder, times(3)).findByNameAndNamespace(
         cluster.getSpec().getCoordinator().getConfiguration().getPostgresConfig(),
         clusterNamespace);
     verify(profileConfigFinder, times(1)).findByNameAndNamespace(
@@ -182,7 +182,7 @@ class ShardedClusterRequiredResourcesGeneratorTest
         + clusterName + " have a non existent SGInstanceProfile "
         + cluster.getSpec().getCoordinator().getResourceProfile());
 
-    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(
+    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(
         cluster.getSpec().getCoordinator().getConfiguration().getPostgresConfig(),
         clusterNamespace);
     verify(profileConfigFinder, times(1)).findByNameAndNamespace(
@@ -204,7 +204,7 @@ class ShardedClusterRequiredResourcesGeneratorTest
 
     generator.getRequiredResources(cluster);
 
-    verify(postgresConfigFinder, times(2)).findByNameAndNamespace(
+    verify(postgresConfigFinder, times(3)).findByNameAndNamespace(
         cluster.getSpec().getCoordinator().getConfiguration().getPostgresConfig(),
         clusterNamespace);
     verify(poolingConfigFinder, times(2)).findByNameAndNamespace(

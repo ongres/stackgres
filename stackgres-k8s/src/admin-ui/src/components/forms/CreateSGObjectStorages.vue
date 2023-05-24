@@ -196,13 +196,34 @@
 
                         <div class="col">
                             <label for="spec.gcs.gcpCredentials.fetchCredentialsFromMetadataService">Fetch Credentials from Metadata Service</label>  
-                            <label for="fetchGCSCredentials" class="switch yes-no">Fetch <input type="checkbox" id="fetchGCSCredentials" v-model="fetchGCSCredentials" data-switch="NO"></label>
+                            <label for="fetchGCSCredentials" class="switch yes-no">
+                                Fetch 
+                                <input type="checkbox" id="fetchGCSCredentials" v-model="fetchGCSCredentials" data-switch="NO">
+                            </label>
                             <span class="helpTooltip" :data-tooltip="getTooltip( 'sgobjectstorage.spec.gcs.gcpCredentials.fetchCredentialsFromMetadataService')"></span>
                         </div>
 
                         <template v-if="!fetchGCSCredentials">
+                            <template v-if="editMode && secretKeySelectors.hasOwnProperty('serviceAccountJSON')">
+                                <div class="col">
+                                    <label for="spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.name">Service Account JSON Name</label>
+                                    <input :disabled="!Object.keys(secretKeySelectors).length" v-model="secretKeySelectors.serviceAccountJSON.name" data-field="spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.name">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgobjectstorage.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.name')"></span>
+                                </div>
+                                <div class="col">
+                                    <label for="spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.key">Service Account JSON Key</label>
+                                    <input :disabled="!Object.keys(secretKeySelectors).length" v-model="secretKeySelectors.serviceAccountJSON.key" data-field="spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.key">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip( 'sgobjectstorage.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.key')"></span>
+                                </div>
+                                <span class="orOption">
+                                    OR
+                                </span>
+                            </template>
                             <div class="col">
-                                <label for="spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON">Service Account JSON <span class="req">*</span></label>
+                                <label for="spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON">
+                                    {{ ( editMode && secretKeySelectors.hasOwnProperty('serviceAccountJSON') ) ? 'Set New ' : '' }} Service Account JSON 
+                                    <span v-if="!editMode" class="req">*</span>
+                                </label>
                                 <input id="uploadJSON" type="file" @change="uploadJSON" :required="!editMode" data-field="spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON">
                                 <span class="helpTooltip" :data-tooltip="getTooltip( 'sgobjectstorage.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON')"></span>
                                 <textarea id="textJSON" v-model="gcsServiceAccountJSON" data-field="spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON" class="hide"></textarea>
@@ -535,6 +556,7 @@
 
                 if (!files.length){
                     console.log("File not loaded")
+                    vm.gcsServiceAccountJSON = (vm.editMode ? '******' : '')
                     return;
                 } else {
                     console.log("File loaded");
@@ -542,7 +564,8 @@
                     var reader = new FileReader();
                     
                     reader.onload = function(e) {
-                    vm.gcsServiceAccountJSON = e.target.result;
+                        vm.gcsServiceAccountJSON = e.target.result;
+                        vm.secretKeySelectors = {};
                     };
                     reader.readAsText(files[0]);
                 }

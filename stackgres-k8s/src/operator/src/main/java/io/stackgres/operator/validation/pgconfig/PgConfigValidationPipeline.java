@@ -11,22 +11,16 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.operator.validation.SimpleValidationPipeline;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
+import io.stackgres.operator.validation.AbstractValidationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 @ApplicationScoped
-public class PgConfigValidationPipeline implements ValidationPipeline<PgConfigReview> {
-
-  private SimpleValidationPipeline<PgConfigReview, PgConfigValidator> pipeline;
-
-  @Override
-  public void validate(PgConfigReview review) throws ValidationFailed {
-    pipeline.validate(review);
-  }
+public class PgConfigValidationPipeline extends AbstractValidationPipeline<PgConfigReview> {
 
   @Inject
-  public void setValidators(@Any Instance<PgConfigValidator> validators) {
-    this.pipeline = new SimpleValidationPipeline<>(validators);
+  public PgConfigValidationPipeline(
+      @Any Instance<Validator<PgConfigReview>> validatorInstances) {
+    super(validatorInstances);
   }
+
 }

@@ -5,8 +5,9 @@
 
 package io.stackgres.operator.mutation.script;
 
+import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.operator.common.StackGresScriptReview;
-import io.stackgres.operatorframework.admissionwebhook.mutating.JsonPatchMutator;
+import io.stackgres.operatorframework.admissionwebhook.mutating.Mutator;
 
-public interface ScriptMutator  extends JsonPatchMutator<StackGresScriptReview> {
+public interface ScriptMutator extends Mutator<StackGresScript, StackGresScriptReview> {
 }

@@ -37,7 +37,6 @@ class DefaultPostgresConfigMutatorTest
     resourceFactory.init();
     var mutator = new DefaultPostgresMutator(
         resourceFactory, finder, scheduler);
-    mutator.init();
     return mutator;
   }
 

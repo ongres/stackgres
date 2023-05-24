@@ -10,7 +10,6 @@ import java.util.Objects;
 
 import javax.validation.Valid;
 import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -25,11 +24,12 @@ import io.sundr.builder.annotations.Buildable;
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
+@Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
+    lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
+    builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterConfiguration {
 
   @JsonProperty("sgPostgresConfig")
-  @NotBlank(message = "You need to associate a Postgres configuration to this cluster")
   private String postgresConfig;
 
   @JsonProperty("sgPoolingConfig")
@@ -55,13 +55,24 @@ public class StackGresClusterConfiguration {
   @Valid
   private StackGresClusterCredentials credentials;
 
+  @ReferencedField("sgPostgresConfig")
+  interface SgPostgresConfig extends FieldReference {
+  }
+
   @ReferencedField("backupPath")
   interface BackupPath extends FieldReference {
   }
 
   @JsonIgnore
+  @AssertTrue(message = "sgPostgresConfig is required",
+      payload = { SgPostgresConfig.class })
+  public boolean isSgPostgresConfigPresent() {
+    return postgresConfig != null;
+  }
+
+  @JsonIgnore
   @AssertTrue(message = "backupPath can not be null when sgBackupConfig is set.",
-      payload = {BackupPath.class})
+      payload = { BackupPath.class })
   public boolean isBackupPathSetWhenSgBackupConfigIsSet() {
     return backupConfig == null || backupPath != null;
   }

@@ -7,11 +7,7 @@ package io.stackgres.operator.mutation.backupconfig;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.List;
-
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.storages.AwsS3Storage;
@@ -19,8 +15,9 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
-import io.stackgres.operator.mutation.DefaultValuesMutator;
+import io.stackgres.operator.mutation.AbstractValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -30,7 +27,7 @@ class BackupConfigDefaultValuesMutatorTest
     extends DefaultValuesMutatorTest<StackGresBackupConfig, BackupConfigReview> {
 
   @Override
-  protected DefaultValuesMutator<StackGresBackupConfig, BackupConfigReview> getMutatorInstance(
+  protected AbstractValuesMutator<StackGresBackupConfig, BackupConfigReview> getMutatorInstance(
       DefaultCustomResourceFactory<StackGresBackupConfig> factory, JsonMapper jsonMapper) {
     return new BackupConfigDefaultValuesMutator(factory, jsonMapper);
   }
@@ -53,14 +50,8 @@ class BackupConfigDefaultValuesMutatorTest
     return Fixtures.backupConfig().loadDefault().get();
   }
 
-  @Override
-  protected JsonNode getConfJson(JsonNode crJson) {
-    return crJson.get("spec");
-  }
-
   @Test
   public void givenConfWithAllDefaultsValuesSettledButNotDefaultStorage_shouldNotReturnAnyPatch() {
-
     BackupConfigReview review = getDefaultReview();
     review.getRequest().getObject().getSpec().getStorage().setType("s3");
     AwsS3Storage s3 = new AwsS3Storage();
@@ -76,10 +67,9 @@ class BackupConfigDefaultValuesMutatorTest
     review.getRequest().getObject().getSpec().getStorage().setS3(s3);
     review.getRequest().getObject().getSpec().getStorage().setS3Compatible(null);
 
-    List<JsonPatchOperation> operators = mutator.mutate(review);
+    var result = mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(0, operators.size());
-
+    assertEquals(review.getRequest().getObject(), result);
   }
 
 }

@@ -5,8 +5,6 @@
 
 package io.stackgres.common.resource;
 
-import java.util.Optional;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
@@ -15,22 +13,11 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 
 @ApplicationScoped
-public class ClusterFinder implements CustomResourceFinder<StackGresCluster> {
-
-  private final KubernetesClient client;
+public class ClusterFinder extends AbstractCustomResourceFinder<StackGresCluster> {
 
   @Inject
   public ClusterFinder(KubernetesClient client) {
-    this.client = client;
+    super(client, StackGresCluster.class, StackGresClusterList.class);
   }
 
-  @Override
-  public Optional<StackGresCluster> findByNameAndNamespace(String name, String namespace) {
-    return Optional.ofNullable(client.resources(
-        StackGresCluster.class,
-        StackGresClusterList.class)
-        .inNamespace(namespace)
-        .withName(name)
-        .get());
-  }
 }

@@ -13,16 +13,8 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Optional;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
-import com.github.fge.jsonpatch.JsonPatch;
-import com.github.fge.jsonpatch.JsonPatchException;
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
@@ -36,22 +28,18 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.opentest4j.AssertionFailedError;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultStorageMigrationMutatorTest {
 
   private static final String POSTGRES_VERSION =
       StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
-
-  protected static final JsonMapper JSON_MAPPER = new JsonMapper();
-
-  protected static final JavaPropsMapper PROPS_MAPPER = new JavaPropsMapper();
 
   @Mock
   CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
@@ -71,13 +59,14 @@ class DefaultStorageMigrationMutatorTest {
 
     backupConfig = Fixtures.backupConfig().loadDefault().get();
 
-    mutator = new DefaultBackupStorageMigratorMutator(JSON_MAPPER,
+    mutator = new DefaultBackupStorageMigratorMutator(
         backupConfigFinder, objectStorageFinder, objectStorageScheduler);
-    mutator.init();
   }
 
   @Test
   void clusterWithBackupPath_shouldRemoveDeprecatedBackupConfig() {
+    review.getRequest().getObject().getSpec().getConfiguration().setBackups(null);
+
     StackGresCluster actualCluster = mutate(review);
 
     StackGresCluster expected = review.getRequest().getObject();
@@ -89,6 +78,8 @@ class DefaultStorageMigrationMutatorTest {
 
   @Test
   void clusterWithBackupPath_shouldCopyIt() {
+    when(backupConfigFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backupConfig));
     review.getRequest().getObject().getSpec().getConfiguration().setBackupPath("demo/path/14");
     final StackGresCluster actualCluster = mutate(review);
     assertEquals("demo/path/14",
@@ -97,6 +88,8 @@ class DefaultStorageMigrationMutatorTest {
 
   @Test
   void clusterWithBackupConfig_shouldCopyIt() {
+    when(backupConfigFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backupConfig));
     review.getRequest().getObject().getSpec().getConfiguration().setBackupConfig("respaldosConfig");
     final StackGresCluster actualCluster = mutate(review);
     assertEquals("respaldosConfig",
@@ -140,6 +133,9 @@ class DefaultStorageMigrationMutatorTest {
 
   @Test
   void oldClusterWithoutBackupPath_shouldSetItWithPreviousVersion() {
+    when(backupConfigFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(backupConfig));
+
     final StackGresCluster cluster = review.getRequest().getObject();
 
     cluster.getSpec().getPostgres().setVersion("13.4");
@@ -156,13 +152,6 @@ class DefaultStorageMigrationMutatorTest {
   }
 
   private StackGresCluster mutate(StackGresClusterReview review) {
-    try {
-      List<JsonPatchOperation> operations = mutator.mutate(review);
-      JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
-      JsonNode newConfig = new JsonPatch(operations).apply(crJson);
-      return JSON_MAPPER.treeToValue(newConfig, StackGresCluster.class);
-    } catch (JsonPatchException | JsonProcessingException | IllegalArgumentException e) {
-      throw new AssertionFailedError(e.getMessage(), e);
-    }
+    return mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
   }
 }

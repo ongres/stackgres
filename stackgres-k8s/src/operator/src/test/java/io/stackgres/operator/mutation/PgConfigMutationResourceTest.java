@@ -5,10 +5,11 @@
 
 package io.stackgres.operator.mutation;
 
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -16,26 +17,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
-class PgConfigMutationResourceTest extends MutationResourceTest<PgConfigReview> {
+class PgConfigMutationResourceTest
+    extends MutationResourceTest<StackGresPostgresConfig, PgConfigReview> {
 
-  @BeforeEach
-  void setUp() {
-    final PgConfigMutationResource resource = new PgConfigMutationResource();
-    resource.setPipeline(pipeline);
-    this.resource = resource;
-
-    review = AdmissionReviewFixtures.postgresConfig().loadCreate().get();
+  @Override
+  protected MutationResource<StackGresPostgresConfig, PgConfigReview> getResource() {
+    return new PgConfigMutationResource(JsonUtil.jsonMapper(), pipeline);
   }
 
   @Override
-  @Test
-  void givenAnValidAdmissionReview_itShouldReturnAnyPath() {
-    super.givenAnValidAdmissionReview_itShouldReturnAnyPath();
+  protected PgConfigReview getReview() {
+    return AdmissionReviewFixtures.postgresConfig().loadCreate().get();
   }
 
-  @Override
-  @Test
-  void givenAnInvalidAdmissionReview_itShouldReturnABase64EncodedPath() {
-    super.givenAnInvalidAdmissionReview_itShouldReturnABase64EncodedPath();
-  }
 }

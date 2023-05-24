@@ -37,7 +37,6 @@ class DefaultCoordinatorProfileConfigMutatorTest
     resourceFactory.init();
     var mutator = new DefaultCoordinatorProfileMutator(
         resourceFactory, finder, scheduler);
-    mutator.init();
     return mutator;
   }
 
@@ -48,6 +47,7 @@ class DefaultCoordinatorProfileConfigMutatorTest
 
   @Override
   protected void checkConfigurationIsSet(StackGresShardedCluster newResource) {
+    assertNotNull(newResource.getSpec().getCoordinator());
     assertNotNull(newResource.getSpec().getCoordinator().getResourceProfile());
   }
 
@@ -66,7 +66,7 @@ class DefaultCoordinatorProfileConfigMutatorTest
   @Override
   protected void setUpMissingConfigurationSection() {
     review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
-    review.getRequest().getObject().getSpec().getCoordinator().setConfiguration(null);
+    review.getRequest().getObject().getSpec().setCoordinator(null);
   }
 
 }

@@ -70,8 +70,8 @@ class ClusterRequiredResourceDecoratorTest
   }
 
   @Override
-  protected String usingCrdFilename() {
-    return "SGCluster.yaml";
+  protected String usingKind() {
+    return StackGresCluster.KIND;
   }
 
   @Override

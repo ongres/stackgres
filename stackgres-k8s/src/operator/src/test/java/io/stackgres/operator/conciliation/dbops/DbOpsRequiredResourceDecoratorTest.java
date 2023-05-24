@@ -42,8 +42,8 @@ class DbOpsRequiredResourceDecoratorTest
   }
 
   @Override
-  protected String usingCrdFilename() {
-    return "SGDbOps.yaml";
+  protected String usingKind() {
+    return StackGresDbOps.KIND;
   }
 
   @Override

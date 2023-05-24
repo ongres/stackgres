@@ -50,7 +50,29 @@
         "type": "citus",
         "database": "citus",
         "postgres": {
-          "version": "13.5"
+          "version": "13.5",
+          "flavor": "vanilla"
+        },
+        "postgresServices": {
+          "coordinator": {
+            "any": {
+              "enabled": true,
+              "type": "ClusterIP"
+            },
+            "primary": {
+              "enabled": true,
+              "type": "ClusterIP"
+            }
+          },
+          "shards": {
+            "primaries": {
+              "enabled": true,
+              "type": "ClusterIP"
+            }
+          }
+        },
+        "replication": {
+          "mode": "async"
         },
         "coordinator": {
           "instances": 1,
@@ -99,7 +121,29 @@
         "type": "citus",
         "database": "citus",
         "postgres": {
-          "version": "13.4"
+          "version": "13.4",
+          "flavor": "vanilla"
+        },
+        "postgresServices": {
+          "coordinator": {
+            "any": {
+              "enabled": true,
+              "type": "ClusterIP"
+            },
+            "primary": {
+              "enabled": true,
+              "type": "ClusterIP"
+            }
+          },
+          "shards": {
+            "primaries": {
+              "enabled": true,
+              "type": "ClusterIP"
+            }
+          }
+        },
+        "replication": {
+          "mode": "async"
         },
         "coordinator": {
           "instances": 1,

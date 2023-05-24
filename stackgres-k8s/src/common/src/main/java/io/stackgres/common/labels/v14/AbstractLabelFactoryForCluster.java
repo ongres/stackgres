@@ -28,6 +28,13 @@ public abstract class AbstractLabelFactoryForCluster<T extends CustomResource<?,
   }
 
   @Override
+  public Map<String, String> clusterLabelsWithoutUid(T resource) {
+    return Map.of(labelMapper().appKey(), labelMapper().appName(),
+        labelMapper().resourceNameKey(resource), labelValue(resourceName(resource)),
+        labelMapper().clusterKey(resource), StackGresContext.RIGHT_VALUE);
+  }
+
+  @Override
   public Map<String, String> patroniClusterLabels(T resource) {
     return Map.of(labelMapper().appKey(), labelMapper().appName(),
         labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)),

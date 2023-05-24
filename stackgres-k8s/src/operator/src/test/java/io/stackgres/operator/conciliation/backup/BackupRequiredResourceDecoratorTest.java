@@ -43,8 +43,8 @@ public class BackupRequiredResourceDecoratorTest
   }
 
   @Override
-  protected String usingCrdFilename() {
-    return "SGBackup.yaml";
+  protected String usingKind() {
+    return StackGresBackup.KIND;
   }
 
   @Override

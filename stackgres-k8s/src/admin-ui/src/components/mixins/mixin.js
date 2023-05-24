@@ -61,6 +61,18 @@ export const mixin = {
   
     },
     methods: {
+
+      isNull(el) {
+        return ( (el === null) || ( (typeof el === 'string') && !el.length ) || (Array.isArray(el) && !el.length) || ((typeof el === 'object') && !Object.keys(el).length) );
+      },
+
+      isNullObject(obj) {
+        return !Object.keys(obj).filter((k) => obj[k] !== null).length
+      },
+
+      isNullObjectArray(arr) {
+          return !arr.filter((obj) => !this.isNullObject(obj)).length
+      },
       
       cancel: function() {
         const vc = this
@@ -238,17 +250,6 @@ export const mixin = {
                     
                     if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
                       store.commit('updateNamespaces', item.metadata.namespace);
-      
-                    if( (item.status !== null) && item.status.hasOwnProperty('process')) {
-                      if( item.status.process.status === 'Completed' ) {
-                        start = moment(item.status.process.timing.start);
-                        finish = moment(item.status.process.timing.stored);
-                        duration = new Date(moment.duration(finish.diff(start))).toISOString();
-                      } else {
-                        duration = '';
-                      }
-                      
-                    }
     
                     if(!index)
                       store.commit('flushResource', 'sgbackups')
@@ -256,7 +257,6 @@ export const mixin = {
                     store.commit('updateBackups', { 
                       name: item.metadata.name,
                       data: item,
-                      duration: duration,
                       show: true
                     });
       
@@ -1259,11 +1259,10 @@ export const mixin = {
         });
 
         if(!isValid && ($('#notifications .message.show.title').text != 'Please fill every mandatory field in the form') ) {
+          vc.checkValidSteps(vc._data, 'submit')
           setTimeout(function() {
             vc.notify('Please fill every mandatory field in the form', 'message', 'general');
           }, 100);
-
-          vc.checkValidSteps(vc._data, 'submit')
         }
 
         return isValid
@@ -1296,8 +1295,7 @@ export const mixin = {
             let fieldset = $(this);
             let fieldsetAttr = fieldset.attr('data-fieldset'); 
             let notValidFields = fieldset.find('.notValid');
-  
-          
+                      
             if(notValidFields.length) {
               if(!data.errorStep.includes(fieldsetAttr))
                 data.errorStep.push(fieldsetAttr);

@@ -11,7 +11,6 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresUtil;
@@ -31,24 +30,15 @@ public class ExtensionsMutator
     implements DistributedLogsMutator {
 
   private final OperatorExtensionMetadataManager extensionMetadataManager;
-  private final ObjectMapper objectMapper;
 
   @Inject
-  public ExtensionsMutator(OperatorExtensionMetadataManager extensionMetadataManager,
-      ObjectMapper objectMapper) {
-    super();
+  public ExtensionsMutator(OperatorExtensionMetadataManager extensionMetadataManager) {
     this.extensionMetadataManager = extensionMetadataManager;
-    this.objectMapper = objectMapper;
   }
 
   @Override
   protected OperatorExtensionMetadataManager getExtensionMetadataManager() {
     return extensionMetadataManager;
-  }
-
-  @Override
-  protected ObjectMapper getObjectMapper() {
-    return objectMapper;
   }
 
   @Override
@@ -80,6 +70,12 @@ public class ExtensionsMutator
         .filter(Optional::isPresent)
         .map(Optional::get)
         .collect(ImmutableList.toImmutableList());
+  }
+
+  @Override
+  protected void setToInstallExtensions(StackGresDistributedLogs resource,
+      List<StackGresClusterInstalledExtension> toInstallExtensions) {
+    resource.getSpec().setToInstallPostgresExtensions(toInstallExtensions);
   }
 
 }

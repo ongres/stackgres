@@ -37,7 +37,6 @@ class DefaultCoordinatorPoolingConfigMutatorTest
     resourceFactory.init();
     var mutator = new DefaultCoordinatorPoolingMutator(
         resourceFactory, finder, scheduler);
-    mutator.init();
     return mutator;
   }
 
@@ -48,6 +47,7 @@ class DefaultCoordinatorPoolingConfigMutatorTest
 
   @Override
   protected void checkConfigurationIsSet(StackGresShardedCluster newResource) {
+    assertNotNull(newResource.getSpec().getCoordinator());
     assertNotNull(newResource.getSpec().getCoordinator().getConfiguration());
     assertNotNull(newResource.getSpec().getCoordinator().getConfiguration()
         .getConnectionPoolingConfig());
@@ -68,7 +68,7 @@ class DefaultCoordinatorPoolingConfigMutatorTest
   @Override
   protected void setUpMissingConfigurationSection() {
     review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
-    review.getRequest().getObject().getSpec().getCoordinator().setConfiguration(null);
+    review.getRequest().getObject().getSpec().setCoordinator(null);
   }
 
 }

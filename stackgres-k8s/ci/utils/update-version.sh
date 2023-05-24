@@ -78,12 +78,16 @@ yq_update_file "^appVersion: .*$" "appVersion: \"$VERSION\"" stackgres-k8s/insta
 
 CURRENT_VERSION="$VERSION"
 IS_GA="$(printf %s "$CURRENT_VERSION" | grep -q '^[0-9]\+\.[0-9]\+\.[0-9]\+$' && printf true || printf false)"
-IS_NEW_MINOR_VERSION="$(printf %s "$CURRENT_VERSION" | grep -q '^[0-9]\+\.[0-9]\+\.0\(-.\+\)\?$' && printf true || printf false)"
+IS_PATCH="$(printf %s "$CURRENT_VERSION" | grep -q '^[0-9]\+\.[0-9]\+\.[1-9][0-9]\+$' && printf true || printf false)"
+IS_BETA="$(printf %s "$CURRENT_VERSION" | grep -q '^[0-9]\+\.[0-9]\+\.[0-9]\+-beta[0-9]\+$' && printf true || printf false)"
+IS_RC="$(printf %s "$CURRENT_VERSION" | grep -q '^[0-9]\+\.[0-9]\+\.[0-9]\+-RC[0-9]\+$' && printf true || printf false)"
 IS_SNAPSHOT="$(printf %s "$CURRENT_VERSION" | grep -q '[-]SNAPSHOT$' && printf true || printf false)"
 CURRENT_PATCH_VERSION="$("$IS_GA" && printf 0 || git tag | grep "^${NEXT_MINOR_PATCH_VERSION}\." | sort -V | tail -n 1)"
 CURRENT_MAJOR_VERSION="$(printf %s "$CURRENT_VERSION" | cut -d . -f 1)"
 CURRENT_MINOR_VERSION="$(printf %s "$CURRENT_VERSION" | cut -d . -f 2)"
 CURRENT_PATCH_VERSION="$(printf %s "$CURRENT_VERSION" | cut -d - -f 1 | cut -d . -f 3)"
+CURRENT_BETA_VERSION="$("$IS_BETA" && printf %s "$CURRENT_VERSION" | cut -d - -f 2 | tail -c +5 || printf 0)"
+CURRENT_RC_VERSION="$("$IS_RC" && printf %s "$CURRENT_VERSION" | cut -d - -f 2 | tail -c +3 || printf 0)"
 
 if ! "$IS_SNAPSHOT"
 then
@@ -94,30 +98,30 @@ then
     echo
     echo "Generating new patch release template .gitlab/issue_templates/Patch Release.md for $VERSION"
 
-    sh stackgres-k8s/ci/tools/generate-release-template.sh "$VERSION" > .gitlab/issue_templates/"Patch Release.md"
+    sh stackgres-k8s/ci/utils/generate-release-template.sh "$VERSION" > .gitlab/issue_templates/"Patch Release.md"
   fi
 
-  if "$IS_NEW_MINOR_VERSION"
+  if ! "$IS_PATCH"
   then
-    VERSION="$CURRENT_MAJOR_VERSION.$(( CURRENT_MINOR_VERSION + $("$IS_GA" && printf 1 || printf 0) )).0-beta1"
+    VERSION="$CURRENT_MAJOR_VERSION.$(( CURRENT_MINOR_VERSION + $("$IS_GA" && printf 1 || printf 0) )).0-beta$((CURRENT_BETA_VERSION + 1))"
 
     echo
     echo "Generating new minor release template .gitlab/issue_templates/Beta Release.md for $VERSION"
 
-    sh stackgres-k8s/ci/tools/generate-release-template.sh "$VERSION" > .gitlab/issue_templates/"Beta Release.md"
+    sh stackgres-k8s/ci/utils/generate-release-template.sh "$VERSION" > .gitlab/issue_templates/"Beta Release.md"
 
-    VERSION="$CURRENT_MAJOR_VERSION.$(( CURRENT_MINOR_VERSION + $("$IS_GA" && printf 1 || printf 0) )).0-RC1"
+    VERSION="$CURRENT_MAJOR_VERSION.$(( CURRENT_MINOR_VERSION + $("$IS_GA" && printf 1 || printf 0) )).0-RC$((CURRENT_RC_VERSION + 1))"
 
     echo
     echo "Generating new minor release template .gitlab/issue_templates/RC Release.md for $VERSION"
 
-    sh stackgres-k8s/ci/tools/generate-release-template.sh "$VERSION" > .gitlab/issue_templates/"RC Release.md"
+    sh stackgres-k8s/ci/utils/generate-release-template.sh "$VERSION" > .gitlab/issue_templates/"RC Release.md"
 
     VERSION="$CURRENT_MAJOR_VERSION.$(( CURRENT_MINOR_VERSION + $("$IS_GA" && printf 1 || printf 0) )).0"
 
     echo
     echo "Generating new minor release template .gitlab/issue_templates/GA Release.md for $VERSION"
 
-    sh stackgres-k8s/ci/tools/generate-release-template.sh "$VERSION" > .gitlab/issue_templates/"GA Release.md"
+    sh stackgres-k8s/ci/utils/generate-release-template.sh "$VERSION" > .gitlab/issue_templates/"GA Release.md"
   fi
 fi

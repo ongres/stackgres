@@ -8,66 +8,110 @@ metadata:
     stackgres.io/operatorVersion: "{{ .Values.cluster.version }}"
   {{- end }}
 spec:
-  type: {{ .Values.shardedCluster.type }}
-  database: {{ .Values.shardedCluster.database }}
+  type: {{ quote .Values.shardedCluster.type }}
+  database: {{ quote .Values.shardedCluster.database }}
   postgres:
-    version: '{{ .Values.cluster.postgres.version }}'
+    {{- toYaml .Values.cluster.postgres | nindent 4 }}
+  {{- with .Values.shardedCluster.postgresServices }}
+  postgresServices:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.cluster.replication }}
+  replication:
+    mode: {{ quote .mode }}
+    {{- with .syncInstances }} 
+    syncInstances: {{ . }}
+    {{- end }}
+  {{- end }}
+  {{- with .Values.cluster.metadata }}
+  metadata:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- if or .Values.shardedCluster.configurations .Values.cluster.configurations.backups }}
+  configurations:
+    {{- with .Values.cluster.configurations.backups }}
+    {{- if .sgObjectStorage }}
+    backups:
+    - {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- end }}
+    {{- with ((.Values.shardedCluster.configurations).credentials) }}
+    credentials:
+    - {{- toYaml . | nindent 6 }}
+    {{- end }}
+  {{- end }}
   coordinator:
     instances: {{ .Values.cluster.instances }}
     configurations: 
-      sgPostgresConfig: '{{ .Values.cluster.configurations.sgPostgresConfig }}'
-      sgPoolingConfig: '{{ .Values.cluster.configurations.sgPoolingConfig }}'
-    sgInstanceProfile: '{{ .Values.cluster.sgInstanceProfile }}'
+      sgPostgresConfig: {{ quote .Values.cluster.configurations.sgPostgresConfig }}
+      sgPoolingConfig: {{ quote .Values.cluster.configurations.sgPoolingConfig }}
+    sgInstanceProfile: {{ quote .Values.cluster.sgInstanceProfile }}
+    {{- with .Values.cluster.managedSql }}
+    managedSql:
+    {{- with .continueOnSGScriptError }}
+      continueOnSGScriptError: {{ . }}
+    {{- end }}
+    {{- if .scripts }}
+      scripts:
+      - sgScript: {{ $.Release.Name }}-scripts
+    {{- end }}
+    {{- end }}
     pods:
       persistentVolume:
-        size: '{{ .Values.cluster.pods.persistentVolume.size }}'
+        size: {{ quote .Values.cluster.pods.persistentVolume.size }}
         {{- if .Values.cluster.pods.persistentVolume.storageClass }}
         {{- if eq "-" .Values.cluster.pods.persistentVolume.storageClass }}
         storageClass: ""
         {{- else }}
-        storageClass: {{ .Values.cluster.pods.persistentVolume.storageClass }}
+        storageClass: {{ quote .Values.cluster.pods.persistentVolume.storageClass }}
         {{- end }}
         {{- end }}
+    {{- with ((.Values.shardedCluster.coordinator).replication) }}
+    replication:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
   shards:
     clusters: {{ .Values.shardedCluster.shards.clusters }}
     instancesPerCluster: {{ .Values.shardedCluster.shards.instancesPerCluster }}
     configurations: 
-      sgPostgresConfig: '{{ .Values.cluster.configurations.sgPostgresConfig }}'
-      sgPoolingConfig: '{{ .Values.cluster.configurations.sgPoolingConfig }}'
-    sgInstanceProfile: '{{ .Values.cluster.sgInstanceProfile }}'
+      sgPostgresConfig: {{ quote .Values.cluster.configurations.sgPostgresConfig }}
+      sgPoolingConfig: {{ quote .Values.cluster.configurations.sgPoolingConfig }}
+    sgInstanceProfile: {{ quote .Values.cluster.sgInstanceProfile }}
+    {{- with .Values.shardedCluster.shards.managedSql }}
+    managedSql:
+    {{- with .continueOnSGScriptError }}
+      continueOnSGScriptError: {{ . }}
+    {{- end }}
+    {{- if .scripts }}
+      scripts:
+      - sgScript: {{ $.Release.Name }}-scripts
+    {{- end }}
+    {{- end }}
     pods:
       persistentVolume:
-        size: '{{ .Values.cluster.pods.persistentVolume.size }}'
+        size: {{ quote .Values.cluster.pods.persistentVolume.size }}
         {{- if .Values.cluster.pods.persistentVolume.storageClass }}
         {{- if eq "-" .Values.cluster.pods.persistentVolume.storageClass }}
         storageClass: ""
         {{- else }}
-        storageClass: {{ .Values.cluster.pods.persistentVolume.storageClass }}
+        storageClass: {{ quote .Values.cluster.pods.persistentVolume.storageClass }}
         {{- end }}
         {{- end }}
-  prometheusAutobind: {{ .Values.cluster.prometheusAutobind }}
-  {{- if .Values.nonProductionOptions }}
+    {{- with .Values.shardedCluster.shards.replication }}
+    replication:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  {{- if .Values.distributedLogs.enabled }}
+  {{- with .Values.cluster.distributedLogs }}
+  distributedLogs:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- end }}
+  {{- with .Values.cluster.prometheusAutobind }}
+  prometheusAutobind: {{ . }}
+  {{- end }}
+  {{- with .Values.nonProductionOptions }}
   nonProductionOptions:
-  {{- if not .Values.nonProductionOptions.disableClusterPodAntiAffinity }}
-    disableClusterPodAntiAffinity: false
-  {{- else }}
-    disableClusterPodAntiAffinity: {{ .Values.nonProductionOptions.disableClusterPodAntiAffinity }}
-  {{- end }}
-  {{- if not .Values.nonProductionOptions.disablePatroniResourceRequirements }}
-    disablePatroniResourceRequirements: false
-  {{- else }}
-    disablePatroniResourceRequirements: {{ .Values.nonProductionOptions.disablePatroniResourceRequirements }}
-  {{- end }}
-  {{- if not .Values.nonProductionOptions.disableClusterResourceRequirements }}
-    disableClusterResourceRequirements: false
-  {{- else }}
-    disableClusterResourceRequirements: {{ .Values.nonProductionOptions.disableClusterResourceRequirements }}
-  {{- end }}
-  {{- if .Values.nonProductionOptions.enabledFeatureGates }}
-    enabledFeatureGates:
-  {{- range .Values.nonProductionOptions.enabledFeatureGates }}
-    - '{{ . }}'
-  {{- end }}
-  {{- end }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
 {{- end }}

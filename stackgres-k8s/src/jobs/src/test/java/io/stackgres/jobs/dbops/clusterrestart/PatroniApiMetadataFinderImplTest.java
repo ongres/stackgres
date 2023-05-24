@@ -55,14 +55,19 @@ class PatroniApiMetadataFinderImplTest {
     patroniService.getMetadata().setNamespace(namespace);
     patroniService.getMetadata().setName(clusterName + "-rest");
 
-    client.namespaces().create(new NamespaceBuilder()
-        .withMetadata(new ObjectMetaBuilder()
-            .withName(namespace)
+    client.namespaces()
+        .resource(new NamespaceBuilder()
+            .withMetadata(new ObjectMetaBuilder()
+                .withName(namespace)
+                .build())
             .build())
-        .build());
+        .create();
     client.secrets().inNamespace(namespace)
-        .create(secret);
-    client.services().inNamespace(namespace).create(patroniService);
+        .resource(secret)
+        .create();
+    client.services().inNamespace(namespace)
+        .resource(patroniService)
+        .create();
   }
 
   @Test
@@ -118,8 +123,9 @@ class PatroniApiMetadataFinderImplTest {
         .withName("nopatroni")
         .withPort(80)
         .build()));
-    client.services().inNamespace(namespace).withName(patroniService.getMetadata().getName())
-        .replace(service);
+    client.services().inNamespace(namespace)
+        .resource(service)
+        .replace();
 
     var ex = assertThrows(InvalidClusterException.class,
         () -> patroniApiFinder.getPatroniPort(clusterName, namespace));
@@ -140,8 +146,8 @@ class PatroniApiMetadataFinderImplTest {
     final String name = secret.getMetadata().getName();
     client.secrets()
         .inNamespace(namespace)
-        .withName(name)
-        .replace(secret);
+        .resource(secret)
+        .replace();
     var ex = assertThrows(InvalidClusterException.class,
         () -> patroniApiFinder.getPatroniPassword(clusterName, namespace));
     assertEquals("Could not find restapi-password in secret " + name,

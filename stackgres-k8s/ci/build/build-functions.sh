@@ -4,17 +4,21 @@
 
 BUILDER_VERSION=1.0.0
 
+set -e
+
+export BUILD_UID="${BUILD_UID:-$(id -u):$(ls -n /var/run/docker.sock | cut -d ' ' -f 4)}"
+
 [ "$DEBUG" != true ] || set -x
 
-message_and_exit() {
+die() {
   printf '\n\t%s\n\n' "$1" >&2
-  exit "$2"
+  exit 1
 }
 
 export LANG=C.UTF-8
 export LC_ALL=C.UTF-8
 
-cd "$(dirname "$0")/../../.." || message_and_exit "Can not change to directory $(dirname "$0")/../../.."
+cd "$(dirname "$0")/../../.." || die "Can not change to directory $(dirname "$0")/../../.."
 
 module_image_name() {
   [ "$#" -ge 2 ] || false
@@ -80,23 +84,25 @@ copy_from_image() {
   docker_run -i $(! test -t 1 || printf '%s' '-t') --rm \
     --platform "$SOURCE_IMAGE_PLATFORM" \
     --volume "${PROJECT_PATH:-$(pwd)}:/project-target" \
-    --user "$BUILD_UID" \
+    --user "$(id -u):$(id -g)" \
+    --env HOME=/tmp \
     "$SOURCE_IMAGE_NAME" \
     sh -ec $(echo "$-" | grep -v -q x || printf '%s' '-x') \
-      'cp -rd /project/. /project-target/.'
+      'cp -a /project/. /project-target/.'
 }
 
 pre_build_in_container() {
   [ "$#" -ge 2 ] || false
   local MODULE="$1"
   local BUILD_IMAGE_NAME="$2"
-  local COMMANDS
+  local COMMANDS COMMAND_BUILD_UID
   if [ "$BUILD_SKIP_PRE_BUILD" = true ]
   then
     return
   fi
   COMMANDS="$(jq -r ".modules[\"$MODULE\"].pre_build_commands | if . != null then . | join(\"\n\") else true end" stackgres-k8s/ci/build/target/config.json)"
-  run_commands_in_container "$MODULE" "$BUILD_IMAGE_NAME" "0" "$COMMANDS"
+  COMMAND_BUILD_UID="$(jq -r ".modules[\"$MODULE\"].pre_post_build_uid | if . != null then . else \"\" end" stackgres-k8s/ci/build/target/config.json)"
+  run_commands_in_container "$MODULE" "$BUILD_IMAGE_NAME" "${COMMAND_BUILD_UID:-$BUILD_UID}" "$COMMANDS"
 }
 
 build_in_container() {
@@ -116,13 +122,14 @@ post_build_in_container() {
   [ "$#" -ge 2 ] || false
   local MODULE="$1"
   local BUILD_IMAGE_NAME="$2"
-  local COMMANDS
+  local COMMANDS COMMAND_BUILD_UID
   if [ "$BUILD_SKIP_POST_BUILD" = true ]
   then
     return
   fi
   COMMANDS="$(jq -r ".modules[\"$MODULE\"].post_build_commands | if . != null then . | join(\"\n\") else true end" stackgres-k8s/ci/build/target/config.json)"
-  run_commands_in_container "$MODULE" "$BUILD_IMAGE_NAME" "0" "$COMMANDS"
+  COMMAND_BUILD_UID="$(jq -r ".modules[\"$MODULE\"].pre_post_build_uid | if . != null then . else \"\" end" stackgres-k8s/ci/build/target/config.json)"
+  run_commands_in_container "$MODULE" "$BUILD_IMAGE_NAME" "${COMMAND_BUILD_UID:-$BUILD_UID}" "$COMMANDS"
 }
 
 run_commands_in_container() {
@@ -151,6 +158,7 @@ EOF
     --volume "${PROJECT_PATH:-$(pwd)}:/project" \
     --workdir /project \
     --user "$BUILD_UID" \
+    --env HOME=/tmp \
     --env "PRE_BUILD_COMMANDS=$PRE_BUILD_COMMANDS" \
     --env "BUILD_COMMANDS=$BUILD_COMMANDS" \
     --env "POST_BUILD_COMMANDS=$POST_BUILD_COMMANDS" \
@@ -237,7 +245,7 @@ EOF
   # shellcheck disable=SC2086
   # shellcheck disable=SC2046
   docker_build $DOCKER_BUILD_OPTS -t "$IMAGE_NAME" \
-    --build-arg "BUILD_UID=$BUILD_UID" \
+    --build-arg "BUILD_UID=${BUILD_UID%:*}" \
     --build-arg "TARGET_IMAGE_NAME=$TARGET_IMAGE_NAME" \
     $(jq -r ".modules[\"$MODULE\"].dockerfile.args
         | if . != null then . else {} end | to_entries
@@ -262,7 +270,7 @@ module_list() {
 
 init_hash() {
   if [ -d stackgres-k8s/ci/build/target/.git ] \
-    && git --git-dir stackgres-k8s/ci/build/target/.git status --porcelain | grep -q .
+    && git --git-dir stackgres-k8s/ci/build/target/.git status --porcelain 2>&1 | grep -q .
   then
     rm -rf stackgres-k8s/ci/build/target/.git
   fi
@@ -292,7 +300,7 @@ module_type() {
   local MODULE="$1"
   local MODULE_TYPE
   MODULE_TYPE="$(jq -r ".modules | select(has(\"$MODULE\"))[\"$MODULE\"] | select(has(\"type\")).type" stackgres-k8s/ci/build/target/config.json)"
-  [ -n "$MODULE_TYPE" ] || message_and_exit "Module $MODULE is not defined or has no type in stackgres-k8s/ci/build/config.yml" 1
+  [ -n "$MODULE_TYPE" ] || die "Module $MODULE is not defined or has no type in stackgres-k8s/ci/build/config.yml" 1
   printf '%s' "$MODULE_TYPE"
 }
 
@@ -303,7 +311,7 @@ source_image_name() {
   local SOURCE_MODULE
   local SOURCE_IMAGE_NAME
   SOURCE_MODULE="$(jq -r ".stages[] | select(has(\"$MODULE\"))[\"$MODULE\"]" stackgres-k8s/ci/build/target/config.json)"
-  [ -n "$SOURCE_MODULE" ] || message_and_exit "Module $MODULE has no stage defined in stackgres-k8s/ci/build/config.yml" 1
+  [ -n "$SOURCE_MODULE" ] || die "Module $MODULE has no stage defined in stackgres-k8s/ci/build/config.yml" 1
   if [ "$SOURCE_MODULE" = null ]
   then
     SOURCE_IMAGE_NAME="$(jq -r ".target_image" stackgres-k8s/ci/build/target/config.json)"
@@ -327,10 +335,10 @@ image_name() {
     MODULE_PLATFORM=
   fi
   IMAGE_NAME="$(grep "^$MODULE=.*$MODULE_PLATFORM$" stackgres-k8s/ci/build/target/image-hashes)" \
-    || message_and_exit "Unable to retrieve hash for module $MODULE in stackgres-k8s/ci/build/target/image-hashes" 1
+    || die "Unable to retrieve hash for module $MODULE in stackgres-k8s/ci/build/target/image-hashes" 1
   IMAGE_NAME="$(printf '%s' "$IMAGE_NAME"| cut -d = -f 2-)"
   [ -n "$IMAGE_NAME" ] \
-    || message_and_exit "Unable to retrieve hash for module $MODULE in stackgres-k8s/ci/build/target/image-hashes" 1
+    || die "Unable to retrieve hash for module $MODULE in stackgres-k8s/ci/build/target/image-hashes" 1
   printf '%s\n' "$IMAGE_NAME"
 }
 
@@ -386,7 +394,10 @@ extract_from_image() {
   local IMAGE_PLATFORM
   IMAGE_PLATFORM="$(get_image_platform "$IMAGE_NAME")"
   docker_run --rm --entrypoint /bin/sh --platform "$IMAGE_PLATFORM" \
-    -u "$(id -u)" -v "${PROJECT_PATH:-$(pwd)}:/out" "$IMAGE_NAME" \
+    --user "$(id -u):$(id -g)" \
+    --env HOME=/tmp \
+    -v "${PROJECT_PATH:-$(pwd)}:/out" \
+    "$IMAGE_NAME" \
     -c "$(cat << EOF
 for FILE in $*
 do
@@ -411,8 +422,6 @@ generate_image_hashes() {
   local MODULE_PLATFORM
   local SOURCE_IMAGE_NAME
   local IMAGE_NAME
-
-  BUILD_UID="${BUILD_ID:-$(id -u)}"
 
   mkdir -p stackgres-k8s/ci/build/target
 
@@ -505,19 +514,25 @@ show_image_hashes() {
 
 find_image_digests() {
   sort "$1" | uniq \
-    | xargs -I @ -P 16 sh stackgres-k8s/ci/build/build-functions.sh find_image_digest @
+    | xargs -I @ -P 16 sh $(! echo $- | grep -q x || printf '%s' "-x") \
+      stackgres-k8s/ci/build/build-functions.sh find_image_digest @
   (! ls stackgres-k8s/ci/build/target/image-digests.* > /dev/null 2>&1 \
     || cat stackgres-k8s/ci/build/target/image-digests.*)
 }
 
 find_image_digest() {
-  local IMAGE_NAME="$1"
-  if download_image_manifest "$IMAGE_NAME" >/dev/null 2>&1
+  local IMAGE_NAME="$1" IMAGE_DIGEST
+  if retrieve_image_manifest "$IMAGE_NAME" >/dev/null 2>&1
   then
-    printf '%s=%s\n' "$IMAGE_NAME" "$(
-      jq -r 'if (.|type) == "array" then .[] else . end | .Descriptor.digest' \
-        "stackgres-k8s/ci/build/target/manifest.${IMAGE_NAME##*/}" \
-      | tr '\n' ',' | sed 's/,\+$//')" \
+    if ! IMAGE_DIGEST="$(jq -r \
+      '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].RepoDigests | map(split(":")[1]) | join("-")' \
+      "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
+      2>/dev/null)"
+    then
+      IMAGE_DIGEST="$(jq -r 'if (.|type) == "array" then . else [.] end | map(.Descriptor.digest) | join("-")' \
+        "stackgres-k8s/ci/build/target/manifest.${IMAGE_NAME##*/}")"
+    fi
+    printf '%s=%s\n' "$IMAGE_NAME" "$IMAGE_DIGEST" \
       > "stackgres-k8s/ci/build/target/image-digests.${IMAGE_NAME##*/}"
   fi
 }
@@ -526,18 +541,26 @@ get_image_platform() {
   local IMAGE_NAME="$1"
   local IMAGE_MEDIA_TYPE
   local IMAGE_PLATFORM
-  download_image_manifest "$IMAGE_NAME"
+  retrieve_image_manifest "$IMAGE_NAME"
+  if IMAGE_PLATFORM="$(jq -r \
+    '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].Architecture' \
+    "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
+    2>/dev/null)"
+  then
+    printf %s "$IMAGE_PLATFORM"
+    return
+  fi
   IMAGE_MEDIA_TYPE="$(jq -r '. | type' \
     "stackgres-k8s/ci/build/target/manifest.${IMAGE_NAME##*/}")"
   if [ "$IMAGE_MEDIA_TYPE" = "array" ]
   then
     docker_buildx_inspect --bootstrap | grep Platforms | cut -d : -f 2 | tr -d ' ' | tr ',' '\n' \
-      | while read -r PLATFORM
+      | while read -r IMAGE_PLATFORM
         do
           if jq -r '.[]|.Descriptor.platform.os + "/" + .Descriptor.platform.architecture' \
-            "stackgres-k8s/ci/build/target/manifest.${IMAGE_NAME##*/}" | grep -qxF "$PLATFORM"
+            "stackgres-k8s/ci/build/target/manifest.${IMAGE_NAME##*/}" | grep -qxF "$IMAGE_PLATFORM"
           then
-            printf '%s' "$PLATFORM"
+            printf '%s' "$IMAGE_PLATFORM"
             break
           fi
         done
@@ -547,12 +570,26 @@ get_image_platform() {
   fi
 }
 
-download_image_manifest() {
+retrieve_image_manifest() {
   local IMAGE_NAME="$1"
-  if ! [ -s "stackgres-k8s/ci/build/target/manifest.${IMAGE_NAME##*/}" ]
+  if ! jq 'if length == 0 then halt_error else halt end' \
+    "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
+    >/dev/null 2>&1
   then
-    docker_manifest_inspect -v "$IMAGE_NAME" \
-      > "stackgres-k8s/ci/build/target/manifest.${IMAGE_NAME##*/}"
+    if [ "$SKIP_REMOTE_MANIFEST" = true ]
+    then
+      docker_inspect "$IMAGE_NAME" \
+        > "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}"
+    elif ! docker_inspect "$IMAGE_NAME" \
+      > "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
+      2>/dev/null
+    then
+      if ! [ -s "stackgres-k8s/ci/build/target/manifest.${IMAGE_NAME##*/}" ]
+      then
+        docker_manifest_inspect -v "$IMAGE_NAME" \
+          > "stackgres-k8s/ci/build/target/manifest.${IMAGE_NAME##*/}"
+      fi
+    fi
   fi
 }
 
@@ -561,13 +598,13 @@ get_platform() {
 }
 
 project_hash() {
-  git --git-dir stackgres-k8s/ci/build/target/.git rev-parse HEAD:
+  git --git-dir "stackgres-k8s/ci/build/target/.git" rev-parse HEAD:
 }
 
 path_hash() {
   [ "$#" -ge 1 ] || false
   local FILE="$1"
-  git --git-dir stackgres-k8s/ci/build/target/.git rev-parse HEAD:"$FILE"
+  git --git-dir "stackgres-k8s/ci/build/target/.git" rev-parse HEAD:"$FILE"
 }
 
 docker_inspect() {

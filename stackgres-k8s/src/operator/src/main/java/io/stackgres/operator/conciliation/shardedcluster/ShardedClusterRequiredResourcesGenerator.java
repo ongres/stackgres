@@ -5,8 +5,8 @@
 
 package io.stackgres.operator.conciliation.shardedcluster;
 
-import static io.stackgres.common.StackGresShardedClusterUtil.getCoordinatorCluster;
-import static io.stackgres.common.StackGresShardedClusterUtil.getShardsCluster;
+import static io.stackgres.common.StackGresShardedClusterForCitusUtil.getCoordinatorCluster;
+import static io.stackgres.common.StackGresShardedClusterForCitusUtil.getShardsCluster;
 
 import java.util.List;
 import java.util.Optional;
@@ -90,6 +90,14 @@ public class ShardedClusterRequiredResourcesGenerator
     Optional<Secret> databaseSecret = secretFinder
         .findByNameAndNamespace(clusterName, clusterNamespace);
 
+    StackGresPostgresConfig coordinatorConfig = postgresConfigFinder.findByNameAndNamespace(
+        config.getSpec().getCoordinator().getConfiguration().getPostgresConfig(),
+        clusterNamespace)
+        .orElseThrow(() -> new IllegalArgumentException(
+            "Coordinator of SGShardedCluster "
+                + clusterNamespace + "." + clusterName
+                + " have a non existent " + StackGresPostgresConfig.KIND
+                + " " + config.getSpec().getCoordinator().getConfiguration().getPostgresConfig()));
     StackGresClusterContext coordinatorContext = getCoordinatorContext(
         clusterName, clusterNamespace, config, kubernetesVersion, databaseSecret);
 
@@ -99,13 +107,21 @@ public class ShardedClusterRequiredResourcesGenerator
     Optional<Service> coordinatorPrimaryService = serviceFinder
         .findByNameAndNamespace(
             PatroniUtil.readWriteName(coordinatorContext.getCluster()), clusterNamespace);
+    List<Service> shardsPrimaryServices = shardsContexts.stream()
+        .map(shardsContext -> serviceFinder
+            .findByNameAndNamespace(
+                PatroniUtil.readWriteName(shardsContext.getCluster()), clusterNamespace))
+        .flatMap(Optional::stream)
+        .toList();
     StackGresShardedClusterContext context = ImmutableStackGresShardedClusterContext.builder()
         .kubernetesVersion(kubernetesVersion)
         .source(config)
         .databaseSecret(databaseSecret)
+        .coordinatorConfig(coordinatorConfig)
         .coordinator(coordinatorContext)
         .shards(shardsContexts)
         .coordinatorPrimaryService(coordinatorPrimaryService)
+        .shardsPrimaryServices(shardsPrimaryServices)
         .build();
 
     return decorator.decorateResources(context);
@@ -159,8 +175,8 @@ public class ShardedClusterRequiredResourcesGenerator
       VersionInfo kubernetesVersion,
       Optional<Secret> databaseSecret) {
     final StackGresShardedClusterSpec spec = config.getSpec();
-    final StackGresShardedClusterShards shards = spec.getShards();
-    final StackGresClusterConfiguration configuration = shards.getConfiguration();
+    final StackGresShardedClusterShards workers = spec.getShards();
+    final StackGresClusterConfiguration configuration = workers.getConfiguration();
     final StackGresPostgresConfig pgConfig = postgresConfigFinder
         .findByNameAndNamespace(configuration.getPostgresConfig(), clusterNamespace)
         .orElseThrow(() -> new IllegalArgumentException(
@@ -169,11 +185,11 @@ public class ShardedClusterRequiredResourcesGenerator
                 + " " + configuration.getPostgresConfig()));
 
     final StackGresProfile profile = profileFinder
-        .findByNameAndNamespace(shards.getResourceProfile(), clusterNamespace)
+        .findByNameAndNamespace(workers.getResourceProfile(), clusterNamespace)
         .orElseThrow(() -> new IllegalArgumentException(
             "Shards of SGShardedCluster " + clusterNamespace + "." + clusterName
                 + " have a non existent " + StackGresProfile.KIND
-                + " " + shards.getResourceProfile()));
+                + " " + workers.getResourceProfile()));
 
     final Optional<StackGresPoolingConfig> pooling = Optional
         .ofNullable(configuration.getConnectionPoolingConfig())
@@ -195,17 +211,17 @@ public class ShardedClusterRequiredResourcesGenerator
       StackGresProfile profile,
       Optional<StackGresPoolingConfig> pooling,
       int index) {
-    StackGresCluster shardsCluster = getShardsCluster(config, index);
+    StackGresCluster workersCluster = getShardsCluster(config, index);
 
-    StackGresClusterContext shardsContext = ImmutableStackGresClusterContext.builder()
+    StackGresClusterContext workersContext = ImmutableStackGresClusterContext.builder()
         .kubernetesVersion(kubernetesVersion)
-        .source(shardsCluster)
+        .source(workersCluster)
         .postgresConfig(pgConfig)
         .profile(profile)
         .poolingConfig(pooling)
         .databaseSecret(databaseSecret)
         .build();
-    return shardsContext;
+    return workersContext;
   }
 
 }

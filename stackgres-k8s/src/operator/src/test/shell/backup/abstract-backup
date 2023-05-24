@@ -18,7 +18,7 @@ RIGHT_VALUE=true
 JOB_NAME_KEY=job-name
 JOB_NAME=test
 BACKUP_CONFIG=test
-PATRONI_CLUSTER_LABELS=app=StackGresCluster,cluster-uid=test,cluster-namespace=test,cluster-name=test
+CLUSTER_LABELS=app=StackGresCluster,cluster-uid=test,cluster-namespace=test,cluster-name=test
 PATRONI_CONTAINER_NAME=patroni
 PATRONI_ROLE_KEY=role
 PATRONI_PRIMARY_ROLE=master
@@ -87,10 +87,10 @@ EOF
     ("get $BACKUP_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_NAME --template={{ .status.sgBackupConfig.storage }}")
     echo test
     ;;
-    ("get pod -n $CLUSTER_NAMESPACE -l ${PATRONI_CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_PRIMARY_ROLE} -o name")
+    ("get pod -n $CLUSTER_NAMESPACE -l ${CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_PRIMARY_ROLE} -o name")
     echo pod/test-0
     ;;
-    ("get pod -n $CLUSTER_NAMESPACE -l ${PATRONI_CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_REPLICA_ROLE} -o name")
+    ("get pod -n $CLUSTER_NAMESPACE -l ${CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_REPLICA_ROLE} -o name")
     echo pod/test-1
     ;;
     ("patch $BACKUP_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_NAME --type json --patch "*)

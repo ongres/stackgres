@@ -5,22 +5,26 @@
 
 package io.stackgres.operator.mutation;
 
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.operator.common.ObjectStorageReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import org.junit.jupiter.api.BeforeEach;
+import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ObjectStorageMutationResourceTest extends MutationResourceTest<ObjectStorageReview> {
+class ObjectStorageMutationResourceTest
+    extends MutationResourceTest<StackGresObjectStorage, ObjectStorageReview> {
 
-  @BeforeEach
-  void setUp() {
-    final ObjectStorageMutationResource resource = new ObjectStorageMutationResource();
-    resource.setPipeline(pipeline);
-    this.resource = resource;
+  @Override
+  protected MutationResource<StackGresObjectStorage, ObjectStorageReview> getResource() {
+    return new ObjectStorageMutationResource(JsonUtil.jsonMapper(), pipeline);
+  }
 
-    review = AdmissionReviewFixtures.objectStorage().loadCreate().get();
+  @Override
+  protected ObjectStorageReview getReview() {
+    return AdmissionReviewFixtures.objectStorage().loadCreate().get();
   }
 
 }

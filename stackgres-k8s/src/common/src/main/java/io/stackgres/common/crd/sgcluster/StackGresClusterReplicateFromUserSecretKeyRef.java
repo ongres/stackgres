@@ -21,16 +21,18 @@ import io.sundr.builder.annotations.Buildable;
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
+@Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
+    lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
+    builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterReplicateFromUserSecretKeyRef {
 
   @JsonProperty("username")
-  @NotNull(message = "username section is required")
+  @NotNull(message = "username is required")
   @Valid
   private SecretKeySelector username;
 
   @JsonProperty("password")
-  @NotNull(message = "password section is required")
+  @NotNull(message = "password is required")
   @Valid
   private SecretKeySelector password;
 

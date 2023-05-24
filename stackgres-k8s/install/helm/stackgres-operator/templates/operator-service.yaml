@@ -4,7 +4,7 @@ kind: Service
 metadata:
   {{- with .Values.operator.service.annotations }}
   annotations:
-    {{ toYaml . | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
   namespace: {{ .Release.Namespace }}
   name: {{ .Release.Name }}

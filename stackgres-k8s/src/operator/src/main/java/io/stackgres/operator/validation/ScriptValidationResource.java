@@ -14,21 +14,29 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import io.quarkus.runtime.StartupEvent;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.operator.common.StackGresScriptReview;
-import io.stackgres.operator.validation.script.ScriptValidationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationResource;
+import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Path(ValidationUtil.SCRIPT_VALIDATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class ScriptValidationResource implements ValidationResource<StackGresScriptReview> {
+public class ScriptValidationResource extends AbstractValidationResource<StackGresScriptReview> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ScriptValidationResource.class);
 
-  private ScriptValidationPipeline pipeline;
+  @Inject
+  public ScriptValidationResource(ValidationPipeline<StackGresScriptReview> pipeline) {
+    super(pipeline);
+  }
+
+  public ScriptValidationResource() {
+    super(null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+  }
 
   void onStart(@Observes StartupEvent ev) {
     LOGGER.info("Script validation resource started");
@@ -39,13 +47,6 @@ public class ScriptValidationResource implements ValidationResource<StackGresScr
    */
   @POST
   public AdmissionReviewResponse validate(StackGresScriptReview admissionReview) {
-
-    return validate(admissionReview, pipeline);
-
-  }
-
-  @Inject
-  public void setPipeline(ScriptValidationPipeline pipeline) {
-    this.pipeline = pipeline;
+    return super.validate(admissionReview);
   }
 }

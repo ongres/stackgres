@@ -12,6 +12,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.operator.conciliation.GenerationContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -31,9 +32,13 @@ public interface StackGresShardedClusterContext
 
   StackGresClusterContext getCoordinator();
 
+  StackGresPostgresConfig getCoordinatorConfig();
+
   List<StackGresClusterContext> getShards();
 
   Optional<Service> getCoordinatorPrimaryService();
+
+  List<Service> getShardsPrimaryServices();
 
   Optional<Secret> getDatabaseSecret();
 

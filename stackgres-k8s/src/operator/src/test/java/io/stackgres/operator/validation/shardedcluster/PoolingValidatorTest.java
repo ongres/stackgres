@@ -8,15 +8,16 @@ package io.stackgres.operator.validation.shardedcluster;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardBuilder;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
@@ -50,21 +51,60 @@ class PoolingValidatorTest {
   }
 
   @Test
-  void givenValidStackGresPoolingOnCreation_shouldNotFail() throws ValidationFailed {
+  void givenValidCoordinatorStackGresPoolingOnCreation_shouldNotFail() throws ValidationFailed {
     final StackGresShardedClusterReview review = AdmissionReviewFixtures.shardedCluster()
         .loadCreate().get();
 
-    String coordinatorPoolingConfig =
+    String poolingConfig =
         review.getRequest().getObject().getSpec().getCoordinator()
         .getConfiguration().getConnectionPoolingConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
-    when(configFinder.findByNameAndNamespace(coordinatorPoolingConfig, namespace))
+    when(configFinder.findByNameAndNamespace(poolingConfig, namespace))
         .thenReturn(Optional.of(pgbouncerConfig));
 
     validator.validate(review);
 
-    verify(configFinder, times(2)).findByNameAndNamespace(
-        eq(coordinatorPoolingConfig), eq(namespace));
+    verify(configFinder, times(2)).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenValidShardsStackGresPoolingOnCreation_shouldNotFail() throws ValidationFailed {
+    final StackGresShardedClusterReview review = AdmissionReviewFixtures.shardedCluster()
+        .loadCreate().get();
+
+    String poolingConfig =
+        review.getRequest().getObject().getSpec().getCoordinator()
+        .getConfiguration().getConnectionPoolingConfig();
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
+    when(configFinder.findByNameAndNamespace(poolingConfig, namespace))
+        .thenReturn(Optional.of(pgbouncerConfig));
+
+    validator.validate(review);
+
+    verify(configFinder, times(2)).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void givenValidOverrideShardsStackGresPoolingOnCreation_shouldNotFail() throws ValidationFailed {
+    final StackGresShardedClusterReview review = AdmissionReviewFixtures.shardedCluster()
+        .loadCreate().get();
+
+    String poolingConfig =
+        review.getRequest().getObject().getSpec().getCoordinator()
+        .getConfiguration().getConnectionPoolingConfig();
+    review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
+        new StackGresShardedClusterShardBuilder()
+        .withNewConfigurationForShards()
+        .withConnectionPoolingConfig(poolingConfig)
+        .endConfigurationForShards()
+        .build()));
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
+    when(configFinder.findByNameAndNamespace(poolingConfig, namespace))
+        .thenReturn(Optional.of(pgbouncerConfig));
+
+    validator.validate(review);
+
+    verify(configFinder, times(3)).findByNameAndNamespace(any(), any());
   }
 
   @Test
@@ -87,6 +127,8 @@ class PoolingValidatorTest {
     String resultMessage = ex.getMessage();
 
     assertEquals("Pooling config " + poolingConfig + " not found for coordinator", resultMessage);
+
+    verify(configFinder, times(1)).findByNameAndNamespace(any(), any());
   }
 
   @Test
@@ -114,6 +156,44 @@ class PoolingValidatorTest {
     String resultMessage = ex.getMessage();
 
     assertEquals("Pooling config " + poolingConfig + " not found for shards", resultMessage);
+
+    verify(configFinder, times(2)).findByNameAndNamespace(any(), any());
+  }
+
+  @Test
+  void giveInvalidOverrideShardsStackGresPoolingOnCreation_shouldFail() {
+    final StackGresShardedClusterReview review = AdmissionReviewFixtures.shardedCluster()
+        .loadCreate().get();
+
+    review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
+        new StackGresShardedClusterShardBuilder()
+        .withNewConfigurationForShards()
+        .withConnectionPoolingConfig("overrideTest")
+        .endConfigurationForShards()
+        .build()));
+    String poolingConfig =
+        review.getRequest().getObject().getSpec().getShards().getOverrides().get(0)
+        .getConfigurationForShards().getConnectionPoolingConfig();
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
+
+    when(configFinder.findByNameAndNamespace(review.getRequest().getObject().getSpec()
+        .getCoordinator().getConfiguration().getConnectionPoolingConfig(), namespace))
+        .thenReturn(Optional.of(pgbouncerConfig));
+    when(configFinder.findByNameAndNamespace(review.getRequest().getObject().getSpec()
+        .getShards().getConfiguration().getConnectionPoolingConfig(), namespace))
+        .thenReturn(Optional.of(pgbouncerConfig));
+    when(configFinder.findByNameAndNamespace(poolingConfig, namespace))
+        .thenReturn(Optional.empty());
+
+    ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
+      validator.validate(review);
+    });
+
+    String resultMessage = ex.getMessage();
+
+    assertEquals("Pooling config " + poolingConfig + " not found for shard 0", resultMessage);
+
+    verify(configFinder, times(3)).findByNameAndNamespace(any(), any());
   }
 
   @Test
@@ -121,10 +201,11 @@ class PoolingValidatorTest {
     final StackGresShardedClusterReview review = AdmissionReviewFixtures.shardedCluster()
         .loadConnectionPoolingConfigUpdate().get();
 
+    review.getRequest().getObject().getSpec().getCoordinator()
+        .getConfiguration().setConnectionPoolingConfig("test");
     String poolingConfig =
         review.getRequest().getObject().getSpec().getCoordinator()
         .getConfiguration().getConnectionPoolingConfig();
-
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(poolingConfig, namespace))
@@ -139,7 +220,7 @@ class PoolingValidatorTest {
     assertEquals("Cannot update coordinator to pooling config " + poolingConfig
         + " because it doesn't exists", resultMessage);
 
-    verify(configFinder).findByNameAndNamespace(eq(poolingConfig), eq(namespace));
+    verify(configFinder, times(1)).findByNameAndNamespace(any(), any());
   }
 
   @Test
@@ -147,10 +228,11 @@ class PoolingValidatorTest {
     final StackGresShardedClusterReview review = AdmissionReviewFixtures.shardedCluster()
         .loadConnectionPoolingConfigUpdate().get();
 
+    review.getRequest().getObject().getSpec().getShards()
+        .getConfiguration().setConnectionPoolingConfig("test");
     String poolingConfig =
         review.getRequest().getObject().getSpec().getShards()
         .getConfiguration().getConnectionPoolingConfig();
-
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(poolingConfig, namespace))
@@ -162,49 +244,70 @@ class PoolingValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Cannot update coordinator to pooling config " + poolingConfig
+    assertEquals("Cannot update shards to pooling config " + poolingConfig
         + " because it doesn't exists", resultMessage);
 
-    verify(configFinder).findByNameAndNamespace(eq(poolingConfig), eq(namespace));
+    verify(configFinder, times(1)).findByNameAndNamespace(any(), any());
   }
 
   @Test
-  void giveAnAttemptToUpdateToAnKnownCoordinatorPooling_shouldNotFail() throws ValidationFailed {
+  void giveAnAttemptToUpdateToAnUnknownOverrideShardsPoolingConfig_shouldFail() {
     final StackGresShardedClusterReview review = AdmissionReviewFixtures.shardedCluster()
         .loadConnectionPoolingConfigUpdate().get();
 
+    review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
+        new StackGresShardedClusterShardBuilder()
+        .withNewConfigurationForShards()
+        .withConnectionPoolingConfig("overrideTest")
+        .endConfigurationForShards()
+        .build()));
     String poolingConfig =
-        review.getRequest().getObject().getSpec().getCoordinator()
-        .getConfiguration().getConnectionPoolingConfig();
-
+        review.getRequest().getObject().getSpec().getShards().getOverrides().get(0)
+        .getConfigurationForShards().getConnectionPoolingConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(poolingConfig, namespace))
-        .thenReturn(Optional.of(pgbouncerConfig));
+        .thenReturn(Optional.empty());
 
-    validator.validate(review);
+    ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
+      validator.validate(review);
+    });
 
-    verify(configFinder, times(2)).findByNameAndNamespace(
-        eq(poolingConfig), eq(namespace));
+    String resultMessage = ex.getMessage();
+
+    assertEquals("Cannot update shard 0 to pooling config " + poolingConfig
+        + " because it doesn't exists", resultMessage);
+
+    verify(configFinder, times(1)).findByNameAndNamespace(any(), any());
   }
 
   @Test
-  void giveAnAttemptToUpdateToAnKnownShardsPooling_shouldNotFail() throws ValidationFailed {
+  void giveAnAttemptToUpdateToKnownPoolings_shouldNotFail() throws ValidationFailed {
+    final StackGresShardedClusterReview review = AdmissionReviewFixtures.shardedCluster()
+        .loadConnectionPoolingConfigUpdate().get();
+
+    validator.validate(review);
+
+    verify(configFinder, never()).findByNameAndNamespace(any(), any());
+  }
+
+  void giveAnAttemptToUpdateToAnKnownOverrideShardsPooling_shouldNotFail() throws ValidationFailed {
     final StackGresShardedClusterReview review = AdmissionReviewFixtures.shardedCluster()
         .loadConnectionPoolingConfigUpdate().get();
 
     String poolingConfig =
         review.getRequest().getObject().getSpec().getShards()
         .getConfiguration().getConnectionPoolingConfig();
-
-    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
-
-    when(configFinder.findByNameAndNamespace(poolingConfig, namespace))
-        .thenReturn(Optional.of(pgbouncerConfig));
+    review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
+        new StackGresShardedClusterShardBuilder()
+        .withNewConfigurationForShards()
+        .withConnectionPoolingConfig(poolingConfig)
+        .endConfigurationForShards()
+        .build()));
 
     validator.validate(review);
 
-    verify(configFinder, times(2)).findByNameAndNamespace(eq(poolingConfig), eq(namespace));
+    verify(configFinder, never()).findByNameAndNamespace(any(), any());
   }
 
   @Test

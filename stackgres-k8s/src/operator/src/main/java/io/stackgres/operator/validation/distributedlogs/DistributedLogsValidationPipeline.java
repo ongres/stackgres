@@ -11,28 +11,17 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
-import io.stackgres.operator.validation.SimpleValidationPipeline;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
+import io.stackgres.operator.validation.AbstractValidationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 @ApplicationScoped
 public class DistributedLogsValidationPipeline
-    implements ValidationPipeline<StackGresDistributedLogsReview> {
-
-  private SimpleValidationPipeline<StackGresDistributedLogsReview, DistributedLogsValidator>
-      genericPipeline;
-
-  /**
-   * Validate all {@code Validator}s in sequence.
-   */
-  @Override
-  public void validate(StackGresDistributedLogsReview review) throws ValidationFailed {
-    genericPipeline.validate(review);
-  }
+    extends AbstractValidationPipeline<StackGresDistributedLogsReview> {
 
   @Inject
-  public void setValidators(@Any Instance<DistributedLogsValidator> validators) {
-    this.genericPipeline = new SimpleValidationPipeline<>(validators);
+  public DistributedLogsValidationPipeline(
+      @Any Instance<Validator<StackGresDistributedLogsReview>> validatorInstances) {
+    super(validatorInstances);
   }
 
 }

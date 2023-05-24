@@ -10,8 +10,6 @@ import org.jetbrains.annotations.NotNull;
 
 public interface ResourceWriter<T extends HasMetadata> {
 
-  String STACKGRES_FIELD_MANAGER = "StackGres";
-
   T create(@NotNull T resource);
 
   T update(@NotNull T resource);

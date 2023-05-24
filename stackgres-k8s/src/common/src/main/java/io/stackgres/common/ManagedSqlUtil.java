@@ -72,7 +72,11 @@ public interface ManagedSqlUtil {
   }
 
   static String defaultName(StackGresCluster cluster) {
-    return cluster.getMetadata().getName() + DEFAULT_SCRIPT_NAME_SUFFIX;
+    return defaultName(cluster.getMetadata().getName());
+  }
+
+  static String defaultName(String clusterName) {
+    return clusterName + DEFAULT_SCRIPT_NAME_SUFFIX;
   }
 
   static String initialDataName(StackGresCluster object) {

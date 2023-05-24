@@ -3,8 +3,6 @@
   image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: image build
   timeout: 1 hour
-  dependencies:
-    - build
   script:
     - |
       [ "$DEBUG" != true ] || set -x
@@ -58,6 +56,8 @@
 
 .build jvm image amd64:
   extends: .build image
+  dependencies:
+    - build amd64
   tags:
     - stackgres-runner-v2
     - linux-amd64
@@ -66,6 +66,8 @@
 
 .build native image amd64:
   extends: .build image
+  dependencies:
+    - build amd64
   tags:
     - stackgres-runner-v2
     - linux-amd64
@@ -149,6 +151,8 @@ build distributedlogs-controller native image amd64:
 
 build admin-ui image amd64:
   extends: .build image
+  dependencies:
+    - build amd64
   tags:
     - stackgres-runner-v2
     - linux-amd64
@@ -160,6 +164,8 @@ build admin-ui image amd64:
 
 .build jvm image arm64:
   extends: .build image
+  dependencies:
+    - build arm64
   tags:
     - stackgres-runner-v2
     - linux-arm64
@@ -172,6 +178,8 @@ build admin-ui image amd64:
 
 .build native image arm64:
   extends: .build image
+  dependencies:
+    - build arm64
   tags:
     - stackgres-runner-v2
     - linux-arm64
@@ -254,6 +262,8 @@ build distributedlogs-controller native image arm64:
 
 build admin-ui image arm64:
   extends: .build image
+  dependencies:
+    - build arm64
   tags:
     - stackgres-runner-v2
     - linux-arm64
@@ -346,6 +356,8 @@ build admin-ui image multi archs:
 
 .build helm operator image amd64:
   extends: .build image
+  dependencies:
+    - build amd64
   tags:
     - stackgres-runner-v2
     - linux-amd64
@@ -355,6 +367,8 @@ build admin-ui image multi archs:
 
 .build helm operator image arm64:
   extends: .build image
+  dependencies:
+    - build arm64
   tags:
     - stackgres-runner-v2
     - linux-arm64

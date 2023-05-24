@@ -47,7 +47,7 @@
                 
                     <table class="defaultParams">
                         <tbody>
-                            <tr v-for="param in pgConfigParamsObj" v-if="defaultParams.hasOwnProperty(param.parameter)">
+                            <tr v-for="param in pgConfigParamsObj" v-if="(defaultParams.hasOwnProperty(param.parameter) && (defaultParams[param.parameter] == param.value) )">
                                 <td class="label">
                                     {{ param.parameter }}
                                     <a v-if="(typeof param.documentationLink !== 'undefined')" :href="param.documentationLink" target="_blank" :title="'Read documentation about ' + param.parameter" class="paramDoc"></a>

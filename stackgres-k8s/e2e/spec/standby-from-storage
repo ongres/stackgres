@@ -211,7 +211,7 @@ check_primary_can_be_converted_to_standby_from_both_external_and_storage() {
     --set instanceProfiles=null \
     --set-string cluster.initialData.restore.fromBackup.name="$BACKUP_NAME" \
     --set-string cluster.replicateFrom.instance.external.host="$PRIMARY_CLUSTER_NAME" \
-    --set-string cluster.replicateFrom.instance.external.port="5433" \
+    --set cluster.replicateFrom.instance.external.port=5433 \
     --set-string cluster.replicateFrom.storage.sgObjectStorage="backupconf" \
     --set-string cluster.replicateFrom.storage.path="sgbackups.stackgres.io/$CLUSTER_NAMESPACE/$PRIMARY_CLUSTER_NAME/${E2E_POSTGRES_VERSION%.*}" \
     --set-string cluster.replicateFrom.users.superuser.username.name="$PRIMARY_CLUSTER_NAME" \

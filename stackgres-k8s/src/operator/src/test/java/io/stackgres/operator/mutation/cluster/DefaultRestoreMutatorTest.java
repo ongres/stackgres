@@ -6,21 +6,17 @@
 package io.stackgres.operator.mutation.cluster;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
-import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
-import com.github.fge.jsonpatch.JsonPatchOperation;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.operator.common.StackGresClusterReview;
@@ -63,26 +59,24 @@ class DefaultRestoreMutatorTest {
 
     StackGresClusterRestore restore = PROPS_MAPPER
         .readPropertiesAs(defaultRestoreValues, StackGresClusterRestore.class);
-    when(defaultRestoreFactory.buildResource()).thenReturn(restore);
+    lenient().when(defaultRestoreFactory.buildResource()).thenReturn(restore);
 
-    mutator = new DefaultRestoreMutator(
-        JSON_MAPPER, defaultRestoreFactory);
+    mutator = new DefaultRestoreMutator(defaultRestoreFactory, JSON_MAPPER);
   }
 
   @Test
   void clusterWithNoRestore_shouldNotDoAnything() {
-
     review.getRequest().getObject().getSpec().getInitData().setRestore(null);
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
+    StackGresCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertTrue(operations.isEmpty());
+    assertEquals(review.getRequest().getObject(), result);
   }
 
   @Test
   void clusteRestorerWithNoDownloadDiskConcurrency_shouldSetDefaultValue()
       throws JsonPatchException {
-
     StackGresClusterRestore restore = new StackGresClusterRestore();
     restore.setDownloadDiskConcurrency(null);
     restore.setFromBackup(new StackGresClusterRestoreFromBackup());
@@ -90,19 +84,14 @@ class DefaultRestoreMutatorTest {
 
     review.getRequest().getObject().getSpec().getInitData().setRestore(restore);
 
-    List<JsonPatchOperation> operations = mutator.mutate(review);
-
-    JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
-
-    JsonPatch jp = new JsonPatch(operations);
-    JsonNode newConfig = jp.apply(crJson);
+    StackGresCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
 
     Integer defaultDownloadDisConcurrency = Integer
         .parseInt(defaultRestoreValues.getProperty("downloadDiskConcurrency"));
 
-    int actualDownloadDiskConcurrency = newConfig.get("spec").get("initialData").get("restore")
-        .get("downloadDiskConcurrency").asInt();
-    assertEquals(defaultDownloadDisConcurrency, actualDownloadDiskConcurrency);
-
+    assertEquals(defaultDownloadDisConcurrency,
+        result.getSpec().getInitData().getRestore().getDownloadDiskConcurrency());
   }
+
 }

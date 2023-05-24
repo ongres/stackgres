@@ -21,8 +21,8 @@ class BackupConfigValidationResourceTest extends ValidationResourceTest<BackupCo
 
   @BeforeEach
   public void setUp() {
-    final BackupConfigValidationResource resource = new BackupConfigValidationResource();
-    resource.setValidationPipeline(pipeline);
+    final BackupConfigValidationResource resource =
+        new BackupConfigValidationResource(pipeline);
     this.resource = resource;
 
     review = AdmissionReviewFixtures.backupConfig().loadCreate().get();

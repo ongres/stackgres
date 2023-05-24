@@ -7,14 +7,13 @@ package io.stackgres.operator.mutation.pgbouncer;
 
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
-import io.stackgres.operator.mutation.DefaultValuesMutator;
+import io.stackgres.operator.mutation.AbstractValuesMutator;
 import io.stackgres.operator.mutation.DefaultValuesMutatorTest;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -24,7 +23,7 @@ class PgBouncerDefaultValuesMutatorTest
     extends DefaultValuesMutatorTest<StackGresPoolingConfig, PoolingReview> {
 
   @Override
-  protected DefaultValuesMutator<StackGresPoolingConfig, PoolingReview> getMutatorInstance(
+  protected AbstractValuesMutator<StackGresPoolingConfig, PoolingReview> getMutatorInstance(
       DefaultCustomResourceFactory<StackGresPoolingConfig> factory, JsonMapper jsonMapper) {
     return new PgBouncerDefaultValuesMutator(factory, jsonMapper);
   }
@@ -45,11 +44,6 @@ class PgBouncerDefaultValuesMutatorTest
   @Override
   protected StackGresPoolingConfig getDefaultResource() {
     return Fixtures.poolingConfig().loadDefault().get();
-  }
-
-  @Override
-  protected JsonNode getConfJson(JsonNode crJson) {
-    return crJson.get("spec").get("pgBouncer").get("pgbouncer.ini").get("pgbouncer");
   }
 
 }

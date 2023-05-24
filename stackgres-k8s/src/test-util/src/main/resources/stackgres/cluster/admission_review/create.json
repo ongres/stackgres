@@ -52,6 +52,16 @@
           "version": "13.0",
           "flavor": "vanilla"
         },
+        "postgresServices": {
+          "primary": {
+            "enabled": true,
+            "type": "ClusterIP"
+          },
+          "replicas": {
+            "enabled": true,
+            "type": "ClusterIP"
+          }
+        },
         "replication": {
           "mode": "async",
           "role": "ha-read"

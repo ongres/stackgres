@@ -11,23 +11,17 @@ import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
 import io.stackgres.operator.common.ObjectStorageReview;
-import io.stackgres.operator.validation.SimpleValidationPipeline;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline;
-import org.jetbrains.annotations.NotNull;
+import io.stackgres.operator.validation.AbstractValidationPipeline;
+import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
 @ApplicationScoped
-public class ObjectStorageValidationPipeline implements ValidationPipeline<ObjectStorageReview> {
-
-  private SimpleValidationPipeline<ObjectStorageReview, ObjectStorageValidator> pipeline;
-
-  @Override
-  public void validate(@NotNull ObjectStorageReview review) throws ValidationFailed {
-    pipeline.validate(review);
-  }
+public class ObjectStorageValidationPipeline
+    extends AbstractValidationPipeline<ObjectStorageReview> {
 
   @Inject
-  public void setPipeline(@Any Instance<ObjectStorageValidator> validators) {
-    this.pipeline = new SimpleValidationPipeline<>(validators);
+  public ObjectStorageValidationPipeline(
+      @Any Instance<Validator<ObjectStorageReview>> validatorInstances) {
+    super(validatorInstances);
   }
+
 }

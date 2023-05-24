@@ -28,6 +28,7 @@ public class YamlMapperProvider implements Supplier<YAMLMapper> {
       .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
       .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
       .disable(Feature.WRITE_DOC_START_MARKER)
+      .enable(Feature.USE_NATIVE_OBJECT_ID)
       .build();
 
   static {

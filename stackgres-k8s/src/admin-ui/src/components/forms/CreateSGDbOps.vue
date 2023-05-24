@@ -420,7 +420,7 @@
 
                                 <div class="col">
                                     <label for="spec.majorVersionUpgrade.backupPath">Backup Path</label>
-                                    <input v-model="majorVersionUpgrade.backupPath" data-field="spec.majorVersionUpgrade.backupPath" autocomplete="off">
+                                    <input v-model="majorVersionUpgrade.backupPath" @change="majorVersionUpgrade.backupPath.length && (majorVersionUpgrade.backupPath = null)" data-field="spec.majorVersionUpgrade.backupPath" autocomplete="off">
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.majorVersionUpgrade.backupPath')"></span>
                                 </div>
 
@@ -786,7 +786,7 @@
                     link: false,
                     clone: false,
                     check: false,
-                    backupPath: '',
+                    backupPath: null,
                     postgresVersion: '',
                     sgPostgresConfig: ''
                 },

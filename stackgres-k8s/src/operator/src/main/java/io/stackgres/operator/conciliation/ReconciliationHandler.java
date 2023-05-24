@@ -17,4 +17,6 @@ public interface ReconciliationHandler<T extends CustomResource<?, ?>> {
   HasMetadata replace(T context, HasMetadata resource);
 
   void delete(T context, HasMetadata resource);
+
+  void deleteWithOrphans(T context, HasMetadata resource);
 }

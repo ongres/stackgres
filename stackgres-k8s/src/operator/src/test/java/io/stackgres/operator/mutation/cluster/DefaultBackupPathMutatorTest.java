@@ -13,13 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
-import com.github.fge.jsonpatch.JsonPatch;
-import com.github.fge.jsonpatch.JsonPatchException;
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
@@ -27,20 +20,16 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
+import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.opentest4j.AssertionFailedError;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultBackupPathMutatorTest {
 
   private static final String POSTGRES_VERSION = "14.4";
-
-  protected static final JsonMapper JSON_MAPPER = new JsonMapper();
-
-  protected static final JavaPropsMapper PROPS_MAPPER = new JavaPropsMapper();
 
   private StackGresClusterReview review;
   private DefaultBackupPathMutator mutator;
@@ -51,7 +40,6 @@ class DefaultBackupPathMutatorTest {
     review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
 
     mutator = new DefaultBackupPathMutator();
-    mutator.init();
   }
 
   @Test
@@ -100,13 +88,6 @@ class DefaultBackupPathMutatorTest {
   }
 
   private StackGresCluster mutate(StackGresClusterReview review) {
-    try {
-      List<JsonPatchOperation> operations = mutator.mutate(review);
-      JsonNode crJson = JSON_MAPPER.valueToTree(review.getRequest().getObject());
-      JsonNode newConfig = new JsonPatch(operations).apply(crJson);
-      return JSON_MAPPER.treeToValue(newConfig, StackGresCluster.class);
-    } catch (JsonPatchException | JsonProcessingException | IllegalArgumentException e) {
-      throw new AssertionFailedError(e.getMessage(), e);
-    }
+    return mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));
   }
 }

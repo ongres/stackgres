@@ -88,8 +88,8 @@ public class PodTestUtil {
   public void createPod(Pod pod) {
     client.pods()
         .inNamespace(pod.getMetadata().getNamespace())
-        .withName(pod.getMetadata().getName())
-        .create(pod);
+        .resource(pod)
+        .create();
   }
 
   public List<Pod> getClusterPods(StackGresCluster cluster) {

@@ -22,7 +22,9 @@ import io.sundr.builder.annotations.Buildable;
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Buildable(editableEnabled = false, validationEnabled = false, lazyCollectionInitEnabled = false)
+@Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
+    lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
+    builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresDistributedLogsSpec {
 
   @JsonProperty("persistentVolume")
@@ -50,7 +52,7 @@ public class StackGresDistributedLogsSpec {
   private String resourceProfile;
 
   @JsonProperty("configurations")
-  @NotNull(message = "configurations section is required")
+  @NotNull(message = "configurations is required")
   @Valid
   private StackGresDistributedLogsConfiguration configuration;
 

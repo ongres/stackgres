@@ -15,6 +15,8 @@ public interface LabelFactoryForCluster<T extends CustomResource<?, ?>>
 
   Map<String, String> clusterLabels(T resource);
 
+  Map<String, String> clusterLabelsWithoutUid(T resource);
+
   Map<String, String> patroniClusterLabels(T resource);
 
   Map<String, String> patroniPrimaryLabels(T resource);

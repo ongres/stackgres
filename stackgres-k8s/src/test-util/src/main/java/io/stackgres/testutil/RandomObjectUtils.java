@@ -6,8 +6,11 @@
 package io.stackgres.testutil;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -15,6 +18,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.stream.Stream;
+
+import io.fabric8.kubernetes.api.model.Quantity;
 
 public class RandomObjectUtils {
 
@@ -53,20 +58,44 @@ public class RandomObjectUtils {
     if (List.class.isAssignableFrom(field.getType())) {
       var parameterType = getCollectionGenericType(field);
       var list = generateRandomList(parameterType);
-      field.set(instance, list);
+      field.set(instance, wrapInFieldType(field, list));
     } else if (Map.class.isAssignableFrom(field.getType())) {
       var keyType = getCollectionGenericType(field);
       var valueType = getMapValueType(field);
       var map = generateRandomMap(
           keyType, valueType
       );
-      field.set(instance, map);
+      field.set(instance, wrapInFieldType(field, map));
     } else {
       var value = generateRandomObject(field.getType());
       field.set(instance, value);
     }
 
     field.setAccessible(false);
+  }
+
+  private static Object wrapInFieldType(Field field, List<?> list) {
+    try {
+      if (field.getType().isInterface()) {
+        return list;
+      }
+      return field.getType().getConstructor(Map.class).newInstance(list);
+    } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+        | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+
+  private static Object wrapInFieldType(Field field, Map<?, ?> map) {
+    try {
+      if (field.getType().isInterface()) {
+        return map;
+      }
+      return field.getType().getConstructor(Map.class).newInstance(map);
+    } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+        | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
+      throw new RuntimeException(ex);
+    }
   }
 
   public static <K, V> Map<K, V> generateRandomMap(Class<K> keyType, Class<V> valueType) {
@@ -106,6 +135,10 @@ public class RandomObjectUtils {
     }
   }
 
+  static final String[] QUANTITY_UNITS = new String[] {
+      "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "n",
+      "u", "m", "k", "M", "G", "T", "P", "E", "" };
+
   private static Object generateRandomValue(Class<?> clazz) {
     if (clazz.isPrimitive()) {
       return switch (clazz.getName()) {
@@ -117,7 +150,12 @@ public class RandomObjectUtils {
         case "double" -> RANDOM.nextDouble();
         default -> throw new RuntimeException("Unsupported primitive type " + clazz.getName());
       };
-    } else if (clazz == String.class || clazz == Object.class) {
+    } else if (Quantity.class.isAssignableFrom(clazz)) {
+      return new Quantity(String.valueOf(RANDOM.nextInt()),
+          QUANTITY_UNITS[RANDOM.nextInt(QUANTITY_UNITS.length)]);
+    } else if (clazz == String.class) {
+      return StringUtils.getRandomString(10);
+    } else if (clazz == Object.class) {
       return StringUtils.getRandomString(10);
     } else if (clazz == Boolean.class) {
       return RANDOM.nextBoolean();
@@ -127,14 +165,18 @@ public class RandomObjectUtils {
         return value;
       } else if (Long.class.isAssignableFrom(clazz)) {
         return Integer.toUnsignedLong(value);
+      } else if (BigDecimal.class.isAssignableFrom(clazz)) {
+        return BigDecimal.valueOf(value);
+      } else if (BigInteger.class.isAssignableFrom(clazz)) {
+        return BigInteger.valueOf(value);
       }
     }
     throw new IllegalArgumentException("Value class " + clazz.getName() + " not supported");
-
   }
 
   private static boolean isValueType(Class<?> type) {
-    return String.class == type
+    return Quantity.class.isAssignableFrom(type)
+        || String.class == type
         || Number.class.isAssignableFrom(type)
         || Boolean.class == type
         || type.isPrimitive()
@@ -142,12 +184,38 @@ public class RandomObjectUtils {
   }
 
   private static Class<?> getCollectionGenericType(Field collectionField) {
-    ParameterizedType listType = (ParameterizedType) collectionField.getGenericType();
-    return (Class<?>) listType.getActualTypeArguments()[0];
+    if (collectionField.getGenericType() instanceof ParameterizedType) {
+      ParameterizedType listType = (ParameterizedType) collectionField.getGenericType();
+      return (Class<?>) listType.getActualTypeArguments()[0];
+    }
+    Class<?> type = collectionField.getType();
+    while (type != Object.class) {
+      if (type.getGenericSuperclass() instanceof ParameterizedType) {
+        ParameterizedType listType = (ParameterizedType) type.getGenericSuperclass();
+        return (Class<?>) listType.getActualTypeArguments()[0];
+      }
+      type = type.getSuperclass();
+    }
+    throw new IllegalArgumentException(
+        "Field " + collectionField + " is has not a parameterized"
+            + " type or it type has not any parameterized superclass");
   }
 
   private static Class<?> getMapValueType(Field mapField) {
-    ParameterizedType listType = (ParameterizedType) mapField.getGenericType();
-    return (Class<?>) listType.getActualTypeArguments()[1];
+    if (mapField.getGenericType() instanceof ParameterizedType) {
+      ParameterizedType listType = (ParameterizedType) mapField.getGenericType();
+      return (Class<?>) listType.getActualTypeArguments()[1];
+    }
+    Class<?> type = mapField.getType();
+    while (type != Object.class) {
+      if (type.getGenericSuperclass() instanceof ParameterizedType) {
+        ParameterizedType listType = (ParameterizedType) type.getGenericSuperclass();
+        return (Class<?>) listType.getActualTypeArguments()[1];
+      }
+      type = type.getSuperclass();
+    }
+    throw new IllegalArgumentException(
+        "Field " + mapField + " is has not a parameterized"
+            + " type or it type has not any parameterized superclass");
   }
 }

@@ -48,19 +48,16 @@ class PoolingConstraintValidatorTest extends ConstraintValidationTest<PoolingRev
     PoolingReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPgBouncer().getPgbouncerIni().setParameters(null);
 
-    checkNotEmptyErrorCause(StackGresPoolingConfigPgBouncerPgbouncerIni.class,
+    checkNotNullErrorCause(StackGresPoolingConfigPgBouncerPgbouncerIni.class,
         "spec.pgBouncer.pgbouncer\\.ini.pgbouncer", review);
-
   }
 
   @Test
-  void emptyPgBouncerConf_shouldFail() {
+  void emptyPgBouncerConf_shouldPass() throws Exception {
     PoolingReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPgBouncer().getPgbouncerIni()
         .setParameters(Map.of());
 
-    checkNotEmptyErrorCause(StackGresPoolingConfigPgBouncerPgbouncerIni.class,
-        "spec.pgBouncer.pgbouncer\\.ini.pgbouncer", review);
-
+    validator.validate(review);
   }
 }

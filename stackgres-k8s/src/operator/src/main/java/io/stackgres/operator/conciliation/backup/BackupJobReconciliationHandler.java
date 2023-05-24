@@ -19,8 +19,8 @@ import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.labels.LabelFactoryForBackup;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
-import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operator.conciliation.AbstractJobReconciliationHandler;
+import io.stackgres.operator.conciliation.ReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 
 @ReconciliationScope(value = StackGresBackup.class, kind = "Job")
@@ -30,12 +30,12 @@ public class BackupJobReconciliationHandler
 
   @Inject
   public BackupJobReconciliationHandler(
+      @ReconciliationScope(value = StackGresBackup.class, kind = "HasMetadata")
+      ReconciliationHandler<StackGresBackup> handler,
       LabelFactoryForBackup labelFactory,
       ResourceFinder<Job> jobFinder,
-      ResourceWriter<Job> jobWriter,
-      ResourceScanner<Pod> podScanner,
-      ResourceWriter<Pod> podWriter) {
-    super(labelFactory, jobFinder, jobWriter, podScanner, podWriter);
+      ResourceScanner<Pod> podScanner) {
+    super(handler, labelFactory, jobFinder, podScanner);
   }
 
   @Override
