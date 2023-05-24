@@ -25,6 +25,8 @@ e2e_test() {
   run_test "Checking that is possible to connect using SSL is working" service_ssl_check
 
   run_test "Checking that is possible to connect not using SSL is working" service_no_ssl_check
+
+  run_test "Checking that replication is connected using SSL" replication_ssl_check
 }
 
 generated_service_ssl_check() {
@@ -32,6 +34,8 @@ generated_service_ssl_check() {
     --set cluster.postgres.ssl.enabled=true \
     --set cluster.postgres.ssl.certificateSecretKeySelector=null \
     --set cluster.postgres.ssl.privateKeySecretKeySelector=null
+
+  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- ls /etc/ssl/tls.key
 
   RESPONSE_PRIMARY="$(wait_until run_query -m require -h "$CLUSTER_NAME"-primary -i 1 -p 5432)"
 
@@ -63,6 +67,8 @@ service_ssl_check() {
     "$(kubectl get secret -n "$CLUSTER_NAME" ssl-ssl --template "{{ .data \"tls.crt\" }}")" ]'
   wait_until eval '[ "$(kubectl get secret -n "$CLUSTER_NAME" ssl-postgres --template "{{ .data \"tls.key\" }}")" = \
     "$(kubectl get secret -n "$CLUSTER_NAME" ssl-ssl --template "{{ .data \"tls.key\" }}")" ]'
+  wait_until eval '[ "$(kubectl get secret -n "$CLUSTER_NAME" ssl-postgres --template "{{ .data \"tls.key\" | base64decode }}")" = \
+    "$(kubectl exec -n "$CLUSTER_NAME" "$CLUSTER_NAME-0" -c patroni -- cat /etc/ssl/tls.key)" ]'
 
   RESPONSE_PRIMARY="$(run_query -m require -h "$CLUSTER_NAME"-primary -i 1 -p 5432)"
 
@@ -97,6 +103,18 @@ service_no_ssl_check() {
     fi
   else
     echo "FAIL: Cannot connect to primary db without SSL"
+    return 1
+  fi
+}
+
+replication_ssl_check() {
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1"
+  if wait_until eval '[ "$(run_query -m disable -h "$CLUSTER_NAME"-primary -i 1 -p 5432 \
+    -q "SELECT ssl FROM pg_stat_ssl INNER JOIN pg_stat_activity ON pg_stat_ssl.pid = pg_stat_activity.pid WHERE usename = '"'"'replicator'"'"'")" = "t" ]'
+  then
+    echo "SUCCESS: Replication is using SSL"
+  else
+    echo "FAIL: Replication is not using SSL"
     return 1
   fi
 }

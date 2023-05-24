@@ -31,6 +31,7 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
@@ -139,7 +140,7 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
     return new VolumeBuilder()
         .withName(StackGresVolume.ENVOY.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withDefaultMode(420)
+            .withDefaultMode(0440)
             .withName(StackGresVolume.ENVOY.getResourceName(clusterName))
             .build())
         .build();
@@ -413,7 +414,7 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
         .append(Seq.of(
                 new VolumeMountBuilder()
                 .withName(StackGresVolume.POSTGRES_SSL.getName())
-                .withMountPath("/etc/ssl")
+                .withMountPath(ClusterStatefulSetPath.SSL_PATH.path())
                 .withReadOnly(true)
                 .build()))
         .toList();

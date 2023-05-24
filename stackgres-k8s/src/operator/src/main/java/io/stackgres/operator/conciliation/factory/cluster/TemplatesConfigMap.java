@@ -53,7 +53,7 @@ public class TemplatesConfigMap extends AbstractPatroniTemplatesConfigMap<StackG
         .withName(StackGresVolume.SCRIPT_TEMPLATES.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withName(name(context))
-            .withDefaultMode(444)
+            .withDefaultMode(0444)
             .build())
         .build();
   }

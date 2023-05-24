@@ -55,7 +55,7 @@ public class MajorVersionUpgradeConfigMap implements VolumeFactory<StackGresClus
         .withName(StackGresVolume.POSTGRES_CONFIG.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withName(name(context))
-            .withDefaultMode(444)
+            .withDefaultMode(0444)
             .build())
         .build();
   }

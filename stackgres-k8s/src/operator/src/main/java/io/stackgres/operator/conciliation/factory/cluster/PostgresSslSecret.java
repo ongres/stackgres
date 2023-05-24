@@ -75,7 +75,7 @@ public class PostgresSslSecret
         .withName(StackGresVolume.POSTGRES_SSL.getName())
         .withSecret(new SecretVolumeSourceBuilder()
             .withSecretName(name(context))
-            .withDefaultMode(400)
+            .withDefaultMode(0400)
             .build())
         .build();
   }

@@ -83,6 +83,12 @@ public class InitReconciliationCycle implements ContainerFactory<ClusterContaine
                 .build(),
             new EnvVarBuilder()
                 .withName(ClusterControllerProperty
+                    .CLUSTER_CONTROLLER_RECONCILE_POSTGRES_SSL
+                    .getEnvironmentVariableName())
+                .withValue(Boolean.FALSE.toString())
+                .build(),
+            new EnvVarBuilder()
+                .withName(ClusterControllerProperty
                     .CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL
                     .getEnvironmentVariableName())
                 .withValue(Boolean.TRUE.toString())

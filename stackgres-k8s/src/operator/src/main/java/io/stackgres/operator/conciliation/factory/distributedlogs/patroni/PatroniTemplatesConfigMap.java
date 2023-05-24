@@ -53,7 +53,7 @@ public class PatroniTemplatesConfigMap
         .withName(StackGresVolume.SCRIPT_TEMPLATES.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withName(name(context))
-            .withDefaultMode(420)
+            .withDefaultMode(0440)
             .withOptional(false)
             .build())
         .build();

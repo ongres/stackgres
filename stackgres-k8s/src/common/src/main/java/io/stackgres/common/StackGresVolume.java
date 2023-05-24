@@ -26,6 +26,7 @@ public enum StackGresVolume implements StackGresNamedObject {
   POSTGRES_CONFIG("postgresql-conf", "%s-postgresql-conf"),
   POSTGRES_SOCKET("socket"),
   POSTGRES_SSL("ssl"),
+  POSTGRES_SSL_COPY("ssl-copy"),
   INIT_SCRIPT("distributed-logs-template", "%s-init-template"),
   FLUENTD_CONFIG("fluentd-config", "%s-fluentd"),
   DSHM("dshm"),

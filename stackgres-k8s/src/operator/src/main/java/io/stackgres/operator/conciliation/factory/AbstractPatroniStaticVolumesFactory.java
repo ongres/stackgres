@@ -22,7 +22,8 @@ public abstract class AbstractPatroniStaticVolumesFactory<T> implements VolumeFa
         emptyDir(StackGresVolume.USER.getName()),
         emptyDir(StackGresVolume.LOCAL_BIN.getName()),
         emptyDir(StackGresVolume.LOG.getName()),
-        emptyDir(StackGresVolume.PATRONI_CONFIG.getName())
+        emptyDir(StackGresVolume.PATRONI_CONFIG.getName()),
+        emptyDir(StackGresVolume.POSTGRES_SSL_COPY.getName())
     );
   }
 }

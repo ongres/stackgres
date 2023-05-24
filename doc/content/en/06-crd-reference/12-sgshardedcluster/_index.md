@@ -398,7 +398,7 @@ When this configuration is applied, the scripts are executed in the coordinator 
 | <div style="width:13rem">Property</div> | Required | Updatable | <div style="width:5rem">Type</div> | Default  | Description |
 |:----------------------------------------|----------|-----------|:-----------------------------------|:---------|:------------|
 | continueOnSGScriptError                 |          | ✓         | boolean                            |          | {{< crd-field-description SGShardedCluster.spec.coordinator.managedSql.continueOnSGScriptError >}} |
-| [scripts](#managed-sql-scripts)          |          | ✓         | array                              |          | {{< crd-field-description SGShardedCluster.spec.coordinator.managedSql.scripts >}} |
+| [scripts](#managed-sql-scripts)         |          | ✓         | array                              |          | {{< crd-field-description SGShardedCluster.spec.coordinator.managedSql.scripts >}} |
 
 ## Managed SQL Scripts
 

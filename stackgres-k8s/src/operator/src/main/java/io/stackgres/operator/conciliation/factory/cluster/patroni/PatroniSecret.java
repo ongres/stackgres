@@ -72,7 +72,7 @@ public class PatroniSecret
         .withName(StackGresVolume.PATRONI_CREDENTIALS.getName())
         .withSecret(new SecretVolumeSourceBuilder()
             .withSecretName(name(context))
-            .withDefaultMode(400)
+            .withDefaultMode(0400)
             .build())
         .build();
   }

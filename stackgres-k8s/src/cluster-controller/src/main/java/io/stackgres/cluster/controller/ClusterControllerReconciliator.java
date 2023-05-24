@@ -39,6 +39,7 @@ public class ClusterControllerReconciliator
   private final ClusterPersistentVolumeSizeReconciliator pvcSizeReconciliator;
   private final PatroniReconciliator patroniReconciliator;
   private final ManagedSqlReconciliator managedSqlReconciliator;
+  private final PostgresSslReconciliator postgresSslReconciliator;
   private final String podName;
 
   @Inject
@@ -50,6 +51,7 @@ public class ClusterControllerReconciliator
     this.pvcSizeReconciliator = parameters.clusterPersistentVolumeSizeReconciliator;
     this.patroniReconciliator = parameters.patroniReconciliator;
     this.managedSqlReconciliator = parameters.managedSqlReconciliator;
+    this.postgresSslReconciliator = parameters.postgresSslReconciliator;
     this.podName = parameters.propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
   }
@@ -64,6 +66,7 @@ public class ClusterControllerReconciliator
     this.pvcSizeReconciliator = null;
     this.patroniReconciliator = null;
     this.managedSqlReconciliator = null;
+    this.postgresSslReconciliator = null;
     this.podName = null;
   }
 
@@ -103,6 +106,8 @@ public class ClusterControllerReconciliator
         patroniReconciliator.reconcile(client, context);
     ReconciliationResult<Boolean> managedSqlReconciliationResult =
         managedSqlReconciliator.reconcile(client, context);
+    ReconciliationResult<Void> postgresSslReconciliationResult =
+        postgresSslReconciliator.reconcile(client, context);
 
     if (podStatusMissing
         || postgresBootstrapReconciliatorResult.result().orElse(false)
@@ -137,7 +142,8 @@ public class ClusterControllerReconciliator
         .join(extensionReconciliationResult)
         .join(pgbouncerReconciliationResult)
         .join(patroniReconciliationResult)
-        .join(managedSqlReconciliationResult);
+        .join(managedSqlReconciliationResult)
+        .join(postgresSslReconciliationResult);
   }
 
   private void updateClusterPodStatus(StackGresCluster targetCluster,
@@ -182,6 +188,7 @@ public class ClusterControllerReconciliator
     @Inject ClusterPersistentVolumeSizeReconciliator clusterPersistentVolumeSizeReconciliator;
     @Inject PatroniReconciliator patroniReconciliator;
     @Inject ManagedSqlReconciliator managedSqlReconciliator;
+    @Inject PostgresSslReconciliator postgresSslReconciliator;
   }
 
 }
