@@ -70,7 +70,7 @@ check_restart_without_data() {
 }
 
 check_restart() {
-  local SKIP_CHECK_DATA="$2"
+  local SKIP_CHECK_DATA="$1"
 
   test -n "$RESTARTED_PODS"
 

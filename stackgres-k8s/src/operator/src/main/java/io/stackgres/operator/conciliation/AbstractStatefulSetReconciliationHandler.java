@@ -22,6 +22,7 @@ import java.util.function.BooleanSupplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Predicates;
@@ -43,7 +44,6 @@ import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
@@ -182,27 +182,23 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     var pods = findStatefulSetPods(requiredSts, appLabel);
     final boolean existsPodWithPrimaryRole =
         pods.stream().anyMatch(Predicates.and(this::hasRoleLabel, this::isRolePrimary));
-    final StatefulSet updatedSts;
-    if (existsPodWithPrimaryRole || latestPrimaryIndexFromPatroni <= 0) {
-      pods.stream()
-          .filter(Predicates.or(Predicates.and(this::hasRoleLabel, this::isRolePrimary),
-              pod -> !existsPodWithPrimaryRole
-                  && latestPrimaryIndexFromPatroni == getPodIndex(pod)))
-          .filter(pod -> getPodIndex(pod) > lastReplicaIndex)
-          .filter(Predicates.not(pod -> isNonDisruptable(context, pod)))
-          .forEach(pod -> makePrimaryNonDisruptable(context, pod));
 
-      long nonDisruptablePodsRemaining =
-          countNonDisruptablePods(context, pods, lastReplicaIndex);
-      int replicas = (int) (desiredReplicas - nonDisruptablePodsRemaining);
-      spec.setReplicas(replicas);
+    pods.stream()
+        .filter(Predicates.or(Predicates.and(this::hasRoleLabel, this::isRolePrimary),
+            pod -> !existsPodWithPrimaryRole
+                && latestPrimaryIndexFromPatroni == getPodIndex(pod)))
+        .filter(pod -> getPodIndex(pod) > lastReplicaIndex)
+        .filter(pod -> !isNonDisruptable(context, pod))
+        .forEach(pod -> makePrimaryNonDisruptable(context, pod));
 
-      updatedSts = writer.apply(context, requiredSts);
+    long nonDisruptablePodsRemaining =
+        countNonDisruptablePods(context, pods, lastReplicaIndex);
+    int replicas = (int) (desiredReplicas - nonDisruptablePodsRemaining);
+    spec.setReplicas(replicas);
 
-      removeStatefulSetPlaceholderReplicas(context, requiredSts);
-    } else {
-      updatedSts = writer.apply(context, requiredSts);
-    }
+    final var updatedSts = writer.apply(context, requiredSts);
+
+    removeStatefulSetPlaceholderReplicas(context, requiredSts);
 
     fixPods(context, requiredSts, updatedSts, appLabel, patroniConfigEndpoints);
 
@@ -307,12 +303,13 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
 
   private void fixPods(final T context, final StatefulSet statefulSet,
       final StatefulSet deployedStatefulSet, final Map<String, String> appLabel,
-      @NotNull Optional<Endpoints> patroniConfigEndpoints) {
+      Optional<Endpoints> patroniConfigEndpoints) {
     var podsToFix = findStatefulSetPods(statefulSet, appLabel);
     List<Pod> disruptablePodsToPatch =
-        fixNonDisruptablePods(context, patroniConfigEndpoints, podsToFix);
+        fixNonDisruptablePods(context, statefulSet, patroniConfigEndpoints, podsToFix);
     List<Pod> podAnnotationsToPatch = fixPodsAnnotations(statefulSet, podsToFix);
-    List<Pod> podOwnerReferencesToPatch = fixPodsOwnerReferences(deployedStatefulSet, podsToFix);
+    List<Pod> podOwnerReferencesToPatch = fixPodsOwnerReferences(
+        context, deployedStatefulSet, podsToFix);
     List<Pod> podSelectorMatchLabelsToPatch =
         fixPodsSelectorMatchLabels(context, statefulSet, podsToFix);
     Seq.seq(disruptablePodsToPatch).append(podAnnotationsToPatch)
@@ -321,15 +318,17 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
         .map(Optional::get).forEach(pod -> handler.patch(context, pod, null));
   }
 
-  private List<Pod> fixNonDisruptablePods(T context,
+  private List<Pod> fixNonDisruptablePods(T context, StatefulSet statefulSet,
       Optional<Endpoints> patroniConfigEndpoints, List<Pod> pods) {
     final int latestPrimaryIndexFromPatroni =
         PatroniUtil.getLatestPrimaryIndexFromPatroni(patroniConfigEndpoints, objectMapper);
+    final int replicas = statefulSet.getSpec().getReplicas();
     return pods.stream()
         .filter(pod -> isNonDisruptable(context, pod))
         .filter(this::hasRoleLabel)
         .filter(Predicates.not(this::isRolePrimary))
         .filter(pod -> getPodIndex(pod) != latestPrimaryIndexFromPatroni)
+        .filter(pod -> getPodIndex(pod) < replicas)
         .map(pod -> fixNonDisruptablePod(context, pod))
         .toList();
   }
@@ -384,8 +383,10 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     return pod;
   }
 
-  private List<Pod> fixPodsOwnerReferences(StatefulSet statefulSet, List<Pod> pods) {
-    var requiredOwnerReferences = List.of(new OwnerReferenceBuilder()
+  private List<Pod> fixPodsOwnerReferences(
+      T context, StatefulSet statefulSet, List<Pod> pods) {
+    var requiredOwnerReferences = List.of(
+        new OwnerReferenceBuilder()
         .withApiVersion(statefulSet.getApiVersion())
         .withKind(statefulSet.getKind())
         .withName(statefulSet.getMetadata().getName())
@@ -393,11 +394,24 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
         .withBlockOwnerDeletion(true)
         .withController(true)
         .build());
+    var requiredOwnerReferencesForNonDisruptiblePod = List.of(
+        ResourceUtil.getOwnerReference(context));
 
-    return pods.stream()
+    return Stream.concat(
+        pods.stream()
+        .filter(pod -> !isNonDisruptable(context, pod))
         .filter(pod -> !Objects.equals(
-            requiredOwnerReferences, pod.getMetadata().getOwnerReferences()))
-        .map(pod -> fixPodOwnerReferences(requiredOwnerReferences, pod))
+            requiredOwnerReferences,
+            pod.getMetadata().getOwnerReferences()))
+        .map(pod -> fixPodOwnerReferences(
+            requiredOwnerReferences, pod)),
+        pods.stream()
+        .filter(pod -> isNonDisruptable(context, pod))
+        .filter(pod -> !Objects.equals(
+            requiredOwnerReferencesForNonDisruptiblePod,
+            pod.getMetadata().getOwnerReferences()))
+        .map(pod -> fixPodOwnerReferences(
+            requiredOwnerReferencesForNonDisruptiblePod, pod)))
         .toList();
   }
 
