@@ -2,7 +2,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    control-plane: controller-manager
+    app: stackgres-operator
+    control-plane: stackgres-controller-manager
     app.kubernetes.io/name: namespace
     app.kubernetes.io/instance: system
     app.kubernetes.io/component: manager
@@ -17,7 +18,8 @@ metadata:
   name: controller-manager
   namespace: system
   labels:
-    control-plane: controller-manager
+    app: stackgres-operator
+    control-plane: stackgres-controller-manager
     app.kubernetes.io/name: deployment
     app.kubernetes.io/instance: controller-manager
     app.kubernetes.io/component: manager
@@ -27,14 +29,16 @@ metadata:
 spec:
   selector:
     matchLabels:
-      control-plane: controller-manager
+      app: stackgres-operator
+      control-plane: stackgres-controller-manager
   replicas: 1
   template:
     metadata:
       annotations:
         kubectl.kubernetes.io/default-container: manager
       labels:
-        control-plane: controller-manager
+        app: stackgres-operator
+        control-plane: stackgres-controller-manager
     spec:
       affinity:
         nodeAffinity:
@@ -103,6 +107,27 @@ spec:
           test -n "\$OPERATOR_NAME"
           OPERATOR_UID="\$(kubectl get operators.operators.coreos.com "\$OPERATOR_NAME" --template '{{ .metadata.uid }}')"
           test -n "\$OPERATOR_UID"
+          PREVIOUS_SGCONFIG_NAME="\$(kubectl get sgconfig -o name | cut -d / -f 2)"
+          PREVIOUS_SGCONFIG_SPEC=""
+          if [ "\$PREVIOUS_SGCONFIG_NAME" != stackgres-operator ] \
+            && kubectl get sgconfig "\$PREVIOUS_SGCONFIG_NAME" -o yaml | grep -q '^spec:\$' \
+            && kubectl get sgconfig "\$PREVIOUS_SGCONFIG_NAME" -o yaml | grep -q '^status:\$'
+          then
+            # TODO: Remove this as soon as version 1.4 get out of support!
+            PREVIOUS_SGCONFIG="\$(kubectl get sgconfig "\$PREVIOUS_SGCONFIG_NAME" -o yaml)"
+            PREVIOUS_SGCONFIG_SPEC_LINE="\$(printf %s "\$PREVIOUS_SGCONFIG" \
+              | grep -n '^spec:\$' | cut -d : -f 1)"
+            PREVIOUS_SGCONFIG_STATUS_LINE="\$(printf %s "\$PREVIOUS_SGCONFIG" \
+              | grep -n '^status:\$' | cut -d : -f 1)"
+            PREVIOUS_SGCONFIG_SPEC="\$(printf %s "\$PREVIOUS_SGCONFIG" \
+              | head -n "\$((PREVIOUS_SGCONFIG_STATUS_LINE - 1))" \
+              | tail -n +"\$((PREVIOUS_SGCONFIG_SPEC_LINE + 1))")"
+            kubectl delete sgconfig "\$PREVIOUS_SGCONFIG_NAME"
+            kubectl delete clusterrole -l "meta.helm.sh/release-name=\$PREVIOUS_SGCONFIG_NAME"
+            kubectl delete clusterrolebinding -l "meta.helm.sh/release-name=\$PREVIOUS_SGCONFIG_NAME"
+            kubectl delete validatingwebhookconfiguration -l "meta.helm.sh/release-name=\$PREVIOUS_SGCONFIG_NAME"
+            kubectl delete mutatingwebhookconfiguration -l "meta.helm.sh/release-name=\$PREVIOUS_SGCONFIG_NAME"
+          fi
           cat << EOF | kubectl apply -f -
           apiVersion: stackgres.io/v1
           kind: SGConfig
@@ -113,7 +138,8 @@ spec:
               kind: Operator
               name: \$OPERATOR_NAME
               uid: \$OPERATOR_UID
-          spec: {}
+          spec:
+          \$PREVIOUS_SGCONFIG_SPEC
           EOF
         image: ongres/kubectl:v1.25.5-build-6.19
         imagePullPolicy: IfNotPresent
