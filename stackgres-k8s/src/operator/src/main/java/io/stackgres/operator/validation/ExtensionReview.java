@@ -8,12 +8,12 @@ package io.stackgres.operator.validation;
 import java.util.List;
 import java.util.Optional;
 
+import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import org.immutables.value.Value;
-import org.jooq.lambda.tuple.Tuple2;
 
 @Value.Immutable
 public interface ExtensionReview {
@@ -27,7 +27,7 @@ public interface ExtensionReview {
 
   StackGresVersion getStackGresVersion();
 
-  List<Tuple2<String, Optional<String>>> getDefaultExtensions();
+  List<ExtensionTuple> getDefaultExtensions();
 
   List<StackGresClusterExtension> getRequiredExtensions();
 
