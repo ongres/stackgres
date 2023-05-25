@@ -13,6 +13,7 @@ import static io.stackgres.testutil.ModelTestUtil.createWithRandomData;
 import java.util.List;
 import java.util.Optional;
 
+import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
@@ -521,6 +522,22 @@ class StackGresShardedClusterForCitusUtilTest {
         && shardedCluster.getStatus().getToInstallPostgresExtensions() != null) {
       Assertions.assertEquals(
           new StackGresClusterPostgresBuilder(shardedCluster.getSpec().getPostgres())
+          .editSsl()
+          .withCertificateSecretKeySelector(
+              shardedCluster.getSpec().getPostgres().getSsl().getEnabled()
+              ? new SecretKeySelector(
+                  StackGresShardedClusterForCitusUtil.CERTIFICATE_KEY,
+                  StackGresShardedClusterForCitusUtil.postgresSslSecretName(shardedCluster))
+                  : shardedCluster.getSpec().getPostgres().getSsl()
+                  .getCertificateSecretKeySelector())
+          .withPrivateKeySecretKeySelector(
+              shardedCluster.getSpec().getPostgres().getSsl().getEnabled()
+              ? new SecretKeySelector(
+                  StackGresShardedClusterForCitusUtil.PRIVATE_KEY_KEY,
+                  StackGresShardedClusterForCitusUtil.postgresSslSecretName(shardedCluster))
+                  : shardedCluster.getSpec().getPostgres().getSsl()
+                  .getPrivateKeySecretKeySelector())
+          .endSsl()
           .withExtensions(shardedCluster.getStatus().getToInstallPostgresExtensions()
               .stream()
               .map(extension -> new StackGresClusterExtensionBuilder()

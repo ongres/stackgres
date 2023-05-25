@@ -188,15 +188,23 @@ public interface StackGresShardedClusterForCitusUtil {
 
   private static void setClusterSpecFromShardedCluster(
       StackGresShardedCluster cluster, final StackGresClusterSpec spec, int index) {
+    setPostgres(cluster, spec);
     setPostgresSsl(cluster, spec);
-    setExtensions(cluster, spec);
-    setBackups(cluster, spec, index);
-    setCredentials(cluster, spec);
-    setPatroniInitialConfig(cluster, spec, index);
+    setPostgresExtensions(cluster, spec);
+    setConfigurationsBackups(cluster, spec, index);
+    setConfigurationsCredentials(cluster, spec);
+    setConfigurationsPatroniInitialConfig(cluster, spec, index);
     setMetadata(cluster, spec, index);
     spec.setDistributedLogs(cluster.getSpec().getDistributedLogs());
     spec.setPrometheusAutobind(cluster.getSpec().getPrometheusAutobind());
     spec.setNonProductionOptions(cluster.getSpec().getNonProductionOptions());
+  }
+
+  private static void setPostgres(
+      StackGresShardedCluster cluster, final StackGresClusterSpec spec) {
+    spec.setPostgres(
+        new StackGresClusterPostgresBuilder(cluster.getSpec().getPostgres())
+        .build());
   }
 
   private static void setPostgresSsl(
@@ -209,7 +217,7 @@ public interface StackGresShardedClusterForCitusUtil {
       return;
     }
     spec.setPostgres(
-        new StackGresClusterPostgresBuilder(cluster.getSpec().getPostgres())
+        new StackGresClusterPostgresBuilder(spec.getPostgres())
         .editSsl()
         .withCertificateSecretKeySelector(
             new SecretKeySelector(CERTIFICATE_KEY, postgresSslSecretName(cluster)))
@@ -219,28 +227,26 @@ public interface StackGresShardedClusterForCitusUtil {
         .build());
   }
 
-  private static void setExtensions(
+  private static void setPostgresExtensions(
       StackGresShardedCluster cluster, final StackGresClusterSpec spec) {
-    spec.setPostgres(
-        new StackGresClusterPostgresBuilder(cluster.getSpec().getPostgres())
-        .withExtensions(Optional.ofNullable(cluster.getStatus())
-            .map(StackGresShardedClusterStatus::getToInstallPostgresExtensions)
-            .stream()
-            .flatMap(List::stream)
-            .map(extension -> new StackGresClusterExtensionBuilder()
-                .withName(extension.getName())
-                .withPublisher(extension.getPublisher())
-                .withRepository(extension.getRepository())
-                .withVersion(extension.getVersion())
-                .build())
-            .toList())
-        .build());
+    spec.getPostgres().setExtensions(
+        Optional.ofNullable(cluster.getStatus())
+        .map(StackGresShardedClusterStatus::getToInstallPostgresExtensions)
+        .stream()
+        .flatMap(List::stream)
+        .map(extension -> new StackGresClusterExtensionBuilder()
+            .withName(extension.getName())
+            .withPublisher(extension.getPublisher())
+            .withRepository(extension.getRepository())
+            .withVersion(extension.getVersion())
+            .build())
+        .toList());
     if (cluster.getStatus() != null) {
       spec.setToInstallPostgresExtensions(cluster.getStatus().getToInstallPostgresExtensions());
     }
   }
 
-  private static void setBackups(
+  private static void setConfigurationsBackups(
       StackGresShardedCluster cluster, final StackGresClusterSpec spec, int index) {
     Optional.ofNullable(cluster.getSpec())
         .map(StackGresShardedClusterSpec::getConfiguration)
@@ -264,8 +270,11 @@ public interface StackGresShardedClusterForCitusUtil {
         });
   }
 
-  private static void setCredentials(
+  private static void setConfigurationsCredentials(
       StackGresShardedCluster cluster, final StackGresClusterSpec spec) {
+    if (spec.getConfiguration() == null) {
+      spec.setConfiguration(new StackGresClusterConfiguration());
+    }
     spec.getConfiguration().setCredentials(new StackGresClusterCredentials());
     spec.getConfiguration().getCredentials()
         .setPatroni(new StackGresClusterPatroniCredentials());
@@ -295,8 +304,11 @@ public interface StackGresShardedClusterForCitusUtil {
             cluster.getMetadata().getName()));
   }
 
-  private static void setPatroniInitialConfig(
+  private static void setConfigurationsPatroniInitialConfig(
       StackGresShardedCluster cluster, final StackGresClusterSpec spec, int index) {
+    if (spec.getConfiguration() == null) {
+      spec.setConfiguration(new StackGresClusterConfiguration());
+    }
     spec.getConfiguration().setPatroni(new StackGresClusterPatroni());
     spec.getConfiguration().getPatroni()
         .setInitialConfig(new StackGresClusterPatroniInitialConfig());
