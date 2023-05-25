@@ -51,6 +51,7 @@ schema: olm.channel
 package: stackgres
 name: stable
 entries:
+  - name: stackgres.v$(printf %s "$STACKGRES_PREVIOUS_VERSION" | tr A-Z a-z)
   - name: stackgres.v$(printf %s "$STACKGRES_VERSION" | tr A-Z a-z)
 EOF
   opm validate "$LOG_PATH/helm-operator-catalog"
@@ -189,13 +190,7 @@ e2e_test() {
 }
 
 test_bundle() {
-  echo "Running operator bundle"
-  # The operator-sdk does not allow to load a bundle with IfNotPresent so we have to pull it from the remote repository
-  local BUNDLE_IMAGE_NAME
-  BUNDLE_IMAGE_NAME="$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}/stackgres/${HELM_OPERATOR_BUNDLE_IMAGE_NAME##*/}"
-  kubectl create secret docker-registry -n "$OPERATOR_NAMESPACE" helm-operator-bundle \
-    --from-file=.dockerconfigjson="$HOME"/.docker/config.json
-
+  echo "Installing previous version of operator bundle ($STACKGRES_PREVIOUS_VERSION)"
   cat << EOF | kubectl create -f -
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
@@ -215,6 +210,89 @@ spec:
   source: helm-operator-catalog
   sourceNamespace: $OPERATOR_NAMESPACE
   installPlanApproval: Automatic
+  startingCSV: $(printf %s "$STACKGRES_PREVIOUS_VERSION" | tr A-Z a-z)
+EOF
+  RELEASE_NAME="$(wait_until kubectl get sgconfig -n "$OPERATOR_NAMESPACE" -o name)"
+  if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^${RELEASE_NAME#*/}$"
+  then
+    echo "FAILED. The StackGres operator service was not available."
+    return 1
+  else
+    echo "SUCCESS. The StackGres operator service was available."
+  fi
+
+  if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-restapi$"
+  then
+    echo "FAILED. The StackGres restapi service was not available."
+    return 1
+  else
+    echo "SUCCESS. The StackGres restapi service was available."
+  fi
+
+  if [ "$(helm get values -n "$OPERATOR_NAMESPACE" ${RELEASE_NAME#*/} -o json | jq .extensions.cache.enabled)" = true ]
+  then
+    if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^${RELEASE_NAME#*/}-extensions-cache$"
+    then
+      echo "FAILED. The demo StackGres extensions cache service was not available."
+      return 1
+    else
+      echo "SUCCESS. The demo StackGres extensions cache service was available."
+    fi
+  fi
+
+  echo "Creating demo package cluster"
+  helm install --namespace "${CLUSTER_NAMESPACE}" "${CLUSTER_NAME}" \
+    "${STACKGRES_PACKAGES}/stackgres-cluster-demo.tgz" \
+    --set cluster.sgInstanceProfile=size-xs \
+    --set cluster.instances=2 \
+    --set nonProductionOptions.disableClusterPodAntiAffinity=true \
+    --set nonProductionOptions.disablePatroniResourceRequirements=true \
+    --set nonProductionOptions.disableClusterResourceRequirements=true
+
+  if wait_pods_running "${CLUSTER_NAMESPACE}" 2
+  then
+    echo "SUCCESS. The demo StackGres cluster pods are running."
+  else
+    echo "FAILED. The demo StackGres cluster pods are not running."
+    return 1
+  fi
+
+  echo "Testing Cluster readability"
+  if kubectl exec "${CLUSTER_NAME}-0" -n "${CLUSTER_NAMESPACE}" -c postgres-util -- psql -Antqc 'Select 1'
+  then
+    echo "SUCCESS. The demo package StackGres cluster primary is available."
+  else
+    echo "FAILED. The demo package StackGres cluster primary is not available."
+    return 1
+  fi
+  if kubectl exec "${CLUSTER_NAME}-1" -n "${CLUSTER_NAMESPACE}" -c postgres-util -- psql -Antqc 'Select 1'
+  then
+    echo "SUCCESS. The demo package StackGres cluster secondary is available."
+  else
+    echo "FAILED. The demo package StackGres cluster secondary is not available."
+    return 1
+  fi
+
+  echo "Upgrading operator bundle ($STACKGRES_VERSION)"
+  # The operator-sdk does not allow to load a bundle with IfNotPresent so we have to pull it from the remote repository
+  local BUNDLE_IMAGE_NAME
+  BUNDLE_IMAGE_NAME="$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}/stackgres/${HELM_OPERATOR_BUNDLE_IMAGE_NAME##*/}"
+  kubectl create secret docker-registry -n "$OPERATOR_NAMESPACE" helm-operator-bundle \
+    --from-file=.dockerconfigjson="$HOME"/.docker/config.json
+
+  cat << EOF | kubectl create -f -
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: stackgres
+  namespace: $OPERATOR_NAMESPACE
+spec:
+  channel: stable
+  name: stackgres
+  source: helm-operator-catalog
+  sourceNamespace: $OPERATOR_NAMESPACE
+  installPlanApproval: Automatic
+  startingCSV: $(printf %s "$STACKGRES_VERSION" | tr A-Z a-z)
 EOF
 
   if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator$"
