@@ -7,12 +7,11 @@ package io.stackgres.operator.validation;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.ErrorType;
+import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.extension.ExtensionRequest;
@@ -33,13 +32,11 @@ public abstract class AbstractExtensionsValidator<T extends AdmissionReview<?>>
   @Override
   public void validate(T review) throws ValidationFailed {
     switch (review.getRequest().getOperation()) {
-      case CREATE:
-      case UPDATE: {
-
+      case CREATE, UPDATE:
         validateExtensions(review);
         break;
-      }
       default:
+        break;
     }
   }
 
@@ -47,20 +44,22 @@ public abstract class AbstractExtensionsValidator<T extends AdmissionReview<?>>
 
     ExtensionReview extensionReview = getExtensionReview(review);
 
-    List<Tuple2<String, Optional<String>>> defaultExtensions = extensionReview
+    List<ExtensionTuple> defaultExtensions = extensionReview
         .getDefaultExtensions();
 
-    List<Tuple2<String, Optional<String>>> requiredExtensions =
+    List<ExtensionTuple> requiredExtensions =
         getRequiredExtensions(extensionReview, defaultExtensions);
 
-    List<Tuple2<String, Optional<String>>> toInstallExtensions =
+    List<ExtensionTuple> toInstallExtensions =
         getExtensionsToInstall(extensionReview);
 
-    final List<Tuple2<String, Optional<String>>> missingExtensions = getMissingExtensions(
+    final List<ExtensionTuple> missingExtensions = getMissingExtensions(
         requiredExtensions, toInstallExtensions);
+
     if (!missingExtensions.isEmpty()) {
       Map<String, List<String>> candidateExtensionVersions = getCandidateExtensionVersions(
           extensionReview, missingExtensions);
+
       String errorTypeUri = ErrorType.getErrorTypeUri(ErrorType.EXTENSION_NOT_FOUND);
       String missingExtensionsMessage = getMissingExtensionsMessage(missingExtensions,
           candidateExtensionVersions);
@@ -75,37 +74,35 @@ public abstract class AbstractExtensionsValidator<T extends AdmissionReview<?>>
   }
 
   private String getMissingExtensionsMessage(
-      List<Tuple2<String, Optional<String>>> missingExtensions,
+      List<ExtensionTuple> missingExtensions,
       Map<String, List<String>> candidateExtensionVersions) {
     return Seq.seq(missingExtensions)
         .map(missingExtension -> {
           final Set<String> availableVersions =
-              Set.copyOf(candidateExtensionVersions.get(missingExtension.v1));
+              Set.copyOf(candidateExtensionVersions.get(missingExtension.extensionName()));
           if (!availableVersions.isEmpty()) {
-            return missingExtension.v1
-                + " (available " + Seq.seq(availableVersions).toString(", ") + ")";
+            return missingExtension.extensionName()
+                + " (available " + String.join(", ", availableVersions) + ")";
           }
-          return missingExtension.v1;
+          return missingExtension.extensionName();
         })
         .toString(", ");
   }
 
   private ImmutableMap<String, List<String>> getCandidateExtensionVersions(
-      ExtensionReview extensionReview,
-      List<Tuple2<String, Optional<String>>> missingExtensions) {
+      ExtensionReview extensionReview, List<ExtensionTuple> missingExtensions) {
     final List<StackGresClusterExtension> requiredExtensions = extensionReview
         .getRequiredExtensions();
     return missingExtensions
         .stream()
         .map(missingExtension -> {
           final StackGresClusterExtension extension = requiredExtensions.stream()
-              .filter(ext -> ext.getName().equals(
-                  missingExtension.v1))
+              .filter(ext -> ext.getName().equals(missingExtension.extensionName()))
               .findAny()
               .orElseGet(() -> {
                 StackGresClusterExtension ext = new StackGresClusterExtension();
-                ext.setName(missingExtension.v1);
-                missingExtension.v2.ifPresent(ext::setVersion);
+                ext.setName(missingExtension.extensionName());
+                missingExtension.extensionVersion().ifPresent(ext::setVersion);
                 return ext;
               });
 
@@ -125,50 +122,44 @@ public abstract class AbstractExtensionsValidator<T extends AdmissionReview<?>>
 
           var candidateExtensions = extensionsAnyVersion.stream()
               .map(extensionMetadata -> extensionMetadata.getVersion().getVersion())
-              .collect(Collectors.toUnmodifiableList());
+              .toList();
           return Tuple.tuple(
-              missingExtension.v1,
+              missingExtension.extensionName(),
               candidateExtensions
           );
         })
         .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2));
   }
 
-  private List<Tuple2<String, Optional<String>>> getMissingExtensions(
-      List<Tuple2<String, Optional<String>>> requiredExtensions,
-      List<Tuple2<String, Optional<String>>> toInstallExtensions) {
+  private List<ExtensionTuple> getMissingExtensions(
+      List<ExtensionTuple> requiredExtensions,
+      List<ExtensionTuple> toInstallExtensions) {
     return Seq.seq(requiredExtensions)
         .filter(requiredExtension -> toInstallExtensions.stream()
-            .noneMatch(toInstallExtension -> requiredExtension.v1.equals(
-                toInstallExtension.v1)))
-        .sorted(Tuple2::v1)
-        .collect(Collectors.toUnmodifiableList());
+            .noneMatch(toInstallExtension -> requiredExtension.extensionName().equals(
+                toInstallExtension.extensionName())))
+        .sorted(ExtensionTuple::extensionName)
+        .toList();
   }
 
-  private List<Tuple2<String, Optional<String>>> getExtensionsToInstall(ExtensionReview review) {
-
+  private List<ExtensionTuple> getExtensionsToInstall(ExtensionReview review) {
     return review.getToInstallExtensions()
         .stream()
-        .map(extension -> Tuple.tuple(
-            extension.getName(), Optional.ofNullable(extension.getVersion())))
-        .collect(Collectors.toUnmodifiableList());
+        .map(extension -> new ExtensionTuple(extension.getName(), extension.getVersion()))
+        .toList();
   }
 
-  private List<Tuple2<String, Optional<String>>> getRequiredExtensions(
-      ExtensionReview review,
-      List<Tuple2<String, Optional<String>>> defaultExtensions
-  ) {
-    List<Tuple2<String, Optional<String>>> requiredExtensions = review.getRequiredExtensions()
+  private List<ExtensionTuple> getRequiredExtensions(
+      ExtensionReview review, List<ExtensionTuple> defaultExtensions) {
+    List<ExtensionTuple> requiredExtensions = review.getRequiredExtensions()
         .stream()
-        .map(extension -> Tuple.tuple(
-            extension.getName(), Optional.ofNullable(extension.getVersion())
-        ))
+        .map(extension -> new ExtensionTuple(extension.getName(), extension.getVersion()))
         .filter(extension -> defaultExtensions.stream()
-            .map(Tuple2::v1).noneMatch(extension.v1::equals))
-        .collect(Collectors.toUnmodifiableList());
+            .map(ExtensionTuple::extensionName).noneMatch(extension.extensionName()::equals))
+        .toList();
     return Seq.seq(requiredExtensions)
         .append(defaultExtensions)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
   }
 
   protected abstract void failValidation(String reason, String message) throws ValidationFailed;
