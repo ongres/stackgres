@@ -20,7 +20,8 @@ import io.stackgres.operator.mutation.AbstractDefaultResourceMutator;
 @ApplicationScoped
 public class DefaultShardsProfileMutator
     extends AbstractDefaultResourceMutator<
-        StackGresProfile, StackGresShardedCluster, StackGresShardedClusterReview> {
+        StackGresProfile, StackGresShardedCluster, StackGresShardedClusterReview>
+    implements ShardedClusterMutator {
 
   @Inject
   public DefaultShardsProfileMutator(
