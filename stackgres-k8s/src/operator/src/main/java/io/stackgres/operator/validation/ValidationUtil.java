@@ -48,7 +48,7 @@ public interface ValidationUtil {
                   .stream()
                   .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey,
                       entry -> entry.getValue().streamOrderedTagVersions()
-                      .limitWhileClosed(imageVersion -> imageVersion.getBuild().equals("6.21"))
+                      .limitWhileClosed(imageVersion -> imageVersion.getBuild().equals("6.22"))
                       .map(ImageVersion::getVersion)
                       .grouped(Function.identity())
                       .map(t -> t.v1)

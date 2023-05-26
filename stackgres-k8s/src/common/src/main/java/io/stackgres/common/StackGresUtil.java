@@ -275,7 +275,7 @@ public interface StackGresUtil {
     return serviceDns;
   }
 
-  static List<Tuple2<String, Optional<String>>> getDefaultClusterExtensions(
+  static List<ExtensionTuple> getDefaultClusterExtensions(
       StackGresCluster cluster) {
 
     String pgVersion = cluster.getSpec().getPostgres().getVersion();
@@ -284,7 +284,7 @@ public interface StackGresUtil {
     return getDefaultClusterExtensions(pgVersion, flavor, version);
   }
 
-  static List<Tuple2<String, Optional<String>>> getDefaultClusterExtensions(
+  static List<ExtensionTuple> getDefaultClusterExtensions(
       StackGresVersion stackGresVersion, String pgVersion, String flavor) {
     if (Component.compareBuildVersions("6.6",
         StackGresComponent.PATRONI.getOrThrow(stackGresVersion)
@@ -294,16 +294,13 @@ public interface StackGresUtil {
       return List.of();
     }
 
-    return Seq.of(
-        Tuple.tuple("plpgsql"),
-        Tuple.tuple("pg_stat_statements"),
-        Tuple.tuple("dblink"),
-        Tuple.tuple("plpython3u"))
-        .map(t -> t.concat(Optional.<String>empty()))
-        .toList();
+    return List.of(new ExtensionTuple("plpgsql"),
+        new ExtensionTuple("pg_stat_statements"),
+        new ExtensionTuple("dblink"),
+        new ExtensionTuple("plpython3u"));
   }
 
-  static List<Tuple2<String, Optional<String>>> getDefaultClusterExtensions(
+  static List<ExtensionTuple> getDefaultClusterExtensions(
       String pgVersion, StackGresComponent flavor, StackGresVersion stackGresVersion) {
     if (flavor == StackGresComponent.BABELFISH) {
       return List.of();
@@ -315,16 +312,13 @@ public interface StackGresUtil {
                 pgVersion))) <= 0) {
       return List.of();
     }
-    return Seq.of(
-        Tuple.tuple("plpgsql"),
-        Tuple.tuple("pg_stat_statements"),
-        Tuple.tuple("dblink"),
-        Tuple.tuple("plpython3u"))
-        .map(t -> t.concat(Optional.<String>empty()))
-        .toList();
+    return List.of(new ExtensionTuple("plpgsql"),
+        new ExtensionTuple("pg_stat_statements"),
+        new ExtensionTuple("dblink"),
+        new ExtensionTuple("plpython3u"));
   }
 
-  static List<Tuple2<String, Optional<String>>> getDefaultShardedClusterExtensions(
+  static List<ExtensionTuple> getDefaultShardedClusterExtensions(
       StackGresCluster cluster) {
     String pgVersion = cluster.getSpec().getPostgres().getVersion();
 
@@ -333,14 +327,14 @@ public interface StackGresUtil {
         StackGresVersion.getStackGresVersion(cluster));
   }
 
-  static List<Tuple2<String, Optional<String>>> getDefaultShardedClusterExtensions(
+  static List<ExtensionTuple> getDefaultShardedClusterExtensions(
       String pgVersion, StackGresVersion stackGresVersion) {
     return List.of(
-        Tuple.tuple("citus", Optional.of("11.2-1")),
-        Tuple.tuple("citus_columnar", Optional.of("11.2-1")));
+        new ExtensionTuple("citus", "11.3-1"),
+        new ExtensionTuple("citus_columnar", "11.3-1"));
   }
 
-  static List<Tuple2<String, Optional<String>>> getDefaultDistributedLogsExtensions(
+  static List<ExtensionTuple> getDefaultDistributedLogsExtensions(
       StackGresCluster cluster) {
     String pgVersion = cluster.getSpec().getPostgres().getVersion();
 
@@ -349,13 +343,13 @@ public interface StackGresUtil {
         StackGresVersion.getStackGresVersion(cluster));
   }
 
-  static List<Tuple2<String, Optional<String>>> getDefaultDistributedLogsExtensions(
+  static List<ExtensionTuple> getDefaultDistributedLogsExtensions(
       String pgVersion, StackGresVersion stackGresVersion) {
     return Seq.seq(getDefaultClusterExtensions(
         stackGresVersion,
         pgVersion,
         StackGresPostgresFlavor.VANILLA.toString())).append(
-            Tuple.tuple("timescaledb", Optional.of("1.7.4")))
+            new ExtensionTuple("timescaledb", "1.7.4"))
         .toList();
   }
 

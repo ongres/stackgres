@@ -11,6 +11,7 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
@@ -26,7 +27,6 @@ import io.stackgres.operator.validation.AbstractExtensionsValidator;
 import io.stackgres.operator.validation.ExtensionReview;
 import io.stackgres.operator.validation.ImmutableExtensionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import org.jooq.lambda.tuple.Tuple2;
 
 @Singleton
 public class ExtensionsValidator extends AbstractExtensionsValidator<StackGresClusterReview>
@@ -59,7 +59,7 @@ public class ExtensionsValidator extends AbstractExtensionsValidator<StackGresCl
         .build();
   }
 
-  protected List<Tuple2<String, Optional<String>>> getDefaultExtensions(
+  protected List<ExtensionTuple> getDefaultExtensions(
       StackGresClusterReview review) {
     StackGresCluster cluster = getCluster(review);
     String pgVersion = cluster.getSpec().getPostgres().getVersion();

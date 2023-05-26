@@ -64,9 +64,9 @@ public class ExtensionsMutator
   protected ImmutableList<StackGresClusterInstalledExtension> getDefaultExtensions(
       StackGresCluster cluster) {
     return Seq.seq(StackGresUtil.getDefaultDistributedLogsExtensions(cluster))
-        .map(t -> t.v2
-        .map(version -> getExtension(cluster, t.v1, version))
-            .orElseGet(() -> getExtension(cluster, t.v1)))
+        .map(t -> t.extensionVersion()
+            .map(version -> getExtension(cluster, t.extensionName(), version))
+            .orElseGet(() -> getExtension(cluster, t.extensionName())))
         .filter(Optional::isPresent)
         .map(Optional::get)
         .collect(ImmutableList.toImmutableList());
