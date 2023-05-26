@@ -10,6 +10,8 @@ Description:
 
 License:
  
-Compile dependecies (external libraries):
+Compile dependencies (external libraries):
 
 Extra info:
+
+/label ~StackGres ~Triage
