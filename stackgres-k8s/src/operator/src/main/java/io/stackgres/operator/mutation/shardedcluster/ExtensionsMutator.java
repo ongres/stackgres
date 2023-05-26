@@ -71,6 +71,7 @@ public class ExtensionsMutator
         .map(StackGresClusterPostgres::getVersion)
         .flatMap(getPostgresFlavorComponent(resource).get(resource)::findVersion)
         .orElse(null);
+
     if (postgresVersion != null && supportedPostgresVersions
         .get(getPostgresFlavorComponent(resource))
         .get(StackGresVersion.getStackGresVersion(resource))
@@ -107,6 +108,7 @@ public class ExtensionsMutator
         .findExtensionCandidateSameMajorBuild(cluster, extension, false)
         .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
             cluster, extension, extensionMetadata, false));
+
     if (exactCandidateExtension.isEmpty()) {
       List<StackGresExtensionMetadata> candidateExtensionMetadatas =
           extensionMetadataManager.getExtensionsAnyVersion(cluster, extension, false);
@@ -159,9 +161,9 @@ public class ExtensionsMutator
   protected List<StackGresClusterInstalledExtension> getDefaultExtensions(
       StackGresCluster cluster) {
     return Seq.seq(StackGresUtil.getDefaultShardedClusterExtensions(cluster))
-        .map(t -> t.v2
-        .map(version -> getExtension(cluster, t.v1, version))
-            .orElseGet(() -> getExtension(cluster, t.v1)))
+        .map(t -> t.extensionVersion()
+            .map(version -> getExtension(cluster, t.extensionName(), version))
+            .orElseGet(() -> getExtension(cluster, t.extensionName())))
         .filter(Optional::isPresent)
         .map(Optional::get)
         .toList();
