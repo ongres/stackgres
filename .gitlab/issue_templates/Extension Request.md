@@ -14,4 +14,4 @@
 
 **Extra info:**
 
-/label ~StackGres ~Triage
+/label ~StackGres ~Triage ~"StackGres::postgres-extensions"
