@@ -133,12 +133,12 @@ spec:
           kind: SGConfig
           metadata:
             name: stackgres-operator
-            ownerReferences:
+          spec:
+            clusterOwnerReferences:
             - apiVersion: operators.coreos.com/v1
               kind: Operator
               name: \$OPERATOR_NAME
               uid: \$OPERATOR_UID
-          spec:
           \$PREVIOUS_SGCONFIG_SPEC
           EOF
         image: ongres/kubectl:v1.25.5-build-6.19

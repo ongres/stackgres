@@ -15,13 +15,7 @@ BUNDLE_BASE_IMAGE ?= scratch
 # To re-generate a bundle for other specific channels without changing the standard setup, you can:
 # - use the CHANNELS as arg of the bundle target (e.g make bundle CHANNELS=candidate,fast,stable)
 # - use environment variables to overwrite this value (e.g export CHANNELS="candidate,fast,stable")
-ifeq ($(findstring -RC,$(STACKGRES_VERSION)), -RC)
-  CHANNELS ?= candidate
-else ifeq ($(findstring -,$(STACKGRES_VERSION)), -)
-  CHANNELS ?= fast
-else
-  CHANNELS ?= stable
-endif
+CHANNELS ?= stable
 ifneq ($(origin CHANNELS), undefined)
 BUNDLE_CHANNELS := --channels=$(CHANNELS)
 endif
