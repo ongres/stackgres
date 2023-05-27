@@ -11,7 +11,7 @@ When a Postgres cluster is configured to use distributed logs, all logs from dif
 Under the hood, distributed log cluster use an `SGCluster`.
 Therefore, the distributed log cluster can be queried using SQL as well, for example using *postgres-util*.
 
-For more information about distributed log usage, please check out the [Distributed Logs Tutorial](/tutorial/complete-cluster/distributed-logs/).
+For more information about distributed log usage, please check out the [Distributed Logs Manual]({{% relref "04-administration-guide/09-distributed-logs" %}}).
 ___
 
 **Kind:** SGDistributedLogs
