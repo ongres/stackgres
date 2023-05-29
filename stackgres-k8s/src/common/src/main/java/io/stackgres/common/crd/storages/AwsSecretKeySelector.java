@@ -36,6 +36,10 @@ public class AwsSecretKeySelector {
   @Valid
   private SecretKeySelector secretAccessKey;
 
+  @JsonProperty("caCertificate")
+  @Valid
+  private SecretKeySelector caCertificate;
+
   public SecretKeySelector getAccessKeyId() {
     return accessKeyId;
   }
@@ -52,22 +56,31 @@ public class AwsSecretKeySelector {
     this.secretAccessKey = secretAccessKey;
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hash(accessKeyId, secretAccessKey);
+  public SecretKeySelector getCaCertificate() {
+    return caCertificate;
+  }
+
+  public void setCaCertificate(SecretKeySelector caCertificate) {
+    this.caCertificate = caCertificate;
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (this == o) {
+  public int hashCode() {
+    return Objects.hash(accessKeyId, caCertificate, secretAccessKey);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
       return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+    if (!(obj instanceof AwsSecretKeySelector)) {
       return false;
     }
-    AwsSecretKeySelector that = (AwsSecretKeySelector) o;
-    return Objects.equals(accessKeyId, that.accessKeyId)
-        && Objects.equals(secretAccessKey, that.secretAccessKey);
+    AwsSecretKeySelector other = (AwsSecretKeySelector) obj;
+    return Objects.equals(accessKeyId, other.accessKeyId)
+        && Objects.equals(caCertificate, other.caCertificate)
+        && Objects.equals(secretAccessKey, other.secretAccessKey);
   }
 
   @Override

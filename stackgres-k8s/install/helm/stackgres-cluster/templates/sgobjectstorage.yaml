@@ -65,6 +65,11 @@ spec:
         secretAccessKey:
           name: "{{ .Values.configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.name }}"
           key: "{{ .Values.configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey.key }}"
+        {{- if .Values.configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.caCerrtificate }}
+        caCerrtificate:
+          name: "{{ .Values.configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.caCerrtificate.name }}"
+          key: "{{ .Values.configurations.objectstorage.s3Compatible.awsCredentials.secretKeySelectors.caCerrtificate.key }}"
+        {{- end }}
     {{- if .Values.configurations.objectstorage.s3Compatible.region }}
     region: "{{ .Values.configurations.objectstorage.s3Compatible.region }}"
     {{- end }}

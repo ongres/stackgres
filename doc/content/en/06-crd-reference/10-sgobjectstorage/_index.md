@@ -48,7 +48,7 @@ ___
 | <div style="width:14rem">Property</div>            | Required | Updatable | <div style="width:5rem">Type</div> | Default | Description |
 |:---------------------------------------------------|----------|-----------|:--------|:--------|:------------|
 | bucket                                             | ✓        | ✓         | string  |         | {{< crd-field-description SGObjectStorage.spec.s3Compatible.bucket >}} |
-| [awsCredentials](#amazon-web-services-credentials) | ✓        | ✓         | object  |         | {{< crd-field-description SGObjectStorage.spec.s3Compatible.awsCredentials >}} |
+| [awsCredentials](#amazon-web-services-compatible-credentials) | ✓        | ✓         | object  |         | {{< crd-field-description SGObjectStorage.spec.s3Compatible.awsCredentials >}} |
 | region                                             |          | ✓         | string  |         | {{< crd-field-description SGObjectStorage.spec.s3Compatible.region >}} |
 | storageClass                                       |          | ✓         | string  |         | {{< crd-field-description SGObjectStorage.spec.s3Compatible.storageClass >}} |
 | endpoint                                           |          | ✓         | string  |         | {{< crd-field-description SGObjectStorage.spec.s3Compatible.endpoint >}} |
@@ -58,7 +58,7 @@ ___
 
 | <div style="width:10rem">Property</div>                        | Required | Updatable | <div style="width:4rem">Type</div> | Default | Description |
 |:---------------------------------------------------------------|----------|-----------|:-------|:--------|:------------|
-| [secretKeySelectors](#amazon-web-services-secret-key-selector) | ✓        | ✓         | object |         | {{< crd-field-description SGObjectStorage.spec.s3Compatible.awsCredentials.secretKeySelectors >}} |
+| [secretKeySelectors](#amazon-web-services-s3-secret-key-selector) | ✓        | ✓         | object |         | {{< crd-field-description SGObjectStorage.spec.s3Compatible.awsCredentials.secretKeySelectors >}} |
 
 #### Amazon Web Services Secret Key Selector
 
@@ -66,6 +66,20 @@ ___
 |:------------------------------------------------------------------------------------------------------------------|----------|-----------|:-------|:--------|:------------|
 | [accessKeyId](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)     | ✓        | ✓         | object |         | {{< crd-field-description SGObjectStorage.spec.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId >}} |
 | [secretAccessKey](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) | ✓        | ✓         | object |         | {{< crd-field-description SGObjectStorage.spec.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey >}} |
+
+### Amazon Web Services S3 Compatible Credentials
+
+| <div style="width:10rem">Property</div>                        | Required | Updatable | <div style="width:4rem">Type</div> | Default | Description |
+|:---------------------------------------------------------------|----------|-----------|:-------|:--------|:------------|
+| [secretKeySelectors](#amazon-web-services-s3-compatible-secret-key-selector) | ✓        | ✓         | object |         | {{< crd-field-description SGObjectStorage.spec.s3Compatible.awsCredentials.secretKeySelectors >}} |
+
+#### Amazon Web Services S3 Compatible Secret Key Selector
+
+| Property                                                                                                          | Required | Updatable | Type   | Default | Description |
+|:------------------------------------------------------------------------------------------------------------------|----------|-----------|:-------|:--------|:------------|
+| [accessKeyId](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)     | ✓        | ✓         | object |         | {{< crd-field-description SGObjectStorage.spec.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId >}} |
+| [secretAccessKey](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core) | ✓        | ✓         | object |         | {{< crd-field-description SGObjectStorage.spec.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey >}} |
+| [caCertificate](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#secretkeyselector-v1-core)   |          | ✓         | object |         | {{< crd-field-description SGObjectStorage.spec.s3Compatible.awsCredentials.secretKeySelectors.caCertificate >}} |
 
 ## GSC - Google Cloud Storage configuration
 

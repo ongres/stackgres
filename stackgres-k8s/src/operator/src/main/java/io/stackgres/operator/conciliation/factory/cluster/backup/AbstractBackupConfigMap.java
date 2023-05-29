@@ -15,15 +15,16 @@ import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.storages.AwsCredentials;
 import io.stackgres.common.crd.storages.AwsS3CompatibleStorage;
 import io.stackgres.common.crd.storages.AwsS3Storage;
+import io.stackgres.common.crd.storages.AwsSecretKeySelector;
 import io.stackgres.common.crd.storages.AzureBlobStorage;
 import io.stackgres.common.crd.storages.BackupStorage;
 import io.stackgres.common.crd.storages.GoogleCloudCredentials;
 import io.stackgres.common.crd.storages.GoogleCloudStorage;
 import io.stackgres.operator.conciliation.backup.BackupConfiguration;
 import io.stackgres.operator.conciliation.backup.BackupPerformance;
-import io.stackgres.operator.conciliation.factory.cluster.ClusterStatefulSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,7 +93,7 @@ public abstract class AbstractBackupConfigMap {
     Optional<AwsS3CompatibleStorage> storageForS3Compatible = storage.getS3CompatibleOpt();
     if (storageForS3Compatible.isPresent()) {
       return getS3CompatibleStorageEnvVars(
-          path, storageForS3Compatible.get());
+          context, path, storageForS3Compatible.get());
     }
 
     Optional<GoogleCloudStorage> storageForGcs = storage.getGcsOpt();
@@ -107,7 +108,8 @@ public abstract class AbstractBackupConfigMap {
 
   }
 
-  private Map<String, String> getS3StorageEnvVars(String path,
+  private Map<String, String> getS3StorageEnvVars(
+      String path,
       AwsS3Storage storageForS3) {
 
     return Map.of(
@@ -119,10 +121,12 @@ public abstract class AbstractBackupConfigMap {
   }
 
   private Map<String, String> getS3CompatibleStorageEnvVars(
+      ClusterContext context,
       String path,
       AwsS3CompatibleStorage storageForS3Compatible) {
 
-    return Map.of(
+    Map<String, String> backupEnvVars = new HashMap<>();
+    backupEnvVars.putAll(Map.of(
         "WALG_S3_PREFIX", BackupStorageUtil
             .getPrefixForS3Compatible(path, storageForS3Compatible),
         "AWS_REGION", BackupStorageUtil.getFromS3Compatible(
@@ -138,10 +142,24 @@ public abstract class AbstractBackupConfigMap {
         "AWS_S3_FORCE_PATH_STYLE", BackupStorageUtil.getFromS3Compatible(
             storageForS3Compatible, AwsS3CompatibleStorage::isForcePathStyle),
         "WALG_S3_STORAGE_CLASS", BackupStorageUtil.getFromS3Compatible(
-            storageForS3Compatible, AwsS3CompatibleStorage::getStorageClass));
+            storageForS3Compatible, AwsS3CompatibleStorage::getStorageClass)));
+    if (Optional.of(storageForS3Compatible)
+        .map(AwsS3CompatibleStorage::getAwsCredentials)
+        .map(AwsCredentials::getSecretKeySelectors)
+        .map(AwsSecretKeySelector::getCaCertificate)
+        .isPresent()) {
+      backupEnvVars.put("WALG_S3_CA_CERT_FILE", getAwsS3CompatibleCaCertificateFilePath(context));
+    }
+    return backupEnvVars;
   }
 
-  private Map<String, String> getGcsStorageEnvVars(ClusterContext context,
+  protected String getAwsS3CompatibleCaCertificateFilePath(ClusterContext context) {
+    return ClusterStatefulSetPath.BACKUP_SECRET_PATH.path(context)
+        + "/" + BackupEnvVarFactory.AWS_S3_COMPATIBLE_CA_CERTIFICATE_FILE_NAME;
+  }
+
+  private Map<String, String> getGcsStorageEnvVars(
+      ClusterContext context,
       String path,
       GoogleCloudStorage storageForGcs) {
 
@@ -159,7 +177,7 @@ public abstract class AbstractBackupConfigMap {
 
   protected String getGcsCredentialsFilePath(ClusterContext context) {
     return ClusterStatefulSetPath.BACKUP_SECRET_PATH.path(context)
-        + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME;
+        + "/" + BackupEnvVarFactory.GCS_CREDENTIALS_FILE_NAME;
   }
 
   private Map<String, String> getAzureBlobStorageEnvVars(String path,
