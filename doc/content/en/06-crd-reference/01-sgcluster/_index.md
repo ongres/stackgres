@@ -481,7 +481,7 @@ By default, stackgres creates as an empty database. To execute some scripts, we 
 | Property                       | Required | Updatable | Type     | Default  | Description |
 |:-------------------------------|----------|-----------|:---------|:---------|:------------|
 | continueOnSGScriptError        |          | ✓         | boolean  |          | {{< crd-field-description SGCluster.spec.managedSql.continueOnSGScriptError >}} |
-| [scripts](managed-sql-scripts) |          | ✓         | boolean  |          | {{< crd-field-description SGCluster.spec.managedSql.scripts >}} |
+| [scripts](#managed-sql-scripts)          |          | ✓         | array                              |          | {{< crd-field-description SGCluster.spec.managedSql.scripts >}} |
 
 ## Managed SQL Scripts
 
