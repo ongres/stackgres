@@ -612,25 +612,26 @@ check_cluster_before_security_upgrade() {
         | if .log_temp_files == "0" then .log_temp_files = "0kB" else . end
         | if .track_activity_query_size == "4096" then .track_activity_query_size = "4kB" else . end
         | if .restore_command != null then .restore_command = null else . end)
-      | .postgresql.recovery_conf = (if .postgresql.recovery_conf == null
-        then { restore_command: "exec-with-env '"'backup'"' -- wal-g wal-fetch %f %p" }
-	else .postgresql.recovery_conf end)
+        | .postgresql.recovery_conf = (if .postgresql.recovery_conf == null
+          then { restore_command: "exec-with-env '"'backup'"' -- wal-g wal-fetch %f %p" }
+          else .postgresql.recovery_conf end)
       | if (.postgresql | has("use_slots"))
         then .
         else .postgresql.use_slots = true end
-      ' "$PREVIOUS_PATRONI_CONFIG_PATH" > "$LOG_PATH/previous-patroni-config.json"
-    PREVIOUS_PATRONI_CONFIG="$(cat "$LOG_PATH/previous-patroni-config.json")"
+      ' "$PREVIOUS_PATRONI_CONFIG_PATH" > "$LOG_PATH/previous-patroni-config-filtered.json"
+    PREVIOUS_PATRONI_CONFIG="$(cat "$LOG_PATH/previous-patroni-config-filtered.json")"
 
     if [ "$PATRONI_CONFIG" = "$PREVIOUS_PATRONI_CONFIG" ]
     then
       echo "SUCCESS. Cluster $CLUSTER_NAME patroni config did not changed after operator upgrade"
     else
-      printf '%s' "$PATRONI_CONFIG" > "$LOG_PATH/patroni-config.json"
-      yq -S -y . "$LOG_PATH/patroni-config.json" > "$LOG_PATH/patroni-config.yaml"
-      yq -S -y . "$LOG_PATH/previous-patroni-config.json" > "$LOG_PATH/previous-patroni-config.yaml"
+      printf '%s' "$PATRONI_CONFIG" > "$LOG_PATH/patroni-config-actual.json"
+      yq -S -y . "$LOG_PATH/patroni-config-actual.json" > "$LOG_PATH/patroni-config-actual.yaml"
+      printf '%s' "$PREVIOUS_PATRONI_CONFIG" > "$LOG_PATH/patroni-config-expected.json"
+      yq -S -y . "$LOG_PATH/patroni-config-expected.json" > "$LOG_PATH/patroni-config-expected.yaml"
       echo "FAIL. Cluster $CLUSTER_NAME patroni config changed after operator upgrade"
       echo
-      diff "$LOG_PATH/previous-patroni-config.yaml" "$LOG_PATH/patroni-config.yaml"
+      diff "$LOG_PATH/patroni-config-expected.yaml" "$LOG_PATH/patroni-config-actual.yaml"
       return 1
     fi
   fi
@@ -639,17 +640,20 @@ check_cluster_before_security_upgrade() {
   then
     PGBOUNCER_CONFIG="$(kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-connection-pooling-config" --template '{{ index .data "pgbouncer.ini" }}')"
     PGBOUNCER_CONFIG="$(printf '%s' "$PGBOUNCER_CONFIG")"
-    PREVIOUS_PGBOUNCER_CONFIG="$(cat "$PREVIOUS_PGBOUNCER_CONFIG_PATH")"
+    cat "$PREVIOUS_PGBOUNCER_CONFIG_PATH" \
+      | sed '/server_check_query = ;/d' \
+      | sed 's/stats_users = /server_check_query = ;\nstats_users = /' > "$LOG_PATH/previous-pgbouncer-config-filtered.ini"
+    PREVIOUS_PGBOUNCER_CONFIG="$(cat "$LOG_PATH/previous-pgbouncer-config-filtered.ini")"
 
     if [ "$PGBOUNCER_CONFIG" = "$PREVIOUS_PGBOUNCER_CONFIG" ]
     then
       echo "SUCCESS. Cluster $CLUSTER_NAME pgbouncer config did not changed after operator upgrade"
     else
-      printf '%s' "$PGBOUNCER_CONFIG" > "$LOG_PATH/pgbouncer-config.ini"
-      echo "$PREVIOUS_PATRONI_CONFIG" > "$LOG_PATH/previous-pgbouncer-config.ini"
+      printf '%s' "$PGBOUNCER_CONFIG" > "$LOG_PATH/pgbouncer-config-actual.ini"
+      printf '%s' "$PREVIOUS_PGBOUNCER_CONFIG" > "$LOG_PATH/pgbouncer-config-expected.ini"
       echo "FAIL. Cluster $CLUSTER_NAME pgbouncer config changed after operator upgrade"
       echo
-      diff "$LOG_PATH/previous-pgbouncer-config.ini" "$LOG_PATH/pgbouncer-config.ini"
+      diff "$LOG_PATH/pgbouncer-config-expected.ini" "$LOG_PATH/pgbouncer-config-actual.ini"
       return 1
     fi
   fi
