@@ -13,8 +13,11 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.crd.sgdbops.DbOpsOperation;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -55,6 +58,21 @@ public class DbOpsRequiredResourcesGenerator
     final StackGresDbOpsSpec spec = config.getSpec();
     final Optional<StackGresCluster> cluster = clusterFinder
         .findByNameAndNamespace(spec.getSgCluster(), dbOpsNamespace);
+
+    var op = DbOpsOperation.fromString(config.getSpec().getOp());
+    if (cluster
+        .map(StackGresCluster::getStatus)
+        .map(StackGresClusterStatus::getConditions)
+        .stream()
+        .flatMap(List::stream)
+        .anyMatch(ClusterStatusCondition.CLUSTER_REQUIRES_UPGRADE::isCondition)
+        && (op == DbOpsOperation.RESTART
+        || op == DbOpsOperation.MAJOR_VERSION_UPGRADE
+        || op == DbOpsOperation.MINOR_VERSION_UPGRADE)) {
+      throw new IllegalArgumentException("Can not run restart, minorVersionUpgrade or"
+          + " majorVersionUpgrade opertion when the cluster is in pending upgrade. Please run a"
+          + " securityUpgrade operation first.");
+    }
 
     final Optional<StackGresProfile> profile = cluster
         .map(StackGresCluster::getSpec)

@@ -25,7 +25,9 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
@@ -97,9 +99,9 @@ class DbOpsRequiredResourcesGeneratorTest {
 
     resources.forEach(resource -> {
       assertNotNull(resource.getMetadata().getOwnerReferences(),
-          "Resource " + resource.getMetadata().getName() + " doesn't owner references");
+          "Resource " + resource.getMetadata().getName() + " doesn't have owner references");
       if (resource.getMetadata().getOwnerReferences().size() == 0) {
-        fail("Resource " + resource.getMetadata().getName() + " doesn't have any owner");
+        fail("Resource " + resource.getMetadata().getName() + " doesn't have any owner reference");
       }
       assertTrue(resource.getMetadata().getOwnerReferences().stream().anyMatch(ownerReference
           -> ownerReference.getApiVersion().equals(HasMetadata.getApiVersion(StackGresDbOps.class))
@@ -151,6 +153,29 @@ class DbOpsRequiredResourcesGeneratorTest {
     verify(clusterFinder).findByNameAndNamespace(eq(clusterName), eq(dbOpsNamespace));
     verify(profileFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(profileFinder).findByNameAndNamespace(eq(profileName), eq(dbOpsNamespace));
+  }
+
+  @Test
+  void givenClusterWithPendingUpgrade_getRequiredResourcesShouldFail() {
+    final String dbOpsNamespace = dbOps.getMetadata().getNamespace();
+    final String clusterName = dbOps.getSpec().getSgCluster();
+    final String profileName = cluster.getSpec().getResourceProfile();
+    cluster.setStatus(new StackGresClusterStatus());
+    cluster.getStatus().setConditions(List.of(
+        ClusterStatusCondition.CLUSTER_REQUIRES_UPGRADE.getCondition()));
+
+    when(clusterFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(cluster));
+
+    when(profileFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(profile));
+
+    assertException("Can not run restart, minorVersionUpgrade or majorVersionUpgrade opertion when"
+        + " the cluster is in pending upgrade. Please run a securityUpgrade operation first.");
+
+    verify(clusterFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(clusterFinder).findByNameAndNamespace(eq(clusterName), eq(dbOpsNamespace));
+    verify(profileFinder, times(0)).findByNameAndNamespace(any(), any());
   }
 
   private void assertException(String message) {
