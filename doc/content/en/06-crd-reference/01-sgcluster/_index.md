@@ -580,7 +580,7 @@ When this configuration is applied, the scripts are executed ASAP.
 | <div style="width:13rem">Property</div> | Required | Updatable | <div style="width:5rem">Type</div> | Default  | Description |
 |:----------------------------------------|----------|-----------|:-----------------------------------|:---------|:------------|
 | continueOnSGScriptError                 |          | ✓         | boolean                            |          | {{< crd-field-description SGCluster.spec.managedSql.continueOnSGScriptError >}} |
-| [scripts](managed-sql-scripts)          |          | ✓         | boolean                            |          | {{< crd-field-description SGCluster.spec.managedSql.scripts >}} |
+| [scripts](#managed-sql-scripts)          |          | ✓         | array                              |          | {{< crd-field-description SGCluster.spec.managedSql.scripts >}} |
 
 ## Managed SQL Scripts
 
