@@ -41,8 +41,8 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
-import io.stackgres.operator.conciliation.factory.cluster.ClusterStatefulSet;
 import io.stackgres.operator.conciliation.factory.cluster.backup.AbstractBackupConfigMap;
+import io.stackgres.operator.conciliation.factory.cluster.backup.BackupEnvVarFactory;
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
@@ -157,9 +157,15 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
   }
 
   @Override
+  protected String getAwsS3CompatibleCaCertificateFilePath(ClusterContext context) {
+    return ClusterStatefulSetPath.RESTORE_SECRET_PATH.path(context)
+        + "/" + BackupEnvVarFactory.AWS_S3_COMPATIBLE_CA_CERTIFICATE_FILE_NAME;
+  }
+
+  @Override
   protected String getGcsCredentialsFilePath(ClusterContext context) {
     return ClusterStatefulSetPath.RESTORE_SECRET_PATH.path(context)
-        + "/" + ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME;
+        + "/" + BackupEnvVarFactory.GCS_CREDENTIALS_FILE_NAME;
   }
 
   @Inject
