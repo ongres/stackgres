@@ -22,11 +22,13 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 @Singleton
 @ValidationType(ErrorType.FORBIDDEN_CR_DELETION)
 public class ObjectStorageDependenciesValidator
-    extends DependenciesValidator<ObjectStorageReview> implements ObjectStorageValidator {
+    extends DependenciesValidator<ObjectStorageReview, StackGresCluster>
+    implements ObjectStorageValidator {
 
   @Override
-  protected void validate(ObjectStorageReview review, StackGresCluster i) throws ValidationFailed {
-    var backupsConfigurationOpt = Optional.of(i.getSpec())
+  protected void validate(ObjectStorageReview review, StackGresCluster resource)
+      throws ValidationFailed {
+    var backupsConfigurationOpt = Optional.of(resource.getSpec())
         .map(StackGresClusterSpec::getConfiguration)
         .map(StackGresClusterConfiguration::getBackups);
 
@@ -38,8 +40,14 @@ public class ObjectStorageDependenciesValidator
           .anyMatch(bc -> Objects.equals(bc.getObjectStorage(), storageObjectName));
 
       if (isObjectStorageReferenced) {
-        fail(review, i);
+        fail(review, resource);
       }
     }
   }
+
+  @Override
+  protected Class<StackGresCluster> getResourceClass() {
+    return StackGresCluster.class;
+  }
+
 }

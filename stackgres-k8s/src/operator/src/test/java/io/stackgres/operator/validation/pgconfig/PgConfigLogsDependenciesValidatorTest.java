@@ -5,10 +5,10 @@
 
 package io.stackgres.operator.validation.pgconfig;
 
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import io.stackgres.operator.validation.DependenciesValidatorTest;
+import io.stackgres.operator.validation.LogsDependenciesValidatorTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
@@ -17,12 +17,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 @RunWith(MockitoJUnitRunner.class)
-class PgConfigDependenciesValidatorTest
-    extends DependenciesValidatorTest<PgConfigReview, PgConfigDependenciesValidator> {
+class PgConfigLogsDependenciesValidatorTest
+    extends LogsDependenciesValidatorTest<PgConfigReview, PgConfigLogsDependenciesValidator> {
 
   @Override
-  protected PgConfigDependenciesValidator setUpValidation() {
-    return new PgConfigDependenciesValidator();
+  protected PgConfigLogsDependenciesValidator setUpValidation() {
+    return new PgConfigLogsDependenciesValidator();
   }
 
   @Override
@@ -52,7 +52,7 @@ class PgConfigDependenciesValidatorTest
   }
 
   @Override
-  protected void makeClusterNotDependant(StackGresCluster cluster) {
-    cluster.getSpec().getConfiguration().setPostgresConfig(null);
+  protected void makeClusterNotDependant(StackGresDistributedLogs distributedLogs) {
+    distributedLogs.getSpec().getConfiguration().setPostgresConfig(null);
   }
 }

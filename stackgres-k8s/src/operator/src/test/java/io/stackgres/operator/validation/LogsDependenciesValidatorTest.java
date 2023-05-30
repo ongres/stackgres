@@ -15,8 +15,8 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ErrorType;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterList;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operator.utils.ValidationUtils;
@@ -26,14 +26,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
-public abstract class DependenciesValidatorTest
+public abstract class LogsDependenciesValidatorTest
     <T extends AdmissionReview<?>,
-    V extends DependenciesValidator<T, StackGresCluster>> {
+    V extends DependenciesValidator<T, StackGresDistributedLogs>> {
 
   protected V validator;
 
   @Mock
-  protected CustomResourceScanner<StackGresCluster> resourceScanner;
+  protected CustomResourceScanner<StackGresDistributedLogs> resourceScanner;
 
   protected abstract V setUpValidation();
 
@@ -71,10 +71,11 @@ public abstract class DependenciesValidatorTest
   public void givenAReviewDelete_itShouldFailIfAClusterDependsOnIt() {
     T review = getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt();
 
-    StackGresClusterList clusterList = Fixtures.clusterList().loadDefault().get();
+    StackGresDistributedLogsList distributedLogsList =
+        Fixtures.distributedLogsList().loadDefault().get();
 
     when(resourceScanner.findResources(review.getRequest().getNamespace()))
-        .thenReturn(Optional.of(clusterList.getItems()));
+        .thenReturn(Optional.of(distributedLogsList.getItems()));
 
     ValidationFailed ex = ValidationUtils.assertErrorType(ErrorType.FORBIDDEN_CR_DELETION,
         () -> validator.validate(review));
@@ -83,8 +84,8 @@ public abstract class DependenciesValidatorTest
         + review.getRequest().getResource().getResource()
         + "." + review.getRequest().getKind().getGroup()
         + " " + review.getRequest().getName() + " because the "
-        + CustomResource.getCRDName(StackGresCluster.class) + " "
-        + clusterList.getItems().get(0).getMetadata().getName() + " depends on it",
+        + CustomResource.getCRDName(StackGresDistributedLogs.class) + " "
+        + distributedLogsList.getItems().get(0).getMetadata().getName() + " depends on it",
         ex.getResult().getMessage());
   }
 
@@ -94,14 +95,15 @@ public abstract class DependenciesValidatorTest
   public void givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt() throws ValidationFailed {
     T review = getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt();
 
-    StackGresClusterList clusterList = Fixtures.clusterList().loadDefault().get();
-    clusterList
+    StackGresDistributedLogsList distributedLogsList =
+        Fixtures.distributedLogsList().loadDefault().get();
+    distributedLogsList
         .getItems()
         .stream()
         .forEach(this::makeClusterNotDependant);
 
     when(resourceScanner.findResources(review.getRequest().getNamespace()))
-        .thenReturn(Optional.of(clusterList.getItems()));
+        .thenReturn(Optional.of(distributedLogsList.getItems()));
 
     validator.validate(review);
 
@@ -112,7 +114,7 @@ public abstract class DependenciesValidatorTest
   protected abstract T getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt()
       throws ValidationFailed;
 
-  protected abstract void makeClusterNotDependant(StackGresCluster cluster);
+  protected abstract void makeClusterNotDependant(StackGresDistributedLogs distributedLogs);
 
   @Test
   public void givenAReviewDelete_itShouldNotFailIfNoClusterExists() throws ValidationFailed {
