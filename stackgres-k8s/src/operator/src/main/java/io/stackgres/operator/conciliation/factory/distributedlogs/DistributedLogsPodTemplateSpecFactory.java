@@ -178,6 +178,10 @@ public class DistributedLogsPodTemplateSpecFactory
                     .toList())
                 .build())
             .build())
+        .withPriorityClassName(Optional.ofNullable(cluster.getSpec())
+            .map(StackGresDistributedLogsSpec::getScheduling)
+            .map(StackGresDistributedLogsPodScheduling::getPriorityClassName)
+            .orElse(null))
         .endSpec()
         .build();
 

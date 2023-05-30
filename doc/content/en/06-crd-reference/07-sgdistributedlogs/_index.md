@@ -103,6 +103,7 @@ Defines scheduling configuration for StackGres pods.
 | nodeSelector                           |          | ✓         | object                             |         | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeSelector >}} |
 | tolerations                            |          | ✓         | array                              |         | {{< crd-field-description SGDistributedLogs.spec.scheduling.tolerations >}} |
 | nodeAffinity                           |          | ✓         | object                             |         | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeAffinity >}} |
+| priorityClassName                      |          | ✓         | string                             |         | {{< crd-field-description SGDistributedLogs.spec.scheduling.priorityClassName >}} |
 | podAffinity                            |          | ✓         | object                             |         | {{< crd-field-description SGDistributedLogs.spec.scheduling.podAffinity >}} |
 | podAntiAffinity                        |          | ✓         | object                             |         | {{< crd-field-description SGDistributedLogs.spec.scheduling.podAntiAffinity >}} |
 

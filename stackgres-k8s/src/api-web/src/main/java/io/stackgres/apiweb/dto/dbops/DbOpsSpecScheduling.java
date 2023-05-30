@@ -28,6 +28,8 @@ public class DbOpsSpecScheduling {
 
   private PodAffinity podAffinity;
 
+  private String priorityClassName;
+
   private PodAntiAffinity podAntiAffinity;
 
   public Map<String, String> getNodeSelector() {
@@ -60,6 +62,14 @@ public class DbOpsSpecScheduling {
 
   public void setPodAffinity(PodAffinity podAffinity) {
     this.podAffinity = podAffinity;
+  }
+
+  public String getPriorityClassName() {
+    return priorityClassName;
+  }
+
+  public void setPriorityClassName(String priorityClassName) {
+    this.priorityClassName = priorityClassName;
   }
 
   public PodAntiAffinity getPodAntiAffinity() {
