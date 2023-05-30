@@ -243,7 +243,9 @@ public class PatroniApiHandlerImpl implements PatroniApiHandler {
   }
 
   private MemberRole toMemberRole(String role) {
-    if (Objects.equals("leader", role) || Objects.equals("master", role)) {
+    if (Objects.equals("leader", role)
+        || Objects.equals("master", role)
+        || Objects.equals("standby_leader", role)) {
       return MemberRole.LEADER;
     } else if (Objects.equals("replica", role)) {
       return MemberRole.REPLICA;
