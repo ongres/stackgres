@@ -58,10 +58,17 @@ describe('Create SGDistributedLog', () => {
         });
 
         cy.deleteCRD('sgdistributedlogs', {
-            metadata: {
-                name: 'advanced-' + resourceName,
-                namespace: namespace
-            }
+          metadata: {
+              name: 'advanced-' + resourceName,
+              namespace: namespace
+          }
+        });
+
+        cy.deleteCRD('sgdistributedlogs', {
+          metadata: {
+              name: 'resources-' + resourceName,
+              namespace: namespace
+          }
         });
 
         cy.deleteCRD('sgpgconfigs', {

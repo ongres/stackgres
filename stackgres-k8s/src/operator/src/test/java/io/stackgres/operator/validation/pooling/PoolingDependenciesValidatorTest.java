@@ -8,7 +8,6 @@ package io.stackgres.operator.validation.pooling;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.DependenciesValidatorTest;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +21,7 @@ class PoolingDependenciesValidatorTest
     extends DependenciesValidatorTest<PoolingReview, PoolingDependenciesValidator> {
 
   @Override
-  protected DependenciesValidator<PoolingReview> setUpValidation() {
+  protected PoolingDependenciesValidator setUpValidation() {
     return new PoolingDependenciesValidator();
   }
 
