@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.patroni;
+package io.stackgres.operator.conciliation.factory.cluster;
 
 import java.util.Map;
 import java.util.stream.Stream;
@@ -53,7 +53,7 @@ public class TemplatesConfigMap extends AbstractPatroniTemplatesConfigMap<StackG
         .withName(StackGresVolume.SCRIPT_TEMPLATES.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withName(name(context))
-            .withDefaultMode(444)
+            .withDefaultMode(0444)
             .build())
         .build();
   }

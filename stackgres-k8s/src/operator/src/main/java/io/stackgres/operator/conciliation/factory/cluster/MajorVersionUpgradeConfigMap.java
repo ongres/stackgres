@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.patroni;
+package io.stackgres.operator.conciliation.factory.cluster;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,7 +55,7 @@ public class MajorVersionUpgradeConfigMap implements VolumeFactory<StackGresClus
         .withName(StackGresVolume.POSTGRES_CONFIG.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withName(name(context))
-            .withDefaultMode(444)
+            .withDefaultMode(0444)
             .build())
         .build();
   }

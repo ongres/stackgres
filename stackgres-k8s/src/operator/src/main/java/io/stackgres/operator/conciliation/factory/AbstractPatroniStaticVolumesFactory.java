@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 import io.stackgres.common.StackGresVolume;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class PatroniStaticVolumesFactory<T> implements VolumeFactory<T> {
+public abstract class AbstractPatroniStaticVolumesFactory<T> implements VolumeFactory<T> {
 
   @Override
   public @NotNull Stream<VolumePair> buildVolumes(T context) {
@@ -22,7 +22,8 @@ public abstract class PatroniStaticVolumesFactory<T> implements VolumeFactory<T>
         emptyDir(StackGresVolume.USER.getName()),
         emptyDir(StackGresVolume.LOCAL_BIN.getName()),
         emptyDir(StackGresVolume.LOG.getName()),
-        emptyDir(StackGresVolume.PATRONI_CONFIG.getName())
+        emptyDir(StackGresVolume.PATRONI_CONFIG.getName()),
+        emptyDir(StackGresVolume.POSTGRES_SSL_COPY.getName())
     );
   }
 }

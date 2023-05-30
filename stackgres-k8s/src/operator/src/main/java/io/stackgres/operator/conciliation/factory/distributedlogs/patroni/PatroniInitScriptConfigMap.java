@@ -62,7 +62,7 @@ public class PatroniInitScriptConfigMap implements
             .withName(StackGresVolume.INIT_SCRIPT.getName())
             .withConfigMap(new ConfigMapVolumeSourceBuilder()
                 .withName(name(context.getSource()))
-                .withDefaultMode(420)
+                .withDefaultMode(0440)
                 .withOptional(false)
                 .build())
             .build();

@@ -28,11 +28,11 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterRestorePitr;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.PatroniEnvironmentVariablesFactory;
+import io.stackgres.operator.conciliation.factory.AbstractPatroniEnvironmentVariablesFactory;
 
 @Singleton
-public class ClusterPatroniEnvVarFactory
-    extends PatroniEnvironmentVariablesFactory<StackGresClusterContext> {
+public class PatroniEnvironmentVariablesFactory
+    extends AbstractPatroniEnvironmentVariablesFactory<StackGresClusterContext> {
 
   @Override
   public List<EnvVar> createResource(StackGresClusterContext context) {

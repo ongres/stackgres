@@ -58,7 +58,7 @@ public class BackupSecret
         .withName(StackGresVolume.BACKUP_CREDENTIALS.getName())
         .withNewSecret()
         .withSecretName(name(context))
-        .withDefaultMode(444)
+        .withDefaultMode(0444)
         .endSecret()
         .build();
   }

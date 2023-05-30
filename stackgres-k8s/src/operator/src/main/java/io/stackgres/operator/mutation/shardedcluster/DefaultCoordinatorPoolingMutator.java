@@ -21,7 +21,8 @@ import io.stackgres.operator.mutation.AbstractDefaultResourceMutator;
 @ApplicationScoped
 public class DefaultCoordinatorPoolingMutator
     extends AbstractDefaultResourceMutator<
-        StackGresPoolingConfig, StackGresShardedCluster, StackGresShardedClusterReview> {
+        StackGresPoolingConfig, StackGresShardedCluster, StackGresShardedClusterReview>
+    implements ShardedClusterMutator {
 
   @Inject
   public DefaultCoordinatorPoolingMutator(

@@ -153,7 +153,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withName(FluentdUtil.configName(
                 context.getSource()))
-            .withDefaultMode(420)
+            .withDefaultMode(0440)
             .build())
         .build();
   }

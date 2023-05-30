@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
 
-public interface DistributedLogsEnvVarFactories {
+public interface DistributedLogsPatroniEnvironmentVariablesFactory {
   String V09_PATRONI_ENV_VAR_FACTORY = "V09_PATRONI_ENV_VAR_FACTORY";
   String V09_COMMON_ENV_VAR_FACTORY = "V09_COMMON_ENV_VAR_FACTORY";
   String LATEST_PATRONI_ENV_VAR_FACTORY = "LATEST_PATRONI_ENV_VAR_FACTORY";

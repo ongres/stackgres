@@ -135,7 +135,12 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
         .addAll(backupMounts.getVolumeMounts(context))
         .addAll(replicateMounts.getVolumeMounts(context))
         .addAll(postgresExtensions.getVolumeMounts(context))
-        .addAll(hugePagesMounts.getVolumeMounts(context));
+        .addAll(hugePagesMounts.getVolumeMounts(context))
+        .add(new VolumeMountBuilder()
+            .withName(StackGresVolume.POSTGRES_SSL_COPY.getName())
+            .withMountPath(ClusterStatefulSetPath.SSL_PATH.path())
+            .withReadOnly(true)
+            .build());
 
     Optional.ofNullable(cluster.getSpec().getInitData())
         .map(StackGresClusterInitData::getRestore)

@@ -6,7 +6,6 @@
 package io.stackgres.cluster.controller;
 
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_DATABASE;
-import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME;
 
 import java.io.ByteArrayInputStream;
@@ -27,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.Secret;
+import io.stackgres.cluster.common.PostgresUtil;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
@@ -38,7 +38,6 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.common.postgres.PostgresConnectionManager;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 
 public class PgBouncerAuthFileReconciliator {
@@ -73,7 +72,7 @@ public class PgBouncerAuthFileReconciliator {
       fileSystemHandler.copyOrReplace(AUTH_FILE_PATH, ORIGINAL_AUTH_FILE_PATH);
     }
     Collection<String> users = getPoolingConfigUserNames(context);
-    String postgresPassword = getPostgresPassword(context);
+    String postgresPassword = PostgresUtil.getPostgresPassword(context, secretFinder);
     final String usersSection = extractAuthFileSectionForUsers(postgresPassword, users);
     try (
         InputStream originalInputStream = fileSystemHandler.newInputStream(
@@ -84,21 +83,6 @@ public class PgBouncerAuthFileReconciliator {
             originalInputStream, additionalInputStream)) {
       fileSystemHandler.copyOrReplace(inputStream, AUTH_FILE_PATH);
     }
-  }
-
-  private String getPostgresPassword(ClusterContext context) {
-    Secret secret = secretFinder.findByNameAndNamespace(
-        context.getCluster().getMetadata().getName(),
-        context.getCluster().getMetadata().getNamespace())
-        .orElseThrow(() -> new RuntimeException("Can not find secret "
-            + context.getCluster().getMetadata().getName()));
-    return Optional.of(secret).map(Secret::getData)
-        .filter(data -> data.containsKey(SUPERUSER_PASSWORD_KEY))
-        .map(data -> data.get(SUPERUSER_PASSWORD_KEY))
-        .map(ResourceUtil::decodeSecret)
-        .orElseThrow(() -> new RuntimeException("Can not find key "
-            + SUPERUSER_PASSWORD_KEY + " in secret "
-            + context.getCluster().getMetadata().getName()));
   }
 
   private Collection<String> getPoolingConfigUserNames(ClusterContext context) {

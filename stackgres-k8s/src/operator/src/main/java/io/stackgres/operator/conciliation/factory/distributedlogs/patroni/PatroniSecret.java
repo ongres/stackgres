@@ -29,7 +29,7 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 public class PatroniSecret implements
     ResourceGenerator<StackGresDistributedLogsContext>, StackGresPasswordKeys {
 
-  private LabelFactoryForCluster<StackGresDistributedLogs> factoryFactory;
+  private LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
   public static String name(StackGresDistributedLogsContext clusterContext) {
     return ResourceUtil.resourceName(clusterContext.getSource().getMetadata().getName());
@@ -47,7 +47,7 @@ public class PatroniSecret implements
     final StackGresDistributedLogs cluster = context.getSource();
     final String name = cluster.getMetadata().getName();
     final String namespace = cluster.getMetadata().getNamespace();
-    final Map<String, String> labels = factoryFactory.genericLabels(cluster);
+    final Map<String, String> labels = labelFactory.genericLabels(cluster);
 
     Map<String, String> generatedPasswords = context.getDatabaseCredentials()
         .map(Secret::getData)
@@ -76,8 +76,8 @@ public class PatroniSecret implements
   }
 
   @Inject
-  public void setFactoryFactory(LabelFactoryForCluster<StackGresDistributedLogs> factoryFactory) {
-    this.factoryFactory = factoryFactory;
+  public void setFactoryFactory(LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
+    this.labelFactory = labelFactory;
   }
 
 }

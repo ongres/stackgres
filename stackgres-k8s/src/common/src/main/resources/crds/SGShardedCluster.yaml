@@ -125,9 +125,9 @@ spec:
                         enabled:
                           type: boolean
                           description: |
-                            Allow to enable SSL for connections to Postgres. By default is `false`.
+                            Allow to enable SSL for connections to Postgres. By default is `true`.
                             
-                            If `true` fields `certificateSecretKeySelector` and `privateKeySecretKeySelector` will be required.
+                            If `true` certificate and private key will be auto-generated unless fields `certificateSecretKeySelector` and `privateKeySecretKeySelector` are specified.
                         certificateSecretKeySelector:
                           type: object
                           description: |

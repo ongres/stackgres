@@ -36,6 +36,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCredentials;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniCredentials;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromStorage;
@@ -44,6 +45,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUsers;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.crd.sgcluster.StackGresClusterUserSecretKeyRef;
 import io.stackgres.common.crd.sgcluster.StackGresClusterUsersCredentials;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
@@ -61,6 +63,7 @@ import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
+import io.stackgres.operator.conciliation.factory.cluster.PostgresSslSecret;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import org.slf4j.Logger;
@@ -215,6 +218,8 @@ public class ClusterRequiredResourcesGenerator
             .orElseThrow(() -> new IllegalArgumentException("Can not find SGObjectStorage "
                 + sgObjectStorage + " to replicate from")));
 
+    final PostgresSsl postgresSsl = getPostgresSsl(clusterNamespace, config);
+
     StackGresClusterContext context = ImmutableStackGresClusterContext.builder()
         .kubernetesVersion(kubernetesVersion)
         .source(config)
@@ -236,6 +241,8 @@ public class ClusterRequiredResourcesGenerator
         .authenticatorUsername(credentials.authenticatorUsername)
         .authenticatorPassword(credentials.authenticatorPassword)
         .patroniRestApiPassword(credentials.patroniRestApiPassword)
+        .postgresSslCertificate(postgresSsl.certificate)
+        .postgresSslPrivateKey(postgresSsl.privateKey)
         .build();
 
     return decorator.decorateResources(context);
@@ -464,13 +471,54 @@ public class ClusterRequiredResourcesGenerator
     return configuredUsers;
   }
 
+  record PostgresSsl(
+      Optional<String> certificate,
+      Optional<String> privateKey) {
+  }
+
+  private PostgresSsl getPostgresSsl(
+      final String clusterNamespace,
+      final StackGresCluster cluster) {
+    var ssl = Optional.ofNullable(cluster)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPostgres)
+        .map(StackGresClusterPostgres::getSsl);
+    if (ssl.map(StackGresClusterSsl::getEnabled).orElse(false)) {
+      if (ssl.map(StackGresClusterSsl::getCertificateSecretKeySelector).isPresent()
+          && ssl.map(StackGresClusterSsl::getPrivateKeySecretKeySelector).isPresent()) {
+        return new PostgresSsl(
+            getSecretAndKeyOrThrow(clusterNamespace, ssl,
+                StackGresClusterSsl::getCertificateSecretKeySelector,
+                secretKeySelector -> "Certificate key " + secretKeySelector.getKey()
+                + " was not found in secret " + secretKeySelector.getName(),
+                secretKeySelector -> "Certificate secret " + secretKeySelector.getName()
+                + " was not found"),
+            getSecretAndKeyOrThrow(clusterNamespace, ssl,
+                StackGresClusterSsl::getPrivateKeySecretKeySelector,
+                secretKeySelector -> "Private key key " + secretKeySelector.getKey()
+                + " was not found in secret " + secretKeySelector.getName(),
+                secretKeySelector -> "Private key secret " + secretKeySelector.getName()
+                + " was not found"));
+      }
+      return new PostgresSsl(
+          getSecretAndKey(clusterNamespace, ssl,
+              s -> new SecretKeySelector(
+                  PostgresSslSecret.CERTIFICATE_KEY, PostgresSslSecret.name(cluster))),
+          getSecretAndKey(clusterNamespace, ssl,
+              s -> new SecretKeySelector(
+                  PostgresSslSecret.PRIVATE_KEY_KEY, PostgresSslSecret.name(cluster))));
+    }
+
+    return new PostgresSsl(Optional.empty(), Optional.empty());
+  }
+
   private <T, S> Optional<String> getSecretAndKeyOrThrow(final String clusterNamespace,
-      final Optional<T> users,
+      final Optional<T> secretSection,
       final Function<T, S> secretKeyRefGetter,
       final Function<S, SecretKeySelector> secretKeySelectorGetter,
       final Function<SecretKeySelector, String> onKeyNotFoundMessageGetter,
       final Function<SecretKeySelector, String> onSecretNotFoundMessageGetter) {
-    return users
+    return secretSection
         .map(secretKeyRefGetter)
         .map(secretKeySelectorGetter)
         .map(secretKeySelector -> secretFinder
@@ -483,9 +531,7 @@ public class ClusterRequiredResourcesGenerator
 
   private <T> Optional<String> getSecretAndKeyOrThrow(final String clusterNamespace,
       final Optional<T> credential,
-      final Function<
-          T,
-          SecretKeySelector> secretKeySelectorGetter,
+      final Function<T, SecretKeySelector> secretKeySelectorGetter,
       final Function<SecretKeySelector, String> onKeyNotFoundMessageGetter,
       final Function<SecretKeySelector, String> onSecretNotFoundMessageGetter) {
     return credential
@@ -508,6 +554,25 @@ public class ClusterRequiredResourcesGenerator
         .map(data -> data.get(key))
         .map(ResourceUtil::decodeSecret)
         .orElseThrow(() -> new IllegalArgumentException(onKeyNotFoundMessage)));
+  }
+
+  private <T> Optional<String> getSecretAndKey(final String clusterNamespace,
+      final Optional<T> credential,
+      final Function<T, SecretKeySelector> secretKeySelectorGetter) {
+    return credential
+        .map(secretKeySelectorGetter)
+        .flatMap(secretKeySelector -> secretFinder
+            .findByNameAndNamespace(secretKeySelector.getName(), clusterNamespace)
+            .flatMap(secret -> getSecretKey(secret, secretKeySelector.getKey())));
+  }
+
+  private Optional<String> getSecretKey(
+      final Secret secret,
+      final String key) {
+    return Optional.of(secret)
+        .map(Secret::getData)
+        .map(data -> data.get(key))
+        .map(ResourceUtil::decodeSecret);
   }
 
   private Set<String> getClusterBackupNamespaces(final String clusterNamespace) {

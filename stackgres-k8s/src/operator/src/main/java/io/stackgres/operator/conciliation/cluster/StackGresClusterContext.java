@@ -96,6 +96,10 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
 
   Optional<String> getPatroniRestApiPassword();
 
+  Optional<String> getPostgresSslCertificate();
+
+  Optional<String> getPostgresSslPrivateKey();
+
   default Optional<String> getBackupPath() {
     Optional<@NotNull StackGresClusterConfiguration> config = Optional.of(getCluster())
         .map(StackGresCluster::getSpec)

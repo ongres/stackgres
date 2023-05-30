@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
+package io.stackgres.operator.conciliation.factory.distributedlogs;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -21,7 +21,6 @@ import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
-import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
 
 @Singleton
 @OperatorVersionBinder
