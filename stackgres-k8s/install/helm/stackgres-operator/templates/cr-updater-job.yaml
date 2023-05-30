@@ -5,8 +5,7 @@ metadata:
   name: "{{ .Release.Name }}-cr-updater"
   namespace: {{ .Release.Namespace }}
   labels:
-    app: stackgres-operator
-    scope: init
+    app: stackgres-operator-init
     job: cr-updater
   annotations:
     "helm.sh/hook": post-upgrade
@@ -19,8 +18,7 @@ spec:
   template:
     metadata:
       labels:
-        app: stackgres-operator
-        scope: init
+        app: stackgres-operator-init
         job: cr-updater
     spec:
       {{- with .Values.jobs.affinity}}

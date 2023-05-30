@@ -164,16 +164,16 @@ endif
 
 .PHONY: bundle
 bundle: kustomize ## Generate bundle manifests and metadata, then validate generated files.
-	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat config/manifests/bases/stackgres.clusterserviceversion.template.yaml)\nMAKE_EOF")" \
+	VERSION="$(VERSION)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/manifests/bases/stackgres.clusterserviceversion.template.yaml)")" \
 		> config/manifests/bases/stackgres.clusterserviceversion.yaml
 	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat config/manager/kustomization.template.yaml)\nMAKE_EOF")" \
 		> config/manager/kustomization.yaml
 	cp -a "$(PROJECT_DIR)/stackgres-k8s/src/common/src/main/resources/crds/." config/crd/bases/.
 	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat config/crd/kustomization.template.yaml)\nMAKE_EOF")" \
 		> config/crd/kustomization.yaml
-	VERSION="$(VERSION)" OPENSHIFT_BUNDLE="$(OPENSHIFT_BUNDLE)" eval "$$(printf "cat << MAKE_EOF\n$$(cat config/manager/manager.template.yaml)\nMAKE_EOF")" \
+	VERSION="$(VERSION)" OPENSHIFT_BUNDLE="$(OPENSHIFT_BUNDLE)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/manager/manager.template.yaml)")" \
 		> config/manager/manager.yaml
-	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat watches.template.yaml)\nMAKE_EOF")" \
+	VERSION="$(VERSION)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat watches.template.yaml)")" \
 		> watches.yaml
 	operator-sdk generate kustomize manifests -q
 	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
@@ -185,7 +185,7 @@ bundle: kustomize ## Generate bundle manifests and metadata, then validate gener
 bundle-openshift: IMAGE_TAG := $(IMAGE_TAG)-openshift
 bundle-openshift: OPENSHIFT_BUNDLE := true
 bundle-openshift: bundle
-	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat openshift-operator-bundle/manifests/stackgres.clusterserviceversion.template.yaml)\nMAKE_EOF")" \
+	VERSION="$(VERSION)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat openshift-operator-bundle/manifests/stackgres.clusterserviceversion.template.yaml)")" \
 		> openshift-operator-bundle/manifests/stackgres.clusterserviceversion.yaml
 	yq -y -s '.[0] * .[1]' \
 		bundle/manifests/stackgres.clusterserviceversion.yaml \

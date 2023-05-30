@@ -3,7 +3,7 @@
   version: v1
   kind: SGConfig
   chart: helm-charts/stackgres-operator
-  watchDependentResources: false
+  watchDependentResources: true
   overrideValues:
     containerRegistry: quay.io
     adminui.image.name: stackgres/admin-ui
