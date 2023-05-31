@@ -5,8 +5,6 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +13,7 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
@@ -57,9 +56,9 @@ public class PodTestUtil {
     actual.getMetadata().setGeneration(null);
     actual.getMetadata().setResourceVersion(null);
     actual.getMetadata().setUid(null);
-    String expectedJson = JsonUtil.jsonMapper().valueToTree(expected).toPrettyString();
-    String actualJson = JsonUtil.jsonMapper().valueToTree(actual).toPrettyString();
-    assertEquals(expectedJson, actualJson);
+    JsonNode expectedJson = JsonUtil.toJson(expected);
+    JsonNode actualJson = JsonUtil.toJson(actual);
+    JsonUtil.assertJsonEquals(expectedJson, actualJson);
   }
 
   public void preparePods(StackGresCluster cluster, int primaryIndex, int... replicaIndexes) {

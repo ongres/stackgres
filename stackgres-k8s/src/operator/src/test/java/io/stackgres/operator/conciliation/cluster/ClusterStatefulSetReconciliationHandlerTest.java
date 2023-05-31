@@ -267,7 +267,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
-    verify(defaultHandler).patch(any(), any(Pod.class), any());
+    verify(defaultHandler, times(2)).patch(any(), any(Pod.class), any());
     ArgumentCaptor<HasMetadata> podArgumentCaptor = ArgumentCaptor.forClass(HasMetadata.class);
     verify(defaultHandler, atLeastOnce()).patch(any(), podArgumentCaptor.capture(), any());
     var updatedPod = podArgumentCaptor.getAllValues().stream()
@@ -321,11 +321,11 @@ class ClusterStatefulSetReconciliationHandlerTest {
     StatefulSet sts = (StatefulSet) handler.patch(
         cluster, requiredStatefulSet, deployedStatefulSet);
 
-    assertEquals(desiredReplicas + 1, sts.getSpec().getReplicas());
+    assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
-    verify(podScanner, times(6)).findByLabelsAndNamespace(anyString(), anyMap());
+    verify(podScanner, times(7)).findByLabelsAndNamespace(anyString(), anyMap());
     verify(defaultHandler, times(3)).patch(any(), any(StatefulSet.class), any());
-    verify(defaultHandler, never()).patch(any(), any(Pod.class), any());
+    verify(defaultHandler, times(2)).patch(any(), any(Pod.class), any());
     verify(defaultHandler, never()).delete(any(), any(StatefulSet.class));
     verify(defaultHandler, never()).patch(any(), any(PersistentVolumeClaim.class), any());
   }
@@ -357,7 +357,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     verify(podScanner, times(5)).findByLabelsAndNamespace(anyString(), anyMap());
     verify(defaultHandler, times(1)).patch(any(), any(StatefulSet.class), any());
-    verify(defaultHandler, times(1)).patch(any(), any(Pod.class), any());
+    verify(defaultHandler, times(2)).patch(any(), any(Pod.class), any());
     verify(defaultHandler, times(1)).delete(any(), any(Pod.class));
     verify(defaultHandler, never()).patch(any(), any(PersistentVolumeClaim.class), any());
   }

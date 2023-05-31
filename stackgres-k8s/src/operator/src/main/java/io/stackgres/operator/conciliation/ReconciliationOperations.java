@@ -79,7 +79,6 @@ public interface ReconciliationOperations {
           Map.entry(RoleBinding.class, client -> client.rbac().roleBindings()),
           Map.entry(Endpoints.class, KubernetesClient::endpoints),
           Map.entry(Service.class, KubernetesClient::services),
-          Map.entry(Pod.class, KubernetesClient::pods),
           Map.entry(Job.class, client -> client.batch().v1().jobs()),
           Map.entry(CronJob.class, client -> client.batch().v1().cronjobs()),
           Map.entry(StatefulSet.class, client -> client.apps().statefulSets()),

@@ -7,7 +7,6 @@ package io.stackgres.jobs.dbops.securityupgrade;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -70,12 +69,12 @@ class SecurityUpgradeStateHandlerImplTest extends ClusterStateHandlerTest {
     securityUpgrade.setInitialInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
-            .collect(Collectors.toList()));
+            .toList());
     securityUpgrade.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
     securityUpgrade.setPendingToRestartInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
-            .collect(Collectors.toList()));
+            .toList());
     securityUpgrade.setSwitchoverInitiated(null);
 
     dbOps.getStatus().setSecurityUpgrade(securityUpgrade);
@@ -91,11 +90,21 @@ class SecurityUpgradeStateHandlerImplTest extends ClusterStateHandlerTest {
     securityUpgradeStatus.setInitialInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
-            .collect(Collectors.toList()));
+            .toList());
     securityUpgradeStatus.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
     dbOpsStatus.setSecurityUpgrade(securityUpgradeStatus);
     status.setDbOps(dbOpsStatus);
     cluster.setStatus(status);
-
   }
+
+  @Override
+  protected ClusterDbOpsRestartStatus getClusterDbOpsRestartStatus(StackGresCluster cluster) {
+    return cluster.getStatus().getDbOps().getSecurityUpgrade();
+  }
+
+  @Override
+  protected DbOpsRestartStatus getDbOpsRestartStatus(StackGresDbOps dbOps) {
+    return dbOps.getStatus().getSecurityUpgrade();
+  }
+
 }

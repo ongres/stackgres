@@ -328,12 +328,12 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
 
     var initialInstances = Optional.ofNullable(restartStatus.getInitialInstances())
         .map(instances -> instances.stream().map(podsDict::get)
-            .collect(Collectors.toUnmodifiableList()))
+            .toList())
         .orElse(clusterPods);
 
     var restartedInstances = Optional.ofNullable(restartStatus.getRestartedInstances())
         .map(instances -> instances.stream().map(podsDict::get)
-            .collect(Collectors.toUnmodifiableList()))
+            .toList())
         .orElse(List.of());
 
     var podRestartReasonsMap = clusterPods.stream()
