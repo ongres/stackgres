@@ -128,30 +128,30 @@ public class DistributedLogsControllerReconciliator
         || extensionReconciliationResult.result().orElse(false)
         || clusterReconciliationResult.result().orElse(false)) {
       distributedLogsScheduler.update(context.getDistributedLogs(),
-          (targetDistributedLogs, distributedLogsWithStatus) -> {
-            var podStatus = Optional.ofNullable(distributedLogsWithStatus.getStatus())
+          (currentDistributedLogs) -> {
+            var podStatus = Optional.ofNullable(context.getDistributedLogs().getStatus())
                 .map(StackGresDistributedLogsStatus::getPodStatuses)
                 .flatMap(podStatuses -> findPodStatus(podStatuses, podName))
                 .orElseThrow();
-            if (targetDistributedLogs.getStatus() == null) {
-              targetDistributedLogs.setStatus(new StackGresDistributedLogsStatus());
+            if (currentDistributedLogs.getStatus() == null) {
+              currentDistributedLogs.setStatus(new StackGresDistributedLogsStatus());
             }
-            targetDistributedLogs.getStatus().setArch(
-                distributedLogsWithStatus.getStatus().getArch());
-            targetDistributedLogs.getStatus().setOs(
-                distributedLogsWithStatus.getStatus().getOs());
-            if (targetDistributedLogs.getStatus().getPodStatuses() == null) {
-              targetDistributedLogs.getStatus().setPodStatuses(new ArrayList<>());
+            currentDistributedLogs.getStatus().setArch(
+                context.getDistributedLogs().getStatus().getArch());
+            currentDistributedLogs.getStatus().setOs(
+                context.getDistributedLogs().getStatus().getOs());
+            if (currentDistributedLogs.getStatus().getPodStatuses() == null) {
+              currentDistributedLogs.getStatus().setPodStatuses(new ArrayList<>());
             }
-            findPodStatus(targetDistributedLogs.getStatus().getPodStatuses(), podName)
+            findPodStatus(currentDistributedLogs.getStatus().getPodStatuses(), podName)
                 .ifPresentOrElse(
                     targetPodStatus -> {
-                      targetDistributedLogs.getStatus().getPodStatuses().set(
-                          targetDistributedLogs.getStatus().getPodStatuses()
+                      currentDistributedLogs.getStatus().getPodStatuses().set(
+                          currentDistributedLogs.getStatus().getPodStatuses()
                           .indexOf(targetPodStatus),
                           podStatus);
                     },
-                    () -> targetDistributedLogs.getStatus().getPodStatuses().add(podStatus));
+                    () -> currentDistributedLogs.getStatus().getPodStatuses().add(podStatus));
           });
     }
     return postgresBootstrapReconciliationResult

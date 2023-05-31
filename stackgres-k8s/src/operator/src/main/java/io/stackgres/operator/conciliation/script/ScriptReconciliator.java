@@ -62,10 +62,7 @@ public class ScriptReconciliator
 
   @Override
   public void onPreReconciliation(StackGresScript config) {
-    scriptScheduler.update(config,
-        (targetScript, script) -> {
-          statusManager.refreshCondition(targetScript);
-        });
+    scriptScheduler.update(config, statusManager::refreshCondition);
   }
 
   @Override

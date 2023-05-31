@@ -119,19 +119,18 @@ public class ClusterControllerReconciliator
         || extensionReconciliationResult.result().orElse(false)
         || patroniReconciliationResult.result().orElse(false)) {
       clusterScheduler.update(cluster,
-          (targetCluster, clusterWithStatus) -> updateClusterPodStatus(
-              targetCluster, clusterWithStatus));
+          (currentCluster) -> updateClusterPodStatus(currentCluster, cluster));
     }
 
     if (extensionReconciliationResult.result().orElse(false)) {
       KubernetesClientUtil.retryOnConflict(() -> clusterScheduler.update(cluster,
-          (targetCluster, sourceCluster) -> {
-            sourceCluster.getSpec().getToInstallPostgresExtensions().stream()
-                .filter(toInstallExtension -> targetCluster.getSpec()
+          (currentCluster) -> {
+            cluster.getSpec().getToInstallPostgresExtensions().stream()
+                .filter(toInstallExtension -> currentCluster.getSpec()
                     .getToInstallPostgresExtensions()
                     .stream().noneMatch(toInstallExtension::equals))
                 .map(toInstallExtension -> Tuple.tuple(toInstallExtension,
-                    targetCluster.getSpec().getToInstallPostgresExtensions().stream()
+                    currentCluster.getSpec().getToInstallPostgresExtensions().stream()
                     .filter(targetToInstallExtension -> toInstallExtension.getName()
                         .equals(targetToInstallExtension.getName()))
                     .findFirst()))
@@ -152,28 +151,28 @@ public class ClusterControllerReconciliator
         .join(patroniStandbyHistoryReconciliatorResult);
   }
 
-  private void updateClusterPodStatus(StackGresCluster targetCluster,
-      StackGresCluster clusterWithStatus) {
-    var podStatus = Optional.ofNullable(clusterWithStatus.getStatus())
+  private void updateClusterPodStatus(StackGresCluster currentCluster,
+      StackGresCluster cluster) {
+    var podStatus = Optional.ofNullable(cluster.getStatus())
         .map(StackGresClusterStatus::getPodStatuses)
         .flatMap(podStatuses -> findPodStatus(podStatuses, podName))
         .orElseThrow();
-    if (targetCluster.getStatus() == null) {
-      targetCluster.setStatus(new StackGresClusterStatus());
+    if (currentCluster.getStatus() == null) {
+      currentCluster.setStatus(new StackGresClusterStatus());
     }
-    targetCluster.getStatus().setArch(clusterWithStatus.getStatus().getArch());
-    targetCluster.getStatus().setOs(clusterWithStatus.getStatus().getOs());
-    if (targetCluster.getStatus().getPodStatuses() == null) {
-      targetCluster.getStatus().setPodStatuses(new ArrayList<>());
+    currentCluster.getStatus().setArch(cluster.getStatus().getArch());
+    currentCluster.getStatus().setOs(cluster.getStatus().getOs());
+    if (currentCluster.getStatus().getPodStatuses() == null) {
+      currentCluster.getStatus().setPodStatuses(new ArrayList<>());
     }
-    findPodStatus(targetCluster.getStatus().getPodStatuses(), podName)
+    findPodStatus(currentCluster.getStatus().getPodStatuses(), podName)
         .ifPresentOrElse(
             targetPodStatus -> {
-              targetCluster.getStatus().getPodStatuses().set(
-                  targetCluster.getStatus().getPodStatuses().indexOf(targetPodStatus),
+              currentCluster.getStatus().getPodStatuses().set(
+                  currentCluster.getStatus().getPodStatuses().indexOf(targetPodStatus),
                   podStatus);
             },
-            () -> targetCluster.getStatus().getPodStatuses().add(podStatus));
+            () -> currentCluster.getStatus().getPodStatuses().add(podStatus));
   }
 
   private Optional<StackGresClusterPodStatus> findPodStatus(

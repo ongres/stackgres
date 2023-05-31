@@ -134,12 +134,15 @@ public abstract class AbstractDbOpsJob implements JobFactory {
   @Override
   public Job createJob(StackGresDbOpsContext context) {
     final StackGresDbOps dbOps = context.getSource();
-    final String retries = String.valueOf(DbOpsUtil.getCurrentRetry(dbOps));
-    List<EnvVar> runEnvVars = getRunEnvVars(context);
-    List<EnvVar> setResultEnvVars = getSetResultEnvVars(context);
     final String namespace = dbOps.getMetadata().getNamespace();
     final String name = dbOps.getMetadata().getName();
     final Map<String, String> labels = dbOpsLabelFactory.dbOpsPodLabels(context.getSource());
+    final Integer maxRetries = Optional.of(dbOps)
+        .map(StackGresDbOps::getSpec)
+        .map(StackGresDbOpsSpec::getMaxRetries)
+        .orElse(0);
+    List<EnvVar> runEnvVars = getRunEnvVars(context);
+    List<EnvVar> setResultEnvVars = getSetResultEnvVars(context);
     final String timeout = DbOpsUtil.getTimeout(dbOps);
     return new JobBuilder()
         .withNewMetadata()
@@ -148,8 +151,7 @@ public abstract class AbstractDbOpsJob implements JobFactory {
         .withLabels(labels)
         .endMetadata()
         .withNewSpec()
-        .withBackoffLimit(0)
-        .withCompletions(1)
+        .withBackoffLimit(maxRetries)
         .withParallelism(1)
         .withNewTemplate()
         .withNewMetadata()
@@ -231,10 +233,6 @@ public abstract class AbstractDbOpsJob implements JobFactory {
                     new EnvVarBuilder()
                         .withName("DB_OPS_CRD_NAME")
                         .withValue(CustomResource.getCRDName(StackGresDbOps.class))
-                        .build(),
-                    new EnvVarBuilder()
-                        .withName("CURRENT_RETRY")
-                        .withValue(retries)
                         .build(),
                     new EnvVarBuilder()
                         .withName("HOME")

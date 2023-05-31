@@ -6,6 +6,7 @@
 package io.stackgres.jobs.dbops.lock;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -45,10 +46,10 @@ public class FakeClusterScheduler implements CustomResourceScheduler<StackGresCl
 
   @Override
   public StackGresCluster update(@NotNull StackGresCluster resource,
-      @NotNull BiConsumer<StackGresCluster, StackGresCluster> setter) {
+      @NotNull Consumer<StackGresCluster> setter) {
     final ObjectMeta metadata = resource.getMetadata();
     var cluster = kubeDb.getCluster(metadata.getName(), metadata.getNamespace());
-    setter.accept(cluster, resource);
+    setter.accept(cluster);
     return kubeDb.addOrReplaceCluster(cluster);
   }
 

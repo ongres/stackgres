@@ -20,7 +20,6 @@ e2e_test() {
 }
 
 check_restart_cluster_fail() {
-
   if kubectl patch sgpgconfig -n "$CLUSTER_NAMESPACE" postgresconf --type json \
       -p '[{"op":"replace","path":"/spec/postgresql.conf/shared_preload_libraries","value":"pg_stat_statements, auto_explain, invalid-lib"}]' \
       >/dev/null 2>&1
@@ -40,7 +39,8 @@ metadata:
 spec:
   sgCluster: $CLUSTER_NAME
   op: restart
-  timeout: PT30S
+  timeout: PT10S
+  maxRetries: 3
   restart:
     method: InPlace
 EOF
@@ -80,5 +80,4 @@ spec:
 EOF
 
   check_restart_ran_successfully  
-
 }
