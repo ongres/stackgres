@@ -136,7 +136,7 @@
                                 </ul>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.version')"></span>
 
-                                <input v-model="postgresVersion" @change="checkPgConfigVersion" required class="hide">
+                                <input v-model="postgresVersion" required class="hide">
                             </div>
                         </div>
 
@@ -427,7 +427,7 @@
                             </div>
 
                             <div class="col">
-                                <label for="spec.configurations.backups.retntion">Retention Window (max. number of base backups)</label>
+                                <label for="spec.configurations.backups.retention">Retention Window (max. number of base backups)</label>
                                 <input v-model="backups[0].retention" data-field="spec.configurations.backups.retention" type="number">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.retention')"></span>
                             </div>
@@ -2392,7 +2392,7 @@
                             </div>
                         </fieldset>
                         <div class="fieldsetFooter">
-                            <a class="addRow" @click="pushLabel('podsMetadata')">Add Label</a>
+                            <a class="addRow" @click="pushLabel(podsMetadata)">Add Label</a>
                         </div>
                     </div>
 
@@ -2429,7 +2429,7 @@
                             </div>
                         </fieldset>
                         <div class="fieldsetFooter">
-                            <a class="addRow" @click="pushAnnotation('annotationsAll')">Add Annotation</a>
+                            <a class="addRow" @click="pushAnnotation(annotationsAll)">Add Annotation</a>
                         </div>
                     </div>
                     
@@ -2458,7 +2458,7 @@
                             </div>
                         </fieldset>
                         <div class="fieldsetFooter">
-                            <a class="addRow" @click="pushAnnotation('annotationsPods')">Add Annotation</a>
+                            <a class="addRow" @click="pushAnnotation(annotationsPods)">Add Annotation</a>
                         </div>
                     </div>
 
@@ -2487,7 +2487,7 @@
                             </div>
                         </fieldset>
                         <div class="fieldsetFooter">
-                            <a class="addRow" @click="pushAnnotation('annotationsServices')">Add Annotation</a>
+                            <a class="addRow" @click="pushAnnotation(annotationsServices)">Add Annotation</a>
                         </div>
                     </div>
 
@@ -2516,7 +2516,7 @@
                             </div>
                         </fieldset>
                         <div class="fieldsetFooter">
-                            <a class="addRow" @click="pushAnnotation('postgresServicesPrimaryAnnotations')">Add Annotation</a>
+                            <a class="addRow" @click="pushAnnotation(postgresServicesPrimaryAnnotations)">Add Annotation</a>
                         </div>
                     </div>
 
@@ -2545,7 +2545,7 @@
                             </div>
                         </fieldset>
                         <div class="fieldsetFooter">
-                            <a class="addRow" @click="pushAnnotation('postgresServicesReplicasAnnotations')">Add Annotation</a>
+                            <a class="addRow" @click="pushAnnotation(postgresServicesReplicasAnnotations)">Add Annotation</a>
                         </div>
                     </div>
                 </div>
@@ -2580,7 +2580,7 @@
                             </div>
                         </fieldset>
                         <div class="fieldsetFooter" :class="!nodeSelector.length && 'topBorder'">
-                            <a class="addRow" @click="pushLabel('nodeSelector')">Add Node Selector</a>
+                            <a class="addRow" @click="pushLabel(nodeSelector)">Add Node Selector</a>
                         </div>
                     </div>
 
@@ -2991,6 +2991,7 @@
 
 <script>
     import {mixin} from '../mixins/mixin'
+    import {sgclusterform} from '../mixins/forms/sgclusterform'
     import router from '../../router'
     import store from '../../store'
     import sgApi from '../../api/sgApi'
@@ -3000,7 +3001,7 @@
     export default {
         name: 'CreateSGClusters',
 
-        mixins: [mixin],
+        mixins: [mixin, sgclusterform],
 
         components: {
           ClusterSummary
@@ -3008,51 +3009,19 @@
 
         data: function() {
 
-            const vm = this;
-            let tzCrontab = ( (store.state.timezone == 'local') ? vm.tzCrontab('0 5 * * *') : '0 5 * * *' ).split(' ');
-            
+            const vc = this;
 
             return {
-                previewCRD: {},
-                showSummary: false,
-                advancedMode: false,
                 formSteps: ['cluster', 'extensions', 'backups', 'initialization', 'replicate-from', 'scripts', 'sidecars', 'pods', 'pods-replication', 'services', 'metadata', 'scheduling', 'non-production'],
-                currentStep: 'cluster',
-                errorStep: [],
-                editMode: (vm.$route.name === 'EditCluster'),
-                editReady: false,
-                nullVal: null,
-                name: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
-                namespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
-                babelfishFeatureGates: false,
-                postgresVersion: 'latest',
-                flavor: 'vanilla',
-                ssl: {
-                    enabled: false,
-                    certificateSecretKeySelector: {
-                        name: '',
-                        key: ''
-                    },
-                    privateKeySecretKeySelector: {
-                        name: '',
-                        key: ''
-                    }
-                },
+                editMode: (vc.$route.name === 'EditCluster'),
                 instances: 1,
-                resourceProfile: '',
                 pgConfig: '',
-                storageClass: '',
-                volumeSize: 1,
-                volumeUnit: 'Gi',
                 connPooling: true,
                 connectionPoolingConfig: '',
                 restoreBackup: '',
                 enablePITR: false,
                 pitr: '',
                 downloadDiskConcurrency: 1,
-                distributedLogs: '',
-                retention: '',
-                prometheusAutobind: false,
                 replicateFrom: {},
                 replicateFromSource: '',
                 replication: {
@@ -3067,26 +3036,7 @@
                         }
                     ]
                 },
-                enableClusterPodAntiAffinity: true,
-                postgresUtil: true,
-                metricsExporter: true,
-                enableMonitoring: false,
-                podsMetadata: [ { label: '', value: ''} ],
-                nodeSelector: [ { label: '', value: ''} ],
-                tolerations: [ { key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null } ],
                 pgConfigExists: true,
-                currentScriptIndex: { base: 0, entry: 0 },
-                managedSql: {
-                    continueOnSGScriptError: false,
-                    scripts: [ {} ]
-                },
-                scriptSource: [ 
-                    { base: '', entries: ['raw'] }
-                ],
-                annotationsAll: [ { annotation: '', value: '' } ],
-                annotationsAllText: '',
-                annotationsPods: [ { annotation: '', value: '' } ],
-                annotationsServices: [ { annotation: '', value: '' } ],
                 postgresServices: {
                     primary: {
                         enabled: true,
@@ -3117,192 +3067,14 @@
                 },
                 postgresServicesPrimaryAnnotations: [ { annotation: '', value: '' } ],
                 postgresServicesReplicasAnnotations: [ { annotation: '', value: '' } ],
-                searchExtension: '',
-                extLicense: 'opensource',
-                extensionsList: {
-                    vanilla: {
-                        latest: []
-                    },
-                    babelfish: {
-                        latest: []
-                    }
-                },
-                selectedExtensions: [],
-                viewExtension: -1,
-                extVersion: {
-                    name: '',
-                    version: ''
-                },
-                affinityOperators: [
-                    { label: 'In', value: 'In' },
-                    { label: 'Not In', value: 'NotIn' },
-                    { label: 'Exists', value: 'Exists' },
-                    { label: 'Does Not Exists', value: 'DoesNotExists' },
-                    { label: 'Greater Than', value: 'Gt' },
-                    { label: 'Less Than', value: 'Lt' },
-                ],
-                requiredAffinity: [
-                    {   
-                        matchExpressions: [
-                            { key: '', operator: '', values: [ '' ] }
-                        ],
-                        matchFields: [
-                            { key: '', operator: '', values: [ '' ] }
-                        ]
-                    }
-                ],
-                preferredAffinity: [
-                    {
-                        preference: {
-                            matchExpressions: [
-                                { key: '', operator: '', values: [ '' ] }
-                            ],
-                            matchFields: [
-                                { key: '', operator: '', values: [ '' ] }
-                            ]
-                        },
-                        weight:  1
-                    }
-                ],
-                managedBackups: false,
-                backups: [{
-                    path: null,
-                    compression: 'lz4',
-                    cronSchedule: '0 5 * * *',
-                    retention: 5,
-                    performance: {
-                        maxNetworkBandwidth: '',
-                        maxDiskBandwidth: '',
-                        uploadDiskConcurrency: 1
-                    },
-                    sgObjectStorage: ''
-                }],
-                cronSchedule: [{
-                    min: tzCrontab[0],
-                    hour: tzCrontab[1],
-                    dom: tzCrontab[2],
-                    month: tzCrontab[3],
-                    dow: tzCrontab[4],
-                }],
-                pods: {
-                    customVolumes: [{
-                        name: null,
-                    }],
-                    customInitContainers: [{
-                        name: null,
-                        image: null,
-                        imagePullPolicy: null,
-                        args: [null],
-                        command: [null],
-                        workingDir: null,
-                        env: [ { name: null, value: null } ],
-                        ports: [{
-                            containerPort: null,
-                            hostIP: null,
-                            hostPort: null,
-                            name: null,
-                            protocol: null
-                        }],
-                        volumeMounts: [{
-                            mountPath: null,
-                            mountPropagation: null,
-                            name: null,
-                            readOnly: false,
-                            subPath: null,
-                            subPathExpr: null,
-                        }]
-                    }],
-                    customContainers: [{
-                        name: null,
-                        image: null,
-                        imagePullPolicy: null,
-                        args: [null],
-                        command: [null],
-                        workingDir: null,
-                        env: [ { name: null, value: null } ],
-                        ports: [{
-                            containerPort: null,
-                            hostIP: null,
-                            hostPort: null,
-                            name: null,
-                            protocol: null
-                        }],
-                        volumeMounts: [{
-                            mountPath: null,
-                            mountPropagation: null,
-                            name: null,
-                            readOnly: false,
-                            subPath: null,
-                            subPathExpr: null,
-                        }]
-                    }]
-                },
-                customVolumesType: [null]
             }
 
         },
         
         computed: {
 
-            allNamespaces () {
-                return store.state.allNamespaces
-            },
-            profiles () {
-                return store.state.sginstanceprofiles
-            },
-            pgConf () {
-                return store.state.sgpgconfigs
-            },
-            connPoolConf () {
-                return store.state.sgpoolconfigs
-            },
-            sgbackups () {
-                return store.state.sgbackups
-            },
-            sgobjectstorages () {
-                return store.state.sgobjectstorages
-            },
             sgclusters () {
                 return store.state.sgclusters
-            },
-            shortPostgresVersion () {
-                if (this.postgresVersion == 'latest')
-                    return Object.keys(store.state.postgresVersions[this.flavor]).sort().reverse()[0];
-                else
-                    return this.postgresVersion.substring(0,2)
-            },
-            storageClasses() {
-                return store.state.storageClasses
-            },
-            
-            logsClusters(){
-                return store.state.sgdistributedlogs
-            },
-
-            sgscripts(){
-                return store.state.sgscripts
-            },
-
-            nameColission() {
-
-                const vc = this;
-                var nameColission = false;
-                
-                store.state.sgclusters.forEach(function(item, index){
-                    if( (item.name == vc.name) && (item.data.metadata.namespace == vc.$route.params.namespace ) ) {
-                        nameColission = true;
-                        return false
-                    }
-                })
-
-                return nameColission
-            },
-            isReady() {
-                return store.state.ready
-            },
-
-            postgresVersionsList() {
-                return store.state.postgresVersions
             },
 
             cluster () {
@@ -3391,8 +3163,7 @@
                             
                             vm.pods.customInitContainers = vm.hasProp(c, 'data.spec.pods.customInitContainers') ? c.data.spec.pods.customInitContainers : [];
                             vm.pods.customContainers = vm.hasProp(c, 'data.spec.pods.customContainers') ? c.data.spec.pods.customContainers : [];
-                            vm.pgConfigExists = true;
-
+                            
                             if(vm.hasProp(c, 'data.spec.managedSql.scripts')) {
                                 vm.scriptSource = [];
                                 c.data.spec.managedSql.scripts.forEach(function(baseScript, baseIndex) {
@@ -3462,229 +3233,9 @@
                 return this.pitr.length ? ( (store.state.timezone == 'local') ? moment.utc(this.pitr).local().format('YYYY-MM-DD HH:mm:ss') : moment.utc(this.pitr).format('YYYY-MM-DD HH:mm:ss') ) : '';
             },
 
-            currentStepIndex() {
-                return this.formSteps.indexOf(this.currentStep)
-            }
-
         },
 
         methods: {
-
-            getScriptFile( baseIndex, index ){
-                this.currentScriptIndex = { base: baseIndex, entry: index };
-                $('input#scriptFile-' + baseIndex + '-' + index).click();
-            },
-
-            uploadScript: function(e) {
-                var files = e.target.files || e.dataTransfer.files;
-                var vm = this;
-
-                if (!files.length){
-                    console.log("File not loaded")
-                    return;
-                } else {
-                    var reader = new FileReader();
-                    
-                    reader.onload = function(e) {
-                    vm.managedSql.scripts[vm.currentScriptIndex.base].scriptSpec.scripts[vm.currentScriptIndex.entry].script = e.target.result;
-                    };
-                    reader.readAsText(files[0]);
-                }
-
-            },
-
-            pushScript(baseIndex) {
-                this.managedSql.scripts[baseIndex].scriptSpec.scripts.push({
-                    name: '',
-                    wrapInTransaction: null,
-                    storeStatusInDatabase: false,
-                    retryOnError: false,
-                    user: '',
-                    database: '',
-                    script: ''
-                } ); 
-
-                this.scriptSource[baseIndex].entries.push('raw');
-            },
-
-            pushScriptSet() {
-                this.managedSql.scripts.push( { 
-                    continueOnError: false,
-                    scriptSpec: {
-                        continueOnError: false,
-                        managedVersions: true,
-                        scripts: [{
-                            name: '',
-                            wrapInTransaction: null,
-                            storeStatusInDatabase: false,
-                            retryOnError: false,
-                            user: '',
-                            database: '',
-                            script: ''
-                        }],
-                    }
-                } );
-
-                this.scriptSource.push({ base: '', entries: ['raw'] });
-            },
-
-            setScriptSource( baseIndex, index ) {
-                const vc = this;
-
-                if(vc.scriptSource[baseIndex].entries[index] == 'raw') {
-                    delete vc.managedSql.scripts[baseIndex].scriptSpec.scripts[index].scriptFrom;
-                } else {
-                    delete vc.managedSql.scripts[baseIndex].scriptSpec.scripts[index].script;
-                    vc.managedSql.scripts[baseIndex].scriptSpec.scripts[index]['scriptFrom'] = {
-                        [vc.scriptSource[baseIndex].entries[index]]: {
-                            name: '', 
-                            key: ''
-                        }
-                    }
-                }
-
-            },
-
-            setBaseScriptSource( baseIndex ) {
-                const vc = this;
-
-                if(vc.scriptSource[baseIndex].base != 'createNewScript') {
-                    vc.managedSql.scripts[baseIndex].sgScript = vc.scriptSource[baseIndex].base;
-                    
-                    if(vc.managedSql.scripts[baseIndex].hasOwnProperty('scriptSpec')) {
-                        delete vc.managedSql.scripts[baseIndex].scriptSpec;
-                    }
-
-                } else {
-                    vc.managedSql.scripts[baseIndex] = { 
-                        scriptSpec: {
-                            continueOnError: false,
-                            managedVersions: true,
-                            scripts: [ {
-                                name: '',
-                                wrapInTransaction: null,
-                                storeStatusInDatabase: false,
-                                retryOnError: false,
-                                user: '',
-                                database: '',
-                                script: ''
-                            } ],
-                        }
-                    } 
-                }
-            },
-
-            isDefaultScript(scriptName) {
-                if( typeof scriptName == 'undefined') {
-                    return false
-                } else {
-                    return scriptName.endsWith('-default')
-                }
-            },
-
-            hasScripts(source) {
-                const vc = this;
-                let hasScripts = false;
-
-                source.forEach( function(baseScript, baseIndex) {
-                    if(baseScript.hasOwnProperty('sgScript') && baseScript.sgScript.length) {
-                        hasScripts = true;
-                        return false                    
-                    } else if (baseScript.hasOwnProperty('scriptSpec')) {
-                        baseScript.scriptSpec.scripts.forEach( function(script, index) {
-                            if( (
-                                    (vc.scriptSource[baseIndex].entries[index] == 'raw') && 
-                                    (JSON.stringify(script) != '"name":"","wrapInTransaction":null,"storeStatusInDatabase":false,"retryOnError":false,"user":"","database":"","script":""')
-                                ) || (
-                                    (vc.scriptSource[baseIndex].entries[index] != 'raw') && 
-                                    (JSON.stringify(script.scriptFrom[vc.scriptSource[baseIndex].entries[index]]) != '{"name":"","key":""}')
-                            )) {
-                                hasScripts = true;
-                                return false
-                            }
-                        })
-                    }
-                    
-                });
-
-                return hasScripts
-            },
-
-            cleanUpScripts(managedSql) {
-                const vc = this;
-                managedSql.scripts.forEach( (baseScript, baseIndex) => {
-                    if(baseScript.hasOwnProperty('scriptSpec')) {
-                        baseScript.scriptSpec.scripts.forEach( (script, index) => {
-                            Object.keys(script).forEach( (key) => {
-                                if( (script[key] == null) || ((typeof script[key] == 'string') && !script[key].length ) ) {
-                                    delete script[key]
-                                }
-                            })
-                        })
-                    }
-                })
-
-                return managedSql;
-
-            },
-
-            cleanUpUserSuppliedSidecars(pods) {
-
-                if( pods.hasOwnProperty('customVolumes') ) {
-                    let customVolumes = pods.customVolumes.filter( (v) => !this.isNull(v.name));
-                    pods.customVolumes = customVolumes.length ? customVolumes : null;
-                }
-
-                ['customInitContainers', 'customContainers'].forEach( (containerType) => {
-                    if(pods.hasOwnProperty(containerType) & !this.isNull(pods[containerType])) {
-                        pods[containerType].forEach( (container) => {
-                            if(container.hasOwnProperty('args') && !this.isNull(container.args)) {
-                                let args = container.args.filter( (a) => !this.isNull(a) );
-                                container.args = args.length ? args : null;
-                            }
-
-                            if(container.hasOwnProperty('command') && !this.isNull(container.command)) {
-                                let command = container.command.filter( (c) => !this.isNull(c) );
-                                container.command = command.length ? command : null;
-                            }
-                            
-                            if(container.hasOwnProperty('env') && !this.isNull(container.env)) {
-                                let env = container.env.filter( (v) => !this.isNull(v.name) );
-                                container.env = env.length ? env : null;
-                            }
-
-                            if(container.hasOwnProperty('ports') && !this.isNull(container.ports)) {
-                                let ports = container.ports.filter( (p) => !this.isNullObject(p) );
-                                container.ports = ports.length ? ports : null;
-                            }
-
-                            if(container.hasOwnProperty('volumeMounts') && !this.isNull(container.volumeMounts)) {
-                                let volumeMounts = container.volumeMounts.filter( (v) =>
-                                    !this.isNull(v.name) && !this.isNull(v.mountPath)
-                                );
-                                container.volumeMounts = volumeMounts.length ? volumeMounts : null;
-                            }
-                        })
-
-                        pods[containerType] = pods[containerType].filter( (c) => !this.isNull(c.name));
-                    }
-                })
-
-                return pods;
-
-            },
-
-            pushLabel: function( prop ) {
-                this[prop].push( { label: '', value: '' } )
-            },
-
-            pushAnnotation: function( prop ) {
-                this[prop].push( { annotation: '', value: '' } )
-            },
-
-            pushToleration () {
-                this.tolerations.push({ key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null })
-            },
 
             createCluster(preview = false, previous) {
                 const vc = this;
@@ -3759,7 +3310,7 @@
                                 }
                             } ),
                             ...((
-                                pods.hasOwnProperty('customVolumes') && !this.isNull(pods.customVolumes) && {
+                                pods.hasOwnProperty('customVolumes') && !this.isNullObjectArray(pods.customVolumes) && {
                                     "customVolumes": pods.customVolumes
                                 } || { "customVolumes": null }
                             )),
@@ -3952,174 +3503,6 @@
 
             }, 
 
-            checkPgConfigVersion() {
-                let configs = store.state.sgpgconfigs.length;
-                let vc = this;
-
-                store.state.sgpgconfigs.forEach(function(item, index){
-                    if( (item.data.spec.postgres.version !== vc.shortPostgresVersion) && (item.data.metadata.namespace == vc.$route.params.namespace) )
-                        configs -= configs;
-                });
-
-                vc.pgConfigExists = (configs > 0);
-            },
-
-            setVersion( version = 'latest') {
-                const vc = this
-
-                if(version != 'latest') {
-                    vc.postgresVersion = version.includes('.') ? version : vc.postgresVersionsList[vc.flavor][version][0]; 
-                } else {
-                    vc.postgresVersion = 'latest';
-                }
-
-                vc.validatePostgresSpecs();
-                
-                $('#postgresVersion .active, #postgresVersion').removeClass('active');
-                $('#postgresVersion [data-val="'+version+'"]').addClass('active');
-            },
-
-            sanitizeString( string ) {
-               return string.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\t/g, "\\t").replace(/\f/g, "\\f").replace(/"/g,"\\\"").replace(/'/g,"\\\'").replace(/\&/g, "\\&"); 
-            },
-
-            parseProps ( props, key = 'annotation' ) {
-                const vc = this
-                var jsonString = '{';
-                props.forEach(function(p, i){
-                    if(p[key].length && p.value.length) {
-                        if(i)
-                            jsonString += ','
-                        
-                        jsonString += '"'+vc.sanitizeString(p[key])+'":"'+vc.sanitizeString(p.value)+'"'
-                    }                
-                })
-                jsonString += '}'
-
-                return JSON.parse(jsonString)
-            },
-            
-            unparseProps ( props, key = 'annotation' ) {
-                var propsArray = [];
-
-                Object.entries(props).forEach(([k, v]) => {
-                    var prop = {};
-                    prop[key] = k;
-                    prop['value'] = v;
-
-                    propsArray.push(prop)
-                });
-                return propsArray
-            },
-
-            hasTolerations () {
-                const vc = this
-                let t = [...vc.tolerations]
-
-                vc.tolerations.forEach(function(item, index) {
-                    if(JSON.stringify(item) == '{"key":"","operator":"Equal","value":null,"effect":null,"tolerationSeconds":null}')
-                        t.splice( index, 1 )
-                })
-
-                return t.length
-            },
-
-            hasNodeSelectors () {
-                const vc = this
-                let nS = [...vc.nodeSelector]
-
-                vc.nodeSelector.forEach(function(item, index) {
-                    if(JSON.stringify(item) == '{"label":"","value":""}')
-                        nS.splice( index, 1 )
-                })
-
-                return nS.length
-            },
-
-            toggleStep(id) {
-                $(id + '> .fields').slideToggle()
-                $(id + '> .header').toggleClass('open')
-
-                if($(id + '> .header .toggleFields').text() == 'Expand')
-                    $(id + '> .header .toggleFields').text('Collapse')
-                else
-                    $(id + '> .header .toggleFields').text('Expand')
-            },
-
-            viewExt(index) {
-                const vc = this;
-                
-                vc.viewExtension = (vc.viewExtension == index) ? -1 : index
-
-                let ext = vc.selectedExtensions.find(e => (e.name == vc.extensionsList[vc.flavor][vc.postgresVersion][index].name))
-
-                if(typeof ext !== 'undefined') {
-                    vc.extVersion.version = ext.version
-                    vc.extVersion.name = ext.name
-                }
-                else {
-                    vc.extVersion.version = vc.extensionsList[vc.flavor][vc.postgresVersion][index].versions[0]
-                    vc.extVersion.name = vc.extensionsList[vc.flavor][vc.postgresVersion][index].name
-                }
-            },
-
-            setExtension(index) {
-                const vc = this
-                let i = -1
-                
-                vc.selectedExtensions.forEach(function(ext, j) {
-                    if(ext.name == vc.extensionsList[vc.flavor][vc.postgresVersion][index].name) {
-                        i = j
-                        return false
-                    }
-                })
-                
-                if( i == -1) { // If not included, add extension
-                    if(vc.extensionsList[vc.flavor][vc.postgresVersion][index].selectedVersion.length) {
-                        vc.selectedExtensions.push({
-                            name: vc.extensionsList[vc.flavor][vc.postgresVersion][index].name,
-                            version: vc.extensionsList[vc.flavor][vc.postgresVersion][index].selectedVersion,
-                            publisher: vc.extensionsList[vc.flavor][vc.postgresVersion][index].publisher,
-                            repository: vc.extensionsList[vc.flavor][vc.postgresVersion][index].repository
-                        })
-                    } else {
-                        vc.notify('You must firsty select a version for the specified extension in order to enable it.', 'message', 'sgclusters');
-                    }
-                } else { // If included, remove
-                    vc.selectedExtensions.splice(i, 1);
-                }
-            },
-
-            extIsSet(ext) {
-                const vc = this
-                var index = -1
-
-                vc.selectedExtensions.forEach(function(e, i){
-                    if(e.name == ext) {
-                        index = i
-                        return false
-                    }
-                })
-
-                return index
-            },
-
-            clearExtFilters() {
-                this.searchExtension = ''
-                this.viewExtension = -1
-            },
-
-            toggleStep(step) {
-                $('[data-step].active, [data-step="' + step + '"]').toggleClass('active');
-            },
-
-            parseExtensions(ext) {
-                    ext.forEach(function(ext){
-                        ext['selectedVersion'] = ext.versions.length ? ext.versions[0] : ''
-                    })
-                return [...ext].sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
-            },
-
             hasPITR() {
                 const vc = this;
 
@@ -4191,182 +3574,6 @@
                 }
             },
 
-            addNodeSelectorRequirement(affinity) {
-                affinity.push({ key: '', operator: '', values: [ '' ] })
-            },
-
-            addRequiredAffinityTerm() {
-                const vc = this;
-                vc.requiredAffinity.push({
-                    matchExpressions: [
-                        { key: '', operator: '', values: [ '' ] }
-                    ],
-                    matchFields: [
-                        { key: '', operator: '', values: [ '' ] }
-                    ]
-                })
-            },
-            
-            addPreferredAffinityTerm() {
-                const vc = this;
-                vc.preferredAffinity.push({
-                    preference: {
-                        matchExpressions: [
-                            { key: '', operator: '', values: [ '' ] }
-                        ],
-                        matchFields: [
-                            { key: '', operator: '', values: [ '' ] }
-                        ]
-                    },
-                    weight: 1
-                })
-            },
-
-            cleanNodeAffinity (affinity) {
-                if( !['[{"matchExpressions":[{"key":"","operator":"","values":[""]}],"matchFields":[{"key":"","operator":"","values":[""]}]}]','[{"preference":{"matchExpressions":[{"key":"","operator":"","values":[""]}],"matchFields":[{"key":"","operator":"","values":[""]}]},"weight":1}]'].includes(JSON.stringify(affinity))) {
-                    let aff = JSON.parse(JSON.stringify(affinity));
-
-                    aff.forEach(function(a, affIndex) {
-
-                        let item = JSON.parse(JSON.stringify(a.hasOwnProperty('preference') ? a.preference : a));
-
-                        Object.keys(item).forEach(function(match) {
-
-                            if(JSON.stringify(item[match]) == '[{"key":"","operator":"","values":[""]}]') {
-                                if(aff[affIndex].hasOwnProperty('preference')) {
-                                    delete aff[affIndex].preference[match];
-                                } else {
-                                    delete aff[affIndex][match];  
-                                }
-                            } else {
-                                item[match].forEach(function(exp, expIndex) {
-                                    if(!exp.key.length || !exp.operator.length || (exp.hasOwnProperty('values') && (exp.values == ['']) ) ) {
-                                        if(aff[affIndex].hasOwnProperty('preference')) {
-                                            aff[affIndex].preference[match].splice( expIndex, 1 );
-                                        } else {
-                                            aff[affIndex][match].splice( expIndex, 1 );  
-                                        }
-                                    }
-                                });
-
-                                if(aff[affIndex].hasOwnProperty('preference') && !aff[affIndex].preference[match].length) {
-                                    delete aff[affIndex].preference[match];
-                                } else if(!aff[affIndex].hasOwnProperty('preference') && !aff[affIndex][match].length) {
-                                    delete aff[affIndex][match];
-                                }
-                            }
-
-                        });
-
-                        if(aff[affIndex].hasOwnProperty('preference')) {
-                            if(!Object.keys(aff[affIndex].preference).length) {
-                                aff.splice( affIndex, 1 );
-                            }
-                        } else {
-                            if(!Object.keys(aff[affIndex]).length) {
-                                aff.splice( affIndex, 1 );
-                            }
-                        }
-
-                    });
-
-                    return aff;
-
-                } else {
-                    return [];
-                }
-            },
-
-            updateExtVersion(name, version) {
-                const vc = this;
-                
-                vc.selectedExtensions.forEach(function(ext) {
-                    if(ext.name == name) {
-                        ext.version = version;
-                        return false
-                    }
-                })
-            },
-
-            createNewResource(kind) {
-                const vc = this;
-                window.open(window.location.protocol + '//' + window.location.hostname + (window.location.port.length && (':' + window.location.port) ) + '/admin/' + vc.$route.params.namespace + '/' + kind + '/new?newtab=1', '_blank').focus();
-
-                $('select').each(function(){
-                    if($(this).val() == 'new') {
-                        $(this).val('');
-                    }
-                })
-            },
-
-            getFlavorExtensions() {
-                const vc = this;
-
-                if(!vc.hasProp(vc, 'extensionsList.' + vc.flavor + '.' + vc.postgresVersion) || !vc.extensionsList[vc.flavor][vc.postgresVersion].length ) {
-                    sgApi
-                    .getPostgresExtensions(vc.postgresVersion)
-                    .then(function (response) {
-                        
-                        vc.extensionsList[vc.flavor][vc.postgresVersion] = vc.parseExtensions(response.data.extensions);
-                        vc.validateSelectedExtensions();
-                    })
-                    .catch(function (error) {
-                        console.log(error.response);
-                    });
-                } else {
-                    vc.validateSelectedExtensions();
-                }
-
-                if( (vc.postgresVersion != 'latest') && ( !vc.hasProp(vc.postgresVersionsList[vc.flavor], vc.shortPostgresVersion) || (vc.hasProp(vc.postgresVersionsList[vc.flavor], vc.shortPostgresVersion) && !vc.postgresVersionsList[vc.flavor][vc.shortPostgresVersion].includes(vc.postgresVersion)) ) ) {
-                    vc.postgresVersion = 'latest';
-                    $('#postgresVersion .active, #postgresVersion').removeClass('active');
-                    $('#postgresVersion [data-val="latest"]').addClass('active');
-
-                    vc.notify('The <strong>postgres flavor</strong> you requested is not available on the <strong>postgres version</strong> you selected. Choose a different version or your cluster will be created with the latest one avalable.', 'message', 'sgclusters');
-                }
-
-                vc.validateSelectedPgConfig();
-            },
-
-            validateSelectedExtensions() {
-                const vc = this;
-
-                if(vc.selectedExtensions.length) {
-                    
-                    // Validate if selected extensions are available on the current postgres flavor and version
-                    let activeExtensions = [...vc.selectedExtensions];
-                    let extNotAvailable = [];
-                    
-                    activeExtensions.forEach(function(ext) {
-                        let sourceExt = vc.extensionsList[vc.flavor][vc.postgresVersion].find(e => (e.name == ext.name) && (e.versions.includes(ext.version)));
-
-                        if(typeof sourceExt == 'undefined') {
-                            extNotAvailable.push(ext.name);
-                            vc.selectedExtensions = vc.selectedExtensions.filter(function( e ) {
-                                return e.name !== ext.name;
-                            });
-                        }
-                    })
-
-                    if(extNotAvailable.length) {
-                        vc.notify('The following extensions are not available on your preferred postgres flavor and version and have then been disabled: <strong>' + extNotAvailable.join(', ') + '.</strong>', 'message', 'sgclusters');
-                    }
-                }
-            },
-
-            validateSelectedPgConfig() {
-                const vc = this;
-
-                if(vc.pgConfig.length) {
-                    let config = vc.pgConf.find(c => (c.data.metadata.name == vc.pgConfig) && (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.postgresVersion == vc.shortPostgresVersion))
-
-                    if(typeof config == 'undefined') {
-                        vc.notify('The <strong>postgres configuration</strong> you selected is not available for this <strong>postgres version</strong>. Choose a new configuration from the list or a default configuration will be created for you.', 'message', 'sgclusters');
-                        vc.pgConfig = '';
-                    }
-                }
-            },
-
             validateSelectedRestoreBackup() {
                 const vc = this;
 
@@ -4377,72 +3584,6 @@
                         vc.notify('The <strong>initialization backup</strong> you selected is not available for this postgres version. Choose a new backup from the list or no data will be restored.', 'message', 'sgclusters');
                         vc.restoreBackup = '';
                     }
-                }
-            },
-
-            validateSelectedPgVersion() {
-                const vc = this;
-
-                if( (vc.flavor == 'vanilla') && vc.babelfishFeatureGates ) {
-                    vc.babelfishFeatureGates = false;
-                }
-
-                if( (vc.postgresVersion != 'latest') && (!Object.keys(vc.postgresVersionsList[vc.flavor]).includes(vc.shortPostgresVersion) || !vc.postgresVersionsList[vc.flavor][vc.shortPostgresVersion].includes(vc.postgresVersion)) ) {
-                    vc.notify('The <strong>postgres version</strong> you selected is not available for this <strong>postgres flavor</strong>. Please choose a new version or your cluster will be created with the latest version available', 'message', 'sgclusters');
-                    vc.postgresVersion = 'latest';
-                }
-            },
-
-            validatePostgresSpecs() {
-                this.validateSelectedPgVersion();
-                this.validateSelectedPgConfig();
-                this.getFlavorExtensions();
-                this.validateSelectedRestoreBackup();
-            }, 
-
-            validateStep: function (event) {
-                const vc = this;
-
-                let dataFieldset = event.detail.fieldset;
-                
-                for(var i = 0; i < vc._data.errorStep.length; i++) {
-                    if (vc._data.errorStep[i] === dataFieldset){
-                        vc._data.errorStep.splice(i, 1); 
-                        break;
-                    }
-                }
-            }, 
-            
-            checkenableMonitoring() {
-                const vc = this;  
-
-                if(vc.enableMonitoring) {
-                    // If Monitoring is ON, Metrics Exporter and Prometheus Atobind should be ON
-                    vc.metricsExporter = true;
-                    vc.prometheusAutobind = true
-                } else {
-                    // If Monitoring if OFF, PA should be OFF. ME default is ON
-                    vc.prometheusAutobind = false
-                }
-            },
-
-            checkMetricsExporter() {
-                const vc = this; 
-
-                if(!vc.metricsExporter) {
-                    vc.enableMonitoring = false;
-                } else if(vc.metricsExporter && vc.prometheusAutobind) {
-                    vc.enableMonitoring = true;
-                }
-            },
-
-            checkPrometheusAutobind() {
-                const vc = this; 
-
-                if(!vc.prometheusAutobind) {
-                    vc.enableMonitoring = false;
-                } else if(vc.prometheusAutobind && vc.metricsExporter) {
-                    vc.enableMonitoring = true;
                 }
             },
 
@@ -4462,194 +3603,8 @@
                         + ' ' + this.cronSchedule[index].month
                         + ' ' + this.cronSchedule[index].dow, false);
             },
-
-            setReplicationSource(source) {
-                const vc = this;
-
-                switch(source) {
-                    case '':
-                        vc.replicateFrom = {};
-                        break;
-                        
-                    case 'cluster':
-                        vc.replicateFrom['instance'] = { 
-                            sgCluster: '' 
-                        }
-                        break;
-
-                    case 'external':
-                        if(!vc.hasProp(vc.replicateFrom, 'instance.external')) {
-                            vc.replicateFrom['instance'] = { 
-                                external: {
-                                    host: '',
-                                    port: ''
-                                } 
-                            }
-                        }
-
-                        if(vc.replicateFrom.hasOwnProperty('storage')) {
-                            delete vc.replicateFrom.storage
-                        }
-
-                        break;
-                    case 'storage':
-                        if(!vc.replicateFrom.hasOwnProperty('storage')) {
-                            vc.replicateFrom['storage'] = {
-                                sgObjectStorage: '',
-                                path: '',
-                                performance: {
-                                    downloadConcurrency: '',
-                                    maxDiskBandwidth: '',
-                                    maxNetworkBandwidth: ''
-                                }
-                            }
-                        }
-
-                        if(vc.replicateFrom.hasOwnProperty('instance')) {
-                            delete vc.replicateFrom.instance
-                        }
-                        
-                        break;
-                    case 'external-storage':
-
-                        if(!vc.replicateFrom.hasOwnProperty('instance')) {
-                            vc.replicateFrom['instance'] = { 
-                                external: {
-                                    host: '',
-                                    port: ''
-                                } 
-                            }
-                        } 
-
-                        if(!vc.replicateFrom.hasOwnProperty('storage')) {
-                            vc.replicateFrom['storage'] = {
-                                sgObjectStorage: '',
-                                path: '',
-                                performance: {
-                                    downloadConcurrency: '',
-                                    maxDiskBandwidth: '',
-                                    maxNetworkBandwidth: ''
-                                }
-                            }
-                        }
-                        break;
-                }
-
-                if(['external', 'storage', 'external-storage'].includes(source) && !vc.replicateFrom.hasOwnProperty('users')) {
-                    vc.replicateFrom['users'] = {
-                        superuser: {
-                            username: { 
-                                name: '',
-                                key: ''
-                            },
-                            password: { 
-                                name: '',
-                                key: ''
-                            }
-                        },
-                        replication: {
-                            username: { 
-                                name: '',
-                                key: ''
-                            },
-                            password: { 
-                                name: '',
-                                key: ''
-                            }
-                        },
-                        authenticator: {
-                            username: { 
-                                name: '',
-                                key: ''
-                            },
-                            password: { 
-                                name: '',
-                                key: ''
-                            }
-                        }
-                    }
-                } else if (!['external', 'storage', 'external-storage'].includes(source)) {
-                    if (vc.replicateFrom.hasOwnProperty('users')) {
-                        delete vc.replicateFrom.users
-                    }
-
-                    if (vc.replicateFrom.hasOwnProperty('storage')) {
-                        delete vc.replicateFrom.storage
-                    }
-                }
-            },
-
-            getReplicationSource(cluster) {
-                const vc = this;
-
-                if(!vc.hasProp(cluster, 'data.spec.replicateFrom')) {
-                    return ''
-                } else {
-                    if(vc.hasProp(cluster, 'data.spec.replicateFrom.instance.sgCluster')) {
-                        return 'cluster' 
-                    } else if (vc.hasProp(cluster, 'data.spec.replicateFrom.instance.external') && vc.hasProp(cluster, 'data.spec.replicateFrom.storage')) {
-                        return 'external-storage'
-                    } else if (vc.hasProp(cluster, 'data.spec.replicateFrom.instance.external')) {
-                        return 'external'
-                    } else if (vc.hasProp(cluster, 'data.spec.replicateFrom.storage')) {
-                        return 'storage'   
-                    }
-                }
-            },
-
-            initCustomVolume(index) {
-                let options = {
-                    emptyDir: {
-                        medium: null,
-                        sizeLimit: null,
-                    },
-                    configMap: {
-                        name: null,
-                        optional: true,
-                        defaultMode: null,
-                        items: [{
-                            key: null,
-                            mode: null,
-                            path: null,
-                        }],
-                    },
-                    secret: { 
-                        secretName: null,
-                        optional: true,
-                        defaultMode: null,
-                        items: [{
-                            key: null,
-                            mode: null,
-                            path: null,
-                        }],
-                    }
-                };
-                
-                this.pods.customVolumes[index] = { name: this.pods.customVolumes[index].name };
-                this.pods.customVolumes[index][this.customVolumesType[index]] = options[this.customVolumesType[index]];
-            }
         
         },
-
-        created() {
-            const vc = this;
-
-            sgApi
-            .getPostgresExtensions('latest', 'vanilla')
-            .then(function (response) {
-                vc.extensionsList[vc.flavor][vc.postgresVersion] =  vc.parseExtensions(response.data.extensions)
-            })
-            .catch(function (error) {
-                console.log(error.response);
-                vc.notify(error.response.data,'error','sgclusters');
-            });
-        }, 
-
-        mounted: function() {
-            var that = this;
-
-            window.addEventListener('fieldSetListener', function(e) {that.validateStep(e);});
-        }
 
     }
 </script>

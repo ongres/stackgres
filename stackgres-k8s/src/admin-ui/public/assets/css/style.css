@@ -269,7 +269,7 @@ pre {
 }
 
 .capitalize {
-    text-transform: capitalize;
+    text-transform: capitalize !important;
 }
 
 .normal {
@@ -444,7 +444,7 @@ svg.background circle {
 }
 
 .noMargin {
-    margin: 0;
+    margin: 0 !important;
 }
 
 .clearfix {
@@ -1676,8 +1676,7 @@ ul.tabs {
 }
 
 .tabs li {
-    display: block;
-    float: left;
+    display: inline-block;
     margin-right: 20px;
 }
 
@@ -2732,7 +2731,7 @@ a.addRow, .addRow > a {
     width: 100%;
 }
 
-.repeater .eqSign ~ a.addRow, .inputContainer a.addRow.topRight {
+.repeater .eqSign ~ a.addRow, a.addRow.topRight {
     position: absolute;
     top: 0;
     right: 0;

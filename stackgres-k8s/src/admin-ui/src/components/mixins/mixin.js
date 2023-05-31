@@ -234,6 +234,49 @@ export const mixin = {
               });
       
             }
+
+            if ( vc.iCan('list', 'sgshardedclusters') && ( !kind.length || (kind == 'sgshardedclusters') ) ){
+              /* Clusters Data */
+              sgApi
+              .get('sgshardedclusters')
+              .then( function(response){
+    
+                vc.lookupCRDs('sgshardedclusters', response.data);
+      
+                response.data.forEach( function(item, index) {
+    
+                  var cluster = {
+                    name: item.metadata.name,
+                    data: item,
+                    hasBackups: false,
+                    status: {}
+                  };
+                  
+                  if(!store.state.namespaces.includes(item.metadata.namespace))
+                    store.commit('updateNamespaces', item.metadata.namespace);
+    
+                  store.commit('updateShardedClusters', cluster);
+    
+                  sgApi
+                  .getResourceDetails('sgshardedclusters', cluster.data.metadata.namespace, cluster.data.metadata.name, 'stats')
+                  .then( function(resp) {
+                    store.commit('updateShardedClusterStats', {
+                      name: cluster.data.metadata.name,
+                      namespace: cluster.data.metadata.namespace,
+                      stats: resp.data
+                    })
+                  }).catch(function(err) {
+                    console.log(err);
+                  });
+    
+                });
+                
+              }).catch(function(err) {
+                console.log(err);
+                vc.checkAuthError(err);
+              });
+      
+            }
       
             if ( vc.iCan('list', 'sgbackups') && ( !kind.length || (kind == 'sgbackups') )) {
               
