@@ -14,7 +14,6 @@ import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ErrorType;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
@@ -22,38 +21,40 @@ import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
 
-public abstract class DependenciesValidator<T extends AdmissionReview<?>> implements Validator<T> {
+public abstract class DependenciesValidator<T extends AdmissionReview<?>,
+        R extends CustomResource<?, ?>>
+    implements Validator<T> {
 
   private final String errorTypeUri = ErrorType
       .getErrorTypeUri(ErrorType.FORBIDDEN_CR_DELETION);
 
-  private CustomResourceScanner<StackGresCluster> clusterScanner;
+  private CustomResourceScanner<R> resourceScanner;
 
   @Override
   public void validate(T review) throws ValidationFailed {
     if (review.getRequest().getOperation() == Operation.DELETE
         && review.getRequest().getName() != null) {
-      Optional<List<StackGresCluster>> clusters = clusterScanner
+      Optional<List<R>> resources = resourceScanner
           .findResources(review.getRequest().getNamespace());
 
-      if (clusters.isPresent()) {
-        for (StackGresCluster i : clusters.get()) {
+      if (resources.isPresent()) {
+        for (R i : resources.get()) {
           validate(review, i);
         }
       }
     }
   }
 
-  protected abstract void validate(T review, StackGresCluster i) throws ValidationFailed;
+  protected abstract void validate(T review, R resource) throws ValidationFailed;
 
-  protected void fail(T review, StackGresCluster i) throws ValidationFailed {
+  protected void fail(T review, R resource) throws ValidationFailed {
     final AdmissionRequest<?> request = review.getRequest();
     final String message = "Can't " + request.getOperation().toString()
         + " " + request.getResource().getResource()
         + "." + request.getKind().getGroup()
         + " " + request.getName() + " because the "
-        + CustomResource.getCRDName(StackGresCluster.class) + " "
-        + i.getMetadata().getName() + " depends on it";
+        + CustomResource.getCRDName(getResourceClass()) + " "
+        + resource.getMetadata().getName() + " depends on it";
 
     Status status = new StatusBuilder()
         .withCode(409)
@@ -64,9 +65,11 @@ public abstract class DependenciesValidator<T extends AdmissionReview<?>> implem
     throw new ValidationFailed(status);
   }
 
+  protected abstract Class<R> getResourceClass();
+
   @Inject
-  public void setClusterScanner(CustomResourceScanner<StackGresCluster> clusterScanner) {
-    this.clusterScanner = clusterScanner;
+  public void setResourceScanner(CustomResourceScanner<R> resourceScanner) {
+    this.resourceScanner = resourceScanner;
   }
 
 }
