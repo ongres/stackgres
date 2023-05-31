@@ -225,7 +225,13 @@ e2e_upgrade_operator() {
     --template "{{ range .items }}{{ if eq (index .spec.clusterServiceVersionNames 0) \"stackgres.v$BUNDLE_STACKGRES_VERSION\" }}{{ printf \"%s\n\" .metadata.name }}{{ end }}{{ end }}" \
     | grep .')"
   kubectl patch -n "$OPERATOR_NAMESPACE" installplan "$INSTALL_PLAN" --type merge -p '{"spec":{"approved":true}}'
-  echo "$IMAGE_TAG"
+
+  wait_until eval 'kubectl get -n "$OPERATOR_NAMESPACE" deployment -l olm.owner="stackgres.v$BUNDLE_STACKGRES_VERSION" -o name | grep -q .'
+
+  wait_until kubectl rollout status --timeout=1s -n "$OPERATOR_NAMESPACE" deployment -l olm.owner="stackgres.v$BUNDLE_STACKGRES_VERSION"
+
+  wait_until kubectl wait --timeout 0s -n "$OPERATOR_NAMESPACE" sgconfig stackgres-operator --for condition=Deployed
+
   cat << EOF > "$LOG_PATH/sgconfig-patch.yaml"
 apiVersion: stackgres.io/v1
 kind: SGConfig
@@ -245,10 +251,6 @@ spec:
 EOF
   kubectl patch -n "$OPERATOR_NAMESPACE" subscription stackgres --type merge \
     -p '{"spec":{"config":{"env":[{"name":"SGCONFIG","value":'"$(yq '. | tostring' "$LOG_PATH/sgconfig-patch.yaml")"'}]}}}'
-
-  wait_until eval 'kubectl get -n "$OPERATOR_NAMESPACE" deployment -l olm.owner="stackgres.v$BUNDLE_STACKGRES_VERSION" -o name | grep -q .'
-
-  wait_until kubectl rollout status --timeout=1s -n "$OPERATOR_NAMESPACE" deployment -l olm.owner="stackgres.v$BUNDLE_STACKGRES_VERSION"
 
   wait_until eval 'kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
     --template "{{ range .items }}{{ range .spec.containers }}{{ printf \"%s\n\" .image }}{{ end }}{{ end }}" \
