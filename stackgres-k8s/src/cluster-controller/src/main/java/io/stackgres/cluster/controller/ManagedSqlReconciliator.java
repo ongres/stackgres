@@ -291,7 +291,7 @@ public class ManagedSqlReconciliator {
   protected void updateManagedSqlStatus(StackGresClusterContext context,
       StackGresClusterManagedSqlStatus managedSqlStatus) {
     clusterScheduler.update(context.getCluster(),
-        (targetCluster, cluster) -> targetCluster.getStatus().setManagedSql(managedSqlStatus));
+        (currentCluster) -> currentCluster.getStatus().setManagedSql(managedSqlStatus));
   }
 
   protected void sendEvent(KubernetesClient client, StackGresClusterContext context,

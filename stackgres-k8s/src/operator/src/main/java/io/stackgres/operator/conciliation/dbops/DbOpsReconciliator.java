@@ -71,10 +71,7 @@ public class DbOpsReconciliator
 
   @Override
   public void onPostReconciliation(StackGresDbOps config) {
-    dbOpsScheduler.update(config,
-        (targetDbOps, dbOps) -> {
-          statusManager.refreshCondition(targetDbOps);
-        });
+    dbOpsScheduler.update(config, statusManager::refreshCondition);
   }
 
   @Override

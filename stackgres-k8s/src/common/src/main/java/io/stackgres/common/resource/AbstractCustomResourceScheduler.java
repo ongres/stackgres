@@ -6,6 +6,7 @@
 package io.stackgres.common.resource;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import javax.inject.Inject;
@@ -55,7 +56,7 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?
   }
 
   @Override
-  public T update(T resource, BiConsumer<T, T> setter) {
+  public T update(T resource, Consumer<T> setter) {
     return KubernetesClientUtil.retryOnConflict(
         () -> {
           T resourceToUpdate = getCustomResourceEndpoints()
@@ -70,7 +71,7 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?
                 + "." + resource.getMetadata().getName()
                 + ": resource not found");
           }
-          setter.accept(resourceToUpdate, resource);
+          setter.accept(resourceToUpdate);
           return getCustomResourceEndpoints()
               .inNamespace(resource.getMetadata().getNamespace())
               .resource(resourceToUpdate)

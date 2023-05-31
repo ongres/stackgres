@@ -79,20 +79,18 @@ public class DbOpLauncherImpl implements DbOpLauncher {
 
     if (jobImpl.isResolvable()) {
       LOGGER.info("Initializing conditions for SgDbOps {}", dbOps.getMetadata().getName());
-      var status = Optional.ofNullable(dbOps.getStatus())
-          .or(() -> Optional.of(new StackGresDbOpsStatus()))
-          .map(dbOpsStatus -> {
-            dbOpsStatus.setOpStarted(Instant.now().toString());
-            dbOpsStatus.setOpRetries(
-                Optional.ofNullable(dbOpsStatus.getOpRetries())
-                .map(opRetries -> opRetries + 1)
-                .orElse(0));
-            dbOpsStatus.setConditions(getStartingConditions());
-            return dbOpsStatus;
-          })
-          .orElseThrow();
-      dbOps.setStatus(status);
-      final StackGresDbOps initializedDbOps = dbOpsScheduler.update(dbOps);
+      final StackGresDbOps initializedDbOps = dbOpsScheduler.update(dbOps,
+          (currentDbOps) -> {
+            var status = Optional.ofNullable(currentDbOps.getStatus())
+                .or(() -> Optional.of(new StackGresDbOpsStatus()))
+                .map(dbOpsStatus -> {
+                  dbOpsStatus.setOpStarted(Instant.now().toString());
+                  dbOpsStatus.setConditions(getStartingConditions());
+                  return dbOpsStatus;
+                })
+                .orElseThrow();
+            currentDbOps.setStatus(status);
+          });
 
       try {
         final int lockPollInterval = Integer.parseInt(DBOPS_LOCK_POLL_INTERVAL.getString());

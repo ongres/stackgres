@@ -87,9 +87,9 @@ public class ShardedClusterReconciliator
     statusManager.refreshCondition(config);
 
     clusterScheduler.update(config,
-        (targetShardedCluster, shardedClusterWithStatus) -> {
-          if (shardedClusterWithStatus.getStatus() != null) {
-            targetShardedCluster.setStatus(shardedClusterWithStatus.getStatus());
+        (currentShardedCluster) -> {
+          if (config.getStatus() != null) {
+            currentShardedCluster.setStatus(config.getStatus());
           }
         });
   }
