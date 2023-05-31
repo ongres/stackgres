@@ -4,17 +4,4 @@
   kind: SGConfig
   chart: helm-charts/stackgres-operator
   watchDependentResources: true
-  overrideValues:
-    containerRegistry: quay.io
-    adminui.image.name: stackgres/admin-ui
-    adminui.image.tag: "${VERSION}"
-    containerRegistry: quay.io
-    jobs.image.name: stackgres/jobs
-    jobs.image.tag: "${VERSION}"
-    operator.image.name: stackgres/operator
-    operator.image.tag: "${VERSION}"
-    restapi.image.name: stackgres/restapi
-    restapi.image.tag: "${VERSION}"
-    deploy.operator: true
-    deploy.restapi: true
 #+kubebuilder:scaffold:watch

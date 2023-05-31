@@ -8,7 +8,7 @@ metadata:
     app: stackgres-operator-init
     job: cr-updater
   annotations:
-    "helm.sh/hook": post-upgrade
+    "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
     "helm.sh/hook-weight": "50"
     {{- with .Values.jobs.annotations }}
