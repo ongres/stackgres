@@ -4,6 +4,8 @@
 
 e2e_test_extra_hash() {
   "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "stackgres-k8s/install/operator-sdk"
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
     "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/metrics")"
   "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
     "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/dbops-security-upgrade")"
@@ -16,11 +18,6 @@ e2e_skip_dbops_secutiry_upgrade() {
 e2e_load_images() {
   BUNDLE_STACKGRES_VERSION="$(printf %s "$STACKGRES_VERSION" | tr A-Z a-z)"
   BUNDLE_STACKGRES_PREVIOUS_VERSION="$(printf %s "$STACKGRES_PREVIOUS_VERSION" | tr A-Z a-z)"
-
-  EXPECTED_PREVIOUS_OPERATOR_IMAGE="${STACKGRES_PREVIOUS_OPERATOR_IMAGE%%:*}:$BUNDLE_STACKGRES_PREVIOUS_VERSION"
-  EXPECTED_PREVIOUS_RESTAPI_IMAGE="${STACKGRES_PREVIOUS_RESTAPI_IMAGE%%:*}:$BUNDLE_STACKGRES_PREVIOUS_VERSION"
-  EXPECTED_OPERATOR_IMAGE="${STACKGRES_OPERATOR_IMAGE%%:*}:$BUNDLE_STACKGRES_VERSION"
-  EXPECTED_RESTAPI_IMAGE="${STACKGRES_RESTAPI_IMAGE%%:*}:$BUNDLE_STACKGRES_VERSION"
 
   HELM_OPERATOR_IMAGE_TAG_SUFFIX=""
   if [ "$E2E_ENV" = "minishift" ] || [ "$E2E_ENV" = "crc" ] || [ "$E2E_ENV" = "microshift" ]
@@ -53,8 +50,10 @@ e2e_load_images() {
     load_image_k8s "$HELM_OPERATOR_BUNDLE_IMAGE_NAME"
     load_image_k8s "$BUNDLE_IMAGE_NAME"
     load_image_k8s "$BUNDLE_OPERATOR_IMAGE_NAME"
-    if [ "$(docker manifest inspect "$BUNDLE_IMAGE_NAME" 2>/dev/null | jq -r .config.digest 2>/dev/null)" \
-      != "$(docker inspect "$BUNDLE_IMAGE_NAME" 2>/dev/null | jq -r '.[0].RepoDigests[0]|split("@")[1]' 2>/dev/null)" ]
+    BUNDLE_IMAGE_DIGEST="$(docker manifest inspect "$BUNDLE_IMAGE_NAME" 2>/dev/null | jq -r .config.digest 2>/dev/null || true)"
+    if [ -z "$BUNDLE_IMAGE_DIGEST" ] \
+      || [ "$BUNDLE_IMAGE_DIGEST" \
+        != "$(docker inspect "$BUNDLE_IMAGE_NAME" 2>/dev/null | jq -r '.[0].RepoDigests[0]|split("@")[1]' 2>/dev/null)" ]
     then
       docker push "$BUNDLE_IMAGE_NAME"
     fi
@@ -226,13 +225,33 @@ e2e_upgrade_operator() {
     --template "{{ range .items }}{{ if eq (index .spec.clusterServiceVersionNames 0) \"stackgres.v$BUNDLE_STACKGRES_VERSION\" }}{{ printf \"%s\n\" .metadata.name }}{{ end }}{{ end }}" \
     | grep .')"
   kubectl patch -n "$OPERATOR_NAMESPACE" installplan "$INSTALL_PLAN" --type merge -p '{"spec":{"approved":true}}'
+  echo "$IMAGE_TAG"
+  cat << EOF > "$LOG_PATH/sgconfig-patch.yaml"
+apiVersion: stackgres.io/v1
+kind: SGConfig
+spec:
+  operator:
+    image:
+      tag: "$IMAGE_TAG"
+  restapi:
+    image:
+      tag: "$IMAGE_TAG"
+  adminui:
+    image:
+      tag: "$ADMINUI_IMAGE_TAG"
+  jobs:
+    image:
+      tag: "$IMAGE_TAG"
+EOF
+  kubectl patch -n "$OPERATOR_NAMESPACE" subscription stackgres --type merge \
+    -p '{"spec":{"config":{"env":[{"name":"SGCONFIG","value":'"$(yq '. | tostring' "$LOG_PATH/sgconfig-patch.yaml")"'}]}}}'
 
   wait_until eval 'kubectl get -n "$OPERATOR_NAMESPACE" deployment -l olm.owner="stackgres.v$BUNDLE_STACKGRES_VERSION" -o name | grep -q .'
 
-  wait_until kubectl rollout status --timeout=0 -n "$OPERATOR_NAMESPACE" deployment -l olm.owner="stackgres.v$BUNDLE_STACKGRES_VERSION"
+  wait_until kubectl rollout status --timeout=1s -n "$OPERATOR_NAMESPACE" deployment -l olm.owner="stackgres.v$BUNDLE_STACKGRES_VERSION"
 
   wait_until eval 'kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
-    --template "{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf \"%s\n\" .image }}{{ end }}{{ end }}{{ end }}" \
+    --template "{{ range .items }}{{ range .spec.containers }}{{ printf \"%s\n\" .image }}{{ end }}{{ end }}" \
     | grep -qF "'"/${EXPECTED_OPERATOR_IMAGE##*/}"'"'
 
   wait_until eval \
@@ -295,7 +314,6 @@ e2e_get_helm_operator_images() {
   fi
   echo "${HELM_OPERATOR_IMAGE_NAME%:*}:$NATIVE_TAG"
   echo "${HELM_OPERATOR_BUNDLE_IMAGE_NAME%:*}:$NATIVE_TAG"
-  echo "${HELM_OPERATOR_CATALOG_IMAGE_NAME%:*}:$NATIVE_TAG"
 }
 
 e2e_properly_tag_not_found_import_images() {
