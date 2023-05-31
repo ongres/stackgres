@@ -19,10 +19,12 @@ export default new Vuex.Store({
     currentNamespace: '',
     ready: false,
     currentCluster: {},
+    currentShardedCluster: {},
     currentPods: [],
     namespaces: [],
     allNamespaces: [],
     sgclusters: [],
+    sgshardedclusters: [],
     sgbackups: [],
     sgpgconfigs: [],
     sgpoolconfigs: [],
@@ -127,9 +129,11 @@ export default new Vuex.Store({
     },
 
     setCurrentCluster (state, cluster) {
+      state.currentCluster = cluster;      
+    },
 
-      state.currentCluster = cluster;
-      
+    setCurrentShardedCluster (state, cluster) {
+      state.currentShardedCluster = cluster;      
     },
 
     setCurrentPods (state, pods) {
@@ -148,9 +152,30 @@ export default new Vuex.Store({
 
     },
 
+    updateShardedClusters ( state, cluster ) {
+
+      let index = state.sgshardedclusters.find(c => (cluster.data.metadata.name == c.name) && (cluster.data.metadata.namespace == c.data.metadata.namespace) ); 
+
+      if ( typeof index !== "undefined" ) {
+        index.data = cluster.data;
+      } else {
+        state.sgshardedclusters.push( cluster );    
+      }
+
+    },
+
     updateClusterStats (state, clusterStats) {
 
       let cluster = state.sgclusters.find(c => (clusterStats.name == c.name) && (clusterStats.namespace == c.data.metadata.namespace) ); 
+
+      if ( typeof cluster !== "undefined" )
+        cluster.status = clusterStats.stats
+      
+    },
+
+    updateShardedClusterStats (state, clusterStats) {
+
+      let cluster = state.sgshardedclusters.find(c => (clusterStats.name == c.name) && (clusterStats.namespace == c.data.metadata.namespace) ); 
 
       if ( typeof cluster !== "undefined" )
         cluster.status = clusterStats.stats

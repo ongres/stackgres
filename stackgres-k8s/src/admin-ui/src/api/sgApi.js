@@ -9,6 +9,7 @@ const resources = {
   logout: '/auth/logout',
   namespaces: '/namespaces',
   sgclusters: '/sgclusters',
+  sgshardedclusters: '/sgshardedclusters',
   sginstanceprofiles: '/sginstanceprofiles',
   sgbackups: '/sgbackups',
   sgpgconfigs: '/sgpgconfigs',

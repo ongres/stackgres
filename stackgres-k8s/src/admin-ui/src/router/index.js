@@ -5,6 +5,7 @@ import sgApi from '../api/sgApi'
 
 // Form Components
 import CreateCluster from '../components/forms/CreateSGClusters.vue'
+import CreateShardedCluster from '../components/forms/CreateSGShardedClusters.vue'
 import CreateProfile from '../components/forms/CreateSGInstanceProfiles.vue'
 import CreatePgConfig from '../components/forms/CreateSGPgConfigs.vue'
 import CreatePoolConfig from '../components/forms/CreateSGPoolConfigs.vue'
@@ -56,6 +57,24 @@ const routes = [
     meta: {
       conditionalRoute: false,
       componentName: 'SGCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedclusters/new', 
+    component: CreateShardedCluster,
+    name: 'CreateShardedCluster',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster' 
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/edit', 
+    component: CreateShardedCluster,
+    name: 'EditShardedCluster',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
     },
   },
   { 
@@ -171,6 +190,15 @@ const routes = [
     },
   },
   { 
+    path: '/:namespace/sgshardedcluster/:name/sgbackups/new', 
+    component: CreateBackup,
+    name: 'CreateShardedClusterBackup',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
+  { 
     path: '/:namespace/sgbackup/:backupname/edit', 
     component: CreateBackup,
     name: 'EditBackup',
@@ -186,6 +214,15 @@ const routes = [
     meta: {
       conditionalRoute: false,
       componentName: 'SGCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/sgbackup/:backupname/edit', 
+    component: CreateBackup,
+    name: 'EditShardedClusterBackup',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
     },
   },
   { 
@@ -302,6 +339,69 @@ const routes = [
       componentName: 'SGCluster'
     },
   },
+  { 
+    path: '/sgshardedclusters', 
+    component: ClusterOverview,
+    name: 'ShardedClusterOverviewEmpty',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedclusters', 
+    component: ClusterOverview,
+    name: 'ShardedClusterOverview',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/config', 
+    component: ClusterInfo,
+    name: 'ShardedClusterInfo',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name', 
+    component: ClusterStatus,
+    name: 'ShardedClusterStatus',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/logs', 
+    component: ClusterLogs,
+    name: 'ShardedClusterLogs',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/events', 
+    component: ClusterEvents,
+    name: 'ShardedClusterEvents',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/event/:uid', 
+    component: ClusterEvents,
+    name: 'SingleShardedClusterEvents',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
   {  
     path: '/:namespace/sgbackups', 
     component: SGBackups,
@@ -336,6 +436,24 @@ const routes = [
     meta: {
       conditionalRoute: false,
       componentName: 'SGCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/sgbackups', 
+    component: SGBackups,
+    name: 'ShardedClusterBackups',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/sgbackup/:backupname', 
+    component: SGBackups,
+    name: 'SingleShardedClusterBackups',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
     },
   },
   { 
@@ -502,6 +620,33 @@ const routes = [
     meta: {
       conditionalRoute: false,
       componentName: 'SGCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/monitor', 
+    component: Grafana,
+    name: 'ShardedClusterMonitor',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/monitor/:pod', 
+    component: Grafana,
+    name: 'SingleShardedClusterMonitor',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
+  {
+    path: '/:namespace/sgshardedcluster/:name/monitor/:pod/:range', 
+    component: Grafana,
+    name: 'SingleShardedClusterMonitorRange',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
     },
   },
   {
