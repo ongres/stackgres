@@ -3,7 +3,7 @@
 #
 # Build the image with:
 #
-# docker build -f stackgres-k8s/ci/build/Dockerfile-ci -t "registry.gitlab.com/ongresinc/stackgres/ci:1.18-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)" stackgres-k8s/ci/build/
+# docker build -f stackgres-k8s/ci/build/Dockerfile-ci -t "registry.gitlab.com/ongresinc/stackgres/$(yq -r '.variables.SG_CI_IMAGE_NAME' .gitlab-ci.yml)-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)" stackgres-k8s/ci/build/
 #
 ###
 
@@ -118,7 +118,7 @@ FROM registry.access.redhat.com/ubi8-minimal:8.7-1107
   # StackGres CI Tools
   RUN microdnf install -y gnupg openssl jq curl bash zsh sed
   RUN uname -a | grep -qxF aarch64 \
-    || wget -O /bin/yajsv https://github.com/neilpa/yajsv/releases/download/v1.4.0/yajsv.linux.amd64
+    || wget -O /bin/yajsv https://github.com/neilpa/yajsv/releases/download/v1.4.1/yajsv.linux.amd64
   RUN chmod a+x /bin/yajsv
   RUN microdnf install -y python39-pip
   RUN pip3 install yamllint yq
@@ -126,20 +126,21 @@ FROM registry.access.redhat.com/ubi8-minimal:8.7-1107
   RUN microdnf install -y git
   RUN microdnf install -y xz
   RUN mkdir -p ~/.docker/cli-plugins
-  RUN wget -O ~/.docker/cli-plugins/docker-buildx "https://github.com/docker/buildx/releases/download/v0.8.2/buildx-v0.8.2.linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
-  RUN chmod a+x ~/.docker/cli-plugins/docker-buildx
   RUN echo '{"experimental":"enabled"}' > ~/.docker/config.json
   RUN wget -O /bin/kubectl "https://dl.k8s.io/release/v1.27.2/bin/linux/$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/kubectl"
   RUN chmod a+x /bin/kubectl
-  RUN wget -O /bin/kind "https://github.com/kubernetes-sigs/kind/releases/download/v0.15.0/kind-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
-  RUN chmod a+x /bin/kind
-  RUN wget -O /bin/k3d "https://github.com/rancher/k3d/releases/download/v4.4.7/k3d-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
+  RUN wget -O /bin/kind-0.15.0 "https://github.com/kubernetes-sigs/kind/releases/download/v0.15.0/kind-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
+  RUN chmod a+x /bin/kind-0.15.0
+  RUN wget -O /bin/kind-0.19.0 "https://github.com/kubernetes-sigs/kind/releases/download/v0.19.0/kind-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
+  RUN chmod a+x /bin/kind-0.19.0
+  RUN ln -s /bin/kind-0.19.0 /bin/kind
+  RUN wget -O /bin/k3d "https://github.com/rancher/k3d/releases/download/v5.5.1/k3d-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
   RUN chmod a+x /bin/k3d
-  RUN wget "https://get.helm.sh/helm-v3.9.0-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64).tar.gz" -O -|tar xz --strip-components=1 -C /bin -f - "linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/helm"
-  RUN wget "https://github.com/derailed/k9s/releases/download/v0.25.18/k9s_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo x86_64).tar.gz" -O -|tar xz -C /bin -f - k9s
+  RUN wget "https://get.helm.sh/helm-v3.12.0-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64).tar.gz" -O -|tar xz --strip-components=1 -C /bin -f - "linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/helm"
+  RUN wget "https://github.com/derailed/k9s/releases/download/v0.27.4/k9s_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64).tar.gz" -O -|tar xz -C /bin -f - k9s
   RUN pip3 install awscli
-  RUN wget https://github.com/operator-framework/operator-sdk/releases/download/v1.26.0/operator-sdk_linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64) -O /bin/operator-sdk
+  RUN wget https://github.com/operator-framework/operator-sdk/releases/download/v1.29.0/operator-sdk_linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64) -O /bin/operator-sdk
   RUN chmod a+x /bin/operator-sdk
-  RUN wget https://github.com/operator-framework/operator-registry/releases/download/v1.26.5/linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)-opm -O /bin/opm
+  RUN wget https://github.com/operator-framework/operator-registry/releases/download/v1.27.1/linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)-opm -O /bin/opm
   RUN chmod a+x /bin/opm
-  RUN microdnf install -y findutils make
+  RUN microdnf install -y findutils make procps diffutils
