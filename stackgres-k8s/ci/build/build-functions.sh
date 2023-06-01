@@ -584,7 +584,7 @@ retrieve_image_manifest() {
       > "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
       2>/dev/null \
       || ! jq -r \
-      '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].RepoDigests | map(split(":")[1]) | join("-")' \
+      '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].RepoDigests | map(split(":")[1]) | if length == 0 then halt_error else . end | join("-")' \
       "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
       >/dev/null 2>&1
     then

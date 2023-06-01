@@ -12,12 +12,17 @@ e2e_exclusive_lock() {
 }
 
 e2e_test_install() {
-  if ! can_install_operator_version "$STACKGRES_PREVIOUS_VERSION"
+  if e2e_skip_dbops_secutiry_upgrade
   then
     return
   fi
 
   CLUSTER_CRD="sgclusters.stackgres.io"
+
+  EXPECTED_PREVIOUS_OPERATOR_IMAGE="$STACKGRES_PREVIOUS_OPERATOR_IMAGE"
+  EXPECTED_PREVIOUS_RESTAPI_IMAGE="$STACKGRES_PREVIOUS_RESTAPI_IMAGE"
+  EXPECTED_OPERATOR_IMAGE="$STACKGRES_OPERATOR_IMAGE"
+  EXPECTED_RESTAPI_IMAGE="$STACKGRES_RESTAPI_IMAGE"
 
   RANDOM_VALUE="$(random_string)"
   CLUSTER_1_NAME="$(get_sgcluster_name "$CLUSTER_NAME-1")"
@@ -40,31 +45,9 @@ e2e_test_install() {
   PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE" | grep '/patroni\(-ext\)\?:v[0-9.]\+-pg12\.[0-9]\+-build-')"
   PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE="$(printf '%s' "$PREVIOUS_DISTRIBUTEDLOGS_PATRONI_IMAGE" | tail -n 1)"
 
-  k8s_unnamespaced_cleanup
-  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
-  k8s_async_cleanup
+  e2e_cleanup
 
-  if [ "$E2E_FORCE_IMAGE_PULL" = "true" ] \
-    && [ "$E2E_UPGRADE_SKIP_IMAGE_PULL" != true ]
-  then
-    if [ "$E2E_SKIP_LOAD_OPERATOR" != true ]
-    then
-      load_operator_images_from "$E2E_OPERATOR_REGISTRY" "$E2E_OPERATOR_REGISTRY_PATH" \
-        "$STACKGRES_PREVIOUS_VERSION"
-    fi
-
-    if [ "$E2E_SKIP_LOAD_COMPONENTS" != true ]
-    then
-      E2E_INCLUDE_ONLY_POSTGRES_VERSIONS= load_component_images_from "$E2E_COMPONENTS_REGISTRY" "$E2E_COMPONENTS_REGISTRY_PATH" \
-        "$STACKGRES_PREVIOUS_VERSION"
-    fi
-
-    if [ "$E2E_SKIP_LOAD_EXTENSIONS" != true ]
-    then
-      load_extensions_images_from "$E2E_EXTENSIONS_REGISTRY" "$E2E_EXTENSIONS_REGISTRY_PATH" \
-        "$STACKGRES_PREVIOUS_VERSION"
-    fi
-  fi
+  e2e_load_images
 
   PREVIOUS_VERSION_AS_NUMBER="$(get_version_as_number "$STACKGRES_PREVIOUS_VERSION")"
   VERSION_AS_NUMBER_0_9_5="$(get_version_as_number 0.9.5)"
@@ -81,9 +64,7 @@ e2e_test_install() {
   else
     E2E_GRAFANA_VERSION=8.5.13 install_prometheus_operator_for_version 12.8.0
   fi
-  install_operator_previous_version \
-    --set grafana.autoEmbed=true \
-    --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
+  e2e_install_previous_operator
 
   kubectl create namespace "$CLUSTER_NAMESPACE"
 
@@ -170,7 +151,7 @@ spec:
   managedLifecycle: false
 EOF
   
-  wait_until is_backup_phase "Completed"
+  wait_until e2e_is_backup_phase "Completed"
 
   remove_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE"
   kubectl create secret generic -n "$CLUSTER_NAMESPACE" secret-script \
@@ -246,24 +227,71 @@ EOF
   fi
 }
 
-is_backup_phase() {
+e2e_skip_dbops_secutiry_upgrade() {
+  ! can_install_operator_version "$STACKGRES_PREVIOUS_VERSION"
+}
+
+e2e_load_images() {
+  if [ "$E2E_FORCE_IMAGE_PULL" = "true" ] \
+    && [ "$E2E_UPGRADE_SKIP_IMAGE_PULL" != true ]
+  then
+    if [ "$E2E_SKIP_LOAD_OPERATOR" != true ]
+    then
+      load_operator_images_from "$E2E_OPERATOR_REGISTRY" "$E2E_OPERATOR_REGISTRY_PATH" \
+        "$STACKGRES_PREVIOUS_VERSION"
+    fi
+
+    if [ "$E2E_SKIP_LOAD_COMPONENTS" != true ]
+    then
+      E2E_INCLUDE_ONLY_POSTGRES_VERSIONS= load_component_images_from "$E2E_COMPONENTS_REGISTRY" "$E2E_COMPONENTS_REGISTRY_PATH" \
+        "$STACKGRES_PREVIOUS_VERSION"
+    fi
+
+    if [ "$E2E_SKIP_LOAD_EXTENSIONS" != true ]
+    then
+      load_extensions_images_from "$E2E_EXTENSIONS_REGISTRY" "$E2E_EXTENSIONS_REGISTRY_PATH" \
+        "$STACKGRES_PREVIOUS_VERSION"
+    fi
+  fi
+}
+
+e2e_install_previous_operator() {
+  install_operator_previous_version \
+    --set grafana.autoEmbed=true \
+    --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
+  PREVIOUS_RELEASE_NAME="stackgres-operator"
+}
+
+e2e_upgrade_operator() {
+  upgrade_operator --reset-values \
+    --set grafana.autoEmbed=true \
+    --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
+}
+
+e2e_is_backup_phase() {
   [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.status.process.status}')" = "$1" ]
 }
 
+e2e_cleanup() {
+  k8s_unnamespaced_cleanup
+  k8s_cleanup_namespace "$OPERATOR_NAMESPACE"
+  k8s_async_cleanup
+}
+
 e2e_test_uninstall() {
-  if ! can_install_operator_version "$STACKGRES_PREVIOUS_VERSION"
+  if e2e_skip_dbops_secutiry_upgrade
   then
     return
   fi
 
-  uninstall_prometheus_operator
-  delete_operator_only
+  e2e_cleanup
+
   install_operator_only
   wait_pods_running "$OPERATOR_NAMESPACE" 2
 }
 
 e2e_test() {
-  if ! can_install_operator_version "$STACKGRES_PREVIOUS_VERSION"
+  if e2e_skip_dbops_secutiry_upgrade
   then
     echo "Skip dbops-security-upgrade since previous version of operator $STACKGRES_PREVIOUS_VERSION can not be installed"
     return
@@ -327,22 +355,22 @@ check_before_operator_upgrade() {
 
 check_operator_upgrade() {
   local POD_OPERATOR_IMAGE
-  POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
+  POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app="$PREVIOUS_RELEASE_NAME" \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
     | grep '/operator:')"
   if ! printf %s "$POD_OPERATOR_IMAGE" | grep -q '^[^/]\+\.[^/]\+/'
   then
     POD_OPERATOR_IMAGE="docker.io/$POD_OPERATOR_IMAGE"
   fi
-  if [ "${POD_OPERATOR_IMAGE#*/}" = "${STACKGRES_PREVIOUS_OPERATOR_IMAGE#*/}" ]
+  if [ "${POD_OPERATOR_IMAGE#*/}" = "${EXPECTED_PREVIOUS_OPERATOR_IMAGE#*/}" ]
   then
     echo "SUCCESS. Operator pod is using the previous operator image"
   else
     echo "FAILURE. Operator pod is not using the previous operator image"
     echo
-    echo "Previous operator image is $STACKGRES_PREVIOUS_OPERATOR_IMAGE"
+    echo "Expected previous operator image is $EXPECTED_PREVIOUS_OPERATOR_IMAGE"
     echo
-    echo "Used operator image is $POD_OPERATOR_IMAGE"
+    echo "Used previous operator image is $POD_OPERATOR_IMAGE"
     return 1
   fi
   local POD_RESTAPI_IMAGE
@@ -353,21 +381,19 @@ check_operator_upgrade() {
   then
     POD_RESTAPI_IMAGE="docker.io/$POD_RESTAPI_IMAGE"
   fi
-  if [ "${POD_RESTAPI_IMAGE#*/}" = "${STACKGRES_PREVIOUS_RESTAPI_IMAGE#*/}" ]
+  if [ "${POD_RESTAPI_IMAGE#*/}" = "${EXPECTED_PREVIOUS_RESTAPI_IMAGE#*/}" ]
   then
     echo "SUCCESS. Operator pod is using the previous restapi image"
   else
     echo "FAILURE. Operator pod is not using the previous restapi image"
     echo
-    echo "Previous restapi image is $STACKGRES_PREVIOUS_RESTAPI_IMAGE"
+    echo "Expected previous restapi image is $EXPECTED_PREVIOUS_RESTAPI_IMAGE"
     echo
-    echo "Used restapi image is $POD_RESTAPI_IMAGE"
+    echo "Used previous restapi image is $POD_RESTAPI_IMAGE"
     return 1
   fi
 
-  upgrade_operator --reset-values \
-    --set grafana.autoEmbed=true \
-    --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
+  e2e_upgrade_operator
 
   POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
@@ -376,15 +402,15 @@ check_operator_upgrade() {
   then
     POD_OPERATOR_IMAGE="docker.io/$POD_OPERATOR_IMAGE"
   fi
-  if [ "${POD_OPERATOR_IMAGE#*/}" = "${STACKGRES_OPERATOR_IMAGE#*/}" ]
+  if [ "${POD_OPERATOR_IMAGE#*/}" = "${EXPECTED_OPERATOR_IMAGE#*/}" ]
   then
     echo "SUCCESS. Operator pod is using the new operator image"
   else
     echo "FAILURE. Operator pod is not using the new operator image"
     echo
-    echo "New operator image is $STACKGRES_OPERATOR_IMAGE"
+    echo "Expected new operator image is $EXPECTED_OPERATOR_IMAGE"
     echo
-    echo "Used operator image is $POD_OPERATOR_IMAGE"
+    echo "Used new operator image is $POD_OPERATOR_IMAGE"
     return 1
   fi
   POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-restapi \
@@ -394,15 +420,15 @@ check_operator_upgrade() {
   then
     POD_RESTAPI_IMAGE="docker.io/$POD_RESTAPI_IMAGE"
   fi
-  if [ "${POD_RESTAPI_IMAGE#*/}" = "${STACKGRES_RESTAPI_IMAGE#*/}" ]
+  if [ "${POD_RESTAPI_IMAGE#*/}" = "${EXPECTED_RESTAPI_IMAGE#*/}" ]
   then
     echo "SUCCESS. Operator pod is using the new restapi image"
   else
     echo "FAILURE. Operator pod is not using the new restapi image"
     echo
-    echo "New restapi image is $STACKGRES_RESTAPI_IMAGE"
+    echo "Expected new restapi image is $EXPECTED_RESTAPI_IMAGE"
     echo
-    echo "Used restapi image is $POD_RESTAPI_IMAGE"
+    echo "Used new restapi image is $POD_RESTAPI_IMAGE"
     return 1
   fi
 }
@@ -564,9 +590,9 @@ check_cluster_before_security_upgrade() {
     else
       echo "FAILURE. Pod $POD is not using the previous patroni image"
       echo
-      echo "Previous patroni image is $PREVIOUS_PATRONI_IMAGE"
+      echo "Expected previous patroni image is $PREVIOUS_PATRONI_IMAGE"
       echo
-      echo "Used patroni image is $POD_PATRONI_IMAGE"
+      echo "Used previous patroni image is $POD_PATRONI_IMAGE"
       return 1
     fi
   done
@@ -689,9 +715,9 @@ check_cluster_after_security_upgrade() {
     else
       echo "FAILURE. Pod $POD is not using the latest patroni image"
       echo
-      echo "New patroni images is '$PATRONI_IMAGE'"
+      echo "Expected new patroni images is '$PATRONI_IMAGE'"
       echo
-      echo "Used patroni image is '$POD_PATRONI_IMAGE'"
+      echo "Used new patroni image is '$POD_PATRONI_IMAGE'"
       return 1
     fi
   done

@@ -5,8 +5,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
   name: "{{ .Release.Name }}-integrate-grafana"
   labels:
-    app: stackgres-operator
-    scope: init
+    app: stackgres-operator-init
     job: integrate-grafana
   annotations:
     "helm.sh/hook": post-install,post-upgrade
@@ -19,8 +18,7 @@ spec:
   template:
     metadata:
       labels:
-        app: stackgres-operator
-        scope: init
+        app: stackgres-operator-init
         job: integrate-grafana
     spec:
       {{- with .Values.jobs.affinity}}
