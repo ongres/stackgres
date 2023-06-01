@@ -41,6 +41,7 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -181,7 +182,8 @@ public class RbacResource {
         HasMetadata.getFullResourceName(StackGresProfile.class),
         HasMetadata.getFullResourceName(StackGresDbOps.class),
         HasMetadata.getFullResourceName(StackGresPostgresConfig.class),
-        HasMetadata.getFullResourceName(StackGresPoolingConfig.class));
+        HasMetadata.getFullResourceName(StackGresPoolingConfig.class),
+        HasMetadata.getFullResourceName(StackGresShardedCluster.class));
   }
 
   private List<String> getVerbs() {
