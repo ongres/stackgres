@@ -23,9 +23,9 @@ check_kind_version() {
     fi
   else
     KIND="$KIND_0_15_0"
-    if ! "$KIND" version | grep -q -F 'kind v0.19.0 '
+    if ! "$KIND" version | grep -q -F 'kind v0.15.0 '
     then
-      echo "To run Kubernetes 1.21+ kind v0.19.0 is required"
+      echo "To run Kubernetes 1.20- kind v0.15.0 is required"
       return 1
     fi
   fi
