@@ -1,10 +1,13 @@
 #!/bin/sh
 
 . "$SPEC_PATH/abstract/metrics"
+. "$SPEC_PATH/abstract/dbops-restart"
 
 e2e_test_extra_hash() {
   "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
     "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/metrics")"
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/dbops-restart")"
 }
 
 e2e_test_install() {
@@ -33,6 +36,8 @@ e2e_test() {
   run_test "Checking that primary can be converted to standby" check_primary_can_be_converted_to_standby
 
   run_test "Checking that backup configuration is propagated to standby" check_backup_config_is_propagated_to_standby
+
+  run_test "Checking that standby can be restarted" check_restart_standby
 }
 
 check_standby_is_working() {
@@ -275,4 +280,23 @@ check_backup_config_is_propagated_to_standby() {
     echo "FAIL: standby replication is not using restore_command"
     return 1
   fi
+}
+
+check_restart_standby() {
+  DBOPS_NAME="$(get_sgdbops_name restart)"
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: restart
+  restart:
+    method: InPlace
+EOF
+
+  check_restart_without_data
 }
