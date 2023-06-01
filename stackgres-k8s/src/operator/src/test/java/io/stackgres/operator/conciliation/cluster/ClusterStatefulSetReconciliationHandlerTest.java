@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
+import static io.stackgres.common.PatroniUtil.HISTORY_KEY;
 import static io.stackgres.operator.conciliation.AbstractStatefulSetReconciliationHandler.PLACEHOLDER_NODE_SELECTOR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -297,7 +298,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
     when(endpointsFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(new EndpointsBuilder()
             .withNewMetadata()
-            .withAnnotations(ImmutableMap.of("history",
+            .withAnnotations(ImmutableMap.of(HISTORY_KEY,
                 "[[1,25987816,"
                 + "\"no recovery target specified\","
                 + "\"2021-10-18T23:31:45.550086+00:00\","
@@ -341,7 +342,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
     when(endpointsFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(new EndpointsBuilder()
             .withNewMetadata()
-            .withAnnotations(ImmutableMap.of("history",
+            .withAnnotations(ImmutableMap.of(HISTORY_KEY,
                 "[[1,25987816,"
                 + "\"no recovery target specified\","
                 + "\"2021-10-18T23:31:45.550086+00:00\","
