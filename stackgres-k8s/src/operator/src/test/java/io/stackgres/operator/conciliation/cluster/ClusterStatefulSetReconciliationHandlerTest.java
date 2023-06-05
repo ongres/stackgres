@@ -225,7 +225,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
   @DisplayName("Scaling up StatefulSet with non disrputable Pods with index lower than replicas"
       + " count should result in the same number of desired replicas and fix disruptable Label")
   void scaleUpWithIndexLowerThanReplicasCount_DesiredReplicasAndFixDisruptableLabel() {
-    final int desiredReplicas = setUpUpscale(1, 1, -1, PrimaryPosition.FIRST_NONDISRUPTABLE);
+    final int desiredReplicas = setUpUpscale(1, 1, 0, PrimaryPosition.FIRST_NONDISRUPTABLE);
 
     ArgumentCaptor<HasMetadata> podArgumentCaptor = ArgumentCaptor.forClass(HasMetadata.class);
 
