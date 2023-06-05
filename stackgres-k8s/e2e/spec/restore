@@ -118,7 +118,7 @@ check_backup_can_be_restored() {
 
 check_init_data_after_restore() {
   local RESULT
-  RESULT="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" \
+  RESULT="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" \
     -q " SELECT num FROM fibonacci ORDER BY num;")"
   if printf '%s' "$RESULT" \
     | tr -d '\n' \
@@ -155,11 +155,11 @@ check_replication_after_restore() {
   local PRIMARY_RESPONSE
   local REPLICA_RESPONSE
 
-  run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "INSERT INTO fibonacci(num) VALUES (21);" -d test
-  run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "INSERT INTO fibonacci(num) VALUES (34);" -d test
-  run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "INSERT INTO fibonacci(num) VALUES (55);" -d test
+  run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "INSERT INTO fibonacci(num) VALUES (21);" -d test
+  run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "INSERT INTO fibonacci(num) VALUES (34);" -d test
+  run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "INSERT INTO fibonacci(num) VALUES (55);" -d test
 
-  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" -q "SELECT num FROM fibonacci ORDER BY num;" | tr -d '\n')"
+  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" -q "SELECT num FROM fibonacci ORDER BY num;" | tr -d '\n')"
   REPLICA_RESPONSE="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" -q "SELECT num FROM fibonacci ORDER BY num;" | tr -d '\n')"
 
   if [ "$PRIMARY_RESPONSE" = "1235813213455" ]

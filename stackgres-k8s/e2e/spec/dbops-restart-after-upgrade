@@ -426,7 +426,7 @@ check_cluster_after_restart() {
   done
 
   local PRIMARY_SERVICE_TYPE
-  PRIMARY_SERVICE_TYPE="$(kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-primary" \
+  PRIMARY_SERVICE_TYPE="$(kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template '{{ .spec.type }}')"
   if [ "$PRIMARY_SERVICE_TYPE" = "ExternalName" ]
   then

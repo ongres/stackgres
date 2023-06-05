@@ -104,8 +104,8 @@ spec:
                         description: |
                           If not set or set to `false` the script entry will not be retried if it fails.
 
-                          When set to `true` the script execution will be retried with an exponential backoff of 5 minutes
-                           and a standard deviation of 1 minute.
+                          When set to `true` the script execution will be retried with an exponential backoff of 5 minutes,
+                           starting from 10 seconds and a standard deviation of 10 seconds.
 
                           This is `false` by default.
                       script:
