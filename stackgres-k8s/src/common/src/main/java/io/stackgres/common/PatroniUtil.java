@@ -37,6 +37,7 @@ public interface PatroniUtil {
   String LEADER_KEY = "leader";
   String INITIALIZE_KEY = "initialize";
   String CONFIG_KEY = "config";
+  String HISTORY_KEY = "history";
   String ROLE_KEY = "role";
   String PRIMARY_ROLE = "master";
   String REPLICA_ROLE = "replica";
@@ -219,8 +220,8 @@ public interface PatroniUtil {
       ObjectMapper objectMapper) {
     try {
       return patroniConfigEndpoints.map(Endpoints::getMetadata).map(ObjectMeta::getAnnotations)
-          .filter(annotations -> annotations.containsKey("history"))
-          .map(annotations -> annotations.get("history"))
+          .filter(annotations -> annotations.containsKey(HISTORY_KEY))
+          .map(annotations -> annotations.get(HISTORY_KEY))
           .map(Unchecked.function(history -> objectMapper.readTree(history)))
           .filter(history -> history instanceof ArrayNode).map(ArrayNode.class::cast)
           .map(history -> history.get(history.size() - 1))

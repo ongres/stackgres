@@ -40,6 +40,7 @@ public class ClusterControllerReconciliator
   private final PatroniReconciliator patroniReconciliator;
   private final ManagedSqlReconciliator managedSqlReconciliator;
   private final PostgresSslReconciliator postgresSslReconciliator;
+  private final PatroniStandbyHistoryReconciliator patroniStandbyHistoryReconciliator;
   private final String podName;
 
   @Inject
@@ -52,6 +53,7 @@ public class ClusterControllerReconciliator
     this.patroniReconciliator = parameters.patroniReconciliator;
     this.managedSqlReconciliator = parameters.managedSqlReconciliator;
     this.postgresSslReconciliator = parameters.postgresSslReconciliator;
+    this.patroniStandbyHistoryReconciliator = parameters.patroniStandbyHistoryReconciliator;
     this.podName = parameters.propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
   }
@@ -67,6 +69,7 @@ public class ClusterControllerReconciliator
     this.patroniReconciliator = null;
     this.managedSqlReconciliator = null;
     this.postgresSslReconciliator = null;
+    this.patroniStandbyHistoryReconciliator = null;
     this.podName = null;
   }
 
@@ -108,6 +111,8 @@ public class ClusterControllerReconciliator
         managedSqlReconciliator.reconcile(client, context);
     ReconciliationResult<Void> postgresSslReconciliationResult =
         postgresSslReconciliator.reconcile(client, context);
+    ReconciliationResult<Void> patroniStandbyHistoryReconciliatorResult =
+        patroniStandbyHistoryReconciliator.reconcile(client, context);
 
     if (podStatusMissing
         || postgresBootstrapReconciliatorResult.result().orElse(false)
@@ -143,7 +148,8 @@ public class ClusterControllerReconciliator
         .join(pgbouncerReconciliationResult)
         .join(patroniReconciliationResult)
         .join(managedSqlReconciliationResult)
-        .join(postgresSslReconciliationResult);
+        .join(postgresSslReconciliationResult)
+        .join(patroniStandbyHistoryReconciliatorResult);
   }
 
   private void updateClusterPodStatus(StackGresCluster targetCluster,
@@ -189,6 +195,7 @@ public class ClusterControllerReconciliator
     @Inject PatroniReconciliator patroniReconciliator;
     @Inject ManagedSqlReconciliator managedSqlReconciliator;
     @Inject PostgresSslReconciliator postgresSslReconciliator;
+    @Inject PatroniStandbyHistoryReconciliator patroniStandbyHistoryReconciliator;
   }
 
 }
