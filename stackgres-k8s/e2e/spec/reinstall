@@ -80,7 +80,7 @@ check_replica_postgres_connectivity(){
 }
 
 check_outer_primary_connections(){
-  check_service_connectivity -i 1 -h "$CLUSTER_NAME-primary"
+  check_service_connectivity -i 1 -h "$CLUSTER_NAME"
 }
 
 check_outer_replica_connections(){

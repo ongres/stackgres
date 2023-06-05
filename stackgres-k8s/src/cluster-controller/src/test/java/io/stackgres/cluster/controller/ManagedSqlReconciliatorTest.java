@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -607,12 +607,6 @@ public class ManagedSqlReconciliatorTest {
 
     reconciliator.reconcile(client, context);
 
-    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
-    verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
-    verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());
-    verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
-    verify(managedSqlScriptEntryExecutor, times(2)).executeScriptEntry(any(), any());
-    verify(clusterScheduler, times(4)).update(any(), any());
     var expectedUpdatedManagedSqlStatus = originalCluster.getStatus().getManagedSql();
     var expectedUpdatedManagedSqlEntryStatus = expectedUpdatedManagedSqlStatus.getScripts().get(0);
     expectedUpdatedManagedSqlEntryStatus.setScripts(new ArrayList<>());
@@ -684,6 +678,13 @@ public class ManagedSqlReconciliatorTest {
         ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL,
         ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL_ERROR),
         eventReasonArgumentCaptor.getAllValues());
+
+    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(managedSqlScriptEntryExecutor, times(2)).executeScriptEntry(any(), any());
+    verify(clusterScheduler, times(4)).update(any(), any());
   }
 
   @Test
@@ -1401,10 +1402,10 @@ public class ManagedSqlReconciliatorTest {
   @SuppressWarnings("unchecked")
   private void addUpdatedManagedSqlStatus(InvocationOnMock invocation, StackGresCluster cluster,
       ArrayList<StackGresClusterManagedSqlStatus> actualUpdatedManagedSqlStatusList) {
-    var updater = (BiConsumer<StackGresCluster, StackGresCluster>)
+    var updater = (Consumer<StackGresCluster>)
         invocation.getArgument(1);
     var updatedCluster = Fixtures.cluster().loadManagedSql().get();
-    updater.accept(updatedCluster, cluster);
+    updater.accept(updatedCluster);
     actualUpdatedManagedSqlStatusList.add(
         JsonUtil.copy(updatedCluster.getStatus().getManagedSql()));
   }

@@ -99,7 +99,7 @@ public class PostgresRestartImpl implements PostgresRestart {
   }
 
   private Duration calculateExponentialBackoffDelay(int retry) {
-    return Duration.ofMillis(RetryUtil.calculateExponentialBackoffDelay(10, 60000, 10, retry));
+    return Duration.ofMillis(RetryUtil.calculateExponentialBackoffDelay(10, 600, 10, retry));
   }
 
 }

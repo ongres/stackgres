@@ -23,7 +23,7 @@ generate_mock_data(){
 }
 
 read_mock_table(){
-  local SERVER="${SERVER:-primary}"
+  local SERVER="$([ -z "$SERVER" ] || printf %s "-$SERVER")"
   local INSTANCE="${INSTANCE:-1}"
 
   local opt
@@ -42,7 +42,7 @@ read_mock_table(){
     esac
   done
 
-  run_query -c "$CLUSTER_NAME" -p 5432 -h "$CLUSTER_NAME-$SERVER" -i "$INSTANCE" -d "test" -q "SELECT SUM(num) FROM fibonacci;"
+  run_query -c "$CLUSTER_NAME" -p 5432 -h "$CLUSTER_NAME$SERVER" -i "$INSTANCE" -d "test" -q "SELECT SUM(num) FROM fibonacci;"
 }
 
 check_mock_data_samehost(){
@@ -76,7 +76,7 @@ check_mock_data_replication(){
   local SERVER
   local RESPONSE_PRIMARY
   REPLICA_INDEX="$(get_replica_index)"
-  SERVER="primary"
+  SERVER=""
   RESPONSE_PRIMARY="$(read_mock_table -i "$REPLICA_INDEX")"
 
   local PRIMARY_INDEX
