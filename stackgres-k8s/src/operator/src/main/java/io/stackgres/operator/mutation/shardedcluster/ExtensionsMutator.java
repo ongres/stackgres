@@ -26,7 +26,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
-import io.stackgres.common.extension.ExtensionUtil;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.operator.common.OperatorExtensionMetadataManager;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
@@ -94,27 +93,24 @@ public class ExtensionsMutator
           .flatMap(extensions -> Seq.seq(extensions))
           .forEach(Unchecked.consumer(extension -> {
             getToInstallExtension(coordinatorCluster, extension)
-                .ifPresent(toInstallExtension -> {
-                  leaveOrAddOrReplaceExtensionVersion(extension, toInstallExtension);
+                .ifPresent(toInstallExtensionMetadata -> {
+                  leaveOrAddOrReplaceExtensionVersion(extension, toInstallExtensionMetadata);
                 });
           }));
     }
   }
 
-  private Optional<StackGresClusterInstalledExtension> getToInstallExtension(
+  private Optional<StackGresExtensionMetadata> getToInstallExtension(
       StackGresCluster cluster, StackGresClusterExtension extension) {
-    Optional<StackGresClusterInstalledExtension> exactCandidateExtension =
+    Optional<StackGresExtensionMetadata> exactCandidateExtension =
         extensionMetadataManager
-        .findExtensionCandidateSameMajorBuild(cluster, extension, false)
-        .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
-            cluster, extension, extensionMetadata, false));
+        .findExtensionCandidateSameMajorBuild(cluster, extension, false);
 
     if (exactCandidateExtension.isEmpty()) {
       List<StackGresExtensionMetadata> candidateExtensionMetadatas =
           extensionMetadataManager.getExtensionsAnyVersion(cluster, extension, false);
       if (candidateExtensionMetadatas.size() == 1) {
-        return Optional.of(ExtensionUtil.getInstalledExtension(
-            cluster, extension, candidateExtensionMetadatas.get(0), false));
+        return Optional.of(candidateExtensionMetadatas.get(0));
       }
       return Optional.empty();
     }
@@ -123,10 +119,12 @@ public class ExtensionsMutator
 
   private void leaveOrAddOrReplaceExtensionVersion(
       StackGresClusterExtension extension,
-      StackGresClusterInstalledExtension installedExtension) {
+      StackGresExtensionMetadata extensionMetadata) {
     if (extension.getVersion() == null
-        || !installedExtension.getVersion().equals(extension.getVersion())) {
-      extension.setVersion(installedExtension.getVersion());
+        || Optional.ofNullable(extensionMetadata.getExtension().getChannels())
+        .map(map -> map.containsKey(extension.getVersion()))
+        .orElse(false)) {
+      extension.setVersion(extensionMetadata.getVersion().getVersion());
     }
   }
 
