@@ -644,14 +644,14 @@
                                 </div>
                                 <div class="col">
                                     <label for="spec.replicateFrom.storage.performance.maxDiskBandwidth">
-                                        Maximum Disk Bandwidth
+                                        Max Disk Bandwidth
                                     </label>
                                     <input type="number" v-model="replicateFrom.storage.performance.maxDiskBandwidth" data-field="spec.replicateFrom.storage.performance.maxDiskBandwidth" />
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.storage.performance.maxDiskBandwidth')"></span>
                                 </div>
                                 <div class="col">
                                     <label for="spec.replicateFrom.storage.performance.maxNetworkBandwidth">
-                                        Maximum Network Bandwidth
+                                        Max Network Bandwidth
                                     </label>
                                     <input type="number" v-model="replicateFrom.storage.performance.maxNetworkBandwidth" data-field="spec.replicateFrom.storage.performance.maxNetworkBandwidth" />
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.storage.performance.maxNetworkBandwidth')"></span>
@@ -2985,7 +2985,7 @@
         
         </form>
         
-        <ClusterSummary :cluster="previewCRD" :extensionsList="extensionsList" v-if="showSummary" @closeSummary="showSummary = false"></ClusterSummary>
+        <ClusterSummary :cluster="previewCRD" :extensionsList="extensionsList[flavor][postgresVersion]" v-if="showSummary" @closeSummary="showSummary = false"></ClusterSummary>
     </div>
 </template>
 

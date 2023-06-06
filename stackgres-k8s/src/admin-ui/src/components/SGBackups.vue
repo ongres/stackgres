@@ -228,330 +228,24 @@
 					</div>
 				</div>
 			</template>
+			
 			<template v-else>
 				<template v-for="back in backups" v-if="back.name == $route.params.backupname">
-					<div class="relative">
-						<h2>Backup Details</h2>
-						<template v-if="isCluster">
-							<div class="titleLinks crdActionLinks">
-								<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackup/' + back.data.metadata.name + '/edit'" title="Edit Backup">
-									Edit Backup
-								</router-link>
-								<a v-if="iCan('delete','sgbackups',$route.params.namespace)" @click="deleteCRD('sgbackups',$route.params.namespace, $route.params.backupname, '/' + $route.params.namespace + '/sgbackups')" title="Delete Backup" class="deleteCRD">
-									Delete Backup
-								</a>
-								<router-link :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackups'" title="Close Details">Close Details</router-link>
-							</div>
-						</template>
-					</div>
+					<h2>Backup Details</h2>
 
-					<template v-if="back.data.status.process.status === 'Completed'">
-						<table class="crdDetails">
-							<tbody>
-								<tr>
-									<td class="label">
-										Name
-										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.metadata.name')"></span>
-									</td>
-									<td>
-										{{ back.name }}
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										Status
-										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.status')"></span>
-									</td>
-									<td class="phase" :class="back.data.status.process.status">
-										<span>{{ back.data.status.process.status }}</span>
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										Size uncompressed
-										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.size.uncompressed')"></span>
-									</td>
-									<td class="textRight">
-										{{ back.data.status.backupInformation.size.uncompressed | formatBytes }}
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										Size compressed
-										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.size.compressed')"></span>
-									</td>
-									<td class="textRight">
-										{{ back.data.status.backupInformation.size.compressed | formatBytes }}
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										PG
-										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.postgresVersion')"></span>
-									</td>
-									<td>
-										{{ back.data.status.backupInformation.postgresVersion | prefix }}
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										Name
-										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.metadata.name')"></span>
-									</td>
-									<td>
-										{{ back.data.metadata.name }}
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										Source Cluster
-										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.spec.sgCluster')"></span>
-									</td>
-									<td>
-										<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + back.data.spec.sgCluster" title="Cluster Details">
-											{{ back.data.spec.sgCluster }}
-											<span class="eyeIcon"></span>
-										</router-link>
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										Start Time
-										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.timing.start')"></span>
-									</td>
-									<td class="timestamp">
-										<span class='date'>
-											{{ back.data.status.process.timing.start | formatTimestamp('date') }}
-										</span>
-										<span class='time'>
-											{{ back.data.status.process.timing.start | formatTimestamp('time') }}
-										</span>
-										<span class='ms'>
-											{{ back.data.status.process.timing.start | formatTimestamp('ms') }}
-										</span>
-										<span class='tzOffset'>{{ showTzOffset() }}</span>
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										End Time
-										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.timing.end')"></span>
-									</td>
-									<td class="timestamp">
-										<span class='date'>
-											{{ back.data.status.process.timing.end | formatTimestamp('date') }}
-										</span>
-										<span class='time'>
-											{{ back.data.status.process.timing.end | formatTimestamp('time') }}
-										</span>
-										<span class='ms'>
-											{{ back.data.status.process.timing.end | formatTimestamp('ms') }}
-										</span>
-										<span class='tzOffset'>{{ showTzOffset() }}</span>
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										Stored Time
-										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.timing.stored')"></span>
-									</td>
-									<td class="timestamp">
-										<span class='date'>
-											{{ back.data.status.process.timing.stored | formatTimestamp('date') }}
-										</span>
-										<span class='time'>
-											{{ back.data.status.process.timing.stored | formatTimestamp('time') }}
-										</span>
-										<span class='ms'>
-											{{ back.data.status.process.timing.stored | formatTimestamp('ms') }}
-										</span>
-										<span class='tzOffset'>{{ showTzOffset() }}</span>
-									</td>
-								</tr>
-								<tr v-if="(back.data.status.process.status === 'Completed' )" :set="duration = getBackupDuration(back)">
-									<td class="label">
-										Elapsed
-										<span class="helpTooltip" data-tooltip="Total time transcurred between the start time of backup and the time at which the backup is safely stored in the object storage."></span>
-									</td>
-									<template v-if="duration.length">
-										<td class="timestamp">
-											<span class='time'>
-												{{ duration | formatTimestamp('time') }}
-											</span>
-											<span class='ms'>
-												{{ duration | formatTimestamp('ms') }}
-											</span>
-										</td>
-									</template>
-									<template v-else>
-										<td>
-											The time spent taking the backup could not be calculated
-										</td>
-									</template>
-								</tr>
-								<tr>
-									<td class="label">
-										LSN (start ⇢ end)
-										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.lsn.start') + ' ⇢ ' + getTooltip('sgbackup.status.backupInformation.lsn.end')"></span>
-									</td>
-									<td>
-										{{ back.data.status.backupInformation.lsn.start }} ⇢ {{ back.data.status.backupInformation.lsn.end }}
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										UID
-										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.metadata.uid')"></span>
-									</td>
-									<td colspan="2">
-										{{ back.data.metadata.uid }}
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										Source Pod
-										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.hostname')"></span>
-									</td>
-									<td>
-										{{ back.data.status.backupInformation.hostname }}
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										Timeline
-										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.timeline')"></span>
-									</td>
-									<td>
-										{{ back.data.status.backupInformation.timeline }}
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										System Identifier
-										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.systemIdentifier')"></span>
-									</td>
-									<td>
-										{{ back.data.status.backupInformation.systemIdentifier }}
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										Job Pod
-										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.jobPod')"></span>
-									</td>
-									<td>
-										{{ back.data.status.process.jobPod }}
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										Managed Lifecycle (request)
-										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.spec.managedLifecycle')"></span>
-									</td>
-									<td class="managedLifecycle" :class="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle.toString() : 'false'" :data-val="hasProp(back,'data.spec.managedLifecycle') ? back.data.spec.managedLifecycle : 'false'"></td>
-								</tr>
-								<tr>
-									<td class="label">
-										Managed Lifecycle (status)
-										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.managedLifecycle')"></span>
-									</td>
-									<td>
-										{{ back.data.status.process.managedLifecycle ? 'Enabled' : 'Disabled' }}
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										Hostname
-										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.hostname')"></span>
-									</td>
-									<td>
-										{{ back.data.status.backupInformation.hostname }}
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										PG Data
-										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.pgData')"></span>
-									</td>
-									<td>
-										{{ back.data.status.backupInformation.pgData }}
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										Start Wal File
-										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.startWalFile')"></span>
-									</td>
-									<td>
-										{{ back.data.status.backupInformation.startWalFile }}
-									</td>
-								</tr>
-								<tr v-if="(typeof back.data.status.backupInformation.controlData !== 'undefined')" class="controlData">
-									<td class="label">
-										Control Data
-										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.controlData')"></span>
-									</td>
-									<td>
-										<a @click="setContentTooltip('#controlData')"> 
-											View Control Data
-											<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
-										</a>
+					<template v-if="isCluster">
+						<div class="titleLinks crdActionLinks">
+							<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackup/' + back.data.metadata.name + '/edit'" title="Edit Backup">
+								Edit Backup
+							</router-link>
+							<a v-if="iCan('delete','sgbackups',$route.params.namespace)" @click="deleteCRD('sgbackups',$route.params.namespace, $route.params.backupname, '/' + $route.params.namespace + '/sgbackups')" title="Delete Backup" class="deleteCRD">
+								Delete Backup
+							</a>
+							<router-link :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackups'" title="Close Details">Close Details</router-link>
+						</div>
+					</template>
 
-										<div id="controlData" class="hidden">
-											<table class="crdDetails">
-												<tr v-for="(value, key) in back.data.status.backupInformation.controlData">
-													<td class="label">{{ key }}</td>
-													<td class="value">{{ value }}</td>
-												</tr>
-											</table>
-										</div>
-									</td>
-								</tr>
-								<tr v-if="hasProp(back, 'data.status.backupPath')">
-									<td class="label">
-										Backup Path
-										<span  class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupPath')"></span>
-									</td>
-									<td>
-										{{ back.data.status.backupPath }}
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</template>
-					<template v-else-if="( hasProp(back, 'data.status.process.status') && (back.data.status.process.status === 'Failed') )">
-						<table class="crdDetails">
-							<tbody>
-								<tr>
-									<td class="label">
-										Name
-										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.metadata.name')"></span>
-									</td>
-									<td>
-										{{ back.name }}
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										Status
-										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.status')"></span>
-									</td>
-									<td class="phase" :class="back.data.status.process.status">
-										<span>{{ back.data.status.process.status }}</span>
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										Failure Cause
-										<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.failure')"></span>
-									</td>
-									<td>
-										<vue-markdown :source="back.data.status.process.failure"></vue-markdown>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</template>
+					<CRDSummary :crd="crd" kind="SGBackup" :details="true"></CRDSummary>
 				</template>
 			</template>
 		</div>
@@ -564,11 +258,16 @@
 	import router from '../router'
 	import { mixin } from './mixins/mixin'
 	import moment from 'moment'
+	import CRDSummary from './forms/summary/CRDSummary.vue'
 
     export default {
         name: 'SGBackups',
 
 		mixins: [mixin],
+		
+		components: {
+            CRDSummary
+        },
 
 		data: function() {
 
@@ -662,6 +361,10 @@
 
 			isFiltered() {
 				return (this.filters.managedLifecycle.length || this.filters.status.length || this.filters.postgresVersion.length || this.filters.clusterName.length)
+			},
+
+			crd () {
+				return store.state.sgbackups.find(b => (b.data.metadata.namespace == this.$route.params.namespace) && (b.data.metadata.name == this.$route.params.backupname))
 			}
 
 		},
@@ -722,17 +425,6 @@
 				vc.pagination.start = 0;
 				vc.pagination.current = 0;
 				
-			},
-
-			getBackupDuration( backup ) {
-				if ( this.hasProp(backup, 'data.status.process.timing.start') && this.hasProp(backup, 'data.status.process.timing.stored') ) {
-					let start = moment(backup.data.status.process.timing.start);
-					let finish = moment(backup.data.status.process.timing.stored);
-
-					return new Date(moment.duration(finish.diff(start))).toISOString();
-				} else {
-					return '';
-				}
 			},
 
 			getActiveFilters() {
