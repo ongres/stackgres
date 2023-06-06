@@ -661,7 +661,7 @@ class ShardedClusterResourceMockedTest extends
           resourceSpec.getCoordinator().getResourceProfile());
 
       final ClusterConfiguration dtoSpecConfigurations =
-          dtoSpec.getCoordinator().getConfiguration();
+          dtoSpec.getCoordinator().getConfigurationForCoordinator();
 
       final StackGresClusterConfiguration resourceSpecConfiguration = resourceSpec
           .getCoordinator().getConfiguration();
