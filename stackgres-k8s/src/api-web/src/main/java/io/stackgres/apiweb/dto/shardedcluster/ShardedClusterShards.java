@@ -15,7 +15,9 @@ import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-@JsonIgnoreProperties(value = { "instances", "postgres", "postgresServices" })
+@JsonIgnoreProperties(value = { "instances", "postgres", "postgresServices",
+    "initialData", "replicateFrom", "distributedLogs", "toInstallPostgresExtensions",
+    "prometheusAutobind", "nonProductionOptions" })
 public class ShardedClusterShards extends ClusterSpec {
 
   @JsonProperty("clusters")
@@ -29,6 +31,9 @@ public class ShardedClusterShards extends ClusterSpec {
 
   @JsonProperty("overrides")
   private List<ShardedClusterShard> overrides;
+
+  @JsonProperty("configurations")
+  private ShardedClusterInnerConfiguration configurationForShards;
 
   public int getClusters() {
     return clusters;
@@ -60,6 +65,14 @@ public class ShardedClusterShards extends ClusterSpec {
 
   public void setOverrides(List<ShardedClusterShard> overrides) {
     this.overrides = overrides;
+  }
+
+  public ShardedClusterInnerConfiguration getConfigurationForShards() {
+    return configurationForShards;
+  }
+
+  public void setConfigurationForShards(ShardedClusterInnerConfiguration configurationForShards) {
+    this.configurationForShards = configurationForShards;
   }
 
 }

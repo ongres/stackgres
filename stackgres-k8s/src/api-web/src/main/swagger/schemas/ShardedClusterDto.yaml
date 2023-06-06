@@ -63,7 +63,7 @@ schema:
                                       configMapScript:
                                         description: |
                                           A script that will be stored in a [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) as specified by `configMapKeyRef` field or, if not specified, with name of the referenced SGScript `.metadata.name` with the suffix `-` followed by the script entry id. The ConfigMap will be created or patched with specified value.
-          workers:
+          shards:
            properties:
               managedSql:
                 properties:

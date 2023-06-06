@@ -13,7 +13,9 @@ import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-@JsonIgnoreProperties(value = { "instances", "postgres", "postgresServices" })
+@JsonIgnoreProperties(value = { "instances", "postgres", "postgresServices",
+    "initialData", "replicateFrom", "distributedLogs", "toInstallPostgresExtensions",
+    "prometheusAutobind", "nonProductionOptions" })
 public class ShardedClusterShard extends ClusterSpec {
 
   @JsonProperty("index")
@@ -24,6 +26,9 @@ public class ShardedClusterShard extends ClusterSpec {
 
   @JsonProperty("replication")
   private ShardedClusterReplication replicationForShards;
+
+  @JsonProperty("configurations")
+  private ShardedClusterInnerConfiguration configurationForShards;
 
   public int getIndex() {
     return index;
@@ -47,6 +52,14 @@ public class ShardedClusterShard extends ClusterSpec {
 
   public void setReplicationForShards(ShardedClusterReplication replicationForShards) {
     this.replicationForShards = replicationForShards;
+  }
+
+  public ShardedClusterInnerConfiguration getConfigurationForShards() {
+    return configurationForShards;
+  }
+
+  public void setConfigurationForShards(ShardedClusterInnerConfiguration configurationForShards) {
+    this.configurationForShards = configurationForShards;
   }
 
 }
