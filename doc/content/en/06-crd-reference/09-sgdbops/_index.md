@@ -138,7 +138,6 @@ Holds scheduling configuration for StackGres pods to have.
 
 | Property                                   | Required | Updatable | Type     | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
-| method                                     |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.minorVersionUpgrade.method >}} |
 | link                                       |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.link >}} |
 | clone                                      |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.clone >}} |
 | check                                      |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.check >}} |
