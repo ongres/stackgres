@@ -115,9 +115,9 @@ class ExtensionsValidatorTest {
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
         ErrorType.EXTENSION_NOT_FOUND,
-        "Some extensions were not found: dblink (available 1.0.0),"
-            + " pg_stat_statements (available 1.0.0), plpgsql (available 1.0.0),"
-            + " plpython3u (available 1.0.0)");
+        "Some extensions were not found: dblink 1.0.0 (available 1.0.0),"
+            + " pg_stat_statements 1.0.0 (available 1.0.0), plpgsql 1.0.0 (available 1.0.0),"
+            + " plpython3u 1.0.0 (available 1.0.0)");
   }
 
   private StackGresClusterReview getCreationReview() {

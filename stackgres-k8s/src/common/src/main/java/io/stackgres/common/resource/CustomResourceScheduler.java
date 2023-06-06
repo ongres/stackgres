@@ -6,6 +6,7 @@
 package io.stackgres.common.resource;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import io.fabric8.kubernetes.client.CustomResource;
@@ -17,7 +18,7 @@ public interface CustomResourceScheduler<T extends CustomResource<?, ?>> {
 
   T update(@NotNull T resource);
 
-  T update(@NotNull T resource, @NotNull BiConsumer<T, T> setter);
+  T update(@NotNull T resource, @NotNull Consumer<T> setter);
 
   <S> T updateStatus(@NotNull T resource, @NotNull Function<T, S> statusGetter,
       @NotNull BiConsumer<T, S> statusSetter);

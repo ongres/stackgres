@@ -44,7 +44,7 @@ spec:
               properties:
                 name:
                   type: string
-                  maxLength: 21
+                  maxLength: 57
                   pattern: "^[a-z]([-a-z0-9]*[a-z0-9])?$"
                   description: |
                     Name of the Database Operation. A database operation represents a ""kind"" of operation on a StackGres cluster, classified by a given name. The operation reference one SGCluster by its name. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 `label`, an alphanumeric (a-z, and 0-9) string, with a maximum length of 21 characters, with the '-' character allowed anywhere except the first or last character.

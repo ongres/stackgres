@@ -71,14 +71,9 @@ check_job_annotation(){
 }
 
 check_service_annotation(){
-  local INSTANCE="$1"
+  local INSTANCE="$([ -z "$1" ] || printf %s "-$1")"
   local EXPECTED_ANNOTATION_VALUE="$2"
   local SERVICE_ANNOTATION="${SERVICE_ANNOTATION:-"service-annotation"}"
-
-  if [ -n "$INSTANCE" ]
-  then
-    INSTANCE="-$INSTANCE"
-  fi
 
   local ACTUAL_ANNOTATION
   ACTUAL_ANNOTATION="$(kubectl get service -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME$INSTANCE" -o jsonpath="{.metadata.annotations.$SERVICE_ANNOTATION}")"

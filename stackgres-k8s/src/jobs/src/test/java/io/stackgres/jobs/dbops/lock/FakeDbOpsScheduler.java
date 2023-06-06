@@ -6,6 +6,7 @@
 package io.stackgres.jobs.dbops.lock;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import javax.inject.Inject;
@@ -43,10 +44,10 @@ public class FakeDbOpsScheduler implements CustomResourceScheduler<StackGresDbOp
 
   @Override
   public StackGresDbOps update(@NotNull StackGresDbOps resource,
-      @NotNull BiConsumer<StackGresDbOps, StackGresDbOps> setter) {
+      @NotNull Consumer<StackGresDbOps> setter) {
     final ObjectMeta metadata = resource.getMetadata();
     var dbOps = kubeDb.getDbOps(metadata.getName(), metadata.getNamespace());
-    setter.accept(dbOps, resource);
+    setter.accept(dbOps);
     return kubeDb.addOrReplaceDbOps(dbOps);
   }
 

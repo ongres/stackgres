@@ -55,7 +55,7 @@ ports_check() {
 }
 
 service_check() {
-  RESPONSE_PRIMARY="$(run_query -h "$CLUSTER_NAME"-primary -i 1 -p 5432)"
+  RESPONSE_PRIMARY="$(run_query -h "$CLUSTER_NAME" -i 1 -p 5432)"
 
   if [ "$RESPONSE_PRIMARY" = "1" ]
   then

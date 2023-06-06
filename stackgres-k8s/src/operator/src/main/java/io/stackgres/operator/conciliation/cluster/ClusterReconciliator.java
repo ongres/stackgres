@@ -90,29 +90,29 @@ public class ClusterReconciliator
     statusManager.refreshCondition(config);
 
     clusterScheduler.update(config,
-        (targetCluster, clusterWithStatus) -> {
-          var targetOs = Optional.ofNullable(targetCluster.getStatus())
+        (currentCluster) -> {
+          var targetOs = Optional.ofNullable(currentCluster.getStatus())
               .map(StackGresClusterStatus::getOs)
               .orElse(null);
-          var targetArch = Optional.ofNullable(targetCluster.getStatus())
+          var targetArch = Optional.ofNullable(currentCluster.getStatus())
               .map(StackGresClusterStatus::getArch)
               .orElse(null);
-          var targetPodStatuses = Optional.ofNullable(targetCluster.getStatus())
+          var targetPodStatuses = Optional.ofNullable(currentCluster.getStatus())
               .map(StackGresClusterStatus::getPodStatuses)
               .orElse(null);
-          var targetDbOps = Optional.ofNullable(targetCluster.getStatus())
+          var targetDbOps = Optional.ofNullable(currentCluster.getStatus())
               .map(StackGresClusterStatus::getDbOps)
               .orElse(null);
-          var targetManagedSql = Optional.ofNullable(targetCluster.getStatus())
+          var targetManagedSql = Optional.ofNullable(currentCluster.getStatus())
               .map(StackGresClusterStatus::getManagedSql)
               .orElse(null);
-          if (clusterWithStatus.getStatus() != null) {
-            clusterWithStatus.getStatus().setOs(targetOs);
-            clusterWithStatus.getStatus().setArch(targetArch);
-            clusterWithStatus.getStatus().setPodStatuses(targetPodStatuses);
-            clusterWithStatus.getStatus().setDbOps(targetDbOps);
-            clusterWithStatus.getStatus().setManagedSql(targetManagedSql);
-            targetCluster.setStatus(clusterWithStatus.getStatus());
+          if (config.getStatus() != null) {
+            config.getStatus().setOs(targetOs);
+            config.getStatus().setArch(targetArch);
+            config.getStatus().setPodStatuses(targetPodStatuses);
+            config.getStatus().setDbOps(targetDbOps);
+            config.getStatus().setManagedSql(targetManagedSql);
+            currentCluster.setStatus(config.getStatus());
           }
         });
   }

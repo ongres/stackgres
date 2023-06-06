@@ -9,12 +9,9 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.regex.Pattern;
 
-import com.google.common.base.Predicates;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition.Status;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition.Type;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -36,27 +33,6 @@ public interface DbOpsUtil {
     return ResourceUtil.resourceName(clusterName + SUFFIX);
   }
 
-  static boolean isMaxRetriesReached(StackGresDbOps dbOps) {
-    return Optional.of(dbOps)
-        .map(StackGresDbOps::getStatus)
-        .map(StackGresDbOpsStatus::getOpRetries)
-        .orElse(0) >= Optional.of(dbOps)
-        .map(StackGresDbOps::getSpec)
-        .map(StackGresDbOpsSpec::getMaxRetries)
-        .orElse(0);
-  }
-
-  static boolean isFailed(StackGresDbOps dbOps) {
-    return Optional.of(dbOps)
-        .map(StackGresDbOps::getStatus)
-        .map(StackGresDbOpsStatus::getConditions)
-        .stream()
-        .flatMap(List::stream)
-        .anyMatch(Predicates.and(
-            DbOpsStatusCondition.Type.FAILED::isCondition,
-            DbOpsStatusCondition.Status.TRUE::isCondition));
-  }
-
   static boolean isAlreadyCompleted(StackGresDbOps dbOps) {
     return Optional.of(dbOps)
         .map(StackGresDbOps::getStatus)
@@ -74,10 +50,7 @@ public interface DbOpsUtil {
 
   static String jobName(StackGresDbOps dbOps, String operation) {
     String name = dbOps.getMetadata().getName();
-    UUID uid = UUID.fromString(dbOps.getMetadata().getUid());
-    return ResourceUtil.resourceName(name + "-" + operation + "-"
-        + Long.toHexString(uid.getMostSignificantBits())
-        + "-" + getCurrentRetry(dbOps));
+    return ResourceUtil.resourceName(name);
   }
 
   static String getTimeout(StackGresDbOps dbOps) {
@@ -96,11 +69,4 @@ public interface DbOpsUtil {
         .replaceAll(m -> "-" + m.group().toLowerCase(Locale.US));
   }
 
-  static Integer getCurrentRetry(StackGresDbOps dbOps) {
-    return Optional.of(dbOps)
-        .map(StackGresDbOps::getStatus)
-        .map(StackGresDbOpsStatus::getOpRetries)
-        .map(r -> r + (DbOpsUtil.isFailed(dbOps) && !DbOpsUtil.isMaxRetriesReached(dbOps) ? 1 : 0))
-        .orElse(0);
-  }
 }

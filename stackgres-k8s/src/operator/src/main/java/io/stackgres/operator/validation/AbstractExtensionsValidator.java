@@ -82,9 +82,11 @@ public abstract class AbstractExtensionsValidator<T extends AdmissionReview<?>>
               Set.copyOf(candidateExtensionVersions.get(missingExtension.extensionName()));
           if (!availableVersions.isEmpty()) {
             return missingExtension.extensionName()
+                + missingExtension.extensionVersion().map(v -> " " + v).orElse("")
                 + " (available " + String.join(", ", availableVersions) + ")";
           }
-          return missingExtension.extensionName();
+          return missingExtension.extensionName()
+              + missingExtension.extensionVersion().map(v -> " " + v).orElse("");
         })
         .toString(", ");
   }

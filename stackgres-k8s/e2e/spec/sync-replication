@@ -69,7 +69,7 @@ check_sync_replication_is_working() {
   fi
 
   local RESULT EXIT_CODE
-  try_function run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "CREATE DATABASE test;"
+  try_function run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE DATABASE test;"
   if "$RESULT"
   then
     echo "SUCCESS: It's possible to create a database in the primary node"
@@ -88,12 +88,12 @@ check_sync_replication_is_working() {
     echo "SUCCESS: It's not be possible to create a table in the replica node" 
   fi
 
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "CREATE TABLE fibonacci(num integer);" -d test
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci(num) VALUES (1);" -d test
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci(num) VALUES (2);" -d test
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci(num) VALUES (3);" -d test
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE TABLE fibonacci(num integer);" -d test
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "INSERT INTO fibonacci(num) VALUES (1);" -d test
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "INSERT INTO fibonacci(num) VALUES (2);" -d test
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "INSERT INTO fibonacci(num) VALUES (3);" -d test
 
-  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
+  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
   REPLICA_RESPONSE="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
@@ -249,12 +249,12 @@ check_strict_sync_replication_is_working() {
     return 1
   fi
 
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "CREATE TABLE fibonacci_strict(num integer);" -d test
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci_strict(num) VALUES (1);" -d test
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci_strict(num) VALUES (2);" -d test
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci_strict(num) VALUES (3);" -d test
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE TABLE fibonacci_strict(num integer);" -d test
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "INSERT INTO fibonacci_strict(num) VALUES (1);" -d test
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "INSERT INTO fibonacci_strict(num) VALUES (2);" -d test
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "INSERT INTO fibonacci_strict(num) VALUES (3);" -d test
 
-  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -q "SELECT num FROM fibonacci_strict ORDER BY num;" -d "test")"
+  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -q "SELECT num FROM fibonacci_strict ORDER BY num;" -d "test")"
   REPLICA_RESPONSE="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "SELECT num FROM fibonacci_strict ORDER BY num;" -d "test")"
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
@@ -294,7 +294,7 @@ check_sync_all_replication_is_working() {
   fi
 
   local RESULT EXIT_CODE
-  try_function run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "CREATE DATABASE test_all;"
+  try_function run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE DATABASE test_all;"
   if "$RESULT"
   then
     echo "SUCCESS: It's possible to create a database in the primary node"
@@ -313,12 +313,12 @@ check_sync_all_replication_is_working() {
     echo "SUCCESS: It's not be possible to create a table in the replica node" 
   fi
 
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "CREATE TABLE fibonacci(num integer);" -d test_all
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci(num) VALUES (1);" -d test_all
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci(num) VALUES (2);" -d test_all
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci(num) VALUES (3);" -d test_all
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE TABLE fibonacci(num integer);" -d test_all
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "INSERT INTO fibonacci(num) VALUES (1);" -d test_all
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "INSERT INTO fibonacci(num) VALUES (2);" -d test_all
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "INSERT INTO fibonacci(num) VALUES (3);" -d test_all
 
-  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test_all")"
+  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test_all")"
   REPLICA_RESPONSE="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test_all")"
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
@@ -367,12 +367,12 @@ check_strict_sync_all_replication_is_working() {
     return 1
   fi
 
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "CREATE TABLE fibonacci_strict(num integer);" -d test_all
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci_strict(num) VALUES (1);" -d test_all
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci_strict(num) VALUES (2);" -d test_all
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -i 1 -q "INSERT INTO fibonacci_strict(num) VALUES (3);" -d test_all
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE TABLE fibonacci_strict(num integer);" -d test_all
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "INSERT INTO fibonacci_strict(num) VALUES (1);" -d test_all
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "INSERT INTO fibonacci_strict(num) VALUES (2);" -d test_all
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "INSERT INTO fibonacci_strict(num) VALUES (3);" -d test_all
 
-  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME-primary" -q "SELECT num FROM fibonacci_strict ORDER BY num;" -d "test_all")"
+  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -q "SELECT num FROM fibonacci_strict ORDER BY num;" -d "test_all")"
   REPLICA_RESPONSE="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "SELECT num FROM fibonacci_strict ORDER BY num;" -d "test_all")"
 
   if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]

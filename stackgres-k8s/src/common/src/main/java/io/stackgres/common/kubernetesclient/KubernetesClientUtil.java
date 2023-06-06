@@ -42,7 +42,7 @@ public interface KubernetesClientUtil {
       } catch (KubernetesClientException ex) {
         if (isConflict(ex)) {
           try {
-            Thread.sleep(calculateExponentialBackoffDelay(10, 3000, 10, retry++));
+            Thread.sleep(calculateExponentialBackoffDelay(10, 600, 10, retry++));
             continue;
           } catch (InterruptedException iex) {
             throw new RuntimeException(iex);

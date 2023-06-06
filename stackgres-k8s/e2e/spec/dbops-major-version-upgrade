@@ -11,6 +11,8 @@ e2e_test() {
   run_test "Checking that major version upgrade is working" check_major_version_upgrade_is_working
 
   run_test "Checking that major version upgrade check is working" check_major_version_upgrade_check_is_working
+
+  run_test "Checking that major version upgrade fail on missing extension version" check_major_version_upgrade_fail_on_missing_extension_version
 }
 
 check_major_version_upgrade_is_working() {
@@ -156,6 +158,31 @@ spec:
 EOF
 
   check_major_version_upgrade_check
+
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
+}
+
+check_major_version_upgrade_fail_on_missing_extension_version() {
+  local E2E_MAJOR_SOURCE_POSTGRES_VERSION=14
+  local E2E_MAJOR_TARGET_POSTGRES_VERSION=15.3
+  reset_cluster_only_pg_repack
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: majorVersionUpgrade
+  majorVersionUpgrade:
+    postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
+    sgPostgresConfig: postgresconf-for-major-version-upgrade
+    check: true
+EOF
+
+  assert_dbops_failure "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
 
   kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 }

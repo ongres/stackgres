@@ -6,6 +6,7 @@
 package io.stackgres.common.fixture;
 
 import io.stackgres.common.extension.StackGresExtensions;
+import io.stackgres.common.extension.StackGresExtensionsBuilder;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class ExtensionMetadataFixture extends Fixture<StackGresExtensions> {
@@ -15,4 +16,7 @@ public class ExtensionMetadataFixture extends Fixture<StackGresExtensions> {
     return this;
   }
 
+  public StackGresExtensionsBuilder getBuilder() {
+    return new StackGresExtensionsBuilder(fixture);
+  }
 }
