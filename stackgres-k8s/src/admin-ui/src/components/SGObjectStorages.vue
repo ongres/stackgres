@@ -75,246 +75,9 @@
 			<template v-else>
 				<template v-for="conf in config" v-if="conf.name == $route.params.name">
 					<h2>Object Storage Details</h2>
-
+					
 					<div class="configurationDetails">
-						<table class="crdDetails">
-							<tbody>
-								<tr>
-									<td class="label">
-										Name 
-										<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.metadata.name')"></span>
-									</td>
-									<td colspan="100%">
-										{{ conf.name }}
-									</td>
-								</tr>
-								<tr>
-									<td class="label">
-										Storage Type
-										<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.type')"></span>
-									</td>
-									<td colspan="100%">
-										{{ conf.data.spec.type }}
-									</td>
-								</tr>
-								<template v-if="conf.data.spec.type == 's3'">
-									<tr>
-										<td class="label">
-											Bucket
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.s3.bucket')"></span>
-										</td>
-										<td colspan="2">
-											{{ conf.data.spec.s3.bucket }}
-										</td>
-									</tr>
-									<tr v-if="hasProp(conf, 'data.spec.s3.region')">
-										<td class="label">
-											Region
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.s3.region')"></span>
-										</td>
-										<td colspan="2">
-											{{ conf.data.spec.s3.region }}
-										</td>
-									</tr>
-									<tr v-if="hasProp(conf, 'data.spec.s3.storageClass')">
-										<td class="label">
-											Storage Class
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.s3.storageClass')"></span>
-										</td>
-										<td colspan="2">
-											{{ conf.data.spec.s3.storageClass }}
-										</td>
-									</tr>
-									<tr>
-										<td rowspan="2" class="label">
-											AWS Credentials
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.s3.awsCredentials')"></span>
-										</td>
-										<td class="label">
-											Access Key ID
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.s3.awsCredentials.secretKeySelectors.accessKeyId')"></span>
-										</td>
-										<td>
-											********
-										</td>
-									</tr>
-									<tr>
-										<td class="label">
-											Secret Access Key
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.s3.awsCredentials.secretKeySelectors.secretAccessKey')"></span>
-										</td>
-										<td>
-											********
-										</td>
-									</tr>
-								</template>
-								<template v-else-if="conf.data.spec.type === 's3Compatible'">
-									<tr>
-										<td class="label">
-											Bucket
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.s3Compatible.bucket')"></span>
-										</td>
-										<td colspan="2">
-											{{ conf.data.spec.s3Compatible.bucket }}
-										</td>
-									</tr>
-									<tr v-if="hasProp(conf, 'data.spec.s3Compatible.enablePathStyleAddressing')">
-										<td class="label">
-											Path Style Addressing
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.s3Compatible.enablePathStyleAddressing')"></span>
-										</td>
-										<td colspan="2">
-											{{ isEnabled(conf.data.spec.s3Compatible.enablePathStyleAddressing) }}
-										</td>
-									</tr>
-									<tr v-if="hasProp(conf, 'data.spec.s3Compatible.endpoint')">
-										<td class="label">
-											Endpoint
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.s3Compatible.endpoint')"></span>
-										</td>
-										<td colspan="2">
-											{{ conf.data.spec.s3Compatible.endpoint }}
-										</td>
-									</tr>
-									<tr v-if="hasProp(conf, 'data.spec.s3Compatible.region')">
-										<td class="label">
-											Region
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.s3Compatible.region')"></span>
-										</td>
-										<td colspan="2">
-											{{ conf.data.spec.s3Compatible.region }}
-										</td>
-									</tr>
-									<tr v-if="hasProp(conf, 'data.spec.s3Compatible.storageClass')">
-										<td class="label">
-											Bucket
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.s3Compatible.storageClass')"></span>
-										</td>
-										<td colspan="2">
-											{{ conf.data.spec.s3Compatible.storageClass }}
-										</td>
-									</tr>
-									<tr>
-										<td rowspan="2" class="label">
-											AWS Credentials
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.s3Compatible.awsCredentials')"></span>
-										</td>
-										<td class="label">
-											Access Key ID
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.s3Compatible.awsCredentials.secretKeySelectors.accessKeyId')"></span>
-										</td>
-										<td>
-											********
-										</td>
-									</tr>
-									<tr>
-										<td class="label">
-											Secret Access Key
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.s3Compatible.awsCredentials.secretKeySelectors.secretAccessKey')"></span>
-										</td>
-										<td>
-											********
-										</td>
-									</tr>
-								</template>
-								<template v-else-if="conf.data.spec.type === 'gcs'">
-									<tr>
-										<td class="label">
-											Bucket
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.gcs.bucket')"></span>
-										</td>
-										<td colspan="3">
-											{{ conf.data.spec.gcs.bucket }}
-										</td>
-									</tr>
-									<template v-if="hasProp(conf, 'data.spec.gcs.gcpCredentials.secretKeySelectors')">
-										<tr>
-											<td class="label" rowspan="2">
-												GCS Credentials
-												<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.gcs.gcpCredentials')"></span>
-											</td>
-											<td class="label" rowspan="2">
-												Service Account JSON
-												<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON')"></span>
-											</td>
-											<td class="label">
-												Name
-												<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.name')"></span>
-											</td>
-											<td>
-												{{ conf.data.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.name }}
-											</td>
-										</tr>
-										<tr>
-											<td class="label">
-												Key
-												<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.key')"></span>
-											</td>
-											<td>
-												{{ conf.data.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON.key }}
-											</td>
-										</tr>
-									</template>
-									<template v-else-if="hasProp(conf, 'data.spec.gcs.gcpCredentials.fetchCredentialsFromMetadataService')">
-										<tr>
-											<td class="label" rowspan="2">
-												Fetch Credentials From Metadata Service
-												<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.gcs.gcpCredentials.fetchCredentialsFromMetadataService')"></span>
-											</td>
-											<td>
-												{{ isEnabled(conf.data.spec.gcs.gcpCredentials.fetchCredentialsFromMetadataService) }}
-											</td>
-										</tr>
-									</template>
-								</template>
-								<template v-else-if="conf.data.spec.type === 'azureBlob'">
-									<tr>
-										<td class="label">
-											Bucket
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.azureBlob.bucket')"></span>
-										</td>
-										<td colspan="2">
-											{{ conf.data.spec.azureBlob.bucket }}
-										</td>
-									</tr>
-									<tr>
-										<td rowspan="2" class="label">
-											Azure Credentials
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.azureBlob.azureCredentials')"></span>
-										</td>
-										<td class="label">
-											Storage Account
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.azureBlob.azureCredentials.secretKeySelectors.storageAccount')"></span>
-										</td>
-										<td>
-											********
-										</td>
-									</tr>
-									<tr>
-										<td class="label">
-											Access Key
-											<span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.azureBlob.azureCredentials.secretKeySelectors.accessKey')"></span>
-										</td>
-										<td>
-											********
-										</td>
-									</tr>
-								</template>
-								<tr v-if="conf.data.status.clusters.length">
-									<td class="label">Used on  <span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.status.clusters')"></span></td>
-									<td class="usedOn" colspan="2">
-										<ul>
-											<li v-for="cluster in conf.data.status.clusters">
-												<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster" title="Cluster Details">
-													{{ cluster }}
-													<svg xmlns="http://www.w3.org/2000/svg" width="18.556" height="14.004" viewBox="0 0 18.556 14.004"><g transform="translate(0 -126.766)"><path d="M18.459,133.353c-.134-.269-3.359-6.587-9.18-6.587S.232,133.084.1,133.353a.93.93,0,0,0,0,.831c.135.269,3.36,6.586,9.18,6.586s9.046-6.317,9.18-6.586A.93.93,0,0,0,18.459,133.353Zm-9.18,5.558c-3.9,0-6.516-3.851-7.284-5.142.767-1.293,3.382-5.143,7.284-5.143s6.516,3.85,7.284,5.143C15.795,135.06,13.18,138.911,9.278,138.911Z" transform="translate(0 0)"/><path d="M9.751,130.857a3.206,3.206,0,1,0,3.207,3.207A3.21,3.21,0,0,0,9.751,130.857Z" transform="translate(-0.472 -0.295)"/></g></svg>
-												</router-link>
-											</li>
-										</ul>
-									</td>
-								</tr>
-							</tbody>
-						</table>
+						<CRDSummary :crd="crd" kind="SGObjectStorage" :details="true"></CRDSummary>
 					</div>
 				</template>
 			</template>
@@ -325,11 +88,16 @@
 <script>
 	import { mixin } from './mixins/mixin'
 	import store from '../store'
+	import CRDSummary from './forms/summary/CRDSummary.vue'
 
     export default {
         name: 'SGObjectStorages',
 
 		mixins: [mixin],
+
+		components: {
+            CRDSummary
+        },
 
 		data: function() {
 
@@ -345,6 +113,10 @@
 
 			config () {
 				return this.sortTable( [...(store.state.sgobjectstorages.filter(conf => (conf.data.metadata.namespace == this.$route.params.namespace)))], this.currentSort.param, this.currentSortDir, this.currentSort.type )
+			},
+
+			crd () {
+				return store.state.sgobjectstorages.find(c => (c.data.metadata.namespace == this.$route.params.namespace) && (c.data.metadata.name == this.$route.params.name))
 			}
 
 		},

@@ -202,6 +202,11 @@ td.actions a, a.paramDoc {
     width: 14px;
 }
 
+.paramUl a.paramDoc {
+    top: 1px;
+    left: 6px;
+}
+
 a.newTab {
     background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNSAxNSI+PGcgZmlsbD0iIzM2QThGRiI+PHBhdGggZD0iTS4zMDEgMTQuN2MtLjItLjItLjMtLjQtLjMtLjdWMy4yYzAtLjYuNS0xIDEtMWg1LjRjLjYgMCAxIC41IDEgMXMtLjUgMS0xIDFoLTQuNFYxM2g4LjhWOC42YzAtLjYuNS0xIDEtMXMxIC41IDEgMVYxNGMwIC42LS41IDEtMSAxaC0xMC44Yy0uMyAwLS41LS4xLS43LS4zeiIvPjxwYXRoIGQ9Ik0xNS4wMDEgNi40VjFjMC0uNi0uNS0xLTEtMWgtNS40Yy0uNiAwLTEgLjQtMSAxcy40IDEgMSAxaDIuOWwtNS4xIDUuMWMtLjQuNC0uNCAxIDAgMS40LjQuNCAxIC40IDEuNCAwbDUuMi01djIuOWMwIC42LjQgMSAxIDEgLjUuMSAxLS40IDEtMXoiLz48L2c+PC9zdmc+)  no-repeat !important;
 }
@@ -3262,7 +3267,7 @@ tr.base.pending td:not(.phase) {
     line-height: 40px;
 }
 
-td.timestamp span.time, span.timestamp span.time {
+.timestamp span.time, span.timestamp span.time {
     color: var(--blue);
 }
 
@@ -3270,7 +3275,7 @@ td .timestamp {
     color: var(--gray3);
 }
 
-td.timestamp span.ms, span.timestamp span.ms {
+.timestamp span.ms, span.timestamp span.ms {
     color: var(--gray5);
 }
 
@@ -4639,7 +4644,6 @@ tr.details.pgConfig .title {
 
 .paramDetails .helpTooltip, .crdDetails .helpTooltip {
     top: 2px;
-    margin-left: 5px;
 }
 
 .paramDetails a:not(:hover) svg path {
