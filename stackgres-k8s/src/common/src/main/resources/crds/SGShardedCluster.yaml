@@ -785,9 +785,17 @@ spec:
     
                             If not set, a default configuration will be used. Disabling connection pooling altogether is possible if the disableConnectionPooling property of the pods object is set to true.
                     replication:
-                      <<: *replication
+                      type: object
+                      description: |
+                        This section allows to configure the global Postgres replication mode.
+    
+                        The main replication group is implicit and contains the total number of instances less the sum of all
+                         instances in other replication groups.
+    
+                        The total number of instances is always specified by `.spec.instances`.
                       properties:
                         mode:
+                          type: string
                           description: |
                             The replication mode applied to the whole cluster.
                             Possible values are:
@@ -847,6 +855,12 @@ spec:
                             
                             The same as `strict-sync` but `syncInstances` is ignored and the number of synchronous instances is equals to the total number
                              of instances less one.
+                        syncInstances:
+                          type: integer
+                          minimum: 1
+                          description: |
+                            Number of synchronous standby instances. Must be less than the total number of instances. It is set to 1 by default.
+                             Only setteable if mode is `sync` or `strict-sync`.
                     metadata:
                       type: object
                       description: Metadata information from coordinator cluster created resources.
