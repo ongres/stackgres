@@ -176,7 +176,7 @@ spec:
                         * `sync`
                         * `strict-sync`
                         * `sync-all`
-                        * `string-sync-all`
+                        * `strict-sync-all`
                         
                         ### `async` Mode
                         
@@ -803,7 +803,7 @@ spec:
                             * `sync`
                             * `strict-sync`
                             * `sync-all` (default)
-                            * `string-sync-all`
+                            * `strict-sync-all`
                             
                             ### `async` Mode
                             
