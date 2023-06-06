@@ -142,12 +142,11 @@ pgbouncer_database_check() {
 }
 
 check_managed_sql_is_working() {
-  local CLUSTER_NAME="$CLUSTER_NAME-coord"
   local NODE=0
   local DATABASE=citus
-  check_user_on_primary
-  check_database_on_primary
-  check_schema_on_primary
+  check_user_on_sharded_primary
+  check_database_on_sharded_primary
+  check_schema_on_sharded_primary
 }
 
 check_backup_is_working() {
