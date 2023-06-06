@@ -203,8 +203,8 @@ public class ShardedClusterRequiredResourcesGenerator
       VersionInfo kubernetesVersion,
       Optional<Secret> databaseSecret) {
     final StackGresShardedClusterSpec spec = config.getSpec();
-    final StackGresShardedClusterShards workers = spec.getShards();
-    final StackGresClusterConfiguration configuration = workers.getConfiguration();
+    final StackGresShardedClusterShards shards = spec.getShards();
+    final StackGresClusterConfiguration configuration = shards.getConfiguration();
     final StackGresPostgresConfig pgConfig = postgresConfigFinder
         .findByNameAndNamespace(configuration.getPostgresConfig(), clusterNamespace)
         .orElseThrow(() -> new IllegalArgumentException(
@@ -213,11 +213,11 @@ public class ShardedClusterRequiredResourcesGenerator
                 + " " + configuration.getPostgresConfig()));
 
     final StackGresProfile profile = profileFinder
-        .findByNameAndNamespace(workers.getResourceProfile(), clusterNamespace)
+        .findByNameAndNamespace(shards.getResourceProfile(), clusterNamespace)
         .orElseThrow(() -> new IllegalArgumentException(
             "Shards of SGShardedCluster " + clusterNamespace + "." + clusterName
                 + " have a non existent " + StackGresProfile.KIND
-                + " " + workers.getResourceProfile()));
+                + " " + shards.getResourceProfile()));
 
     final Optional<StackGresPoolingConfig> pooling = Optional
         .ofNullable(configuration.getConnectionPoolingConfig())
@@ -239,17 +239,17 @@ public class ShardedClusterRequiredResourcesGenerator
       StackGresProfile profile,
       Optional<StackGresPoolingConfig> pooling,
       int index) {
-    StackGresCluster workersCluster = getShardsCluster(config, index);
+    StackGresCluster shardsCluster = getShardsCluster(config, index);
 
-    StackGresClusterContext workersContext = ImmutableStackGresClusterContext.builder()
+    StackGresClusterContext shardsContext = ImmutableStackGresClusterContext.builder()
         .kubernetesVersion(kubernetesVersion)
-        .source(workersCluster)
+        .source(shardsCluster)
         .postgresConfig(pgConfig)
         .profile(profile)
         .poolingConfig(pooling)
         .databaseSecret(databaseSecret)
         .build();
-    return workersContext;
+    return shardsContext;
   }
 
   record Credentials(

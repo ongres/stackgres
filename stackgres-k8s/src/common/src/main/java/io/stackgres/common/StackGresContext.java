@@ -43,7 +43,7 @@ public interface StackGresContext {
   String SHARDEDCLUSTER_UID_KEY = "shardedcluster-uid";
   String SHARDEDCLUSTER_NAMESPACE_KEY = "shardedcluster-namespace";
   String COORDINATOR_KEY = "coordinator";
-  String SHARDS_KEY = "workers";
+  String SHARDS_KEY = "shards";
 
   String REST_APIUSER_KEY = "apiUsername";
   String REST_K8SUSER_KEY = "k8sUsername";
