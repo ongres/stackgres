@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
@@ -65,6 +66,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -221,11 +227,20 @@ class ClusterStatefulSetReconciliationHandlerTest {
     verify(defaultHandler, never()).patch(any(), any(PersistentVolumeClaim.class), any());
   }
 
-  @Test
+  public static class Source implements ArgumentsProvider {
+    @Override
+    public Stream<? extends Arguments> provideArguments(ExtensionContext context)
+        throws Exception {
+      return Seq.range(0, 100).map(i -> Arguments.of(i));
+    }
+  }
+
+  @ParameterizedTest
+  @ArgumentsSource(Source.class)
   @DisplayName("Scaling up StatefulSet with non disrputable Pods with index lower than replicas"
       + " count should result in the same number of desired replicas and fix disruptable Label")
-  void scaleUpWithIndexLowerThanReplicasCount_DesiredReplicasAndFixDisruptableLabel() {
-    final int desiredReplicas = setUpUpscale(1, 1, 0, PrimaryPosition.FIRST_NONDISRUPTABLE);
+  void scaleUpWithIndexLowerThanReplicasCount_DesiredReplicasAndFixDisruptableLabel(Integer i) {
+    final int desiredReplicas = setUpUpscale(3, 1, 0, PrimaryPosition.FIRST_NONDISRUPTABLE);
 
     ArgumentCaptor<HasMetadata> podArgumentCaptor = ArgumentCaptor.forClass(HasMetadata.class);
 
