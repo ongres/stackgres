@@ -139,127 +139,10 @@ Create helm chart with specific api-key and pg connection on your relevant names
 
 ```
 helm install metis-mmc metis-data/metis-md-collector \
-  --set METIS_API_KEY=DHuUr5UXrg1jP0ZuB8Sl35t970UpQ5eFr75SD0xb \
-  --set DB_CONNECTION_STRINGS=postgresql://postgres:postgres@postgres.metisdata.svc:5432/metisdata;
+  --set METIS_API_KEY=*****1 \
+  --set DB_CONNECTION_STRINGS=*****2://postgres:postgres@postgres.metisdata.svc:5432/postgres;
 ```
 
-
-
-FerretDB itself is a stateless application, and as such we can use the usual pattern of a `Deployment` (in case we want to easily scale it up) with a `Service` to deploy it:
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ferretdb-dep
-  namespace: ferretdb
-  labels:
-    app: ferretdb
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ferretdb
-  template:
-    metadata:
-      labels:
-        app: ferretdb
-    spec:
-      containers:
-        - name: ferretdb
-          image: ghcr.io/ferretdb/ferretdb
-          ports:
-            - containerPort: 27017
-          env:
-            - name: FERRETDB_POSTGRESQL_URL
-              value: postgres://postgres/ferretdb
-
----
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: ferretdb
-  namespace: ferretdb
-spec:
-  selector:
-    app: ferretdb
-  ports:
-    - name: mongo
-      protocol: TCP
-      port: 27017
-      targetPort: 27017
-```
-
-```sh
-kubectl apply -f 06-ferretdb.yaml
-```
-
-Note the line where we pass the `FERRETDB_POSTGRESQL_URL` environment variable to FerretDB's container, set with the value `postgres://postgres/ferretdb`: the second `postgres` on the string is the `Service` name that StackGres exposes pointing to the primary instance of the created cluster, which is named after the `SGCluster`'s name; and `ferretdb` is the name of the database.
-
-If all goes well, you should see the pod up & running. To test it, we need to run a MongoDB client. For example, we can use `kubectl run` to run a `mongosh` image:
-
-```sh
-kubectl -n ferretdb run mongosh --image=rtsp/mongosh --rm -it -- bash
-13:01:14 mongosh:/#
-```
-
-FerretDB exposes at the MongoDB wire protocol level the same database, username and passwords that exist in the Postgres database. Therefore, we can use the user, password and database that were created before via the `SGScript`. At the terminal prompt, type the command:
-
-```sh
-mongosh mongodb://ferretdb:${PASSWORD}@${FERRETDB_SVC}/ferretdb?authMechanism=PLAIN
-```
-
-where `${PASSWORD}` is the randomly generated password of the `ferretdb` user in Postgres:
-
-```sh
-kubectl -n ferretdb get secret createuser --template '{{ printf "%s\n" (.data.sql | base64decode) }}'
-```
-
-and `${FERRETDB_SVC}` is the address exposed by the FerretDB `Service` (`10.43.178.142` in the example below):
-
-```sh
-kubectl -n ferretdb get svc ferretdb
-NAME       TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)     AGE
-ferretdb   ClusterIP   10.43.178.142   <none>        27017/TCP   23m
-```
-
-
-The `mongosh` command should connect. You can now try to insert and query some data:
-
-```js
-ferretdb> db.test.insertOne({a:1})
-{
-  acknowledged: true,
-  insertedId: ObjectId("644ef57e201f475adf06c355")
-}
-ferretdb> db.test.find()
-[ { _id: ObjectId("644ef57e201f475adf06c355"), a: 1 } ]
-```
-
-If you are curious, you can see how data was materialized on the Postgres database:
-
-```sql
-kubectl -n ferretdb exec -it postgres-0 -c postgres-util -- psql ferretdb
-psql (15.1 (OnGres 15.1-build-6.18))
-Type "help" for help.
-
-ferretdb=# set search_path to ferretdb;
-SET
-ferretdb=# \dt
-                     List of relations
-  Schema  |            Name             | Type  |  Owner   
-----------+-----------------------------+-------+----------
- ferretdb | _ferretdb_database_metadata | table | ferretdb
- ferretdb | test_afd071e5               | table | ferretdb
-(2 rows)
-
-ferretdb=# table test_afd071e5;
-                                                           _jsonb                                                            
------------------------------------------------------------------------------------------------------------------------------
- {"a": 1, "$s": {"p": {"a": {"t": "int"}, "_id": {"t": "objectId"}}, "$k": ["_id", "a"]}, "_id": "644ef57e201f475adf06c355"}
-(1 row)
-```
 
 
 ## Cleanup
@@ -267,5 +150,5 @@ ferretdb=# table test_afd071e5;
 Deleting the namespace should clean all used resources:
 
 ```sh
-kubectl delete namespace ferretdb
+kubectl delete namespace metisdata
 ```
