@@ -27,11 +27,16 @@ cluster:
           name: sql-scripts-sakila-schema
           key: create-sakila-schema.sql
     - database: sakila
-      script: "CREATE TABLE test_wrap_in_transaction();"
+      script: |
+        CREATE TABLE test_wrap_in_transaction();
+        CREATE DATABASE test;
       wrapInTransaction: serializable
     - database: sakila
-      script: "CREATE TABLE test_store_status_in_database();"
+      script: |
+        CREATE TABLE test_store_status_in_database();
+        CREATE DATABASE test;
       wrapInTransaction: serializable
+      storeStatusInDatabase: true
     - database: sakila
       script: |
         START TRANSACTION;
