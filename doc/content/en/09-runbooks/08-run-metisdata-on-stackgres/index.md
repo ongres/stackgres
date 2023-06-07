@@ -143,7 +143,15 @@ helm install metis-mmc metis-data/metis-md-collector \
   --set DB_CONNECTION_STRINGS=*****2://postgres:postgres@postgres.metisdata.svc:5432/postgres;
 ```
 
+Where the:
+*****1 - Represents the API token from Metisdata, that you could find in the web console at:
+![Metisdata-API](metisdata-api.png)
 
+
+*****2 - Represents the StackGres password, that could be obtained by the command: 
+```
+kubectl get secrets -n demo stackgres -o jsonpath='{.data.superuser-password}' | base64 -d
+```
 
 ## Cleanup
 
