@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -14,9 +15,13 @@ import java.util.List;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
@@ -106,17 +111,59 @@ class PatroniTest {
                 .withData(Map.of(StackGresUtil.MD5SUM_KEY, "test"))
                 .build())
             .build()));
+    when(clusterContext.getSource()).thenReturn(cluster);
+    when(clusterContext.getCluster()).thenReturn(cluster);
   }
 
   @Test
-  void givenACluster_itShouldGetHugePagesMountsAndEnvVars() {
-    when(clusterContext.getSource()).thenReturn(cluster);
-    when(clusterContext.getCluster()).thenReturn(cluster);
+  void givenACluster_itShouldGetVolumeMounts() {
+    Container patroniContainer = patroni.getContainer(clusterContainerContext);
+    var dshmVolumeMount = new VolumeMountBuilder()
+        .withName(StackGresVolume.DSHM.getName())
+        .withMountPath(ClusterStatefulSetPath.SHARED_MEMORY_PATH.path())
+        .build();
+    var pgLogVolumeMount = new VolumeMountBuilder()
+        .withName(StackGresVolume.LOG.getName())
+        .withMountPath(ClusterStatefulSetPath.PG_LOG_PATH.path())
+        .build();
+    assertTrue(patroniContainer.getVolumeMounts().contains(dshmVolumeMount));
+    assertTrue(patroniContainer.getVolumeMounts().contains(pgLogVolumeMount));
 
-    patroni.getContainer(clusterContainerContext);
-
+    verify(postgresSocket, times(1)).getVolumeMounts(any());
+    verify(localBinMounts, times(1)).getVolumeMounts(any());
+    verify(patroniMounts, times(1)).getVolumeMounts(any());
+    verify(backupMounts, times(1)).getVolumeMounts(any());
+    verify(replicateMounts, times(1)).getVolumeMounts(any());
+    verify(postgresExtensions, times(1)).getVolumeMounts(any());
     verify(hugePagesMounts, times(1)).getVolumeMounts(any());
-    verify(hugePagesMounts, times(1)).getDerivedEnvVars(any());
   }
 
+  @Test
+  void givenACluster_itShouldGetEnvVars() {
+    patroni.getContainer(clusterContainerContext);
+
+    verify(localBinMounts, times(1)).getDerivedEnvVars(any());
+    verify(patroniMounts, times(1)).getDerivedEnvVars(any());
+    verify(backupMounts, times(1)).getDerivedEnvVars(any());
+    verify(replicateMounts, times(1)).getDerivedEnvVars(any());
+    verify(postgresExtensions, times(1)).getDerivedEnvVars(any());
+    verify(hugePagesMounts, times(1)).getDerivedEnvVars(any());
+    verify(patroniEnvironmentVariables, times(1)).createResource(any());
+    verify(restoreMounts, times(1)).getDerivedEnvVars(any());
+  }
+
+  @Test
+  void givenACluster_itShouldGetPortsAndCommands() {
+    Container patroniContainer = patroni.getContainer(clusterContainerContext);
+    assertTrue(patroniContainer.getCommand().contains("/bin/sh"));
+    assertTrue(patroniContainer.getPorts().stream()
+        .filter(p -> p.getName().equals(EnvoyUtil.POSTGRES_PORT_NAME))
+        .findFirst().isPresent());
+    assertTrue(patroniContainer.getPorts().stream()
+        .filter(p -> p.getName().equals(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME))
+        .findFirst().isPresent());
+    assertTrue(patroniContainer.getPorts().stream()
+        .filter(p -> p.getName().equals(EnvoyUtil.PATRONI_RESTAPI_PORT_NAME))
+        .findFirst().isPresent());
+  }
 }

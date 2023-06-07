@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.cluster;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -13,10 +14,10 @@ import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
-import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -26,6 +27,8 @@ import io.stackgres.operator.conciliation.InitContainerFactoryDiscover;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
+import io.stackgres.testutil.JsonUtil;
+import io.stackgres.testutil.ModelTestUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,7 +59,7 @@ class PodTemplateSpecFactoryTest {
       initContainerFactoryDiscoverer;
 
   @Mock
-  private ContainerFactory<ClusterContainerContext> patroniContainerFactory;
+  private ContainerFactory<ClusterContainerContext> containerFactory;
 
   @Mock
   private Container patroniContainer;
@@ -79,63 +82,58 @@ class PodTemplateSpecFactoryTest {
         initContainerFactoryDiscoverer);
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(POSTGRES_VERSION);
+  }
+
+  @Test
+  void clusterWithVolumes_shouldAddOnlyUsedVolumes() {
     when(clusterContainerContext.getClusterContext()).thenReturn(clusterContext);
     when(clusterContext.getSource()).thenReturn(cluster);
     when(clusterContext.getCluster()).thenReturn(cluster);
     when(labelFactory.labelMapper()).thenReturn(labelMapper);
+    when(containerFactoryDiscoverer.discoverContainers(clusterContainerContext))
+        .thenReturn(List.of(containerFactory));
+    when(containerFactory.getContainer(clusterContainerContext))
+        .thenReturn(patroniContainer);
+    var requestedVolumeName = ModelTestUtil.createWithRandomData(String.class);
+    var usedVolumeMount = new VolumeMountBuilder()
+        .withName(requestedVolumeName)
+        .build();
+    when(patroniContainer.getVolumeMounts()).thenReturn(List.of(usedVolumeMount));
+
+    Volume usedVolume = ModelTestUtil.createWithRandomData(Volume.class);
+    Volume unusedVolume = ModelTestUtil.createWithRandomData(Volume.class);
+    var availableVolumes = Map.of(
+        requestedVolumeName,
+        JsonUtil.copy(usedVolume),
+        "unused-volume",
+        unusedVolume);
+
+    when(clusterContainerContext.availableVolumes()).thenReturn(availableVolumes);
+    var podTemplateSpec = podTemplateSpecFactory.getPodTemplateSpec(clusterContainerContext);
+    assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().size() == 1);
+    assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().get(0).getName()
+        .equals(usedVolume.getName()));
+    assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().get(0).equals(usedVolume));
   }
 
   @Test
-  void clusterWithHugePages_shouldAddHugePagesVolumes() {
+  void clusterWithVolumes_failUsingUndeclaredVolume() {
+    VolumeMount undeclaredVolumeMount = new VolumeMountBuilder()
+        .withName("undeclared-volume")
+        .build();
     when(containerFactoryDiscoverer.discoverContainers(clusterContainerContext))
-        .thenReturn(List.of(patroniContainerFactory));
-    when(patroniContainerFactory.getContainer(clusterContainerContext))
+        .thenReturn(List.of(containerFactory));
+    when(containerFactory.getContainer(clusterContainerContext))
         .thenReturn(patroniContainer);
-    when(patroniContainer.getVolumeMounts()).thenReturn(List.of(
-        new VolumeMountBuilder()
-        .withName(StackGresVolume.HUGEPAGES_2M.getName())
-        .build(),
-        new VolumeMountBuilder()
-        .withName(StackGresVolume.HUGEPAGES_1G.getName())
-        .build()));
-    when(clusterContainerContext.availableVolumes()).thenReturn(Map.of(
-        StackGresVolume.HUGEPAGES_2M.getName(),
-        new VolumeBuilder()
-        .withName(StackGresVolume.HUGEPAGES_2M.getName())
-        .withNewEmptyDir()
-        .withMedium("HugePages-2Mi")
-        .endEmptyDir()
-        .build(),
-        StackGresVolume.HUGEPAGES_1G.getName(),
-        new VolumeBuilder()
-        .withName(StackGresVolume.HUGEPAGES_1G.getName())
-        .withNewEmptyDir()
-        .withMedium("HugePages-1Gi")
-        .endEmptyDir()
-        .build()));
-    var podTemplateSpec = podTemplateSpecFactory.getPodTemplateSpec(clusterContainerContext);
-    assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().stream()
-        .anyMatch(volume -> volume.getName()
-            .equals(StackGresVolume.HUGEPAGES_2M.getName())));
-    assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().stream()
-        .filter(volume -> volume.getName()
-            .equals(StackGresVolume.HUGEPAGES_2M.getName()))
-        .anyMatch(volume -> volume.getEmptyDir() != null));
-    assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().stream()
-        .filter(volume -> volume.getName()
-            .equals(StackGresVolume.HUGEPAGES_2M.getName()))
-        .anyMatch(volume -> volume.getEmptyDir().getMedium().equals("HugePages-2Mi")));
-    assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().stream()
-        .anyMatch(volume -> volume.getName()
-            .equals(StackGresVolume.HUGEPAGES_1G.getName())));
-    assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().stream()
-        .filter(volume -> volume.getName()
-            .equals(StackGresVolume.HUGEPAGES_1G.getName()))
-        .anyMatch(volume -> volume.getEmptyDir() != null));
-    assertTrue(podTemplateSpec.getSpec().getSpec().getVolumes().stream()
-        .filter(volume -> volume.getName()
-            .equals(StackGresVolume.HUGEPAGES_1G.getName()))
-        .anyMatch(volume -> volume.getEmptyDir().getMedium().equals("HugePages-1Gi")));
-  }
+    when(patroniContainer.getVolumeMounts()).thenReturn(List.of(undeclaredVolumeMount));
 
+    Volume availableVolume = ModelTestUtil.createWithRandomData(Volume.class);;
+    var availableVolumes = Map.of(
+        "available-volume",
+        JsonUtil.copy(availableVolume));
+    when(clusterContainerContext.availableVolumes()).thenReturn(availableVolumes);
+    when(clusterContainerContext.getDataVolumeName()).thenReturn("available-volume");
+    assertThrows(IllegalStateException.class,
+        () -> podTemplateSpecFactory.getPodTemplateSpec(clusterContainerContext));
+  }
 }

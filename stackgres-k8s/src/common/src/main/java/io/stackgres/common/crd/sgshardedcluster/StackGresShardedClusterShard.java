@@ -25,7 +25,9 @@ import io.sundr.builder.annotations.Buildable;
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true,
-    value = { "instances", "postgres", "postgresServices" })
+    value = { "instances", "postgres", "postgresServices",
+        "initialData", "replicateFrom", "distributedLogs", "toInstallPostgresExtensions",
+        "prometheusAutobind", "nonProductionOptions" })
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
