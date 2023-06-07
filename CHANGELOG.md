@@ -1,3 +1,114 @@
+# :rocket: Release 1.5.0-RC1 (2023-06-07)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.5.0-RC1 open the door to horizontal scaling by leveraging [Citus support from Patroni](https://patroni.readthedocs.io/en/master/citus.html).
+
+A new CRD called SGShardedCluster will bring you the power of sharding by creating multiple SGClusters that will behave like a single one.
+ The feature is still in alpha so you might expect breaking changes in the CRD.
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Added PostgreSQL 15.3, 15.2, 14.8, 14.7, 13.11, 13.10, 12.15, 12.14
+* Added Patroni 3.0.1, 3.0.2
+* Support for Kubernetes 1.27 and 1.26
+* Added SGShardedCluster CRD
+* Support to specify Patroni initial config
+* Support to set labels for Services (and Endpoints)
+* Support to set much more services parameters for Services
+* New sync-all and strict-sync-all to adjust the number of synchronous nodes to all replicas
+* Shift from docker.io to quay.io
+* Improved operator startup
+* Improved cluster startup
+* Enhanced cluster stats endpoint to fallback for cgroup v1 and v2
+* Make CronJob generator for v1 or v1beta1 api versions dependent on Kubernetes version
+* Enable SSL by default on SGShardedCluster
+* Generate SSL certificate and private key if only enabled is specified
+* Change ssl configuration at run time
+* Use job backoffLimit to implements SGDbOps maxRetries
+* Improve current PgBouncer variable check query
+* Support for self signed certificate when using S3 compatible storage
+* Added priority class support
+* Changed Operator Bundle installation name to `stackgres-operator`
+* Cleanup CSR in operator helm chart
+
+## Web Console
+
+* Support user-supplied sidecars for SGCluster services
+* Add loadBalancerIP to SGCluster and SGDistributedLogs
+* Support user-supplied sidecars for pods customVolumes, customInitContainers and customContainers
+* Enable SSL specs
+* Implemented cascading replication with WAL shipping
+* Implemented cascade replication from an external instance
+* Implemented cascade replication from a local sgcluster
+
+## :bug: FIXES
+
+* ClusterBootstrapCompleted sent every few seconds
+* Empty backupPath for majorVersionUpgrade SGDbOps make the operation fail
+* Repeating restart ReducedImpact with 1 instance fails
+* Major version upgrade must never change extension version
+* Patroni do not clean up history after converting a cluster to standby cluster
+* Failed SGScript without retryOnError do not re-execute if version is changed
+* SGScript retry on error do not respect the backoff
+* Deleting a resource a SGDistributedLogs depends on should not be possible
+* pgbench SGDbOps fail if scale contains point
+* Helm Controller Manager selectors are too generic
+* Duplicate restartPolicy lines in the test operator template
+* REST API can-i do not return permissions for SGShardedCluster
+* REST API model is exposing parameters not present in the sharded cluster CRD
+
+## Web Console
+
+* Edit SGPostgresConfig form should only list custom parameters
+* Remove Advanced switch from Azure section
+* Summaries should not open unless all required fields are filled in
+* Backup scheduling inserting trailing zero in cron job minutes config
+* Script source not cleared when deleting a script
+* notValid class not being removed on Babelfish Experimental Feature
+* Unify click behavious when clicked on a switch and on its label
+* Cluster name on SGDbOp details is not clickable
+* Sidebar items hidden behind dialog popups
+* PITR date and time picker not working
+* Continue on SGScripts Error should not be visible if there are no Scripts set
+* Fix Extensions table layout
+* View Script button text and icon on Cluster Configuration tab have different behaviours
+* Hide empty sections on summaries
+* Disable Connection Pooling not working properly on Cluster Form
+* Object Storage selector on Cluster form shows all Object Storages from all Namespaces
+* Make sure crontab is shown on preferred timezone
+* Script content not shown on summary when set from a ConfigMap
+* Show secretKeySelectors for GCS service account json on edit mode
+* Review interceptors to REST API responses
+* SGBackups list won't load when start time is not present on a backup
+* Allow empty Backup path generate errors after update
+* Sets wrong path for SGCluster backup config
+* Edit SGPoolingConfig form should only list custom parameters
+* Replace instances dropdown with numeric input on SGCluster form
+* Service Account JSON not shown on Summary
+* Error when updating an SGCluster with a ConfigMap in managed SQL section
+* Cluster Summary opens and displays empty Custom Port properties
+
+## :construction: KNOWN ISSUES
+
+* Major version upgrade fails if some extensions version are not available for the target Postgres version ([#1368](https://gitlab.com/ongresinc/stackgres/-/issues/1368)) 
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.5.0-RC1/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.5.0-RC1)
+
 # :rocket: Release 1.5.0-beta2 (2023-05-17)
 
 ## :notepad_spiral: NOTES
