@@ -49,11 +49,18 @@ then
   echo "Building $* ..."
 
   docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  set +e
   sh stackgres-k8s/ci/build/build.sh "$@"
+  EXIT_CODE="$?"
 
-  echo "done"
+  if [ "$EXIT_CODE" = 0 ]
+  then
+    echo "done"
+  else
+    echo "failed"
+  fi
 
-  if [ -n "$TO_EXTRACT_MODULE_FILES" ]
+  if [ "$EXIT_CODE" = 0 ] && [ -n "$TO_EXTRACT_MODULE_FILES" ]
   then
     echo
     echo "Extracting files ..."
@@ -86,6 +93,8 @@ then
 
     echo "done"
   fi
+
+  exit "$EXIT_CODE"
 elif [ "$1" = extract ]
 then
   shift
