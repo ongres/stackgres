@@ -79,6 +79,7 @@ class BackupReconciliatorTest {
     parameters.eventController = eventController;
     parameters.backupScheduler = backupScheduler;
     parameters.resourceComparator = resourceComparator;
+    parameters.statusManager = statusManager;
     reconciliator = new BackupReconciliator(parameters);
   }
 

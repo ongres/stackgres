@@ -24,6 +24,7 @@
           - stackgres-k8s/src/pom.xml
       paths:
       - .m2/
+      when: always
   artifacts:
     expire_in: 1 week
     when: always

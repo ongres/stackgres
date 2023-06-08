@@ -19,7 +19,7 @@ spec:
     {{- toYaml . | nindent 8 }}
   {{- end }}
   serviceAccountName: {{ .Release.Name }}
-  restartPolicy: OnFailure
+  restartPolicy: Never
   terminationGracePeriodSeconds: 0
   {{- with .Values.jobs.tolerations }}
   tolerations:
@@ -44,5 +44,4 @@ spec:
           POD_NAME=$(kubectl get pod -n {{ .Release.Namespace }} -o name | grep -v {{ .Release.Name }}-test-connection | grep {{ .Release.Name }})
           POD_IP=$(kubectl get ${POD_NAME} -n {{ .Release.Namespace }} -o jsonpath="{ .status.podIP }")
           curl -v ${POD_IP}:8080/q/health/live
-  restartPolicy: Never
 {{ end }}

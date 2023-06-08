@@ -1,11 +1,17 @@
 #!/bin/sh
 
 check_user_on_primary() {
-  check_user "$CLUSTER_NAME-primary" 1
+  check_user "$CLUSTER_NAME" 1
 }
 
 check_user_on_replica() {
   check_user "$CLUSTER_NAME-replicas" 0
+}
+
+check_user_on_sharded_primary() {
+  local HOST="$CLUSTER_NAME"
+  local CLUSTER_NAME="$CLUSTER_NAME-coord"
+  check_user "$HOST" 1
 }
 
 check_user() {
@@ -25,11 +31,17 @@ check_user() {
 }
 
 check_database_on_primary() {
-  check_database "$CLUSTER_NAME-primary" 1
+  check_database "$CLUSTER_NAME" 1
 }
 
 check_database_on_replica() {
   check_database "$CLUSTER_NAME-replicas" 0
+}
+
+check_database_on_sharded_primary() {
+  local HOST="$CLUSTER_NAME"
+  local CLUSTER_NAME="$CLUSTER_NAME-coord"
+  check_database "$HOST" 1
 }
 
 check_database() {
@@ -47,11 +59,17 @@ check_database() {
 }
 
 check_schema_on_primary() {
-  check_schema "$CLUSTER_NAME-primary" 1
+  check_schema "$CLUSTER_NAME" 1
 }
 
 check_schema_on_replica() {
   check_schema "$CLUSTER_NAME-replicas" 0
+}
+
+check_schema_on_sharded_primary() {
+  local HOST="$CLUSTER_NAME"
+  local CLUSTER_NAME="$CLUSTER_NAME-coord"
+  check_schema "$HOST" 1
 }
 
 check_schema() {

@@ -6,20 +6,15 @@
 package io.stackgres.common.crd.sgcluster;
 
 import java.util.Objects;
-import java.util.Optional;
 
 import javax.validation.Valid;
-import javax.validation.constraints.AssertTrue;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.SecretKeySelector;
-import io.stackgres.common.validation.FieldReference;
-import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
@@ -40,26 +35,6 @@ public class StackGresClusterSsl {
   @JsonProperty("privateKeySecretKeySelector")
   @Valid
   private SecretKeySelector privateKeySecretKeySelector;
-
-  @ReferencedField("certificateSecretKeySelector")
-  interface CertificateSecretKeySelector extends FieldReference { }
-
-  @ReferencedField("privateKeySecretKeySelector")
-  interface SecretKeySecretKeySelector extends FieldReference { }
-
-  @JsonIgnore
-  @AssertTrue(message = "certificateSecretKeySelector is required when enabled is true",
-      payload = { CertificateSecretKeySelector.class })
-  public boolean isNotEnabledCertificateSecretKeySelectorRequired() {
-    return !Optional.ofNullable(enabled).orElse(false) || certificateSecretKeySelector != null;
-  }
-
-  @JsonIgnore
-  @AssertTrue(message = "privateKeySecretKeySelector is required when enabled is true",
-      payload = { SecretKeySecretKeySelector.class })
-  public boolean isNotEnabledSecretKeySecretKeySelectorRequired() {
-    return !Optional.ofNullable(enabled).orElse(false) || privateKeySecretKeySelector != null;
-  }
 
   public Boolean getEnabled() {
     return enabled;

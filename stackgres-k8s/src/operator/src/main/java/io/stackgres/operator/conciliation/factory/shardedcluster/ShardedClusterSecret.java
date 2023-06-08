@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 public class ShardedClusterSecret
     implements ResourceGenerator<StackGresShardedClusterContext>, StackGresPasswordKeys {
 
-  private LabelFactoryForShardedCluster factoryFactory;
+  private LabelFactoryForShardedCluster labelFactory;
 
   public static String name(StackGresShardedClusterContext clusterContext) {
     return ResourceUtil.resourceName(clusterContext.getSource().getMetadata().getName());
@@ -57,7 +57,7 @@ public class ShardedClusterSecret
     final StackGresShardedCluster cluster = context.getSource();
     final String name = cluster.getMetadata().getName();
     final String namespace = cluster.getMetadata().getNamespace();
-    final Map<String, String> labels = factoryFactory.genericLabels(cluster);
+    final Map<String, String> labels = labelFactory.genericLabels(cluster);
 
     final Map<String, String> previousSecretData = context.getDatabaseSecret()
         .map(Secret::getData)
@@ -141,8 +141,8 @@ public class ShardedClusterSecret
   }
 
   @Inject
-  public void setFactoryFactory(LabelFactoryForShardedCluster factoryFactory) {
-    this.factoryFactory = factoryFactory;
+  public void setFactoryFactory(LabelFactoryForShardedCluster labelFactory) {
+    this.labelFactory = labelFactory;
   }
 
 }

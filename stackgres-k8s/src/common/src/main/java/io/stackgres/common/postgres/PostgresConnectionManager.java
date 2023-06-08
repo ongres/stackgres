@@ -8,6 +8,8 @@ package io.stackgres.common.postgres;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.inject.Singleton;
@@ -16,8 +18,12 @@ import javax.validation.constraints.NotNull;
 @Singleton
 public class PostgresConnectionManager {
 
-  public Connection getConnection(@NotNull String host, @NotNull int port, @NotNull String database,
-      @NotNull String username, @NotNull String password) throws SQLException {
+  public Connection getConnection(
+      @NotNull String host,
+      @NotNull int port,
+      @NotNull String database,
+      @NotNull String username,
+      @NotNull String password) throws SQLException {
     Properties properties = new Properties();
     properties.setProperty("user", username);
     properties.setProperty("password", password);
@@ -25,8 +31,30 @@ public class PostgresConnectionManager {
         "jdbc:postgresql://" + host + ":" + port + "/" + database, properties);
   }
 
-  public Connection getUnixConnection(@NotNull String path, @NotNull int port,
-      @NotNull String database, @NotNull String username, @NotNull String password)
+  @SafeVarargs
+  public final Connection getConnection(
+      @NotNull String host,
+      @NotNull int port,
+      @NotNull String database,
+      @NotNull String username,
+      @NotNull String password,
+      Map.Entry<String, String>...extraProperties) throws SQLException {
+    Properties properties = new Properties();
+    Arrays.stream(extraProperties)
+        .forEach(extraProperty -> properties.put(
+            extraProperty.getKey(), extraProperty.getValue()));
+    properties.setProperty("user", username);
+    properties.setProperty("password", password);
+    return DriverManager.getConnection(
+        "jdbc:postgresql://" + host + ":" + port + "/" + database, properties);
+  }
+
+  public Connection getUnixConnection(
+      @NotNull String path,
+      @NotNull int port,
+      @NotNull String database,
+      @NotNull String username,
+      @NotNull String password)
       throws SQLException {
     Properties properties = new Properties();
     properties.setProperty("user", username);

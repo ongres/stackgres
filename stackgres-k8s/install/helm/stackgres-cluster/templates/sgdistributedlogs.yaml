@@ -64,6 +64,9 @@ spec:
     nodeAffinity:
       {{- toYaml . | nindent 6 }}
     {{- end }}
+    {{- with .Values.distributedLogs.scheduling.priorityClassName }}
+    priorityClassName: "{{ .Values.distributedLogs.scheduling.priorityClassName }}"
+    {{- end }}
     {{- if .Values.distributedLogs.scheduling.nodeSelector }}
     nodeSelector:
       {{- range $label, $value := .Values.distributedLogs.scheduling.nodeSelector }}

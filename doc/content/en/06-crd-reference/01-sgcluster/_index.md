@@ -375,15 +375,16 @@ spec:
 
 StackGres pod scheduling configuration.
 
-| <div style="width:14rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default | Description |
-|:----------------------------------------|----------|-----------|:-----------------------------------|:--------|:------------|
-| nodeSelector                            |          | ✓         | object                             |         | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeSelector >}} |
-| tolerations                             |          | ✓         | array                              |         | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations >}} |
-| nodeAffinity                            |          | ✓         | object                             |         | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeAffinity >}} |
-| podAffinity                             |          | ✓         | object                             |         | {{< crd-field-description SGCluster.spec.pods.scheduling.podAffinity >}} |
-| podAntiAffinity                         |          | ✓         | object                             |         | {{< crd-field-description SGCluster.spec.pods.scheduling.podAntiAffinity >}} |
-| topologySpreadConstraints               |          | ✓         | array                              |         | {{< crd-field-description SGCluster.spec.pods.scheduling.podAntiAffinity >}} |
-| [backup](#backup)                       |          | ✓         | object                             |         | {{< crd-field-description SGCluster.spec.pods.scheduling.backup >}} |
+| Property                    | Required | Updatable | Type     | Default        | Description |
+|:----------------------------|----------|-----------|:---------|:---------------|:------------|
+| nodeSelector                |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeSelector >}} |
+| tolerations                 |          | ✓         | array    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.tolerations >}} |
+| nodeAffinity                |          | ✓         | object    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.nodeAffinity >}} |
+| priorityClassName           |          | ✓         | string    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.priorityClassName >}} |
+| podAffinity                 |          | ✓         | object    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.podAffinity >}} |
+| podAntiAffinity             |          | ✓         | object    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.podAntiAffinity >}} |
+| topologySpreadConstraints   |          | ✓         | array    |                | {{< crd-field-description SGCluster.spec.pods.scheduling.podAntiAffinity >}} |
+| [backup](#backup)           |          | ✓         | object   |                | {{< crd-field-description SGCluster.spec.pods.scheduling.backup >}} |
 
 #### Backup
 
@@ -394,6 +395,7 @@ StackGres backup pod scheduling configuration.
 | nodeSelector                           |          | ✓         | object                             |                | {{< crd-field-description SGCluster.spec.pods.scheduling.backup.nodeSelector >}} |
 | tolerations                            |          | ✓         | array                              |                | {{< crd-field-description SGCluster.spec.pods.scheduling.backup.tolerations >}} |
 | nodeAffinity                           |          | ✓         | object                             |                | {{< crd-field-description SGCluster.spec.pods.scheduling.backup.nodeAffinity >}} |
+| priorityClassName                      |          | ✓         | string                             |                | {{< crd-field-description SGCluster.spec.pods.scheduling.backup.priorityClassName >}} |
 | podAffinity                            |          | ✓         | object                             |                | {{< crd-field-description SGCluster.spec.pods.scheduling.backup.podAffinity >}} |
 | podAntiAffinity                        |          | ✓         | object                             |                | {{< crd-field-description SGCluster.spec.pods.scheduling.backup.podAntiAffinity >}} |
 
@@ -580,7 +582,7 @@ When this configuration is applied, the scripts are executed ASAP.
 | <div style="width:13rem">Property</div> | Required | Updatable | <div style="width:5rem">Type</div> | Default  | Description |
 |:----------------------------------------|----------|-----------|:-----------------------------------|:---------|:------------|
 | continueOnSGScriptError                 |          | ✓         | boolean                            |          | {{< crd-field-description SGCluster.spec.managedSql.continueOnSGScriptError >}} |
-| [scripts](managed-sql-scripts)          |          | ✓         | boolean                            |          | {{< crd-field-description SGCluster.spec.managedSql.scripts >}} |
+| [scripts](#managed-sql-scripts)          |          | ✓         | array                              |          | {{< crd-field-description SGCluster.spec.managedSql.scripts >}} |
 
 ## Managed SQL Scripts
 
@@ -610,7 +612,7 @@ spec:
     sgDistributedLogs: distributedlogs
 ```
 
-## Non Production Options
+## Non-Production Options
 
 The following options should NOT be enabled in a production environment.
 

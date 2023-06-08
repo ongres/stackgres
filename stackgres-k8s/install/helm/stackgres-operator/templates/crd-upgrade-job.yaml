@@ -5,8 +5,7 @@ metadata:
   name: "{{ .Release.Name }}-crd-upgrade"
   namespace: {{ .Release.Namespace }}
   labels:
-    app: stackgres-operator
-    scope: init
+    app: stackgres-operator-init
     job: upgrade-crd
   annotations:
     "helm.sh/hook": post-install,post-upgrade
@@ -19,8 +18,7 @@ spec:
   template:
     metadata:
       labels:
-        app: stackgres-operator
-        scope: init
+        app: stackgres-operator-init
         job: upgrade-crd
     spec:
       {{- with .Values.jobs.affinity}}

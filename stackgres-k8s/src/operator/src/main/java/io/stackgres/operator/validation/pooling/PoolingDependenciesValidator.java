@@ -18,15 +18,22 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 
 @ApplicationScoped
 @ValidationType(ErrorType.FORBIDDEN_CR_DELETION)
-public class PoolingDependenciesValidator extends DependenciesValidator<PoolingReview>
+public class PoolingDependenciesValidator
+    extends DependenciesValidator<PoolingReview, StackGresCluster>
     implements PoolingValidator {
 
   @Override
-  public void validate(PoolingReview review, StackGresCluster i) throws ValidationFailed {
-    if (Objects.equals(i.getSpec().getConfiguration().getConnectionPoolingConfig(),
+  public void validate(PoolingReview review, StackGresCluster resource)
+      throws ValidationFailed {
+    if (Objects.equals(resource.getSpec().getConfiguration().getConnectionPoolingConfig(),
         review.getRequest().getName())) {
-      fail(review, i);
+      fail(review, resource);
     }
+  }
+
+  @Override
+  protected Class<StackGresCluster> getResourceClass() {
+    return StackGresCluster.class;
   }
 
 }

@@ -166,4 +166,23 @@ rules:
   verbs:
   - '*'
 
+# TODO Remove when stackgres 1.4 get out of support
+- apiGroups:
+  - admissionregistration.k8s.io
+  resourceNames:
+  - stackgres
+  resources:
+  - mutatingwebhookconfigurations
+  - validatingwebhookconfigurations
+  verbs:
+  - delete
+- apiGroups:
+  - certificates.k8s.io
+  resources:
+  - certificatesigningrequests
+  verbs:
+  - delete
+  resourceNames:
+  - stackgres
+
 #+kubebuilder:scaffold:rules

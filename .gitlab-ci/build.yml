@@ -37,6 +37,7 @@
           - stackgres-k8s/src/pom.xml
       paths:
         - .m2/
+      when: always
   artifacts:
     expire_in: 1 week
     when: always
@@ -82,6 +83,7 @@ build arm64:
     - key: node
       paths:
       - stackgres-k8s/src/admin-ui/node_modules
+      when: always
 
 build ui amd64:
   extends: .build ui

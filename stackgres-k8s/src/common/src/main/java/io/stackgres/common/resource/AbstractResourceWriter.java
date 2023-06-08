@@ -44,6 +44,14 @@ public abstract class AbstractResourceWriter<T extends HasMetadata,
   }
 
   @Override
+  public T update(T resource, String patch) {
+    return getResourceEndpoints(client)
+        .inNamespace(resource.getMetadata().getNamespace())
+        .resource(resource)
+        .patch(patch);
+  }
+
+  @Override
   public void delete(T resource) {
     getResourceEndpoints(client)
         .inNamespace(resource.getMetadata().getNamespace())

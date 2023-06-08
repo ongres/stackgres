@@ -90,10 +90,13 @@ public abstract class AbstractRestService
   @CommonApiResponses
   @Override
   public void update(@NotNull T resource) {
-    scheduler.update(transformer.toCustomResource(resource,
+    R transformedResource = transformer.toCustomResource(
+        resource,
         finder.findByNameAndNamespace(
             resource.getMetadata().getName(), resource.getMetadata().getNamespace())
-            .orElseThrow(NotFoundException::new)), this::updateSpec);
+            .orElseThrow(NotFoundException::new));
+    scheduler.update(transformedResource,
+        currentResource -> updateSpec(currentResource, transformedResource));
   }
 
   protected abstract void updateSpec(R resourceToUpdate, R resource);

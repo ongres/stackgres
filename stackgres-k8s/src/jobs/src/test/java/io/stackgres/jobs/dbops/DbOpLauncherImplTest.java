@@ -7,6 +7,7 @@ package io.stackgres.jobs.dbops;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -21,7 +22,6 @@ import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Optional;
 
 import javax.inject.Inject;
 
@@ -188,9 +188,6 @@ class DbOpLauncherImplTest {
     when(securityUpgradeJob.runJob(any(), any()))
         .thenAnswer(invocation -> getClusterRestartStateUni());
 
-    int initialRetries = Optional.ofNullable(dbOps.getStatus())
-        .map(StackGresDbOpsStatus::getOpRetries)
-        .orElse(0);
     Instant beforeExecute = Instant.now();
 
     dbOpLauncher.launchDbOp(randomDbOpsName, namespace);
@@ -203,7 +200,7 @@ class DbOpLauncherImplTest {
       var persistedOpStarted = Instant.parse(persistedDbOps.getStatus().getOpStarted());
       return beforeExecute.isBefore(persistedOpStarted) && afterExecute.isAfter(persistedOpStarted);
     }, "OpStarted should be close to now");
-    assertEquals(initialRetries, persistedDbOps.getStatus().getOpRetries());
+    assertNull(persistedDbOps.getStatus().getOpRetries());
   }
 
   @Test
@@ -238,7 +235,7 @@ class DbOpLauncherImplTest {
 
     assertNotNull(captured.getStatus().getOpStarted());
     assertTrue(Instant.parse(captured.getStatus().getOpStarted()).isBefore(Instant.now()));
-    assertEquals(0, captured.getStatus().getOpRetries());
+    assertNull(captured.getStatus().getOpRetries());
     var conditions = captured.getStatus().getConditions();
     assertNotNull(conditions);
     assertEquals(3, conditions.size());
@@ -260,7 +257,7 @@ class DbOpLauncherImplTest {
     var storedDbOp = mockKubeDb.getDbOps(randomDbOpsName, namespace);
     assertNotNull(storedDbOp.getStatus().getOpStarted());
     assertTrue(Instant.parse(storedDbOp.getStatus().getOpStarted()).isBefore(Instant.now()));
-    assertEquals(0, storedDbOp.getStatus().getOpRetries());
+    assertNull(storedDbOp.getStatus().getOpRetries());
     var conditions = storedDbOp.getStatus().getConditions();
     assertNotNull(conditions);
     assertEquals(3, conditions.size());
@@ -282,7 +279,7 @@ class DbOpLauncherImplTest {
     var storedDbOp = mockKubeDb.getDbOps(randomDbOpsName, namespace);
     assertNotNull(storedDbOp.getStatus().getOpStarted());
     assertTrue(Instant.parse(storedDbOp.getStatus().getOpStarted()).isBefore(Instant.now()));
-    assertEquals(0, storedDbOp.getStatus().getOpRetries());
+    assertNull(storedDbOp.getStatus().getOpRetries());
     var conditions = storedDbOp.getStatus().getConditions();
     assertNotNull(conditions);
     assertEquals(3, conditions.size());
@@ -320,7 +317,7 @@ class DbOpLauncherImplTest {
 
     assertNotNull(captured.getStatus().getOpStarted());
     assertTrue(Instant.parse(captured.getStatus().getOpStarted()).isBefore(Instant.now()));
-    assertEquals(1, captured.getStatus().getOpRetries());
+    assertEquals(0, captured.getStatus().getOpRetries());
     var conditions = captured.getStatus().getConditions();
     assertNotNull(conditions);
     assertEquals(3, conditions.size());

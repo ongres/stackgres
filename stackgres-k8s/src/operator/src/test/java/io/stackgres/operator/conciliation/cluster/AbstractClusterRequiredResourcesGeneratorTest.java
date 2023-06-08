@@ -148,6 +148,11 @@ abstract class AbstractClusterRequiredResourcesGeneratorTest {
         .thenReturn(Optional.of(this.postgresConfig));
   }
 
+  void unmockBackupConfig() {
+    cluster.getSpec().getConfiguration().setBackups(null);
+    cluster.getSpec().getConfiguration().setBackupConfig(null);
+  }
+
   void mockBackupConfig() {
     when(backupConfigFinder.findByNameAndNamespace(
         cluster.getSpec().getConfiguration().getBackupConfig(),

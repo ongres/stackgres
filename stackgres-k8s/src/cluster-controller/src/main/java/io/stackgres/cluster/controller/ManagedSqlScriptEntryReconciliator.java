@@ -56,12 +56,12 @@ public class ManagedSqlScriptEntryReconciliator {
         && !managedSqlScriptEntry.getScriptEntry().getRetryOnErrorOrDefault()) {
       return false;
     }
-    managedScriptEntryStatus.setVersion(managedSqlScriptEntry.getScriptEntry().getVersion());
     if (isExecutionBackOff(managedScriptEntryStatus)) {
       LOGGER.warn("Back-off execution for managed script {}",
           managedSqlScriptEntry.getManagedScriptEntryDescription());
       return false;
     }
+    managedScriptEntryStatus.setVersion(managedSqlScriptEntry.getScriptEntry().getVersion());
     final String sql = managedSqlReconciliator.getSql(
         context, managedSqlScriptEntry.getScriptEntry());
     if (!isSqlSameStatusHash(sql)) {
@@ -108,16 +108,16 @@ public class ManagedSqlScriptEntryReconciliator {
         && managedSqlScriptEntry.getManagedScriptStatus().getFailedAt() != null) {
       return Duration.between(Instant.parse(
               managedSqlScriptEntry.getManagedScriptStatus().getFailedAt()),
-              Instant.now()).getSeconds() >= calculateExponentialBackoffDelay(
-                  0, 600, 60, managedScriptEntryStatus.getIntents());
+              Instant.now()).getSeconds() < calculateExponentialBackoffDelay(
+                  10, 600, 10, managedScriptEntryStatus.getIntents());
     }
     if (managedSqlReconciliator.isScriptEntryExecutionHang(
             managedSqlScriptEntry.getScriptEntry(), managedScriptEntryStatus)
         && managedSqlScriptEntry.getManagedScriptStatus().getUpdatedAt() != null) {
       return Duration.between(Instant.parse(
               managedSqlScriptEntry.getManagedScriptStatus().getUpdatedAt()),
-              Instant.now()).getSeconds() >= calculateExponentialBackoffDelay(
-                  0, 600, 60, managedScriptEntryStatus.getIntents());
+              Instant.now()).getSeconds() < calculateExponentialBackoffDelay(
+                  10, 600, 10, managedScriptEntryStatus.getIntents());
     }
     return false;
   }

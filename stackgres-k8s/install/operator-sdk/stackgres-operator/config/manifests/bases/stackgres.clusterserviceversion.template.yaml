@@ -13,6 +13,7 @@ metadata:
     categories: Database
     repository: https://gitlab.com/ongresinc/stackgres
     containerImage: quay.io/stackgres/operator:${VERSION}
+    olm.skipRange: '<${VERSION}'
 spec:
   displayName: StackGres
   provider:

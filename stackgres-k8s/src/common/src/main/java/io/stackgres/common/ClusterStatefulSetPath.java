@@ -106,6 +106,8 @@ public enum ClusterStatefulSetPath implements VolumePath {
   RESTORE_SECRET_PATH(BASE_SECRET_PATH, ClusterStatefulSetEnvVars.RESTORE_ENV.substVar()),
   REPLICATE_ENV_PATH(BASE_ENV_PATH, ClusterStatefulSetEnvVars.REPLICATE_ENV.substVar()),
   REPLICATE_SECRET_PATH(BASE_SECRET_PATH, ClusterStatefulSetEnvVars.REPLICATE_ENV.substVar()),
+  SSL_PATH("/etc/ssl"),
+  SSL_COPY_PATH("/etc/ssl-copy"),
   TEMPLATES_PATH("/templates"),
   SHARED_PATH("/shared"),
   PGBOUNCER_CONFIG_PATH("/etc/pgbouncer"),

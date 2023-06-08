@@ -132,7 +132,7 @@ check_distributed_logs_attach_to_clusters() {
   for TEXT in distributed-logs-worked distributed-logs-works distributed-logs-still-works
   do
     RESPONSE="$(run_query -c "$CLUSTER_NAME" -x psql -k postgres \
-      -h "$CLUSTER_NAME"-primary -p 5432 -q "SELECT '$TEXT'")"
+      -h "$CLUSTER_NAME" -p 5432 -q "SELECT '$TEXT'")"
 
     if [ "$RESPONSE" = "$TEXT" ]
     then
@@ -146,7 +146,7 @@ check_distributed_logs_attach_to_clusters() {
   for TEXT in distributed-logs-copy-worked distributed-logs-copy-works distributed-logs-copy-still-works
   do
     RESPONSE="$(run_query -c "$COPY_CLUSTER_NAME" -x psql -k postgres \
-      -h "$COPY_CLUSTER_NAME"-primary -p 5432 -q "SELECT '$TEXT'")"
+      -h "$COPY_CLUSTER_NAME" -p 5432 -q "SELECT '$TEXT'")"
 
     if [ "$RESPONSE" = "$TEXT" ]
     then
@@ -207,7 +207,7 @@ check_distributed_logs_attach_to_clusters() {
 has_cluster_joined_distributedlogs() {
   local RESPONSE
   RESPONSE="$(run_query -c "$CLUSTER_NAME$1" -x psql -k postgres \
-    -h "$CLUSTER_NAME$1"-primary -p 5432 -q "SELECT 'distributed-logs-joined'")"
+    -h "$CLUSTER_NAME$1" -p 5432 -q "SELECT 'distributed-logs-joined'")"
   [ "$RESPONSE" = "distributed-logs-joined" ] \
     && get_logs_entries_with_text "distributed-logs-joined" "$1" | jq 'map(select(.role != null)) | length > 0' | grep -q "^true$"
 }
@@ -470,7 +470,7 @@ check_retention() {
   for TABLE in log_postgres log_patroni
   do
     wait_until run_query -c "$DISTRIBUTED_LOGS_NAME" -x psql -k postgres \
-        -h "$DISTRIBUTED_LOGS_NAME"-primary -p 5432 \
+        -h "$DISTRIBUTED_LOGS_NAME" -p 5432 \
         -d "${CLUSTER_NAMESPACE}_${CLUSTER_NAME}" \
         -q "SELECT EXISTS (
         SELECT * FROM _timescaledb_catalog.hypertable
@@ -478,7 +478,7 @@ check_retention() {
         WHERE table_name = '$TABLE' AND column_name = 'log_time'
         AND INTERVAL '1 minute' = (interval_length / 1000000) * INTERVAL '1 second')"
     run_query -c "$DISTRIBUTED_LOGS_NAME" -x psql -k postgres \
-      -h "$DISTRIBUTED_LOGS_NAME"-primary -p 5432 \
+      -h "$DISTRIBUTED_LOGS_NAME" -p 5432 \
         -d "${CLUSTER_NAMESPACE}_${CLUSTER_NAME}" \
       -q "SELECT drop_chunks(now() + INTERVAL '1 year', '$TABLE', newer_than => to_timestamp(0))"
   done
@@ -486,7 +486,7 @@ check_retention() {
   for TEXT in distributed-logs-retention-worked distributed-logs-retention-works distributed-logs-retention-still-works
   do
     RESPONSE="$(run_query -c "$CLUSTER_NAME" -x psql -k postgres \
-      -h "$CLUSTER_NAME"-primary -p 5432 -q "SELECT '$TEXT'")"
+      -h "$CLUSTER_NAME" -p 5432 -q "SELECT '$TEXT'")"
 
     if [ "$RESPONSE" = "$TEXT" ]
     then

@@ -63,6 +63,9 @@ public class ClusterSwitchoverHandlerImpl implements ClusterSwitchoverHandler {
     if (candidate.isEmpty()) {
       LOGGER.info("No candidate primary found. Skipping switchover");
       return Uni.createFrom().voidItem();
+    } else if (candidate.get().getRole().map(role -> role == MemberRole.LEADER).orElse(false)) {
+      LOGGER.info("Candidate is already primary. Skipping switchover");
+      return Uni.createFrom().voidItem();
     } else {
       Optional<ClusterMember> leader = members.stream()
           .filter(member -> member.getRole().map(MemberRole.LEADER::equals).orElse(false))

@@ -18,15 +18,22 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 
 @Singleton
 @ValidationType(ErrorType.FORBIDDEN_CR_DELETION)
-public class PgConfigDependenciesValidator extends DependenciesValidator<PgConfigReview>
+public class PgConfigDependenciesValidator
+    extends DependenciesValidator<PgConfigReview, StackGresCluster>
     implements PgConfigValidator {
 
   @Override
-  public void validate(PgConfigReview review, StackGresCluster i) throws ValidationFailed {
-    if (Objects.equals(i.getSpec().getConfiguration().getPostgresConfig(),
+  public void validate(PgConfigReview review, StackGresCluster resource)
+      throws ValidationFailed {
+    if (Objects.equals(resource.getSpec().getConfiguration().getPostgresConfig(),
         review.getRequest().getName())) {
-      fail(review, i);
+      fail(review, resource);
     }
+  }
+
+  @Override
+  protected Class<StackGresCluster> getResourceClass() {
+    return StackGresCluster.class;
   }
 
 }

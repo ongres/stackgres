@@ -88,7 +88,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
     return new VolumeBuilder()
         .withName(StackGresVolume.PATRONI_ENV.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withDefaultMode(444)
+            .withDefaultMode(0444)
             .withName(name(context))
             .build())
         .build();

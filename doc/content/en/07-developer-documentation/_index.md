@@ -1,5 +1,5 @@
 ---
-title: Developer documentation
+title: Developer Documentation
 weight: 7
 chapter: true
 url: developer

@@ -55,7 +55,7 @@ public class BackupConfigMap extends AbstractBackupConfigMap
         .withName(StackGresVolume.BACKUP_ENV.getName())
         .withNewConfigMap()
         .withName(name(context))
-        .withDefaultMode(444)
+        .withDefaultMode(0444)
         .endConfigMap()
         .build();
   }

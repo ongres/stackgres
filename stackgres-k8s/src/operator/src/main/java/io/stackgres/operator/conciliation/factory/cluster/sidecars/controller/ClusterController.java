@@ -113,6 +113,12 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
                 .build(),
             new EnvVarBuilder()
                 .withName(ClusterControllerProperty
+                    .CLUSTER_CONTROLLER_RECONCILE_POSTGRES_SSL
+                    .getEnvironmentVariableName())
+                .withValue(Boolean.TRUE.toString())
+                .build(),
+            new EnvVarBuilder()
+                .withName(ClusterControllerProperty
                     .CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL
                     .getEnvironmentVariableName())
                 .withValue(Boolean.TRUE.toString())
@@ -153,6 +159,16 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
             new VolumeMountBuilder()
                 .withName(StackGresVolume.PATRONI_CONFIG.getName())
                 .withMountPath(ClusterStatefulSetPath.PATRONI_CONFIG_PATH.path())
+                .build())
+        .addToVolumeMounts(
+            new VolumeMountBuilder()
+                .withName(StackGresVolume.POSTGRES_SSL.getName())
+                .withMountPath(ClusterStatefulSetPath.SSL_PATH.path())
+                .build())
+        .addToVolumeMounts(
+            new VolumeMountBuilder()
+                .withName(StackGresVolume.POSTGRES_SSL_COPY.getName())
+                .withMountPath(ClusterStatefulSetPath.SSL_COPY_PATH.path())
                 .build())
         .build();
   }

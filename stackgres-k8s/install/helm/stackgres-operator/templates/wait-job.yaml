@@ -5,8 +5,7 @@ metadata:
   name: "{{ .Release.Name }}-wait"
   namespace: {{ .Release.Namespace }}
   labels:
-    app: stackgres-operator
-    scope: cleanup
+    app: stackgres-operator-init
     job: wait
   annotations:
     "helm.sh/hook": post-install,post-upgrade
@@ -19,8 +18,7 @@ spec:
   template:
     metadata:
       labels:
-        app: stackgres-operator
-        scope: cleanup
+        app: stackgres-operator-init
         job: wait
     spec:
       {{- with .Values.jobs.affinity}}

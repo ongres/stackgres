@@ -8,17 +8,31 @@ KIND_CONTAINERD_CACHE_RESET="${K8S_CACHE_RESET:-$KIND_CONTAINERD_CACHE_RESET}"
 KIND_LOG_PATH="${KIND_LOG_PATH:-$TARGET_PATH/kind-logs}"
 KIND_LOG_RESOURCES_POLICY_PATH="${KIND_LOG_RESOURCES_POLICY_PATH:-$TARGET_PATH/kind-apiserver-audit-policy}"
 KIND_EXPANDABLE_STORAGE_CLASSNAME="${EXPANDABLE_STORAGE_CLASSNAME:-expandable-sc}"
+KIND_0_15_0="${KIND_0_15_0:-kind-0.15.0}"
+KIND_0_19_0="${KIND_0_19_0:-kind-0.19.0}"
 
 check_kind_version() {
-  if ! kind version | grep -q -F 'kind v0.15.0 '
+  if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -ge "$(echo "1.21" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
   then
-    echo "kind v0.15.0 is required"
-    return 1
+    KIND="$KIND_0_19_0"
+    if ! "$KIND" version | grep -q -F 'kind v0.19.0 '
+    then
+      echo "To run Kubernetes 1.21+ kind v0.19.0 is required"
+      return 1
+    fi
+  else
+    KIND="$KIND_0_15_0"
+    if ! "$KIND" version | grep -q -F 'kind v0.15.0 '
+    then
+      echo "To run Kubernetes 1.20- kind v0.15.0 is required"
+      return 1
+    fi
   fi
 }
 
 get_k8s_env_version() {
-  echo "Kind version $(kind version | cut -d ' ' -f 2)"
+  echo "Kind version $("$KIND" version | cut -d ' ' -f 2)"
   echo
 }
 
@@ -41,11 +55,11 @@ update_k8s_config() {
     local KIND_CONTROL_PLANE_IP
     KIND_CONTROL_PLANE_IP="$(docker inspect "$KIND_NAME-control-plane" \
       -f '{{ .NetworkSettings.Networks.kind.IPAddress }}')"
-    kind get kubeconfig --name "$KIND_NAME" --internal \
+    "$KIND" get kubeconfig --name "$KIND_NAME" --internal \
       | sed "s/$KIND_NAME-control-plane/$KIND_CONTROL_PLANE_IP/" \
       > "$HOME/.kube/config-$KIND_NAME"
   else
-    kind get kubeconfig --name "$KIND_NAME" \
+    "$KIND" get kubeconfig --name "$KIND_NAME" \
       > "$HOME/.kube/config-$KIND_NAME"
   fi
 
@@ -74,7 +88,7 @@ reuse_k8s() {
 
   try_function update_k8s_config
 
-  if ! kind get clusters | grep -q "^$KIND_NAME$" \
+  if ! "$KIND" get clusters | grep -q "^$KIND_NAME$" \
       || ! docker inspect "$KIND_NAME-control-plane" -f '{{ .State.Status }}' \
         | grep -q -F 'running' \
       || ! docker inspect "$KIND_NAME-control-plane" -f '{{ .Config.Image }}' \
@@ -243,7 +257,7 @@ INNER_EOF
 EOF
 
   try_function flock "$KIND_LOCK_PATH" \
-    kind create cluster --name "$KIND_NAME" --config "$TARGET_PATH/kind-config.yaml" \
+    "$KIND" create cluster --name "$KIND_NAME" --config "$TARGET_PATH/kind-config.yaml" \
     --image "kindest/node:v$(get_kind_image "${K8S_VERSION}")"
   if ! "$RESULT" && [ -n "$KIND_CONTAINERD_CACHE_PATH" ] && [ "$KIND_CONTAINERD_CACHE_RESET" != true ]
   then
@@ -255,7 +269,7 @@ EOF
   if [ "$KIND_INSTALL_NFS" = "true" ]
   then
     echo "Setting up NFT tools for kind..."
-    kind get nodes --name "$KIND_NAME" \
+    "$KIND" get nodes --name "$KIND_NAME" \
       | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" sh -ec "
       docker exec '%' sh -c 'DEBIAN_FRONTEND=noninteractive apt-get update -y -qq < /dev/null > /dev/null'
       docker exec '%' sh -c 'DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nfs-common < /dev/null > /dev/null'
@@ -264,7 +278,8 @@ EOF
 
   update_k8s_config
 
-  if [ "${K8S_VERSION%.*}" = 1.12 ]
+  if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -eq "$(echo "1.12" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
   then
     echo "Patch coredns to version 1.3.1 (see https://github.com/coredns/coredns/issues/2391)..."
     kubectl patch deployment -n kube-system coredns --type json \
@@ -295,11 +310,11 @@ EOF
 delete_k8s() {
   check_kind_version
 
-  if kind get clusters | grep -q "^$KIND_NAME$"
+  if "$KIND" get clusters | grep -q "^$KIND_NAME$"
   then
     echo "Deleting kind environment $KIND_NAME..."
 
-    kind delete cluster --name "$KIND_NAME" || true
+    "$KIND" delete cluster --name "$KIND_NAME" || true
 
     echo "...done"
   fi
@@ -322,7 +337,7 @@ load_image_k8s() {
     echo "Image $1 already loaded in kind environemnt $KIND_NAME"
     return
   fi
-  kind load docker-image --name "$KIND_NAME" "$1"
+  "$KIND" load docker-image --name "$KIND_NAME" "$1"
 
   echo "Loaded image $1 in kind environemnt $KIND_NAME"
 }
@@ -371,7 +386,7 @@ load_certificate_k8s() {
 
   echo "Loading certificate $1 in kind environemnt $KIND_NAME..."
 
-  kind get nodes --name "$KIND_NAME" \
+  "$KIND" get nodes --name "$KIND_NAME" \
     | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" sh -ec "
     docker cp '$1' '%':/usr/local/share/ca-certificates/validator.crt
     docker exec '%' sh -c update-ca-certificates
@@ -440,11 +455,13 @@ get_kind_image() {
 
 get_kind_images() {
   cat << EOF
-v1.25.0@sha256:428aaa17ec82ccde0131cb2d1ca6547d13cf5fdabcc0bbecf749baa935387cbf
-v1.24.4@sha256:adfaebada924a26c2c9308edd53c6e33b3d4e453782c0063dc0028bdebaddf98
-v1.23.10@sha256:f047448af6a656fae7bc909e2fab360c18c487ef3edc93f06d78cdfd864b2d12
-v1.22.13@sha256:4904eda4d6e64b402169797805b8ec01f50133960ad6c19af45173a27eadf959
-v1.21.14@sha256:f9b4d3d1112f24a7254d2ee296f177f628f9b4c1b32f0006567af11b91c1f301
+v1.27.1@sha256:b7d12ed662b873bd8510879c1846e87c7e676a79fefc93e17b2a52989d3ff42b
+v1.26.4@sha256:f4c0d87be03d6bea69f5e5dc0adb678bb498a190ee5c38422bf751541cebe92e
+v1.25.9@sha256:c08d6c52820aa42e533b70bce0c2901183326d86dcdcbedecc9343681db45161
+v1.24.13@sha256:cea86276e698af043af20143f4bf0509e730ec34ed3b7fa790cc0bea091bc5dd
+v1.23.17@sha256:f77f8cf0b30430ca4128cc7cfafece0c274a118cd0cdb251049664ace0dee4ff
+v1.22.17@sha256:9af784f45a584f6b28bce2af84c494d947a05bd709151466489008f80a9ce9d5
+v1.21.14@sha256:220cfafdf6e3915fbce50e13d1655425558cb98872c53f802605aa2fb2d569cf
 v1.20.15@sha256:d67de8f84143adebe80a07672f370365ec7d23f93dc86866f0e29fa29ce026fe
 v1.19.16@sha256:707469aac7e6805e52c3bde2a8a8050ce2b15decff60db6c5077ba9975d28b98
 v1.18.20@sha256:61c9e1698c1cb19c3b1d8151a9135b379657aee23c59bde4a8d87923fcb43a91

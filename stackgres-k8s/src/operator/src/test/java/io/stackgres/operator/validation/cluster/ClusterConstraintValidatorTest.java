@@ -209,33 +209,6 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   }
 
   @Test
-  void sslCertificateSecretNull_shouldFail() {
-    StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getPostgres().setSsl(new StackGresClusterSsl());
-    review.getRequest().getObject().getSpec().getPostgres().getSsl().setEnabled(true);
-    review.getRequest().getObject().getSpec().getPostgres().getSsl().setPrivateKeySecretKeySelector(
-        new SecretKeySelector("test", "test"));
-
-    checkErrorCause(StackGresClusterSsl.class,
-        "spec.postgres.ssl.certificateSecretKeySelector",
-        "isNotEnabledCertificateSecretKeySelectorRequired", review, AssertTrue.class);
-  }
-
-  @Test
-  void sslPrivateKeySecretNull_shouldFail() {
-    StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getPostgres().setSsl(new StackGresClusterSsl());
-    review.getRequest().getObject().getSpec().getPostgres().getSsl().setEnabled(true);
-    review.getRequest().getObject().getSpec().getPostgres().getSsl()
-        .setCertificateSecretKeySelector(
-            new SecretKeySelector("test", "test"));
-
-    checkErrorCause(StackGresClusterSsl.class,
-        "spec.postgres.ssl.privateKeySecretKeySelector",
-        "isNotEnabledSecretKeySecretKeySelectorRequired", review, AssertTrue.class);
-  }
-
-  @Test
   void sslCertificateSecretWithEmptyName_shouldFail() {
     StackGresClusterReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPostgres().setSsl(new StackGresClusterSsl());

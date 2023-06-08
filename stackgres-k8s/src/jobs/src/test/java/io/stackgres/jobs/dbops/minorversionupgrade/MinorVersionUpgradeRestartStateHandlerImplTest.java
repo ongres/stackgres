@@ -11,7 +11,6 @@ import static org.mockito.Mockito.lenient;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -110,12 +109,12 @@ class MinorVersionUpgradeRestartStateHandlerImplTest extends ClusterStateHandler
     minorVersionUpgradeStatus.setInitialInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
-            .collect(Collectors.toList()));
+            .toList());
     minorVersionUpgradeStatus.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
     minorVersionUpgradeStatus.setPendingToRestartInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
-            .collect(Collectors.toList()));
+            .toList());
     minorVersionUpgradeStatus.setSwitchoverInitiated(null);
     minorVersionUpgradeStatus.setSourcePostgresVersion(
         cluster.getSpec().getPostgres().getVersion());
@@ -135,7 +134,7 @@ class MinorVersionUpgradeRestartStateHandlerImplTest extends ClusterStateHandler
     minorVersionUpgradeStatus.setInitialInstances(
         pods.stream()
             .map(Pod::getMetadata).map(ObjectMeta::getName)
-            .collect(Collectors.toList()));
+            .toList());
     minorVersionUpgradeStatus.setPrimaryInstance(getPrimaryInstance(pods).getMetadata().getName());
     minorVersionUpgradeStatus.setSourcePostgresVersion(
         cluster.getSpec().getPostgres().getVersion());
@@ -144,7 +143,16 @@ class MinorVersionUpgradeRestartStateHandlerImplTest extends ClusterStateHandler
     dbOpsStatus.setMinorVersionUpgrade(minorVersionUpgradeStatus);
     status.setDbOps(dbOpsStatus);
     cluster.setStatus(status);
+  }
 
+  @Override
+  protected ClusterDbOpsRestartStatus getClusterDbOpsRestartStatus(StackGresCluster cluster) {
+    return cluster.getStatus().getDbOps().getMinorVersionUpgrade();
+  }
+
+  @Override
+  protected DbOpsRestartStatus getDbOpsRestartStatus(StackGresDbOps dbOps) {
+    return dbOps.getStatus().getMinorVersionUpgrade();
   }
 
   @Override

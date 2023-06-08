@@ -19,18 +19,23 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 @Singleton
 @ValidationType(ErrorType.FORBIDDEN_CR_DELETION)
 public class DistributedLogsDependenciesValidator
-    extends DependenciesValidator<StackGresDistributedLogsReview>
+    extends DependenciesValidator<StackGresDistributedLogsReview, StackGresCluster>
     implements DistributedLogsValidator {
 
   @Override
-  public void validate(StackGresDistributedLogsReview review, StackGresCluster i)
+  public void validate(StackGresDistributedLogsReview review, StackGresCluster resource)
       throws ValidationFailed {
-    if (Optional.ofNullable(i.getSpec().getDistributedLogs())
+    if (Optional.ofNullable(resource.getSpec().getDistributedLogs())
         .map(distributedLogs -> review.getRequest().getName().equals(
             distributedLogs.getDistributedLogs()))
         .orElse(false)) {
-      fail(review, i);
+      fail(review, resource);
     }
+  }
+
+  @Override
+  protected Class<StackGresCluster> getResourceClass() {
+    return StackGresCluster.class;
   }
 
 }

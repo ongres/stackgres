@@ -58,6 +58,7 @@ StackGres pod scheduling configuration.
 | nodeSelector                           |          | ✓         | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.nodeSelector >}} |
 | tolerations                            |          | ✓         | array    |                         | {{< crd-field-description SGDbOps.spec.scheduling.tolerations >}}  |
 | nodeAffinity                           |          | ✓         | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.nodeAffinity >}} |
+| priorityClassName                      |          | ✓         | string   |                         | {{< crd-field-description SGDbOps.spec.scheduling.priorityClassName >}} |
 | podAffinity                            |          | ✓         | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.podAffinity >}} |
 | podAntiAffinity                        |          | ✓         | object   |                         | {{< crd-field-description SGDbOps.spec.scheduling.podAntiAffinity >}} |
 
@@ -138,7 +139,6 @@ StackGres pod scheduling configuration.
 
 | <div style="width:9rem">Property</div>     | Required | Updatable | <div style="width:5rem">Type</div> | Default                      | Description |
 |:-------------------------------------------|----------|-----------|:---------|:-----------------------------|:------------|
-| method                                     |          |           | string   |                              | {{< crd-field-description SGDbOps.spec.minorVersionUpgrade.method >}} |
 | link                                       |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.link >}} |
 | clone                                      |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.clone >}} |
 | check                                      |          |           | boolean  |                              | {{< crd-field-description SGDbOps.spec.majorVersionUpgrade.check >}} |

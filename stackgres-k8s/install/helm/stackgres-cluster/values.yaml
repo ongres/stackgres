@@ -16,14 +16,14 @@ cluster:
     #    publisher: com.ongres  # Optional. The extension publisher
     #    version: "1.7.1"       # Optional. The extension version or channel
     #    repository: https://extensions.stackgres.io/postgres/repository # Optional. The extension repository
-    ssl:
-      enabled: false
-      # certificateSecretKeySelector:
-      #   name:
-      #   key:
-      # privateKeySecretKeySelector:
-      #   name:
-      #   key:
+    # ssl:
+    #   enabled: true
+    #   certificateSecretKeySelector:
+    #     name:
+    #     key:
+    #   privateKeySecretKeySelector:
+    #     name:
+    #     key:
   replication:
     mode: async
     role: ha-read

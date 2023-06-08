@@ -25,14 +25,36 @@ e2e_test_install() {
 }
 
 reset_cluster() {
+  local PODS_RUNNING="$1"
+  [ "$#" -lt 1 ] || shift
+  reset_cluster_internal "$PODS_RUNNING" false "$@" 
+}
+
+reset_cluster_only_pg_repack() {
+  local PODS_RUNNING="$1"
+  [ "$#" -lt 1 ] || shift
+  reset_cluster_internal "$PODS_RUNNING" true "$@" 
+}
+
+reset_cluster_internal() {
   local PODS_RUNNING="${1:-3}"
+  local ONLY_PG_REPACK="${2:-false}"
+  [ "$#" -lt 1 ] || shift
   [ "$#" -lt 1 ] || shift
 
   remove_cluster_if_exists "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   wait_until eval '[ "$(kubectl get pvc -n "$CLUSTER_NAMESPACE" --template "{{ .items | len }}")" = 0 ]'
 
-  if [ -n "$SOURCE_POSTGIS_VERSION" ] && [ "$SOURCE_POSTGIS_VERSION" = "$TARGET_POSTGIS_VERSION" ] \
+  if [ "$ONLY_PG_REPACK" = true ]
+  then
+    create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+      --set-string cluster.pods.persistentVolume.size=2Gi \
+      --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
+      --set-string cluster.postgres.extensions[0].name=pg_repack \
+      --set-string cluster.postgres.extensions[0].version="1.4.7" \
+      "$@"
+  elif [ -n "$SOURCE_POSTGIS_VERSION" ] && [ "$SOURCE_POSTGIS_VERSION" = "$TARGET_POSTGIS_VERSION" ] \
     && [ -n "$SOURCE_TIMESCALE_VERSION" ] && [ "$SOURCE_TIMESCALE_VERSION" = "$TARGET_TIMESCALE_VERSION" ]
   then
     create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
@@ -72,7 +94,7 @@ reset_cluster() {
   wait_pods_running "$CLUSTER_NAMESPACE" "$PODS_RUNNING"
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
-  if [ -n "$SOURCE_POSTGIS_VERSION" ] && [ "$SOURCE_POSTGIS_VERSION" = "$TARGET_POSTGIS_VERSION" ]
+  if [ "$ONLY_PG_REPACK" != true ] && [ -n "$SOURCE_POSTGIS_VERSION" ] && [ "$SOURCE_POSTGIS_VERSION" = "$TARGET_POSTGIS_VERSION" ]
   then
     kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c postgres-util -- psql -c "$(cat << 'EOF'
 CREATE EXTENSION postgis;
@@ -82,7 +104,7 @@ EOF
       )"
   fi
 
-  if [ -n "$SOURCE_TIMESCALE_VERSION" ] && [ "$SOURCE_TIMESCALE_VERSION" = "$TARGET_TIMESCALE_VERSION" ]
+  if [ "$ONLY_PG_REPACK" != true ] && [ -n "$SOURCE_TIMESCALE_VERSION" ] && [ "$SOURCE_TIMESCALE_VERSION" = "$TARGET_TIMESCALE_VERSION" ]
   then
     kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c postgres-util -- psql -c "$(cat << 'EOF'
 CREATE EXTENSION timescaledb;
@@ -106,7 +128,9 @@ EOF
 EOF
       )"
 
-  if [ -n "$SOURCE_TIMESCALE_VERSION" ] && [ "$SOURCE_TIMESCALE_VERSION" = "$TARGET_TIMESCALE_VERSION" ]
+  remove_cluster_if_exists "$CLUSTER_NAME-for-major-version-upgrade" "$CLUSTER_NAMESPACE"
+
+  if [ "$ONLY_PG_REPACK" != true ] && [ -n "$SOURCE_TIMESCALE_VERSION" ] && [ "$SOURCE_TIMESCALE_VERSION" = "$TARGET_TIMESCALE_VERSION" ]
   then
     create_or_replace_cluster "$CLUSTER_NAME-for-major-version-upgrade" "$CLUSTER_NAMESPACE" 1 \
       --set cluster.create=false \

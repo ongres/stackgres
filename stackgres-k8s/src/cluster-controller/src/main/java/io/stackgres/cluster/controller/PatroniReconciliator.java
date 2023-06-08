@@ -32,6 +32,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterControllerEventReason;
 import io.stackgres.cluster.common.ClusterPatroniConfigEventReason;
+import io.stackgres.cluster.common.PatroniUtil;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
@@ -64,8 +65,6 @@ public class PatroniReconciliator {
           + "/last-" + ClusterStatefulSetPath.PATRONI_CONFIG_FILE_PATH.filename());
 
   private static final Pattern TAGS_LINE_PATTERN = Pattern.compile("^tags:.*$");
-  private static final Pattern PATRONI_COMMAND_PATTERN =
-      Pattern.compile("^[^ ]+ /usr/bin/patroni .*$");
 
   private final boolean reconcilePatroni;
   private final String podName;
@@ -142,6 +141,9 @@ public class PatroniReconciliator {
    * </ul>
    * Pods of the StatefulSet is then mapped 1 on 1 to this list using the index in their names.
    * </p>
+   * <p>
+   * If any file in /etc/ssl change will reload PostgreSQL config through patroni
+   * </p>
    */
   private boolean reconcilePatroni(KubernetesClient client, StackGresClusterContext context)
       throws IOException {
@@ -163,14 +165,14 @@ public class PatroniReconciliator {
       replacePatroniTags(tags);
     }
     if (configChanged()) {
-      reloadPatroniConfig();
+      PatroniUtil.reloadPatroniConfig();
       setPatroniTagsAsPodLabels(client, cluster, tagsMap);
-      Files.copy(PATRONI_CONFIG_PATH, LAST_PATRONI_CONFIG_PATH,
-          StandardCopyOption.REPLACE_EXISTING);
+      copyConfig();
       LOGGER.info("Patroni config updated");
       eventController.sendEvent(ClusterPatroniConfigEventReason.CLUSTER_PATRONI_CONFIG_UPDATED,
           "Patroni config updated", client);
     }
+
     return statusUpdated;
   }
 
@@ -265,22 +267,9 @@ public class PatroniReconciliator {
             .anyMatch(line::equals)));
   }
 
-  private void reloadPatroniConfig() {
-    final String patroniPid = findPatroniPid();
-    FluentProcess.start("sh", "-c",
-        String.format("kill -s HUP %s", patroniPid)).join();
-  }
-
-  private String findPatroniPid() {
-    return ProcessHandle.allProcesses()
-        .filter(process -> process.info().commandLine()
-            .map(command -> PATRONI_COMMAND_PATTERN.matcher(command).matches())
-            .orElse(false))
-        .map(ProcessHandle::pid)
-        .map(String::valueOf)
-        .findAny()
-        .orElseThrow(() -> new IllegalStateException(
-            "Process with pattern " + PATRONI_COMMAND_PATTERN + " not found"));
+  private void copyConfig() throws IOException {
+    Files.copy(PATRONI_CONFIG_PATH, LAST_PATRONI_CONFIG_PATH,
+        StandardCopyOption.REPLACE_EXISTING);
   }
 
   private void setPatroniTagsAsPodLabels(KubernetesClient client, final StackGresCluster cluster,

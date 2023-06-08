@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.dbops;
 
+import java.math.RoundingMode;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
@@ -65,6 +66,7 @@ public class PgbenchBenchmark extends AbstractDbOpsJob {
     }
     final String scale = Quantity.getAmountInBytes(Quantity.parse(pgbench.getDatabaseSize()))
         .divide(Quantity.getAmountInBytes(Quantity.parse("16Mi")))
+        .setScale(0, RoundingMode.UP)
         .toPlainString();
     final String duration = String.valueOf(Duration.parse(pgbench.getDuration()).getSeconds());
     return ImmutableList.of(

@@ -26,6 +26,33 @@ cluster:
         configMapKeyRef: # read long script from a ConfigMap to avoid have to much data in the helm releasea and the sgcluster CR
           name: sql-scripts-sakila-schema
           key: create-sakila-schema.sql
+    - database: sakila
+      script: |
+        CREATE TABLE test_wrap_in_transaction();
+        CREATE DATABASE test;
+      wrapInTransaction: serializable
+    - database: sakila
+      script: |
+        CREATE TABLE test_store_status_in_database();
+        CREATE DATABASE test;
+      wrapInTransaction: serializable
+      storeStatusInDatabase: true
+    - database: sakila
+      script: |
+        START TRANSACTION;
+        CREATE TABLE IF NOT EXISTS retry_on_error AS SELECT 0 AS i;
+        UPDATE retry_on_error SET i = i + 1;
+        COMMIT;
+        DO $$
+          BEGIN
+            IF (SELECT i FROM retry_on_error LIMIT 1) < 2
+            THEN
+              RAISE EXCEPTION 'Retry';
+            END IF;
+          END;
+          $$;
+        CREATE TABLE test_retry_on_error();
+      retryOnError: true
   prometheusAutobind: false
 nonProductionOptions:
   disableClusterPodAntiAffinity: true

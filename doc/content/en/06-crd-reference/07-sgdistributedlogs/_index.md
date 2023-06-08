@@ -11,7 +11,7 @@ When a Postgres cluster is configured to use distributed logs, all logs from dif
 Under the hood, distributed log cluster use an `SGCluster`.
 Therefore, the distributed log cluster can be queried using SQL as well, for example using *postgres-util*.
 
-For more information about distributed log usage, please check out the [Distributed Logs Tutorial](/tutorial/complete-cluster/distributed-logs/).
+For more information about distributed log usage, please check out the [Distributed Logs Manual]({{% relref "04-administration-guide/09-distributed-logs" %}}).
 ___
 
 **Kind:** SGDistributedLogs
@@ -103,6 +103,7 @@ Defines scheduling configuration for StackGres pods.
 | nodeSelector                           |          | ✓         | object                             |         | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeSelector >}} |
 | tolerations                            |          | ✓         | array                              |         | {{< crd-field-description SGDistributedLogs.spec.scheduling.tolerations >}} |
 | nodeAffinity                           |          | ✓         | object                             |         | {{< crd-field-description SGDistributedLogs.spec.scheduling.nodeAffinity >}} |
+| priorityClassName                      |          | ✓         | string                             |         | {{< crd-field-description SGDistributedLogs.spec.scheduling.priorityClassName >}} |
 | podAffinity                            |          | ✓         | object                             |         | {{< crd-field-description SGDistributedLogs.spec.scheduling.podAffinity >}} |
 | podAntiAffinity                        |          | ✓         | object                             |         | {{< crd-field-description SGDistributedLogs.spec.scheduling.podAntiAffinity >}} |
 

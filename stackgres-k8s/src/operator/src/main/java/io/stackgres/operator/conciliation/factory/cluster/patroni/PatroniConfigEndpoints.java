@@ -31,10 +31,12 @@ import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.labels.LabelFactoryForCluster;
@@ -43,6 +45,7 @@ import io.stackgres.common.patroni.StandbyCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.cluster.PostgresSslSecret;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
 import org.jooq.lambda.Seq;
@@ -248,6 +251,19 @@ public class PatroniConfigEndpoints
           params.get("shared_preload_libraries"))
           .map(sharedPreloadLibraries -> "babelfishpg_tds, " + sharedPreloadLibraries)
           .orElse("babelfishpg_tds"));
+    }
+
+    if (Optional.of(context.getSource())
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPostgres)
+        .map(StackGresClusterPostgres::getSsl)
+        .map(StackGresClusterSsl::getEnabled)
+        .orElse(false)) {
+      params.put("ssl", "on");
+      params.put("ssl_cert_file",
+          ClusterStatefulSetPath.SSL_PATH.path() + "/" + PostgresSslSecret.CERTIFICATE_KEY);
+      params.put("ssl_key_file",
+          ClusterStatefulSetPath.SSL_PATH.path() + "/" + PostgresSslSecret.PRIVATE_KEY_KEY);
     }
 
     return params;

@@ -14,11 +14,16 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterReplicati
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-@JsonIgnoreProperties(value = { "postgres", "postgresServices" })
+@JsonIgnoreProperties(value = { "postgres", "postgresServices",
+    "initialData", "replicateFrom", "distributedLogs", "toInstallPostgresExtensions",
+    "prometheusAutobind", "nonProductionOptions", "postgresServices" })
 public class ShardedClusterCoordinator extends ClusterSpec {
 
   @JsonProperty("replication")
   private StackGresShardedClusterReplication replicationForCoordinator;
+
+  @JsonProperty("configurations")
+  private ShardedClusterInnerConfiguration configurationForCoordinator;
 
   public StackGresShardedClusterReplication getReplicationForCoordinator() {
     return replicationForCoordinator;
@@ -27,6 +32,15 @@ public class ShardedClusterCoordinator extends ClusterSpec {
   public void setReplicationForCoordinator(
       StackGresShardedClusterReplication replicationForCoordinator) {
     this.replicationForCoordinator = replicationForCoordinator;
+  }
+
+  public ShardedClusterInnerConfiguration getConfigurationForCoordinator() {
+    return configurationForCoordinator;
+  }
+
+  public void setConfigurationForCoordinator(
+      ShardedClusterInnerConfiguration configurationForCoordinator) {
+    this.configurationForCoordinator = configurationForCoordinator;
   }
 
 }

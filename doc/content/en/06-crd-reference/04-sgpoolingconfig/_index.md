@@ -88,13 +88,13 @@ spec:
           max_user_connections: '100'
 ```
 
-## Deny List Parameters
+## Immutable Parameters
 
-To guarantee a functional PgBouncer configuration, most of the parameters specified in the [PgBouncer configuration documentation](https://www.pgbouncer.org/config.html#generic-settings) for section `[pgbouncer]` are not allowed to be changed.
+To guarantee a functional PgBouncer configuration, most of the parameters specified in the [PgBouncer configuration documentation](https://www.pgbouncer.org/config.html#generic-settings) for section `pgbouncer` are not allowed to be changed.
 If these are specified in the CR configuration, they will be ignored and the default values will be used instead.
-The PgBouncer deny list parameters are:
+The immutable PgBouncer parameters are:
 
-| Deny List Parameters       |
+| Immutable Parameters       |
 |:---------------------------|
 | admin_users                |
 | application_name_add_host  |

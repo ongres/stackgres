@@ -27,11 +27,11 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
@@ -63,7 +63,7 @@ import org.slf4j.LoggerFactory;
 
 @Singleton
 @Sidecar(StackGresContainer.ENVOY)
-@OperatorVersionBinder(startAt = StackGresVersion.V_1_4)
+@OperatorVersionBinder(startAt = StackGresVersion.V_1_5)
 @RunningContainer(StackGresContainer.ENVOY)
 public class Envoy implements ContainerFactory<ClusterContainerContext>,
     VolumeFactory<StackGresClusterContext> {
@@ -132,8 +132,7 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
         ImmutableVolumePair.builder()
             .volume(buildVolume(context))
             .source(buildSource(context))
-            .build())
-        .append(sslVolume(context));
+            .build());
   }
 
   protected Volume buildVolume(StackGresClusterContext context) {
@@ -141,7 +140,7 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
     return new VolumeBuilder()
         .withName(StackGresVolume.ENVOY.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withDefaultMode(420)
+            .withDefaultMode(0440)
             .withName(StackGresVolume.ENVOY.getResourceName(clusterName))
             .build())
         .build();
@@ -217,24 +216,6 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
             .build());
   }
 
-  private Stream<ImmutableVolumePair> sslVolume(StackGresClusterContext context) {
-    return Optional.ofNullable(context.getSource().getSpec())
-        .map(StackGresClusterSpec::getPostgres)
-        .map(StackGresClusterPostgres::getSsl)
-        .filter(ssl -> Optional.ofNullable(ssl.getEnabled()).orElse(false))
-        .stream()
-        .map(ssl -> ImmutableVolumePair.builder()
-            .volume(new VolumeBuilder()
-                .withName(StackGresVolume.POSTGRES_SSL.getName())
-                .withSecret(new SecretVolumeSourceBuilder()
-                    .withSecretName(ssl.getCertificateSecretKeySelector().getName())
-                    .withDefaultMode(0400) //NOPMD
-                    .withOptional(false)
-                    .build())
-                .build())
-            .build());
-  }
-
   private HasMetadata buildSource(StackGresClusterContext context) {
     final StackGresCluster stackGresCluster = context.getSource();
 
@@ -243,6 +224,20 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
     try {
       envoyConfig = (ObjectNode) yamlMapper
           .readTree(Envoy.class.getResource("/envoy/envoy.yaml"));
+    } catch (Exception ex) {
+      throw new IllegalStateException("couldn't read envoy config file", ex);
+    }
+    final ObjectNode envoyConfigLds;
+    try {
+      envoyConfigLds = (ObjectNode) yamlMapper
+          .readTree(Envoy.class.getResource("/envoy/envoy-lds.yaml"));
+    } catch (Exception ex) {
+      throw new IllegalStateException("couldn't read envoy config file", ex);
+    }
+    final ObjectNode envoyConfigCds;
+    try {
+      envoyConfigCds = (ObjectNode) yamlMapper
+          .readTree(Envoy.class.getResource("/envoy/envoy-cds.yaml"));
     } catch (Exception ex) {
       throw new IllegalStateException("couldn't read envoy config file", ex);
     }
@@ -263,7 +258,7 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
                 + " .admin.address.socket_address.port_value"
                 + " in Envoy configuration"))));
 
-    Seq.seq(envoyConfig.get("static_resources").get("listeners"))
+    Seq.seq(envoyConfigLds.get("resources"))
         .map(listener -> listener
             .get("address")
             .get("socket_address"))
@@ -279,10 +274,10 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
             .orElseThrow(() -> new IllegalArgumentException(
                 "Can not replace value " + socketAddress.get("port_value").asText()
                 .substring(1) + " of field"
-                + " .static_resources.listeners[].address.socket_address.port_value"
+                + " .resources[].address.socket_address.port_value"
                 + " in Envoy configuration"))));
 
-    Seq.seq(envoyConfig.get("static_resources").get("clusters"))
+    Seq.seq(envoyConfigCds.get("resources"))
         .flatMap(cluster -> Seq.seq(cluster
             .get("load_assignment")
             .get("endpoints").elements()))
@@ -303,20 +298,25 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
             .orElseThrow(() -> new IllegalArgumentException(
                 "Can not replace value " + socketAddress.get("port_value").asText()
                 .substring(1) + " of field"
-                + " .static_resources.clusters[].load_assignment.endpoints[].lb_endpoints[]"
+                + " .resources[].load_assignment.endpoints[].lb_endpoints[]"
                   + ".address.socket_address.port_value"
                 + " in Envoy configuration"))));
 
-    setupPgBouncer(stackGresCluster, envoyConfig);
+    setupPgBouncer(stackGresCluster, envoyConfigLds, envoyConfigCds);
 
-    setupSsl(stackGresCluster, envoyConfig);
+    setupSsl(stackGresCluster, envoyConfigLds);
 
-    setupBabelfish(context, envoyConfig);
+    setupBabelfish(context, envoyConfigCds);
 
     final Map<String, String> data;
     try {
-      data = Map.of("envoy.json",
-          objectMapper.writeValueAsString(envoyConfig));
+      data = Map.of(
+          "envoy.json",
+          objectMapper.writeValueAsString(envoyConfig),
+          "envoy-lds.json",
+          objectMapper.writeValueAsString(envoyConfigLds),
+          "envoy-cds.json",
+          objectMapper.writeValueAsString(envoyConfigCds));
     } catch (Exception ex) {
       throw new IllegalStateException("couldn't parse envoy config file", ex);
     }
@@ -335,7 +335,7 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
   }
 
   private void setupPgBouncer(final StackGresCluster stackGresCluster,
-      final ObjectNode envoyConfig) {
+      final ObjectNode envoyConfigLds, final ObjectNode envoyConfigCds) {
     boolean disablePgBouncer = Optional
         .ofNullable(stackGresCluster.getSpec())
         .map(StackGresClusterSpec::getPod)
@@ -343,19 +343,19 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
         .orElse(false);
     final String postgresEntryClusterName;
     if (disablePgBouncer) {
-      Seq.seq(envoyConfig.get("static_resources").get("clusters"))
+      Seq.seq(envoyConfigCds.get("resources"))
           .zipWithIndex()
           .filter(cluster -> cluster.v1.has("name")
               && cluster.v1.get("name").asText().equals("postgres_cluster_pool"))
           .findFirst()
-          .ifPresent(cluster -> ((ArrayNode) envoyConfig.get("static_resources").get("clusters"))
+          .ifPresent(cluster -> ((ArrayNode) envoyConfigCds.get("resources"))
               .remove(cluster.v2.intValue()));
 
       postgresEntryClusterName = "postgres_cluster";
     } else {
       postgresEntryClusterName = "postgres_cluster_pool";
     }
-    Seq.seq(envoyConfig.get("static_resources").get("listeners"))
+    Seq.seq(envoyConfigLds.get("resources"))
         .flatMap(listener -> Seq.seq(listener.get("filter_chains").elements()))
         .flatMap(filterChain -> Seq.seq(filterChain.get("filters").elements()))
         .map(filter -> filter
@@ -366,14 +366,15 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
         .forEach(typedConfig -> typedConfig.put("cluster", postgresEntryClusterName));
   }
 
-  private void setupSsl(final StackGresCluster stackGresCluster, final ObjectNode envoyConfig) {
+  private void setupSsl(final StackGresCluster stackGresCluster,
+      final ObjectNode envoyConfigLds) {
     boolean enableSsl = Optional
         .ofNullable(stackGresCluster.getSpec())
         .map(StackGresClusterSpec::getPostgres)
         .map(StackGresClusterPostgres::getSsl)
         .map(StackGresClusterSsl::getEnabled)
         .orElse(false);
-    Seq.seq(envoyConfig.get("static_resources").get("listeners"))
+    Seq.seq(envoyConfigLds.get("resources"))
         .flatMap(listener -> Seq.seq(listener.get("filter_chains").elements()))
         .flatMap(filterChain -> Seq.seq(filterChain.get("filters").elements()))
         .map(filter -> filter
@@ -383,7 +384,7 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
             && typedConfig.get("terminate_ssl").asText().startsWith("$"))
         .forEach(typedConfig -> typedConfig.put("terminate_ssl", enableSsl));
     if (!enableSsl) {
-      Seq.seq(envoyConfig.get("static_resources").get("listeners"))
+      Seq.seq(envoyConfigLds.get("resources"))
           .flatMap(listener -> Seq.seq(listener.get("filter_chains").elements()))
           .filter(filterChain -> filterChain.has("transport_socket")
               && filterChain.get("transport_socket").has("name")
@@ -394,40 +395,28 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
     }
   }
 
-  private void setupBabelfish(StackGresClusterContext context, final ObjectNode envoyConfig) {
+  private void setupBabelfish(StackGresClusterContext context, final ObjectNode envoyConfigCds) {
     boolean disableBabelfish =
         getPostgresFlavorComponent(context.getCluster()) != StackGresComponent.BABELFISH;
     if (disableBabelfish) {
-      Seq.seq(envoyConfig.get("static_resources").get("clusters"))
+      Seq.seq(envoyConfigCds.get("resources"))
           .zipWithIndex()
           .filter(cluster -> cluster.v1.has("name")
               && cluster.v1.get("name").asText().equals("babelfish_cluster"))
           .findFirst()
-          .ifPresent(cluster -> ((ArrayNode) envoyConfig.get("static_resources").get("clusters"))
+          .ifPresent(cluster -> ((ArrayNode) envoyConfigCds.get("resources"))
               .remove(cluster.v2.intValue()));
     }
   }
 
   private List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {
     return Seq.seq(containerUserOverrideMounts.getVolumeMounts(context))
-        .append(Optional.ofNullable(context.getClusterContext().getSource().getSpec())
-            .map(StackGresClusterSpec::getPostgres)
-            .map(StackGresClusterPostgres::getSsl)
-            .filter(ssl -> Optional.ofNullable(ssl.getEnabled()).orElse(false))
-            .stream()
-            .flatMap(ssl -> Seq.of(
+        .append(Seq.of(
                 new VolumeMountBuilder()
                 .withName(StackGresVolume.POSTGRES_SSL.getName())
-                .withMountPath("/etc/ssl/server.crt")
-                .withSubPath(ssl.getCertificateSecretKeySelector().getKey())
+                .withMountPath(ClusterStatefulSetPath.SSL_PATH.path())
                 .withReadOnly(true)
-                .build(),
-                new VolumeMountBuilder()
-                .withName(StackGresVolume.POSTGRES_SSL.getName())
-                .withMountPath("/etc/ssl/server.key")
-                .withSubPath(ssl.getPrivateKeySecretKeySelector().getKey())
-                .withReadOnly(true)
-                .build())))
+                .build()))
         .toList();
   }
 
