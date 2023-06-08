@@ -945,6 +945,32 @@ spec:
                                     type: string
                                     description: The key of the secret to select from. Must be a valid secret key.
                                 required: ["name", "key"]
+                  binding:
+                    type: object
+                    description: |
+                      This optional section allows to specify the properties (and their values) will be part of Secret of Service Binding type. If this section is not specified, then it will create a Secret with a default postgres user
+                      
+                      For more information could you see https://servicebinding.io/spec/core/1.0.0/
+                    properties:
+                      provider:
+                        type: string
+                        description: It's the reference of custom provider name. This section is optional, if not specified, then the default value will be stackgres
+                      database:
+                        type: string
+                        description: Allow to specify the database name. This section is optional, if not specified, then the default value is postgres
+                      username:
+                        type: string
+                        description: Allow to specify the username that will be used in the Service Binding
+                      password:
+                        type: object
+                        description: Allow to reference Secret that contains the user's password. The secret must exists at the same namespace with respect to SGCluster
+                        properties:
+                          name:
+                            type: string
+                            description: The name of the Secret that contains the password
+                          key:
+                            type: string
+                            description: The key of the Secret that contains the password
               managedSql:
                 type: object
                 description: |

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -86,15 +87,52 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
 
   Optional<String> getSuperuserPassword();
 
+  @Value.Derived
+  default String getGeneratedSuperuserPassword() {
+    return generatePassword();
+  }
+
   Optional<String> getReplicationUsername();
 
   Optional<String> getReplicationPassword();
+
+  @Value.Derived
+  default String getGeneratedReplicationPassword() {
+    return generatePassword();
+  }
 
   Optional<String> getAuthenticatorUsername();
 
   Optional<String> getAuthenticatorPassword();
 
+  Optional<String> getUserPasswordForBinding();
+
+  @Value.Derived
+  default String getGeneratedAuthenticatorPassword() {
+    return generatePassword();
+  }
+
   Optional<String> getPatroniRestApiPassword();
+
+  @Value.Derived
+  default String getGeneratedPatroniRestApiPassword() {
+    return generatePassword();
+  }
+
+  @Value.Derived
+  default String getGeneratedBabelfishPassword() {
+    return generatePassword();
+  }
+
+  @Value.Derived
+  default String getGeneratedPgBouncerAdminPassword() {
+    return generatePassword();
+  }
+
+  @Value.Derived
+  default String getGeneratedPgBouncerStatsPassword() {
+    return generatePassword();
+  }
 
   Optional<String> getPostgresSslCertificate();
 
@@ -248,4 +286,7 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
         .orElse(Map.of());
   }
 
+  default String generatePassword() {
+    return UUID.randomUUID().toString().substring(4, 22);
+  }
 }

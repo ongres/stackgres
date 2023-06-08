@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
+import static io.stackgres.common.StringUtil.generateRandom;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.AUTHENTICATOR_OPTIONS_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_KEY;
@@ -32,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
@@ -40,7 +42,6 @@ import java.util.Optional;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
-import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternal;
@@ -61,16 +62,16 @@ class PatroniSecretTest {
 
   private final Secret existentSecret = new SecretBuilder()
       .addToData(ResourceUtil.encodeSecret(ImmutableMap.of(
-          SUPERUSER_USERNAME_KEY, StringUtil.generateRandom(),
-          SUPERUSER_PASSWORD_KEY, StringUtil.generateRandom(),
-          REPLICATION_USERNAME_KEY, StringUtil.generateRandom(),
-          REPLICATION_PASSWORD_KEY, StringUtil.generateRandom(),
-          AUTHENTICATOR_USERNAME_KEY, StringUtil.generateRandom(),
-          AUTHENTICATOR_PASSWORD_KEY, StringUtil.generateRandom(),
-          PGBOUNCER_ADMIN_PASSWORD_KEY, StringUtil.generateRandom(),
-          PGBOUNCER_STATS_PASSWORD_KEY, StringUtil.generateRandom(),
-          RESTAPI_PASSWORD_KEY, StringUtil.generateRandom(),
-          BABELFISH_CREATE_USER_SQL_KEY, StringUtil.generateRandom())))
+          SUPERUSER_USERNAME_KEY, generateRandom(),
+          SUPERUSER_PASSWORD_KEY, generateRandom(),
+          REPLICATION_USERNAME_KEY, generateRandom(),
+          REPLICATION_PASSWORD_KEY, generateRandom(),
+          AUTHENTICATOR_USERNAME_KEY, generateRandom(),
+          AUTHENTICATOR_PASSWORD_KEY, generateRandom(),
+          PGBOUNCER_ADMIN_PASSWORD_KEY, generateRandom(),
+          PGBOUNCER_STATS_PASSWORD_KEY, generateRandom(),
+          RESTAPI_PASSWORD_KEY, generateRandom(),
+          BABELFISH_CREATE_USER_SQL_KEY, generateRandom())))
       .build();
 
   private final Map<String, String> decodedExistentSecretData =
@@ -80,7 +81,7 @@ class PatroniSecretTest {
   private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   @Mock
-  private StackGresClusterContext generatorContext;
+  private StackGresClusterContext context;
 
   private final PatroniSecret patroniSecret = new PatroniSecret();
 
@@ -92,12 +93,19 @@ class PatroniSecretTest {
     patroniSecret.setFactoryFactory(labelFactory);
     when(labelFactory.genericLabels(any(StackGresCluster.class))).thenReturn(ImmutableMap.of());
 
-    when(generatorContext.getSource()).thenReturn(cluster);
+    when(context.getSource()).thenReturn(cluster);
+    lenient().when(context.getGeneratedSuperuserPassword()).thenReturn(generateRandom());
+    lenient().when(context.getGeneratedReplicationPassword()).thenReturn(generateRandom());
+    lenient().when(context.getGeneratedAuthenticatorPassword()).thenReturn(generateRandom());
+    lenient().when(context.getGeneratedPgBouncerAdminPassword()).thenReturn(generateRandom());
+    lenient().when(context.getGeneratedPgBouncerStatsPassword()).thenReturn(generateRandom());
+    lenient().when(context.getGeneratedPatroniRestApiPassword()).thenReturn(generateRandom());
+    lenient().when(context.getGeneratedBabelfishPassword()).thenReturn(generateRandom());
   }
 
   @Test
   void generateResources_shouldGenerateRandomPasswords() {
-    Secret secret = patroniSecret.buildSource(generatorContext);
+    Secret secret = patroniSecret.buildSource(context);
 
     final Map<String, String> data = ResourceUtil.decodeSecret(secret.getData());
     assertTrue(data.containsKey(SUPERUSER_USERNAME_ENV));
@@ -152,8 +160,8 @@ class PatroniSecretTest {
 
   @Test
   void generateResourcesWithExistentSecret_shouldReusePasswords() {
-    when(generatorContext.getDatabaseSecret()).thenReturn(Optional.of(existentSecret));
-    Secret secret = patroniSecret.buildSource(generatorContext);
+    when(context.getDatabaseSecret()).thenReturn(Optional.of(existentSecret));
+    Secret secret = patroniSecret.buildSource(context);
 
     final Map<String, String> data = ResourceUtil.decodeSecret(secret.getData());
     assertTrue(data.containsKey(SUPERUSER_USERNAME_ENV));
@@ -216,21 +224,21 @@ class PatroniSecretTest {
         .setHost("test");
     cluster.getSpec().getReplicateFrom().getInstance().getExternal()
         .setPort(5433);
-    when(generatorContext.getSuperuserUsername())
+    when(context.getSuperuserUsername())
         .thenReturn(Optional.of(decodedExistentSecretData.get(SUPERUSER_USERNAME_KEY)));
-    when(generatorContext.getSuperuserPassword())
+    when(context.getSuperuserPassword())
         .thenReturn(Optional.of(decodedExistentSecretData.get(SUPERUSER_PASSWORD_KEY)));
-    when(generatorContext.getReplicationUsername())
+    when(context.getReplicationUsername())
         .thenReturn(Optional.of(decodedExistentSecretData.get(REPLICATION_USERNAME_KEY)));
-    when(generatorContext.getReplicationPassword())
+    when(context.getReplicationPassword())
         .thenReturn(Optional.of(decodedExistentSecretData.get(REPLICATION_PASSWORD_KEY)));
-    when(generatorContext.getAuthenticatorUsername())
+    when(context.getAuthenticatorUsername())
         .thenReturn(Optional.of(decodedExistentSecretData.get(AUTHENTICATOR_USERNAME_KEY)));
-    when(generatorContext.getAuthenticatorPassword())
+    when(context.getAuthenticatorPassword())
         .thenReturn(Optional.of(decodedExistentSecretData.get(AUTHENTICATOR_PASSWORD_KEY)));
-    when(generatorContext.getPatroniRestApiPassword())
+    when(context.getPatroniRestApiPassword())
         .thenReturn(Optional.of(decodedExistentSecretData.get(RESTAPI_PASSWORD_KEY)));
-    Secret secret = patroniSecret.buildSource(generatorContext);
+    Secret secret = patroniSecret.buildSource(context);
 
     final Map<String, String> data = ResourceUtil.decodeSecret(secret.getData());
     assertTrue(data.containsKey(SUPERUSER_USERNAME_ENV));
@@ -286,7 +294,7 @@ class PatroniSecretTest {
   @Test
   void generateResourcesForBabelfishFlavor_shouldGenerateRandomPasswords() {
     cluster.getSpec().getPostgres().setFlavor(StackGresPostgresFlavor.BABELFISH.toString());
-    Secret secret = patroniSecret.buildSource(generatorContext);
+    Secret secret = patroniSecret.buildSource(context);
 
     final Map<String, String> data = ResourceUtil.decodeSecret(secret.getData());
     assertTrue(data.containsKey(SUPERUSER_USERNAME_ENV));
