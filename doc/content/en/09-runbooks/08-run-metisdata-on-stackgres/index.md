@@ -34,52 +34,6 @@ kubectl apply -f 01-namespace.yaml
 ```
 
 
-MetisData will use one (or more) databases in Postgres, and expects it to be created and owned by a given user. Since we don't want to use Postgres superuser for this, we will create a specific user, with a specific password (randomly generated, as per this runbook) and one database for MetisData. To do this, we will leverage StackGres' [SGScript](https://stackgres.io/doc/latest/reference/crd/sgscript/) facility, that allows us to create and maintain SQL scripts that will be automatically managed and applied in the database by StackGres.
-
-Let's start by creating a `Secret` that contains the SQL command to create the user with a random password.
-
-```sh
-#!/bin/sh
-
-PASSWORD="$(dd if=/dev/urandom bs=1 count=8 status=none | base64 | tr / 0)"
-
-kubectl -n metisdata create secret generic createuser \
-  --from-literal=sql="create user metisdata with password '"${PASSWORD}"'"
-```
-
-Please add the privilege to execute the file :
-```
-sudo chmod +x 02-createuser_secret.sh
-```
-
-```sh
-./02-createuser_secret.sh
-```
-
-We can now create the `SGScript`, that will contain two scripts: one to create the user with the password, by reading the SQL literal from this `Secret`; and another one to create the database, owned by this user, and with the proper encoding and locale configuration that are required by MetisData:
-
-```yaml
-apiVersion: stackgres.io/v1
-kind: SGScript
-metadata:
-  name: createuserdb
-  namespace: metisdata
-spec:
-  scripts:
-  - name: create-user
-    scriptFrom:
-      secretKeyRef:
-        name: createuser
-        key: sql
-  - name: create-database
-    script: |
-            create database metisdata owner metisdata encoding 'UTF8' locale 'en_US.UTF-8' template template0;
-```
-
-```sh
-kubectl apply -f 03-sgscript.yaml
-```
-
 We are now ready to create the Postgres cluster:
 
 ```yaml
@@ -95,15 +49,13 @@ spec:
   pods:
     persistentVolume:
       size: '5Gi'
-  configurations:
-    sgPoolingConfig: sgpoolingconfig1
   managedSql:
     scripts:
       - sgScript: createuserdb
 ```
 
 ```sh
-kubectl apply -f 04-sgcluster.yaml
+kubectl apply -f 02-sgcluster.yaml
 ```
 
 After some seconds to a few minutes, the cluster should be brought up:
@@ -114,15 +66,22 @@ NAME                           READY   STATUS    RESTARTS   AGE
 postgres-0                     6/6     Running   0          16m
 ```
 
+
+
+
+
 And the database `metisdata` should exist and being owned by the user with the same name:
 
 ```sh
-kubectl -n metisdata exec -it postgres-0 -c postgres-util -- psql -l metisdata
-                                                 List of databases
-   Name    |  Owner   | Encoding |   Collate   |    Ctype    | ICU Locale | Locale Provider |   Access privileges   
------------+----------+----------+-------------+-------------+------------+-----------------+-----------------------
- metisdata  | metisdata | UTF8     | en_US.UTF-8 | en_US.UTF-8 |            | libc            | 
-  ...
+kubectl -n metisdata exec -it postgres-0 -c postgres-util -- psql -l postgres
+                                             List of databases
+   Name    |  Owner   | Encoding | Collate |  Ctype  | ICU Locale | Locale Provider |   Access privileges   
+-----------+----------+----------+---------+---------+------------+-----------------+-----------------------
+ postgres  | postgres | UTF8     | C.UTF-8 | C.UTF-8 |            | libc            | 
+ template0 | postgres | UTF8     | C.UTF-8 | C.UTF-8 |            | libc            | =c/postgres          +
+           |          |          |         |         |            |                 | postgres=CTc/postgres
+ template1 | postgres | UTF8     | C.UTF-8 | C.UTF-8 |            | libc            | =c/postgres          +
+           |          |          |         |         |            |                 | postgres=CTc/postgres
 ```
 
 
@@ -139,8 +98,8 @@ Create helm chart with specific api-key and pg connection on your relevant names
 
 ```
 helm install metis-mmc metis-data/metis-md-collector \
-  --set METIS_API_KEY=*****1 \
-  --set DB_CONNECTION_STRINGS=*****2://postgres:postgres@postgres.metisdata.svc:5432/postgres;
+  --set apiKey="*****1" \
+  --set dbConnectionStrings=*****2://postgres:postgres@postgres.metisdata.svc:5432/postgres;
 ```
 
 Where the:
@@ -150,8 +109,21 @@ Where the:
 
 *****2 - Represents the StackGres password, that could be obtained by the command: 
 ```
-kubectl get secrets -n demo stackgres -o jsonpath='{.data.superuser-password}' | base64 -d
+kubectl get secrets -n metisdata postgres -o jsonpath='{.data.superuser-password}' | base64 -d
 ```
+
+
+The output should be similar with:
+
+```
+NAME: metis-mmc
+LAST DEPLOYED: Thu Jun  8 09:49:09 2023
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+```
+
 
 ## Cleanup
 
