@@ -106,7 +106,7 @@ load_image_k8s() {
 }
 
 load_certificate_k8s() {
-  echo "Loading certificate $1 in kind environemnt $KIND_NAME..."
+  echo "Loading certificate $1 in k3d environemnt $KIND_NAME..."
 
   echo "k3d-$K8S_K3D_NAME-server" "k3d-$K8S_K3D_NAME-worker-0" "k3d-$K8S_K3D_NAME-worker-1" \
     | tr ' ' '\n' | xargs -r -n 1 -I % -P "$E2E_PARALLELISM" sh -ec "

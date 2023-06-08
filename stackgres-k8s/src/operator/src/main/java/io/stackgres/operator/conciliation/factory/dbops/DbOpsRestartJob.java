@@ -52,6 +52,10 @@ public class DbOpsRestartJob implements JobFactory {
     StackGresDbOps dbOps = context.getSource();
     String namespace = dbOps.getMetadata().getNamespace();
     final Map<String, String> labels = dbOpsLabelFactory.dbOpsPodLabels(context.getSource());
+    final Integer maxRetries = Optional.of(dbOps)
+        .map(StackGresDbOps::getSpec)
+        .map(StackGresDbOpsSpec::getMaxRetries)
+        .orElse(0);
     return new JobBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
@@ -59,8 +63,7 @@ public class DbOpsRestartJob implements JobFactory {
         .withLabels(labels)
         .endMetadata()
         .withNewSpec()
-        .withBackoffLimit(0)
-        .withCompletions(1)
+        .withBackoffLimit(maxRetries)
         .withParallelism(1)
         .withNewTemplate()
         .withNewMetadata()

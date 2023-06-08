@@ -132,6 +132,9 @@ class DbOpsStatusManagerTest {
 
   @Test
   void noJob_shouldNotUpdateResource() {
+    expectedDbOps.setStatus(new StackGresDbOpsStatus());
+    expectedDbOps.getStatus().setOpRetries(0);
+
     when(jobFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.empty());
 
@@ -143,6 +146,9 @@ class DbOpsStatusManagerTest {
 
   @Test
   void runningJob_shouldNotUpdateResource() {
+    expectedDbOps.setStatus(new StackGresDbOpsStatus());
+    expectedDbOps.getStatus().setOpRetries(0);
+
     when(jobFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(runningJob));
 

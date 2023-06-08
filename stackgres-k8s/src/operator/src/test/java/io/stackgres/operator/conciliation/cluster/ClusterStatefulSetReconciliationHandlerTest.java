@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
+import static io.stackgres.common.PatroniUtil.HISTORY_KEY;
 import static io.stackgres.operator.conciliation.AbstractStatefulSetReconciliationHandler.PLACEHOLDER_NODE_SELECTOR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
@@ -64,6 +66,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -220,11 +227,20 @@ class ClusterStatefulSetReconciliationHandlerTest {
     verify(defaultHandler, never()).patch(any(), any(PersistentVolumeClaim.class), any());
   }
 
-  @Test
+  public static class Source implements ArgumentsProvider {
+    @Override
+    public Stream<? extends Arguments> provideArguments(ExtensionContext context)
+        throws Exception {
+      return Seq.range(0, 100).map(i -> Arguments.of(i));
+    }
+  }
+
+  @ParameterizedTest
+  @ArgumentsSource(Source.class)
   @DisplayName("Scaling up StatefulSet with non disrputable Pods with index lower than replicas"
       + " count should result in the same number of desired replicas and fix disruptable Label")
-  void scaleUpWithIndexLowerThanReplicasCount_DesiredReplicasAndFixDisruptableLabel() {
-    final int desiredReplicas = setUpUpscale(1, 1, -1, PrimaryPosition.FIRST_NONDISRUPTABLE);
+  void scaleUpWithIndexLowerThanReplicasCount_DesiredReplicasAndFixDisruptableLabel(Integer i) {
+    final int desiredReplicas = setUpUpscale(3, 1, 0, PrimaryPosition.FIRST_NONDISRUPTABLE);
 
     ArgumentCaptor<HasMetadata> podArgumentCaptor = ArgumentCaptor.forClass(HasMetadata.class);
 
@@ -267,7 +283,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
-    verify(defaultHandler).patch(any(), any(Pod.class), any());
+    verify(defaultHandler, times(2)).patch(any(), any(Pod.class), any());
     ArgumentCaptor<HasMetadata> podArgumentCaptor = ArgumentCaptor.forClass(HasMetadata.class);
     verify(defaultHandler, atLeastOnce()).patch(any(), podArgumentCaptor.capture(), any());
     var updatedPod = podArgumentCaptor.getAllValues().stream()
@@ -297,7 +313,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
     when(endpointsFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(new EndpointsBuilder()
             .withNewMetadata()
-            .withAnnotations(ImmutableMap.of("history",
+            .withAnnotations(ImmutableMap.of(HISTORY_KEY,
                 "[[1,25987816,"
                 + "\"no recovery target specified\","
                 + "\"2021-10-18T23:31:45.550086+00:00\","
@@ -321,11 +337,11 @@ class ClusterStatefulSetReconciliationHandlerTest {
     StatefulSet sts = (StatefulSet) handler.patch(
         cluster, requiredStatefulSet, deployedStatefulSet);
 
-    assertEquals(desiredReplicas + 1, sts.getSpec().getReplicas());
+    assertEquals(desiredReplicas - 1, sts.getSpec().getReplicas());
 
-    verify(podScanner, times(6)).findByLabelsAndNamespace(anyString(), anyMap());
+    verify(podScanner, times(7)).findByLabelsAndNamespace(anyString(), anyMap());
     verify(defaultHandler, times(3)).patch(any(), any(StatefulSet.class), any());
-    verify(defaultHandler, never()).patch(any(), any(Pod.class), any());
+    verify(defaultHandler, times(2)).patch(any(), any(Pod.class), any());
     verify(defaultHandler, never()).delete(any(), any(StatefulSet.class));
     verify(defaultHandler, never()).patch(any(), any(PersistentVolumeClaim.class), any());
   }
@@ -341,7 +357,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
     when(endpointsFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(new EndpointsBuilder()
             .withNewMetadata()
-            .withAnnotations(ImmutableMap.of("history",
+            .withAnnotations(ImmutableMap.of(HISTORY_KEY,
                 "[[1,25987816,"
                 + "\"no recovery target specified\","
                 + "\"2021-10-18T23:31:45.550086+00:00\","
@@ -357,7 +373,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     verify(podScanner, times(5)).findByLabelsAndNamespace(anyString(), anyMap());
     verify(defaultHandler, times(1)).patch(any(), any(StatefulSet.class), any());
-    verify(defaultHandler, times(1)).patch(any(), any(Pod.class), any());
+    verify(defaultHandler, times(2)).patch(any(), any(Pod.class), any());
     verify(defaultHandler, times(1)).delete(any(), any(Pod.class));
     verify(defaultHandler, never()).patch(any(), any(PersistentVolumeClaim.class), any());
   }

@@ -128,6 +128,8 @@ public class ManagedSqlScriptEntryExecutor {
     try (Connection connection = getConnection(
         scriptEntry.getScriptEntry().getDatabaseOrDefault(),
         SUPERUSER_USERNAME)) {
+      connection.setAutoCommit(false);
+      connection.setTransactionIsolation(Connection.TRANSACTION_SERIALIZABLE);
       try {
         boolean managedSqlStatusTableMissing = isManagedSqlStatusTableMissing(connection);
         if (managedSqlStatusTableMissing) {

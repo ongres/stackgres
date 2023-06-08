@@ -21,7 +21,6 @@ kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=m
         $(eval_in_place "$CONDITION_DB_OPS_FALSE_COMPLETED"),
         $(eval_in_place "$CONDITION_DB_OPS_FALSE_FAILED")
     ],
-    "opRetries": $CURRENT_RETRY,
     "opStarted": "$STARTED"
   }
 }

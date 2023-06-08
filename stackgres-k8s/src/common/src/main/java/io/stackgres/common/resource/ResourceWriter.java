@@ -14,6 +14,10 @@ public interface ResourceWriter<T extends HasMetadata> {
 
   T update(@NotNull T resource);
 
+  default T update(T resource, String patch) {
+    throw new UnsupportedOperationException();
+  }
+
   void delete(@NotNull T resource);
 
   default void deleteWithoutCascading(@NotNull T resource) {

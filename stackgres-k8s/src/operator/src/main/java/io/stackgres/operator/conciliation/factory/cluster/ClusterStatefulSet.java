@@ -44,7 +44,6 @@ import io.stackgres.operator.conciliation.factory.VolumePair;
 public class ClusterStatefulSet
     implements ResourceGenerator<StackGresClusterContext> {
 
-  public static final String GCS_CREDENTIALS_FILE_NAME = "gcs-credentials.json";
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   private final PodTemplateFactoryDiscoverer<ClusterContainerContext>

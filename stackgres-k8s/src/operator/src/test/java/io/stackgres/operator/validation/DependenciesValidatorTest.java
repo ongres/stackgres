@@ -27,19 +27,20 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
 public abstract class DependenciesValidatorTest
-    <T extends AdmissionReview<?>, V extends DependenciesValidator<T>> {
+    <T extends AdmissionReview<?>,
+    V extends DependenciesValidator<T, StackGresCluster>> {
 
-  protected DependenciesValidator<T> validator;
+  protected V validator;
 
   @Mock
-  protected CustomResourceScanner<StackGresCluster> clusterScanner;
+  protected CustomResourceScanner<StackGresCluster> resourceScanner;
 
-  protected abstract DependenciesValidator<T> setUpValidation();
+  protected abstract V setUpValidation();
 
   @BeforeEach
   void setUp() {
     validator = setUpValidation();
-    validator.setClusterScanner(clusterScanner);
+    validator.setResourceScanner(resourceScanner);
   }
 
   @Test
@@ -48,9 +49,8 @@ public abstract class DependenciesValidatorTest
 
     validator.validate(review);
 
-    verify(clusterScanner, never()).findResources();
-    verify(clusterScanner, never()).findResources(anyString());
-
+    verify(resourceScanner, never()).findResources();
+    verify(resourceScanner, never()).findResources(anyString());
   }
 
   protected abstract T getReview_givenAReviewCreation_itShouldDoNothing();
@@ -61,8 +61,8 @@ public abstract class DependenciesValidatorTest
 
     validator.validate(review);
 
-    verify(clusterScanner, never()).findResources();
-    verify(clusterScanner, never()).findResources(anyString());
+    verify(resourceScanner, never()).findResources();
+    verify(resourceScanner, never()).findResources(anyString());
   }
 
   protected abstract T getReview_givenAReviewUpdate_itShouldDoNothing();
@@ -73,7 +73,7 @@ public abstract class DependenciesValidatorTest
 
     StackGresClusterList clusterList = Fixtures.clusterList().loadDefault().get();
 
-    when(clusterScanner.findResources(review.getRequest().getNamespace()))
+    when(resourceScanner.findResources(review.getRequest().getNamespace()))
         .thenReturn(Optional.of(clusterList.getItems()));
 
     ValidationFailed ex = ValidationUtils.assertErrorType(ErrorType.FORBIDDEN_CR_DELETION,
@@ -100,13 +100,13 @@ public abstract class DependenciesValidatorTest
         .stream()
         .forEach(this::makeClusterNotDependant);
 
-    when(clusterScanner.findResources(review.getRequest().getNamespace()))
+    when(resourceScanner.findResources(review.getRequest().getNamespace()))
         .thenReturn(Optional.of(clusterList.getItems()));
 
     validator.validate(review);
 
-    verify(clusterScanner, never()).findResources();
-    verify(clusterScanner).findResources(review.getRequest().getNamespace());
+    verify(resourceScanner, never()).findResources();
+    verify(resourceScanner).findResources(review.getRequest().getNamespace());
   }
 
   protected abstract T getReview_givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt()
@@ -118,13 +118,13 @@ public abstract class DependenciesValidatorTest
   public void givenAReviewDelete_itShouldNotFailIfNoClusterExists() throws ValidationFailed {
     T review = getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists();
 
-    when(clusterScanner.findResources(review.getRequest().getNamespace()))
+    when(resourceScanner.findResources(review.getRequest().getNamespace()))
         .thenReturn(Optional.empty());
 
     validator.validate(review);
 
-    verify(clusterScanner, never()).findResources();
-    verify(clusterScanner).findResources(review.getRequest().getNamespace());
+    verify(resourceScanner, never()).findResources();
+    verify(resourceScanner).findResources(review.getRequest().getNamespace());
   }
 
   protected abstract T getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists();

@@ -31,7 +31,8 @@
         "max_user_connections",
         "auth_user",
         "listen_addr",
-        "admin_users"
+        "admin_users",
+        "server_check_query"
       ]
     }
   }

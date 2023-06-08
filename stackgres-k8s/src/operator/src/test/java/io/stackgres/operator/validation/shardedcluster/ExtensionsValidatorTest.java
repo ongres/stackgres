@@ -30,7 +30,6 @@ import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -105,7 +104,6 @@ class ExtensionsValidatorTest {
   }
 
   @Test
-  @Disabled("It is not clear why this should fail")
   void givenACreationWithMissingExtensions_shouldFail() {
     final StackGresShardedClusterReview review = getCreationReview();
     when(extensionMetadataManager.requestExtensionsAnyVersion(
@@ -115,7 +113,8 @@ class ExtensionsValidatorTest {
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
         ErrorType.EXTENSION_NOT_FOUND,
-        "Some extensions were not found: citus (available 1.0.0)");
+        "Some extensions were not found: citus 11.3-1 (available 1.0.0),"
+            + " citus_columnar 11.3-1 (available 1.0.0)");
   }
 
   private StackGresShardedClusterReview getCreationReview() {

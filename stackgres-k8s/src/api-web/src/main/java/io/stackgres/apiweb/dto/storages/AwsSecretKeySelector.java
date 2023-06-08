@@ -21,6 +21,9 @@ public class AwsSecretKeySelector {
   @JsonProperty("secretAccessKey")
   private SecretKeySelector secretAccessKey;
 
+  @JsonProperty("caCertificate")
+  private SecretKeySelector caCertificate;
+
   public SecretKeySelector getAccessKeyId() {
     return accessKeyId;
   }
@@ -35,6 +38,14 @@ public class AwsSecretKeySelector {
 
   public void setSecretAccessKey(SecretKeySelector secretAccessKey) {
     this.secretAccessKey = secretAccessKey;
+  }
+
+  public SecretKeySelector getCaCertificate() {
+    return caCertificate;
+  }
+
+  public void setCaCertificate(SecretKeySelector caCertificate) {
+    this.caCertificate = caCertificate;
   }
 
   @Override

@@ -5,11 +5,10 @@ metadata:
   name: "{{ .Release.Name }}-cr-updater"
   namespace: {{ .Release.Namespace }}
   labels:
-    app: stackgres-operator
-    scope: init
+    app: stackgres-operator-init
     job: cr-updater
   annotations:
-    "helm.sh/hook": post-upgrade
+    "helm.sh/hook": post-install,post-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
     "helm.sh/hook-weight": "50"
     {{- with .Values.jobs.annotations }}
@@ -19,8 +18,7 @@ spec:
   template:
     metadata:
       labels:
-        app: stackgres-operator
-        scope: init
+        app: stackgres-operator-init
         job: cr-updater
     spec:
       {{- with .Values.jobs.affinity}}

@@ -240,14 +240,14 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
                 clusterRestartState, tuple.getItem1(), tuple.getItem2())
                 .onItem()
                 .invoke(v -> clusterScheduler.update(tuple.getItem2(),
-                    (targetCluster, clusterWithStatus) -> {
-                      var dbOps = Optional.ofNullable(clusterWithStatus.getStatus())
+                    (currentCluster) -> {
+                      var dbOpsStatus = Optional.ofNullable(tuple.getItem2().getStatus())
                           .map(StackGresClusterStatus::getDbOps)
                           .orElse(null);
-                      if (targetCluster.getStatus() == null) {
-                        targetCluster.setStatus(new StackGresClusterStatus());
+                      if (currentCluster.getStatus() == null) {
+                        currentCluster.setStatus(new StackGresClusterStatus());
                       }
-                      targetCluster.getStatus().setDbOps(dbOps);
+                      currentCluster.getStatus().setDbOps(dbOpsStatus);
                     }));
           }
         });
@@ -328,12 +328,12 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
 
     var initialInstances = Optional.ofNullable(restartStatus.getInitialInstances())
         .map(instances -> instances.stream().map(podsDict::get)
-            .collect(Collectors.toUnmodifiableList()))
+            .toList())
         .orElse(clusterPods);
 
     var restartedInstances = Optional.ofNullable(restartStatus.getRestartedInstances())
         .map(instances -> instances.stream().map(podsDict::get)
-            .collect(Collectors.toUnmodifiableList()))
+            .toList())
         .orElse(List.of());
 
     var podRestartReasonsMap = clusterPods.stream()
@@ -423,14 +423,14 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
     return Uni.createFrom().voidItem()
         .invoke(item -> cleanClusterStatus(cluster))
         .map(item -> clusterScheduler.update(cluster,
-          (targetCluster, clusterWithStatus) -> {
-            var dbOps = Optional.ofNullable(clusterWithStatus.getStatus())
+          (currentCluster) -> {
+            var dbOps = Optional.ofNullable(cluster.getStatus())
                 .map(StackGresClusterStatus::getDbOps)
                 .orElse(null);
-            if (targetCluster.getStatus() == null) {
-              targetCluster.setStatus(new StackGresClusterStatus());
+            if (currentCluster.getStatus() == null) {
+              currentCluster.setStatus(new StackGresClusterStatus());
             }
-            targetCluster.getStatus().setDbOps(dbOps);
+            currentCluster.getStatus().setDbOps(dbOps);
           }));
   }
 

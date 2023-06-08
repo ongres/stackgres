@@ -175,7 +175,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
         .withName(StackGresVolume.PATRONI_ENV.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withName(name(context))
-            .withDefaultMode(444)
+            .withDefaultMode(0444)
             .build())
         .build();
   }

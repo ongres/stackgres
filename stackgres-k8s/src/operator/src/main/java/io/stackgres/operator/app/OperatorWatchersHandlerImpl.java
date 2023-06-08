@@ -32,9 +32,13 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileList;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterList;
+import io.stackgres.operator.conciliation.backup.BackupReconciliator;
 import io.stackgres.operator.conciliation.cluster.ClusterReconciliator;
 import io.stackgres.operator.conciliation.dbops.DbOpsReconciliator;
 import io.stackgres.operator.conciliation.distributedlogs.DistributedLogsReconciliator;
+import io.stackgres.operator.conciliation.shardedcluster.ShardedClusterReconciliator;
 import io.stackgres.operator.controller.ResourceWatcherFactory;
 import io.stackgres.operatorframework.resource.WatcherMonitor;
 import org.jetbrains.annotations.NotNull;
@@ -45,20 +49,29 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
   private final List<WatcherMonitor<?>> monitors = new ArrayList<>();
 
   private final KubernetesClient client;
-  private final ClusterReconciliator clusterReconciliationCycle;
+  private final ClusterReconciliator clusterReconciliatorCycle;
   private final DistributedLogsReconciliator distributedLogsReconciliatorCycle;
-  private final DbOpsReconciliator dbOpsReconciliationCycle;
+  private final DbOpsReconciliator dbOpsReconciliatorCycle;
+  private final BackupReconciliator backupReconciliatorCycle;
+  private final ShardedClusterReconciliator shardedClusterReconciliatorCycle;
   private final ResourceWatcherFactory watcherFactory;
 
   @Inject
-  public OperatorWatchersHandlerImpl(KubernetesClient client,
-      ClusterReconciliator clusterReconciliationCycle,
+  public OperatorWatchersHandlerImpl(
+      KubernetesClient client,
+      ClusterReconciliator clusterReconciliatorCycle,
       DistributedLogsReconciliator distributedLogsReconciliatorCycle,
-      DbOpsReconciliator dbOpsReconciliationCycle, ResourceWatcherFactory watcherFactory) {
+      DbOpsReconciliator dbOpsReconciliatorCycle,
+      BackupReconciliator backupReconciliatorCycle,
+      ShardedClusterReconciliator shardedClusterReconciliatorCycle,
+      ResourceWatcherFactory watcherFactory) {
+    super();
     this.client = client;
-    this.clusterReconciliationCycle = clusterReconciliationCycle;
+    this.clusterReconciliatorCycle = clusterReconciliatorCycle;
     this.distributedLogsReconciliatorCycle = distributedLogsReconciliatorCycle;
-    this.dbOpsReconciliationCycle = dbOpsReconciliationCycle;
+    this.dbOpsReconciliatorCycle = dbOpsReconciliatorCycle;
+    this.backupReconciliatorCycle = backupReconciliatorCycle;
+    this.shardedClusterReconciliatorCycle = shardedClusterReconciliatorCycle;
     this.watcherFactory = watcherFactory;
   }
 
@@ -93,7 +106,7 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
     monitors.add(createWatcher(
         StackGresBackup.class,
         StackGresBackupList.class,
-        reconcileCluster()));
+        reconcileBackup()));
 
     monitors.add(createWatcher(
         StackGresDbOps.class,
@@ -105,6 +118,10 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
         StackGresDistributedLogsList.class,
         reconcileDistributedLogs()));
 
+    monitors.add(createWatcher(
+        StackGresShardedCluster.class,
+        StackGresShardedClusterList.class,
+        reconcileShardedCluster()));
   }
 
   private <T extends CustomResource<?, ?>,
@@ -119,7 +136,7 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
   }
 
   private Consumer<Action> reconcileCluster() {
-    return action -> clusterReconciliationCycle.reconcile();
+    return action -> clusterReconciliatorCycle.reconcile();
   }
 
   private Consumer<Action> reconcileDistributedLogs() {
@@ -127,7 +144,15 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
   }
 
   private Consumer<Action> reconcileDbOps() {
-    return action -> dbOpsReconciliationCycle.reconcile();
+    return action -> dbOpsReconciliatorCycle.reconcile();
+  }
+
+  private Consumer<Action> reconcileBackup() {
+    return action -> backupReconciliatorCycle.reconcile();
+  }
+
+  private Consumer<Action> reconcileShardedCluster() {
+    return action -> shardedClusterReconciliatorCycle.reconcile();
   }
 
   @Override

@@ -36,7 +36,8 @@
         "max_db_connections": "0",
         "max_user_connections": "0",
         "pool_mode": "session",
-        "stats_users": "postgres"
+        "stats_users": "postgres",
+        "server_check_query": ";"
       }
     }
   }

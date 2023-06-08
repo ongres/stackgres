@@ -12,7 +12,8 @@ import io.stackgres.operatorframework.resource.EventReason;
 
 public enum ClusterPatroniConfigEventReason implements EventReason {
 
-  CLUSTER_PATRONI_CONFIG_UPDATED(NORMAL, "ClusterPatroniConfigUpdated");
+  CLUSTER_PATRONI_CONFIG_UPDATED(NORMAL, "ClusterPatroniConfigUpdated"),
+  CLUSTER_SSL_CONFIG_UPDATED(NORMAL, "ClusterSslConfigUpdated");
 
   private final Type type;
   private final String reason;

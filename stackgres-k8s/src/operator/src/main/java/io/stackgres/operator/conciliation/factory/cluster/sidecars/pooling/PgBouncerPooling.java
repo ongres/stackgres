@@ -150,7 +150,7 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
         .withName(StackGresVolume.PGBOUNCER.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withName(configName(context))
-            .withDefaultMode(420)
+            .withDefaultMode(0440)
             .build())
         .build();
   }

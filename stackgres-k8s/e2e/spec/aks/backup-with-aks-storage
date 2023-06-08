@@ -68,11 +68,11 @@ create_az_container() {
 }
 
 create_mock_data() {
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "CREATE DATABASE test;"
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "CREATE TABLE fibonacci(num integer);" -d "test"
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "INSERT INTO fibonacci(num) VALUES (1);" -d "test"
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "INSERT INTO fibonacci(num) VALUES (2);" -d "test"
-  run_query -p 5432 -h "$CLUSTER_NAME-primary" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "INSERT INTO fibonacci(num) VALUES (3);" -d "test"
+  run_query -p 5432 -h "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "CREATE DATABASE test;"
+  run_query -p 5432 -h "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "CREATE TABLE fibonacci(num integer);" -d "test"
+  run_query -p 5432 -h "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "INSERT INTO fibonacci(num) VALUES (1);" -d "test"
+  run_query -p 5432 -h "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "INSERT INTO fibonacci(num) VALUES (2);" -d "test"
+  run_query -p 5432 -h "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -q "INSERT INTO fibonacci(num) VALUES (3);" -d "test"
 }
 
 is_backup_phase() {

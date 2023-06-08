@@ -79,14 +79,14 @@ spec:
 
 Execute the command below to locate the pod of the distributed log server:
 
-```bash
+```
 $ kubectl get pods -o name -l distributed-logs-name=my-distributed-logs 
 pod/my-distributed-logs-0
 ```
 
 Connect to the distributed server and export the logs into CSV format:
 
-```bash
+```
 QUERY=$(cat <<EOF
 COPY (
   SELECT 
@@ -123,14 +123,14 @@ kubectl exec -it pod/my-distributed-logs-0 -c patroni -- psql default_my-db-clus
 ```
 > Add a `WHERE` clause on the `SELECT` to filter the logs on the necessary period, like this:
 >
-> ```sql
+> ```
 >  --- ...
 >  WHERE  log_time > 'begin timestamp' and log_time < 'end timestamp'
 > ```
 
 With the CSV file, invoke pgBadger:
 
-```bash
+```
 pgbadger --format csv --outfile pgbadger_report.html data.csv
 ```
 
@@ -139,7 +139,7 @@ pgbadger --format csv --outfile pgbadger_report.html data.csv
 PgBadger supports defining an external command to get the log info.
 Using that, it is possible to create an all-in-one script that generates the pgBadger report.
 
-```bash
+```
 POD=$(kubectl get pods -o name -l distributed-logs-name=my-distributed-logs)
 CLUSTER_NAME="my-db-cluster"
 QUERY=$(cat <<EOF

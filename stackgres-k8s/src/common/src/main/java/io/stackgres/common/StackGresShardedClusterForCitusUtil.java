@@ -26,6 +26,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniCredentials;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniInitialConfig;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServicesBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
@@ -33,6 +34,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.crd.sgcluster.StackGresClusterUserSecretKeyRef;
 import io.stackgres.common.crd.sgcluster.StackGresClusterUsersCredentials;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -52,6 +54,9 @@ import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
 
 public interface StackGresShardedClusterForCitusUtil {
+
+  String CERTIFICATE_KEY = "tls.crt";
+  String PRIVATE_KEY_KEY = "tls.key";
 
   static String getCoordinatorClusterName(StackGresShardedCluster cluster) {
     return cluster.getMetadata().getName() + "-coord";
@@ -86,6 +91,10 @@ public interface StackGresShardedClusterForCitusUtil {
 
   static String coordinatorConfigName(StackGresShardedCluster cluster) {
     return cluster.getMetadata().getName() + "-coord";
+  }
+
+  static String postgresSslSecretName(StackGresShardedCluster cluster) {
+    return ResourceUtil.nameIsValidDnsSubdomain(cluster.getMetadata().getName() + "-ssl");
   }
 
   static StackGresCluster getCoordinatorCluster(StackGresShardedCluster cluster) {
@@ -179,17 +188,65 @@ public interface StackGresShardedClusterForCitusUtil {
 
   private static void setClusterSpecFromShardedCluster(
       StackGresShardedCluster cluster, final StackGresClusterSpec spec, int index) {
-    setExtensions(cluster, spec);
-    setBackups(cluster, spec, index);
-    setCredentials(cluster, spec);
-    setPatroniInitialConfig(cluster, spec, index);
+    setPostgres(cluster, spec);
+    setPostgresSsl(cluster, spec);
+    setPostgresExtensions(cluster, spec);
+    setConfigurationsBackups(cluster, spec, index);
+    setConfigurationsCredentials(cluster, spec);
+    setConfigurationsPatroniInitialConfig(cluster, spec, index);
     setMetadata(cluster, spec, index);
     spec.setDistributedLogs(cluster.getSpec().getDistributedLogs());
     spec.setPrometheusAutobind(cluster.getSpec().getPrometheusAutobind());
     spec.setNonProductionOptions(cluster.getSpec().getNonProductionOptions());
   }
 
-  private static void setBackups(
+  private static void setPostgres(
+      StackGresShardedCluster cluster, final StackGresClusterSpec spec) {
+    spec.setPostgres(
+        new StackGresClusterPostgresBuilder(cluster.getSpec().getPostgres())
+        .build());
+  }
+
+  private static void setPostgresSsl(
+      StackGresShardedCluster cluster, final StackGresClusterSpec spec) {
+    if (!Optional.of(cluster.getSpec())
+        .map(StackGresShardedClusterSpec::getPostgres)
+        .map(StackGresClusterPostgres::getSsl)
+        .map(StackGresClusterSsl::getEnabled)
+        .orElse(false)) {
+      return;
+    }
+    spec.setPostgres(
+        new StackGresClusterPostgresBuilder(spec.getPostgres())
+        .editSsl()
+        .withCertificateSecretKeySelector(
+            new SecretKeySelector(CERTIFICATE_KEY, postgresSslSecretName(cluster)))
+        .withPrivateKeySecretKeySelector(
+            new SecretKeySelector(PRIVATE_KEY_KEY, postgresSslSecretName(cluster)))
+        .endSsl()
+        .build());
+  }
+
+  private static void setPostgresExtensions(
+      StackGresShardedCluster cluster, final StackGresClusterSpec spec) {
+    spec.getPostgres().setExtensions(
+        Optional.ofNullable(cluster.getStatus())
+        .map(StackGresShardedClusterStatus::getToInstallPostgresExtensions)
+        .stream()
+        .flatMap(List::stream)
+        .map(extension -> new StackGresClusterExtensionBuilder()
+            .withName(extension.getName())
+            .withPublisher(extension.getPublisher())
+            .withRepository(extension.getRepository())
+            .withVersion(extension.getVersion())
+            .build())
+        .toList());
+    if (cluster.getStatus() != null) {
+      spec.setToInstallPostgresExtensions(cluster.getStatus().getToInstallPostgresExtensions());
+    }
+  }
+
+  private static void setConfigurationsBackups(
       StackGresShardedCluster cluster, final StackGresClusterSpec spec, int index) {
     Optional.ofNullable(cluster.getSpec())
         .map(StackGresShardedClusterSpec::getConfiguration)
@@ -213,29 +270,11 @@ public interface StackGresShardedClusterForCitusUtil {
         });
   }
 
-  private static void setExtensions(
+  private static void setConfigurationsCredentials(
       StackGresShardedCluster cluster, final StackGresClusterSpec spec) {
-    spec.setPostgres(
-        new StackGresClusterPostgresBuilder(cluster.getSpec().getPostgres())
-        .withExtensions(Optional.ofNullable(cluster.getStatus())
-            .map(StackGresShardedClusterStatus::getToInstallPostgresExtensions)
-            .stream()
-            .flatMap(List::stream)
-            .map(extension -> new StackGresClusterExtensionBuilder()
-                .withName(extension.getName())
-                .withPublisher(extension.getPublisher())
-                .withRepository(extension.getRepository())
-                .withVersion(extension.getVersion())
-                .build())
-            .toList())
-        .build());
-    if (cluster.getStatus() != null) {
-      spec.setToInstallPostgresExtensions(cluster.getStatus().getToInstallPostgresExtensions());
+    if (spec.getConfiguration() == null) {
+      spec.setConfiguration(new StackGresClusterConfiguration());
     }
-  }
-
-  private static void setCredentials(
-      StackGresShardedCluster cluster, final StackGresClusterSpec spec) {
     spec.getConfiguration().setCredentials(new StackGresClusterCredentials());
     spec.getConfiguration().getCredentials()
         .setPatroni(new StackGresClusterPatroniCredentials());
@@ -265,8 +304,11 @@ public interface StackGresShardedClusterForCitusUtil {
             cluster.getMetadata().getName()));
   }
 
-  private static void setPatroniInitialConfig(
+  private static void setConfigurationsPatroniInitialConfig(
       StackGresShardedCluster cluster, final StackGresClusterSpec spec, int index) {
+    if (spec.getConfiguration() == null) {
+      spec.setConfiguration(new StackGresClusterConfiguration());
+    }
     spec.getConfiguration().setPatroni(new StackGresClusterPatroni());
     spec.getConfiguration().getPatroni()
         .setInitialConfig(new StackGresClusterPatroniInitialConfig());

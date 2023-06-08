@@ -21,6 +21,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +54,8 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
           || !hasCustomResource(client, StackGresBackupConfig.class)
           || !hasCustomResource(client, StackGresBackup.class)
           || !hasCustomResource(client, StackGresDistributedLogs.class)
-          || !hasCustomResource(client, StackGresDbOps.class)) {
+          || !hasCustomResource(client, StackGresDbOps.class)
+          || !hasCustomResource(client, StackGresShardedCluster.class)) {
         throw new RuntimeException("Some required CRDs does not exists");
       }
 

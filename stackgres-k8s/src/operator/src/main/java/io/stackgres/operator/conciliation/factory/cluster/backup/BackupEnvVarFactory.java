@@ -28,13 +28,16 @@ import io.stackgres.common.crd.storages.GoogleCloudSecretKeySelector;
 import io.stackgres.common.crd.storages.GoogleCloudStorage;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceUtil;
-import io.stackgres.operator.conciliation.factory.cluster.ClusterStatefulSet;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
 @ApplicationScoped
 public class BackupEnvVarFactory {
+
+  public static final String AWS_S3_COMPATIBLE_CA_CERTIFICATE_FILE_NAME =
+      "aws-s3-compatible-ca.crt";
+  public static final String GCS_CREDENTIALS_FILE_NAME = "gcs-credentials.json";
 
   private final ResourceFinder<Secret> secretFinder;
 
@@ -70,6 +73,10 @@ public class BackupEnvVarFactory {
                 .map(AwsS3CompatibleStorage::getAwsCredentials)
                 .map(AwsCredentials::getSecretKeySelectors)
                 .map(AwsSecretKeySelector::getSecretAccessKey),
+            Optional.ofNullable(storage.getS3Compatible())
+                .map(AwsS3CompatibleStorage::getAwsCredentials)
+                .map(AwsCredentials::getSecretKeySelectors)
+                .map(AwsSecretKeySelector::getCaCertificate),
             Optional.ofNullable(storage.getGcs())
                 .map(GoogleCloudStorage::getCredentials)
                 .map(GoogleCloudCredentials::getSecretKeySelectors)
@@ -138,14 +145,20 @@ public class BackupEnvVarFactory {
                         secrets),
                     getSecretEntry("AWS_SECRET_ACCESS_KEY",
                         awsConf.getAwsCredentials()
-                            .getSecretKeySelectors().getSecretAccessKey(), secrets))),
+                        .getSecretKeySelectors().getSecretAccessKey(), secrets))
+                    .append(Optional.ofNullable(awsConf.getAwsCredentials()
+                            .getSecretKeySelectors().getCaCertificate())
+                        .stream()
+                        .map(secretKeySelector -> getSecretEntry(
+                            AWS_S3_COMPATIBLE_CA_CERTIFICATE_FILE_NAME,
+                            secretKeySelector, secrets)))),
             Optional.of(storage)
                 .map(BackupStorage::getGcs)
                 .map(GoogleCloudStorage::getCredentials)
                 .map(GoogleCloudCredentials::getSecretKeySelectors)
                 .map(gcsConfigSecretKeySelectors -> Seq.of(
                     getSecretEntry(
-                        ClusterStatefulSet.GCS_CREDENTIALS_FILE_NAME,
+                        GCS_CREDENTIALS_FILE_NAME,
                         gcsConfigSecretKeySelectors.getServiceAccountJsonKey(),
                         secrets))),
             Optional.of(storage)

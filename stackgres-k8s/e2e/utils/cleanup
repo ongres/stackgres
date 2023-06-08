@@ -114,7 +114,7 @@ traceable_k8s_async_cleanup() {
     || kubectl get podsecuritypolicies -o name \
       | grep -v "^[^/]\+/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | grep -v "^[^/]\+/\($(env_excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-      | xargs -r -I % kubectl delete '%'
+      | xargs -r -I % kubectl delete --ignore-not-found '%'
 }
 
 k8s_unnamespaced_cleanup() {
@@ -127,25 +127,25 @@ traceable_k8s_unnamespaced_cleanup() {
   kubectl get crd -o name \
     | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete %
+    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
   echo "Cleanup of k8s clusterrolebindings"
   kubectl get clusterrolebinding -o name \
     | grep -v "^[^/]\+/\(system:.*\|kubeadm:.*\|cluster-admin\|kindnet\)$" \
     | grep -v "^[^/]\+/\($(excluded_clusterrolebindings | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_clusterrolebindings | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete %
+    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
   echo "Cleanup of k8s clusterroles"
   kubectl get clusterrole -o name \
     | grep -v "^[^/]\+/\(system:.*\|admin\|cluster-admin\|edit\|kindnet\|view\)$" \
     | grep -v "^[^/]\+/\($(excluded_clusterroles | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_clusterroles | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete %
+    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
   echo "Cleanup of k8s podsecuritypolicies"
   ! kubectl api-resources | grep -q '^podsecuritypolicies ' \
     || kubectl get podsecuritypolicies -o name \
       | grep -v "^[^/]\+/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | grep -v "^[^/]\+/\($(env_excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-      | xargs -r -I % kubectl delete '%'
+      | xargs -r -I % kubectl delete --ignore-not-found %
 }
 
 k8s_webhook_cleanup() {
@@ -157,11 +157,11 @@ traceable_k8s_webhook_cleanup() {
   kubectl get validatingwebhookconfigurations.admissionregistration.k8s.io -o name \
     | grep -v "^[^/]\+/\($(excluded_validatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_validatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete %
+    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
   kubectl get mutatingwebhookconfigurations.admissionregistration.k8s.io -o name \
     | grep -v "^[^/]\+/\($(excluded_mutatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_mutatingwebhookconfigurations | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete %
+    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
   kubectl get crd -o name \
     | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
@@ -195,7 +195,7 @@ traceable_k8s_cleanup_but_operator() {
     | grep -v '\.stackgres\.io$' \
     | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete %
+    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
   kubectl get namespace -o name \
     | grep -v "^[^/]\+/\(default\|kube-.*\|$OPERATOR_NAMESPACE\)$" \
     | grep -v "^[^/]\+/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
@@ -213,7 +213,7 @@ traceable_k8s_cleanup_but_operator() {
     || kubectl get podsecuritypolicies -o name \
       | grep -v "^[^/]\+/\($(excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | grep -v "^[^/]\+/\($(env_excluded_podsecuritypolicies | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
-      | xargs -r -I % kubectl delete '%'
+      | xargs -r -I % kubectl delete --ignore-not-found '%'
 }
 
 k8s_async_cleanup_but_operator() {

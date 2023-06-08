@@ -362,6 +362,7 @@ StackGres pod scheduling configuration.
 | nodeSelector                            |          | ✓         | object                             |         | {{< crd-field-description SGShardedCluster.spec.coordinator.pods.scheduling.nodeSelector >}} |
 | tolerations                             |          | ✓         | array                              |         | {{< crd-field-description SGShardedCluster.spec.coordinator.pods.scheduling.tolerations >}} |
 | nodeAffinity                            |          | ✓         | object                             |         | {{< crd-field-description SGShardedCluster.spec.coordinator.pods.scheduling.nodeAffinity >}} |
+| priorityClassName                       |          | ✓         | string                             |         | {{< crd-field-description SGShardedCluster.spec.coordinator.pods.scheduling.priorityClassName >}} |
 | podAffinity                             |          | ✓         | object                             |         | {{< crd-field-description SGShardedCluster.spec.coordinator.pods.scheduling.podAffinity >}} |
 | podAntiAffinity                         |          | ✓         | object                             |         | {{< crd-field-description SGShardedCluster.spec.coordinator.pods.scheduling.podAntiAffinity >}} |
 | topologySpreadConstraints               |          | ✓         | array                              |         | {{< crd-field-description SGShardedCluster.spec.coordinator.pods.scheduling.podAntiAffinity >}} |
@@ -376,6 +377,7 @@ StackGres backup pod scheduling configuration.
 | nodeSelector                           |          | ✓         | object                             |                | {{< crd-field-description SGShardedCluster.spec.coordinator.pods.scheduling.backup.nodeSelector >}} |
 | tolerations                            |          | ✓         | array                              |                | {{< crd-field-description SGShardedCluster.spec.coordinator.pods.scheduling.backup.tolerations >}} |
 | nodeAffinity                           |          | ✓         | object                             |                | {{< crd-field-description SGShardedCluster.spec.coordinator.pods.scheduling.backup.nodeAffinity >}} |
+| priorityClassName                      |          | ✓         | string                             |                | {{< crd-field-description SGShardedCluster.spec.coordinator.pods.scheduling.backup.priorityClassName >}} |
 | podAffinity                            |          | ✓         | object                             |                | {{< crd-field-description SGShardedCluster.spec.coordinator.pods.scheduling.backup.podAffinity >}} |
 | podAntiAffinity                        |          | ✓         | object                             |                | {{< crd-field-description SGShardedCluster.spec.coordinator.pods.scheduling.backup.podAntiAffinity >}} |
 
@@ -396,7 +398,7 @@ When this configuration is applied, the scripts are executed in the coordinator 
 | <div style="width:13rem">Property</div> | Required | Updatable | <div style="width:5rem">Type</div> | Default  | Description |
 |:----------------------------------------|----------|-----------|:-----------------------------------|:---------|:------------|
 | continueOnSGScriptError                 |          | ✓         | boolean                            |          | {{< crd-field-description SGShardedCluster.spec.coordinator.managedSql.continueOnSGScriptError >}} |
-| [scripts](managed-sql-scripts)          |          | ✓         | boolean                            |          | {{< crd-field-description SGShardedCluster.spec.coordinator.managedSql.scripts >}} |
+| [scripts](#managed-sql-scripts)         |          | ✓         | array                              |          | {{< crd-field-description SGShardedCluster.spec.coordinator.managedSql.scripts >}} |
 
 ## Managed SQL Scripts
 

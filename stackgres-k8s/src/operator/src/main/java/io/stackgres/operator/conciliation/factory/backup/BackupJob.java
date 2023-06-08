@@ -52,9 +52,9 @@ import io.stackgres.operator.conciliation.backup.BackupConfiguration;
 import io.stackgres.operator.conciliation.backup.StackGresBackupContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterEnvironmentVariablesFactory;
+import io.stackgres.operator.conciliation.factory.cluster.ClusterEnvironmentVariablesFactoryDiscoverer;
 import io.stackgres.operator.conciliation.factory.cluster.backup.BackupCronRole;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactory;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.ClusterEnvironmentVariablesFactoryDiscoverer;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
@@ -174,7 +174,6 @@ public class BackupJob
         .endMetadata()
         .withNewSpec()
         .withBackoffLimit(3)
-        .withCompletions(1)
         .withParallelism(1)
         .withNewTemplate()
         .withNewMetadata()
@@ -184,7 +183,7 @@ public class BackupJob
         .endMetadata()
         .withNewSpec()
         .withSecurityContext(podSecurityFactory.createResource(context))
-        .withRestartPolicy("OnFailure")
+        .withRestartPolicy("Never")
         .withServiceAccountName(BackupCronRole.roleName(cluster))
         .withNodeSelector(Optional.ofNullable(cluster)
             .map(StackGresCluster::getSpec)
@@ -227,6 +226,13 @@ public class BackupJob
                 .map(StackGresClusterPodSchedulingBackup::getPodAntiAffinity)
                 .orElse(null))
             .build())
+        .withPriorityClassName(Optional.of(cluster)
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getPod)
+            .map(StackGresClusterPod::getScheduling)
+            .map(StackGresClusterPodScheduling::getBackup)
+            .map(StackGresClusterPodSchedulingBackup::getPriorityClassName)
+            .orElse(null))
         .withContainers(new ContainerBuilder()
             .withName("create-backup")
             .withImage(kubectl.getImageName(cluster))

@@ -144,9 +144,14 @@ EOF
             end
           end')"
     fi
-    printf '%s' "$CLUSTER" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f -
+    REPLACE_OUTPUT="$(printf '%s' "$CLUSTER" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f - 2>&1)"
     }
   do
+    if ! printf %s "$REPLACE_OUTPUT" | grep -q 'the object has been modified; please apply your changes to the latest version and try again'
+    then
+      echo "FAILURE=$NORMALIZED_OP_NAME failed. $REPLACE_OUTPUT" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+      exit 1
+    fi 
     sleep 1
   done
   echo "done"

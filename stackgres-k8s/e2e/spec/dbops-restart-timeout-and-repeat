@@ -62,13 +62,17 @@ EOF
   fi
 
   wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   check_mock_data_samehost "$CLUSTER_NAME"
   check_mock_data_replication "$CLUSTER_NAME"
 }
 
 check_restart_repeat() {
-    cat << EOF | kubectl create -f -
+
+  set_restarted_pods
+
+  cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:

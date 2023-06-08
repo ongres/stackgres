@@ -66,7 +66,7 @@ build_all() {
   sh stackgres-k8s/ci/build/build.sh parent-java operator-framework-java test-util-java common-java \
     operator-java restapi-java jobs-java cluster-controller-java distributedlogs-controller-java admin-ui \
     operator-jvm-image restapi-jvm-image jobs-jvm-image cluster-controller-jvm-image distributedlogs-controller-jvm-image \
-    admin-ui-image helm-packages helm-templates
+    admin-ui-image helm-packages helm-templates helm-operator-bundle helm-operator-image helm-operator-bundle-image
   docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)" >/dev/null 2>&1 \
     || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)"
   docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)" >/dev/null 2>&1 \
@@ -79,6 +79,10 @@ build_all() {
     || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name distributedlogs-controller-jvm-image)"
   docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)" >/dev/null 2>&1 \
     || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)"
+  docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name helm-operator-image)" >/dev/null 2>&1 \
+    || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name helm-operator-image)"
+  docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name helm-operator-bundle-image)" >/dev/null 2>&1 \
+    || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name helm-operator-bundle-image)"
   docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)" "$OPERATOR_IMAGE_NAME"
   docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)" "$RESTAPI_IMAGE_NAME"
   docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name jobs-jvm-image)" "$JOBS_IMAGE_NAME"
@@ -440,6 +444,7 @@ install_operator_only() {
     # shellcheck disable=SC2086
     upgrade_operator_vanilla \
     --install \
+    --set-string developer.version="$STACKGRES_VERSION" \
     --set-string operator.image.name="${OPERATOR_IMAGE_NAME%:*}" --set-string operator.image.tag="${OPERATOR_IMAGE_NAME#*:}" \
     --set-string "operator.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string restapi.image.name="${RESTAPI_IMAGE_NAME%:*}" --set-string restapi.image.tag="${RESTAPI_IMAGE_NAME#*:}" \
@@ -490,7 +495,8 @@ can_install_operator_version() {
   VERSION_1_2_0_RC1="$(get_version_as_number 1.2.0-RC1)"
   VERSION_1_3_0_RC1="$(get_version_as_number 1.3.0-RC1)"
   VERSION_1_4_0_RC1="$(get_version_as_number 1.4.0-RC1)"
-  if [ "$VERSION_AS_NUMBER" -le "$VERSION_0_9_5" ]
+  VERSION_1_5_0_RC1="$(get_version_as_number 1.5.0-RC1)"
+  if [ "$VERSION_AS_NUMBER" -lt "$VERSION_0_9_5" ]
   then
     if {
         [ "$KUBERNETES_VERSION_NUMBER" -gt 117 ] \
@@ -501,7 +507,7 @@ can_install_operator_version() {
       return 1
     fi
   fi
-  if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_1_0_RC1" ]
+  if [ "$VERSION_AS_NUMBER" -le "$VERSION_1_1_0_RC1" ]
   then
     if {
         [ "$KUBERNETES_VERSION_NUMBER" -gt 122 ] \
@@ -531,6 +537,14 @@ can_install_operator_version() {
   if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_4_0_RC1" ]
   then
     if [ "$KUBERNETES_VERSION_NUMBER" -gt 124 ] \
+      || [ "$KUBERNETES_VERSION_NUMBER" -lt 118 ]
+    then
+      return 1
+    fi
+  fi
+  if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_5_0_RC1" ]
+  then
+    if [ "$KUBERNETES_VERSION_NUMBER" -gt 125 ] \
       || [ "$KUBERNETES_VERSION_NUMBER" -lt 118 ]
     then
       return 1
@@ -573,6 +587,7 @@ upgrade_operator() {
 
   # shellcheck disable=SC2086
   upgrade_operator_vanilla \
+    --set-string developer.version="$STACKGRES_VERSION" \
     --set-string operator.image.name="${OPERATOR_IMAGE_NAME%:*}" --set-string operator.image.tag="${OPERATOR_IMAGE_NAME#*:}" \
     --set-string "operator.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string restapi.image.name="${RESTAPI_IMAGE_NAME%:*}" --set-string restapi.image.tag="${RESTAPI_IMAGE_NAME#*:}" \
@@ -680,6 +695,7 @@ upgrade_operator_from_private_repository() {
   export PRIVATE_CLUSTER_CONTROLLER_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/cluster-controller"
   export PRIVATE_DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME="$PRIVATE_REPO_URI/stackgres/distributedlogs-controller"
   upgrade_operator_vanilla \
+      --set-string developer.version="$STACKGRES_VERSION" \
       --set-string operator.image.name="$PRIVATE_OPERATOR_IMAGE_NAME" --set-string operator.image.tag="$IMAGE_TAG" \
       --set-string "operator.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
       --set-string restapi.image.name="$PRIVATE_RESTAPI_IMAGE_NAME" --set-string restapi.image.tag="$IMAGE_TAG" \

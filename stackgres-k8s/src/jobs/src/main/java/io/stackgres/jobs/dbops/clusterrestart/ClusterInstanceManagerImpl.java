@@ -6,11 +6,9 @@
 package io.stackgres.jobs.dbops.clusterrestart;
 
 import java.time.Duration;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -115,22 +113,25 @@ public class ClusterInstanceManagerImpl implements ClusterInstanceManager {
     List<String> podNames = currentPods.stream()
         .map(Pod::getMetadata)
         .map(ObjectMeta::getName)
-        .collect(Collectors.toUnmodifiableList());
+        .toList();
 
     List<Integer> podIndexes = podNames.stream()
         .map(podName -> Integer.parseInt(podName.substring(podName.lastIndexOf('-') + 1)))
         .sorted(Integer::compare)
-        .collect(Collectors.toList());
+        .toList();
 
-    int maxIndex = podIndexes.stream().max(Integer::compare).orElse(-1);
+    final int maxIndex = podIndexes.stream().max(Integer::compare).orElse(-1);
+    final int prevMaxIndex = podIndexes.stream().limit(podIndexes.size() - 1)
+        .max(Integer::compare).orElse(-1);
 
-    if (maxIndex > podIndexes.size()) {
-      Collections.sort(podIndexes);
-      maxIndex = podIndexes.get(podIndexes.size() - 2);
+    final int newIndex;
+    if (maxIndex >= podIndexes.size()) {
+      newIndex = prevMaxIndex + 1;
+    } else {
+      newIndex = maxIndex + 1;
     }
-    int newMaxIndex = maxIndex + 1;
 
-    return String.format(POD_NAME_FORMAT, cluster.getMetadata().getName(), newMaxIndex);
+    return String.format(POD_NAME_FORMAT, cluster.getMetadata().getName(), newIndex);
   }
 
   private String getPodToBeDeleted(StackGresCluster cluster) {
@@ -139,7 +140,7 @@ public class ClusterInstanceManagerImpl implements ClusterInstanceManager {
     List<Pod> replicas = currentPods.stream().filter(pod -> {
       String role = pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY);
       return PatroniUtil.REPLICA_ROLE.equals(role);
-    }).collect(Collectors.toUnmodifiableList());
+    }).toList();
 
     if (replicas.isEmpty()) {
       return currentPods.stream().filter(pod -> {
@@ -152,7 +153,7 @@ public class ClusterInstanceManagerImpl implements ClusterInstanceManager {
       List<String> replicaNames = replicas.stream()
           .map(replica -> replica.getMetadata().getName())
           .sorted(String::compareTo)
-          .collect(Collectors.toUnmodifiableList());
+          .toList();
 
       return replicaNames.get(replicaNames.size() - 1);
     }

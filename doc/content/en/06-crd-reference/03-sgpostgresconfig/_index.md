@@ -118,13 +118,13 @@ spec:
     wal_compression: 'on'
 ```
 
-## Blocklisted Parameters
+## Parameter Denylist / Blocklist
 
-To guarantee a functional Postgres configuration, some of the parameters specified in [Postgres configuration documentation](https://www.postgresql.org/docs/latest/runtime-config.html) have been blocklisted.
-If these are specified in the CR configuration, an error will be returned.
-The blocklisted parameters are:
+To guarantee a functional Postgres configuration, some parameters specified in [Postgres configuration documentation](https://www.postgresql.org/docs/latest/runtime-config.html) have been denylisted and cannot be changed from the provided defaults.
+If these parameters are specified in the CR configuration, an error will be returned.
+The denylisted parameters are:
 
-| Blocklisted Parameters   |
+| Denylisted Parameters    |
 |:-------------------------|
 | listen_addresses         |
 | port                     |

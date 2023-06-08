@@ -34,6 +34,7 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
@@ -160,7 +161,8 @@ public class PatroniRole implements
                 HasMetadata.getPlural(StackGresProfile.class),
                 HasMetadata.getPlural(StackGresDistributedLogs.class),
                 HasMetadata.getPlural(StackGresDbOps.class),
-                HasMetadata.getPlural(StackGresScript.class))
+                HasMetadata.getPlural(StackGresScript.class),
+                HasMetadata.getPlural(StackGresShardedCluster.class))
             .withVerbs("get", "list", "watch", "patch", "update")
             .build())
         .build();

@@ -166,6 +166,8 @@ spec:
               exit 1
             fi
             
+            kubectl delete csr '{{ .Release.Name }}'
+            
             {{- $_ := set .Values.cert "crt" "${CRT}" }}
             {{- $_ := set .Values.cert "key" "${KEY}" }}
             cat << EOF > /tmp/certificate-secret.yaml

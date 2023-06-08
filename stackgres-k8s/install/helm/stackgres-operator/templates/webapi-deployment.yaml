@@ -161,6 +161,10 @@ spec:
             {{- end }}
           {{- end }}
           {{- end }}
+          {{- with .Values.developer.version }}
+          - name: OPERATOR_VERSION
+            value: {{ . | quote }}
+          {{- end }}
         ports:
         - containerPort: 8080
           name: "resthttp"

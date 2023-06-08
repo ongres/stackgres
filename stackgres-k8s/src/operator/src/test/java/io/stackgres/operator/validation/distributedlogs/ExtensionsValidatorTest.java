@@ -98,7 +98,7 @@ class ExtensionsValidatorTest {
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
         ErrorType.EXTENSION_NOT_FOUND,
-        "Extension was not found: timescaledb (available 1.0.0)");
+        "Extension was not found: timescaledb 1.7.4 (available 1.0.0)");
   }
 
   private StackGresDistributedLogsReview getCreationReview() {

@@ -31,6 +31,7 @@ import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
@@ -162,7 +163,8 @@ public class PatroniRole implements
                 HasMetadata.getPlural(StackGresPoolingConfig.class),
                 HasMetadata.getPlural(StackGresProfile.class),
                 HasMetadata.getPlural(StackGresDistributedLogs.class),
-                HasMetadata.getPlural(StackGresDbOps.class))
+                HasMetadata.getPlural(StackGresDbOps.class),
+                HasMetadata.getPlural(StackGresShardedCluster.class))
             .withVerbs("get", "list", "watch", "patch")
             .build())
         .addToRules(new PolicyRuleBuilder()

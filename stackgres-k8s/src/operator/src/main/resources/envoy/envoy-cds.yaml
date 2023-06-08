@@ -1,0 +1,73 @@
+resources:
+  - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
+    name: patroni_cluster
+    connect_timeout: 1s
+    load_assignment:
+      cluster_name: patroni_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: "127.0.0.1"
+                port_value: '$patroni_port'
+  - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
+    name: postgres_cluster_pool
+    type: STATIC
+    connect_timeout: 1s
+    per_connection_buffer_limit_bytes: 1048576 # 1 MiB
+    circuit_breakers:
+      thresholds:
+        - max_connections: 65536
+          max_requests: 65536
+          track_remaining: true
+    load_assignment:
+      cluster_name: postgres_cluster_pool
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                protocol: TCP
+                address: "127.0.0.1"
+                port_value: '$postgres_pool_port'
+  - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
+    name: postgres_cluster
+    type: STATIC
+    connect_timeout: 1s
+    per_connection_buffer_limit_bytes: 1048576 # 1 MiB
+    circuit_breakers:
+      thresholds:
+        - max_connections: 65536
+          max_requests: 65536
+          track_remaining: true
+    load_assignment:
+      cluster_name: postgres_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                protocol: TCP
+                address: "127.0.0.1"
+                port_value: '$postgres_port'
+  - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
+    name: babelfish_cluster
+    type: STATIC
+    connect_timeout: 1s
+    per_connection_buffer_limit_bytes: 1048576 # 1 MiB
+    circuit_breakers:
+      thresholds:
+        - max_connections: 65536
+          max_requests: 65536
+          track_remaining: true
+    load_assignment:
+      cluster_name: babelfish_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                protocol: TCP
+                address: "127.0.0.1"
+                port_value: '$babelfish_port'

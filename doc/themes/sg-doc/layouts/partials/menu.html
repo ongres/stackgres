@@ -90,11 +90,14 @@
 <!-- templates -->
 {{ define "section-tree-nav" }}
 {{ $showvisitedlinks := .showvisitedlinks }}
+{{ $level := or .level 0 }}
+{{ $activePageLevel := or .activePageLevel 0 }}
 {{ $currentNode := .currentnode }}
  {{with .sect}}
   {{if .IsSection}}
     {{safeHTML .Params.head}}
-    <li data-nav-id="{{.RelPermalink}}" title="{{.Title}}" class="dd-item 
+    {{if eq .Page $currentNode}}{{ $activePageLevel = $level }}{{end}}
+    <li data-nav-id="{{.RelPermalink}}" title="{{.Title}}" class="dd-item
         {{if .IsAncestor $currentNode }}parent{{end}}
         {{if eq .File.UniqueID $currentNode.File.UniqueID}}active{{end}}
         {{if .Params.alwaysopen}}parent{{end}}
@@ -106,7 +109,7 @@
           {{ end }}
       </a>
       {{ $numberOfPages := (add (len .Pages) (len .Sections)) }}
-      {{ if ne $numberOfPages 0 }}
+      {{ if and (ne $numberOfPages 0) (or (eq $level 0) (.IsAncestor $currentNode) (and (.IsDescendant $currentNode) (lt (sub $level $activePageLevel) 1))) }}
         <span class="toggleToc" onclick="toggleToc()"></span>
         <ul>
           {{ $currentNode.Scratch.Set "pages" .Pages }}
@@ -119,14 +122,14 @@
           {{ range $pages.ByTitle }}
             {{ if and .Params.hidden (not $.showhidden) }} 
             {{else}}
-            {{ template "section-tree-nav" dict "sect" . "currentnode" $currentNode "showvisitedlinks" $showvisitedlinks }}
+            {{ template "section-tree-nav" dict "sect" . "currentnode" $currentNode "showvisitedlinks" $showvisitedlinks "level" (add $level 1) "activePageLevel" $activePageLevel }}
             {{end}}
           {{ end }}
         {{else}}
           {{ range $pages.ByWeight }}
             {{ if and .Params.hidden (not $.showhidden) }} 
             {{else}}
-            {{ template "section-tree-nav" dict "sect" . "currentnode" $currentNode "showvisitedlinks" $showvisitedlinks }}
+            {{ template "section-tree-nav" dict "sect" . "currentnode" $currentNode "showvisitedlinks" $showvisitedlinks "level" (add $level 1) "activePageLevel" $activePageLevel }}
             {{end}}
           {{ end }}
         {{end}}

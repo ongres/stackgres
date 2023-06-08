@@ -42,6 +42,9 @@ public class StackGresClusterPodScheduling {
   @Valid
   private NodeAffinity nodeAffinity;
 
+  @JsonProperty("priorityClassName")
+  private String priorityClassName;
+
   @JsonProperty("podAffinity")
   @Valid
   private PodAffinity podAffinity;
@@ -80,6 +83,14 @@ public class StackGresClusterPodScheduling {
 
   public void setNodeAffinity(NodeAffinity nodeAffinity) {
     this.nodeAffinity = nodeAffinity;
+  }
+
+  public String getPriorityClassName() {
+    return priorityClassName;
+  }
+
+  public void setPriorityClassName(String priorityClassName) {
+    this.priorityClassName = priorityClassName;
   }
 
   public PodAffinity getPodAffinity() {
@@ -129,13 +140,14 @@ public class StackGresClusterPodScheduling {
         && Objects.equals(podAffinity, other.podAffinity)
         && Objects.equals(podAntiAffinity, other.podAntiAffinity)
         && Objects.equals(tolerations, other.tolerations)
-        && Objects.equals(topologySpreadConstraints, other.topologySpreadConstraints);
+        && Objects.equals(topologySpreadConstraints, other.topologySpreadConstraints)
+        && Objects.equals(priorityClassName, other.priorityClassName);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(backup, nodeAffinity, nodeSelector, podAffinity, podAntiAffinity,
-        tolerations, topologySpreadConstraints);
+        tolerations, topologySpreadConstraints, priorityClassName);
   }
 
   @Override

@@ -173,6 +173,20 @@ spec:
                                   description: |
                                     Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
                               required: ["key", "name"]
+                            caCertificate:
+                              type: object
+                              description: |
+                                CA Certificate file to be used when connecting to the S3 Compatible Service.
+                              properties:
+                                key:
+                                  type: string
+                                  description: |
+                                    The key of the secret to select from. Must be a valid secret key.
+                                name:
+                                  type: string
+                                  description: |
+                                    Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                              required: ["key", "name"]
                           required: ["accessKeyId", "secretAccessKey"]
                       required: ["secretKeySelectors"]
                   required: ["bucket", "awsCredentials"]
