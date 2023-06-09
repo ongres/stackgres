@@ -178,13 +178,31 @@ deploy helm packages and templates:
         "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION"
       cp -a stackgres-k8s/install/helm/target/packages \
         "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION/helm"
-      aws s3 sync ./stackgres-k8s/install/helm/target/public/ s3://$S3_BUCKET_NAME/
+      if [ "${STACKGRES_VERSION%-SNAPSHOT}" = "$STACKGRES_VERSION" ]
+      then
+        mkdir -p stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/helm
+        cp -a stackgres-k8s/install/helm/artifacthub-repo.yml \
+          "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/helm/artifacthub-repo.yml"
+        aws s3 cp s3://$S3_BUCKET_NAME/downloads/stackgres-k8s/stackgres/helm/index.yaml \
+          stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/helm/index.yaml
+        helm repo index stackgres-k8s/install/helm/target/packages \
+          --merge stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/helm/index.yaml
+        yq -y 'del(.entries["stackgres-cluster"]) 
+            | .entries["stackgres-operator"] = (.entries["stackgres-operator"] 
+              | map(if .version == "'"$STACKGRES_VERSION"'" 
+                then .urls[0] = "https://stackgres.io/downloads/stackgres-k8s/stackgres/'"$STACKGRES_VERSION"'/helm/stackgres-operator.tgz"
+                else . end))' \
+          stackgres-k8s/install/helm/target/packages/index.yaml \
+          > stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/helm/index.yaml
+      fi
+      aws s3 sync stackgres-k8s/install/helm/target/public/ s3://$S3_BUCKET_NAME/
       aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths '/*'
   only:
     variables:
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
+      - $DO_HELM_DEPLOY
 
 pages:
   stage: deploy

@@ -23,7 +23,6 @@ Built by [OnGres](https://ongres.com) ("**On** Post**Gres**"), StackGres require
 
 Installation:
 * For a quick test, you can follow our [quickstart](https://stackgres.io/doc/latest/demo/quickstart/).
-* Or a more in-depth [tutorial](https://stackgres.io/doc/latest/tutorial/).
 * [Production installations](https://stackgres.io/doc/latest/install/).
 
 All the documentation is available at [stackgres.io/doc](https://stackgres.io/doc/latest/install/).
