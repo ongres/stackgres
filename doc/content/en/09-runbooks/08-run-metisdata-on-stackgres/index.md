@@ -34,6 +34,28 @@ kubectl apply -f 01-namespace.yaml
 ```
 
 
+In this step we are creating the database script for our cluster:
+
+```yaml
+apiVersion: stackgres.io/v1
+kind: SGScript
+metadata:
+  name: create-db-script
+  namespace: metisdata
+spec:
+  continueOnError: false
+  managedVersions: true
+  scripts:
+  - id: 0
+    name: create-metisdata-database
+    script: |
+      create database metisdata;
+```
+
+```sh
+kubectl apply -f 02-db-script.yaml
+```
+
 We are now ready to create the Postgres cluster:
 
 ```yaml
@@ -41,7 +63,7 @@ apiVersion: stackgres.io/v1
 kind: SGCluster
 metadata:
   namespace: metisdata
-  name: postgres
+  name: metisdata
 spec:
   postgres:
     version: '15'
@@ -51,11 +73,13 @@ spec:
       size: '5Gi'
   managedSql:
     scripts:
-      - sgScript: createuserdb
+      - sgScript: create-db-script
 ```
 
+Please execute:
+
 ```sh
-kubectl apply -f 02-sgcluster.yaml
+kubectl apply -f 03-sgcluster.yaml
 ```
 
 After some seconds to a few minutes, the cluster should be brought up:
@@ -73,10 +97,11 @@ postgres-0                     6/6     Running   0          16m
 And the database `metisdata` should exist and being owned by the user with the same name:
 
 ```sh
-kubectl -n metisdata exec -it postgres-0 -c postgres-util -- psql -l postgres
+kubectl -n metisdata exec -it metisdata-0 -c postgres-util -- psql -l metisdata
                                              List of databases
    Name    |  Owner   | Encoding | Collate |  Ctype  | ICU Locale | Locale Provider |   Access privileges   
 -----------+----------+----------+---------+---------+------------+-----------------+-----------------------
+ metisdata | postgres | UTF8     | C.UTF-8 | C.UTF-8 |            | libc            | 
  postgres  | postgres | UTF8     | C.UTF-8 | C.UTF-8 |            | libc            | 
  template0 | postgres | UTF8     | C.UTF-8 | C.UTF-8 |            | libc            | =c/postgres          +
            |          |          |         |         |            |                 | postgres=CTc/postgres
@@ -99,7 +124,7 @@ Create helm chart with specific api-key and pg connection on your relevant names
 ```
 helm install metis-mmc metis-data/metis-md-collector \
   --set apiKey="*****1" \
-  --set dbConnectionStrings=*****2://postgres:postgres@postgres.metisdata.svc:5432/postgres;
+  --set dbConnectionStrings=postgresql://postgres:*****2@postgres.metisdata.svc:5432/postgres;
 ```
 
 Where the:
@@ -109,7 +134,7 @@ Where the:
 
 *****2 - Represents the StackGres password, that could be obtained by the command: 
 ```
-kubectl get secrets -n metisdata postgres -o jsonpath='{.data.superuser-password}' | base64 -d
+kubectl get secrets -n metisdata metisdata -o jsonpath='{.data.superuser-password}' | base64 -d
 ```
 
 
