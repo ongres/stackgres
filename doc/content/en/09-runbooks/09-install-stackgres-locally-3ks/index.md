@@ -50,7 +50,7 @@ It is a prerequisite for StackGres monitoring:
 ```bash
 helm install --create-namespace --namespace monitoring  prometheus-operator \
 --set grafana.enabled=true \
---set-string grafana.image.tag=9.4.0 \
+--set-string grafana.image.tag=9.5.2 \
 --set-string grafana.persistence.enabled=true \
 --set-string grafana.persistence.size=10Gi \
 prometheus-community/kube-prometheus-stack
