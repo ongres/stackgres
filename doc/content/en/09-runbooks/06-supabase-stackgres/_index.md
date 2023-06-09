@@ -148,8 +148,8 @@ cd supabase-kubernetes/charts/supabase
 wget https://raw.githubusercontent.com/ongres/apps-on-stackgres/main/examples/supabase/values.stackgres.yaml -O values.stackgres.yaml
 ```
 
-We edit the contents of our `values.stackgres.yaml`, to disable the database creation (since we use our own), to change the db host names, and URLs of the Supabase API and Studio.
-For a first test, it's sufficient to use a local port forwarding, so our example uses `localhost` addresses instead of Kubernetes ingress resources.
+We edit the contents of our `values.stackgres.yaml`, to disable the database creation (since we use our own), to change the db host names, and URLs of the Supabase API and Studio (have a look at the environment variables `SUPABASE_*_URL` defined in the YAML file).
+For a first test, it's sufficient to use a local port forwarding, so our example uses `localhost` addresses instead of Kubernetes ingress resources or other external URLs.
 You need to change this depending on your Kubernetes cluster and cloud setup, for example using Kubernetes ingresses with your correct host name, or exposing the `demo-supabase-kong` and `demo-supabase-studio` service in any other way.
 
 You can find the full contents of our example `values.stackgres.yaml` [here](https://github.com/ongres/apps-on-stackgres/blob/main/examples/supabase/values.stackgres.yaml).
