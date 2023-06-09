@@ -36,7 +36,7 @@ helm repo add stable https://charts.helm.sh/stable
 helm repo update
 ```
 
-Install the [Prometheus Server Operator](https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus):
+Install the [Kube Prometheus Stack](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/):
 
 ```
 helm install --create-namespace --namespace monitoring \
