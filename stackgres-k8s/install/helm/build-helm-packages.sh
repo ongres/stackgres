@@ -23,11 +23,17 @@ grep "^version: \"$STACKGRES_VERSION\"$" stackgres-cluster/Chart.yaml
 grep "^appVersion: \"$STACKGRES_VERSION\"$" stackgres-cluster/Chart.yaml
 helm lint stackgres-cluster
 
-rm -rf "target/packages"
-mkdir -p "target/packages"
-helm package stackgres-operator -d "target/packages"
+rm -rf target/charts
+mkdir -p target/charts
+cp -a stackgres-operator target/charts/.
+cp -a stackgres-cluster target/charts/.
+cp ../operator-sdk/stackgres-operator/config/manifests/bases/stackgres.clusterserviceversion.description.txt \
+  target/charts/stackgres-operator/README.md
+rm -rf target/packages
+mkdir -p target/packages
+helm package target/charts/stackgres-operator -d target/packages
 mv "target/packages/stackgres-operator-$STACKGRES_VERSION.tgz" target/packages/stackgres-operator.tgz
-helm package stackgres-cluster -d "target/packages"
+helm package target/charts/stackgres-cluster -d target/packages
 mv "target/packages/stackgres-cluster-$STACKGRES_VERSION.tgz" target/packages/stackgres-cluster-demo.tgz
 mkdir -p "target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION"
 rm -rf "target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION/helm"
