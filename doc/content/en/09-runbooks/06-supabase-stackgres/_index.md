@@ -67,6 +67,9 @@ spec:
 ---
 ```
 
+> The PgBouncer connection pooling can be reconfigured or disabled entirely.
+> In the very rare case that having PgBouncer might create issues in your setup, you can disable it in the StackGres cluster configuration via `SGCluster.spec.pods.disableConnectionPooling: true`.
+
 The custom SGScript is a bit more complex and includes the initialization scripts that set up the Supabase schemas, as well as a small workaround that is required (as of StackGres `1.4.2`) to not make the PgBouncer `authenticator` role collide with what Supabase will create:
 
 ```yaml
