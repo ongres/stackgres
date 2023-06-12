@@ -29,7 +29,8 @@ modules:
         -Dsurefire.useFile=false
         -DtrimStackTrace=false
     build_commands:
-      - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS clean install -D skipTests -f "$MODULE_PATH/pom.xml" -N'
+      - 'sh stackgres-k8s/ci/build/update-build-pom.sh'
+      - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS clean install -D skipTests -f "$MODULE_PATH/pom.xml.build" -N'
     cache:
       - .m2/
     artifacts:
@@ -54,7 +55,8 @@ modules:
     sources:
       - stackgres-k8s/src/operator-framework/src/test
     build_commands:
-      - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS verify -P safer -f "$MODULE_PATH/pom.xml"'
+      - 'sh stackgres-k8s/ci/build/update-build-pom.sh'
+      - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS verify -P safer -f "$MODULE_PATH/pom.xml.build"'
     artifacts:
       - stackgres-k8s/src/operator-framework/target
   test-util-java:
@@ -221,7 +223,8 @@ modules:
     build_env:
       <<: *mvn_build_env
     build_commands:
-      - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS package -DskipTests -P native -f "$MODULE_PATH/pom.xml" -N'
+      - 'sh stackgres-k8s/ci/build/update-build-pom.sh'
+      - 'stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS package -DskipTests -P native -f "$MODULE_PATH/pom.xml.build" -N'
     cache:
       - .m2/
     artifacts:

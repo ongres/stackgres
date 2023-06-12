@@ -117,7 +117,7 @@
     <build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
     <swagger-maven-plugin.version>2.1.6</swagger-maven-plugin.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
-    <checks.location>${project.basedir}/checks</checks.location>
+    <checks.location>${maven.multiModuleProjectDirectory}/checks</checks.location>
     <checkstyle.config.location>${checks.location}/checkstyle.xml</checkstyle.config.location>
     <checkstyle.header.file>${checks.location}/checkstyle-header.txt</checkstyle.header.file>
     <checkstyle.suppressions.location>${checks.location}/checkstyle-suppressions.xml</checkstyle.suppressions.location>
