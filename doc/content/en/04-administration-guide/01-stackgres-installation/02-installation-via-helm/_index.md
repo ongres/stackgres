@@ -37,8 +37,10 @@ If you want to integrate Prometheus and Grafana into StackGres, please read the 
 ### Installation With Monitoring
 
 It's also possible to install the StackGres operator with an integration of an existing Prometheus/Grafana monitoring stack.
+For this, it's required to have a Prometheus/Grafana stack already installed on your cluster.
+The following examples use the [Kube Prometheus Stack](https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/).
 
-For this, the StackGres operator is pointed to the existing monitoring resources:
+To install StackGres with monitoring, the StackGres operator is pointed to the existing monitoring resources:
 
 ```
 helm install --create-namespace --namespace stackgres stackgres-operator \
@@ -52,18 +54,25 @@ helm install --create-namespace --namespace stackgres stackgres-operator \
 ```
 
 > **Important:** This example only works if you already have a running monitoring setup (here running in namespace `monitoring`), otherwise the StackGres installation will fail.
-> The example above is based on the official Prometheus/Grafana Helm chart.
-> To install the full setup, have a look at the [Monitoring]({{% relref "04-administration-guide/06-monitoring" %}}) guide.
 
-This example is based on the official Prometheus/Grafana Helm chart, which you can install following the instructions under [Monitoring]({{% relref "04-administration-guide/06-monitoring" %}}).
+The example above is based on the Kube Prometheus Stack Helm chart.
+To install the full setup, run the following installation commands *before* you install StackGres, or have a look at the [Monitoring]({{% relref "04-administration-guide/06-monitoring" %}}) guide.
 
-<!-- TODO what will this do?
-The installation with monitoring will integrate the monitoring dashboards into ... webui? also cluster?
--->
+```
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add stable https://charts.helm.sh/stable
+helm repo update
+
+helm install --create-namespace --namespace monitoring \
+ --set grafana.enabled=true \
+ prometheus prometheus-community/kube-prometheus-stack
+```
+
+The [Monitoring]({{% relref "04-administration-guide/06-monitoring" %}}) guide explains this in greater detail.
 
 ## Waiting for Operator Startup
 
-Use the following command to wait until the operator is ready to use:
+Use the following command to wait until the StackGres operator is ready to use:
 
 ```
 kubectl wait -n stackgres deployment -l group=stackgres.io --for=condition=Available
