@@ -1,3 +1,13 @@
+.images:
+  ci_image: &ci_image registry.gitlab.com/ongresinc/stackgres/ci:1.19
+  jdk_build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.5
+  jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi8/openjdk-17-runtime:1.16-1
+  ubi8_micro_image: &ubi8_micro_image registry.access.redhat.com/ubi8-micro:8.8-1
+  ubi8_minimal_image: &ubi8_minimal_image registry.access.redhat.com/ubi8-minimal:8.8-860
+  admin_ui_build_image: &admin_ui_build_image registry.access.redhat.com/ubi8/nodejs-16:1-105.1684740145
+  admin_ui_nginx_image: &admin_ui_nginx_image registry.access.redhat.com/ubi8/nginx-120:1-106
+  helm_operator_image: &helm_operator_image quay.io/operator-framework/helm-operator:v1.29.0
+  hugo_image: &hugo_image klakegg/hugo:0.81.0-ubuntu
 platforms:
   - linux-x86_64
   - linux-aarch64
@@ -6,8 +16,8 @@ modules:
     type: java
     platform_dependent: true
     path: stackgres-k8s/src/.
-    target_image: registry.access.redhat.com/ubi8-micro:8.7-6
-    build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.5
+    target_image: *ubi8_micro_image
+    build_image: *jdk_build_image
     filtered_sources:
       - sh stackgres-k8s/ci/build/redact-version.sh
     sources:
@@ -191,8 +201,8 @@ modules:
     type: ui
     platform_dependent: true
     path: stackgres-k8s/src/admin-ui
-    target_image: registry.access.redhat.com/ubi8-micro:8.7-6
-    build_image: registry.access.redhat.com/ubi8/nodejs-16:1-90
+    target_image: *ubi8_micro_image
+    build_image: *admin_ui_build_image
     sources:
       - stackgres-k8s/src/admin-ui/babel.config.js
       - stackgres-k8s/src/admin-ui/build.sh
@@ -218,7 +228,7 @@ modules:
     type: native
     platform_dependent: true
     path: stackgres-k8s/src/operator
-    target_image: registry.access.redhat.com/ubi8-micro:8.7-6
+    target_image: *ubi8_micro_image
     build_image: *jdk_build_image
     build_env:
       <<: *mvn_build_env
@@ -253,7 +263,7 @@ modules:
     type: jvm-image
     platform_dependent: true
     path: stackgres-k8s/src/operator
-    target_image: registry.access.redhat.com/ubi8/openjdk-17-runtime:1.15-1
+    target_image: *jdk_runtime_image
     dockerfile: &jvm-image-dockerfile
       path: stackgres-k8s/src/operator/src/main/docker/Dockerfile.jvm
       args: &jvm-image-args
@@ -321,7 +331,7 @@ modules:
     type: ui-image
     platform_dependent: true
     path: stackgres-k8s/src/admin-ui
-    target_image: registry.access.redhat.com/ubi8/nginx-120:1-92
+    target_image: *admin_ui_nginx_image
     dockerfile:
       path: stackgres-k8s/src/admin-ui/docker/Dockerfile
       args:
@@ -336,7 +346,7 @@ modules:
     type: native-image
     platform_dependent: true
     path: stackgres-k8s/src/operator
-    target_image: registry.access.redhat.com/ubi8-minimal:8.7-1085
+    target_image: *ubi8_minimal_image
     dockerfile: &native-image-dockerfile
       path: stackgres-k8s/src/operator/src/main/docker/Dockerfile.native
       args: &native-image-args
@@ -402,14 +412,14 @@ modules:
       2: stackgres-k8s/src/distributedlogs-controller/src/main/docker/stackgres-distributedlogs-controller.native.sh
   helm-packages: &helm-packages
     type: helm
-    target_image: registry.access.redhat.com/ubi8-micro:8.7-6
+    target_image: *ubi8_micro_image
     filtered_sources:
       - |
-        sed 's/^\(version\|appVersion\): .*$/\1: REDACTED/' stackgres-k8s/install/helm/stackgres-operator/Chart.yaml
+        sed 's/^\(version\|appVersion\): \([0-9]\+\.[0-9]\+\.[0-9]\+\(-.*\)\?\)$/\1: \2/' stackgres-k8s/install/helm/stackgres-operator/Chart.yaml
       - |
         sed 's/^\(\s*tag\): .*$/\1: REDACTED/' stackgres-k8s/install/helm/stackgres-operator/values.yaml
       - |
-        sed 's/^\(version\|appVersion\): .*$/\1: REDACTED/' stackgres-k8s/install/helm/stackgres-cluster/Chart.yaml
+        sed 's/^\(version\|appVersion\): \([0-9]\+\.[0-9]\+\.[0-9]\+\(-.*\)\?\)$/\1: \2/' stackgres-k8s/install/helm/stackgres-cluster/Chart.yaml
     sources:
       0: stackgres-k8s/install/helm/stackgres-operator/README-crds.md
       1: stackgres-k8s/install/helm/stackgres-operator/README.md
@@ -420,11 +430,10 @@ modules:
       6: stackgres-k8s/install/helm/stackgres-operator/extensions-cache-conciliator.sh
       7: stackgres-k8s/install/helm/stackgres-cluster/README.md
       8: stackgres-k8s/install/helm/stackgres-cluster/templates
-      9: stackgres-k8s/install/helm/stackgres-cluster/values.yaml
-      10: stackgres-k8s/install/helm/stackgres-cluster/cluster-restart.sh
-      11: stackgres-k8s/install/helm/stackgres-cluster/.helmignore
-      12: stackgres-k8s/install/helm/build-helm-packages.sh
-    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.17
+      9: stackgres-k8s/install/helm/stackgres-cluster/cluster-restart.sh
+      10: stackgres-k8s/install/helm/stackgres-cluster/.helmignore
+      11: stackgres-k8s/install/helm/build-helm-packages.sh
+    build_image: *ci_image
     build_commands:
       - export HOME=/project
       - sh $SHELL_XTRACE stackgres-k8s/install/helm/build-helm-packages.sh
@@ -432,14 +441,14 @@ modules:
       - stackgres-k8s/install/helm/target/packages
   helm-templates: &helm-templates
     type: helm
-    target_image: registry.access.redhat.com/ubi8-micro:8.7-6
+    target_image: *ubi8_micro_image
     filtered_sources:
       - |
-        sed 's/^\(version\|appVersion\): .*$/\1: REDACTED/' stackgres-k8s/install/helm/stackgres-operator/Chart.yaml
+        sed 's/^\(version\|appVersion\): \([0-9]\+\.[0-9]\+\.[0-9]\+\(-.*\)\?\)$/\1: \2/' stackgres-k8s/install/helm/stackgres-operator/Chart.yaml
       - |
         sed 's/^\(\s*tag\): .*$/\1: REDACTED/' stackgres-k8s/install/helm/stackgres-operator/values.yaml
       - |
-        sed 's/^\(version\|appVersion\): .*$/\1: REDACTED/' stackgres-k8s/install/helm/stackgres-cluster/Chart.yaml
+        sed 's/^\(version\|appVersion\): \([0-9]\+\.[0-9]\+\.[0-9]\+\(-.*\)\?\)$/\1: \2/' stackgres-k8s/install/helm/stackgres-cluster/Chart.yaml
     sources:
       0: stackgres-k8s/install/helm/stackgres-operator/README-crds.md
       1: stackgres-k8s/install/helm/stackgres-operator/README.md
@@ -453,7 +462,7 @@ modules:
       9: stackgres-k8s/install/helm/stackgres-cluster/cluster-restart.sh
       10: stackgres-k8s/install/helm/stackgres-cluster/.helmignore
       11: stackgres-k8s/install/helm/build-helm-templates.sh
-    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.17
+    build_image: *ci_image
     build_commands:
       - export HOME=/project
       - sh $SHELL_XTRACE stackgres-k8s/install/helm/build-helm-templates.sh
@@ -461,10 +470,10 @@ modules:
       - stackgres-k8s/install/helm/target/templates
   helm-operator-bundle: &helm-operator-bundle
     type: helm-operator-bundle
-    target_image: registry.access.redhat.com/ubi8-micro:8.7-6
+    target_image: *ubi8_micro_image
     sources:
       - stackgres-k8s/install/operator-sdk/stackgres-operator
-    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.17
+    build_image: *ci_image
     build_commands:
       - make -C stackgres-k8s/install/operator-sdk/stackgres-operator bundle
     artifacts:
@@ -474,7 +483,7 @@ modules:
     type: helm-operator-image
     platform_dependent: true
     path: stackgres-k8s/install/operator-sdk/stackgres-operator
-    target_image: quay.io/operator-framework/helm-operator:v1.26.0
+    target_image: *helm_operator_image
     dockerfile:
       path: stackgres-k8s/install/operator-sdk/stackgres-operator/Dockerfile
       args:
@@ -495,10 +504,10 @@ modules:
       - stackgres-k8s/install/operator-sdk/stackgres-operator
   helm-operator-openshift-bundle: &helm-operator-openshift-bundle
     type: helm-operator-bundle
-    target_image: registry.access.redhat.com/ubi8-micro:8.7-6
+    target_image: *ubi8_micro_image
     sources:
       - stackgres-k8s/install/operator-sdk/stackgres-operator
-    build_image: registry.gitlab.com/ongresinc/stackgres/ci:1.17
+    build_image: *ci_image
     build_commands:
       - make -C stackgres-k8s/install/operator-sdk/stackgres-operator bundle-openshift
     artifacts:
@@ -508,7 +517,7 @@ modules:
     type: helm-operator-image
     platform_dependent: true
     path: stackgres-k8s/install/operator-sdk/stackgres-operator
-    target_image: quay.io/operator-framework/helm-operator:v1.26.0
+    target_image: *helm_operator_image
     dockerfile:
       path: stackgres-k8s/install/operator-sdk/stackgres-operator/Dockerfile
       args:
@@ -529,7 +538,7 @@ modules:
       - stackgres-k8s/install/operator-sdk/stackgres-operator
   documentation:
     type: documentation
-    target_image: registry.access.redhat.com/ubi8-micro:8.7-6
+    target_image: *ubi8_micro_image
     sources:
       - doc/build.sh
       - doc/config.toml
@@ -540,7 +549,7 @@ modules:
       - doc/themes
       - stackgres-k8s/src/pom.xml
       - stackgres-k8s/src/common/src/main/resources/crds
-    build_image: klakegg/hugo:0.81.0-ubuntu
+    build_image: *hugo_image
     build_env:
       DOCUMENTATION_BASE_URL: '$DOCUMENTATION_BASE_URL'
       DOCUMENTATION_EXTRA_PATH: '$DOCUMENTATION_EXTRA_PATH'
