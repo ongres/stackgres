@@ -66,6 +66,9 @@ spec:
 | user                                   |          | ✓         | string   | postgres | {{< crd-field-description SGScript.spec.scripts.items.user >}} |
 | script                                 |          | ✓         | string   |          | {{< crd-field-description SGScript.spec.scripts.items.script >}} |
 | [scriptFrom](#script-from)             |          | ✓         | object   |          | {{< crd-field-description SGScript.spec.scripts.items.scriptFrom >}} |
+| retryOnError                           |          | ✓         | boolean  |          | {{< crd-field-description SGScript.spec.scripts.items.retryOnError >}} |
+| wrapInTransaction                      |          | ✓         | string   |          | {{< crd-field-description SGScript.spec.scripts.items.wrapInTransaction >}} |
+| storeStatusInDatabase                  |          | ✓         | boolean  |          | {{< crd-field-description SGScript.spec.scripts.items.storeStatusInDatabase >}} |
 
 ### Script from
 
