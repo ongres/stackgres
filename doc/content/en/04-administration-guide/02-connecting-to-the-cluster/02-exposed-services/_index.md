@@ -40,7 +40,7 @@ spec:
 Once applied, the service configuration is updated to `NodePort`:
 
 ```
-kubectl get services -l cluster=true,cluster-name=cluster
+kubectl get services -l stackgres.io/cluster=true,stackgres.io/cluster-name=cluster
 # NAME               TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)                         AGE
 # cluster            NodePort   10.101.139.224   <none>        5432:31884/TCP,5433:31998/TCP   35m
 # cluster-replicas   NodePort   10.99.44.2       <none>        5432:32106/TCP,5433:31851/TCP   35m
@@ -96,7 +96,7 @@ spec:
 Once updated, get the service information:
 
 ```
-kubectl get services -l cluster=true,cluster-name=cluster
+kubectl get services -l stackgres.io/cluster=true,stackgres.io/cluster-name=cluster
 # NAME               TYPE           CLUSTER-IP      EXTERNAL-IP    PORT(S)                         AGE
 # cluster            LoadBalancer   10.108.32.129   172.18.0.102   5432:30219/TCP,5433:30886/TCP   8m13s
 # cluster-replicas   LoadBalancer   10.111.30.87    172.18.0.101   5432:31146/TCP,5433:32063/TCP   8m13s
