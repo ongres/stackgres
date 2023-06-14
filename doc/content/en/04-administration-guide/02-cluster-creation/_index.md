@@ -145,9 +145,9 @@ spec:
 EOF
 ```
 
-### Configuring Initial Data
+### Configuring Scripts
 
-Last but not least, StackGres lets you include several `initialData` scripts, to perform cluster operations at startup.
+Last but not least, StackGres lets you include several `managedSql` scripts, to perform cluster operations at startup.
 
 In this example, we're creating a Postgres user, using a Kubernetes secret:
 
@@ -156,10 +156,33 @@ kubectl -n my-cluster create secret generic pgbench-user-password-secret \
   --from-literal=pgbench-create-user-sql="create user pgbench password 'admin123'"
 ```
 
-The secret will be referenced in the `initialData` definition of the cluster, shown below.
+Then we reference the secret in a [SGScript]({{% relref "06-crd-reference/11-sgscript" %}}):
+
+```yaml
+cat << EOF | kubectl apply -f -
+apiVersion: stackgres.io/v1
+kind: SGScript
+metadata:
+  namespace: mycluster
+  name: cluster-scripts
+spec:
+  scripts:
+  - name: create-pgbench-user
+    scriptFrom:
+      secretKeyRef:
+        name: pgbench-user-password-secret
+        key: pgbench-create-user-sql
+  - name: create-pgbench-database
+    script: |
+      create database pgbench owner pgbench;
+EOF
+```
+
+The scripts are defined both by the Secret created before and SQL instructions inline.
+
+The SGScript will be referenced in the `managedSql` definition of the cluster, shown below.
 
 Note that we could equally well define the SQL script in a config map, however, since the password represents a credential, we're using a secret.
-
 
 ## Creating the Cluster
 
@@ -189,26 +212,17 @@ spec:
     - sgObjectStorage: 'backupconfig1'
       cronSchedule: '*/5 * * * *'
       retention: 6
+  managedSql:
+    scripts:
+    - sgScript: cluster-scripts
   distributedLogs:
     sgDistributedLogs: 'distributedlogs'
-  initialData:
-    scripts:
-    - name: create-pgbench-user
-      scriptFrom:
-        secretKeyRef:
-          name: pgbench-user-password-secret
-          key: pgbench-create-user-sql
-    - name: create-pgbench-database
-      script: |
-        create database pgbench owner pgbench;
   prometheusAutobind: true
 EOF
 ```
 
 Notice that each resource has been defined with its own `name`, and is referenced in the StackGres cluster definition.
 The order of the CR creation is relevant to successfully create a cluster, that is you create all resources, secrets, and permissions necessary before creating dependent resources.
-
-The `initialData` scripts are defined both by the secret created before and SQL instructions inline.
 
 Another helpful configuration is the [prometheusAutobind: true]({{% relref "04-administration-guide/01-stackgres-installation/02-installation-via-helm/01-operator-parameters" %}}) definition.
 This parameter automatically enables monitoring for our cluster.

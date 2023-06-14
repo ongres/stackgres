@@ -1,7 +1,7 @@
 ---
 title: Postgres Extensions
-weight: 7
-url: administration/extensions
+weight: 5
+url: /administration/extensions
 description: Details about how to set up and install Postgres extensions.
 showToc: true
 ---

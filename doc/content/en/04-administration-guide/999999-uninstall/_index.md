@@ -2,7 +2,7 @@
 title: Uninstall
 date:  2021-01-05T10:39:44-03:00
 weight: 999999 ## adding a super high value to ensure that this will be the last item
-url: administration/uninstall
+url: /administration/uninstall
 description: Details about how to uninstall the operator and all its components.
 showToc: true
 ---

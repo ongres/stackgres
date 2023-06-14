@@ -1,7 +1,7 @@
 ---
-title: Local connection using postgres-util
+title: Cluster Local connection using postgres-util
 weight: 4
-url: administration/cluster/connection/pgutil
+url: /administration/cluster/connection/pgutil
 description: Describes how to connect on the cluster using kubectl and the postgres-util sidecar container.
 ---
 

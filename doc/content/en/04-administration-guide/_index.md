@@ -2,7 +2,7 @@
 title: Administration Manual
 weight: 4
 chapter: true
-url: administration
+url: /administration
 ---
 
 ### Chapter 5

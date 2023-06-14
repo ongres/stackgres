@@ -1,7 +1,7 @@
 ---
 title: "GKE"
 weight: 2
-url: install/prerequisites/k8s/gke
+url: /install/prerequisites/k8s/gke
 description: Google Kubernetes Engine (GKE) is a managed, production-ready environment for running containerized applications.
 ---
 

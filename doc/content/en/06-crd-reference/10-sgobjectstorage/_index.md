@@ -1,7 +1,7 @@
 ---
 title: SGObjectStorage
 weight: 10
-url: reference/crd/sgobjectstorage
+url: /reference/crd/sgobjectstorage
 description: Details about SGObjectStorage
 showToc: true
 ---

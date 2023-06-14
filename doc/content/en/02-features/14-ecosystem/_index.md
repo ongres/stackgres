@@ -1,7 +1,7 @@
 ---
 title: Ecosystem
 weight: 14
-url: features/ecosystem
+url: /features/ecosystem
 description: Very active ecosystem (open source, public issue tracking, Slack, commercial support)
 ---
 

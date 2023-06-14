@@ -1,7 +1,7 @@
 ---
 title: Graceful Switchover
 weight: 1
-url: administration/patroni/switchover
+url: /administration/patroni/switchover
 description: Details about how to use Patroni to handle the database replicas and primary nodes.
 ---
 

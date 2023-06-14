@@ -1,7 +1,7 @@
 ---
 title: Restoring a Backup
 weight: 3
-url: runbooks/restore-backup
+url: /runbooks/restore-backup
 description: Details about how to restore a StackGres cluster backup.
 showToc: true
 ---

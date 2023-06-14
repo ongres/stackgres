@@ -1,7 +1,7 @@
 ---
 title: SGScript
 weight: 11
-url: reference/crd/sgscript
+url: /reference/crd/sgscript
 description: Details about SGScript
 showToc: true
 ---

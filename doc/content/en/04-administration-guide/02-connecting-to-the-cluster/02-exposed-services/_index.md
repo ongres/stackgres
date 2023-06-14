@@ -1,7 +1,7 @@
 ---
-title: Exposing Services
+title: Exposing Cluster Services
 weight: 3
-url: administration/cluster/connection/exposed
+url: /administration/cluster/connection/exposed
 description: Describes how to connect on the cluster exposing its services on the internet.
 showToc: true
 ---

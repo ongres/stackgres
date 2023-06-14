@@ -1,7 +1,7 @@
 ---
 title: "Versions"
 weight: 6
-url: intro/versions
+url: /intro/versions
 description: Details about StackGres versions.
 showToc: true
 ---

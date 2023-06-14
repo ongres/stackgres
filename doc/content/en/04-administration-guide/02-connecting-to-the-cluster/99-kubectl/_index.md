@@ -1,7 +1,7 @@
 ---
-title: Connecting with Kubectl
+title: Connecting to Cluster with Kubectl
 weight: 1
-url: administration/cluster/connection/kubectl
+url: /administration/cluster/connection/kubectl
 draft: true
 ---
 

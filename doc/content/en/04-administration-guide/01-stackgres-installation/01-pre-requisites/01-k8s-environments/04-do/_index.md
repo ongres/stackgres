@@ -1,7 +1,7 @@
 ---
 title: "DigitalOcean"
 weight: 4
-url: install/prerequisites/k8s/do
+url: /install/prerequisites/k8s/do
 description: Digital Ocean Kubernetes is a managed, production-ready environment for running containerized applications.
 ---
 [DigitalOcean Kubernetes](https://www.digitalocean.com/products/kubernetes/) can control and monitor your control plane to make sure you are always able to access and deploy to your cluster.

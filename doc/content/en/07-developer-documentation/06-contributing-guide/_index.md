@@ -1,7 +1,7 @@
 ---
 title: Contributing Guide
 weight: 6
-url: developer/stackgres/contrib
+url: /developer/stackgres/contrib
 description: Details about how to contribute to StackGres.
 ---
 

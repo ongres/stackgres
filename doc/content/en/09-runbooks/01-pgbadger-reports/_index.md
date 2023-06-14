@@ -1,7 +1,7 @@
 ---
 title: PgBadger Reports
 weight: 1
-url: runbooks/pgbadger-reports
+url: /runbooks/pgbadger-reports
 description: Details about how to generate a pgBadger report from the distributed logs server.
 showToc: true
 ---

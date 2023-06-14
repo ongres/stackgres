@@ -1,7 +1,7 @@
 ---
-title: Passwords
+title: Cluster Passwords
 weight: 1
-url: administration/cluster/connection/passwords
+url: /administration/cluster/connection/passwords
 aliases: [/administration/passwords/ ]
 description: Describes how to retrieve the generated database passwords.
 showToc: true
