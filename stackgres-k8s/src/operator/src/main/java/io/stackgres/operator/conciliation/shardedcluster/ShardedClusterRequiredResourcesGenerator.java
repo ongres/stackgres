@@ -20,10 +20,10 @@ import java.util.stream.IntStream;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.SecretKeySelector;
@@ -71,7 +71,7 @@ public class ShardedClusterRequiredResourcesGenerator
 
   private final ResourceFinder<Secret> secretFinder;
 
-  private final ResourceFinder<Service> serviceFinder;
+  private final ResourceFinder<Endpoints> endpointsFinder;
 
   private final RequiredResourceDecorator<StackGresShardedClusterContext> decorator;
 
@@ -82,14 +82,14 @@ public class ShardedClusterRequiredResourcesGenerator
       CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder,
       CustomResourceFinder<StackGresProfile> profileFinder,
       ResourceFinder<Secret> secretFinder,
-      ResourceFinder<Service> serviceFinder,
+      ResourceFinder<Endpoints> endpointsFinder,
       RequiredResourceDecorator<StackGresShardedClusterContext> decorator) {
     this.kubernetesVersionSupplier = kubernetesVersionSupplier;
     this.postgresConfigFinder = postgresConfigFinder;
     this.poolingConfigFinder = poolingConfigFinder;
     this.profileFinder = profileFinder;
     this.secretFinder = secretFinder;
-    this.serviceFinder = serviceFinder;
+    this.endpointsFinder = endpointsFinder;
     this.decorator = decorator;
   }
 
@@ -118,11 +118,11 @@ public class ShardedClusterRequiredResourcesGenerator
     List<StackGresClusterContext> shardsContexts = getShardsContexts(
         clusterName, clusterNamespace, config, kubernetesVersion, databaseSecret);
 
-    Optional<Service> coordinatorPrimaryService = serviceFinder
+    Optional<Endpoints> coordinatorPrimaryEndpoints = endpointsFinder
         .findByNameAndNamespace(
             PatroniUtil.readWriteName(coordinatorContext.getCluster()), clusterNamespace);
-    List<Service> shardsPrimaryServices = shardsContexts.stream()
-        .map(shardsContext -> serviceFinder
+    List<Endpoints> shardsPrimaryEndpoints = shardsContexts.stream()
+        .map(shardsContext -> endpointsFinder
             .findByNameAndNamespace(
                 PatroniUtil.readWriteName(shardsContext.getCluster()), clusterNamespace))
         .flatMap(Optional::stream)
@@ -139,8 +139,8 @@ public class ShardedClusterRequiredResourcesGenerator
         .coordinatorConfig(coordinatorConfig)
         .coordinator(coordinatorContext)
         .shards(shardsContexts)
-        .coordinatorPrimaryService(coordinatorPrimaryService)
-        .shardsPrimaryServices(shardsPrimaryServices)
+        .coordinatorPrimaryEndpoints(coordinatorPrimaryEndpoints)
+        .shardsPrimaryEndpoints(shardsPrimaryEndpoints)
         .superuserUsername(credentials.superuserUsername)
         .superuserPassword(credentials.superuserPassword)
         .replicationUsername(credentials.replicationUsername)
