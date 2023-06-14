@@ -1,3 +1,116 @@
+# :rocket: StackGres 1.5.0 GA (2023-07-03)
+
+The Postgres You Love :heart_eyes:, At Any Scale :sparkles:
+
+We are thrilled to announce the release of StackGres 1.5.0! This update brings a host of new features, enhancements, and optimizations, further solidifying StackGres as the go-to solution for running your mission-critical Postgres workloads on Kubernetes. Let's dive into the exciting highlights of this release:
+
+1. :fire: Sharding Cluster Support:
+
+    StackGres 1.5.0 introduces seamless integration with Citus and Patroni, empowering you to scale your Postgres database horizontally. Now you can effortlessly shard your clusters, distributing data across multiple nodes for improved performance, scalability, and fault tolerance.
+
+    Citus uses a technique called sharding to divide your data into smaller, manageable pieces called shards. Each shard contains a subset of your data and is stored on a separate node within the cluster. Sharding allows for parallel processing of queries and efficient data storage across multiple machines.
+    When you execute a query, Citus intelligently routes the query to the relevant shards. It analyzes the query and determines which shards hold the necessary data to process the request. By distributing the workload across multiple nodes, Citus enables parallel query execution, leading to faster query performance.
+
+    Citus provides a scalable and distributed database solution by leveraging PostgreSQL's powerful extensibility. It enables you to handle large datasets, process complex queries, and achieve high performance by harnessing the capabilities of a distributed cluster architecture, as you can add more nodes to your cluster to accommodate increasing data volumes or user traffic.
+
+    A new CRD called `SGShardedCluster` will bring you the power of sharding by creating multiple SGClusters that will behave like a single one. This also features an automated SSL/TLS support by default on sharded clusters.
+
+    StackGres provides with the `SGShardedCluster` a fault tolerance HA solution on each shard (as well as the coordinators) so that any failed node will be automatically recovered as if one node goes down, the other nodes can still continue serving your application.
+
+    The Web Console has also been updated with first-class support for this feature, try it out :wink:.
+
+    | :warning: WARNING          |
+    |:---------------------------|
+    | The feature is still in alpha so you might expect breaking changes in the CRD, if you encounter any issue please report it and we will provide a fix. Also, 2 day operations are currently not supported and will be implemented in 1.6 release. |
+
+1. :elephant: Updated Postgres and components:
+
+    In this release, we have updated the Postgres engine to the latest minor versions supported up to 15.3, 14.8, and 13.11, incorporating the latest advancements and bug fixes from the PostgreSQL community. This upgrade brings improved performance, enhanced security features, and better compatibility with the latest Postgres ecosystem. Also, we have updated Babelfish for PostgreSQL to the latest release 2.3.0 so you can continue experimenting with this SQL Server alternative with expanded language support, improved compatibility and bug fixes and stability improvements.
+
+1. :anchor: Compatibility with Kubernetes 1.27 and 1.26:
+
+    StackGres is now fully compatible with Kubernetes versions 1.27 and 1.26. This means you can confidently deploy and manage StackGres in Kubernetes clusters running these specific versions, taking advantage of their features and improvements.
+
+1. :arrows_counterclockwise: Transition from Docker.io to Quay.io Container Registry:
+
+     Due to Docker.io imposing lower download rate-limits, we are transitioning from Docker.io to Quay.io as our preferred container registry.
+
+1. :bug: Bug Fixes and Stability Improvements:
+
+    As part of our commitment to delivering a reliable and stable database solution, we have addressed reported issues and incorporated bug fixes in StackGres 1.5.0. The update offers enhanced stability, ensuring a smooth and uninterrupted experience for your critical workloads.
+
+### Call to action
+
+We encourage all users to upgrade to StackGres 1.5.0 to take advantage of these exciting new features and enhancements. We value your feedback and suggestions, so please don't hesitate to reach out to our dedicated support team with any questions or comments. Join us on our [Slack](https://slack.stackgres.io/)/[Discord](https://discord.stackgres.io/) to share any comments or to get help from [StackGres Community](https://stackgres.io/community/). 
+
+Thank you for choosing StackGres as your trusted Postgres database stack. We remain dedicated to providing top-notch performance, security, and scalability for your data needs.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+Enjoy the power of StackGres 1.5.0!
+
+The StackGres Team
+
+## :up: Upgrade
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) Helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.5.0/helm/stackgres-operator.tgz`
+
+#### :exclamation: IMPORTANT
+After each operator upgrade, remember to perform a security upgrade SGDbOps on each existing SGCluster after the operator has been upgraded.
+
+Example:
+```yaml
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: secupgr
+spec:
+  sgCluster: my-cluster
+  op: securityUpgrade
+  maxRetries: 1
+  securityUpgrade:
+    method: InPlace
+```
+
+> :warning: NOTE: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+### :construction: Known issues
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :clipboard: List of features and changes
+
+* Added PostgreSQL 15.3, 15.2, 14.8, 14.7, 13.11, 13.10, 12.15, 12.14
+* Added Patroni 3.0.1, 3.0.2
+* Support for Kubernetes 1.27 and 1.26
+* Added SGShardedCluster CRD
+* Support to specify Patroni initial config
+* Support to set labels for Services (and Endpoints)
+* Support to set much more services parameters for Services
+* New sync-all and strict-sync-all to adjust the number of synchronous nodes to all replicas
+* Shift from docker.io to quay.io
+* Improved operator startup
+* Improved cluster startup
+* Enhanced cluster stats endpoint to fallback for cgroup v1 and v2
+* Make CronJob generator for v1 or v1beta1 api versions dependent on Kubernetes version
+* Enable SSL by default on SGShardedCluster
+* Generate SSL certificate and private key if only enabled is specified
+* Change ssl configuration at run time
+* Use job backoffLimit to implements SGDbOps maxRetries
+* Improve current PgBouncer variable check query
+* Support for self signed certificate when using S3 compatible storage
+* Added priority class support
+* Changed Operator Bundle installation name to `stackgres-operator`
+* Cleanup CSR in operator helm chart
+
+### :twisted_rightwards_arrows: [Full list of commits](https://gitlab.com/ongresinc/stackgres/-/commits/1.5.0)
+
+
 # :rocket: Release 1.5.0-rc2 (28-06-2023)
 
 ## :notepad_spiral: NOTES
