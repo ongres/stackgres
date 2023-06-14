@@ -216,10 +216,11 @@ pages:
     - sh stackgres-k8s/ci/build/build-gitlab.sh extract documentation doc/public
     - tar cC doc public | tar x
     - find public | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/"
+  cache:
+    - key: pages
+      paths:
+      - public/
   retry: 2
-  artifacts:
-    paths:
-    - public
   only:
     variables:
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/

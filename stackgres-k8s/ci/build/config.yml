@@ -543,7 +543,6 @@ modules:
       - doc/build.sh
       - doc/config.toml
       - doc/content
-      - doc/data/descriptions
       - doc/demo
       - doc/LICENSE.md
       - doc/themes

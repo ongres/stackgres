@@ -144,3 +144,4 @@ FROM registry.access.redhat.com/ubi8-minimal:8.7-1107
   RUN wget https://github.com/operator-framework/operator-registry/releases/download/v1.27.1/linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)-opm -O /bin/opm
   RUN chmod a+x /bin/opm
   RUN microdnf install -y findutils make procps diffutils
+  RUN wget https://github.com/norwoodj/helm-docs/releases/download/v1.11.0/helm-docs_1.11.0_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo x86_64).tar.gz -O -|tar xz --strip-components=1 -C /bin -f - helm-docs

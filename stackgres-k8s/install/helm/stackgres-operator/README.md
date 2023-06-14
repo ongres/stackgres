@@ -22,3 +22,11 @@ See https://stackgres.io/doc/latest/install/helm/
 ## Delete the StackGres Operator
 
 See https://stackgres.io/doc/latest/administration/uninstall/
+
+# Developers
+
+Documentation is generate by [helm-docs](https://github.com/norwoodj/helm-docs):
+
+```
+helm-docs -o VALUES.md -f values.yaml -t VALUES.md.gotmpl
+```
