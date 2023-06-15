@@ -1,7 +1,7 @@
 ---
 Title: Install K3S and StackGres locally
 weight: 7
-url: runbooks/k3s-stackgres
+url: /runbooks/k3s-stackgres
 description: How to install locally K3S and f Stackgres
 showToc: true
 ---

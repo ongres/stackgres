@@ -1,7 +1,7 @@
 ---
 title: "Stack Components"
 weight: 1
-url: intro/architecture/stack-components
+url: /intro/architecture/stack-components
 aliases: [ /intro/stack-components ]
 description: Details about the components of the "stack".
 showToc: true

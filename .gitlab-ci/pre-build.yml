@@ -51,6 +51,10 @@
       then
         exit
       fi
+      for ARCH in $ARCH_LIST
+      do
+        docker pull "$TARGET_IMAGE_NAME-$ARCH"
+      done
       docker pull "$CI_REGISTRY/$CI_PROJECT_PATH/placeholder"
       docker tag "$CI_REGISTRY/$CI_PROJECT_PATH/placeholder" "$TARGET_IMAGE_NAME"
       docker push "$TARGET_IMAGE_NAME"

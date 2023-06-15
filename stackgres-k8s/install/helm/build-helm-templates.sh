@@ -29,7 +29,7 @@ mkdir -p "target/templates"
 
 helm template --namespace stackgres stackgres-operator \
   "target/stackgres-operator" \
-  --kube-version 1.23 \
+  --kube-version 1.27 \
   --set-string adminui.service.type=LoadBalancer \
   > "target/templates/stackgres-operator-demo-template.yml"
 
@@ -93,14 +93,14 @@ EOF
 
 helm template --namespace default simple \
   "target/stackgres-cluster" \
-  --kube-version 1.23 \
+  --kube-version 1.27 \
   --set configurations.create=true \
   --set cluster.create=false \
   > "target/templates/stackgres-simple-config-demo.yml"
 
 helm template --namespace default simple \
   "target/stackgres-cluster" \
-  --kube-version 1.23 \
+  --kube-version 1.27 \
   --set configurations.create=false \
   --set cluster.create=true \
   --set profiles=null \
@@ -114,7 +114,7 @@ rm -rf target/minio
 
 helm template --namespace default minio \
   ../../e2e/helm/minio-8.0.10.tgz \
-  --kube-version 1.23 \
+  --kube-version 1.27 \
   --set buckets[0].name=stackgres,buckets[0].policy=none,buckets[0].purge=true \
   | grep -v '^ \+namespace: "\?default"\?$' \
   > "target/templates/minio-demo.yml"

@@ -1,7 +1,7 @@
 ---
 title: SGCluster
 weight: 1
-url: reference/crd/sgcluster
+url: /reference/crd/sgcluster
 description: Details about SGCluster
 showToc: true
 ---

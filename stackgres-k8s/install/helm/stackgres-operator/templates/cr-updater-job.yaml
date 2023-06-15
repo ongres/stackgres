@@ -46,7 +46,7 @@ spec:
         {{- end }}
         {{- end }}
       containers:
-      - name: "{{ .Values.jobs.name }}"
+      - name: cr-updater
         image: "{{ include "jobs-image" . }}"
         imagePullPolicy: "{{ .Values.jobs.image.pullPolicy }}"
         securityContext:

@@ -1,7 +1,7 @@
 ---
-title: Load Balancer
+title: Cluster Load Balancer
 weight: 3
-url: administration/cluster/connection/load-balancer
+url: /administration/cluster/connection/load-balancer
 draft: true
 ---
 

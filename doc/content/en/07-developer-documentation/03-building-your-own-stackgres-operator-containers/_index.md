@@ -1,7 +1,7 @@
 ---
 title: Building StackGres operator images
 weight: 3
-url: developer/stackgres/build/operator/own
+url: /developer/stackgres/build/operator/own
 description: Details about how to build the container images.
 showToc: true
 ---

@@ -1,7 +1,7 @@
 ---
 title: Volume Downsize
 weight: 2
-url: runbooks/volume-downsize
+url: /runbooks/volume-downsize
 description: Steps about how to perform a volume downsize
 showToc: true
 ---

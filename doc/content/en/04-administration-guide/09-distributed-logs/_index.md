@@ -1,7 +1,7 @@
 ---
 title: Distributed Logs
-weight: 11
-url: administration/distributed-logs
+weight: 9
+url: /administration/distributed-logs
 aliases: [ /tutorial/complete-cluster/distributed-logs, /tutorial/complete-cluster/distributed-logs ]
 description: Details about how to create a distributed log instance.
 ---

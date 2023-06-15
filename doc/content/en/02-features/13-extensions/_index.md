@@ -1,7 +1,7 @@
 ---
 title: PostgreSQL Extensions
 weight: 13
-url: features/extensions
+url: /features/extensions
 description: PostgreSQL extensions (150+ provided)
 ---
 

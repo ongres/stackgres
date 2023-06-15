@@ -24,3 +24,14 @@ then
   exit 1
 fi
 cp "$(dirname "$0")/../stackgres-k8s/src/api-web/target/swagger-merged.yaml" "$(dirname "$0")/themes/sg-doc/static/sg-swagger.yaml"
+
+mkdir -p "$(dirname "$0")/generated"
+(
+cd "$(dirname "$0")/../stackgres-k8s/install/helm/stackgres-operator"
+helm-docs \
+  -o "generated.md" \
+  -f "values.yaml" \
+  -t "VALUES.md.gotmpl"
+)
+mv "$(dirname "$0")/../stackgres-k8s/install/helm/stackgres-operator/generated.md" \
+  "$(dirname "$0")/generated/stackgres-operator.md"

@@ -1,7 +1,7 @@
 ---
 title: Manual Cluster Restart
-weight: 10
-url: administration/manual-restart
+weight: 8
+url: /administration/manual-restart
 aliases: [ /install/restart , /install/manual-restart ]
 description: Details about how to restart manually the database nodes.
 showToc: true
@@ -75,7 +75,7 @@ READ_ONLY_POD="$SGCLUSTER-$INSTANCES"
 echo "Waiting for pod $READ_ONLY_POD"
 kubectl wait --for=condition=Ready -n "$NAMESPACE" "pod/$READ_ONLY_POD"
 while kubectl get pod -n "$NAMESPACE" \
-    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=replica" -o name \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=replica" -o name \
   | grep -F "pod/$READ_ONLY_POD" | wc -l | grep -q 0; do sleep 1; done
 ```
 
@@ -86,7 +86,7 @@ while kubectl get pod -n "$NAMESPACE" \
 
 ```
 PRIMARY_POD="$(kubectl get pod -n "$NAMESPACE" \
-    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=master" -o name | head -n 1)"
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=master" -o name | head -n 1)"
 PRIMARY_POD="${PRIMARY_POD#pod/}"
 
 echo "Restart the primary instance $PRIMARY_POD"
@@ -103,7 +103,7 @@ Check which read-only pods requires to be restarted.
 ```
 READ_ONLY_PODS="$([ -z "$READ_ONLY_PODS" ] \
   && kubectl get pod -n "$NAMESPACE" --sort-by '{.metadata.name}' \
-    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=replica" \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=replica" \
     --template '{{ range .items }}{{ printf "%s\n" .metadata.name }}{{ end }}' \
   || (echo "$READ_ONLY_PODS" | tail -n +2))"
 echo "Read only pods to restart:"
@@ -141,9 +141,9 @@ If you have at least a read-only pod perform a switchover of the primary pod.
 
 ```
 READ_ONLY_POD="$(kubectl get pod -n "$NAMESPACE" \
-    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=replica" -o name | head -n 1)"
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=replica" -o name | head -n 1)"
 PRIMARY_POD="$(kubectl get pod -n "$NAMESPACE" \
-    -l "app=StackGresCluster,cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=master" -o name | head -n 1)"
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$SGCLUSTER,stackgres.io/cluster=true,role=master" -o name | head -n 1)"
 READ_ONLY_POD="${READ_ONLY_POD#pod/}"
 PRIMARY_POD="${PRIMARY_POD#pod/}"
 if [ -n "$READ_ONLY_POD" ]

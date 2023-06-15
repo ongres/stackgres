@@ -1,7 +1,7 @@
 ---
-title: Port Forward
+title: Cluster Port Forward
 weight: 2
-url: administration/cluster/connection/port-forward
+url: /administration/cluster/connection/port-forward
 draft: true
 ---
 

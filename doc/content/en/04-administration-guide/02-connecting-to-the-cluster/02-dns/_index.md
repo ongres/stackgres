@@ -1,7 +1,7 @@
 ---
-title: K8s Internal DNS
+title: Cluster K8s Internal DNS
 weight: 2
-url: administration/cluster/connection/dns
+url: /administration/cluster/connection/dns
 description: Describes how to connect to the cluster inside the K8s environment.
 showToc: true
 ---

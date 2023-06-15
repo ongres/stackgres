@@ -1,7 +1,7 @@
 ---
 title: Debug
 weight: 6
-url: developer/stackgres/debug
+url: /developer/stackgres/debug
 description: Details about how to enable DEBUG messages in the operator pods.
 showToc: true
 ---

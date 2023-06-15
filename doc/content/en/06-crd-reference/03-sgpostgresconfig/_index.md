@@ -1,7 +1,7 @@
 ---
 title: SGPostgresConfig
 weight: 3
-url: reference/crd/sgpgconfig
+url: /reference/crd/sgpgconfig
 description: Details about SGPostgresConfig
 ---
 

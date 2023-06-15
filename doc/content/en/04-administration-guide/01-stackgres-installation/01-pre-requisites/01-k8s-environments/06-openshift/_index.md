@@ -1,7 +1,7 @@
 ---
 title: OpenShift
 weight: 6
-url: install/prerequisites/k8s/openshift
+url: /install/prerequisites/k8s/openshift
 description: Red Hat OpenShift is a unified platform to build, modernize, and deploy applications at scale.
 showToc: true
 ---

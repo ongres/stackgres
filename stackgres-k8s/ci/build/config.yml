@@ -1,5 +1,5 @@
 .images:
-  ci_image: &ci_image registry.gitlab.com/ongresinc/stackgres/ci:1.19
+  ci_image: &ci_image registry.gitlab.com/ongresinc/stackgres/ci:1.20
   jdk_build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.5
   jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi8/openjdk-17-runtime:1.16-1
   ubi8_micro_image: &ubi8_micro_image registry.access.redhat.com/ubi8-micro:8.8-1
@@ -7,7 +7,6 @@
   admin_ui_build_image: &admin_ui_build_image registry.access.redhat.com/ubi8/nodejs-16:1-105.1684740145
   admin_ui_nginx_image: &admin_ui_nginx_image registry.access.redhat.com/ubi8/nginx-120:1-106
   helm_operator_image: &helm_operator_image quay.io/operator-framework/helm-operator:v1.29.0
-  hugo_image: &hugo_image klakegg/hugo:0.81.0-ubuntu
 platforms:
   - linux-x86_64
   - linux-aarch64
@@ -543,13 +542,12 @@ modules:
       - doc/build.sh
       - doc/config.toml
       - doc/content
-      - doc/data/descriptions
       - doc/demo
       - doc/LICENSE.md
       - doc/themes
       - stackgres-k8s/src/pom.xml
       - stackgres-k8s/src/common/src/main/resources/crds
-    build_image: *hugo_image
+    build_image: *ci_image
     build_env:
       DOCUMENTATION_BASE_URL: '$DOCUMENTATION_BASE_URL'
       DOCUMENTATION_EXTRA_PATH: '$DOCUMENTATION_EXTRA_PATH'

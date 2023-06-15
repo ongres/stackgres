@@ -1,7 +1,7 @@
 ---
 title: Using OpenEBS
 weight: 2
-url: install/prerequisites/storage/openebs
+url: /install/prerequisites/storage/openebs
 description: "Details about how to install OpenEBS and how to configure it"
 ---
 
