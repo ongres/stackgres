@@ -17,6 +17,12 @@ public final class ShardedClusterInfoDto {
   @JsonProperty("primaryDns")
   private String primaryDns;
 
+  @JsonProperty("readsDns")
+  private String readsDns;
+
+  @JsonProperty("primariesDns")
+  private String primariesDns;
+
   @JsonProperty("superuserUsername")
   private String superuserUsername;
 
@@ -32,6 +38,22 @@ public final class ShardedClusterInfoDto {
 
   public void setPrimaryDns(String primaryDns) {
     this.primaryDns = primaryDns;
+  }
+
+  public String getReadsDns() {
+    return readsDns;
+  }
+
+  public void setReadsDns(String readsDns) {
+    this.readsDns = readsDns;
+  }
+
+  public String getPrimariesDns() {
+    return primariesDns;
+  }
+
+  public void setPrimariesDns(String primariesDns) {
+    this.primariesDns = primariesDns;
   }
 
   public String getSuperuserUsername() {

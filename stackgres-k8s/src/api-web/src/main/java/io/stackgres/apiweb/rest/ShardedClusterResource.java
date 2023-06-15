@@ -181,6 +181,14 @@ public class ShardedClusterResource
         .flatMap(cluster -> serviceFinder.findByNameAndNamespace(
             StackGresShardedClusterForCitusUtil.primaryCoordinatorServiceName(cluster), namespace))
         .ifPresent(service -> info.setPrimaryDns(StackGresUtil.getServiceDnsName(service)));
+    foundCluster
+        .flatMap(cluster -> serviceFinder.findByNameAndNamespace(
+            StackGresShardedClusterForCitusUtil.anyCoordinatorServiceName(cluster), namespace))
+        .ifPresent(service -> info.setReadsDns(StackGresUtil.getServiceDnsName(service)));
+    foundCluster
+        .flatMap(cluster -> serviceFinder.findByNameAndNamespace(
+            StackGresShardedClusterForCitusUtil.primariesShardsServiceName(cluster), namespace))
+        .ifPresent(service -> info.setPrimariesDns(StackGresUtil.getServiceDnsName(service)));
 
     info.setSuperuserUsername(SUPERUSER_USERNAME);
     info.setSuperuserSecretName(clusterName);

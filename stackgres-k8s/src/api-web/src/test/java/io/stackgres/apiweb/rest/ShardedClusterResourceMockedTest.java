@@ -26,6 +26,9 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
+import io.fabric8.kubernetes.api.model.PodList;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
@@ -40,7 +43,10 @@ import io.stackgres.apiweb.dto.script.ScriptFrom;
 import io.stackgres.apiweb.dto.script.ScriptSpec;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterDto;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterSpec;
+import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterStatsDto;
+import io.stackgres.apiweb.resource.ShardedClusterStatsDtoFinder;
 import io.stackgres.apiweb.transformer.ScriptTransformer;
+import io.stackgres.apiweb.transformer.ShardedClusterStatsTransformer;
 import io.stackgres.apiweb.transformer.ShardedClusterTransformer;
 import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.StackGresShardedClusterForCitusUtil;
@@ -54,8 +60,14 @@ import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.labels.ClusterLabelFactory;
+import io.stackgres.common.labels.ClusterLabelMapper;
+import io.stackgres.common.labels.ShardedClusterLabelFactory;
+import io.stackgres.common.labels.ShardedClusterLabelMapper;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.common.resource.PersistentVolumeClaimFinder;
+import io.stackgres.common.resource.PodFinder;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.testutil.JsonUtil;
@@ -94,12 +106,17 @@ class ShardedClusterResourceMockedTest extends
   private ResourceFinder<Secret> secretFinder;
   @Mock
   private ResourceFinder<Service> serviceFinder;
+  @Mock
+  private PodFinder podFinder;
+  @Mock
+  private PersistentVolumeClaimFinder persistentVolumeClaimFinder;
 
   private ScriptTransformer scriptTransformer;
 
   private StackGresShardedCluster cluster;
   private Service servicePrimary;
   private ConfigMap configMap;
+  private PodList podList;
 
   @Override
   @BeforeEach
@@ -125,6 +142,19 @@ class ShardedClusterResourceMockedTest extends
         .withData(ImmutableMap.of(
             "script", "CREATE DATABASE test WITH OWNER test"))
         .build();
+    when(clusterScanner.getResourcesWithLabels(any(), any()))
+        .thenReturn(List.of(Fixtures.cluster().loadDefault().get()));
+    podList = Fixtures.cluster().podList().loadDefault().get();
+    when(podFinder.findByLabelsAndNamespace(anyString(), any()))
+        .thenReturn(podList.getItems());
+    when(persistentVolumeClaimFinder.findByNameAndNamespace(anyString(), anyString()))
+        .thenReturn(Optional.of(new PersistentVolumeClaimBuilder()
+            .withNewSpec()
+            .withNewResources()
+            .withRequests(ImmutableMap.of("storage", Quantity.parse("5Gi")))
+            .endResources()
+            .endSpec()
+            .build()));
   }
 
   @Test
@@ -139,6 +169,19 @@ class ShardedClusterResourceMockedTest extends
   void getOfAnExistingDtoShouldReturnTheExistingDto() {
     clusterMocks();
     super.getOfAnExistingDtoShouldReturnTheExistingDto();
+  }
+
+  @Test
+  void getOfAnExistingDtoStatsShouldReturnTheExistingDtoStats() {
+    clusterMocks();
+
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+
+    ShardedClusterStatsDto dto =
+        getShardedClusterStatsResource().stats(getResourceNamespace(), getResourceName());
+
+    checkStatsDto(dto);
   }
 
   @Test
@@ -609,6 +652,20 @@ class ShardedClusterResourceMockedTest extends
     return new NamespacedShardedClusterResource(service);
   }
 
+  private NamespacedShardedClusterStatsResource getShardedClusterStatsResource() {
+    final ShardedClusterLabelFactory shardedClusterLabelFactory = new ShardedClusterLabelFactory(
+        new ShardedClusterLabelMapper());
+    final ClusterLabelFactory clusterLabelFactory = new ClusterLabelFactory(
+        new ClusterLabelMapper());
+    final ShardedClusterStatsTransformer shardedClusterStatsTransformer =
+        new ShardedClusterStatsTransformer();
+    final ShardedClusterStatsDtoFinder statsDtoFinder = new ShardedClusterStatsDtoFinder(
+        shardedClusterFinder, clusterScanner, podFinder, persistentVolumeClaimFinder,
+        shardedClusterLabelFactory, clusterLabelFactory, shardedClusterStatsTransformer);
+
+    return new NamespacedShardedClusterStatsResource(statsDtoFinder);
+  }
+
   @Override
   protected String getResourceNamespace() {
     return "stackgres";
@@ -709,6 +766,19 @@ class ShardedClusterResourceMockedTest extends
     } else {
       assertNull(resourceSpec);
     }
+  }
+
+  private void checkStatsDto(ShardedClusterStatsDto resource) {
+    assertNotNull(resource.getMetadata());
+    assertEquals("stackgres", resource.getMetadata().getNamespace());
+    assertEquals("stackgres", resource.getMetadata().getName());
+    assertEquals("6fe0edf5-8a6d-43b7-99bd-131e2efeab66", resource.getMetadata().getUid());
+    assertEquals("1000m", resource.getCoordinator().getCpuRequested());
+    assertEquals("1.00Gi", resource.getCoordinator().getMemoryRequested());
+    assertEquals("10.00Gi", resource.getCoordinator().getDiskRequested());
+    assertEquals("1000m", resource.getShards().getCpuRequested());
+    assertEquals("1.00Gi", resource.getShards().getMemoryRequested());
+    assertEquals("10.00Gi", resource.getShards().getDiskRequested());
   }
 
 }

@@ -10,6 +10,7 @@ import java.util.Optional;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Pod;
+import org.jooq.lambda.tuple.Tuple2;
 import org.jooq.lambda.tuple.Tuple3;
 
 public class PodStats
@@ -26,5 +27,10 @@ public class PodStats
   public static PodStats fromTuple(
       Tuple3<Pod, ImmutableMap<PatroniStatsScripts, String>, Optional<PersistentVolumeClaim>> t) {
     return new PodStats(t.v1, t.v2, t.v3);
+  }
+
+  public static PodStats fromTuple(
+      Tuple2<Pod, Optional<PersistentVolumeClaim>> t) {
+    return new PodStats(t.v1, null, t.v2);
   }
 }

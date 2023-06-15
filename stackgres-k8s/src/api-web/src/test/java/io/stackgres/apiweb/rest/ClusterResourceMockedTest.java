@@ -25,6 +25,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -165,10 +166,12 @@ class ClusterResourceMockedTest extends
   private PodList podList;
   private List<ClusterLogEntryDto> logList;
   private StackGresCluster clusterWithoutDistributedLogs;
+  private ClusterLabelFactory labelFactory;
 
   @Override
   @BeforeEach
   void setUp() {
+    labelFactory = new ClusterLabelFactory(new ClusterLabelMapper());
     cluster = Fixtures.cluster().loadDefault().get();
     scriptTransformer = new ScriptTransformer(JsonUtil.jsonMapper());
     super.setUp();
@@ -199,6 +202,10 @@ class ClusterResourceMockedTest extends
             "script", "CREATE DATABASE test WITH OWNER test"))
         .build();
     podList = Fixtures.cluster().podList().loadDefault().get();
+    Map<String, String> clusterLabels = labelFactory.clusterLabels(
+        customResources.getItems().get(0));
+    podList.getItems().stream().forEach(pod -> pod.getMetadata()
+          .getLabels().putAll(clusterLabels));
     logList = new ArrayList<>();
     clusterWithoutDistributedLogs = Fixtures.cluster().loadWithoutDistributedLogs().get();
     executorService = Executors.newWorkStealingPool();
@@ -660,7 +667,8 @@ class ClusterResourceMockedTest extends
         .thenReturn(Optional.of(serviceReplicas));
     when(configMapFinder.findByNameAndNamespace(anyString(), anyString()))
         .thenReturn(Optional.of(configMap));
-    when(podFinder.findResourcesWithLabels(any())).thenReturn(podList.getItems());
+    when(podFinder.findResourcesWithLabels(any()))
+        .thenReturn(podList.getItems());
     when(podFinder.findByLabelsAndNamespace(anyString(), any()))
         .thenReturn(podList.getItems());
     when(persistentVolumeClaimFinder.findByNameAndNamespace(anyString(), anyString()))
@@ -739,17 +747,6 @@ class ClusterResourceMockedTest extends
     dtoScanner.setClusterTransformer(clusterTransformer);
     dtoScanner.setLabelFactory(labelFactory);
 
-    final ClusterStatsTransformer clusterStatsTransformer = new ClusterStatsTransformer(
-        new ClusterPodTransformer());
-    final ClusterStatsDtoFinder statsDtoFinder = new ClusterStatsDtoFinder();
-    statsDtoFinder.setClusterFinder(finder);
-    statsDtoFinder.setPodFinder(podFinder);
-    statsDtoFinder.setPodExecutor(podExecutor);
-    statsDtoFinder.setPersistentVolumeClaimFinder(persistentVolumeClaimFinder);
-    statsDtoFinder.setClusterLabelFactory(labelFactory);
-    statsDtoFinder.setClusterStatsTransformer(clusterStatsTransformer);
-    statsDtoFinder.setManagedExecutor(managedExecutor);
-
     return new ClusterResource(
         dtoScanner, clusterFinder, scriptScheduler, secretWriter, configMapWriter,
         scriptFinder, scriptTransformer, secretFinder, configMapFinder, serviceFinder);
@@ -768,17 +765,11 @@ class ClusterResourceMockedTest extends
   }
 
   private NamespacedClusterStatsResource getClusterStatsResource() {
-    final ClusterLabelFactory labelFactory = new ClusterLabelFactory(new ClusterLabelMapper());
     final ClusterStatsTransformer clusterStatsTransformer = new ClusterStatsTransformer(
         new ClusterPodTransformer());
-    final ClusterStatsDtoFinder statsDtoFinder = new ClusterStatsDtoFinder();
-    statsDtoFinder.setClusterFinder(finder);
-    statsDtoFinder.setPodFinder(podFinder);
-    statsDtoFinder.setPodExecutor(podExecutor);
-    statsDtoFinder.setPersistentVolumeClaimFinder(persistentVolumeClaimFinder);
-    statsDtoFinder.setClusterLabelFactory(labelFactory);
-    statsDtoFinder.setClusterStatsTransformer(clusterStatsTransformer);
-    statsDtoFinder.setManagedExecutor(managedExecutor);
+    final ClusterStatsDtoFinder statsDtoFinder = new ClusterStatsDtoFinder(
+        managedExecutor, clusterFinder, podFinder, podExecutor,
+        persistentVolumeClaimFinder, labelFactory, clusterStatsTransformer);
 
     return new NamespacedClusterStatsResource(statsDtoFinder);
   }
@@ -1002,7 +993,7 @@ class ClusterResourceMockedTest extends
     assertNotNull(resource.getMetadata());
     assertEquals("stackgres", resource.getMetadata().getNamespace());
     assertEquals("stackgres", resource.getMetadata().getName());
-    assertEquals("bfb53778-f59a-11e9-b1b5-0242ac110002", resource.getMetadata().getUid());
+    assertEquals("6fe0edf5-8a6d-43b7-99bd-131e2efeab66", resource.getMetadata().getUid());
     assertEquals("1000m", resource.getCpuRequested());
     assertEquals("500m", resource.getCpuFound());
     assertEquals("0.50", resource.getCpuPsiAvg10());

@@ -47,13 +47,31 @@ public class ClusterStatsDtoFinder
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ClusterStatsDtoFinder.class);
 
-  private ManagedExecutor managedExecutor;
-  private CustomResourceFinder<StackGresCluster> clusterFinder;
-  private PodFinder podFinder;
-  private PodExecutor podExecutor;
-  private PersistentVolumeClaimFinder persistentVolumeClaimFinder;
-  private ClusterLabelFactory clusterLabelFactory;
-  private ClusterStatsTransformer clusterStatsTransformer;
+  private final ManagedExecutor managedExecutor;
+  private final CustomResourceFinder<StackGresCluster> clusterFinder;
+  private final PodFinder podFinder;
+  private final PodExecutor podExecutor;
+  private final PersistentVolumeClaimFinder persistentVolumeClaimFinder;
+  private final ClusterLabelFactory clusterLabelFactory;
+  private final ClusterStatsTransformer clusterStatsTransformer;
+
+  @Inject
+  public ClusterStatsDtoFinder(
+      ManagedExecutor managedExecutor,
+      CustomResourceFinder<StackGresCluster> clusterFinder,
+      PodFinder podFinder,
+      PodExecutor podExecutor,
+      PersistentVolumeClaimFinder persistentVolumeClaimFinder,
+      ClusterLabelFactory clusterLabelFactory,
+      ClusterStatsTransformer clusterStatsTransformer) {
+    this.managedExecutor = managedExecutor;
+    this.clusterFinder = clusterFinder;
+    this.podFinder = podFinder;
+    this.podExecutor = podExecutor;
+    this.persistentVolumeClaimFinder = persistentVolumeClaimFinder;
+    this.clusterLabelFactory = clusterLabelFactory;
+    this.clusterStatsTransformer = clusterStatsTransformer;
+  }
 
   @Override
   public Optional<ClusterStatsDto> findByNameAndNamespace(
@@ -65,7 +83,7 @@ public class ClusterStatsDtoFinder
   private ClusterStatsDto getClusterStats(StackGresCluster cluster) {
     List<Pod> pods = podFinder.findByLabelsAndNamespace(
         cluster.getMetadata().getNamespace(),
-        clusterLabelFactory.patroniClusterLabels(cluster));
+        clusterLabelFactory.clusterLabels(cluster));
 
     ImmutableList<PodStats> allPodStats = pods
         .stream()
@@ -141,39 +159,4 @@ public class ClusterStatsDtoFinder
             .findByNameAndNamespace(podDataPvcName, pod.getMetadata().getNamespace()));
   }
 
-  @Inject
-  public void setManagedExecutor(ManagedExecutor managedExecutor) {
-    this.managedExecutor = managedExecutor;
-  }
-
-  @Inject
-  public void setClusterFinder(CustomResourceFinder<StackGresCluster> clusterFinder) {
-    this.clusterFinder = clusterFinder;
-  }
-
-  @Inject
-  public void setPodFinder(PodFinder podFinder) {
-    this.podFinder = podFinder;
-  }
-
-  @Inject
-  public void setPodExecutor(PodExecutor podExecutor) {
-    this.podExecutor = podExecutor;
-  }
-
-  @Inject
-  public void setPersistentVolumeClaimFinder(
-      PersistentVolumeClaimFinder persistentVolumeClaimFinder) {
-    this.persistentVolumeClaimFinder = persistentVolumeClaimFinder;
-  }
-
-  @Inject
-  public void setClusterLabelFactory(ClusterLabelFactory clusterLabelFactory) {
-    this.clusterLabelFactory = clusterLabelFactory;
-  }
-
-  @Inject
-  public void setClusterStatsTransformer(ClusterStatsTransformer clusterStatsTransformer) {
-    this.clusterStatsTransformer = clusterStatsTransformer;
-  }
 }
