@@ -11,10 +11,12 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
+import com.google.common.collect.ImmutableList;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import io.stackgres.cluster.controller.ClusterControllerReconciliationCycle;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operatorframework.reconciliation.ReconciliationCycle.ReconciliationCycleResult;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
@@ -65,7 +67,15 @@ public class StackGresClusterControllerMain {
     @Override
     public int run(String... args) throws Exception {
       LOGGER.info("Running StackGres Cluster Controller reconciliation cycle");
-      ReconciliationCycleResult<?> result = reconciliationCycle.reconciliationCycle();
+      ImmutableList<StackGresCluster> existingContextResources =
+          reconciliationCycle.getExistingContextResources();
+      final ReconciliationCycleResult<?> result;
+      if (existingContextResources.isEmpty()) {
+        result = new ReconciliationCycleResult<>(
+            new Exception("Not able to retrieve StackGres Cluster"));
+      } else {
+        result = reconciliationCycle.reconciliationCycle(existingContextResources);
+      }
       if (!result.success()) {
         RuntimeException ex = Seq.seq(result.getException())
             .append(result.getContextExceptions().values().stream())

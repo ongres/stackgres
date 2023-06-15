@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.dbops;
 
+import java.util.List;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
@@ -66,16 +68,21 @@ public class DbOpsReconciliator
   }
 
   @Override
-  public void onPreReconciliation(StackGresDbOps config) {
+  protected void reconciliationCycle(List<StackGresDbOps> configs) {
+    super.reconciliationCycle(configs);
   }
 
   @Override
-  public void onPostReconciliation(StackGresDbOps config) {
+  protected void onPreReconciliation(StackGresDbOps config) {
+  }
+
+  @Override
+  protected void onPostReconciliation(StackGresDbOps config) {
     dbOpsScheduler.update(config, statusManager::refreshCondition);
   }
 
   @Override
-  public void onConfigCreated(StackGresDbOps dbOps, ReconciliationResult result) {
+  protected void onConfigCreated(StackGresDbOps dbOps, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(dbOps, result);
     eventController.sendEvent(DbOpsEventReason.DBOPS_CREATED,
         "DbOps " + dbOps.getMetadata().getNamespace() + "."
@@ -83,7 +90,7 @@ public class DbOpsReconciliator
   }
 
   @Override
-  public void onConfigUpdated(StackGresDbOps dbOps, ReconciliationResult result) {
+  protected void onConfigUpdated(StackGresDbOps dbOps, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(dbOps, result);
     eventController.sendEvent(DbOpsEventReason.DBOPS_UPDATED,
         "DbOps " + dbOps.getMetadata().getNamespace() + "."
@@ -91,7 +98,7 @@ public class DbOpsReconciliator
   }
 
   @Override
-  public void onError(Exception ex, StackGresDbOps dbOps) {
+  protected void onError(Exception ex, StackGresDbOps dbOps) {
     String message = MessageFormatter.arrayFormat(
         "DbOps reconciliation cycle failed",
         new String[]{

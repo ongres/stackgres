@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.script;
 
+import java.util.List;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
@@ -61,27 +63,32 @@ public class ScriptReconciliator
   }
 
   @Override
-  public void onPreReconciliation(StackGresScript config) {
+  protected void reconciliationCycle(List<StackGresScript> configs) {
+    super.reconciliationCycle(configs);
+  }
+
+  @Override
+  protected void onPreReconciliation(StackGresScript config) {
     scriptScheduler.update(config, statusManager::refreshCondition);
   }
 
   @Override
-  public void onPostReconciliation(StackGresScript config) {
+  protected void onPostReconciliation(StackGresScript config) {
     // Nothing to do
   }
 
   @Override
-  public void onConfigCreated(StackGresScript script, ReconciliationResult result) {
+  protected void onConfigCreated(StackGresScript script, ReconciliationResult result) {
     // Nothing to do
   }
 
   @Override
-  public void onConfigUpdated(StackGresScript script, ReconciliationResult result) {
+  protected void onConfigUpdated(StackGresScript script, ReconciliationResult result) {
     // Nothing to do
   }
 
   @Override
-  public void onError(Exception ex, StackGresScript script) {
+  protected void onError(Exception ex, StackGresScript script) {
     String message = MessageFormatter.arrayFormat(
         "Script reconciliation cycle failed",
         new String[]{

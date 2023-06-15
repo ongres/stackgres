@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.shardedcluster;
 
+import java.util.List;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
@@ -70,7 +72,12 @@ public class ShardedClusterReconciliator
   }
 
   @Override
-  public void onPreReconciliation(StackGresShardedCluster config) {
+  protected void reconciliationCycle(List<StackGresShardedCluster> configs) {
+    super.reconciliationCycle(configs);
+  }
+
+  @Override
+  protected void onPreReconciliation(StackGresShardedCluster config) {
     if (PostgresConfigValidator.BUGGY_PG_VERSIONS.keySet()
         .contains(config.getSpec().getPostgres().getVersion())) {
       eventController.sendEvent(ClusterEventReason.CLUSTER_SECURITY_WARNING,
@@ -83,7 +90,7 @@ public class ShardedClusterReconciliator
   }
 
   @Override
-  public void onPostReconciliation(StackGresShardedCluster config) {
+  protected void onPostReconciliation(StackGresShardedCluster config) {
     statusManager.refreshCondition(config);
 
     clusterScheduler.update(config,
@@ -95,7 +102,7 @@ public class ShardedClusterReconciliator
   }
 
   @Override
-  public void onConfigCreated(StackGresShardedCluster cluster, ReconciliationResult result) {
+  protected void onConfigCreated(StackGresShardedCluster cluster, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(cluster, result);
     eventController.sendEvent(ClusterEventReason.CLUSTER_CREATED,
         "Sharded Cluster " + cluster.getMetadata().getNamespace() + "."
@@ -105,7 +112,7 @@ public class ShardedClusterReconciliator
   }
 
   @Override
-  public void onConfigUpdated(StackGresShardedCluster cluster, ReconciliationResult result) {
+  protected void onConfigUpdated(StackGresShardedCluster cluster, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(cluster, result);
     eventController.sendEvent(ClusterEventReason.CLUSTER_UPDATED,
         "Sharded Cluster " + cluster.getMetadata().getNamespace() + "."
@@ -115,7 +122,7 @@ public class ShardedClusterReconciliator
   }
 
   @Override
-  public void onError(Exception ex, StackGresShardedCluster cluster) {
+  protected void onError(Exception ex, StackGresShardedCluster cluster) {
     String message = MessageFormatter.arrayFormat(
         "Cluster reconciliation cycle failed",
         new String[]{

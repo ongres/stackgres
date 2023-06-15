@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.distributedlogs;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -44,8 +45,7 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
     @Inject KubernetesClient client;
     @Inject ConnectedClustersScanner connectedClustersScanner;
     @Inject CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
-    @Inject StatusManager<StackGresDistributedLogs,
-    Condition> statusManager;
+    @Inject StatusManager<StackGresDistributedLogs, Condition> statusManager;
     @Inject EventEmitter<StackGresDistributedLogs> eventController;
   }
 
@@ -73,11 +73,16 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
   }
 
   @Override
-  public void onPreReconciliation(StackGresDistributedLogs config) {
+  protected void reconciliationCycle(List<StackGresDistributedLogs> configs) {
+    super.reconciliationCycle(configs);
   }
 
   @Override
-  public void onPostReconciliation(StackGresDistributedLogs config) {
+  protected void onPreReconciliation(StackGresDistributedLogs config) {
+  }
+
+  @Override
+  protected void onPostReconciliation(StackGresDistributedLogs config) {
     refreshConnectedClusters(config);
 
     statusManager.refreshCondition(config);
@@ -113,7 +118,7 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
   }
 
   @Override
-  public void onConfigCreated(StackGresDistributedLogs distributedLogs,
+  protected void onConfigCreated(StackGresDistributedLogs distributedLogs,
                               ReconciliationResult result) {
     final ObjectMeta metadata = distributedLogs.getMetadata();
     eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_CREATED,
@@ -126,7 +131,7 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
   }
 
   @Override
-  public void onConfigUpdated(StackGresDistributedLogs distributedLogs,
+  protected void onConfigUpdated(StackGresDistributedLogs distributedLogs,
                               ReconciliationResult result) {
     final ObjectMeta metadata = distributedLogs.getMetadata();
     eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_UPDATED,
@@ -138,7 +143,7 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
   }
 
   @Override
-  public void onError(Exception ex, StackGresDistributedLogs context) {
+  protected void onError(Exception ex, StackGresDistributedLogs context) {
 
     String message = MessageFormatter.arrayFormat(
         "StackGres DistributeLogs reconciliation cycle failed",

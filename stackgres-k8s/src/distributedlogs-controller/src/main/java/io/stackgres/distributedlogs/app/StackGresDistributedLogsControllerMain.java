@@ -11,9 +11,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
+import com.google.common.collect.ImmutableList;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.distributedlogs.controller.DistributedLogsControllerReconciliationCycle;
 import io.stackgres.operatorframework.reconciliation.ReconciliationCycle.ReconciliationCycleResult;
 import org.jooq.lambda.Seq;
@@ -65,7 +67,15 @@ public class StackGresDistributedLogsControllerMain {
     @Override
     public int run(String... args) throws Exception {
       LOGGER.info("Running StackGres DistributedLogs Controller reconciliation cycle");
-      ReconciliationCycleResult<?> result = reconciliationCycle.reconciliationCycle();
+      ImmutableList<StackGresDistributedLogs> existingContextResources =
+          reconciliationCycle.getExistingContextResources();
+      final ReconciliationCycleResult<?> result;
+      if (existingContextResources.isEmpty()) {
+        result = new ReconciliationCycleResult<>(
+            new Exception("Not able to retrieve StackGres DistributedLogs"));
+      } else {
+        result = reconciliationCycle.reconciliationCycle(existingContextResources);
+      }
       if (!result.success()) {
         RuntimeException ex = Seq.seq(result.getException())
             .append(result.getContextExceptions().values().stream())

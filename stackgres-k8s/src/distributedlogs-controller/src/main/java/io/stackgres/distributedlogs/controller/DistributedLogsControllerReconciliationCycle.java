@@ -158,7 +158,7 @@ public class DistributedLogsControllerReconciliationCycle
   }
 
   @Override
-  protected ImmutableList<StackGresDistributedLogs> getExistingContextResources() {
+  public ImmutableList<StackGresDistributedLogs> getExistingContextResources() {
     return distributedLogsFinder.findByNameAndNamespace(
         propertyContext.getString(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAME),
         propertyContext.getString(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAMESPACE))

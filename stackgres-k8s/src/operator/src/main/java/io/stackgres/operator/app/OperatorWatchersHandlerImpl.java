@@ -7,7 +7,9 @@ package io.stackgres.operator.app;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.function.BiConsumer;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -18,14 +20,15 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher.Action;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupList;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigList;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsList;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsList;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorageList;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigList;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
@@ -33,6 +36,7 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileList;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterBackupConfiguration;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterList;
 import io.stackgres.operator.conciliation.backup.BackupReconciliator;
 import io.stackgres.operator.conciliation.cluster.ClusterReconciliator;
@@ -80,53 +84,67 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
     monitors.add(createWatcher(
         StackGresCluster.class,
         StackGresClusterList.class,
-        reconcileCluster()
-            .andThen(reconcileDistributedLogs())));
-
-    monitors.add(createWatcher(
-        StackGresPostgresConfig.class,
-        StackGresPostgresConfigList.class,
-        reconcileCluster()));
-
-    monitors.add(createWatcher(
-        StackGresPoolingConfig.class,
-        StackGresPoolingConfigList.class,
-        reconcileCluster()));
+        onCreateOrUpdate(
+            reconcileCluster())));
 
     monitors.add(createWatcher(
         StackGresProfile.class,
         StackGresProfileList.class,
-        reconcileCluster()));
+        onCreateOrUpdate(
+            reconcileInstanceProfileClusters()
+            .andThen(reconcileInstanceProfileDistributedLogs())
+            .andThen(reconcileInstanceProfileShardedClusters()))));
 
     monitors.add(createWatcher(
-        StackGresBackupConfig.class,
-        StackGresBackupConfigList.class,
-        reconcileCluster()));
+        StackGresPostgresConfig.class,
+        StackGresPostgresConfigList.class,
+        onCreateOrUpdate(
+            reconcilePostgresConfigClusters()
+            .andThen(reconcilePostgresConfigDistributedLogs())
+            .andThen(reconcilePostgresConfigShardedClusters()))));
+
+    monitors.add(createWatcher(
+        StackGresPoolingConfig.class,
+        StackGresPoolingConfigList.class,
+        onCreateOrUpdate(reconcilePoolingConfigClusters()
+            .andThen(reconcilePoolingConfigShardedClusters()))));
+
+    monitors.add(createWatcher(
+        StackGresObjectStorage.class,
+        StackGresObjectStorageList.class,
+        onCreateOrUpdate(
+            reconcileObjectStorageClusters()
+            .andThen(reconcileObjectStorageShardedClusters()))));
 
     monitors.add(createWatcher(
         StackGresBackup.class,
         StackGresBackupList.class,
-        reconcileBackup()));
+        onCreateOrUpdate(
+            reconcileBackup())));
 
     monitors.add(createWatcher(
         StackGresDbOps.class,
         StackGresDbOpsList.class,
-        reconcileDbOps()));
+        onCreateOrUpdate(
+            reconcileDbOps())));
 
     monitors.add(createWatcher(
         StackGresDistributedLogs.class,
         StackGresDistributedLogsList.class,
-        reconcileDistributedLogs()));
+        onCreateOrUpdate(
+            reconcileDistributedLogs())));
 
     monitors.add(createWatcher(
         StackGresShardedCluster.class,
         StackGresShardedClusterList.class,
-        reconcileShardedCluster()));
+        onCreateOrUpdate(
+            reconcileShardedCluster())));
   }
 
   private <T extends CustomResource<?, ?>,
       L extends DefaultKubernetesResourceList<T>> WatcherMonitor<T> createWatcher(
-      @NotNull Class<T> crClass, @NotNull Class<L> listClass, @NotNull Consumer<Action> consumer) {
+      @NotNull Class<T> crClass, @NotNull Class<L> listClass,
+      @NotNull BiConsumer<Action, T> consumer) {
 
     return new WatcherMonitor<>(crClass.getSimpleName(),
         watcherListener -> client
@@ -135,24 +153,197 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
         .watch(watcherFactory.createWatcher(consumer, watcherListener)));
   }
 
-  private Consumer<Action> reconcileCluster() {
-    return action -> clusterReconciliatorCycle.reconcile();
+  private <T> BiConsumer<Action, T> onCreateOrUpdate(BiConsumer<Action, T> consumer) {
+    return (action, resource) -> {
+      if (action != Action.DELETED) {
+        consumer.accept(action, resource);
+      }
+    };
   }
 
-  private Consumer<Action> reconcileDistributedLogs() {
-    return action -> distributedLogsReconciliatorCycle.reconcile();
+  private BiConsumer<Action, StackGresCluster> reconcileCluster() {
+    return (action, cluster) -> clusterReconciliatorCycle.reconcile(cluster);
   }
 
-  private Consumer<Action> reconcileDbOps() {
-    return action -> dbOpsReconciliatorCycle.reconcile();
+  private BiConsumer<Action, StackGresDistributedLogs> reconcileDistributedLogs() {
+    return (action, distributedlogs) -> distributedLogsReconciliatorCycle
+        .reconcile(distributedlogs);
   }
 
-  private Consumer<Action> reconcileBackup() {
-    return action -> backupReconciliatorCycle.reconcile();
+  private BiConsumer<Action, StackGresShardedCluster> reconcileShardedCluster() {
+    return (action, shardedCluster) -> shardedClusterReconciliatorCycle.reconcile(shardedCluster);
   }
 
-  private Consumer<Action> reconcileShardedCluster() {
-    return action -> shardedClusterReconciliatorCycle.reconcile();
+  private BiConsumer<Action, StackGresDbOps> reconcileDbOps() {
+    return (action, dbops) -> dbOpsReconciliatorCycle.reconcile(dbops);
+  }
+
+  private BiConsumer<Action, StackGresBackup> reconcileBackup() {
+    return (action, backup) -> backupReconciliatorCycle.reconcile(backup);
+  }
+
+  private BiConsumer<Action, StackGresProfile> reconcileInstanceProfileClusters() {
+    return (action, instanceProfile) -> client
+        .resources(StackGresCluster.class, StackGresClusterList.class)
+        .inNamespace(instanceProfile.getMetadata().getNamespace())
+        .list()
+        .getItems()
+        .stream()
+        .filter(cluster -> Objects.equals(
+            cluster.getSpec().getResourceProfile(),
+            instanceProfile.getMetadata().getName()))
+        .forEach(cluster -> reconcileCluster().accept(action, cluster));
+  }
+
+  private BiConsumer<Action, StackGresPostgresConfig> reconcilePostgresConfigClusters() {
+    return (action, postgresConfig) -> client
+        .resources(StackGresCluster.class, StackGresClusterList.class)
+        .inNamespace(postgresConfig.getMetadata().getNamespace())
+        .list()
+        .getItems()
+        .stream()
+        .filter(cluster -> Objects.equals(
+            cluster.getSpec().getConfiguration().getPostgresConfig(),
+            postgresConfig.getMetadata().getName()))
+        .forEach(cluster -> reconcileCluster().accept(action, cluster));
+  }
+
+  private BiConsumer<Action, StackGresPoolingConfig> reconcilePoolingConfigClusters() {
+    return (action, poolingConfig) -> client
+        .resources(StackGresCluster.class, StackGresClusterList.class)
+        .inNamespace(poolingConfig.getMetadata().getNamespace())
+        .list()
+        .getItems()
+        .stream()
+        .filter(cluster -> Objects.equals(
+            cluster.getSpec().getConfiguration().getConnectionPoolingConfig(),
+            poolingConfig.getMetadata().getName()))
+        .forEach(cluster -> reconcileCluster().accept(action, cluster));
+  }
+
+  private BiConsumer<Action, StackGresObjectStorage> reconcileObjectStorageClusters() {
+    return (action, objectStorage) -> client
+        .resources(StackGresCluster.class, StackGresClusterList.class)
+        .inNamespace(objectStorage.getMetadata().getNamespace())
+        .list()
+        .getItems()
+        .stream()
+        .filter(cluster -> Objects.equals(
+            Optional.ofNullable(cluster.getSpec().getConfiguration().getBackups()).orElse(List.of())
+            .stream().findFirst().map(StackGresClusterBackupConfiguration::getObjectStorage)
+            .orElse(null),
+            objectStorage.getMetadata().getName()))
+        .forEach(cluster -> reconcileCluster().accept(action, cluster));
+  }
+
+  private BiConsumer<Action, StackGresProfile> reconcileInstanceProfileDistributedLogs() {
+    return (action, instanceProfile) -> client
+        .resources(StackGresDistributedLogs.class, StackGresDistributedLogsList.class)
+        .inNamespace(instanceProfile.getMetadata().getNamespace())
+        .list()
+        .getItems()
+        .stream()
+        .filter(distributedLogs -> Objects.equals(
+            distributedLogs.getSpec().getResourceProfile(),
+            instanceProfile.getMetadata().getName()))
+        .forEach(distributedLogs -> reconcileDistributedLogs().accept(action, distributedLogs));
+  }
+
+  private BiConsumer<Action, StackGresPostgresConfig> reconcilePostgresConfigDistributedLogs() {
+    return (action, postgresConfig) -> client
+        .resources(StackGresDistributedLogs.class, StackGresDistributedLogsList.class)
+        .inNamespace(postgresConfig.getMetadata().getNamespace())
+        .list()
+        .getItems()
+        .stream()
+        .filter(distributedLogs -> Objects.equals(
+            distributedLogs.getSpec().getConfiguration().getPostgresConfig(),
+            postgresConfig.getMetadata().getName()))
+        .forEach(distributedLogs -> reconcileDistributedLogs().accept(action, distributedLogs));
+  }
+
+  private BiConsumer<Action, StackGresProfile> reconcileInstanceProfileShardedClusters() {
+    return (action, instanceProfile) -> client
+        .resources(StackGresShardedCluster.class, StackGresShardedClusterList.class)
+        .inNamespace(instanceProfile.getMetadata().getNamespace())
+        .list()
+        .getItems()
+        .stream()
+        .filter(shardedCluster -> Objects.equals(
+            shardedCluster.getSpec().getCoordinator().getResourceProfile(),
+            instanceProfile.getMetadata().getName())
+            || Objects.equals(
+                shardedCluster.getSpec().getShards().getResourceProfile(),
+                instanceProfile.getMetadata().getName())
+            || Optional.ofNullable(shardedCluster.getSpec()
+                .getShards().getOverrides()).orElse(List.of())
+            .stream().anyMatch(spec -> Objects
+                .equals(
+                    spec.getResourceProfile(),
+                    instanceProfile.getMetadata().getName())))
+        .forEach(shardedCluster -> reconcileShardedCluster().accept(action, shardedCluster));
+  }
+
+  private BiConsumer<Action, StackGresPostgresConfig> reconcilePostgresConfigShardedClusters() {
+    return (action, postgresConfig) -> client
+        .resources(StackGresShardedCluster.class, StackGresShardedClusterList.class)
+        .inNamespace(postgresConfig.getMetadata().getNamespace())
+        .list()
+        .getItems()
+        .stream()
+        .filter(shardedCluster -> Objects.equals(
+            shardedCluster.getSpec().getCoordinator().getConfiguration().getPostgresConfig(),
+            postgresConfig.getMetadata().getName())
+            || Objects.equals(
+                shardedCluster.getSpec().getShards().getConfiguration().getPostgresConfig(),
+                postgresConfig.getMetadata().getName())
+            || Optional.ofNullable(shardedCluster.getSpec()
+                .getShards().getOverrides()).orElse(List.of())
+            .stream().anyMatch(spec -> spec.getConfiguration() != null
+                && Objects.equals(
+                    spec.getConfiguration().getPostgresConfig(),
+                    postgresConfig.getMetadata().getName())))
+        .forEach(shardedCluster -> reconcileShardedCluster().accept(action, shardedCluster));
+  }
+
+  private BiConsumer<Action, StackGresPoolingConfig> reconcilePoolingConfigShardedClusters() {
+    return (action, poolingConfig) -> client
+        .resources(StackGresShardedCluster.class, StackGresShardedClusterList.class)
+        .inNamespace(poolingConfig.getMetadata().getNamespace())
+        .list()
+        .getItems()
+        .stream()
+        .filter(shardedCluster -> Objects.equals(
+            shardedCluster.getSpec()
+            .getCoordinator().getConfiguration().getConnectionPoolingConfig(),
+            poolingConfig.getMetadata().getName())
+            || Objects.equals(
+                shardedCluster.getSpec()
+                .getShards().getConfiguration().getConnectionPoolingConfig(),
+                poolingConfig.getMetadata().getName())
+            || Optional.ofNullable(shardedCluster.getSpec().getShards().getOverrides())
+            .orElse(List.of())
+            .stream().anyMatch(spec -> spec.getConfiguration() != null
+                && Objects.equals(
+                    spec.getConfiguration().getConnectionPoolingConfig(),
+                    poolingConfig.getMetadata().getName())))
+        .forEach(shardedCluster -> reconcileShardedCluster().accept(action, shardedCluster));
+  }
+
+  private BiConsumer<Action, StackGresObjectStorage> reconcileObjectStorageShardedClusters() {
+    return (action, objectStorage) -> client
+        .resources(StackGresShardedCluster.class, StackGresShardedClusterList.class)
+        .inNamespace(objectStorage.getMetadata().getNamespace())
+        .list()
+        .getItems()
+        .stream()
+        .filter(shardedCluster -> Objects.equals(
+            Optional.ofNullable(shardedCluster.getSpec().getConfiguration().getBackups())
+            .orElse(List.of())
+            .stream().findFirst().map(StackGresShardedClusterBackupConfiguration::getObjectStorage)
+            .orElse(null),
+            objectStorage.getMetadata().getName()))
+        .forEach(shardedCluster -> reconcileShardedCluster().accept(action, shardedCluster));
   }
 
   @Override

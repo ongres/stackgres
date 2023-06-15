@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.backup;
 
+import java.util.List;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
@@ -66,16 +68,21 @@ public class BackupReconciliator
   }
 
   @Override
-  public void onPreReconciliation(StackGresBackup config) {
+  protected void reconciliationCycle(List<StackGresBackup> configs) {
+    super.reconciliationCycle(configs);
+  }
+
+  @Override
+  protected void onPreReconciliation(StackGresBackup config) {
     backupScheduler.update(config, statusManager::refreshCondition);
   }
 
   @Override
-  public void onPostReconciliation(StackGresBackup config) {
+  protected void onPostReconciliation(StackGresBackup config) {
   }
 
   @Override
-  public void onConfigCreated(StackGresBackup backup, ReconciliationResult result) {
+  protected void onConfigCreated(StackGresBackup backup, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(backup, result);
     eventController.sendEvent(BackupEventReason.BACKUP_CREATED,
         "Backup " + backup.getMetadata().getNamespace() + "."
@@ -83,7 +90,7 @@ public class BackupReconciliator
   }
 
   @Override
-  public void onConfigUpdated(StackGresBackup backup, ReconciliationResult result) {
+  protected void onConfigUpdated(StackGresBackup backup, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(backup, result);
     eventController.sendEvent(BackupEventReason.BACKUP_UPDATED,
         "Backup " + backup.getMetadata().getNamespace() + "."
@@ -91,7 +98,7 @@ public class BackupReconciliator
   }
 
   @Override
-  public void onError(Exception ex, StackGresBackup backup) {
+  protected void onError(Exception ex, StackGresBackup backup) {
     String message = MessageFormatter.arrayFormat(
         "Backup reconciliation cycle failed",
         new String[]{

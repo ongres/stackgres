@@ -152,7 +152,7 @@ public class ClusterControllerReconciliationCycle
   }
 
   @Override
-  protected ImmutableList<StackGresCluster> getExistingContextResources() {
+  public ImmutableList<StackGresCluster> getExistingContextResources() {
     return clusterFinder.findByNameAndNamespace(
         propertyContext.getString(ClusterControllerProperty.CLUSTER_NAME),
         propertyContext.getString(ClusterControllerProperty.CLUSTER_NAMESPACE))

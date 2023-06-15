@@ -25,7 +25,7 @@ public class ReconciliationClockImpl extends AbstractReconciliationClock {
 
   @Override
   protected void reconcile() {
-    reconciliators.forEach(AbstractReconciliator::reconcile);
+    reconciliators.forEach(AbstractReconciliator::reconcileAll);
   }
 
 }

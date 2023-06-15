@@ -6,7 +6,6 @@
 package io.stackgres.operatorframework.reconciliation;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -15,6 +14,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -40,6 +40,8 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
   protected final Reconciliator<T> reconciliator;
   protected final S handlerSelector;
   private final ExecutorService executorService;
+  private final AtomicReference<ImmutableList<H>> atomicReference =
+      new AtomicReference<>(ImmutableList.of());
   private final ArrayBlockingQueue<Boolean> arrayBlockingQueue = new ArrayBlockingQueue<>(1);
 
   private final CompletableFuture<Void> stopped = new CompletableFuture<>();
@@ -63,16 +65,40 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
 
   public void stop() {
     close = true;
-    reconcile();
+    reconcile(ImmutableList.of());
     executorService.shutdown();
-    reconcile();
+    reconcile(ImmutableList.of());
     stopped.join();
+  }
+
+  public void reconcileAll() {
+    reconcile(tryGetExistingContextResources());
+  }
+
+  public void reconcile(H existingContextResource) {
+    reconcile(ImmutableList.of(existingContextResource));
   }
 
   @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED_BAD_PRACTICE",
       justification = "We do not care if queue is already filled")
-  public void reconcile() {
-    arrayBlockingQueue.offer(Boolean.TRUE);
+  public void reconcile(List<H> existingContextResources) {
+    atomicReference.updateAndGet(atomicExistingContextResources -> Seq
+        .seq(atomicExistingContextResources)
+        .filter(atomicExistingContextResource -> existingContextResources.stream()
+            .anyMatch(existingContextResource -> sameConfig(
+                atomicExistingContextResource, existingContextResource)))
+        .append(existingContextResources)
+        .collect(ImmutableList.toImmutableList()));
+    arrayBlockingQueue.offer(true);
+  }
+
+  private boolean sameConfig(H foundConfig, H newConfig) {
+    return Objects.equals(
+            foundConfig.getMetadata().getNamespace(),
+            newConfig.getMetadata().getNamespace())
+        && Objects.equals(
+            foundConfig.getMetadata().getName(),
+            newConfig.getMetadata().getName());
   }
 
   private void reconciliationCycleLoop() {
@@ -80,10 +106,11 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
     while (true) {
       try {
         arrayBlockingQueue.take();
+        ImmutableList<H> existingContextResources = atomicReference.getAndSet(ImmutableList.of());
         if (close) {
           break;
         }
-        reconciliationCycle();
+        reconciliationCycle(existingContextResources);
       } catch (Exception ex) {
         logger.error(name + " reconciliation cycle loop was interrupted", ex);
       }
@@ -92,27 +119,13 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
     stopped.complete(null);
   }
 
-  public synchronized ReconciliationCycleResult<H> reconciliationCycle() {
+  public synchronized ReconciliationCycleResult<H> reconciliationCycle(
+      ImmutableList<H> existingContextResources) {
     final ImmutableMap.Builder<H, Exception> contextExceptions = ImmutableMap.builder();
     final int cycleId = reconciliationCount.incrementAndGet();
     final String cycleName = cycleId + "| " + name + " reconciliation cycle";
 
     logger.trace("{} starting", cycleName);
-    logger.trace("{} getting existing {} list", cycleName, name.toLowerCase(Locale.US));
-    final ImmutableList<H> existingContextResources;
-
-    try {
-      existingContextResources = getExistingContextResources();
-    } catch (RuntimeException ex) {
-      logger.error(cycleName + " failed", ex);
-      try {
-        onError(ex);
-      } catch (RuntimeException rex) {
-        logger.error(cycleName
-            + " failed sending event while retrieving reconciliation cycle contexts", rex);
-      }
-      return new ReconciliationCycleResult<>(ex);
-    }
 
     try {
       for (H contextResource : existingContextResources) {
@@ -257,17 +270,28 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
         .findAny();
   }
 
+  private ImmutableList<H> tryGetExistingContextResources() {
+    try {
+      return getExistingContextResources();
+    } catch (RuntimeException ex) {
+      logger.error("reconcile all failed", ex);
+      try {
+        onError(ex);
+      } catch (RuntimeException rex) {
+        logger.error("reconcile all"
+            + " failed sending event while retrieving reconciliation cycle contexts", rex);
+      }
+    }
+
+    return ImmutableList.of();
+  }
+
   protected abstract ImmutableList<H> getExistingContextResources();
 
   protected abstract T getContextFromResource(H contextResource);
 
   private ImmutableList<HasMetadata> getExistingResources(KubernetesClient client, T context) {
-    return ImmutableList.<HasMetadata>builder()
-        .addAll(handlerSelector.getResources(client, context)
-            .iterator())
-        .build()
-        .stream()
-        .collect(ImmutableList.toImmutableList());
+    return handlerSelector.getResources(client, context).collect(ImmutableList.toImmutableList());
   }
 
 }

@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -73,7 +74,12 @@ public class ClusterReconciliator
   }
 
   @Override
-  public void onPreReconciliation(StackGresCluster config) {
+  protected void reconciliationCycle(List<StackGresCluster> configs) {
+    super.reconciliationCycle(configs);
+  }
+
+  @Override
+  protected void onPreReconciliation(StackGresCluster config) {
     if (PostgresConfigValidator.BUGGY_PG_VERSIONS.keySet()
         .contains(config.getSpec().getPostgres().getVersion())) {
       eventController.sendEvent(ClusterEventReason.CLUSTER_SECURITY_WARNING,
@@ -86,7 +92,7 @@ public class ClusterReconciliator
   }
 
   @Override
-  public void onPostReconciliation(StackGresCluster config) {
+  protected void onPostReconciliation(StackGresCluster config) {
     statusManager.refreshCondition(config);
 
     clusterScheduler.update(config,
@@ -118,7 +124,7 @@ public class ClusterReconciliator
   }
 
   @Override
-  public void onConfigCreated(StackGresCluster cluster, ReconciliationResult result) {
+  protected void onConfigCreated(StackGresCluster cluster, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(cluster, result);
     eventController.sendEvent(ClusterEventReason.CLUSTER_CREATED,
         "Cluster " + cluster.getMetadata().getNamespace() + "."
@@ -128,7 +134,7 @@ public class ClusterReconciliator
   }
 
   @Override
-  public void onConfigUpdated(StackGresCluster cluster, ReconciliationResult result) {
+  protected void onConfigUpdated(StackGresCluster cluster, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(cluster, result);
     eventController.sendEvent(ClusterEventReason.CLUSTER_UPDATED,
         "Cluster " + cluster.getMetadata().getNamespace() + "."
@@ -138,7 +144,7 @@ public class ClusterReconciliator
   }
 
   @Override
-  public void onError(Exception ex, StackGresCluster cluster) {
+  protected void onError(Exception ex, StackGresCluster cluster) {
     String message = MessageFormatter.arrayFormat(
         "Cluster reconciliation cycle failed",
         new String[]{

@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
@@ -13,9 +14,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -59,11 +60,11 @@ class CustomResourceConciliatorTest {
   void shouldNotRunReconciliationIfReconciliationMethodIsNotCalled() throws Exception {
     Thread.sleep(1000);
 
-    verify(reconciliator, times(0)).reconciliationCycle();
+    verify(reconciliator, times(0)).reconciliationCycle(List.of());
 
     reconciliator.stop();
 
-    verify(reconciliator, times(0)).reconciliationCycle();
+    verify(reconciliator, times(0)).reconciliationCycle(any());
     verify(reconciliator, times(0)).onPreReconciliation(any());
     verify(reconciliator, times(0)).onPostReconciliation(any());
     verify(reconciliator, times(0)).onError(any(), any());
@@ -73,19 +74,21 @@ class CustomResourceConciliatorTest {
 
   @Test
   void shouldRunReconciliationOnceIfReconciliationMethodIsCalledOnce() {
-    when(scanner.getResources())
-        .thenReturn(ImmutableList.of());
+    when(conciliator.evalReconciliationState(any()))
+        .thenReturn(new ReconciliationResult(
+            List.of(),
+            List.of(),
+            List.of()));
 
-    reconciliator.reconcile();
+    reconciliator.reconcile(customResource);
 
-    verify(reconciliator, timeout(1000).times(1)).reconciliationCycle();
+    verify(reconciliator, timeout(1000).times(1)).reconciliationCycle(any());
 
     reconciliator.stop();
 
-    verify(reconciliator, times(1)).reconciliationCycle();
-    verify(reconciliator, times(1)).reconciliationCycle();
-    verify(reconciliator, times(0)).onPreReconciliation(any());
-    verify(reconciliator, times(0)).onPostReconciliation(any());
+    verify(reconciliator, times(1)).reconciliationCycle(any());
+    verify(reconciliator, times(1)).onPreReconciliation(any());
+    verify(reconciliator, times(1)).onPostReconciliation(any());
     verify(reconciliator, times(0)).onError(any(), any());
     verify(reconciliator, times(0)).onConfigCreated(any(), any());
     verify(reconciliator, times(0)).onConfigUpdated(any(), any());
@@ -99,35 +102,33 @@ class CustomResourceConciliatorTest {
       waitExternal.complete(null);
       waitInternal.join();
       return null;
-    }).when(reconciliator).reconciliationCycle();
+    }).when(reconciliator).reconciliationCycle(any());
 
-    reconciliator.reconcile();
+    reconciliator.reconcileAll();
     waitExternal.join();
-    reconciliator.reconcile();
-    reconciliator.reconcile();
+    reconciliator.reconcileAll();
+    reconciliator.reconcileAll();
     waitInternal.complete(null);
 
-    verify(reconciliator, timeout(1000).times(2)).reconciliationCycle();
+    verify(reconciliator, timeout(1000).times(2)).reconciliationCycle(List.of());
 
     reconciliator.stop();
 
-    verify(reconciliator, times(2)).reconciliationCycle();
+    verify(reconciliator, times(2)).reconciliationCycle(any());
   }
 
   @Test
   void shouldCallOnErrorOnceIfReconciliationMethodIsCalledOnceAndThrowsError() {
-    when(scanner.getResources())
-        .thenReturn(ImmutableList.of(customResource));
     when(conciliator.evalReconciliationState(any()))
         .thenThrow(RuntimeException.class);
 
-    reconciliator.reconcile();
+    reconciliator.reconcile(customResource);
 
-    verify(reconciliator, timeout(1000).times(1)).reconciliationCycle();
+    verify(reconciliator, timeout(1000).times(1)).reconciliationCycle(List.of(customResource));
 
     reconciliator.stop();
 
-    verify(reconciliator, times(1)).reconciliationCycle();
+    verify(reconciliator, times(1)).reconciliationCycle(any());
     verify(reconciliator, times(1)).onPreReconciliation(any());
     verify(reconciliator, times(0)).onPostReconciliation(any());
     verify(reconciliator, times(1)).onError(any(), any());
@@ -137,21 +138,19 @@ class CustomResourceConciliatorTest {
 
   @Test
   void shouldCallOnPostReconciliationIfReconciliationMethodIsCalledOnce() {
-    when(scanner.getResources())
-        .thenReturn(ImmutableList.of(customResource));
     when(conciliator.evalReconciliationState(any()))
         .thenReturn(new ReconciliationResult(
-            ImmutableList.of(),
-            ImmutableList.of(),
-            ImmutableList.of()));
+            List.of(),
+            List.of(),
+            List.of()));
 
-    reconciliator.reconcile();
+    reconciliator.reconcile(customResource);
 
-    verify(reconciliator, timeout(1000).times(1)).reconciliationCycle();
+    verify(reconciliator, timeout(1000).times(1)).reconciliationCycle(List.of(customResource));
 
     reconciliator.stop();
 
-    verify(reconciliator, times(1)).reconciliationCycle();
+    verify(reconciliator, times(1)).reconciliationCycle(any());
     verify(reconciliator, times(1)).onPreReconciliation(any());
     verify(reconciliator, times(1)).onPostReconciliation(any());
     verify(reconciliator, times(0)).onError(any(), any());
@@ -161,27 +160,25 @@ class CustomResourceConciliatorTest {
 
   @Test
   void shouldCallOnConfigCreatedIfReconciliationMethodIsCalledOnce() {
-    when(scanner.getResources())
-        .thenReturn(ImmutableList.of(customResource));
     when(conciliator.evalReconciliationState(any()))
         .thenReturn(new ReconciliationResult(
-            ImmutableList.of(
+            List.of(
                 new ConfigMapBuilder()
                 .withNewMetadata()
                 .withNamespace("test-namespace")
                 .withName("test")
                 .endMetadata()
                 .build()),
-            ImmutableList.of(),
-            ImmutableList.of()));
+            List.of(),
+            List.of()));
 
-    reconciliator.reconcile();
+    reconciliator.reconcile(customResource);
 
-    verify(reconciliator, timeout(1000).times(1)).reconciliationCycle();
+    verify(reconciliator, timeout(1000).times(1)).reconciliationCycle(eq(List.of(customResource)));
 
     reconciliator.stop();
 
-    verify(reconciliator, times(1)).reconciliationCycle();
+    verify(reconciliator, times(1)).reconciliationCycle(any());
     verify(reconciliator, times(1)).onPreReconciliation(any());
     verify(reconciliator, times(1)).onPostReconciliation(any());
     verify(reconciliator, times(0)).onError(any(), any());
@@ -191,12 +188,10 @@ class CustomResourceConciliatorTest {
 
   @Test
   void shouldCallOnConfigUpdatedIfReconciliationMethodIsCalledOnce() {
-    when(scanner.getResources())
-        .thenReturn(ImmutableList.of(customResource));
     when(conciliator.evalReconciliationState(any()))
         .thenReturn(new ReconciliationResult(
-            ImmutableList.of(),
-            ImmutableList.of(Tuple.tuple(
+            List.of(),
+            List.of(Tuple.tuple(
                 new ConfigMapBuilder()
                 .withNewMetadata()
                 .withNamespace("test-namespace")
@@ -209,15 +204,15 @@ class CustomResourceConciliatorTest {
                 .withName("test")
                 .endMetadata()
                 .build())),
-            ImmutableList.of()));
+            List.of()));
 
-    reconciliator.reconcile();
+    reconciliator.reconcile(customResource);
 
-    verify(reconciliator, timeout(1000).times(1)).reconciliationCycle();
+    verify(reconciliator, timeout(1000).times(1)).reconciliationCycle(List.of(customResource));
 
     reconciliator.stop();
 
-    verify(reconciliator, times(1)).reconciliationCycle();
+    verify(reconciliator, times(1)).reconciliationCycle(any());
     verify(reconciliator, times(1)).onPreReconciliation(any());
     verify(reconciliator, times(1)).onPostReconciliation(any());
     verify(reconciliator, times(0)).onError(any(), any());
@@ -227,13 +222,11 @@ class CustomResourceConciliatorTest {
 
   @Test
   void shouldCallOnConfigUpdatedIfReconciliationMethodIsCalledOnceHavingDeletions() {
-    when(scanner.getResources())
-        .thenReturn(ImmutableList.of(customResource));
     when(conciliator.evalReconciliationState(any()))
         .thenReturn(new ReconciliationResult(
-            ImmutableList.of(),
-            ImmutableList.of(),
-            ImmutableList.of(
+            List.of(),
+            List.of(),
+            List.of(
                 new ConfigMapBuilder()
                 .withNewMetadata()
                 .withNamespace("test-namespace")
@@ -241,18 +234,27 @@ class CustomResourceConciliatorTest {
                 .endMetadata()
                 .build())));
 
-    reconciliator.reconcile();
+    reconciliator.reconcile(customResource);
 
-    verify(reconciliator, timeout(1000).times(1)).reconciliationCycle();
+    verify(reconciliator, timeout(1000).times(1)).reconciliationCycle(List.of(customResource));
 
     reconciliator.stop();
 
-    verify(reconciliator, times(1)).reconciliationCycle();
+    verify(reconciliator, times(1)).reconciliationCycle(any());
     verify(reconciliator, times(1)).onPreReconciliation(any());
     verify(reconciliator, times(1)).onPostReconciliation(any());
     verify(reconciliator, times(0)).onError(any(), any());
     verify(reconciliator, times(0)).onConfigCreated(any(), any());
     verify(reconciliator, times(1)).onConfigUpdated(any(), any());
+  }
+
+  @Test
+  void shouldCallScannerIfReconciliationAllMethodIsCalled() {
+    reconciliator.reconcileAll();
+
+    verify(scanner, times(1)).getResources();
+
+    verify(reconciliator, timeout(1000).times(1)).reconciliationCycle(List.of());
   }
 
   private AbstractReconciliator<CustomResource<Object, Object>> buildConciliator() {
