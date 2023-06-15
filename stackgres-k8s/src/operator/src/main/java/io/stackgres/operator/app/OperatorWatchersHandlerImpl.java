@@ -15,9 +15,14 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
+import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.EndpointsList;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watcher.Action;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupList;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -81,13 +86,13 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
 
   @Override
   public void startWatchers() {
-    monitors.add(createWatcher(
+    monitors.add(createCustomResourceWatcher(
         StackGresCluster.class,
         StackGresClusterList.class,
         onCreateOrUpdate(
             reconcileCluster())));
 
-    monitors.add(createWatcher(
+    monitors.add(createCustomResourceWatcher(
         StackGresProfile.class,
         StackGresProfileList.class,
         onCreateOrUpdate(
@@ -95,7 +100,7 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
             .andThen(reconcileInstanceProfileDistributedLogs())
             .andThen(reconcileInstanceProfileShardedClusters()))));
 
-    monitors.add(createWatcher(
+    monitors.add(createCustomResourceWatcher(
         StackGresPostgresConfig.class,
         StackGresPostgresConfigList.class,
         onCreateOrUpdate(
@@ -103,49 +108,66 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
             .andThen(reconcilePostgresConfigDistributedLogs())
             .andThen(reconcilePostgresConfigShardedClusters()))));
 
-    monitors.add(createWatcher(
+    monitors.add(createCustomResourceWatcher(
         StackGresPoolingConfig.class,
         StackGresPoolingConfigList.class,
         onCreateOrUpdate(reconcilePoolingConfigClusters()
             .andThen(reconcilePoolingConfigShardedClusters()))));
 
-    monitors.add(createWatcher(
+    monitors.add(createCustomResourceWatcher(
         StackGresObjectStorage.class,
         StackGresObjectStorageList.class,
         onCreateOrUpdate(
             reconcileObjectStorageClusters()
             .andThen(reconcileObjectStorageShardedClusters()))));
 
-    monitors.add(createWatcher(
+    monitors.add(createCustomResourceWatcher(
         StackGresBackup.class,
         StackGresBackupList.class,
         onCreateOrUpdate(
             reconcileBackup())));
 
-    monitors.add(createWatcher(
+    monitors.add(createCustomResourceWatcher(
         StackGresDbOps.class,
         StackGresDbOpsList.class,
         onCreateOrUpdate(
             reconcileDbOps())));
 
-    monitors.add(createWatcher(
+    monitors.add(createCustomResourceWatcher(
         StackGresDistributedLogs.class,
         StackGresDistributedLogsList.class,
         onCreateOrUpdate(
             reconcileDistributedLogs())));
 
-    monitors.add(createWatcher(
+    monitors.add(createCustomResourceWatcher(
         StackGresShardedCluster.class,
         StackGresShardedClusterList.class,
         onCreateOrUpdate(
             reconcileShardedCluster())));
+
+    monitors.add(createWatcher(
+        Endpoints.class,
+        EndpointsList.class,
+        onCreateOrUpdate(
+            reconcileEndpointsShardedClusters())));
   }
 
   private <T extends CustomResource<?, ?>,
-      L extends DefaultKubernetesResourceList<T>> WatcherMonitor<T> createWatcher(
+      L extends DefaultKubernetesResourceList<T>> WatcherMonitor<T> createCustomResourceWatcher(
       @NotNull Class<T> crClass, @NotNull Class<L> listClass,
       @NotNull BiConsumer<Action, T> consumer) {
 
+    return new WatcherMonitor<>(crClass.getSimpleName(),
+        watcherListener -> client
+        .resources(crClass, listClass)
+        .inAnyNamespace()
+        .watch(watcherFactory.createWatcher(consumer, watcherListener)));
+  }
+
+  private <T extends HasMetadata,
+      L extends KubernetesResourceList<T>> WatcherMonitor<T> createWatcher(
+      @NotNull Class<T> crClass, @NotNull Class<L> listClass,
+      @NotNull BiConsumer<Action, T> consumer) {
     return new WatcherMonitor<>(crClass.getSimpleName(),
         watcherListener -> client
         .resources(crClass, listClass)
@@ -343,6 +365,22 @@ public class OperatorWatchersHandlerImpl implements OperatorWatcherHandler {
             .stream().findFirst().map(StackGresShardedClusterBackupConfiguration::getObjectStorage)
             .orElse(null),
             objectStorage.getMetadata().getName()))
+        .forEach(shardedCluster -> reconcileShardedCluster().accept(action, shardedCluster));
+  }
+
+  private BiConsumer<Action, Endpoints> reconcileEndpointsShardedClusters() {
+    String clusterScopeKey =
+        StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.CLUSTER_SCOPE_KEY;
+    return (action, endpoints) -> client
+        .resources(StackGresShardedCluster.class, StackGresShardedClusterList.class)
+        .inNamespace(endpoints.getMetadata().getNamespace())
+        .list()
+        .getItems()
+        .stream()
+        .filter(shardedCluster -> endpoints.getMetadata().getLabels() != null)
+        .filter(shardedCluster -> Objects.equals(
+            endpoints.getMetadata().getLabels().get(clusterScopeKey),
+            shardedCluster.getMetadata().getName()))
         .forEach(shardedCluster -> reconcileShardedCluster().accept(action, shardedCluster));
   }
 
