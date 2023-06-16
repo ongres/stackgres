@@ -19,7 +19,6 @@ import java.util.concurrent.CompletableFuture;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.resource.CustomResourceScanner;
 import org.jooq.lambda.tuple.Tuple;
@@ -30,20 +29,20 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class CustomResourceConciliatorTest {
+class AbstractConciliatorTest {
 
   @Mock
-  private CustomResourceScanner<CustomResource<Object, Object>> scanner;
+  private CustomResourceScanner<TestResource> scanner;
 
   @Mock
-  private Conciliator<CustomResource<Object, Object>> conciliator;
+  private Conciliator<TestResource> conciliator;
 
   @Mock
-  private HandlerDelegator<CustomResource<Object, Object>> handlerDelegator;
+  private HandlerDelegator<TestResource> handlerDelegator;
 
-  private CustomResource<Object, Object> customResource;
+  private TestResource customResource;
 
-  private AbstractReconciliator<CustomResource<Object, Object>> reconciliator;
+  private AbstractReconciliator<TestResource> reconciliator;
 
   @BeforeEach
   void setUp() {
@@ -115,6 +114,40 @@ class CustomResourceConciliatorTest {
     reconciliator.stop();
 
     verify(reconciliator, times(2)).reconciliationCycle(any());
+  }
+
+  @Test
+  void shouldRunOnSingleCustomResourceIfMethodIsCalledTwiceWithSameCustomResourceWhileRunning() {
+    CompletableFuture<Void> waitInternal = new CompletableFuture<>();
+    CompletableFuture<Void> waitExternal = new CompletableFuture<>();
+    doAnswer(invocation -> {
+      waitExternal.complete(null);
+      waitInternal.join();
+      return null;
+    }).when(reconciliator).reconciliationCycle(any());
+
+    var testResource1 = new TestResource();
+    testResource1.setMetadata(new ObjectMeta());
+    testResource1.getMetadata().setName("test1");
+    testResource1.getMetadata().setNamespace("test");
+    var testResource2 = new TestResource();
+    testResource2.setMetadata(new ObjectMeta());
+    testResource2.getMetadata().setName("test2");
+    testResource2.getMetadata().setNamespace("test");
+    reconciliator.reconcile(testResource1);
+    waitExternal.join();
+    reconciliator.reconcile(testResource1);
+    reconciliator.reconcile(testResource1);
+    reconciliator.reconcile(testResource2);
+    waitInternal.complete(null);
+
+    verify(reconciliator, timeout(1000).times(2)).reconciliationCycle(any());
+
+    reconciliator.stop();
+
+    verify(reconciliator, times(2)).reconciliationCycle(any());
+    verify(reconciliator, times(1)).reconciliationCycle(List.of(testResource1));
+    verify(reconciliator, times(1)).reconciliationCycle(List.of(testResource1, testResource2));
   }
 
   @Test
@@ -257,43 +290,43 @@ class CustomResourceConciliatorTest {
     verify(reconciliator, timeout(1000).times(1)).reconciliationCycle(List.of());
   }
 
-  private AbstractReconciliator<CustomResource<Object, Object>> buildConciliator() {
-    final AbstractReconciliator<CustomResource<Object, Object>> reconciliator =
+  private AbstractReconciliator<TestResource> buildConciliator() {
+    final AbstractReconciliator<TestResource> reconciliator =
         new TestReconciliator(scanner, conciliator, handlerDelegator, null);
     return reconciliator;
   }
 
   public static class TestReconciliator
-      extends AbstractReconciliator<CustomResource<Object, Object>> {
+      extends AbstractReconciliator<TestResource> {
 
     TestReconciliator(
-        CustomResourceScanner<CustomResource<Object, Object>> scanner,
-        Conciliator<CustomResource<Object, Object>> conciliator,
-        HandlerDelegator<CustomResource<Object, Object>> handlerDelegator,
+        CustomResourceScanner<TestResource> scanner,
+        Conciliator<TestResource> conciliator,
+        HandlerDelegator<TestResource> handlerDelegator,
         KubernetesClient client) {
       super(scanner, conciliator, handlerDelegator, client, "Test");
     }
 
     @Override
-    public void onPreReconciliation(CustomResource<Object, Object> config) {
+    public void onPreReconciliation(TestResource config) {
     }
 
     @Override
-    public void onPostReconciliation(CustomResource<Object, Object> config) {
+    public void onPostReconciliation(TestResource config) {
     }
 
     @Override
-    public void onConfigCreated(CustomResource<Object, Object> context,
+    public void onConfigCreated(TestResource context,
         ReconciliationResult result) {
     }
 
     @Override
-    public void onConfigUpdated(CustomResource<Object, Object> context,
+    public void onConfigUpdated(TestResource context,
         ReconciliationResult result) {
     }
 
     @Override
-    public void onError(Exception e, CustomResource<Object, Object> context) {
+    public void onError(Exception e, TestResource context) {
     }
   }
 }

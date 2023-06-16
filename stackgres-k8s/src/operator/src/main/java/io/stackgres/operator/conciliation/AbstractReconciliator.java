@@ -103,7 +103,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     atomicReference.updateAndGet(atomicConfigs -> Seq
         .seq(atomicConfigs)
         .filter(atomicConfig -> configs.stream()
-            .anyMatch(config -> sameConfig(atomicConfig, config)))
+            .noneMatch(config -> sameConfig(atomicConfig, config)))
         .append(configs)
         .toList());
     arrayBlockingQueue.offer(true);
