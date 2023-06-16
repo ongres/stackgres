@@ -2,7 +2,7 @@
 title: Graceful Switchover
 weight: 1
 url: /administration/patroni/switchover
-description: Details about how to use Patroni to handle the database replicas and primary nodes.
+description: Details about how to use Patroni to perform a controlled switchover.
 ---
 
 ## Performing a Switchover to a Replica
@@ -14,13 +14,13 @@ The switchover allows you to switch the roles of the databases so that the stand
 
 To perform this we will use the `patronictl switchover` command:
 
-As we can see in the cluster status shown before the master node is the one called `stackgres-0` with the leader role and we going to switch it to the node called `stackgres-1` so we run:
+As we can see in the cluster status shown before the primary node is the one called `stackgres-0` with the leader role and we going to switch it to the node called `stackgres-1` so we run:
 
 ```
 bash-4.4$ patronictl switchover
 ```
 
-Then we will be asked for the master node (note that the command already give us the master node name):
+Then we will be asked for the primary node (note that the command already give us the primary node name):
 
 ```
 Master [stackgres-0]:
@@ -38,7 +38,7 @@ and when we want to make the change:
 When should the switchover take place (e.g. 2020-01-16T17:23 )  [now]:
 ```
 
-And as a final question and warning, this show us the current status and if we want to proceed with the change:
+And as a final question and warning, this show us the current status and asks if we want to proceed with the change:
 
 ```
 Current cluster topology
@@ -65,7 +65,7 @@ After accept the change Patroni will output the operation status and the new clu
 +-----------+-------------+------------------+--------+---------+----+-----------+
 ```
 
-The old master node `stackgres-0` will be stopped and then re-joined to the cluster as a replica.
+The old primary node `stackgres-0` will be stopped and then re-joined to the cluster as a replica.
 
 ```
 bash-4.4$ patronictl list
@@ -78,5 +78,4 @@ bash-4.4$ patronictl list
 +-----------+-------------+------------------+--------+---------+----+-----------+
 ```
 
-**Important note:** We strongly recommend to not manipulate the cluster with any other `patronictl` to avoid data lost or damage the entire configuration.
-Use de command explained above only if you know what are you doing.
+> **IMPORTANT NOTE:** We strongly recommend to not manipulate the cluster with any other `patronictl` to avoid data lost or damage the entire configuration. Use the command explained above only if you know what are you doing.
