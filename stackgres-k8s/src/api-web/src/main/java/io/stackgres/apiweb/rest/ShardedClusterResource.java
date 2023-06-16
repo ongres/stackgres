@@ -10,7 +10,6 @@ import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNA
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -45,7 +44,6 @@ import io.stackgres.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -68,7 +66,7 @@ import org.jooq.lambda.tuple.Tuple4;
 @RequestScoped
 @Authenticated
 public class ShardedClusterResource
-    extends AbstractRestServiceDependency<ShardedClusterDto, StackGresShardedCluster> {
+    extends AbstractRestService<ShardedClusterDto, StackGresShardedCluster> {
 
   public static final String DEFAULT_SCRIPT_KEY = ScriptResource.DEFAULT_SCRIPT_KEY;
 
@@ -102,25 +100,6 @@ public class ShardedClusterResource
     this.secretFinder = secretFinder;
     this.configMapFinder = configMapFinder;
     this.serviceFinder = serviceFinder;
-  }
-
-  @Override
-  public boolean belongsToCluster(StackGresShardedCluster resource, StackGresCluster cluster) {
-    String shardedNamespace = resource.getMetadata().getNamespace();
-    String clusterNamespace = cluster.getMetadata().getNamespace();
-
-    if (!Objects.equals(shardedNamespace, clusterNamespace)) {
-      return false;
-    }
-
-    String shardedName = resource.getMetadata().getName();
-    return Optional.of(cluster)
-        .map(StackGresCluster::getMetadata)
-        .map(ObjectMeta::getOwnerReferences)
-        .stream()
-        .flatMap(List::stream)
-        .anyMatch(ownerReference -> Objects.equals(shardedName, ownerReference.getName())
-            && Objects.equals(StackGresShardedCluster.KIND, ownerReference.getKind()));
   }
 
   @Operation(

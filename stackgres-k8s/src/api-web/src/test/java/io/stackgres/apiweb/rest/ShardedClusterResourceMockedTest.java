@@ -53,6 +53,7 @@ import io.stackgres.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
@@ -65,6 +66,7 @@ import io.stackgres.common.labels.ClusterLabelMapper;
 import io.stackgres.common.labels.ShardedClusterLabelFactory;
 import io.stackgres.common.labels.ShardedClusterLabelMapper;
 import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.PersistentVolumeClaimFinder;
 import io.stackgres.common.resource.PodFinder;
@@ -84,7 +86,7 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ShardedClusterResourceMockedTest extends
-    AbstractDependencyCustomResourceTest<ShardedClusterDto, StackGresShardedCluster,
+    AbstractCustomResourceTest<ShardedClusterDto, StackGresShardedCluster,
       ShardedClusterResource, NamespacedShardedClusterResource> {
 
   @Mock
@@ -92,6 +94,8 @@ class ShardedClusterResourceMockedTest extends
 
   @Mock
   private CustomResourceFinder<StackGresShardedCluster> shardedClusterFinder;
+  @Mock
+  protected CustomResourceScanner<StackGresCluster> clusterScanner;
   @Mock
   private CustomResourceScheduler<StackGresScript> scriptScheduler;
   @Mock
@@ -186,7 +190,7 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void createShardedClusterWithScriptReference_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
 
     super.createShouldNotFail();
 
@@ -207,7 +211,7 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void updateShardedClusterWithScriptReference_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
 
     super.updateShouldNotFail();
 
@@ -228,9 +232,9 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void createShardedClusterWithExistingInlineScript_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
     ScriptSpec scriptSpec = buildInlineScriptSpec();
-    resourceDto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
+    dto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
         .setScriptSpec(scriptSpec);
 
     when(scriptFinder.findByNameAndNamespace(any(), any()))
@@ -255,9 +259,9 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void createShardedClusterWithInlineScript_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
     ScriptSpec scriptSpec = buildInlineScriptSpec();
-    resourceDto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
+    dto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
         .setScriptSpec(scriptSpec);
 
     super.createShouldNotFail();
@@ -279,10 +283,10 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void createShardedClusterWithInlineScriptWithoutName_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
     ScriptSpec scriptSpec = buildInlineScriptSpec();
-    resourceDto.getSpec().getCoordinator().getManagedSql().getScripts().get(0).setSgScript(null);
-    resourceDto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
+    dto.getSpec().getCoordinator().getManagedSql().getScripts().get(0).setSgScript(null);
+    dto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
         .setScriptSpec(scriptSpec);
 
     super.createShouldNotFail();
@@ -304,9 +308,9 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void createShardedClusterWithSecretScript_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
     ScriptSpec scriptSpec = buildSecretScriptSpec();
-    resourceDto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
+    dto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
         .setScriptSpec(scriptSpec);
 
     super.createShouldNotFail();
@@ -316,7 +320,7 @@ class ShardedClusterResourceMockedTest extends
     verify(secretWriter).create(secretArgument.capture());
 
     Secret createdSecret = secretArgument.getValue();
-    assertEquals(resourceDto.getMetadata().getNamespace(),
+    assertEquals(dto.getMetadata().getNamespace(),
         createdSecret.getMetadata().getNamespace());
 
     final ScriptFrom scriptFrom = scriptSpec.getScripts().get(0).getScriptFrom();
@@ -345,9 +349,9 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void createShardedClusterWithExistingSecretScript_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
     ScriptSpec scriptSpec = buildSecretScriptSpec();
-    resourceDto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
+    dto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
         .setScriptSpec(scriptSpec);
 
     when(secretFinder.findByNameAndNamespace(any(), any()))
@@ -360,7 +364,7 @@ class ShardedClusterResourceMockedTest extends
     verify(secretWriter).update(secretArgument.capture());
 
     Secret createdSecret = secretArgument.getValue();
-    assertEquals(resourceDto.getMetadata().getNamespace(),
+    assertEquals(dto.getMetadata().getNamespace(),
         createdSecret.getMetadata().getNamespace());
 
     final ScriptFrom scriptFrom = scriptSpec.getScripts().get(0).getScriptFrom();
@@ -389,10 +393,10 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void createShardedClusterWithSecretScriptWithoutName_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
     ScriptSpec scriptSpec = buildSecretScriptSpec();
     scriptSpec.getScripts().get(0).getScriptFrom().setSecretKeyRef(null);
-    resourceDto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
+    dto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
         .setScriptSpec(scriptSpec);
 
     super.createShouldNotFail();
@@ -402,7 +406,7 @@ class ShardedClusterResourceMockedTest extends
     verify(secretWriter).create(secretArgument.capture());
 
     Secret createdSecret = secretArgument.getValue();
-    assertEquals(resourceDto.getMetadata().getNamespace(),
+    assertEquals(dto.getMetadata().getNamespace(),
         createdSecret.getMetadata().getNamespace());
 
     final ScriptFrom scriptFrom = scriptSpec.getScripts().get(0).getScriptFrom();
@@ -431,9 +435,9 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void createShardedClusterWithConfigMapScript_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
     ScriptSpec scriptSpec = buildConfigMapScriptSpec();
-    resourceDto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
+    dto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
         .setScriptSpec(scriptSpec);
 
     super.createShouldNotFail();
@@ -443,7 +447,7 @@ class ShardedClusterResourceMockedTest extends
     verify(configMapWriter).create(secretArgument.capture());
 
     ConfigMap createdConfigMap = secretArgument.getValue();
-    assertEquals(resourceDto.getMetadata().getNamespace(),
+    assertEquals(dto.getMetadata().getNamespace(),
         createdConfigMap.getMetadata().getNamespace());
 
     final ScriptFrom scriptFrom = scriptSpec.getScripts().get(0).getScriptFrom();
@@ -470,9 +474,9 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void createShardedClusterWithExistingConfigMapScript_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
     ScriptSpec scriptSpec = buildConfigMapScriptSpec();
-    resourceDto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
+    dto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
         .setScriptSpec(scriptSpec);
 
     when(configMapFinder.findByNameAndNamespace(any(), any()))
@@ -485,7 +489,7 @@ class ShardedClusterResourceMockedTest extends
     verify(configMapWriter).update(secretArgument.capture());
 
     ConfigMap createdConfigMap = secretArgument.getValue();
-    assertEquals(resourceDto.getMetadata().getNamespace(),
+    assertEquals(dto.getMetadata().getNamespace(),
         createdConfigMap.getMetadata().getNamespace());
 
     final ScriptFrom scriptFrom = scriptSpec.getScripts().get(0).getScriptFrom();
@@ -512,10 +516,10 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void createShardedClusterWithConfigMapScriptWithoutName_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
     ScriptSpec scriptSpec = buildConfigMapScriptSpec();
     scriptSpec.getScripts().get(0).getScriptFrom().setConfigMapKeyRef(null);
-    resourceDto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
+    dto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
         .setScriptSpec(scriptSpec);
 
     super.createShouldNotFail();
@@ -525,7 +529,7 @@ class ShardedClusterResourceMockedTest extends
     verify(configMapWriter).create(secretArgument.capture());
 
     ConfigMap createdConfigMap = secretArgument.getValue();
-    assertEquals(resourceDto.getMetadata().getNamespace(),
+    assertEquals(dto.getMetadata().getNamespace(),
         createdConfigMap.getMetadata().getNamespace());
 
     final ScriptFrom scriptFrom = scriptSpec.getScripts().get(0).getScriptFrom();
@@ -622,7 +626,7 @@ class ShardedClusterResourceMockedTest extends
   }
 
   @Override
-  protected ShardedClusterDto getResourceDto() {
+  protected ShardedClusterDto getDto() {
     return DtoFixtures.shardedCluster().loadDefault().get();
   }
 
@@ -677,7 +681,7 @@ class ShardedClusterResourceMockedTest extends
   }
 
   @Override
-  protected void checkDto(ShardedClusterDto dto) {
+  protected void checkDto(ShardedClusterDto dto, StackGresShardedCluster customResource) {
     if (dto.getInfo() != null) {
       String appendDns = "." + "stackgres";
       String expectedPrimaryDns = StackGresShardedClusterForCitusUtil
@@ -693,8 +697,9 @@ class ShardedClusterResourceMockedTest extends
   @Override
   protected void checkCustomResource(
       StackGresShardedCluster resource,
+      ShardedClusterDto dto,
       Operation operation) {
-    final Metadata dtoMetadata = resourceDto.getMetadata();
+    final Metadata dtoMetadata = dto.getMetadata();
     final ObjectMeta resourceMetadata = resource.getMetadata();
     if (dtoMetadata != null) {
       assertNotNull(resourceMetadata);
@@ -705,7 +710,7 @@ class ShardedClusterResourceMockedTest extends
       assertNull(resourceMetadata);
     }
 
-    final ShardedClusterSpec dtoSpec = resourceDto.getSpec();
+    final ShardedClusterSpec dtoSpec = dto.getSpec();
     final StackGresShardedClusterSpec resourceSpec = resource.getSpec();
 
     if (dtoSpec != null) {
