@@ -37,6 +37,13 @@ generated_service_ssl_check() {
 
   wait_until kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- ls /etc/ssl/tls.key
 
+  if ! wait_until run_query -m require -h "$CLUSTER_NAME" -i 1 -p 5432 >/dev/null 2>&1
+  then
+    echo "WARNING: SSL was not updated automatically... seems an envoy bug, will restart it"
+    kubectl exec -ti -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
+      sh -c "ps -ef | grep '[e]nvoy' | tr -s ' ' | cut -d ' ' -f 2 | xargs -I % sh -c 'kill %'"
+  fi
+
   RESPONSE_PRIMARY="$(wait_until run_query -m require -h "$CLUSTER_NAME" -i 1 -p 5432)"
 
   if [ "$RESPONSE_PRIMARY" = "1" ]
@@ -70,7 +77,14 @@ service_ssl_check() {
   wait_until eval '[ "$(kubectl get secret -n "$CLUSTER_NAME" ssl-postgres --template "{{ .data \"tls.key\" | base64decode }}")" = \
     "$(kubectl exec -n "$CLUSTER_NAME" "$CLUSTER_NAME-0" -c patroni -- cat /etc/ssl/tls.key)" ]'
 
-  RESPONSE_PRIMARY="$(run_query -m require -h "$CLUSTER_NAME" -i 1 -p 5432)"
+  if ! wait_until run_query -m require -h "$CLUSTER_NAME" -i 1 -p 5432 >/dev/null 2>&1
+  then
+    echo "WARNING: SSL was not updated automatically... seems an envoy bug, will restart it"
+    kubectl exec -ti -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
+      sh -c "ps -ef | grep '[e]nvoy' | tr -s ' ' | cut -d ' ' -f 2 | xargs -I % sh -c 'kill %'"
+  fi
+
+  RESPONSE_PRIMARY="$(wait_until run_query -m require -h "$CLUSTER_NAME" -i 1 -p 5432)"
 
   if [ "$RESPONSE_PRIMARY" = "1" ]
   then
