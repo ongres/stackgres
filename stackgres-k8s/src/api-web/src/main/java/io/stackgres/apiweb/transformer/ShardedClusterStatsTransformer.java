@@ -5,23 +5,24 @@
 
 package io.stackgres.apiweb.transformer;
 
-import java.math.BigInteger;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterClusterStats;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterStatsDto;
 import io.stackgres.apiweb.resource.PodStats;
-import io.stackgres.apiweb.transformer.util.PodStatsUtil;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
-import io.stackgres.common.resource.ResourceUtil;
 
 @ApplicationScoped
 public class ShardedClusterStatsTransformer
-    extends AbstractDtoTransformer<ShardedClusterStatsDto, StackGresShardedCluster> {
+    extends AbstractClusterStatsTransformer<ShardedClusterStatsDto, StackGresShardedCluster> {
+
+  @Inject
+  public ShardedClusterStatsTransformer(ClusterPodTransformer clusterPodTransformer) {
+    super(clusterPodTransformer);
+  }
 
   public ShardedClusterStatsDto toDtoWithAllPodStats(
       StackGresShardedCluster source,
@@ -29,7 +30,11 @@ public class ShardedClusterStatsTransformer
       List<PodStats> allShardsPodStats) {
     ShardedClusterStatsDto shardedClusterStatsDto = toDto(source);
 
-    setAllStats(shardedClusterStatsDto, allCoordinatorPodStats, allShardsPodStats);
+    shardedClusterStatsDto.setCoordinator(new ShardedClusterClusterStats());
+    setAllStats(shardedClusterStatsDto.getCoordinator(), allCoordinatorPodStats);
+
+    shardedClusterStatsDto.setShards(new ShardedClusterClusterStats());
+    setAllStats(shardedClusterStatsDto.getShards(), allShardsPodStats);
 
     return shardedClusterStatsDto;
   }
@@ -39,45 +44,6 @@ public class ShardedClusterStatsTransformer
     ShardedClusterStatsDto transformation = new ShardedClusterStatsDto();
     transformation.setMetadata(getDtoMetadata(source));
     return transformation;
-  }
-
-  private void setAllStats(
-      ShardedClusterStatsDto stats,
-      List<PodStats> allCoordinatorPodStats,
-      List<PodStats> allShardsPodStats) {
-    stats.setCoordinator(new ShardedClusterClusterStats());
-    setGlobalRequested(stats, ShardedClusterStatsDto::getCoordinator, allCoordinatorPodStats);
-    stats.setShards(new ShardedClusterClusterStats());
-    setGlobalRequested(stats, ShardedClusterStatsDto::getShards, allShardsPodStats);
-  }
-
-  private void setGlobalRequested(ShardedClusterStatsDto stats,
-      Function<ShardedClusterStatsDto, ShardedClusterClusterStats> mapper,
-      List<PodStats> allPodStats) {
-    mapper.apply(stats).setCpuRequested(allPodStats
-        .stream()
-        .map(PodStatsUtil::getPodCpuRequested)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .reduce(BigInteger::add)
-        .map(ResourceUtil::asMillicpusWithUnit)
-        .orElse(null));
-    mapper.apply(stats).setMemoryRequested(allPodStats
-        .stream()
-        .map(PodStatsUtil::getPodMemoryRequested)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .reduce(BigInteger::add)
-        .map(ResourceUtil::asBytesWithUnit)
-        .orElse(null));
-    mapper.apply(stats).setDiskRequested(allPodStats
-        .stream()
-        .map(PodStatsUtil::getPodDiskRequested)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .reduce(BigInteger::add)
-        .map(ResourceUtil::asBytesWithUnit)
-        .orElse(null));
   }
 
 }

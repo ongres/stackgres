@@ -15,7 +15,7 @@ import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ClusterStatsDto extends ResourceDto {
+public class ClusterStatsDto extends ResourceDto implements ClusterStats {
 
   @JsonProperty("cpuRequested")
   private String cpuRequested;
@@ -395,4 +395,5 @@ public class ClusterStatsDto extends ResourceDto {
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
   }
+
 }
