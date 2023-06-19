@@ -7,6 +7,7 @@ package io.stackgres.apiweb.rest;
 
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME_KEY;
 
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,7 @@ import io.stackgres.apiweb.dto.script.ScriptFrom;
 import io.stackgres.apiweb.dto.script.ScriptSpec;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterCoordinator;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterDto;
-import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterInfoDto;
+import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterInfo;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterShards;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterSpec;
 import io.stackgres.apiweb.transformer.ScriptTransformer;
@@ -153,7 +154,7 @@ public class ShardedClusterResource
     }
     final String namespace = resource.getMetadata().getNamespace();
     final String clusterName = resource.getMetadata().getName();
-    final ShardedClusterInfoDto info = new ShardedClusterInfoDto();
+    final ShardedClusterInfo info = new ShardedClusterInfo();
 
     var foundCluster = shardedClusterFinder.findByNameAndNamespace(clusterName, namespace);
     foundCluster
@@ -171,6 +172,7 @@ public class ShardedClusterResource
 
     info.setSuperuserUsername(SUPERUSER_USERNAME);
     info.setSuperuserSecretName(clusterName);
+    info.setSuperuserUsernameKey(SUPERUSER_USERNAME_KEY);
     info.setSuperuserPasswordKey(SUPERUSER_PASSWORD_KEY);
 
     resource.setInfo(info);
