@@ -6,7 +6,7 @@ description: Details about how to create a production StackGres sharded cluster.
 showToc: true
 ---
 
-This page will guide you though the creation of a production-ready StackGres cluster using your custom configuration.
+This page will guide you though the creation of a production-ready StackGres sharded cluster using your custom configuration.
 
 ## Customizing Your Postgres Sharded Clusters
 
