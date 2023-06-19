@@ -163,7 +163,7 @@ cat << EOF | kubectl apply -f -
 apiVersion: stackgres.io/v1
 kind: SGScript
 metadata:
-  namespace: mycluster
+  namespace: my-cluster
   name: cluster-scripts
 spec:
   scripts:

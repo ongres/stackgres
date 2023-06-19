@@ -1,7 +1,7 @@
 ---
 title: Sharded Cluster Best Practices
 weight: 4
-url: /administration/sharded-cluster-creation/best-practices
+url: /administration/sharded-cluster/creation/best-practices
 description: Recommendations about how organize all configuration files.
 showToc: true
 ---
