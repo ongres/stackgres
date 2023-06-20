@@ -97,7 +97,7 @@ spec:
 By default, support for SSL connections to Postgres is disabled, to enable it configure this section.
 SSL connections will be handled by Envoy using [Postgres filter's SSL termination](https://github.com/envoyproxy/envoy/issues/10942).
 
-| <div style="width:6rem">Property</div>                        | Required | Updatable | Type     | Default  | Description |
+| <div style="width:6rem">Property</div>                  | Required | Updatable | Type     | Default  | Description |
 |:--------------------------------------------------------|----------|-----------|:---------|:---------|:------------|
 | enabled                                                 |          |           | string   | false    | {{< crd-field-description SGShardedCluster.spec.postgres.ssl.enabled >}} |
 | [certificateSecretKeySelector](#ssl-certificate-secret) |          |           | object   |          | {{< crd-field-description SGShardedCluster.spec.postgres.ssl.certificateSecretKeySelector >}} |
@@ -117,7 +117,7 @@ spec:
       certificateSecretKeySelector:
         name: stackgres-secrets
         key: cert
-      secretKeyRef:
+      privateKeySecretKeySelector:
         name: stackgres-secrets
         key: key
 ```
