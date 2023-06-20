@@ -2,7 +2,7 @@
     <div>
         <ul class="section">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Metadata </strong>
                 <ul>
                     <li v-if="showDefaults">
@@ -26,7 +26,7 @@
 
         <ul class="section">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Specs </strong>
                 <ul>
                     <li>
@@ -79,12 +79,12 @@
                         <span class="value"> :  {{ crd.data.spec.hasOwnProperty('maxRetries') ? crd.data.spec.maxRetries : '1' }}</span>
                     </li>
                     <li v-if="hasProp(crd, 'data.spec.scheduling.tolerations')">
-                        <button></button>
+                        <button class="toggleSummary"></button>
                         <strong class="label">Node Tolerations</strong>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.scheduling.tolerations')"></span>
                         <ul>
                             <li v-for="(toleration, index) in crd.data.spec.scheduling.tolerations">
-                                <button></button>
+                                <button class="toggleSummary"></button>
                                 <strong class="label">Toleration #{{ index+1 }}</strong>
                                 <ul>
                                     <li>
@@ -122,7 +122,7 @@
 
         <ul class="section" v-if="( (crd.data.spec.op == 'restart') && ( showDefaults || ( (crd.data.spec.restart.method != 'InPlace') || crd.data.spec.restart.onlyPendingRestart ) ) )">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Restart Operation Specs </strong>
                 <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.restart')"></span> 
                 <ul>
@@ -142,7 +142,7 @@
         
         <ul class="section" v-else-if="(crd.data.spec.op == 'securityUpgrade' && (showDefaults || (crd.data.spec.securityUpgrade.method != 'InPlace')))">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Security Upgrade Operation Specs </strong>
                 <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.securityUpgrade')"></span> 
                 <ul>
@@ -157,7 +157,7 @@
 
         <ul class="section" v-if="(crd.data.spec.op == 'minorVersionUpgrade')">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Minor Version Upgrade Operation Specs </strong>
                 <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.minorVersionUpgrade')"></span> 
                 <ul>
@@ -177,7 +177,7 @@
 
         <ul class="section" v-if="(crd.data.spec.op == 'majorVersionUpgrade')">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Major Version Upgrade Operation Specs </strong>
                 <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.majorVersionUpgrade')"></span>
                 <ul>
@@ -222,7 +222,7 @@
 
         <ul class="section" v-if="( (crd.data.spec.op == 'vacuum') && ( showDefaults || (crd.data.spec.vacuum.full || crd.data.spec.vacuum.freeze || !crd.data.spec.vacuum.analyze || crd.data.spec.vacuum.disablePageSkipping || hasProp(crd, 'data.spec.vacuum.databases')) ) )">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Vacuum Operation Specs </strong>
                 <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum')"></span>
                 <ul>
@@ -248,12 +248,12 @@
                     </li>
                     
                     <li v-if="hasProp(crd, 'data.spec.vacuum.databases')">
-                        <button></button>
+                        <button class="toggleSummary"></button>
                         <strong class="label">Database Specific Specs</strong>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.vacuum.databases')"></span> 
                         <ul>
                             <li v-for="db in crd.data.spec.vacuum.databases">
-                                <button></button>
+                                <button class="toggleSummary"></button>
                                 <strong class="label">Database</strong>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.vacuum.name')"></span>
                                 <span class="value"> : {{ db.name }}</span>
@@ -288,7 +288,7 @@
 
         <ul class="section" v-if="(crd.data.spec.op == 'benchmark')">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Benchmark Operation Specs </strong>
                 <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.benchmark')"></span>
                 <ul>
@@ -304,7 +304,7 @@
                     </li>
 
                     <li v-if="(crd.data.spec.benchmark.type == 'pgbench')">
-                        <button></button>
+                        <button class="toggleSummary"></button>
                         <strong class="label">PgBench Specs</strong>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.benchmark.pgbench')"></span>
                         <ul>
@@ -341,7 +341,7 @@
 
         <ul class="section" v-if="( (crd.data.spec.op == 'repack') && ( showDefaults || (crd.data.spec.repack.noOrder || crd.data.spec.repack.waitTimeout || crd.data.spec.repack.noKillBackend || crd.data.spec.repack.noAnalyze || crd.data.spec.repack.excludeExtension || hasProp(crd, 'data.spec.repack.databases') ) ) )">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Repack Details </strong>
                 <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack')"></span>
                 <ul>
@@ -372,12 +372,12 @@
                     </li>
                     
                     <li v-if="hasProp(crd, 'data.spec.repack.databases')">
-                        <button></button>
+                        <button class="toggleSummary"></button>
                         <strong class="label">Database Specific Specs</strong>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.databases')"></span>
                         <ul>
                             <li v-for="db in crd.data.spec.repack.databases">
-                                <button></button>
+                                <button class="toggleSummary"></button>
                                 <strong class="label">Database</strong>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.spec.repack.databases.name')"></span>
                                 <span class="value"> : {{ db.name }}</span>
@@ -417,7 +417,7 @@
 
         <ul class="section" v-if="crd.data.hasOwnProperty('status')">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Status </strong>
                 <ul>
                     <li v-if="crd.data.status.hasOwnProperty('opStarted')">
@@ -441,7 +441,7 @@
 
                     <template v-if="((crd.data.spec.op === 'benchmark') && crd.data.status.hasOwnProperty('benchmark') && crd.data.status.benchmark.hasOwnProperty('pgbench'))">
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="label">PgBench</strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench')"></span>
                             <ul>
@@ -457,7 +457,7 @@
                                 </li>
                                 <template v-if="( hasProp(crd, 'data.status.benchmark.pgbench.latency.average.value') || hasProp(crd, 'data.status.benchmark.pgbench.latency.standardDeviation.value') )">
                                     <li>
-                                        <button></button>
+                                        <button class="toggleSummary"></button>
                                         <strong class="label">Latency</strong>
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.latency')"></span>
                                         <ul>
@@ -476,7 +476,7 @@
                                 </template>
                                 <template v-if="( hasProp(crd, 'data.status.benchmark.pgbench.transactionsPerSecond.includingConnectionsEstablishing.value') || hasProp(crd, 'data.status.benchmark.pgbench.transactionsPerSecond.excludingConnectionsEstablishing.value') )">
                                     <li>
-                                        <button></button>
+                                        <button class="toggleSummary"></button>
                                         <strong class="label">Transactions per Second</strong>
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.benchmark.pgbench.transactionsPerSecond')"></span>
                                         <ul>
@@ -505,7 +505,7 @@
                             <span class="value"> : {{ crd.data.status[crd.data.spec.op].primaryInstance }}</span>
                         </li>
                         <li v-if="crd.data.status[crd.data.spec.op].hasOwnProperty('initialInstances') && crd.data.status[crd.data.spec.op].initialInstances.length">
-                            <button v-if="crd.data.status[crd.data.spec.op].initialInstances.length > 1"></button>
+                            <button class="toggleSummary" v-if="crd.data.status[crd.data.spec.op].initialInstances.length > 1"></button>
                             <strong class="label">Initial Instances</strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.' + crd.data.spec.op + '.initialInstances')"></span>
                             <template v-if="crd.data.status[crd.data.spec.op].initialInstances.length > 1">
@@ -521,7 +521,7 @@
                         </li>
 
                         <li v-if="crd.data.status[crd.data.spec.op].hasOwnProperty('pendingToRestartInstances') && crd.data.status[crd.data.spec.op].pendingToRestartInstances.length">
-                            <button v-if="crd.data.status[crd.data.spec.op].pendingToRestartInstances.length > 1"></button>
+                            <button class="toggleSummary" v-if="crd.data.status[crd.data.spec.op].pendingToRestartInstances.length > 1"></button>
                             <strong class="label">Pending To Restart Instances</strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.' + crd.data.spec.op + '.pendingToRestartInstances')"></span>
                             <template v-if="crd.data.status[crd.data.spec.op].pendingToRestartInstances.length > 1">
@@ -536,7 +536,7 @@
                             </template>
                         </li>
                         <li v-if="crd.data.status[crd.data.spec.op].hasOwnProperty('restartedInstances') && crd.data.status[crd.data.spec.op].restartedInstances.length">
-                            <button v-if="crd.data.status[crd.data.spec.op].restartedInstances.length > 1"></button>
+                            <button class="toggleSummary" v-if="crd.data.status[crd.data.spec.op].restartedInstances.length > 1"></button>
                             <strong class="label">Restarted Instances</strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.' + crd.data.spec.op + '.restartedInstances')"></span>
                             <template v-if="crd.data.status[crd.data.spec.op].restartedInstances.length > 1">
@@ -585,13 +585,13 @@
 
                     <template v-if="crd.data.status.hasOwnProperty('conditions')">
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="label">Conditions</strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.conditions')"></span> 
                             <ul>
                                 <template v-for="condition in crd.data.status.conditions">
                                     <li>
-                                        <button></button>
+                                        <button class="toggleSummary"></button>
                                         <strong class="label">{{ condition.type }}</strong>
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdbops.status.conditions.type')"></span>
                                         <ul>

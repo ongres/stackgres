@@ -2,17 +2,17 @@
     <div>
         <ul class="section">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Metadata </strong>
                 <ul>
                     <li v-if="showDefaults">
-                        <button></button>
+                        <button class="toggleSummary"></button>
                         <strong class="label">Namespace</strong>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.metadata.namespace')"></span>
                         <span class="value"> : {{ crd.data.metadata.namespace }}</span>
                     </li>
                     <li>
-                        <button></button>
+                        <button class="toggleSummary"></button>
                         <strong class="label">Name</strong>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.metadata.name')"></span>
                         <span class="value"> : {{ crd.data.metadata.name }}</span>
@@ -23,7 +23,7 @@
 
         <ul class="section">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Specs </strong>
                 <ul>
                     <li>
@@ -36,7 +36,7 @@
                     <template v-if="crd.data.hasOwnProperty('status')">
                         <template v-if="hasParamsSet(crd)">
                             <li>
-                                <button></button>
+                                <button class="toggleSummary"></button>
                                 <strong class="label">Parameters</strong>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.spec.postgresql.conf')"></span>
                                 <ul class="paramUl">
@@ -56,7 +56,7 @@
 
                         <template v-if="Object.keys(crd.data.status.defaultParameters).length">
                             <li>
-                                <button></button>
+                                <button class="toggleSummary"></button>
                                 <strong class="label">Default Parameters</strong>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.status.defaultParameters')"></span>
                                 <ul class="paramUl">
@@ -77,7 +77,7 @@
                     <!--Form Summary-->
                     <template v-else>
                         <li v-if="crd.data.spec['postgresql.conf'].length">
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="label">Parameters</strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.spec.postgresql.conf')"></span>
                             <ul>
@@ -98,17 +98,17 @@
 
         <ul class="section" v-if="(crd.data.hasOwnProperty('status') && (crd.data.status.clusters.length || logsClusters.length))">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Status </strong>
                 <ul>
                     <li class="usedOn">
-                        <button></button>
+                        <button class="toggleSummary"></button>
                         <strong class="label">Used on</strong>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.status.clusters').replace('[SGClusters](https://stackgres.io/doc/latest/04-postgres-cluster-management/01-postgres-clusters/)', 'resources')"></span>
                         <ul>
                             <template v-if="crd.data.status.clusters.length">
                                 <li>
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">SGClusters</strong>
                                     <ul>
                                         <li v-for="cluster in crd.data.status.clusters">
@@ -122,7 +122,7 @@
                             </template>
                             <template v-if="logsClusters.length">
                                 <li>
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">SGDistributedLogs</strong>
                                     <ul>
                                         <li v-for="lcluster in logsClusters">

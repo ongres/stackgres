@@ -2,7 +2,7 @@
     <div>
         <ul class="section">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Metadata </strong>
                 <ul>
                     <li v-if="showDefaults">
@@ -23,11 +23,11 @@
             <!--CRD Details-->
             <template v-if="crd.data.hasOwnProperty('status') && crd.data.status.pgBouncer['pgbouncer.ini'].length">
                 <li>
-                    <button></button>
+                    <button class="toggleSummary"></button>
                     <strong class="sectionTitle">Specs </strong>
                     <ul>
                         <li v-if="hasParamsSet(crd)">
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="label">Parameters</strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgpoolingconfig.spec.pgBouncer.pgbouncer.ini')"></span>
                             <ul class="paramUl">
@@ -39,7 +39,7 @@
                         </li>
 
                         <li v-if="hasDefaults(crd)">
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="label">Default Parameters</strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgpoolingconfig.status.pgBouncer.defaultParameters')"></span>
                             <ul class="paramUl">
@@ -56,11 +56,11 @@
             <!--Form Summary-->
             <template v-else-if="crd.data.spec.pgBouncer['pgbouncer.ini'].length">
                 <li>
-                    <button></button>
+                    <button class="toggleSummary"></button>
                     <strong class="sectionTitle">Specs </strong>
                     <ul>
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="label">Parameters</strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgpoolingconfig.spec.pgBouncer.pgbouncer.ini')"></span>
                             <ul>
@@ -81,11 +81,11 @@
 
         <ul class="section" v-if="crd.data.hasOwnProperty('status') && crd.data.status.clusters.length">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Status </strong>
                 <ul>
                     <li class="usedOn">
-                        <button></button>
+                        <button class="toggleSummary"></button>
                         <strong class="label">Used on</strong>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgpoolingconfig.status.clusters')"></span>
                         <ul>    

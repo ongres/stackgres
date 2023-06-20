@@ -2,7 +2,7 @@
     <div>
         <ul class="section">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Metadata </strong>
                 <ul>
                     <li v-if="showDefaults">
@@ -26,7 +26,7 @@
 
         <ul class="section">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Specs </strong>
                 <ul>
                     <li>
@@ -50,7 +50,7 @@
 
         <ul class="section" v-if="(hasProp(crd, 'data.status') && Object.keys(crd.data.status).length > 0)">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Status </strong>
                 <ul>
                     <li>
@@ -205,7 +205,7 @@
                                     <div class="summary">
                                         <ul>
                                             <li>
-                                                <button></button>
+                                                <button class="toggleSummary"></button>
                                                 <strong class="label">Control Data</strong>
                                                 <ul>
                                                     <li v-for="(value, key) in crd.data.status.backupInformation.controlData">

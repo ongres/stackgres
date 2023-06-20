@@ -1,5 +1,5 @@
 <template>
-	<div id="crdSummary" class="show" :class="details ? 'crdDetails' : 'contentTooltip'">
+	<div id="crdSummary" class="visible" :class="details ? 'crdDetails' : 'contentTooltip'">
         <div v-if="!details" class="close" @click="closeSummary()"></div>
         
         <div class="info">
@@ -199,7 +199,7 @@
         background: "▾";
     }
 
-    .summary button {
+    .summary button.toggleSummary {
         background: transparent;
         font-weight: bold;
         border: 0;
@@ -212,11 +212,11 @@
         background: var(--activeBg);
     }
 
-    .crdDetails .summary button {
+    .crdDetails .summary button.toggleSummary {
         background: var(--bgColor);
     }
 
-    .summary button:before {
+    .summary button.toggleSummary:before {
         content: "▾";
         display: block;
         position: absolute;
@@ -227,8 +227,8 @@
         transition: all .3s ease-out;
     }
 
-    .summary .collapsed button:before {
-        transform: rotate(180deg);
+    .summary .collapsed button.toggleSummary:before {
+        transform: rotate(-90deg);
         transition: all .3s ease-out;
     }
 

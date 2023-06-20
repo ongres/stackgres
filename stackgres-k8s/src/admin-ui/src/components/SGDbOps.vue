@@ -205,13 +205,13 @@
             <template v-else-if="$route.params.hasOwnProperty('name') && !$route.params.hasOwnProperty('uid')">
                 <h2>Operation Details</h2>
                 
-                <div class="halfH">
+                <div class="flex">
                     <div class="configurationDetails">
                         <CRDSummary :crd="crd" kind="SGDbOps" :details="true"></CRDSummary>
                     </div>
 
                     <template v-for="(op, index) in dbOps" v-if="op.name == $route.params.name">
-                        <div class="halfV">
+                        <div class="opDetails">
                             
                             <!--Minor Version Upgrade graph-->
                             <template v-if="( (op.data.spec.op == 'minorVersionUpgrade') && hasProp(op, 'data.status.conditions') )">
@@ -759,7 +759,7 @@
 
             getElapsedTime(op) {
 
-                if( op.data.hasOwnProperty('status') ) {
+                if( (op.data.hasOwnProperty('status') && (op.data.status.hasOwnProperty('conditions'))) ) {
                     let lastStatus = op.data.status.conditions.find(c => (c.status === 'True') )
                     let begin = moment(op.data.status.opStarted)
                     let finish = (lastStatus.type == 'Running') ? moment() : moment(lastStatus.lastTransitionTime);
@@ -1148,9 +1148,11 @@
 
     .dataPercent {
         display: inline-block;
-        padding-left: 10px;
         position: relative;
+    }
 
+    .nodeIcon svg {
+        margin-right: 10px;
     }
 
     .stopWatch {
@@ -1227,15 +1229,52 @@
 		max-width: 200px;
 	}
 
+    @media screen and (min-width: 1900px) {
+        .collapsed .clusterStatus .pod {
+            width: 25%;
+        }
+    }
+
+    @media screen and (min-width: 2200px) {
+        .clusterStatus .pod {
+            width: 25%;
+        }
+
+        .collapsed .clusterStatus .pod {
+            width: 20%;
+        }
+    }
+
     @media screen and (min-width: 2600px) {
         .clusterStatus .pod {
             width: 20%;
         }
     }
+    
 
-    @media screen and (min-width: 1920px) {
+    @media screen and (max-width: 1900px) {
         .clusterStatus .pod {
-            width: 25%;
+            width: 50%;
+        }
+
+        .collapsed .clusterStatus .pod {
+            width: 33.33%;
+        }
+    }
+
+    @media screen and (max-width: 1600px) {
+        .clusterStatus .pod {
+            width: 100%;
+        }
+
+        .collapsed  .clusterStatus .pod {
+            width: 50%;
+        }
+    }
+
+    @media screen and (max-width: 1300px) {
+        .collapsed  .clusterStatus .pod {
+            width: 100%;
         }
     }
 

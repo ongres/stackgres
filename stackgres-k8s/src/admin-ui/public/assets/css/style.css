@@ -4759,7 +4759,7 @@ td.inlineList li:not(:last-child):after {
     left: 50px;
 }
 
-.contentTooltip.show {
+.contentTooltip.show, .contentTooltip.visible {
     display: flex !important;
     opacity: 1;
     z-index: 4;
