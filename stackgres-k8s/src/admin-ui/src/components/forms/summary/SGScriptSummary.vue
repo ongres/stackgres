@@ -2,7 +2,7 @@
     <div>
         <ul class="section">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Metadata </strong>
                 <ul>
                     <li v-if="showDefaults">
@@ -21,7 +21,7 @@
                     
         <ul class="section">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Specs </strong>
                 <ul>
                     
@@ -36,12 +36,12 @@
                         <span class="value"> : {{ isEnabled(crd.data.spec.managedVersions) }}</span>
                     </li>
                     <li>
-                        <button></button>
+                        <button class="toggleSummary"></button>
                         <strong class="label">Script Entries</strong>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts')"></span>
                         <ul>
                             <li v-for="(script, index) in crd.data.spec.scripts">
-                                <button></button>
+                                <button class="toggleSummary"></button>
                                 <strong class="label">Script #{{ index + 1 }}</strong>
 
                                 <ul>
@@ -101,7 +101,7 @@
                                         </span>
                                     </li>
                                     <li v-else-if="hasProp(script, 'scriptFrom.secretKeyRef')">
-                                        <button></button>
+                                        <button class="toggleSummary"></button>
                                         <strong class="label">Secret Key Reference</strong>
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.secretKeyRef')"></span>
                                         <ul>
@@ -118,7 +118,7 @@
                                         </ul>
                                     </li>
                                     <li v-else-if="hasProp(script, 'scriptFrom.configMapKeyRef')">
-                                        <button></button>
+                                        <button class="toggleSummary"></button>
                                         <strong class="label">Config Map Key Reference</strong>
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.configMapKeyRef')"></span>
                                         <ul>
@@ -144,11 +144,11 @@
 
         <ul class="section" v-if="crd.data.hasOwnProperty('status') && crd.data.status.clusters.length">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Status </strong>
                 <ul>
                     <li class="usedOn">
-                        <button></button>
+                        <button class="toggleSummary"></button>
                         <strong class="label">Used on</strong>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.status.clusters')"></span>
                         <ul>    

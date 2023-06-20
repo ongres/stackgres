@@ -507,19 +507,15 @@ span.eyeIcon {
     top: 2px;
 }
 
-.halfH {
-    display: flex;
-}
-
-.halfH > div:first-of-type {
+.flex > div:first-of-type {
     margin-right: 20px;
 }
 
-.halfV {
+.opDetails {
     flex-grow: 1;
 }
 
-.halfV > div:first-of-type {
+.opDetails > div:first-of-type {
     margin-top: 10px;
     margin-bottom: 20px;
 }

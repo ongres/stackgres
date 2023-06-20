@@ -1369,15 +1369,6 @@ export const mixin = {
         vc.fetchAPI(kind);
       };
 
-      $(document).on('click','.summary button', function(){
-        let el = $(this)
-        let ul = el.siblings("ul")
-        let parentLi = $(this).parent()
-
-        parentLi.toggleClass("collapsed");
-        ul.toggleClass("hide")
-    })
-
     },
 
     updated: function(){

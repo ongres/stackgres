@@ -2,7 +2,7 @@
     <div>
         <ul class="section">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Metadata </strong>
                 <ul>
                     <li v-if="showDefaults">
@@ -21,11 +21,11 @@
 
         <ul class="section">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Specs </strong>
                 <ul>                     
                     <li v-if="showDefaults || (crd.data.spec.persistentVolume.size != '1Gi') || hasProp(crd, 'data.spec.persistentVolume.storageClass')">
-                        <button></button>
+                        <button class="toggleSummary"></button>
                         <strong class="label">Persistent Volume</strong>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.persistentVolume')"></span>
                         <ul>
@@ -43,7 +43,7 @@
                     </li>
 
                     <li v-if="showDefaults || hasProp(crd, 'data.spec.sgInstanceProfile') || hasProp(crd, 'data.spec.configurations.sgPostgresConfig')">
-                        <button></button>
+                        <button class="toggleSummary"></button>
                         <strong class="label">Pods Resources</strong>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.resources')"></span>
                         <ul>
@@ -81,12 +81,12 @@
 
         <ul class="section" v-if="showDefaults || (crd.data.spec.postgresServices.primary.type != 'ClusterIP') || !crd.data.spec.postgresServices.replicas.enabled || (crd.data.spec.postgresServices.replicas.type != 'ClusterIP') || crd.data.spec.postgresServices.primary.hasOwnProperty('loadBalancerIP') || crd.data.spec.postgresServices.replicas.hasOwnProperty('loadBalancerIP')">  
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Customize generated Kubernetes service </strong>
                 <span class="helpTooltip"  :data-tooltip="getTooltip('sgdistributedlogs.spec.postgresServices')"></span>
                 <ul>
                     <li v-if="showDefaults || (crd.data.spec.postgresServices.primary.type != 'ClusterIP') || crd.data.spec.postgresServices.primary.hasOwnProperty('loadBalancerIP')">
-                        <button></button>
+                        <button class="toggleSummary"></button>
                         <strong class="label">Primary Service</strong>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.postgresServices.primary')"></span>
                         <span> : Enabled</span>
@@ -109,7 +109,7 @@
                         </ul>
                     </li>
                     <li v-if="showDefaults || !crd.data.spec.postgresServices.replicas.enabled || (crd.data.spec.postgresServices.replicas.type != 'ClusterIP') || crd.data.spec.postgresServices.replicas.hasOwnProperty('loadBalancerIP')">
-                        <button></button>
+                        <button class="toggleSummary"></button>
                         <strong class="label">Replicas Service</strong>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.postgresServices.replicas')"></span>
                         <span> : {{ isEnabled(crd.data.spec.postgresServices.replicas.enabled) }}</span>
@@ -137,17 +137,17 @@
 
         <ul class="section" v-if="hasProp(crd, 'data.spec.pods.metadata') || hasProp(crd, 'data.spec.metadata.annotations')">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Resources Metadata </strong>
                 <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.metadata')"></span>
                 <ul>
                 <li v-if="hasProp(crd, 'data.spec.metadata.annotations')">
-                        <button></button>
+                        <button class="toggleSummary"></button>
                         <strong class="label">Annotations</strong>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.metadata.annotations')"></span>
                         <ul>
                             <li v-if="hasProp(crd, 'data.spec.metadata.annotations.allResources')">
-                                <button></button>
+                                <button class="toggleSummary"></button>
                                 <strong class="label">All Resources</strong>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.metadata.annotations.allResources')"></span>
                                 <ul>
@@ -158,7 +158,7 @@
                                 </ul>
                             </li>
                             <li v-if="hasProp(crd, 'data.spec.metadata.annotations.pods')">
-                                <button></button>
+                                <button class="toggleSummary"></button>
                                 <strong class="label">Cluster Pods</strong>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.metadata.annotations.pods')"></span>
                                 <ul>
@@ -169,7 +169,7 @@
                                 </ul>
                             </li>
                             <li v-if="hasProp(crd, 'data.spec.metadata.annotations.services')">
-                                <button></button>
+                                <button class="toggleSummary"></button>
                                 <strong class="label">Services</strong>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.metadata.annotations.services')"></span>
                                 <ul>
@@ -207,12 +207,12 @@
         
         <ul class="section" v-if="hasProp(crd, 'data.spec.scheduling')">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Scheduling </strong>
                 <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.scheduling')"></span>
                 <ul>
                     <li v-if="hasProp(crd, 'data.spec.scheduling.nodeSelector')">
-                        <button></button>
+                        <button class="toggleSummary"></button>
                         <strong class="label">Node Selectors</strong>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.scheduling.nodeSelector')"></span>
                         <ul>
@@ -223,12 +223,12 @@
                         </ul>
                     </li>
                     <li v-if="hasProp(crd, 'data.spec.scheduling.tolerations')">
-                        <button></button>
+                        <button class="toggleSummary"></button>
                         <strong class="label">Node Toleration</strong>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.scheduling.tolerations')"></span>
                         <ul>
                             <li v-for="(toleration, index) in crd.data.spec.scheduling.tolerations">
-                                <button></button>
+                                <button class="toggleSummary"></button>
                                 <strong class="label">Toleration #{{ index+1 }}</strong>
                                 <ul>
                                     <li>
@@ -266,7 +266,7 @@
 
         <ul class="section" v-if="showDefaults || hasProp(crd, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity')">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Non Production Settings </strong>
                 <ul>
                     <li>
@@ -280,11 +280,11 @@
 
         <ul class="section" v-if="crd.data.hasOwnProperty('status') && crd.data.status.clusters.length">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Status </strong>
                 <ul>
                     <li class="usedOn">
-                        <button></button>
+                        <button class="toggleSummary"></button>
                         <strong class="label">Used on</strong>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.status.clusters')"></span>
                         <ul>    

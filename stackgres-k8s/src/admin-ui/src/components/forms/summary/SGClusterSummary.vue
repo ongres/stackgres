@@ -1,5 +1,5 @@
 <template>
-	<div id="clusterSummary" class="show" :class="details ? 'crdDetails' : 'contentTooltip'">
+	<div id="clusterSummary" class="visible" :class="details ? 'crdDetails' : 'contentTooltip'">
         <div v-if="!details" class="close" @click="closeSummary()"></div>
         
         <div class="info">
@@ -18,7 +18,7 @@
                 <div class="summary" v-if="cluster.hasOwnProperty('data')">
                     <ul class="section">
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="sectionTitle">Metadata </strong>
                             <ul>
                                 <li v-if="showDefaults">
@@ -60,11 +60,11 @@
                     )">
     
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="sectionTitle">Specs </strong>
                             <ul>
                                 <li v-if="showDefaults || (cluster.data.spec.instances > 1) || hasProp(cluster, 'data.spec.sgInstanceProfile')" :set="showInstances = true">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Instances</strong>
                                     <ul>
                                         <li v-if="showInstances">
@@ -96,7 +96,7 @@
                                 </li>
 
                                 <li v-if="showDefaults || (cluster.data.spec.postgres.flavor != 'vanilla') || (cluster.data.spec.postgres.version != 'latest') || hasProp(cluster, 'data.spec.configurations.sgPostgresConfig') || hasProp(cluster, 'data.spec.postgres.ssl')">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Postgres</strong>
                                      <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres')"></span>
                                     <ul>
@@ -126,13 +126,13 @@
                                             </span>
                                         </li>
                                         <li v-if="hasProp(cluster, 'data.spec.postgres.ssl.enabled') && cluster.data.spec.postgres.ssl.enabled">
-                                            <button></button>
+                                            <button class="toggleSummary"></button>
                                             <strong class="label">SSL Connections</strong>
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl')"></span>
                                             <span class="value"> : Enabled</span>
                                             <ul>
                                                 <li>
-                                                    <button></button>
+                                                    <button class="toggleSummary"></button>
                                                     <strong class="label">Certificate Secret Key Selector</strong>
                                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.certificateSecretKeySelector')"></span>
                                                     <ul>
@@ -149,7 +149,7 @@
                                                     </ul>
                                                 </li>
                                                 <li>
-                                                    <button></button>
+                                                    <button class="toggleSummary"></button>
                                                     <strong class="label">Private Key Secret Key Selector</strong>
                                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.privateKeySecretKeySelector')"></span>
                                                     <ul>
@@ -171,12 +171,12 @@
                                 </li>
 
                                 <li v-if="showDefaults || (cluster.data.spec.pods.persistentVolume.size != '1Gi') || hasProp(cluster, 'data.spec.pods.persistentVolume.storageClass')">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Pods Storage</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods')"></span>
                                     <ul>
                                         <li>
-                                            <button></button>
+                                            <button class="toggleSummary"></button>
                                             <strong class="label">Persistent Volume</strong>
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume')"></span>
                                             <ul>
@@ -200,7 +200,7 @@
 
                    <ul class="section" v-if="hasProp(cluster, 'data.spec.postgres.extensions')">
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="sectionTitle">Postgres Extensions Deployed/To Be Deployed </strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.extensions')"></span>
                             <ul>
@@ -208,7 +208,7 @@
                                     <span>The extension(s) are installed into the StackGres Postgres container. To start using them, you need to execute an appropriate <code>CREATE EXTENSION</code> command in the database(s) where you want to use the extension(s). Note that depending on each extension's requisites you may also need to add configuration to the cluster's <code>SGPostgresConfig</code> configuration, like adding the extension to <code>shared_preload_libraries</code> or adding extension-specific configuration parameters.</span>
                                 </li>
                                 <li v-for="ext in cluster.data.spec.postgres.extensions" :set="extData = extensionsList.find(e => (e.name == ext.name))">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">{{ ext.name }}</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgextensions.extensions.name')"></span>
                                     <ul>
@@ -244,7 +244,7 @@
 
                     <ul class="section" v-if="hasProp(cluster, 'data.spec.configurations.backups')">
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="sectionTitle">Managed Backups Specs </strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups')"></span>
                             <ul v-for="backup in cluster.data.spec.configurations.backups">
@@ -285,7 +285,7 @@
                                         (backup.performance.uploadDiskConcurrency != 1) 
                                     ) 
                                 )">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Performance Specs</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.performance')"></span>
                                     <ul>
@@ -314,7 +314,7 @@
 
                     <ul class="section" v-if="hasProp(cluster, 'data.spec.initialData')">
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="sectionTitle">Cluster Initialization </strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData')"></span>   
                             <ul>
@@ -378,7 +378,7 @@
 
                     <ul class="section" v-if="hasProp(cluster, 'data.spec.replicateFrom')">
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="sectionTitle">Replicate From </strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom')"></span>
                             <ul>
@@ -411,7 +411,7 @@
                                     </span>
                                 </li>
                                 <li v-if="hasProp(cluster, 'data.spec.replicateFrom.instance.external')">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">External Instance Specs</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.instance.external')"></span>
                                     <ul>
@@ -428,7 +428,7 @@
                                     </ul>
                                 </li>
                                 <li v-if="hasProp(cluster, 'data.spec.replicateFrom.storage')">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Storage Specs</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.storage')"></span>
                                     <ul>
@@ -454,7 +454,7 @@
                                                 ( (hasProp(cluster, 'data.spec.replicateFrom.storage.performance.maxDiskBandwidth')) && !isNull(cluster.data.spec.replicateFrom.storage.performance.maxDiskBandwidth) )
                                             ) 
                                         )">
-                                            <button></button>
+                                            <button class="toggleSummary"></button>
                                             <strong class="label">Performance Specs</strong>
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.storage.performance')"></span>
                                             <ul>
@@ -478,17 +478,17 @@
                                     </ul>
                                 </li>
                                 <li v-if="hasProp(cluster, 'data.spec.replicateFrom.users')">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Users Credentials</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users')"></span>
                                     <ul>
                                         <li>
-                                            <button></button>
+                                            <button class="toggleSummary"></button>
                                             <strong class="label">Superuser</strong>
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.superuser')"></span>
                                             <ul>
                                                 <li>
-                                                    <button></button>
+                                                    <button class="toggleSummary"></button>
                                                     <strong class="label">Username</strong>
                                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.superuser.username')"></span>
                                                     <ul>
@@ -505,7 +505,7 @@
                                                     </ul>
                                                 </li>
                                                 <li>
-                                                    <button></button>
+                                                    <button class="toggleSummary"></button>
                                                     <strong class="label">Password</strong>
                                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.superuser.password')"></span>
                                                     <ul>
@@ -528,7 +528,7 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.replication')"></span>
                                             <ul>
                                                 <li>
-                                                    <button></button>
+                                                    <button class="toggleSummary"></button>
                                                     <strong class="label">Username</strong>
                                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.replication.username')"></span>
                                                     <ul>
@@ -545,7 +545,7 @@
                                                     </ul>
                                                 </li>
                                                 <li>
-                                                    <button></button>
+                                                    <button class="toggleSummary"></button>
                                                     <strong class="label">Password</strong>
                                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.replication.password')"></span>
                                                     <ul>
@@ -564,12 +564,12 @@
                                             </ul>
                                         </li>
                                         <li>
-                                            <button></button>
+                                            <button class="toggleSummary"></button>
                                             <strong class="label">Authenticator User</strong>
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.authenticator')"></span>
                                             <ul>
                                                 <li>
-                                                    <button></button>
+                                                    <button class="toggleSummary"></button>
                                                     <strong class="label">Username</strong>
                                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.authenticator.username')"></span>
                                                     <ul>
@@ -586,7 +586,7 @@
                                                     </ul>
                                                 </li>
                                                 <li>
-                                                    <button></button>
+                                                    <button class="toggleSummary"></button>
                                                     <strong class="label">Password</strong>
                                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replicateFrom.users.authenticator.password')"></span>
                                                     <ul>
@@ -612,17 +612,17 @@
 
                     <ul class="section" v-if="hasProp(cluster, 'data.spec.managedSql')">
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="sectionTitle">Managed SQL </strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.managedSql')"></span>
                             <ul>
                                 <li>
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Scripts</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.managedSql.scripts')"></span>
                                     <ul>
                                         <li v-for="(baseScript, baseIndex) in cluster.data.spec.managedSql.scripts">
-                                            <button></button>
+                                            <button class="toggleSummary"></button>
                                             <strong class="label">SGScript #{{ baseIndex + 1 }}</strong>
                                             <ul>
                                                 <li v-if="hasProp(baseScript, 'id')">
@@ -646,13 +646,13 @@
                                                     <span class="value"> : {{ hasProp(baseScript, 'scriptSpec.managedVersions') && isEnabled(baseScript.scriptSpec.managedVersions) }}</span>
                                                 </li>
                                                 <li v-if="baseScript.hasOwnProperty('scriptSpec')">
-                                                    <button></button>
+                                                    <button class="toggleSummary"></button>
                                                     <strong class="label">Script Entries</strong>
                                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.script').replace(/ This field is mutually exclusive with `scriptFrom` field./g, '').replace('script','scripts')"></span>
 
                                                     <ul>
                                                         <li v-for="(script, index) in baseScript.scriptSpec.scripts">
-                                                            <button></button>
+                                                            <button class="toggleSummary"></button>
                                                             <strong class="label">Entry #{{ index + 1 }}</strong>
                                                             <ul>
                                                                 <li v-if="hasProp(script, 'id')">
@@ -715,7 +715,7 @@
                                                                     </span>
                                                                 </li>
                                                                 <li v-else-if="hasProp(script, 'scriptFrom.secretKeyRef')">
-                                                                    <button></button>
+                                                                    <button class="toggleSummary"></button>
                                                                     <strong class="label">Secret Key Reference</strong>
                                                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.secretKeyRef')"></span>
                                                                     <ul>
@@ -732,7 +732,7 @@
                                                                     </ul>
                                                                 </li>
                                                                 <li v-else-if="hasProp(script, 'scriptFrom.configMapKeyRef')">
-                                                                    <button></button>
+                                                                    <button class="toggleSummary"></button>
                                                                     <strong class="label">Config Map Key Reference</strong>
                                                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.configMapKeyRef')"></span>
                                                                     <ul>
@@ -792,11 +792,11 @@
 
                     <ul class="section" v-if="showDefaults || cluster.data.spec.pods.disableConnectionPooling || hasProp(cluster, 'data.spec.configurations.sgPoolingConfig') || cluster.data.spec.pods.disablePostgresUtil || cluster.data.spec.pods.disableMetricsExporter || cluster.data.spec.prometheusAutobind || hasProp(cluster, 'data.spec.distributedLogs.sgDistributedLogs')">
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="sectionTitle">Sidecars </strong>
                             <ul>
                                 <li v-if="showDefaults || cluster.data.spec.pods.disableConnectionPooling || hasProp(cluster, 'data.spec.configurations.sgPoolingConfig')">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Connection Pooling</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations')"></span>
                                     <span v-if="showDefaults || cluster.data.spec.pods.disableConnectionPooling"> : {{ isEnabled(cluster.data.spec.pods.disableConnectionPooling, true) }}</span>
@@ -824,7 +824,7 @@
                                     <span> : {{ isEnabled(cluster.data.spec.pods.disablePostgresUtil, true) }}</span>
                                 </li>
                                 <li v-if="showDefaults || cluster.data.spec.pods.disableMetricsExporter || cluster.data.spec.prometheusAutobind">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Monitoring</strong>
                                      <span class="helpTooltip" data-tooltip="StackGres supports enabling automatic monitoring for your Postgres cluster, but you need to provide or install the <a href='https://stackgres.io/doc/latest/install/prerequisites/monitoring/' target='_blank'>Prometheus stack as a pre-requisite</a>. Then, check this option to configure automatically sending metrics to the Prometheus stack."></span>
                                     <span> : {{ (!cluster.data.spec.pods.disableMetricsExporter && cluster.data.spec.prometheusAutobind) ? ' Enabled' : ' Disabled' }}</span>
@@ -842,7 +842,7 @@
                                     </ul>
                                 </li>
                                 <li v-if="hasProp(cluster, 'data.spec.distributedLogs.sgDistributedLogs')">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Distributed Logs</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs')"></span>
                                     <ul>
@@ -875,18 +875,18 @@
                             (cluster.data.spec.pods.hasOwnProperty('customContainers') && !isNull(cluster.data.spec.pods.customContainers)) )
                         ">
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="sectionTitle">User-Supplied Pods' Sidecars </strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods')"></span>
                             <ul>
                                 <li v-if="cluster.data.spec.pods.hasOwnProperty('customVolumes') && !isNull(cluster.data.spec.pods.customVolumes)">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Custom Volumes</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes')"></span>
                                     <ul>
                                         <template v-for="(vol, index) in cluster.data.spec.pods.customVolumes">
                                             <li :key="index">
-                                                <button></button>
+                                                <button class="toggleSummary"></button>
                                                 <strong class="label">Volume #{{ index + 1 }}</strong>
                                                 <ul>
                                                     <li v-if="vol.hasOwnProperty('name')">
@@ -895,7 +895,7 @@
                                                         <span class="value"> : {{ vol.name }}</span>
                                                     </li>
                                                     <li v-if="vol.hasOwnProperty('emptyDir') && Object.keys(vol.emptyDir).length && (!isNull(vol.emptyDir.medium) || !isNull(vol.emptyDir.sizeLimit))">
-                                                        <button></button>
+                                                        <button class="toggleSummary"></button>
                                                         <strong class="label">Empty Directory</strong>
                                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.emptyDir')"></span>
                                                         <ul>
@@ -912,7 +912,7 @@
                                                         </ul>
                                                     </li>
                                                     <li v-if="vol.hasOwnProperty('configMap') && Object.keys(vol.configMap).length">
-                                                        <button></button>
+                                                        <button class="toggleSummary"></button>
                                                         <strong class="label">Config Map</strong>
                                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap')"></span>
                                                         <ul>
@@ -932,13 +932,13 @@
                                                                 <span class="value"> : {{ vol.configMap.defaultMode }}</span>
                                                             </li>
                                                             <li v-if="vol.configMap.hasOwnProperty('items') && vol.configMap.items.length">
-                                                                <button></button>
+                                                                <button class="toggleSummary"></button>
                                                                 <strong class="label">Items</strong>
                                                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.items')"></span>
                                                                 <ul>
                                                                     <template v-for="(item, index) in vol.configMap.items">
                                                                         <li :key="index">
-                                                                            <button></button>
+                                                                            <button class="toggleSummary"></button>
                                                                             <strong class="label">Item #{{ index + 1 }}</strong>
                                                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.items.items')"></span>
                                                                             <ul>
@@ -965,7 +965,7 @@
                                                         </ul>
                                                     </li>
                                                     <li v-if="vol.hasOwnProperty('secret') && Object.keys(vol.secret).length">
-                                                        <button></button>
+                                                        <button class="toggleSummary"></button>
                                                         <strong class="label">Secret</strong>
                                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret')"></span>
                                                         <ul>
@@ -985,13 +985,13 @@
                                                                 <span class="value"> : {{ vol.secret.defaultMode }}</span>
                                                             </li>
                                                             <li v-if="vol.secret.hasOwnProperty('items') && vol.secret.items.length">
-                                                                <button></button>
+                                                                <button class="toggleSummary"></button>
                                                                 <strong class="label">Items</strong>
                                                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.items')"></span>
                                                                 <ul>
                                                                     <template v-for="(item, index) in vol.secret.items">
                                                                         <li :key="index">
-                                                                            <button></button>
+                                                                            <button class="toggleSummary"></button>
                                                                             <strong class="label">Item #{{ index + 1 }}</strong>
                                                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.items.items')"></span>
                                                                             <ul>
@@ -1024,14 +1024,14 @@
                                 </li>
 
                                 <li v-if="cluster.data.spec.pods.hasOwnProperty('customInitContainers') && !isNull(cluster.data.spec.pods.customInitContainers)">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Custom Init Containers</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers')"></span>
 
                                     <ul>
                                         <template v-for="(container, index) in cluster.data.spec.pods.customInitContainers">
                                             <li :key="'container-' + index">
-                                                <button></button>
+                                                <button class="toggleSummary"></button>
                                                 <strong class="label">Init Container #{{ index + 1 }}</strong>
                                                 <ul>
                                                     <li v-if="container.hasOwnProperty('name') && !isNull(container.name)">
@@ -1055,7 +1055,7 @@
                                                         <span class="value"> : {{ container.workingDir }}</span>
                                                     </li>
                                                     <li v-if="container.hasOwnProperty('args') && !isNull(container.args)">
-                                                        <button></button>
+                                                        <button class="toggleSummary"></button>
                                                         <strong class="label">Arguments</strong>
                                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.arguments')"></span>
                                                         <ul>
@@ -1067,7 +1067,7 @@
                                                         </ul>
                                                     </li>
                                                     <li v-if="container.hasOwnProperty('command') && !isNull(container.command)">
-                                                        <button></button>
+                                                        <button class="toggleSummary"></button>
                                                         <strong class="label">Command</strong>
                                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.command')"></span>
                                                         <ul>
@@ -1079,7 +1079,7 @@
                                                         </ul>
                                                     </li>
                                                     <li v-if="container.hasOwnProperty('env') && !isNull(container.env)">
-                                                        <button></button>
+                                                        <button class="toggleSummary"></button>
                                                         <strong class="label">Environment Variables</strong>
                                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.env')"></span>
                                                         <ul>
@@ -1092,13 +1092,13 @@
                                                         </ul>
                                                     </li>
                                                     <li v-if="container.hasOwnProperty('ports') && !isNull(container.ports)">
-                                                        <button></button>
+                                                        <button class="toggleSummary"></button>
                                                         <strong class="label">Ports</strong>
                                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports')"></span>
                                                         <ul>
                                                             <template v-for="(port, pIndex) in container.ports">
                                                                 <li :key="'port-' + index + '-' + pIndex">
-                                                                    <button></button>
+                                                                    <button class="toggleSummary"></button>
                                                                     <strong class="label">Port #{{ pIndex + 1 }}</strong>
                                                                     <ul>
                                                                         <li v-if="port.hasOwnProperty('name') && !isNull(port.name)">
@@ -1132,7 +1132,7 @@
                                                         </ul>
                                                     </li>
                                                     <li v-if="container.hasOwnProperty('volumeMounts') && !isNull(container.volumeMounts)">
-                                                        <button></button>
+                                                        <button class="toggleSummary"></button>
                                                         <strong class="label">Volume Mounts</strong>
                                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts')"></span>
                                                         <ul>
@@ -1182,13 +1182,13 @@
                                 </li>
 
                                 <li v-if="cluster.data.spec.pods.hasOwnProperty('customContainers') && !isNull(cluster.data.spec.pods.customContainers)">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Custom Containers</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers')"></span>
                                     <ul>
                                         <template v-for="(container, index) in cluster.data.spec.pods.customContainers">
                                             <li :key="'container-' + index">
-                                                <button></button>
+                                                <button class="toggleSummary"></button>
                                                 <strong class="label">Container #{{ index + 1 }}</strong>
                                                 <ul>
                                                     <li v-if="container.hasOwnProperty('name') && !isNull(container.name)">
@@ -1212,7 +1212,7 @@
                                                         <span class="value"> : {{ container.workingDir }}</span>
                                                     </li>
                                                     <li v-if="container.hasOwnProperty('args') && !isNull(container.args)">
-                                                        <button></button>
+                                                        <button class="toggleSummary"></button>
                                                         <strong class="label">Arguments</strong>
                                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.arguments')"></span>
                                                         <ul>
@@ -1224,7 +1224,7 @@
                                                         </ul>
                                                     </li>
                                                     <li v-if="container.hasOwnProperty('command') && !isNull(container.command)">
-                                                        <button></button>
+                                                        <button class="toggleSummary"></button>
                                                         <strong class="label">Command</strong>
                                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.command')"></span>
                                                         <ul>
@@ -1236,7 +1236,7 @@
                                                         </ul>
                                                     </li>
                                                     <li v-if="container.hasOwnProperty('env') && !isNull(container.env)">
-                                                        <button></button>
+                                                        <button class="toggleSummary"></button>
                                                         <strong class="label">Environment Variables</strong>
                                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.env')"></span>
                                                         <ul>
@@ -1249,7 +1249,7 @@
                                                         </ul>
                                                     </li>
                                                     <li v-if="container.hasOwnProperty('ports') && !isNull(container.ports)">
-                                                        <button></button>
+                                                        <button class="toggleSummary"></button>
                                                         <strong class="label">Ports</strong>
                                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports')"></span>
                                                         <ul>
@@ -1288,7 +1288,7 @@
                                                         </ul>
                                                     </li>
                                                     <li v-if="container.hasOwnProperty('volumeMounts') && !isNull(container.volumeMounts)">
-                                                        <button></button>
+                                                        <button class="toggleSummary"></button>
                                                         <strong class="label">Volume Mounts</strong>
                                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts')"></span>
                                                         <ul>
@@ -1342,7 +1342,7 @@
 
                     <ul class="section" v-if="( showDefaults || ( (cluster.data.spec.replication.role != 'ha-read') || (cluster.data.spec.replication.mode != 'async') || cluster.data.spec.replication.hasOwnProperty('groups') ) )">
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="sectionTitle">Pods Replication </strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication')"></span>
                             <ul>
@@ -1362,12 +1362,12 @@
                                     <span class="value"> : {{ cluster.data.spec.replication.syncNodeCount }}</span>
                                 </li>
                                 <li v-if="cluster.data.spec.replication.hasOwnProperty('groups')">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Groups</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.replication.groups')"></span>
                                     <ul>
                                         <li v-for="(group, index) in cluster.data.spec.replication.groups">
-                                            <button></button>
+                                            <button class="toggleSummary"></button>
                                             <strong class="label">Group #{{ index + 1}}</strong>
                                             <ul>
                                                 <li v-if="group.name.length">
@@ -1395,12 +1395,12 @@
 
                     <ul class="section" v-if="showDefaults || !cluster.data.spec.postgresServices.primary.enabled || (cluster.data.spec.postgresServices.primary.type != 'ClusterIP') || !cluster.data.spec.postgresServices.replicas.enabled || (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP') || cluster.data.spec.postgresServices.primary.hasOwnProperty('loadBalancerIP') || cluster.data.spec.postgresServices.replicas.hasOwnProperty('loadBalancerIP') || cluster.data.spec.postgresServices.primary.hasOwnProperty('customPorts') || cluster.data.spec.postgresServices.replicas.hasOwnProperty('customPorts')">
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="sectionTitle">Customize generated Kubernetes service </strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices')"></span>
                             <ul>
                                 <li v-if="showDefaults || !cluster.data.spec.postgresServices.primary.enabled || (cluster.data.spec.postgresServices.primary.type != 'ClusterIP') || cluster.data.spec.postgresServices.primary.hasOwnProperty('loadBalancerIP') || cluster.data.spec.postgresServices.primary.hasOwnProperty('customPorts')">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Primary Service</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary')"></span>
                                     <span class="value"> : {{ isEnabled(cluster.data.spec.postgresServices.primary.enabled) }}</span>
@@ -1421,12 +1421,12 @@
                                             <span class="value"> : {{ cluster.data.spec.postgresServices.primary.loadBalancerIP }}</span>
                                         </li>
                                         <li v-if="cluster.data.spec.postgresServices.primary.hasOwnProperty('customPorts')">
-                                            <button></button>
+                                            <button class="toggleSummary"></button>
                                             <strong class="label">Custom Ports</strong>
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.primary.customPorts')"></span>
                                             <ul>
                                                 <li v-for="(port, index) in cluster.data.spec.postgresServices.primary.customPorts">
-                                                    <button></button>
+                                                    <button class="toggleSummary"></button>
                                                     <strong class="label">Port #{{ index + 1 }}</strong>
                                                     <ul>
                                                         <li v-if="port.hasOwnProperty('appProtocol') && (port.appProtocol != null)">
@@ -1467,7 +1467,7 @@
                                 </li>
 
                                 <li v-if="showDefaults || !cluster.data.spec.postgresServices.replicas.enabled || (cluster.data.spec.postgresServices.replicas.type != 'ClusterIP') || cluster.data.spec.postgresServices.replicas.hasOwnProperty('loadBalancerIP') || cluster.data.spec.postgresServices.replicas.hasOwnProperty('customPorts')">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Replicas Service</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas')"></span>
                                     <span> : {{ isEnabled(cluster.data.spec.postgresServices.replicas.enabled) }}</span>
@@ -1488,12 +1488,12 @@
                                             <span class="value"> : {{ cluster.data.spec.postgresServices.replicas.loadBalancerIP }}</span>
                                         </li>
                                         <li v-if="cluster.data.spec.postgresServices.replicas.hasOwnProperty('customPorts')">
-                                            <button></button>
+                                            <button class="toggleSummary"></button>
                                             <strong class="label">Custom Ports</strong>
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgresServices.replicas.customPorts')"></span>
                                             <ul>
                                                 <li v-for="(port, index) in cluster.data.spec.postgresServices.replicas.customPorts">
-                                                    <button></button>
+                                                    <button class="toggleSummary"></button>
                                                     <strong class="label">Port #{{ index + 1 }}</strong>
                                                     <ul>
                                                         <li v-if="port.hasOwnProperty('appProtocol') && (port.appProtocol != null)">
@@ -1538,17 +1538,17 @@
 
                     <ul class="section" v-if="hasProp(cluster, 'data.spec.metadata.labels.clusterPods') || hasProp(cluster, 'data.spec.metadata.annotations')">
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="sectionTitle">Metadata </strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata')"></span>
                             <ul>
                                 <li v-if="hasProp(cluster, 'data.spec.pods.metadata')">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Labels</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.labels')"></span>
                                     <ul>
                                         <li v-if="hasProp(cluster, 'data.spec.metadata.labels.clusterPods')">
-                                            <button></button>
+                                            <button class="toggleSummary"></button>
                                             <strong class="label">Cluster Pods</strong>
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.labels.clusterPods')"></span>
                                             <ul>
@@ -1561,12 +1561,12 @@
                                     </ul>
                                 </li>
                                 <li v-if="hasProp(cluster, 'data.spec.metadata.annotations')">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Annotations</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations')"></span>
                                     <ul>
                                         <li v-if="hasProp(cluster, 'data.spec.metadata.annotations.allResources')">
-                                            <button></button>
+                                            <button class="toggleSummary"></button>
                                             <strong class="label">All Resources</strong>
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.allResources')"></span>
                                             <ul>
@@ -1577,7 +1577,7 @@
                                             </ul>
                                         </li>
                                         <li v-if="hasProp(cluster, 'data.spec.metadata.annotations.clusterPods')">
-                                            <button></button>
+                                            <button class="toggleSummary"></button>
                                             <strong class="label">Cluster Pods</strong>
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.clusterPods')"></span>
                                             <ul>
@@ -1588,7 +1588,7 @@
                                             </ul>
                                         </li>
                                         <li v-if="hasProp(cluster, 'data.spec.metadata.annotations.services')">
-                                            <button></button>
+                                            <button class="toggleSummary"></button>
                                             <strong class="label">Services</strong>
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.services')"></span>
                                             <ul>
@@ -1599,7 +1599,7 @@
                                             </ul>
                                         </li>
                                         <li v-if="hasProp(cluster, 'data.spec.metadata.annotations.primaryService')">
-                                            <button></button>
+                                            <button class="toggleSummary"></button>
                                             <strong class="label">Primary Service</strong>
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.primaryService')"></span>
                                             <ul>
@@ -1610,7 +1610,7 @@
                                             </ul>
                                         </li>
                                         <li v-if="hasProp(cluster, 'data.spec.metadata.annotations.replicasService')">
-                                            <button></button>
+                                            <button class="toggleSummary"></button>
                                             <strong class="label">Replicas Service</strong>
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.metadata.annotations.replicasService')"></span>
                                             <ul>
@@ -1628,12 +1628,12 @@
 
                     <ul class="section" v-if="hasProp(cluster, 'data.spec.pods.scheduling')">
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="sectionTitle">Pods Scheduling </strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling')"></span>
                             <ul>
                                 <li v-if="hasProp(cluster, 'data.spec.pods.scheduling.nodeSelector')">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Node Selectors</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeSelector')"></span>
                                     <ul>
@@ -1645,12 +1645,12 @@
                                 </li>
 
                                 <li v-if="hasProp(cluster, 'data.spec.pods.scheduling.tolerations')">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Node Tolerations</strong>                                    
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.tolerations')"></span>
                                     <ul>
                                         <li v-for="(toleration, index) in cluster.data.spec.pods.scheduling.tolerations">
-                                            <button></button>
+                                            <button class="toggleSummary"></button>
                                             <strong class="label">Toleration #{{ index+1 }}</strong>
                                             <ul>
                                                 <li>
@@ -1684,27 +1684,27 @@
                                 </li>
 
                                 <li v-if="hasProp(cluster, 'data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution')">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Node Affinity</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution')"></span><br/>
                                     <span>Required During Scheduling Ignored During Execution</span>
                                     <ul>
                                         <li>
-                                            <button></button>
+                                            <button class="toggleSummary"></button>
                                             <strong class="label">Terms</strong>
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items')"></span>
                                             <ul>
                                                 <li v-for="(term, index) in cluster.data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms">
-                                                    <button></button>
+                                                    <button class="toggleSummary"></button>
                                                     <strong class="label">Term #{{ index+1 }}</strong>
                                                     <ul>
                                                         <li v-if="term.hasOwnProperty('matchExpressions')">
-                                                            <button></button>
+                                                            <button class="toggleSummary"></button>
                                                             <strong class="label">Match Expressions</strong>
                                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions')"></span>
                                                             <ul>
                                                                 <li v-for="(exp, index) in term.matchExpressions">
-                                                                    <button></button>
+                                                                    <button class="toggleSummary"></button>
                                                                     <strong class="label">Expression #{{ index+1 }}</strong>
                                                                     <ul>
                                                                         <li>
@@ -1727,12 +1727,12 @@
                                                             </ul>
                                                         </li>
                                                         <li v-if="term.hasOwnProperty('matchFields')">
-                                                            <button></button>
+                                                            <button class="toggleSummary"></button>
                                                             <strong class="label">Match Fields</strong>
                                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields')"></span>
                                                             <ul>
                                                                 <li v-for="(field, index) in term.matchFields">
-                                                                    <button></button>
+                                                                    <button class="toggleSummary"></button>
                                                                     <strong class="label">Field #{{ index+1 }}</strong>
                                                                     <ul>
                                                                         <li>
@@ -1762,27 +1762,27 @@
                                 </li>
 
                                 <li v-if="hasProp(cluster, 'data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution')">
-                                    <button></button>
+                                    <button class="toggleSummary"></button>
                                     <strong class="label">Node Affinity</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution')"></span><br/>
                                     <span>Preferred During Scheduling Ignored During Execution</span>
                                     <ul>
                                         <li>
-                                            <button></button>
+                                            <button class="toggleSummary"></button>
                                             <strong class="label">Terms</strong>
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items')"></span>
                                             <ul>
                                                 <li v-for="(term, index) in cluster.data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution">
-                                                    <button></button>
+                                                    <button class="toggleSummary"></button>
                                                     <strong class="label">Term #{{ index+1 }}</strong>
                                                     <ul>
                                                         <li v-if="term.preference.hasOwnProperty('matchExpressions')">
-                                                            <button></button>
+                                                            <button class="toggleSummary"></button>
                                                             <strong class="label">Match Expressions</strong>
                                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions')"></span>
                                                             <ul>
                                                                 <li v-for="(exp, index) in term.preference.matchExpressions">
-                                                                    <button></button>
+                                                                    <button class="toggleSummary"></button>
                                                                     <strong class="label">Expression #{{ index+1 }}</strong>
                                                                     <ul>
                                                                         <li>
@@ -1805,12 +1805,12 @@
                                                             </ul>
                                                         </li>
                                                         <li v-if="term.preference.hasOwnProperty('matchFields')">
-                                                            <button></button>
+                                                            <button class="toggleSummary"></button>
                                                             <strong class="label">Match Fields</strong>
                                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields')"></span>
                                                             <ul>
                                                                 <li v-for="(field, index) in term.preference.matchFields">
-                                                                    <button></button>
+                                                                    <button class="toggleSummary"></button>
                                                                     <strong class="label">Field #{{ index+1 }}</strong>
                                                                     <ul>
                                                                         <li>
@@ -1849,7 +1849,7 @@
 
                     <ul class="section" v-if="showDefaults || hasProp(cluster, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity')">
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="sectionTitle">Non Production Settings </strong>
                             <ul>
                                 <li>
@@ -2045,7 +2045,7 @@
         background: "▾";
     }
 
-    .summary button {
+    .summary button.toggleSummary {
         background: transparent;
         font-weight: bold;
         border: 0;
@@ -2058,11 +2058,11 @@
         background: var(--activeBg);
     }
 
-    .crdDetails .summary button {
+    .crdDetails .summary button.toggleSummary {
         background: var(--bgColor);
     }
 
-    .summary button:before {
+    .summary button.toggleSummary:before {
         content: "▾";
         display: block;
         position: absolute;
@@ -2073,8 +2073,8 @@
         transition: all .3s ease-out;
     }
 
-    .summary .collapsed button:before {
-        transform: rotate(180deg);
+    .summary .collapsed .toggleSummary:before {
+        transform: rotate(-90deg);
         transition: all .3s ease-out;
     }
 
