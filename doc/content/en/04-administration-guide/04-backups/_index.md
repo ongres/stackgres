@@ -14,7 +14,7 @@ S3, GCP, Azure Blob, and S3-compatible object storages are supported.
 ## Cluster Backup Configuration
 
 All the configuration for this matter can be found at the [SGCluster backups section]({{% relref "06-crd-reference/01-sgcluster/#backups" %}}).
-When backups are configured, Postgres WAL files will start being archived in the specified storage at the specified path.
+When backups are configured, Postgres WAL files will start being archived in the specified [SGObjectStorage]({{% relref "06-crd-reference/10-sgobjectstorage" %}}) (see [below](#backup-storage)) at the specified path.
 Also, automatic backups will be scheduled and a retention policy of backups is created.
 By default, automatic backups will be scheduled daily at `05:00 UTC`, with a retention policy of 5 backups.
 You will have to find out a time window and retention policy that fit your needs.
@@ -41,8 +41,9 @@ spec:
         uploadDiskConcurrency: # 1 by default
 ```
 
-For more information, have a look at the [SGCluster backups section]({{% relref "06-crd-reference/01-sgcluster/#backups" %}}).
+> If you create a cluster first without backups configured, and then want to add backups, you need to create the SGObjectStorage and patch the SGCluster to point to the backup.
 
+For more information, have a look at the [SGCluster backups section]({{% relref "06-crd-reference/01-sgcluster/#backups" %}}).
 
 ## Backup Storage
 

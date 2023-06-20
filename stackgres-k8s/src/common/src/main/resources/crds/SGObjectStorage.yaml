@@ -241,7 +241,7 @@ spec:
                       type: string
                       pattern: "^(azure://)?[^/]+(/[^/]*)*$"
                       description: |
-                        Azure Blob Storage bucket name.
+                        Azure Blob Storage bucket name. The bucket name should not contain the full URL, but rather the bucket name.
                     azureCredentials:
                       type: object
                       description: |
