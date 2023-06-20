@@ -162,7 +162,7 @@ public class PatroniServices implements
         .endMetadata()
         .withSpec(cluster.getSpec().getPostgresServices().getPrimary())
         .editSpec()
-        .withSelector(labelFactory.patroniReplicaLabels(cluster))
+        .withSelector(labelFactory.clusterReplicaLabels(cluster))
         .withPorts(new ServicePortBuilder()
             .withProtocol("TCP")
             .withName(PatroniConfigMap.POSTGRES_PORT_NAME)

@@ -14,6 +14,8 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresVersion;
@@ -64,6 +66,20 @@ public class DbOpsMinorVersionUpgradeValidator implements DbOpsValidator {
               dbOps.getSpec().getSgCluster(), dbOps.getMetadata().getNamespace());
           if (foundCluster.isPresent()) {
             StackGresCluster cluster = foundCluster.get();
+
+            var foundOwnerReference = Optional.of(cluster.getMetadata())
+                .map(ObjectMeta::getOwnerReferences)
+                .stream()
+                .flatMap(List::stream)
+                .filter(ownerReference -> ownerReference.getController() != null
+                    && ownerReference.getController())
+                .findFirst();
+            if (foundOwnerReference.isPresent()) {
+              OwnerReference ownerReference = foundOwnerReference.get();
+              fail("Can not perform minor version upgrade on SGCluster managed by "
+                  + ownerReference.getKind() + " " + ownerReference.getName());
+            }
+
             String givenPgVersion = dbOps.getSpec().getMinorVersionUpgrade().getPostgresVersion();
 
             if (givenPgVersion != null

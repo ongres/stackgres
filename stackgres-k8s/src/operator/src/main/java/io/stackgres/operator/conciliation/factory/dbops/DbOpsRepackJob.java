@@ -67,7 +67,7 @@ public class DbOpsRepackJob extends AbstractDbOpsJob {
                 .build(),
             new EnvVarBuilder()
                 .withName("CLUSTER_PRIMARY_POD_LABELS")
-                .withValue(labelFactory.patroniPrimaryLabels(context.getCluster())
+                .withValue(labelFactory.clusterPrimaryLabels(context.getCluster())
                     .entrySet()
                     .stream()
                     .map(e -> e.getKey() + "=" + e.getValue())

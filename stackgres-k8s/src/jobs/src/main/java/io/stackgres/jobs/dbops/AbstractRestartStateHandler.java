@@ -200,7 +200,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
     return Uni.createFrom().item(() -> {
       String namespace = cluster.getMetadata().getNamespace();
 
-      final Map<String, String> podLabels = labelFactory.patroniClusterLabels(cluster);
+      final Map<String, String> podLabels = labelFactory.clusterLabels(cluster);
 
       List<Pod> clusterPods = podScanner.findByLabelsAndNamespace(namespace, podLabels);
 

@@ -19,15 +19,11 @@ public interface LabelFactoryForCluster<T extends CustomResource<?, ?>>
 
   Map<String, String> patroniClusterLabels(T resource);
 
-  Map<String, String> patroniPrimaryLabels(T resource);
+  Map<String, String> clusterPrimaryLabels(T resource);
 
-  Map<String, String> patroniReplicaLabels(T resource);
+  Map<String, String> clusterReplicaLabels(T resource);
 
-  Map<String, String> patroniClusterLabelsWithoutScope(T resource);
-
-  Map<String, String> patroniPrimaryLabelsWithoutScope(T resource);
-
-  Map<String, String> patroniReplicaLabelsWithoutScope(T resource);
+  Map<String, String> clusterPrimaryLabelsWithoutUidAndScope(T resource);
 
   Map<String, String> statefulSetPodLabels(T resource);
 

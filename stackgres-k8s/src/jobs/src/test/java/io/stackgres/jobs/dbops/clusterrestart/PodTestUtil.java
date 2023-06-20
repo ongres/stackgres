@@ -93,7 +93,7 @@ public class PodTestUtil {
 
   public List<Pod> getClusterPods(StackGresCluster cluster) {
     return client.pods().inNamespace(cluster.getMetadata().getNamespace())
-        .withLabels(labelFactory.patroniClusterLabels(cluster))
+        .withLabels(labelFactory.clusterLabels(cluster))
         .list()
         .getItems()
         .stream().filter(pod -> !pod.getMetadata()
@@ -103,12 +103,12 @@ public class PodTestUtil {
   }
 
   public Pod buildPrimaryPod(StackGresCluster cluster, int index) {
-    final Map<String, String> labels = labelFactory.patroniPrimaryLabels(cluster);
+    final Map<String, String> labels = labelFactory.clusterPrimaryLabels(cluster);
     return buildPod(cluster, index, labels);
   }
 
   public Pod buildNonDisruptablePrimaryPod(StackGresCluster cluster, int index) {
-    final Map<String, String> labels = labelFactory.patroniPrimaryLabels(cluster);
+    final Map<String, String> labels = labelFactory.clusterPrimaryLabels(cluster);
     return buildPod(cluster, index, ImmutableMap.<String, String>builder()
         .putAll(labels)
         .put(labelFactory.labelMapper().disruptibleKey(cluster),
@@ -117,7 +117,7 @@ public class PodTestUtil {
   }
 
   public Pod buildReplicaPod(StackGresCluster cluster, int index) {
-    final Map<String, String> labels = labelFactory.patroniReplicaLabels(cluster);
+    final Map<String, String> labels = labelFactory.clusterReplicaLabels(cluster);
     return buildPod(cluster, index, labels);
   }
 
