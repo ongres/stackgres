@@ -33,7 +33,7 @@ public class ClusterDto extends ResourceDto {
   private boolean grafanaEmbedded;
 
   @JsonProperty("info")
-  private ClusterInfoDto info;
+  private ClusterInfo info;
 
   public ClusterSpec getSpec() {
     return spec;
@@ -75,11 +75,11 @@ public class ClusterDto extends ResourceDto {
     this.grafanaEmbedded = grafanaEmbedded;
   }
 
-  public ClusterInfoDto getInfo() {
+  public ClusterInfo getInfo() {
     return info;
   }
 
-  public void setInfo(ClusterInfoDto info) {
+  public void setInfo(ClusterInfo info) {
     this.info = info;
   }
 

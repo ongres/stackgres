@@ -54,6 +54,34 @@ paths:
         * sgshardedclusters delete
       security:
       - JWT: []
+  /stackgres/namespaces/{namespace}/sgshardedclusters/{name}/stats:
+    get:
+      tags:
+      - sgshardedcluster
+      summary: Get a sgshardedcluster's stats
+      description: |
+        Get a sgshardedcluster's stats.
+
+        ### RBAC permissions required
+
+        * sgshardedclusters get
+        * pod list
+        * persistentvolume list
+      parameters:
+      - name: namespace
+        description: The namespace to retrieve the resource from
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: name
+        description: The name of the resource to retrieve
+        in: path
+        required: true
+        schema:
+          type: string
+      security:
+      - JWT: []
   /stackgres/namespaces/{namespace}/sgshardedclusters/{name}:
     get:
       tags:

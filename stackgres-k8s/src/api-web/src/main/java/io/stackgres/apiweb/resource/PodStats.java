@@ -27,4 +27,5 @@ public class PodStats
       Tuple3<Pod, ImmutableMap<PatroniStatsScripts, String>, Optional<PersistentVolumeClaim>> t) {
     return new PodStats(t.v1, t.v2, t.v3);
   }
+
 }

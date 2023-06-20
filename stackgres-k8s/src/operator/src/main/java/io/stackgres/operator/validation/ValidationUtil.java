@@ -41,7 +41,7 @@ public interface ValidationUtil {
 
   Map<StackGresComponent, Map<StackGresVersion, List<String>>>
       SUPPORTED_SHARDED_CLUSTER_POSTGRES_VERSIONS =
-      Stream.of(StackGresComponent.POSTGRESQL)
+      Stream.of(StackGresComponent.POSTGRESQL, StackGresComponent.BABELFISH)
           .collect(ImmutableMap.toImmutableMap(Function.identity(),
               component -> component.getComponentVersions()
                   .entrySet()

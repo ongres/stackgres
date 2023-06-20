@@ -7,10 +7,10 @@ package io.stackgres.apiweb.rest;
 
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME_KEY;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -36,7 +36,7 @@ import io.stackgres.apiweb.dto.script.ScriptFrom;
 import io.stackgres.apiweb.dto.script.ScriptSpec;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterCoordinator;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterDto;
-import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterInfoDto;
+import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterInfo;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterShards;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterSpec;
 import io.stackgres.apiweb.transformer.ScriptTransformer;
@@ -45,7 +45,6 @@ import io.stackgres.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -68,7 +67,7 @@ import org.jooq.lambda.tuple.Tuple4;
 @RequestScoped
 @Authenticated
 public class ShardedClusterResource
-    extends AbstractRestServiceDependency<ShardedClusterDto, StackGresShardedCluster> {
+    extends AbstractRestService<ShardedClusterDto, StackGresShardedCluster> {
 
   public static final String DEFAULT_SCRIPT_KEY = ScriptResource.DEFAULT_SCRIPT_KEY;
 
@@ -102,25 +101,6 @@ public class ShardedClusterResource
     this.secretFinder = secretFinder;
     this.configMapFinder = configMapFinder;
     this.serviceFinder = serviceFinder;
-  }
-
-  @Override
-  public boolean belongsToCluster(StackGresShardedCluster resource, StackGresCluster cluster) {
-    String shardedNamespace = resource.getMetadata().getNamespace();
-    String clusterNamespace = cluster.getMetadata().getNamespace();
-
-    if (!Objects.equals(shardedNamespace, clusterNamespace)) {
-      return false;
-    }
-
-    String shardedName = resource.getMetadata().getName();
-    return Optional.of(cluster)
-        .map(StackGresCluster::getMetadata)
-        .map(ObjectMeta::getOwnerReferences)
-        .stream()
-        .flatMap(List::stream)
-        .anyMatch(ownerReference -> Objects.equals(shardedName, ownerReference.getName())
-            && Objects.equals(StackGresShardedCluster.KIND, ownerReference.getKind()));
   }
 
   @Operation(
@@ -174,16 +154,25 @@ public class ShardedClusterResource
     }
     final String namespace = resource.getMetadata().getNamespace();
     final String clusterName = resource.getMetadata().getName();
-    final ShardedClusterInfoDto info = new ShardedClusterInfoDto();
+    final ShardedClusterInfo info = new ShardedClusterInfo();
 
     var foundCluster = shardedClusterFinder.findByNameAndNamespace(clusterName, namespace);
     foundCluster
         .flatMap(cluster -> serviceFinder.findByNameAndNamespace(
             StackGresShardedClusterForCitusUtil.primaryCoordinatorServiceName(cluster), namespace))
         .ifPresent(service -> info.setPrimaryDns(StackGresUtil.getServiceDnsName(service)));
+    foundCluster
+        .flatMap(cluster -> serviceFinder.findByNameAndNamespace(
+            StackGresShardedClusterForCitusUtil.anyCoordinatorServiceName(cluster), namespace))
+        .ifPresent(service -> info.setReadsDns(StackGresUtil.getServiceDnsName(service)));
+    foundCluster
+        .flatMap(cluster -> serviceFinder.findByNameAndNamespace(
+            StackGresShardedClusterForCitusUtil.primariesShardsServiceName(cluster), namespace))
+        .ifPresent(service -> info.setPrimariesDns(StackGresUtil.getServiceDnsName(service)));
 
     info.setSuperuserUsername(SUPERUSER_USERNAME);
     info.setSuperuserSecretName(clusterName);
+    info.setSuperuserUsernameKey(SUPERUSER_USERNAME_KEY);
     info.setSuperuserPasswordKey(SUPERUSER_PASSWORD_KEY);
 
     resource.setInfo(info);

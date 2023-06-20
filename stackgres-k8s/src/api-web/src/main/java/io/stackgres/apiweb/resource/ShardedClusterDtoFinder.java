@@ -5,7 +5,6 @@
 
 package io.stackgres.apiweb.resource;
 
-import java.util.List;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -25,7 +24,7 @@ public class ShardedClusterDtoFinder implements CustomResourceFinder<ShardedClus
   @Override
   public Optional<ShardedClusterDto> findByNameAndNamespace(String name, String namespace) {
     return shardedClusterFinder.findByNameAndNamespace(name, namespace)
-        .map(resrouce -> shardedClusterTransformer.toResource(resrouce, List.of()));
+        .map(resrouce -> shardedClusterTransformer.toDto(resrouce));
   }
 
   @Inject

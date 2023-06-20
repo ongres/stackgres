@@ -30,7 +30,7 @@ public class ShardedClusterDto extends ResourceDto {
   private boolean grafanaEmbedded;
 
   @JsonProperty("info")
-  private ShardedClusterInfoDto info;
+  private ShardedClusterInfo info;
 
   public ShardedClusterSpec getSpec() {
     return spec;
@@ -64,11 +64,11 @@ public class ShardedClusterDto extends ResourceDto {
     this.grafanaEmbedded = grafanaEmbedded;
   }
 
-  public ShardedClusterInfoDto getInfo() {
+  public ShardedClusterInfo getInfo() {
     return info;
   }
 
-  public void setInfo(ShardedClusterInfoDto info) {
+  public void setInfo(ShardedClusterInfo info) {
     this.info = info;
   }
 

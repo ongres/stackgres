@@ -170,7 +170,7 @@ paths:
         * sgclusters get
         * pod list
         * pod/exec create
-      operationId: stats
+        * persistentvolume list
       parameters:
       - name: namespace
         description: The namespace to retrieve the resource from

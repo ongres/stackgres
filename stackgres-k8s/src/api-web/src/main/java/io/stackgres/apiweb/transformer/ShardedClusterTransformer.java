@@ -5,6 +5,9 @@
 
 package io.stackgres.apiweb.transformer;
 
+import static io.stackgres.common.StackGresShardedClusterForCitusUtil.getCoordinatorClusterName;
+import static io.stackgres.common.StackGresShardedClusterForCitusUtil.getShardClusterName;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -27,10 +30,11 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jooq.lambda.Seq;
 
 @ApplicationScoped
 public class ShardedClusterTransformer
-    extends AbstractDependencyResourceTransformer<ShardedClusterDto, StackGresShardedCluster> {
+    extends AbstractResourceTransformer<ShardedClusterDto, StackGresShardedCluster> {
 
   private final StackGresPropertyContext<WebApiProperty> context;
   private final ObjectMapper mapper;
@@ -63,12 +67,16 @@ public class ShardedClusterTransformer
   }
 
   @Override
-  public ShardedClusterDto toResource(
-      @NotNull StackGresShardedCluster customResource, @NotNull List<String> clusters) {
+  public ShardedClusterDto toDto(
+      @NotNull StackGresShardedCluster customResource) {
     ShardedClusterDto transformation = new ShardedClusterDto();
-    transformation.setMetadata(getResourceMetadata(customResource));
-    transformation.setSpec(getResourceSpec(customResource.getSpec()));
-    transformation.setStatus(getResourceStatus(customResource.getStatus(), clusters));
+    transformation.setMetadata(getDtoMetadata(customResource));
+    transformation.setSpec(getDtoSpec(customResource.getSpec()));
+    transformation.setStatus(getDtoStatus(customResource.getStatus(),
+        Seq.of(getCoordinatorClusterName(customResource))
+        .append(Seq.range(0, customResource.getSpec().getShards().getClusters())
+            .map(index -> getShardClusterName(customResource, index)))
+        .toList()));
     transformation.setGrafanaEmbedded(isGrafanaEmbeddedEnabled());
     return transformation;
   }
@@ -81,11 +89,11 @@ public class ShardedClusterTransformer
     return mapper.convertValue(source, StackGresShardedClusterSpec.class);
   }
 
-  private ShardedClusterSpec getResourceSpec(StackGresShardedClusterSpec source) {
+  private ShardedClusterSpec getDtoSpec(StackGresShardedClusterSpec source) {
     return mapper.convertValue(source, ShardedClusterSpec.class);
   }
 
-  private ShardedClusterStatus getResourceStatus(StackGresShardedClusterStatus source,
+  private ShardedClusterStatus getDtoStatus(StackGresShardedClusterStatus source,
       List<String> clusters) {
     if (source == null) {
       return null;

@@ -3,19 +3,20 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.dto.cluster;
+package io.stackgres.apiweb.dto.shardedcluster;
 
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.apiweb.dto.ResourceDto;
+import io.stackgres.apiweb.dto.cluster.ClusterStats;
+import io.stackgres.apiweb.dto.cluster.KubernetesPod;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ClusterStatsDto extends ResourceDto implements ClusterStats {
+public class ShardedClusterClusterStats implements ClusterStats {
 
   @JsonProperty("cpuRequested")
   private String cpuRequested;
