@@ -2,7 +2,7 @@
     <div>
         <ul class="section">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Metadata </strong>
                 <ul>
                     <li v-if="showDefaults">
@@ -21,7 +21,7 @@
 
         <ul class="section" v-if="crd.data.spec.type.length">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Specs </strong>
                 
                 <ul>
@@ -43,7 +43,7 @@
                             <span class="value"> : {{ crd.data.spec.s3.region }}</span>
                         </li>
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="label">AWS Credentials</strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.s3.awsCredentials')"></span>
                             <ul>
@@ -88,7 +88,7 @@
                             <span class="value"> : {{ crd.data.spec.s3Compatible.region }}</span>
                         </li>
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="label">AWS Credentials</strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.s3Compatible.awsCredentials')"></span>
                             <ul>
@@ -128,7 +128,7 @@
                             <span class="value"> : {{ crd.data.spec.gcs.bucket }}</span>
                         </li>
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="label">GCS Credentials</strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.gcs.gcpCredentials')"></span>
                             <ul>
@@ -139,12 +139,12 @@
                                 </li>
                                 <li v-if="hasProp(crd, 'data.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON') || hasProp(crd, 'data.spec.gcs.gcpCredentials.serviceAccountJSON')">
                                     <template v-if="hasProp(crd, 'data.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON')">
-                                        <button></button>
+                                        <button class="toggleSummary"></button>
                                         <strong class="label">Secret Key Selectors</strong>
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.gcs.gcpCredentials.secretKeySelectors')"></span>
                                         <ul>
                                             <li>
-                                                <button></button>
+                                                <button class="toggleSummary"></button>
                                                 <strong class="label">Service Account JSON</strong>
                                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.gcs.gcpCredentials.secretKeySelectors.serviceAccountJSON')"></span>
                                                 <ul>
@@ -184,7 +184,7 @@
                             <span class="value"> : {{ crd.data.spec.azureBlob.bucket }}</span>
                         </li>
                         <li>
-                            <button></button>
+                            <button class="toggleSummary"></button>
                             <strong class="label">Azure Credentials</strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.spec.azureBlob.azureCredentials')"></span>
                             <ul>
@@ -212,11 +212,11 @@
 
         <ul class="section" v-if="crd.data.hasOwnProperty('status') && crd.data.status.clusters.length">
             <li>
-                <button></button>
+                <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Status </strong>
                 <ul>
                     <li class="usedOn">
-                        <button></button>
+                        <button class="toggleSummary"></button>
                         <strong class="label">Used on</strong>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgobjectstorage.status.clusters')"></span>
                         <ul>    
