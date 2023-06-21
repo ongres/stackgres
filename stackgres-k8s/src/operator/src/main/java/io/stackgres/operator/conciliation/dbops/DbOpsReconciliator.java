@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.conciliation.dbops;
 
-import java.util.List;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
@@ -18,6 +16,7 @@ import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.crd.sgcluster.DbOpsEventReason;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.event.EventEmitter;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.PatchResumer;
@@ -35,6 +34,7 @@ public class DbOpsReconciliator
   @Dependent
   static class Parameters {
     @Inject CustomResourceScanner<StackGresDbOps> scanner;
+    @Inject CustomResourceFinder<StackGresDbOps> finder;
     @Inject Conciliator<StackGresDbOps> conciliator;
     @Inject HandlerDelegator<StackGresDbOps> handlerDelegator;
     @Inject KubernetesClient client;
@@ -51,7 +51,8 @@ public class DbOpsReconciliator
 
   @Inject
   public DbOpsReconciliator(Parameters parameters) {
-    super(parameters.scanner, parameters.conciliator, parameters.handlerDelegator,
+    super(parameters.scanner, parameters.finder,
+        parameters.conciliator, parameters.handlerDelegator,
         parameters.client, StackGresDbOps.KIND);
     this.eventController = parameters.eventController;
     this.patchResumer = new PatchResumer<>(parameters.resourceComparator);
@@ -68,8 +69,8 @@ public class DbOpsReconciliator
   }
 
   @Override
-  protected void reconciliationCycle(List<StackGresDbOps> configs) {
-    super.reconciliationCycle(configs);
+  protected void reconciliationCycle(StackGresDbOps configKey, boolean load) {
+    super.reconciliationCycle(configKey, load);
   }
 
   @Override

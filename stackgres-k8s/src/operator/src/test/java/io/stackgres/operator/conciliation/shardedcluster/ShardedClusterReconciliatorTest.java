@@ -79,7 +79,7 @@ class ShardedClusterReconciliatorTest {
             List.of(),
             List.of()));
 
-    reconciliator.reconciliationCycle(List.of(cluster));
+    reconciliator.reconciliationCycle(cluster, false);
 
     verify(conciliator).evalReconciliationState(cluster);
     creations.forEach(resource -> verify(handlerDelegator).create(cluster, resource));
@@ -101,7 +101,7 @@ class ShardedClusterReconciliatorTest {
             patches,
             List.of()));
 
-    reconciliator.reconciliationCycle(List.of(cluster));
+    reconciliator.reconciliationCycle(cluster, false);
 
     verify(conciliator).evalReconciliationState(cluster);
     patches.forEach(resource -> verify(handlerDelegator).patch(cluster, resource.v1, resource.v2));
@@ -120,7 +120,7 @@ class ShardedClusterReconciliatorTest {
             List.of(),
             deletions));
 
-    reconciliator.reconciliationCycle(List.of(cluster));
+    reconciliator.reconciliationCycle(cluster, false);
 
     verify(conciliator).evalReconciliationState(cluster);
     deletions.forEach(resource -> verify(handlerDelegator).delete(cluster, resource));

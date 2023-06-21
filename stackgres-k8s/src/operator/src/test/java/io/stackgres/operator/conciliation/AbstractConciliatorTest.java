@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
@@ -15,11 +16,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import org.jooq.lambda.tuple.Tuple;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +36,9 @@ class AbstractConciliatorTest {
 
   @Mock
   private CustomResourceScanner<TestResource> scanner;
+
+  @Mock
+  private CustomResourceFinder<TestResource> finder;
 
   @Mock
   private Conciliator<TestResource> conciliator;
@@ -59,11 +65,11 @@ class AbstractConciliatorTest {
   void shouldNotRunReconciliationIfReconciliationMethodIsNotCalled() throws Exception {
     Thread.sleep(1000);
 
-    verify(reconciliator, times(0)).reconciliationCycle(List.of());
+    verify(reconciliator, times(0)).reconciliationsCycle(List.of());
 
     reconciliator.stop();
 
-    verify(reconciliator, times(0)).reconciliationCycle(any());
+    verify(reconciliator, times(0)).reconciliationsCycle(any());
     verify(reconciliator, times(0)).onPreReconciliation(any());
     verify(reconciliator, times(0)).onPostReconciliation(any());
     verify(reconciliator, times(0)).onError(any(), any());
@@ -73,6 +79,7 @@ class AbstractConciliatorTest {
 
   @Test
   void shouldRunReconciliationOnceIfReconciliationMethodIsCalledOnce() {
+    when(finder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(customResource));
     when(conciliator.evalReconciliationState(any()))
         .thenReturn(new ReconciliationResult(
             List.of(),
@@ -81,11 +88,11 @@ class AbstractConciliatorTest {
 
     reconciliator.reconcile(customResource);
 
-    verify(reconciliator, timeout(1000).times(1)).reconciliationCycle(any());
+    verify(reconciliator, timeout(1000).times(1)).reconciliationsCycle(any());
 
     reconciliator.stop();
 
-    verify(reconciliator, times(1)).reconciliationCycle(any());
+    verify(reconciliator, times(1)).reconciliationsCycle(any());
     verify(reconciliator, times(1)).onPreReconciliation(any());
     verify(reconciliator, times(1)).onPostReconciliation(any());
     verify(reconciliator, times(0)).onError(any(), any());
@@ -95,13 +102,14 @@ class AbstractConciliatorTest {
 
   @Test
   void shouldRunReconciliationOnceIfReconciliationMethodIsCalledTwiceWhileRunning() {
+    when(scanner.getResources()).thenReturn(List.of(customResource));
     CompletableFuture<Void> waitInternal = new CompletableFuture<>();
     CompletableFuture<Void> waitExternal = new CompletableFuture<>();
     doAnswer(invocation -> {
       waitExternal.complete(null);
       waitInternal.join();
       return null;
-    }).when(reconciliator).reconciliationCycle(any());
+    }).when(reconciliator).reconciliationCycle(any(), anyBoolean());
 
     reconciliator.reconcileAll();
     waitExternal.join();
@@ -109,11 +117,16 @@ class AbstractConciliatorTest {
     reconciliator.reconcileAll();
     waitInternal.complete(null);
 
-    verify(reconciliator, timeout(1000).times(2)).reconciliationCycle(List.of());
+    verify(reconciliator, timeout(1000).times(2)).reconciliationsCycle(any());
+    verify(reconciliator, timeout(1000).times(2)).reconciliationCycle(any(), anyBoolean());
 
     reconciliator.stop();
 
-    verify(reconciliator, times(2)).reconciliationCycle(any());
+    verify(reconciliator, times(1)).reconciliationsCycle(
+        List.of(Optional.empty()));
+    verify(reconciliator, times(1)).reconciliationsCycle(
+        List.of(Optional.empty(), Optional.empty()));
+    verify(reconciliator, times(2)).reconciliationCycle(customResource, false);
   }
 
   @Test
@@ -124,7 +137,7 @@ class AbstractConciliatorTest {
       waitExternal.complete(null);
       waitInternal.join();
       return null;
-    }).when(reconciliator).reconciliationCycle(any());
+    }).when(reconciliator).reconciliationsCycle(any());
 
     var testResource1 = new TestResource();
     testResource1.setMetadata(new ObjectMeta());
@@ -141,27 +154,32 @@ class AbstractConciliatorTest {
     reconciliator.reconcile(testResource2);
     waitInternal.complete(null);
 
-    verify(reconciliator, timeout(1000).times(2)).reconciliationCycle(any());
+    verify(reconciliator, timeout(1000).times(2)).reconciliationsCycle(any());
 
     reconciliator.stop();
 
-    verify(reconciliator, times(2)).reconciliationCycle(any());
-    verify(reconciliator, times(1)).reconciliationCycle(List.of(testResource1));
-    verify(reconciliator, times(1)).reconciliationCycle(List.of(testResource1, testResource2));
+    verify(reconciliator, times(2)).reconciliationsCycle(any());
+    verify(reconciliator, times(1)).reconciliationsCycle(List.of(testResource1)
+        .stream().map(Optional::of).toList());
+    verify(reconciliator, times(1)).reconciliationsCycle(
+        List.of(testResource1, testResource1, testResource2)
+        .stream().map(Optional::of).toList());
   }
 
   @Test
   void shouldCallOnErrorOnceIfReconciliationMethodIsCalledOnceAndThrowsError() {
+    when(finder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(customResource));
     when(conciliator.evalReconciliationState(any()))
         .thenThrow(RuntimeException.class);
 
     reconciliator.reconcile(customResource);
 
-    verify(reconciliator, timeout(1000).times(1)).reconciliationCycle(List.of(customResource));
+    verify(reconciliator, timeout(1000).times(1)).reconciliationsCycle(List.of(customResource)
+        .stream().map(Optional::of).toList());
 
     reconciliator.stop();
 
-    verify(reconciliator, times(1)).reconciliationCycle(any());
+    verify(reconciliator, times(1)).reconciliationsCycle(any());
     verify(reconciliator, times(1)).onPreReconciliation(any());
     verify(reconciliator, times(0)).onPostReconciliation(any());
     verify(reconciliator, times(1)).onError(any(), any());
@@ -171,6 +189,7 @@ class AbstractConciliatorTest {
 
   @Test
   void shouldCallOnPostReconciliationIfReconciliationMethodIsCalledOnce() {
+    when(finder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(customResource));
     when(conciliator.evalReconciliationState(any()))
         .thenReturn(new ReconciliationResult(
             List.of(),
@@ -179,11 +198,12 @@ class AbstractConciliatorTest {
 
     reconciliator.reconcile(customResource);
 
-    verify(reconciliator, timeout(1000).times(1)).reconciliationCycle(List.of(customResource));
+    verify(reconciliator, timeout(1000).times(1)).reconciliationsCycle(List.of(customResource)
+        .stream().map(Optional::of).toList());
 
     reconciliator.stop();
 
-    verify(reconciliator, times(1)).reconciliationCycle(any());
+    verify(reconciliator, times(1)).reconciliationsCycle(any());
     verify(reconciliator, times(1)).onPreReconciliation(any());
     verify(reconciliator, times(1)).onPostReconciliation(any());
     verify(reconciliator, times(0)).onError(any(), any());
@@ -193,6 +213,7 @@ class AbstractConciliatorTest {
 
   @Test
   void shouldCallOnConfigCreatedIfReconciliationMethodIsCalledOnce() {
+    when(finder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(customResource));
     when(conciliator.evalReconciliationState(any()))
         .thenReturn(new ReconciliationResult(
             List.of(
@@ -207,11 +228,12 @@ class AbstractConciliatorTest {
 
     reconciliator.reconcile(customResource);
 
-    verify(reconciliator, timeout(1000).times(1)).reconciliationCycle(eq(List.of(customResource)));
+    verify(reconciliator, timeout(1000).times(1)).reconciliationsCycle(eq(List.of(customResource)
+        .stream().map(Optional::of).toList()));
 
     reconciliator.stop();
 
-    verify(reconciliator, times(1)).reconciliationCycle(any());
+    verify(reconciliator, times(1)).reconciliationsCycle(any());
     verify(reconciliator, times(1)).onPreReconciliation(any());
     verify(reconciliator, times(1)).onPostReconciliation(any());
     verify(reconciliator, times(0)).onError(any(), any());
@@ -221,6 +243,7 @@ class AbstractConciliatorTest {
 
   @Test
   void shouldCallOnConfigUpdatedIfReconciliationMethodIsCalledOnce() {
+    when(finder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(customResource));
     when(conciliator.evalReconciliationState(any()))
         .thenReturn(new ReconciliationResult(
             List.of(),
@@ -241,11 +264,12 @@ class AbstractConciliatorTest {
 
     reconciliator.reconcile(customResource);
 
-    verify(reconciliator, timeout(1000).times(1)).reconciliationCycle(List.of(customResource));
+    verify(reconciliator, timeout(1000).times(1)).reconciliationsCycle(List.of(customResource)
+        .stream().map(Optional::of).toList());
 
     reconciliator.stop();
 
-    verify(reconciliator, times(1)).reconciliationCycle(any());
+    verify(reconciliator, times(1)).reconciliationsCycle(any());
     verify(reconciliator, times(1)).onPreReconciliation(any());
     verify(reconciliator, times(1)).onPostReconciliation(any());
     verify(reconciliator, times(0)).onError(any(), any());
@@ -255,6 +279,7 @@ class AbstractConciliatorTest {
 
   @Test
   void shouldCallOnConfigUpdatedIfReconciliationMethodIsCalledOnceHavingDeletions() {
+    when(finder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(customResource));
     when(conciliator.evalReconciliationState(any()))
         .thenReturn(new ReconciliationResult(
             List.of(),
@@ -269,11 +294,12 @@ class AbstractConciliatorTest {
 
     reconciliator.reconcile(customResource);
 
-    verify(reconciliator, timeout(1000).times(1)).reconciliationCycle(List.of(customResource));
+    verify(reconciliator, timeout(1000).times(1)).reconciliationsCycle(List.of(customResource)
+        .stream().map(Optional::of).toList());
 
     reconciliator.stop();
 
-    verify(reconciliator, times(1)).reconciliationCycle(any());
+    verify(reconciliator, times(1)).reconciliationsCycle(any());
     verify(reconciliator, times(1)).onPreReconciliation(any());
     verify(reconciliator, times(1)).onPostReconciliation(any());
     verify(reconciliator, times(0)).onError(any(), any());
@@ -283,16 +309,31 @@ class AbstractConciliatorTest {
 
   @Test
   void shouldCallScannerIfReconciliationAllMethodIsCalled() {
-    reconciliator.reconcileAll();
+    reconciliator.reconciliationsCycle(List.of(Optional.empty()));
 
     verify(scanner, times(1)).getResources();
 
-    verify(reconciliator, timeout(1000).times(1)).reconciliationCycle(List.of());
+    verify(reconciliator, timeout(1000).times(1)).reconciliationsCycle(any());
+  }
+
+  @Test
+  void shouldCallFinderIfReconciliationMethodIsCalledForOneResource() {
+    when(finder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(customResource));
+    when(conciliator.evalReconciliationState(any()))
+        .thenReturn(new ReconciliationResult(
+            List.of(),
+            List.of(),
+            List.of()));
+    reconciliator.reconciliationsCycle(List.of(Optional.of(customResource)));
+
+    verify(finder, times(1)).findByNameAndNamespace(any(), any());
+
+    verify(reconciliator, timeout(1000).times(1)).reconciliationsCycle(any());
   }
 
   private AbstractReconciliator<TestResource> buildConciliator() {
     final AbstractReconciliator<TestResource> reconciliator =
-        new TestReconciliator(scanner, conciliator, handlerDelegator, null);
+        new TestReconciliator(scanner, finder, conciliator, handlerDelegator, null);
     return reconciliator;
   }
 
@@ -301,10 +342,11 @@ class AbstractConciliatorTest {
 
     TestReconciliator(
         CustomResourceScanner<TestResource> scanner,
+        CustomResourceFinder<TestResource> finder,
         Conciliator<TestResource> conciliator,
         HandlerDelegator<TestResource> handlerDelegator,
         KubernetesClient client) {
-      super(scanner, conciliator, handlerDelegator, client, "Test");
+      super(scanner, finder, conciliator, handlerDelegator, client, "Test");
     }
 
     @Override

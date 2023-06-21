@@ -40,6 +40,8 @@ class BackupReconciliatorTest {
 
   private final StackGresBackup backup = Fixtures.backup().loadDefault().get();
   @Mock
+  CustomResourceFinder<StackGresBackup> finder;
+  @Mock
   Conciliator<StackGresBackup> conciliator;
   @Mock
   HandlerDelegator<StackGresBackup> handlerDelegator;
@@ -61,6 +63,7 @@ class BackupReconciliatorTest {
   @BeforeEach
   void setUp() {
     BackupReconciliator.Parameters parameters = new BackupReconciliator.Parameters();
+    parameters.finder = finder;
     parameters.backupScheduler = backupScheduler;
     parameters.conciliator = conciliator;
     parameters.handlerDelegator = handlerDelegator;
@@ -85,7 +88,7 @@ class BackupReconciliatorTest {
             Collections.emptyList(),
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(List.of(backup));
+    reconciliator.reconciliationCycle(backup, false);
 
     verify(conciliator).evalReconciliationState(backup);
     creations.forEach(resource -> verify(handlerDelegator).create(backup, resource));
@@ -107,7 +110,7 @@ class BackupReconciliatorTest {
             patches,
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(List.of(backup));
+    reconciliator.reconciliationCycle(backup, false);
 
     verify(conciliator).evalReconciliationState(backup);
     patches.forEach(resource -> verify(handlerDelegator).patch(backup, resource.v1, resource.v2));
@@ -126,7 +129,7 @@ class BackupReconciliatorTest {
             Collections.emptyList(),
             deletions));
 
-    reconciliator.reconciliationCycle(List.of(backup));
+    reconciliator.reconciliationCycle(backup, false);
 
     verify(conciliator).evalReconciliationState(backup);
     deletions.forEach(resource -> verify(handlerDelegator).delete(backup, resource));

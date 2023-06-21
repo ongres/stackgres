@@ -75,7 +75,7 @@ class ScriptReconciliatorTest {
             Collections.emptyList(),
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(List.of(script));
+    reconciliator.reconciliationCycle(script, false);
 
     verify(conciliator).evalReconciliationState(script);
     creations.forEach(resource -> verify(handlerDelegator).create(script, resource));
@@ -97,7 +97,7 @@ class ScriptReconciliatorTest {
             patches,
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(List.of(script));
+    reconciliator.reconciliationCycle(script, false);
 
     verify(conciliator).evalReconciliationState(script);
     patches.forEach(resource -> verify(handlerDelegator).patch(script, resource.v1, resource.v2));
@@ -116,7 +116,7 @@ class ScriptReconciliatorTest {
             Collections.emptyList(),
             deletions));
 
-    reconciliator.reconciliationCycle(List.of(script));
+    reconciliator.reconciliationCycle(script, false);
 
     verify(conciliator).evalReconciliationState(script);
     deletions.forEach(resource -> verify(handlerDelegator).delete(script, resource));

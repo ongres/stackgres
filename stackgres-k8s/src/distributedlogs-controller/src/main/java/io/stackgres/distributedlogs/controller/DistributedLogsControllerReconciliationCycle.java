@@ -5,6 +5,9 @@
 
 package io.stackgres.distributedlogs.controller;
 
+import static io.stackgres.common.DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAME;
+import static io.stackgres.common.DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAMESPACE;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -21,7 +24,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -160,10 +162,21 @@ public class DistributedLogsControllerReconciliationCycle
   @Override
   public ImmutableList<StackGresDistributedLogs> getExistingContextResources() {
     return distributedLogsFinder.findByNameAndNamespace(
-        propertyContext.getString(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAME),
-        propertyContext.getString(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAMESPACE))
+        propertyContext.getString(DISTRIBUTEDLOGS_NAME),
+        propertyContext.getString(DISTRIBUTEDLOGS_NAMESPACE))
         .stream()
         .collect(ImmutableList.toImmutableList());
+  }
+
+  @Override
+  public StackGresDistributedLogs getExistingContextResource(StackGresDistributedLogs source) {
+    final String namespace = source.getMetadata().getNamespace();
+    final String name = source.getMetadata().getName();
+    return distributedLogsFinder.findByNameAndNamespace(
+        name,
+        namespace)
+        .orElseThrow(() -> new IllegalArgumentException(StackGresDistributedLogs.KIND
+            + " " + name + "." + namespace + " not found"));
   }
 
   @Override

@@ -44,6 +44,7 @@ class ReconciliationCycleTest {
   private ReconciliationCycle<?, TestCustomResource, ?> reconciliationCycle;
 
   private TestCustomResource resource;
+  private TestCustomResource resource1;
 
   @Mock
   private ResourceHandlerContext context;
@@ -52,7 +53,8 @@ class ReconciliationCycleTest {
   void setUp() throws Exception {
     reconciliationCycle = new TestReconciliationCycle(ReconciliationCycleTest.this.client,
         ReconciliationCycleTest.this.reconciliator, ReconciliationCycleTest.this.handlerSelector);
-    resource = new TestCustomResource();
+    resource = new TestCustomResource("test");
+    resource1 = new TestCustomResource("test1");
   }
 
   @Test
@@ -60,7 +62,7 @@ class ReconciliationCycleTest {
     when(reconciliator.reconcile(any(), any()))
         .thenReturn(new ReconciliationResult<>());
     ReconciliationCycleResult<?> result =
-        reconciliationCycle.reconciliationCycle(ImmutableList.of(resource));
+        reconciliationCycle.reconciliationCycle(ImmutableList.of(Optional.of(resource)));
     result.throwIfFailed();
     verify(reconciliator, times(1)).reconcile(any(), any());
   }
@@ -71,7 +73,8 @@ class ReconciliationCycleTest {
         .thenThrow(RuntimeException.class)
         .thenReturn(new ReconciliationResult<>());
     ReconciliationCycleResult<?> result =
-        reconciliationCycle.reconciliationCycle(ImmutableList.of(resource, resource));
+        reconciliationCycle.reconciliationCycle(
+            ImmutableList.of(Optional.of(resource), Optional.of(resource1)));
     Assertions.assertFalse(result.success());
     Assertions.assertEquals(Optional.empty(), result.getException());
     Assertions.assertEquals(1, result.getContextExceptions().size());
@@ -123,6 +126,11 @@ class ReconciliationCycleTest {
     }
 
     @Override
+    protected TestCustomResource getExistingContextResource(TestCustomResource contextResource) {
+      return null;
+    }
+
+    @Override
     protected ResourceHandlerContext getContextFromResource(TestCustomResource contextResource) {
       return null;
     }
@@ -133,10 +141,10 @@ class ReconciliationCycleTest {
   static class TestCustomResource extends CustomResource<Object, Object> {
     private static final long serialVersionUID = 1L;
 
-    public TestCustomResource() {
+    public TestCustomResource(String name) {
       super();
       getMetadata().setNamespace("test");
-      getMetadata().setName("test");
+      getMetadata().setName(name);
     }
   }
 }

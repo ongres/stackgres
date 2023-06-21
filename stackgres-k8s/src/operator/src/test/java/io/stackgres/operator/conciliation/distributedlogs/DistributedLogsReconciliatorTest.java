@@ -18,6 +18,7 @@ import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.conciliation.Conciliator;
 import io.stackgres.operator.conciliation.HandlerDelegator;
@@ -38,6 +39,8 @@ class DistributedLogsReconciliatorTest {
   private final StackGresDistributedLogs distributedlogs =
       Fixtures.distributedLogs().loadDefault().get();
   @Mock
+  CustomResourceFinder<StackGresDistributedLogs> finder;
+  @Mock
   Conciliator<StackGresDistributedLogs> conciliator;
   @Mock
   HandlerDelegator<StackGresDistributedLogs> handlerDelegator;
@@ -56,6 +59,7 @@ class DistributedLogsReconciliatorTest {
   void setUp() {
     final DistributedLogsReconciliator.Parameters parameters =
         new DistributedLogsReconciliator.Parameters();
+    parameters.finder = finder;
     parameters.conciliator = conciliator;
     parameters.handlerDelegator = handlerDelegator;
     parameters.eventController = eventController;
@@ -79,7 +83,7 @@ class DistributedLogsReconciliatorTest {
             Collections.emptyList(),
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(List.of(distributedlogs));
+    reconciliator.reconciliationCycle(distributedlogs, false);
 
     verify(conciliator).evalReconciliationState(distributedlogs);
     creations.forEach(resource -> verify(handlerDelegator).create(distributedlogs, resource));
@@ -102,7 +106,7 @@ class DistributedLogsReconciliatorTest {
             patches,
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(List.of(distributedlogs));
+    reconciliator.reconciliationCycle(distributedlogs, false);
 
     verify(conciliator).evalReconciliationState(distributedlogs);
     patches.forEach(resource -> verify(handlerDelegator)
@@ -123,7 +127,7 @@ class DistributedLogsReconciliatorTest {
             Collections.emptyList(),
             deletions));
 
-    reconciliator.reconciliationCycle(List.of(distributedlogs));
+    reconciliator.reconciliationCycle(distributedlogs, false);
 
     verify(conciliator).evalReconciliationState(distributedlogs);
     deletions.forEach(resource -> verify(handlerDelegator)

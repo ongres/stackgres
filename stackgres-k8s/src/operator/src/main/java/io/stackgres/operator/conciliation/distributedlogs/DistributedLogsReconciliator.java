@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.conciliation.distributedlogs;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -25,6 +24,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatusCluster;
 import io.stackgres.common.event.EventEmitter;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
@@ -40,6 +40,7 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
   @Dependent
   static class Parameters {
     @Inject CustomResourceScanner<StackGresDistributedLogs> scanner;
+    @Inject CustomResourceFinder<StackGresDistributedLogs> finder;
     @Inject Conciliator<StackGresDistributedLogs> conciliator;
     @Inject HandlerDelegator<StackGresDistributedLogs> handlerDelegator;
     @Inject KubernetesClient client;
@@ -56,7 +57,8 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
 
   @Inject
   public DistributedLogsReconciliator(Parameters parameters) {
-    super(parameters.scanner, parameters.conciliator, parameters.handlerDelegator,
+    super(parameters.scanner, parameters.finder,
+        parameters.conciliator, parameters.handlerDelegator,
         parameters.client, StackGresDistributedLogs.KIND);
     this.connectedClustersScanner = parameters.connectedClustersScanner;
     this.distributedLogsScheduler = parameters.distributedLogsScheduler;
@@ -73,8 +75,8 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
   }
 
   @Override
-  protected void reconciliationCycle(List<StackGresDistributedLogs> configs) {
-    super.reconciliationCycle(configs);
+  protected void reconciliationCycle(StackGresDistributedLogs configKey, boolean load) {
+    super.reconciliationCycle(configKey, load);
   }
 
   @Override

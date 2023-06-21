@@ -18,6 +18,7 @@ import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.conciliation.ComparisonDelegator;
 import io.stackgres.operator.conciliation.Conciliator;
@@ -38,6 +39,8 @@ class ClusterReconciliatorTest {
 
   private final StackGresCluster cluster = Fixtures.cluster().loadDefault().get();
   @Mock
+  CustomResourceFinder<StackGresCluster> finder;
+  @Mock
   Conciliator<StackGresCluster> conciliator;
   @Mock
   HandlerDelegator<StackGresCluster> handlerDelegator;
@@ -55,6 +58,7 @@ class ClusterReconciliatorTest {
   @BeforeEach
   void setUp() {
     ClusterReconciliator.Parameters parameters = new ClusterReconciliator.Parameters();
+    parameters.finder = finder;
     parameters.conciliator = conciliator;
     parameters.handlerDelegator = handlerDelegator;
     parameters.eventController = eventController;
@@ -78,7 +82,7 @@ class ClusterReconciliatorTest {
             Collections.emptyList(),
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(List.of(cluster));
+    reconciliator.reconciliationCycle(cluster, false);
 
     verify(conciliator).evalReconciliationState(cluster);
     creations.forEach(resource -> verify(handlerDelegator).create(cluster, resource));
@@ -100,7 +104,7 @@ class ClusterReconciliatorTest {
             patches,
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(List.of(cluster));
+    reconciliator.reconciliationCycle(cluster, false);
 
     verify(conciliator).evalReconciliationState(cluster);
     patches.forEach(resource -> verify(handlerDelegator).patch(cluster, resource.v1, resource.v2));
@@ -119,7 +123,7 @@ class ClusterReconciliatorTest {
             Collections.emptyList(),
             deletions));
 
-    reconciliator.reconciliationCycle(List.of(cluster));
+    reconciliator.reconciliationCycle(cluster, false);
 
     verify(conciliator).evalReconciliationState(cluster);
     deletions.forEach(resource -> verify(handlerDelegator).delete(cluster, resource));

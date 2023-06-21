@@ -74,7 +74,8 @@ public class StackGresClusterControllerMain {
         result = new ReconciliationCycleResult<>(
             new Exception("Not able to retrieve StackGres Cluster"));
       } else {
-        result = reconciliationCycle.reconciliationCycle(existingContextResources);
+        result = reconciliationCycle.reconciliationCycle(existingContextResources
+            .stream().map(Optional::of).collect(ImmutableList.toImmutableList()));
       }
       if (!result.success()) {
         RuntimeException ex = Seq.seq(result.getException())

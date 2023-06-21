@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.conciliation.script;
 
-import java.util.List;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
@@ -18,6 +16,7 @@ import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.crd.sgscript.ScriptEventReason;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.event.EventEmitter;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
@@ -33,6 +32,7 @@ public class ScriptReconciliator
   @Dependent
   public static class Parameters {
     @Inject CustomResourceScanner<StackGresScript> scanner;
+    @Inject CustomResourceFinder<StackGresScript> finder;
     @Inject Conciliator<StackGresScript> conciliator;
     @Inject HandlerDelegator<StackGresScript> handlerDelegator;
     @Inject KubernetesClient client;
@@ -47,7 +47,8 @@ public class ScriptReconciliator
 
   @Inject
   public ScriptReconciliator(Parameters parameters) {
-    super(parameters.scanner, parameters.conciliator, parameters.handlerDelegator,
+    super(parameters.scanner, parameters.finder,
+        parameters.conciliator, parameters.handlerDelegator,
         parameters.client, StackGresScript.KIND);
     this.eventController = parameters.eventController;
     this.scriptScheduler = parameters.scriptScheduler;
@@ -63,8 +64,8 @@ public class ScriptReconciliator
   }
 
   @Override
-  protected void reconciliationCycle(List<StackGresScript> configs) {
-    super.reconciliationCycle(configs);
+  protected void reconciliationCycle(StackGresScript configKey, boolean load) {
+    super.reconciliationCycle(configKey, load);
   }
 
   @Override

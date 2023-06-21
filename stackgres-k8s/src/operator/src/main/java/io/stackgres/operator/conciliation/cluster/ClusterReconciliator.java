@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
-import java.util.List;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -22,6 +21,7 @@ import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.event.EventEmitter;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.ClusterPatchResumer;
@@ -41,6 +41,7 @@ public class ClusterReconciliator
   @Dependent
   static class Parameters {
     @Inject CustomResourceScanner<StackGresCluster> scanner;
+    @Inject CustomResourceFinder<StackGresCluster> finder;
     @Inject Conciliator<StackGresCluster> conciliator;
     @Inject HandlerDelegator<StackGresCluster> handlerDelegator;
     @Inject KubernetesClient client;
@@ -57,7 +58,8 @@ public class ClusterReconciliator
 
   @Inject
   public ClusterReconciliator(Parameters parameters) {
-    super(parameters.scanner, parameters.conciliator, parameters.handlerDelegator,
+    super(parameters.scanner, parameters.finder,
+        parameters.conciliator, parameters.handlerDelegator,
         parameters.client, StackGresCluster.KIND);
     this.statusManager = parameters.statusManager;
     this.eventController = parameters.eventController;
@@ -74,8 +76,8 @@ public class ClusterReconciliator
   }
 
   @Override
-  protected void reconciliationCycle(List<StackGresCluster> configs) {
-    super.reconciliationCycle(configs);
+  protected void reconciliationCycle(StackGresCluster configKey, boolean load) {
+    super.reconciliationCycle(configKey, load);
   }
 
   @Override

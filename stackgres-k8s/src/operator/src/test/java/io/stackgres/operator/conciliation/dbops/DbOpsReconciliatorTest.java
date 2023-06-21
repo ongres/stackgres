@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.conciliation.ComparisonDelegator;
 import io.stackgres.operator.conciliation.Conciliator;
@@ -36,6 +37,8 @@ class DbOpsReconciliatorTest {
 
   private final StackGresDbOps dbOps = Fixtures.dbOps().loadRestart().get();
   @Mock
+  CustomResourceFinder<StackGresDbOps> finder;
+  @Mock
   Conciliator<StackGresDbOps> conciliator;
   @Mock
   HandlerDelegator<StackGresDbOps> handlerDelegator;
@@ -53,6 +56,7 @@ class DbOpsReconciliatorTest {
   @BeforeEach
   void setUp() {
     DbOpsReconciliator.Parameters parameters = new DbOpsReconciliator.Parameters();
+    parameters.finder = finder;
     parameters.conciliator = conciliator;
     parameters.handlerDelegator = handlerDelegator;
     parameters.eventController = eventController;
@@ -76,7 +80,7 @@ class DbOpsReconciliatorTest {
             Collections.emptyList(),
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(List.of(dbOps));
+    reconciliator.reconciliationCycle(dbOps, false);
 
     verify(conciliator).evalReconciliationState(dbOps);
     creations.forEach(resource -> verify(handlerDelegator).create(dbOps, resource));
@@ -98,7 +102,7 @@ class DbOpsReconciliatorTest {
             patches,
             Collections.emptyList()));
 
-    reconciliator.reconciliationCycle(List.of(dbOps));
+    reconciliator.reconciliationCycle(dbOps, false);
 
     verify(conciliator).evalReconciliationState(dbOps);
     patches.forEach(resource -> verify(handlerDelegator).patch(dbOps, resource.v1, resource.v2));
@@ -117,7 +121,7 @@ class DbOpsReconciliatorTest {
             Collections.emptyList(),
             deletions));
 
-    reconciliator.reconciliationCycle(List.of(dbOps));
+    reconciliator.reconciliationCycle(dbOps, false);
 
     verify(conciliator).evalReconciliationState(dbOps);
     deletions.forEach(resource -> verify(handlerDelegator).delete(dbOps, resource));

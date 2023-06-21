@@ -8,7 +8,6 @@ package io.stackgres.operator.conciliation;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
@@ -22,8 +21,10 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,12 +38,14 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
       .RECONCILIATION_PAUSE_KEY;
 
   private final CustomResourceScanner<T> scanner;
+  private final CustomResourceFinder<T> finder;
   private final Conciliator<T> conciliator;
   private final HandlerDelegator<T> handlerDelegator;
   private final KubernetesClient client;
   private final String reconciliationName;
   private final ExecutorService executorService;
-  private final AtomicReference<List<T>> atomicReference = new AtomicReference<List<T>>(List.of());
+  private final AtomicReference<List<Optional<T>>> atomicReference =
+      new AtomicReference<List<Optional<T>>>(List.of());
   private final ArrayBlockingQueue<Boolean> arrayBlockingQueue = new ArrayBlockingQueue<>(1);
 
   private final CompletableFuture<Void> stopped = new CompletableFuture<>();
@@ -50,11 +53,13 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
 
   protected AbstractReconciliator(
       CustomResourceScanner<T> scanner,
+      CustomResourceFinder<T> finder,
       Conciliator<T> conciliator,
       HandlerDelegator<T> handlerDelegator,
       KubernetesClient client,
       String reconciliationName) {
     this.scanner = scanner;
+    this.finder = finder;
     this.conciliator = conciliator;
     this.handlerDelegator = handlerDelegator;
     this.client = client;
@@ -66,6 +71,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
   public AbstractReconciliator() {
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
     this.scanner = null;
+    this.finder = null;
     this.conciliator = null;
     this.handlerDelegator = null;
     this.client = null;
@@ -90,32 +96,63 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
   }
 
   public void reconcileAll() {
-    reconcile(getExistentSources());
+    reconcile(List.of(Optional.empty()));
   }
 
   public void reconcile(T config) {
-    reconcile(List.of(config));
+    reconcile(List.of(Optional.of(config)));
   }
 
   @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED_BAD_PRACTICE",
       justification = "We do not care if queue is already filled")
-  public void reconcile(List<T> configs) {
+  private void reconcile(List<Optional<T>> configs) {
     atomicReference.updateAndGet(atomicConfigs -> Seq
         .seq(atomicConfigs)
-        .filter(atomicConfig -> configs.stream()
-            .noneMatch(config -> sameConfig(atomicConfig, config)))
         .append(configs)
         .toList());
     arrayBlockingQueue.offer(true);
   }
 
-  private boolean sameConfig(T foundConfig, T newConfig) {
-    return Objects.equals(
-            foundConfig.getMetadata().getNamespace(),
-            newConfig.getMetadata().getNamespace())
-        && Objects.equals(
-            foundConfig.getMetadata().getName(),
-            newConfig.getMetadata().getName());
+  private void reconciliationLoop() {
+    LOGGER.info("{} reconciliation loop started", getReconciliationName());
+    while (true) {
+      try {
+        arrayBlockingQueue.take();
+        List<Optional<T>> configs = atomicReference.getAndSet(List.of());
+        if (close) {
+          break;
+        }
+        reconciliationsCycle(configs);
+      } catch (Exception ex) {
+        LOGGER.error("{} reconciliation loop was interrupted", getReconciliationName(), ex);
+      }
+    }
+    LOGGER.info("{} reconciliation loop stopped", getReconciliationName());
+    stopped.complete(null);
+  }
+
+  protected void reconciliationsCycle(List<Optional<T>> configs) {
+    mergedConfigs(configs).stream()
+        .filter(t -> Optional.ofNullable(t.v1.getMetadata().getAnnotations())
+            .map(annotations -> annotations.get(STACKGRES_IO_RECONCILIATION))
+            .map(Boolean::parseBoolean)
+            .map(b -> !b)
+            .orElse(true))
+        .forEach(t -> reconciliationCycle(t.v1, t.v2));
+  }
+
+  private List<Tuple2<T, Boolean>> mergedConfigs(List<Optional<T>> configs) {
+    if (configs.stream().anyMatch(Optional::isEmpty)) {
+      return getExistentSources().stream()
+          .map(config -> Tuple.tuple(config, false))
+          .toList();
+    }
+    return Seq.seq(configs)
+        .map(Optional::get)
+        .grouped(this::configId)
+        .flatMap(t -> t.v2.limit(1))
+        .map(config -> Tuple.tuple(config, true))
+        .toList();
   }
 
   private List<T> getExistentSources() {
@@ -127,40 +164,23 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     }
   }
 
-  private void reconciliationLoop() {
-    LOGGER.info("{} reconciliation loop started", getReconciliationName());
-    while (true) {
-      try {
-        arrayBlockingQueue.take();
-        List<T> configs = atomicReference.getAndSet(List.of());
-        if (close) {
-          break;
-        }
-        reconciliationCycle(configs);
-      } catch (Exception ex) {
-        LOGGER.error("{} reconciliation loop was interrupted", getReconciliationName(), ex);
-      }
-    }
-    LOGGER.info("{} reconciliation loop stopped", getReconciliationName());
-    stopped.complete(null);
+  private String configId(T config) {
+    return config.getMetadata().getNamespace() + "." + config.getMetadata().getName();
   }
 
-  protected void reconciliationCycle(List<T> configs) {
-    configs.stream()
-        .filter(r -> Optional.ofNullable(r.getMetadata().getAnnotations())
-            .map(annotations -> annotations.get(STACKGRES_IO_RECONCILIATION))
-            .map(Boolean::parseBoolean)
-            .map(b -> !b)
-            .orElse(true))
-        .forEach(this::reconciliationCycle);
-  }
-
-  private void reconciliationCycle(T config) {
-    final ObjectMeta metadata = config.getMetadata();
-    final String configId = config.getKind()
+  protected void reconciliationCycle(T configKey, boolean load) {
+    final ObjectMeta metadata = configKey.getMetadata();
+    final String configId = configKey.getKind()
         + " " + metadata.getNamespace() + "/" + metadata.getName();
 
     try {
+      final T config;
+      if (load) {
+        config = finder.findByNameAndNamespace(metadata.getName(), metadata.getNamespace())
+            .orElseThrow(() -> new IllegalArgumentException(configKey + " not found"));
+      } else {
+        config = configKey;
+      }
       onPreReconciliation(config);
       LOGGER.info("Checking reconciliation status of {}", configId);
       ReconciliationResult result = conciliator.evalReconciliationState(config);
@@ -215,7 +235,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     } catch (Exception e) {
       LOGGER.error("Reconciliation of {} failed", configId, e);
       try {
-        onError(e, config);
+        onError(e, configKey);
       } catch (Exception onErrorEx) {
         LOGGER.error("Failed executing on error event of {}", configId, onErrorEx);
       }
