@@ -18,11 +18,22 @@ import CreateDbOps from '../components/forms/CreateSGDbOps.vue'
 // Main Components
 import GlobalDashboard from '../components/GlobalDashboard.vue'
 import NamespaceOverview from '../components/NamespaceOverview.vue'
+
+// SGClusters
 import ClusterOverview from '../components/ClusterOverview.vue'
 import ClusterInfo from '../components/ClusterInfo.vue'
 import ClusterStatus from '../components/ClusterStatus.vue'
 import ClusterLogs from '../components/ClusterLogs.vue'
 import ClusterEvents from '../components/ClusterEvents.vue'
+import Grafana from '../components/ClusterMonitoring.vue'
+
+// SGShardedsClusters
+import ShardedClusterOverview from '../components/crds/sgshardedcluster/SGShardedClusterOverview.vue'
+import ShardedClusterStatus from '../components/crds/sgshardedcluster/SGShardedClusterStatus.vue'
+import ShardedClusterConfig from '../components/crds/sgshardedcluster/SGShardedClusterConfig.vue'
+import ShardedClusterMonitoring from '../components/crds/sgshardedcluster/SGShardedClusterMonitoring.vue'
+
+// Other CRDs
 import SGBackups from '../components/SGBackups.vue'
 import SGPgConfigs from '../components/SGPgConfigs.vue'
 import SGPoolConfigs from '../components/SGPoolConfigs.vue'
@@ -31,7 +42,8 @@ import SGScripts from '../components/SGScripts'
 import SGInstanceProfiles from '../components/SGInstanceProfiles.vue'
 import SGDistributedLogs from '../components/SGDistributedLogs.vue'
 import SGDbOps from '../components/SGDbOps.vue'
-import Grafana from '../components/ClusterMonitoring.vue'
+
+// Misc
 import NotFound from '../components/NotFound.vue'
 
 // Applications
@@ -341,16 +353,17 @@ const routes = [
   },
   { 
     path: '/sgshardedclusters', 
-    component: ClusterOverview,
+    component: ShardedClusterOverview,
     name: 'ShardedClusterOverviewEmpty',
     meta: {
       conditionalRoute: false,
-      componentName: 'SGShardedCluster'
+      componentName: 'SGShardedCluster',
+      kind: 'SGShardedCluster'
     },
   },
   { 
     path: '/:namespace/sgshardedclusters', 
-    component: ClusterOverview,
+    component: ShardedClusterOverview,
     name: 'ShardedClusterOverview',
     meta: {
       conditionalRoute: false,
@@ -359,8 +372,8 @@ const routes = [
   },
   { 
     path: '/:namespace/sgshardedcluster/:name/config', 
-    component: ClusterInfo,
-    name: 'ShardedClusterInfo',
+    component: ShardedClusterConfig,
+    name: 'ShardedClusterConfig',
     meta: {
       conditionalRoute: false,
       componentName: 'SGShardedCluster'
@@ -368,7 +381,7 @@ const routes = [
   },
   { 
     path: '/:namespace/sgshardedcluster/:name', 
-    component: ClusterStatus,
+    component: ShardedClusterStatus,
     name: 'ShardedClusterStatus',
     meta: {
       conditionalRoute: false,
@@ -624,7 +637,7 @@ const routes = [
   },
   { 
     path: '/:namespace/sgshardedcluster/:name/monitor', 
-    component: Grafana,
+    component: ShardedClusterMonitoring,
     name: 'ShardedClusterMonitor',
     meta: {
       conditionalRoute: false,
@@ -633,7 +646,7 @@ const routes = [
   },
   { 
     path: '/:namespace/sgshardedcluster/:name/monitor/:pod', 
-    component: Grafana,
+    component: ShardedClusterMonitoring,
     name: 'SingleShardedClusterMonitor',
     meta: {
       conditionalRoute: false,
@@ -642,7 +655,7 @@ const routes = [
   },
   {
     path: '/:namespace/sgshardedcluster/:name/monitor/:pod/:range', 
-    component: Grafana,
+    component: ShardedClusterMonitoring,
     name: 'SingleShardedClusterMonitorRange',
     meta: {
       conditionalRoute: false,
@@ -762,15 +775,18 @@ router.beforeResolve((to, from, next) => {
 
   // If loading CRD from direct URL validate if CRD exists on the API before loading
   if( from.path == '/') {
-    let kind = ( 
-      to.matched[0].components.default.name.startsWith('Cluster') ? 
-        'sgclusters' : 
-        ( 
-          to.matched[0].components.default.name.startsWith('Create') ? 
-            to.matched[0].components.default.name.replace('Create', '') : 
-            to.matched[0].components.default.name 
-        ) 
-    );
+    
+    let kind = 
+      to.matched[0].meta.hasOwnProperty('componentName') ? 
+        (to.matched[0].meta.componentName.toLowerCase() + 's') : (
+          to.matched[0].components.default.name.startsWith('Cluster') ? 
+            'sgclusters' : 
+            ( 
+              to.matched[0].components.default.name.startsWith('Create') ? 
+                to.matched[0].components.default.name.replace('Create', '') : 
+                to.matched[0].components.default.name 
+            )
+        );
 
     if(!checkLogin()) {
       next(); 

@@ -237,7 +237,7 @@
                     <div class="row-50">
                         <h3>Monitoring</h3>
                         <p>
-                            By enabling Monitoring, you are activating metrics scrapping via service monitors, which is done by enabling both, Prometheus Autobind and Metrics Exporter. Such options can be found on the <a @click="(advancedMode = true) && (currentStep = 'sidecars')">Advanced Mode under the Sidecars section</a>.
+                            By enabling Monitoring, you are activating metrics scrapping via service monitors, which is done by enabling both, Prometheus Autobind and Metrics Exporter.
                         </p>
                         <div class="col">
                             <label>Monitoring</label>  
@@ -3022,6 +3022,7 @@
                 enablePITR: false,
                 pitr: '',
                 downloadDiskConcurrency: 1,
+                metricsExporter: true,
                 replicateFrom: {},
                 replicateFromSource: '',
                 replication: {
@@ -3233,6 +3234,21 @@
                 return this.pitr.length ? ( (store.state.timezone == 'local') ? moment.utc(this.pitr).local().format('YYYY-MM-DD HH:mm:ss') : moment.utc(this.pitr).format('YYYY-MM-DD HH:mm:ss') ) : '';
             },
 
+            nameColission() {
+
+                const vc = this;
+                var nameColission = false;
+                
+                store.state.sgclusters.forEach(function(item, index){
+                    if( (item.name == vc.name) && (item.data.metadata.namespace == vc.$route.params.namespace ) ) {
+                        nameColission = true;
+                        return false
+                    }
+                })
+
+                return nameColission
+            },
+
         },
 
         methods: {
@@ -3310,7 +3326,7 @@
                                 }
                             } ),
                             ...((
-                                pods.hasOwnProperty('customVolumes') && !this.isNullObjectArray(pods.customVolumes) && {
+                                pods.hasOwnProperty('customVolumes') && !this.isNull(pods.customVolumes) && {
                                     "customVolumes": pods.customVolumes
                                 } || { "customVolumes": null }
                             )),
@@ -3602,6 +3618,39 @@
                         + ' ' + this.cronSchedule[index].dom
                         + ' ' + this.cronSchedule[index].month
                         + ' ' + this.cronSchedule[index].dow, false);
+            },
+
+            checkenableMonitoring() {
+                const vc = this;  
+
+                if(vc.enableMonitoring) {
+                    // If Monitoring is ON, Metrics Exporter and Prometheus Atobind should be ON
+                    vc.metricsExporter = true;
+                    vc.prometheusAutobind = true
+                } else {
+                    // If Monitoring if OFF, PA should be OFF. ME default is ON
+                    vc.prometheusAutobind = false
+                }
+            },
+
+            checkMetricsExporter() {
+                const vc = this; 
+
+                if(!vc.metricsExporter) {
+                    vc.enableMonitoring = false;
+                } else if(vc.metricsExporter && vc.prometheusAutobind) {
+                    vc.enableMonitoring = true;
+                }
+            },
+
+            checkPrometheusAutobind() {
+                const vc = this; 
+
+                if(!vc.prometheusAutobind) {
+                    vc.enableMonitoring = false;
+                } else if(vc.prometheusAutobind && vc.metricsExporter) {
+                    vc.enableMonitoring = true;
+                }
             },
         
         },

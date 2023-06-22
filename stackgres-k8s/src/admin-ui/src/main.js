@@ -258,7 +258,7 @@ $(document).ready(function(){
     let parentLi = $(this).parent()
 
     parentLi.toggleClass("collapsed");
-    ul.toggleClass("hide")
+    ul.slideToggle();
   })
 
   $(document).on("click", ".box h4", function() {

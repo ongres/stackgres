@@ -249,25 +249,21 @@ export const mixin = {
                     name: item.metadata.name,
                     data: item,
                     hasBackups: false,
-                    status: {}
+                    stats: {}
                   };
                   
+                  sgApi
+                  .getResourceDetails('sgshardedclusters', cluster.data.metadata.namespace, cluster.data.metadata.name, 'stats')
+                  .then( function(resp) {
+                    cluster.stats = resp.data;
+                  }).catch(function(err) {
+                    console.log(err);
+                  });
+
                   if(!store.state.namespaces.includes(item.metadata.namespace))
                     store.commit('updateNamespaces', item.metadata.namespace);
     
                   store.commit('updateShardedClusters', cluster);
-    
-                  sgApi
-                  .getResourceDetails('sgshardedclusters', cluster.data.metadata.namespace, cluster.data.metadata.name, 'stats')
-                  .then( function(resp) {
-                    store.commit('updateShardedClusterStats', {
-                      name: cluster.data.metadata.name,
-                      namespace: cluster.data.metadata.namespace,
-                      stats: resp.data
-                    })
-                  }).catch(function(err) {
-                    console.log(err);
-                  });
     
                 });
                 
@@ -1338,7 +1334,7 @@ export const mixin = {
             let fieldset = $(this);
             let fieldsetAttr = fieldset.attr('data-fieldset'); 
             let notValidFields = fieldset.find('.notValid');
-                      
+            
             if(notValidFields.length) {
               if(!data.errorStep.includes(fieldsetAttr))
                 data.errorStep.push(fieldsetAttr);

@@ -34,6 +34,17 @@
                                         <router-link :to="'/' + namespace + '/sgclusters'" title="Clusters Overview" target="_blank"></router-link>
                                     </td>
                                 </tr>
+                                <tr v-if="iCan('list', 'sgshardedclusters', namespace)">
+                                    <td class="kind">
+                                        <router-link :to="'/' + namespace + '/sgshardedclusters'" title="Sharded Clusters Overview">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g fill="#36A8FF"><path d="m19 15.3-1.4-1.2c-.4-.3-1-.3-1.3.1-.3.4-.3 1 .1 1.3h.1l.2.2-5.6 2.1v-4.1l.2.1c.1.1.3.1.5.1.3 0 .6-.2.8-.5.3-.4.1-1-.3-1.3l-1.6-.9c-.3-.2-.6-.2-.9 0l-1.6.9c-.4.3-.6.8-.3 1.3.2.4.8.6 1.2.4l.2-.1v4l-5.6-2.1.2-.2c.4-.3.5-.9.2-1.3s-.9-.5-1.3-.2L1 15.3c-.2.2-.4.5-.3.9L1 18c.1.5.6.8 1.1.8.4-.1.8-.5.8-.9v-.5l6.9 2.5c0 .1.1.1.2.1h.1c.1 0 .2 0 .3-.1l6.8-2.5v.3c-.1.5.3 1 .8 1.1h.2c.4 0 .8-.3.9-.8l.3-1.8c-.1-.3-.2-.7-.4-.9"/><path d="M10 0C4.9 0 .9 2.2.9 5.1v6.3c0 .6.4 1 1 1h.2c.4 0 .8-.3.8-.8.1.1.2.1.4.2h.1c.1 0 .1.1.2.1.1.1.3.1.4.2.1 0 .1.1.2.1s.1 0 .2.1h.1c.1.1.2.1.3.1.1 0 .2.1.3.1.4 0 .8-.3.9-.6 0-.1 0-.1.1-.2.1-.5-.2-.9-.6-1.1-.2-.1-.4-.2-.6-.2-.3-.1-.6-.3-.9-.5-.1-.1-.2-.1-.2-.2l-.1-.1c-.2-.1-.4-.3-.5-.5-.2-.2-.2-.4-.3-.6V8.2c2.1 1.3 4.6 2 7.1 1.9 2.5.1 5-.6 7.1-1.9v.2c0 .2-.1.5-.3.7-.1.2-.3.4-.5.5l-.1.1c-.1.1-.2.1-.3.2-.3.2-.6.3-.9.5-.2.1-.4.2-.6.2-.4.2-.7.6-.6 1.1 0 .1 0 .1.1.2.1.4.5.6.9.6.1 0 .2 0 .4-.1.1-.1.2-.1.4-.1h.1c.1 0 .1-.1.2-.1s.1-.1.2-.1c.1-.1.2-.1.4-.2.1 0 .1-.1.2-.1h.1c.1-.1.3-.1.4-.2 0 .4.3.8.8.8h.2c.6 0 1-.4 1-1V5.1C19.1 2.2 15.1 0 10 0m0 8.1C5.8 8.1 2.9 6.5 2.9 5S5.8 2 10 2s7.1 1.6 7.1 3.1-2.9 3-7.1 3"/></g></svg>
+                                            <span>SGShardedCluster <i class="length">{{ sgshardedclusters.filter(c => c.data.metadata.namespace == namespace).length }}</i></span>
+                                        </router-link>
+                                    </td>
+                                    <td class="icon invisible">
+                                        <router-link :to="'/' + namespace + '/sgshardedclusters'" title="Sharded Clusters Overview" target="_blank"></router-link>
+                                    </td>
+                                </tr>
                                 <tr v-if="iCan('list', 'sginstanceprofiles', namespace)">
                                     <td class="kind">
                                         <router-link :to="'/' + namespace + '/sginstanceprofiles'" title="Instance Profiles">
@@ -166,6 +177,10 @@ export default {
 
         clusters () {
             return store.state.sgclusters
+        },
+
+        sgshardedclusters () {
+            return store.state.sgshardedclusters
         },
 
         profiles () {

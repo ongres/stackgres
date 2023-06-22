@@ -2078,10 +2078,6 @@
         transition: all .3s ease-out;
     }
 
-    .hide {
-        display: none;
-    }
-
     .summary .warning {
         background: none;
      }

@@ -72,7 +72,7 @@
                 </template>
 
                 <!--Cluster Tabs-->
-                <template v-if="($route.meta.componentName == 'SGCluster') && (($route.name != 'ClusterOverview') && ($route.name != 'EditCluster') && ($route.name != 'CreateCluster'))">
+                <template v-if="['SGCluster', 'SGShardedCluster'].includes($route.meta.componentName) && !['ClusterOverview', 'EditCluster', 'CreateCluster'].includes($route.name)">
                     <li>
                         <template v-if="$route.name.includes('Backup') && $route.name != 'ClusterBackups'">
                             <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + ($route.params.hasOwnProperty('name') ? $route.params.name : currentPath.name) + '/sgbackups'" title="Backups">
@@ -195,25 +195,25 @@
         </template>
 
         <!--Cluster Tabs-->
-        <template v-if="(($route.meta.componentName == 'SGCluster') && (($route.name != 'EditCluster') && ($route.name != 'CreateCluster') && ($route.name != 'ClusterOverview')))">
+        <template v-if="['SGCluster', 'SGShardedCluster'].includes($route.meta.componentName) && !['ClusterOverview', 'ShardedClusterOverview', 'EditCluster', 'CreateCluster', 'EditShardedCluster', 'CreateShardedCluster'].includes($route.name)">
             <ul class="tabs">
                 <li>
-                    <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name" title="Status" class="status">Status</router-link>
+                    <router-link :to="'/' + $route.params.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name" title="Status" class="status">Status</router-link>
                 </li>
                 <li>
-                    <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/config'" title="Configuration" class="info">Configuration</router-link>
+                    <router-link :to="'/' + $route.params.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name + '/config'" title="Configuration" class="info">Configuration</router-link>
                 </li>
-                <li v-if="iCan('list','sgbackups',$route.params.namespace)" :class="$route.name.includes('Backup') && 'active'">
-                    <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/sgbackups'" title="Backups" class="backups">Backups</router-link>
+                <li v-if="iCan('list','sgbackups',$route.params.namespace) && ($route.meta.componentName == 'SGCluster')" :class="$route.name.includes('Backup') && 'active'">
+                    <router-link :to="'/' + $route.params.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name + '/sgbackups'" title="Backups" class="backups">Backups</router-link>
                 </li>
-                <li v-if="iCan('list','sgdistributedlogs',$route.params.namespace) && hasLogs">
-                    <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/logs'" title="Distributed Logs" class="logs">Logs</router-link>
+                <li v-if="iCan('list','sgdistributedlogs',$route.params.namespace) && ($route.meta.componentName == 'SGCluster') && hasLogs">
+                    <router-link :to="'/' + $route.params.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name + '/logs'" title="Distributed Logs" class="logs">Logs</router-link>
                 </li>
                 <li v-if="hasMonitoring" :class="$route.name.includes('Monitor') && 'active'">
-                    <router-link id="grafana-btn" :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/monitor'" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
+                    <router-link id="grafana-btn" :to="'/' + $route.params.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name + '/monitor'" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
                 </li>
-                <li :class="$route.name == 'SingleClusterEvents' && 'active'">
-                    <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/events'" title="Events" class="events">Events</router-link>
+                <li v-if="($route.meta.componentName == 'SGCluster')" :class="$route.name == 'SingleClusterEvents' && 'active'">
+                    <router-link :to="'/' + $route.params.namespace +'/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name + '/events'" title="Events" class="events">Events</router-link>
                 </li>
             </ul>
         </template>
@@ -286,12 +286,9 @@
             hasMonitoring () {
                 const vc = this;
 
-                let cluster = store.state.sgclusters.filter(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name))
+                let cluster = store.state[vc.$route.meta.componentName.toLowerCase() + 's'].find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name) && c.data.hasOwnProperty('grafanaEmbedded') && c.data.grafanaEmbedded)
 
-                if((cluster.length > 0) && (cluster[0].data.grafanaEmbedded))
-                    return true
-                else
-                    return false
+                return (typeof cluster !== 'undefined');
             }
 		}, 
 
@@ -301,6 +298,7 @@
 
                 let suffixes = {
                     'SGCluster': 'Cluster',
+                    'SGShardedCluster': 'Sharded Cluster',
 					'SGInstanceProfile': 'Profile',
                     'SGPgConfig': 'Configuration',
                     'SGPoolConfig': 'Configuration',
