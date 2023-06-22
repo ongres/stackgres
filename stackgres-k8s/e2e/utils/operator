@@ -1434,7 +1434,7 @@ traceable_get_version_as_number() {
   elif [ "$SUFFIX" = "beta" ]
   then
     SUFFIX_MAJOR_VERSION=2
-  elif [ "$SUFFIX" = "RC" ]
+  elif [ "$SUFFIX" = "RC" ] || [ "$SUFFIX" = "rc" ]
   then
     SUFFIX_MAJOR_VERSION=3
   elif [ -z "$SUFFIX" ]
