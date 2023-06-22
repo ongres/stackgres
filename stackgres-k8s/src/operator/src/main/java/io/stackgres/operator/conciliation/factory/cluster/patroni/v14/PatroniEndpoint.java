@@ -38,7 +38,7 @@ public class PatroniEndpoint implements ResourceGenerator<StackGresClusterContex
             .withNewMetadata()
             .withNamespace(cluster.getMetadata().getNamespace())
             .withName(cluster.getMetadata().getName())
-            .withLabels(labelFactory.patroniClusterLabels(cluster))
+            .withLabels(labelFactory.clusterLabels(cluster))
             .endMetadata()
             .build()
     );

@@ -8,8 +8,8 @@ package io.stackgres.operator.conciliation.shardedcluster;
 import java.util.List;
 import java.util.Optional;
 
+import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -36,9 +36,9 @@ public interface StackGresShardedClusterContext
 
   List<StackGresClusterContext> getShards();
 
-  Optional<Service> getCoordinatorPrimaryService();
+  Optional<Endpoints> getCoordinatorPrimaryEndpoints();
 
-  List<Service> getShardsPrimaryServices();
+  List<Endpoints> getShardsPrimaryEndpoints();
 
   Optional<Secret> getDatabaseSecret();
 

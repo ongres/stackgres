@@ -7,7 +7,7 @@ package io.stackgres.cluster.app;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -47,22 +47,32 @@ public class ClusterControllerWatchersHandlerImpl
     monitors.add(createWatcher(
         StackGresCluster.class,
         StackGresClusterList.class,
-        reconcileCluster()));
+        onCreateOrUpdate(
+            reconcileCluster())));
 
   }
 
   private <T extends CustomResource<?, ?>,
       L extends KubernetesResourceList<T>> WatcherMonitor<T> createWatcher(
-      Class<T> crClass, Class<L> listClass, Consumer<Action> consumer) {
+      Class<T> crClass, Class<L> listClass, BiConsumer<Action, T> consumer) {
     return new WatcherMonitor<>(crClass.getSimpleName(),
         watcherListener -> client
         .resources(crClass, listClass)
         .inNamespace(ClusterControllerProperty.CLUSTER_NAMESPACE.getString())
+        .withName(ClusterControllerProperty.CLUSTER_NAME.getString())
         .watch(watcherFactory.createWatcher(consumer, watcherListener)));
   }
 
-  private Consumer<Action> reconcileCluster() {
-    return action -> clusterReconciliationCycle.reconcile();
+  private <T> BiConsumer<Action, T> onCreateOrUpdate(BiConsumer<Action, T> consumer) {
+    return (action, resource) -> {
+      if (action != Action.DELETED) {
+        consumer.accept(action, resource);
+      }
+    };
+  }
+
+  private BiConsumer<Action, StackGresCluster> reconcileCluster() {
+    return (action, cluster) -> clusterReconciliationCycle.reconcile(cluster);
   }
 
   @Override

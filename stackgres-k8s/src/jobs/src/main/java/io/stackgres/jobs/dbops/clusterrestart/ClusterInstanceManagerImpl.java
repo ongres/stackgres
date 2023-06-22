@@ -102,11 +102,12 @@ public class ClusterInstanceManagerImpl implements ClusterInstanceManager {
   }
 
   private List<Pod> geClusterPods(StackGresCluster cluster) {
-    Map<String, String> podLabels = labelFactory.patroniClusterLabels(cluster);
+    Map<String, String> podLabels = labelFactory.clusterLabels(cluster);
     final String namespace = cluster.getMetadata().getNamespace();
     return podScanner.findByLabelsAndNamespace(namespace, podLabels);
   }
 
+  @SuppressWarnings("null")
   private String getPodNameToBeCreated(StackGresCluster cluster) {
     List<Pod> currentPods = geClusterPods(cluster);
 

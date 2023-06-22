@@ -97,7 +97,7 @@ public class ClusterWatcherImpl implements ClusterWatcher {
 
   private Uni<List<Pod>> scanClusterPods(StackGresCluster cluster) {
     return Uni.createFrom().item(() -> {
-      var podsLabels = labelFactory.patroniClusterLabels(cluster);
+      var podsLabels = labelFactory.clusterLabels(cluster);
       final String labelsAsString = Joiner.on(",").withKeyValueSeparator(":").join(podsLabels);
       LOGGER.debug("Scanning for pods of cluster {} with labels {}",
           cluster.getMetadata().getName(), labelsAsString);

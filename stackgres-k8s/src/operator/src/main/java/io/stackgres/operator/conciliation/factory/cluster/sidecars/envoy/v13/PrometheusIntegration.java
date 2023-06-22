@@ -52,7 +52,7 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
     final StackGresCluster cluster = context.getSource();
     final Map<String, String> crossNamespaceLabels = labelFactory
         .clusterCrossNamespaceLabels(cluster);
-    final Map<String, String> clusterSelectorLabels = labelFactory.patroniClusterLabels(cluster);
+    final Map<String, String> clusterSelectorLabels = labelFactory.clusterLabels(cluster);
 
     Seq<HasMetadata> resources = Seq.of(
         new ServiceBuilder()

@@ -18,6 +18,7 @@ import java.util.Optional;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
@@ -270,6 +271,31 @@ class DbOpsMajorVersionUpgradeValidatorTest {
     String resultMessage = ex.getMessage();
 
     assertEquals("SGPostgresConfig postgresconf not found", resultMessage);
+  }
+
+  @Test
+  void givenManagedClusterOnCreation_shouldFail() {
+    final DbOpsReview review = getCreationReview();
+    cluster.getMetadata().setOwnerReferences(List.of(
+        new OwnerReferenceBuilder()
+        .withKind("SGShardedCluster")
+        .withName("test")
+        .withController(true)
+        .build()));
+
+    String sgcluster = review.getRequest().getObject().getSpec().getSgCluster();
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
+    when(clusterFinder.findByNameAndNamespace(sgcluster, namespace))
+        .thenReturn(Optional.of(cluster));
+
+    ValidationFailed ex = assertThrows(ValidationFailed.class, () -> {
+      validator.validate(review);
+    });
+
+    String resultMessage = ex.getMessage();
+
+    assertEquals("Can not perform major version upgrade on SGCluster managed by"
+        + " SGShardedCluster test", resultMessage);
   }
 
   private DbOpsReview getCreationReview() {

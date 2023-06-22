@@ -46,35 +46,11 @@ public class DistributedLogsLabelFactory
   }
 
   @Override
-  public Map<String, String> patroniPrimaryLabels(StackGresDistributedLogs resource) {
+  public Map<String, String> clusterPrimaryLabels(StackGresDistributedLogs resource) {
     if (useV14(resource)) {
-      return distributedLogsLabelFactoryV14.patroniPrimaryLabels(resource);
+      return distributedLogsLabelFactoryV14.clusterPrimaryLabels(resource);
     }
-    return super.patroniPrimaryLabels(resource);
-  }
-
-  @Override
-  public Map<String, String> patroniPrimaryLabelsWithoutScope(StackGresDistributedLogs resource) {
-    if (useV14(resource)) {
-      return distributedLogsLabelFactoryV14.patroniPrimaryLabelsWithoutScope(resource);
-    }
-    return super.patroniPrimaryLabelsWithoutScope(resource);
-  }
-
-  @Override
-  public Map<String, String> patroniClusterLabelsWithoutScope(StackGresDistributedLogs resource) {
-    if (useV14(resource)) {
-      return distributedLogsLabelFactoryV14.patroniClusterLabelsWithoutScope(resource);
-    }
-    return super.patroniClusterLabelsWithoutScope(resource);
-  }
-
-  @Override
-  public Map<String, String> patroniReplicaLabelsWithoutScope(StackGresDistributedLogs resource) {
-    if (useV14(resource)) {
-      return distributedLogsLabelFactoryV14.patroniReplicaLabelsWithoutScope(resource);
-    }
-    return super.patroniReplicaLabelsWithoutScope(resource);
+    return super.clusterPrimaryLabels(resource);
   }
 
   @Override

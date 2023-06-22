@@ -6,6 +6,8 @@
 
 . "$SPEC_PATH/abstract/backup"
 
+. "$SPEC_PATH/abstract/dbops-restart"
+
 e2e_test_extra_hash() {
   "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
     "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/patroni")"
@@ -13,6 +15,8 @@ e2e_test_extra_hash() {
     "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/sql-scripts")"
   "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
     "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/backup")"
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/dbops-restart")"
   "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
     "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/sql-scripts.sakila.sql")"
 }
@@ -54,6 +58,8 @@ e2e_test() {
   run_test "Checking that managed SQL is working" check_managed_sql_is_working
 
   run_test "Checking that backup is working" check_backup_is_working
+
+  run_test "Checking that restart is working" check_restart_is_working
 }
 
 service_check() {
@@ -167,5 +173,33 @@ check_backup_is_working() {
     check_timelines
 
     check_control_data
+  done
+}
+
+check_restart_is_working() {
+  local BACKUP_NAME
+  local BASE_CLUSTER_NAME="$CLUSTER_NAME"
+  local CLUSTER_NAME
+  local NODE=0
+  for CLUSTER_NAME in "$BASE_CLUSTER_NAME-coord" "$BASE_CLUSTER_NAME-shard0" "$BASE_CLUSTER_NAME-shard1"
+  do
+    DBOPS_NAME="$(get_sgdbops_name restart-"${CLUSTER_NAME}-${NODE}-$(shuf -i 0-65535 -n 1)")"
+
+    set_restarted_pods
+
+    cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: restart
+  restart:
+    method: InPlace
+EOF
+
+    check_restart_without_data
   done
 }

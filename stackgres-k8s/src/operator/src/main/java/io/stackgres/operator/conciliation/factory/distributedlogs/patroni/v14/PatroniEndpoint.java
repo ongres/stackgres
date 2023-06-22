@@ -39,7 +39,7 @@ public class PatroniEndpoint implements ResourceGenerator<StackGresDistributedLo
             .withNewMetadata()
             .withNamespace(cluster.getMetadata().getNamespace())
             .withName(PatroniUtil.readWriteName(cluster))
-            .withLabels(labelFactory.patroniClusterLabels(cluster))
+            .withLabels(labelFactory.clusterLabels(cluster))
             .endMetadata()
             .build()
     );

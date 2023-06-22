@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 public abstract class EndpointsComparator extends AbstractComparator {
 
-  private final IgnorePatch[] ignorePatchPatterns = {
+  private static final IgnorePatch[] IGNORE_PATCH_PATTERNS = {
       new SimpleIgnorePatch("/subsets",
           "add"),
       new PatchPattern(Pattern.compile("^/subsets/.*$"),
@@ -18,7 +18,7 @@ public abstract class EndpointsComparator extends AbstractComparator {
 
   @Override
   protected IgnorePatch[] getPatchPattersToIgnore() {
-    return ignorePatchPatterns;
+    return IGNORE_PATCH_PATTERNS;
   }
 
 }

@@ -24,6 +24,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatusCluster;
 import io.stackgres.common.event.EventEmitter;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
@@ -39,13 +40,13 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
   @Dependent
   static class Parameters {
     @Inject CustomResourceScanner<StackGresDistributedLogs> scanner;
+    @Inject CustomResourceFinder<StackGresDistributedLogs> finder;
     @Inject Conciliator<StackGresDistributedLogs> conciliator;
     @Inject HandlerDelegator<StackGresDistributedLogs> handlerDelegator;
     @Inject KubernetesClient client;
     @Inject ConnectedClustersScanner connectedClustersScanner;
     @Inject CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
-    @Inject StatusManager<StackGresDistributedLogs,
-    Condition> statusManager;
+    @Inject StatusManager<StackGresDistributedLogs, Condition> statusManager;
     @Inject EventEmitter<StackGresDistributedLogs> eventController;
   }
 
@@ -56,7 +57,8 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
 
   @Inject
   public DistributedLogsReconciliator(Parameters parameters) {
-    super(parameters.scanner, parameters.conciliator, parameters.handlerDelegator,
+    super(parameters.scanner, parameters.finder,
+        parameters.conciliator, parameters.handlerDelegator,
         parameters.client, StackGresDistributedLogs.KIND);
     this.connectedClustersScanner = parameters.connectedClustersScanner;
     this.distributedLogsScheduler = parameters.distributedLogsScheduler;
@@ -73,11 +75,16 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
   }
 
   @Override
-  public void onPreReconciliation(StackGresDistributedLogs config) {
+  protected void reconciliationCycle(StackGresDistributedLogs configKey, boolean load) {
+    super.reconciliationCycle(configKey, load);
   }
 
   @Override
-  public void onPostReconciliation(StackGresDistributedLogs config) {
+  protected void onPreReconciliation(StackGresDistributedLogs config) {
+  }
+
+  @Override
+  protected void onPostReconciliation(StackGresDistributedLogs config) {
     refreshConnectedClusters(config);
 
     statusManager.refreshCondition(config);
@@ -113,7 +120,7 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
   }
 
   @Override
-  public void onConfigCreated(StackGresDistributedLogs distributedLogs,
+  protected void onConfigCreated(StackGresDistributedLogs distributedLogs,
                               ReconciliationResult result) {
     final ObjectMeta metadata = distributedLogs.getMetadata();
     eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_CREATED,
@@ -126,7 +133,7 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
   }
 
   @Override
-  public void onConfigUpdated(StackGresDistributedLogs distributedLogs,
+  protected void onConfigUpdated(StackGresDistributedLogs distributedLogs,
                               ReconciliationResult result) {
     final ObjectMeta metadata = distributedLogs.getMetadata();
     eventController.sendEvent(DistributedLogsEventReason.DISTRIBUTED_LOGS_UPDATED,
@@ -138,7 +145,7 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
   }
 
   @Override
-  public void onError(Exception ex, StackGresDistributedLogs context) {
+  protected void onError(Exception ex, StackGresDistributedLogs context) {
 
     String message = MessageFormatter.arrayFormat(
         "StackGres DistributeLogs reconciliation cycle failed",

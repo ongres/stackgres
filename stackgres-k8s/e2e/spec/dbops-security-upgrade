@@ -82,8 +82,8 @@ e2e_test_install() {
     --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \
     --set cluster.configurations.backups.performance.maxDiskBandwidth=10485760 \
     --set cluster.configurations.backups.performance.maxNetworkBandwidth=5242880 \
-    --set-string configurations.postgresconfig.postgresql\.conf.max_connections=100 \
-    --set-string configurations.postgresconfig.postgresql\.conf.invalid_param=true \
+    --set-string configurations.postgresconfig.postgresql\\.conf.max_connections=100 \
+    --set-string configurations.postgresconfig.postgresql\\.conf.invalid_param=true \
     --set distributedLogs.enabled=true \
     --set distributedLogs.create=true \
     --set-string cluster.distributedLogs.sgDistributedLogs="$DISTRIBUTED_LOGS_NAME" \

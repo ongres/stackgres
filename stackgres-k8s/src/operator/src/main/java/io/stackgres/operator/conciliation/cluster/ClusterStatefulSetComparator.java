@@ -48,7 +48,8 @@ public class ClusterStatefulSetComparator extends StatefulSetComparator {
     cluster.setMetadata(new ObjectMeta());
     cluster.getMetadata().setUid(sgClusterOwner.getUid());
     cluster.getMetadata().setName(sgClusterOwner.getName());
-    Map<String, String> primaryLabels = labelFactory.patroniPrimaryLabelsWithoutScope(cluster);
+    Map<String, String> primaryLabels =
+        labelFactory.clusterPrimaryLabelsWithoutUidAndScope(cluster);
     var primaryPods = podScanner.findByLabelsAndNamespace(namespace, primaryLabels);
     if (primaryPods.isEmpty()) {
       LOGGER.debug(

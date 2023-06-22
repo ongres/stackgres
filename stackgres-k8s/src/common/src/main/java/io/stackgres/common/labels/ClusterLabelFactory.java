@@ -11,10 +11,10 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableMap;
-import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.labels.v14.ClusterLabelFactoryV14;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,35 +53,27 @@ public class ClusterLabelFactory extends AbstractLabelFactoryForCluster<StackGre
   }
 
   @Override
-  public Map<String, String> patroniPrimaryLabels(StackGresCluster resource) {
+  public Map<String, String> clusterPrimaryLabels(StackGresCluster resource) {
     if (useV14(resource)) {
-      return clusterLabelFactoryV14.patroniPrimaryLabels(resource);
+      return clusterLabelFactoryV14.clusterPrimaryLabels(resource);
     }
-    return super.patroniPrimaryLabels(resource);
+    return super.clusterPrimaryLabels(resource);
   }
 
   @Override
-  public Map<String, String> patroniPrimaryLabelsWithoutScope(StackGresCluster resource) {
+  public Map<String, String> clusterReplicaLabels(StackGresCluster resource) {
     if (useV14(resource)) {
-      return clusterLabelFactoryV14.patroniPrimaryLabelsWithoutScope(resource);
+      return clusterLabelFactoryV14.clusterReplicaLabels(resource);
     }
-    return super.patroniPrimaryLabelsWithoutScope(resource);
+    return super.clusterReplicaLabels(resource);
   }
 
   @Override
-  public Map<String, String> patroniClusterLabelsWithoutScope(StackGresCluster resource) {
+  public Map<String, String> clusterPrimaryLabelsWithoutUidAndScope(StackGresCluster resource) {
     if (useV14(resource)) {
-      return clusterLabelFactoryV14.patroniClusterLabelsWithoutScope(resource);
+      return clusterLabelFactoryV14.clusterPrimaryLabelsWithoutUidAndScope(resource);
     }
-    return super.patroniClusterLabelsWithoutScope(resource);
-  }
-
-  @Override
-  public Map<String, String> patroniReplicaLabelsWithoutScope(StackGresCluster resource) {
-    if (useV14(resource)) {
-      return clusterLabelFactoryV14.patroniReplicaLabelsWithoutScope(resource);
-    }
-    return super.patroniReplicaLabelsWithoutScope(resource);
+    return super.clusterPrimaryLabelsWithoutUidAndScope(resource);
   }
 
   @Override
@@ -110,17 +102,13 @@ public class ClusterLabelFactory extends AbstractLabelFactoryForCluster<StackGre
 
   @Override
   public String resourceScope(@NotNull StackGresCluster resource) {
-    return Optional.ofNullable(resource.getSpec().getConfiguration().getPatroni())
+    return Optional.of(resource)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getConfiguration)
+        .map(StackGresClusterConfiguration::getPatroni)
         .map(patroni -> patroni.getInitialConfig())
         .map(patroniConfig -> patroniConfig.getScope())
         .orElse(resourceName(resource));
-  }
-
-  @Override
-  public Map<String, String> patroniReplicaLabels(StackGresCluster resource) {
-    return ImmutableMap.<String, String>builder().putAll(super.patroniReplicaLabels(resource))
-        .put(PatroniUtil.NOLOADBALANCE_TAG, PatroniUtil.FALSE_TAG_VALUE)
-        .build();
   }
 
   private boolean useV14(StackGresCluster resource) {

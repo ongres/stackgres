@@ -20,14 +20,6 @@ public abstract class AbstractLabelFactoryForCluster<T extends CustomResource<?,
     extends AbstractLabelFactory<T> implements LabelFactoryForCluster<T> {
 
   @Override
-  public Map<String, String> clusterLabels(T resource) {
-    return Map.of(labelMapper().appKey(), labelMapper().appName(),
-        labelMapper().resourceNameKey(resource), labelValue(resourceName(resource)),
-        labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)),
-        labelMapper().clusterKey(resource), StackGresContext.RIGHT_VALUE);
-  }
-
-  @Override
   public Map<String, String> clusterLabelsWithoutUid(T resource) {
     return Map.of(labelMapper().appKey(), labelMapper().appName(),
         labelMapper().resourceNameKey(resource), labelValue(resourceName(resource)),
@@ -35,24 +27,36 @@ public abstract class AbstractLabelFactoryForCluster<T extends CustomResource<?,
   }
 
   @Override
-  public Map<String, String> patroniClusterLabels(T resource) {
-    return Map.of(labelMapper().appKey(), labelMapper().appName(),
-        labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)),
-        labelMapper().resourceNameKey(resource), labelValue(resourceName(resource)),
-        labelMapper().clusterKey(resource), StackGresContext.RIGHT_VALUE);
+  public Map<String, String> clusterLabels(T resource) {
+    return ImmutableMap.<String, String>builder().putAll(clusterLabelsWithoutUid(resource))
+        .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
+        .build();
   }
 
   @Override
-  public Map<String, String> patroniPrimaryLabels(T resource) {
+  public Map<String, String> patroniClusterLabels(T resource) {
+    return clusterLabels(resource);
+  }
+
+  @Override
+  public Map<String, String> clusterPrimaryLabels(T resource) {
     return ImmutableMap.<String, String>builder().putAll(patroniClusterLabels(resource))
         .put(PatroniUtil.ROLE_KEY, PatroniUtil.PRIMARY_ROLE)
         .build();
   }
 
   @Override
-  public Map<String, String> patroniReplicaLabels(T resource) {
+  public Map<String, String> clusterReplicaLabels(T resource) {
     return ImmutableMap.<String, String>builder().putAll(patroniClusterLabels(resource))
         .put(PatroniUtil.ROLE_KEY, PatroniUtil.REPLICA_ROLE)
+        .put(PatroniUtil.NOLOADBALANCE_TAG, PatroniUtil.FALSE_TAG_VALUE)
+        .build();
+  }
+
+  @Override
+  public Map<String, String> clusterPrimaryLabelsWithoutUidAndScope(T resource) {
+    return ImmutableMap.<String, String>builder().putAll(clusterLabelsWithoutUid(resource))
+        .put(PatroniUtil.ROLE_KEY, PatroniUtil.PRIMARY_ROLE)
         .build();
   }
 
