@@ -58,6 +58,62 @@
                 </table>
             </div>
 
+            <div class="card" v-if="iCan('any','sgshardedclusters',$route.params.namespace)">
+                <table class="fullWidth">
+                    <thead>
+                        <th class="crdName">
+                            <template v-if="iCan('list', 'sgshardedclusters', $route.params.namespace)">
+                                <router-link :to="'/' + $route.params.namespace + '/sgshardedclusters/'" title="Sharded Cluster Overview">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g fill="#36A8FF"><path d="m19 15.3-1.4-1.2c-.4-.3-1-.3-1.3.1-.3.4-.3 1 .1 1.3h.1l.2.2-5.6 2.1v-4.1l.2.1c.1.1.3.1.5.1.3 0 .6-.2.8-.5.3-.4.1-1-.3-1.3l-1.6-.9c-.3-.2-.6-.2-.9 0l-1.6.9c-.4.3-.6.8-.3 1.3.2.4.8.6 1.2.4l.2-.1v4l-5.6-2.1.2-.2c.4-.3.5-.9.2-1.3s-.9-.5-1.3-.2L1 15.3c-.2.2-.4.5-.3.9L1 18c.1.5.6.8 1.1.8.4-.1.8-.5.8-.9v-.5l6.9 2.5c0 .1.1.1.2.1h.1c.1 0 .2 0 .3-.1l6.8-2.5v.3c-.1.5.3 1 .8 1.1h.2c.4 0 .8-.3.9-.8l.3-1.8c-.1-.3-.2-.7-.4-.9"/><path d="M10 0C4.9 0 .9 2.2.9 5.1v6.3c0 .6.4 1 1 1h.2c.4 0 .8-.3.8-.8.1.1.2.1.4.2h.1c.1 0 .1.1.2.1.1.1.3.1.4.2.1 0 .1.1.2.1s.1 0 .2.1h.1c.1.1.2.1.3.1.1 0 .2.1.3.1.4 0 .8-.3.9-.6 0-.1 0-.1.1-.2.1-.5-.2-.9-.6-1.1-.2-.1-.4-.2-.6-.2-.3-.1-.6-.3-.9-.5-.1-.1-.2-.1-.2-.2l-.1-.1c-.2-.1-.4-.3-.5-.5-.2-.2-.2-.4-.3-.6V8.2c2.1 1.3 4.6 2 7.1 1.9 2.5.1 5-.6 7.1-1.9v.2c0 .2-.1.5-.3.7-.1.2-.3.4-.5.5l-.1.1c-.1.1-.2.1-.3.2-.3.2-.6.3-.9.5-.2.1-.4.2-.6.2-.4.2-.7.6-.6 1.1 0 .1 0 .1.1.2.1.4.5.6.9.6.1 0 .2 0 .4-.1.1-.1.2-.1.4-.1h.1c.1 0 .1-.1.2-.1s.1-.1.2-.1c.1-.1.2-.1.4-.2.1 0 .1-.1.2-.1h.1c.1-.1.3-.1.4-.2 0 .4.3.8.8.8h.2c.6 0 1-.4 1-1V5.1C19.1 2.2 15.1 0 10 0m0 8.1C5.8 8.1 2.9 6.5 2.9 5S5.8 2 10 2s7.1 1.6 7.1 3.1-2.9 3-7.1 3"/></g></svg>
+                                    <span>SGShardedCluster <i class="length">{{ sgshardedclusters.length }}</i></span>
+                                </router-link>
+                            </template>
+                            <template v-else>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g fill="#36A8FF"><path d="m19 15.3-1.4-1.2c-.4-.3-1-.3-1.3.1-.3.4-.3 1 .1 1.3h.1l.2.2-5.6 2.1v-4.1l.2.1c.1.1.3.1.5.1.3 0 .6-.2.8-.5.3-.4.1-1-.3-1.3l-1.6-.9c-.3-.2-.6-.2-.9 0l-1.6.9c-.4.3-.6.8-.3 1.3.2.4.8.6 1.2.4l.2-.1v4l-5.6-2.1.2-.2c.4-.3.5-.9.2-1.3s-.9-.5-1.3-.2L1 15.3c-.2.2-.4.5-.3.9L1 18c.1.5.6.8 1.1.8.4-.1.8-.5.8-.9v-.5l6.9 2.5c0 .1.1.1.2.1h.1c.1 0 .2 0 .3-.1l6.8-2.5v.3c-.1.5.3 1 .8 1.1h.2c.4 0 .8-.3.9-.8l.3-1.8c-.1-.3-.2-.7-.4-.9"/><path d="M10 0C4.9 0 .9 2.2.9 5.1v6.3c0 .6.4 1 1 1h.2c.4 0 .8-.3.8-.8.1.1.2.1.4.2h.1c.1 0 .1.1.2.1.1.1.3.1.4.2.1 0 .1.1.2.1s.1 0 .2.1h.1c.1.1.2.1.3.1.1 0 .2.1.3.1.4 0 .8-.3.9-.6 0-.1 0-.1.1-.2.1-.5-.2-.9-.6-1.1-.2-.1-.4-.2-.6-.2-.3-.1-.6-.3-.9-.5-.1-.1-.2-.1-.2-.2l-.1-.1c-.2-.1-.4-.3-.5-.5-.2-.2-.2-.4-.3-.6V8.2c2.1 1.3 4.6 2 7.1 1.9 2.5.1 5-.6 7.1-1.9v.2c0 .2-.1.5-.3.7-.1.2-.3.4-.5.5l-.1.1c-.1.1-.2.1-.3.2-.3.2-.6.3-.9.5-.2.1-.4.2-.6.2-.4.2-.7.6-.6 1.1 0 .1 0 .1.1.2.1.4.5.6.9.6.1 0 .2 0 .4-.1.1-.1.2-.1.4-.1h.1c.1 0 .1-.1.2-.1s.1-.1.2-.1c.1-.1.2-.1.4-.2.1 0 .1-.1.2-.1h.1c.1-.1.3-.1.4-.2 0 .4.3.8.8.8h.2c.6 0 1-.4 1-1V5.1C19.1 2.2 15.1 0 10 0m0 8.1C5.8 8.1 2.9 6.5 2.9 5S5.8 2 10 2s7.1 1.6 7.1 3.1-2.9 3-7.1 3"/></g></svg>
+                                <span>SGShardedCluster <i class="length">{{ sgshardedclusters.length }}</i></span>
+                            </template>
+                        </th>
+                        <th class="icon invisible">
+                            <router-link 
+                                :to="'/' + $route.params.namespace + '/sgshardedclusters/new'"
+                                title="Create Sharded Cluster"
+                                v-if="iCan('create', 'sgshardedclusters', $route.params.namespace)"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="16px"><g fill="#36A8FF"><path d="M7.5 15C3.4 15 0 11.6 0 7.5S3.4 0 7.5 0 15 3.4 15 7.5 11.6 15 7.5 15zm0-13.4c-3.3 0-5.9 2.7-5.9 5.9s2.7 5.9 5.9 5.9 5.9-2.7 5.9-5.9-2.6-5.9-5.9-5.9z"/><path class="prefix__st0" d="M10.7 6.9H8.2V4.5H6.8v2.4H4.3v1.4h2.5v2.5h1.4V8.3h2.5z"/></g></svg>
+                            </router-link>
+                        </th>
+                    </thead>
+                    <tbody>
+                        <template v-if="!sgshardedclusters.length || !iCan('list', 'sgshardedclusters', $route.params.namespace)">
+                            <tr class="no-results">
+                                <td colspan="2" v-if="iCan('create', 'sgshardedclusters', $route.params.namespace)">
+                                    No sharded clusters have been found, would you like to <router-link :to="'/' + $route.params.namespace + '/sgshardedclusters/new'" title="Create Sharded Cluster">create a new one?</router-link>
+                                </td>
+                                <td v-else colspan="2">
+                                    No sharded clusters have been found. You don't have enough permissions to create a new one.
+                                </td>
+                            </tr>
+                        </template>
+                        <template v-else>
+                            <template v-for="cluster in sgshardedclusters">
+                                <tr>
+                                    <td class="hasTooltip">
+                                        <span>
+                                            <router-link :to="'/' + $route.params.namespace + '/sgshardedcluster/' + cluster.name" title="Sharded Cluster Status">
+                                                {{ cluster.name }}
+                                            </router-link>
+                                        </span>
+                                    </td>
+                                    <td class="icon invisible">
+                                        <router-link :to="'/' + $route.params.namespace + '/sgshardedcluster/' + cluster.name" title="Sharded Cluster Status" target="_blank"></router-link>
+                                    </td>
+                                </tr>
+                            </template>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+
             <div class="card" v-if="iCan('any', 'sginstanceprofiles', $route.params.namespace)">
                 <table class="fullWidth">
                     <thead>
@@ -543,6 +599,10 @@ export default {
     computed: {
         clusters () {
             return store.state.sgclusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace))
+        },
+
+        sgshardedclusters () {
+            return store.state.sgshardedclusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace))
         },
 
         profiles () {

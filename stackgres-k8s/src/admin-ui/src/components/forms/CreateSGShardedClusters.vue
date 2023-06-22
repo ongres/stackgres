@@ -27,7 +27,7 @@
                     <button type="button" class="btn arrow prev" @click="currentStep[currentSection] = formSteps[currentSection][(currentStepIndex - 1)]" :disabled="( currentStepIndex == 0 )"></button>
             
                     <template v-for="(step, index) in formSteps[currentSection]"  v-if="( ((index < basicSteps[currentSection]) && !advancedMode) || advancedMode)">
-                        <li @click="currentStep[currentSection] = step; checkValidSteps(_data, 'steps')" :class="[( (currentStep[currentSection] == step) && 'active'), ( (index < basicSteps[currentSection]) && 'basic' ), (errorStep.includes(step) && 'notValid')]" v-if="!( editMode && (step == 'initialization') && !restoreBackup.length )" :data-step="currentSection + '.' + step">
+                        <li @click="currentStep[currentSection] = step; checkValidSteps(_data, 'steps')" :class="[( (currentStep[currentSection] == step) && 'active'), ( (index < basicSteps[currentSection]) && 'basic' ), (errorStep.includes(currentSection + '.' + step) && 'notValid')]" :data-step="currentSection + '.' + step">
                             {{ step }}
                         </li>
                     </template>
@@ -81,41 +81,6 @@
                         <div class="row-50">
                             <h3>Postgres</h3><br/>
 
-                            <div class="col">
-                                <label for="spec.postgres.flavor">Postgres Flavor <span class="req">*</span></label>
-                                <div class="optionBoxes withLogos">
-                                    <label for="vanilla" data-field="spec.postgres.flavor.vanilla" :class="( (flavor == 'vanilla') && 'active' )" tabindex="0">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" xml:space="preserve"><path d="M49.1 30c-.3-.9-1.1-1.5-2-1.7-.5-.1-1 0-1.6.1-1.1.2-1.9.3-2.5.3 2.2-3.8 4.1-8.1 5.1-12.2 1.7-6.6.8-9.6-.3-10.9C45 2 40.9.1 35.9 0c-2.6 0-5 .5-6.2.9-1.1-.2-2.3-.3-3.6-.3-2.4 0-4.5.5-6.3 1.5-1-.3-2.6-.8-4.4-1.1C11.1.3 7.6.8 5 2.6 2 4.8.5 8.6.8 13.9c.1 1.7 1 6.8 2.5 11.7.9 2.8 1.8 5.1 2.7 6.9 1.3 2.5 2.8 4 4.4 4.5.9.3 2.5.5 4.2-.9.2.3.5.5.9.8.5.3 1.1.6 1.7.7 2.2.5 4.2.4 5.9-.3v2.1c.1 2.5.3 4.5.8 5.9 0 .1.1.2.1.3.3.8.7 2.1 1.8 3.1 1.1 1.1 2.5 1.4 3.7 1.4.6 0 1.2-.1 1.7-.2 1.9-.4 4-1 5.5-3.2 1.4-2.1 2.2-5.2 2.3-10.1v-.7h.4c1.9.1 4.2-.3 5.6-1 1.4-.5 5-2.4 4.1-4.9z"/><path fill="#336791" d="M45.9 30.5c-5.6 1.2-6-.8-6-.8 6-8.8 8.5-20.1 6.3-22.8-5.9-7.5-16-4-16.2-3.9h-.1c-1.1-.2-2.4-.4-3.8-.4-2.6 0-4.5.7-6 1.8 0 0-18.1-7.5-17.3 9.4.3 3.6 5.2 27.2 11.1 20 2.2-2.6 4.3-4.8 4.3-4.8 1 .7 2.3 1 3.6.9l.1-.1v1c-1.5 1.7-1.1 2-4.1 2.6-3.1.6-1.3 1.8-.1 2.1 1.4.4 4.7.9 7-2.3l-.1.4c.6.5 1 3.1.9 5.5-.1 2.4-.1 4 .3 5.3.5 1.3.9 4.2 4.9 3.3C34 47 35.8 45.1 36 42c.2-2.2.6-1.9.6-3.9l.3-.9c.4-3 .1-4 2.1-3.5h.5c1.5.1 3.5-.2 4.7-.8 2.7-1 4.1-3 1.7-2.4z"/><g fill="#FFF"><path d="M47.7 30.3c-.2-.7-.9-.9-2.1-.6-3.4.7-4.6.2-5-.1 2.7-4.1 4.8-8.9 6-13.5.6-2.2.9-4.2.9-5.8 0-1.8-.3-3.1-.9-3.9-2.5-3.3-6.3-5-10.8-5-3.1 0-5.7.8-6.2 1-1.1-.3-2.2-.4-3.5-.4-2.3 0-4.3.5-6 1.7-.8-.3-2.6-.9-4.9-1.3-4-.6-7.1-.2-9.4 1.4-2.7 1.8-3.9 5.2-3.7 10 .1 1.6 1 6.6 2.4 11.3 1.9 6.3 4 9.8 6.2 10.5.3.1.6.1.9.1.8 0 1.8-.4 2.8-1.6 1.7-2 3.3-3.7 3.9-4.4.9.5 1.8.7 2.8.7v.1c-.2.2-.3.4-.5.6-.7.9-.8 1-3 1.5-.6.1-2.2.5-2.3 1.6 0 1.2 1.9 1.8 2.1 1.8.8.2 1.5.3 2.2.3 1.7 0 3.2-.6 4.5-1.7 0 4.4.1 8.8.7 10.2.4 1.1 1.5 3.8 4.9 3.8.5 0 1-.1 1.6-.2 3.5-.8 5-2.3 5.6-5.7.3-1.8.9-6.2 1.1-8.6.5.2 1.2.2 2 .2 1.6 0 3.4-.3 4.5-.9 1.4-.4 3.7-1.8 3.2-3.1zm-8.3-15.8c0 .7-.1 1.3-.2 2s-.2 1.4-.2 2.3c0 .9.1 1.8.2 2.6.2 1.8.4 3.5-.4 5.3-.1-.2-.3-.5-.4-.8-.1-.2-.3-.7-.6-1.2-1.2-2.2-4.1-7.3-2.6-9.4.3-.5 1.4-1.2 4.2-.8zM36 2.7c4.1.1 7.3 1.6 9.5 4.5 1.7 2.2-.2 12.3-5.7 21.1l-.2-.2s0-.1-.1-.1c1.4-2.4 1.2-4.7.9-6.8-.1-.9-.2-1.7-.2-2.4 0-.8.1-1.5.2-2.2.1-.8.3-1.7.2-2.7v-.4c-.1-1-1.2-3.8-3.4-6.4-1.2-1.4-3-3-5.4-4.1 1.2-.1 2.6-.3 4.2-.3zM13.4 33.3c-1.1 1.3-1.9 1.1-2.1 1-1.7-.6-3.6-4.1-5.3-9.6-1.5-4.8-2.3-9.6-2.4-11-.3-4.3.8-7.3 3-8.9 3.7-2.6 9.7-1 12.2-.3l-.1.1c-4 4-3.9 10.9-3.9 11.4v.7c.1 1.2.2 3.3-.1 5.8-.3 2.3.4 4.5 1.9 6.1l.5.5c-.7.7-2.2 2.3-3.7 4.2zm4.2-5.7c-1.2-1.3-1.8-3.1-1.5-4.9.4-2.6.2-4.8.2-6v-.4c.6-.5 3.3-2 5.2-1.5.9.2 1.4.8 1.6 1.8 1.2 5.3.2 7.6-.7 9.4-.2.4-.3.7-.5 1.1l-.1.3c-.3.7-.5 1.4-.7 2-1.2-.2-2.5-.8-3.5-1.8zm.2 7.2c-.4-.1-.7-.3-.9-.4.2-.1.5-.2 1-.3 2.5-.5 2.9-.9 3.8-2 .2-.2.4-.5.7-.9.5-.5.7-.4 1-.3.3.1.6.5.7.9.1.2.1.6-.1.9-1.7 2.6-4.3 2.6-6.2 2.1zm13.3 12.3c-3.1.7-4.2-.9-4.9-2.7-.5-1.2-.7-6.4-.5-12.2V32c0-.1 0-.3-.1-.4-.2-.8-.8-1.5-1.5-1.8-.3-.1-.8-.3-1.4-.2.1-.6.4-1.2.6-1.8l.1-.3c.1-.3.3-.6.4-1 .8-1.9 2-4.4.7-10.2-.5-2.2-2-3.2-4.4-3-1.4.1-2.7.7-3.4 1.1-.1.1-.3.1-.4.2.2-2.2.9-6.3 3.4-8.8 1.6-1.6 3.8-2.4 6.4-2.4 5.2.1 8.5 2.7 10.3 4.9 1.6 1.9 2.5 3.8 2.8 4.8-2.6-.3-4.4.2-5.3 1.5-2 2.8 1.1 8.2 2.5 10.8.3.5.5.9.6 1.1.5 1.1 1.1 1.9 1.5 2.5.1.2.3.3.4.5-.8.2-2.2.8-2.1 3.4-.1 1.3-.8 7.5-1.2 9.7-.5 2.8-1.5 3.9-4.5 4.5zM44 32.3c-.8.4-2.2.7-3.4.7-1.4.1-2.1-.2-2.3-.3-.1-1.6.5-1.8 1.2-2 .1 0 .2-.1.3-.1.1 0 .1.1.2.1 1.1.8 3.2.8 6.1.2-.5.5-1.1 1-2.1 1.4z"/><path d="M22.4 16.2c.1-.4-.6-.7-1.2-.8-.5-.1-1 0-1.2.2-.1.1-.2.2-.2.3 0 .2.1.4.2.6.3.3.6.6 1 .6h.2c.6 0 1.2-.5 1.2-.9zM36.8 15.1c-.6.1-1.2.3-1.1.7 0 .3.5.7 1.1.7h.1c.4-.1.7-.3.8-.4.2-.2.3-.5.3-.6 0-.4-.6-.5-1.2-.4z"/></g></svg>
-                                        PostgreSQL Community
-                                        <input type="radio" name="flavor" v-model="flavor" value="vanilla" id="vanilla" @change="validatePostgresSpecs()">
-                                    </label>
-                                    <label for="babelfish" data-field="spec.postgres.flavor.babelfish" :class="( (flavor == 'babelfish') && 'active' )">
-                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" xml:space="preserve"><path fill="#3BF" d="M28.6 32c-.7-1.3-2.1-1.9-3.5-1.7-1.4.1-2.7-.9-2.9-2.3-.2-1.8.5-1.2 1.7-6.1.4-1.8.2-3.8-.9-5.4-.8-1.3-2.2-2-3.4-1.2-1.2.8-2 1.9-2.5 3.2-1.9 5 .9 8.8 3.5 10.9 1.1.9 1.6 2.4 1.3 3.9-.2 1.2.4 2.1 1.3 3 1.4-1.2 1.4-2.8.7-4.5l.2-.2c1.3 1.5 3.2 1.5 4.5.4zm-7.5-12.8c-.4.2-.9.1-1.2-.3-.2-.4-.1-.9.3-1.3.4-.2.9-.1 1.3.3.1.6 0 1.1-.4 1.3z"/><path fill="#FFF" d="M32.3 2.5h-.7c-1.5.2-3 .5-4.4 1-1.5.4-11.3-7-20.6-1.4C1.2 5.5-.6 12.6 2.8 18c.4.7.9 1.3 1.5 1.9 1.6 1.9 2.4 4.4 2.1 6.8-.7 5.2 2.3 9.1 7 9.1 2.1.1 4.1-.3 6.1-1.1.6-.3 1.1-.9 1.3-1.6.2-.9-.2-1.9-.9-2.5-4.2-3.6-5.6-8-3.9-12.5.5-1.6 1.6-3 3-3.9.5-.4 1.3-.5 1.9-.5 1.5.1 2.8.9 3.5 2.2 1.2 2 1.5 4.2 1 6.4-.3 1.5-.9 3-1.5 4.5-.6 1.4.2 2 1.3 2.2 1 .2 2.1.1 3-.2 3.7-1.3 8-.3 9.4 6.4.5 3.2-.2 6.6-3.4 7.7 0 0-6.3 2.2-5-8.4v-.4c0-.2-.2-.3-.4-.3-.1 0-.2.1-.2.1-.6.4-1.3.6-2 .5-.4 0-.7.3-.8.7-.2 1-.8 2-1.6 2.7l-.5.4c-.2.2-.3.5-.3.7 1.8 13.1 12 11 12 11 5.8-.4 13.5-7 13.5-30.7 0-8.3-7.4-16.7-16.6-16.7zm8.1 20.1c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
-                                        Babelfish (Experimental)
-                                        <input type="radio" name="flavor" v-model="flavor" value="babelfish" id="babelfish" @change="validatePostgresSpecs()">
-                                    </label>
-                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.postgres.flavor')"></span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="warning orange babelfish topAnchor right" v-if="( (flavor == 'babelfish') && !editMode )" tabindex="0">
-                            <div class="row-50">
-                                <div class="col">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 18"><g transform="translate(0 -183)"><path d="M18.994,201H1.006a1,1,0,0,1-.871-.516,1.052,1.052,0,0,1,0-1.031l8.993-15.974a1.033,1.033,0,0,1,1.744,0l8.993,15.974a1.052,1.052,0,0,1,0,1.031A1,1,0,0,1,18.994,201ZM2.75,198.937h14.5L10,186.059Z"/><rect width="2" height="5.378" rx="0.947" transform="translate(9 189.059)"/><rect width="2" height="2" rx="1" transform="translate(9 195.437)"/></g></svg>
-                                    <p>StackGres packs Babelfish for PostgreSQL as an <strong>experimental feature</strong>. Its use is <strong>not recommended for production environments</strong>. Please enable the Babelfish Experimental Feature flag to acknowledge.</strong></p>
-                                </div>
-                                <div class="col">                    
-                                    <label for="spec.nonProductionOptions.enabledFeatureGates.babelfish">Babelfish Experimental Feature</label>  
-                                    <label for="babelfishFeatureGates" class="switch yes-no">
-                                        Enable
-                                        <input type="checkbox" id="babelfishFeatureGates" v-model="babelfishFeatureGates" data-switch="NO" data-field="spec.nonProductionOptions.enabledFeatureGates.babelfish" required>
-                                    </label>
-                                    <span class="helpTooltip" data-tooltip="Enables Babelfish for PostgreSQL project, from <a href='https://babelfishpg.org' target='_blank'>babelfishpg.org</a>, adding a SQL Server compatibility layer"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row-50">
                             <div class="col">                    
                                 <div class="versionContainer">
                                     <label for="spec.postgres.version">Postgres Version <span class="req">*</span></label>
@@ -160,37 +125,33 @@
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.postgres.ssl.enabled')"></span>
                             </div>
                         </div>
-                        <div class="row-50" v-if="ssl.enabled">
+                        <div class="row-50" v-if="ssl.enabled && (Object.keys(ssl).length > 1)">
                             <div class="col">
                                 <label for="spec.postgres.ssl.certificateSecretKeySelector.name">
                                     SSL Certificate Secret Name
-                                    <span class="req">*</span>
                                 </label>
-                                <input required v-model="ssl.certificateSecretKeySelector.name" data-field="spec.postgres.ssl.certificateSecretKeySelector.name" autocomplete="off">
+                                <input v-model="ssl.certificateSecretKeySelector.name" data-field="spec.postgres.ssl.certificateSecretKeySelector.name" autocomplete="off">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.postgres.ssl.certificateSecretKeySelector.name')"></span>
                             </div>
                             <div class="col">
                                 <label for="spec.postgres.ssl.certificateSecretKeySelector.key">
                                     SSL Certificate Secret Key
-                                    <span class="req">*</span>
                                 </label>
-                                <input required v-model="ssl.certificateSecretKeySelector.key" data-field="spec.postgres.ssl.certificateSecretKeySelector.key" autocomplete="off">
+                                <input v-model="ssl.certificateSecretKeySelector.key" data-field="spec.postgres.ssl.certificateSecretKeySelector.key" autocomplete="off">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.postgres.ssl.certificateSecretKeySelector.key')"></span>
                             </div>
                             <div class="col">
                                 <label for="spec.postgres.ssl.privateKeySecretKeySelector.name">
                                     SSL Private Key Secret Name
-                                    <span class="req">*</span>
                                 </label>
-                                <input required v-model="ssl.privateKeySecretKeySelector.name" data-field="spec.postgres.ssl.privateKeySecretKeySelector.name" autocomplete="off">
+                                <input v-model="ssl.privateKeySecretKeySelector.name" data-field="spec.postgres.ssl.privateKeySecretKeySelector.name" autocomplete="off">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.postgres.ssl.privateKeySecretKeySelector.name')"></span>
                             </div>
                             <div class="col">
                                 <label for="spec.postgres.ssl.privateKeySecretKeySelector.key">
                                     SSL Private Key Secret Key
-                                    <span class="req">*</span>
                                 </label>
-                                <input required v-model="ssl.privateKeySecretKeySelector.key" data-field="spec.postgres.ssl.privateKeySecretKeySelector.key" autocomplete="off">
+                                <input v-model="ssl.privateKeySecretKeySelector.key" data-field="spec.postgres.ssl.privateKeySecretKeySelector.key" autocomplete="off">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.postgres.ssl.privateKeySecretKeySelector.key')"></span>
                             </div>
                         </div>
@@ -200,11 +161,11 @@
                         <div class="row-50">
                             <h3>Monitoring</h3>
                             <p>
-                                By enabling Monitoring, you are activating metrics scrapping via service monitors, which is done by enabling both, Prometheus Autobind and Metrics Exporter. Such options can be found on the <a @click="(advancedMode = true) && (currentStep.general = 'sidecars')">Advanced Mode under the Sidecars section</a>.
+                                By enabling Monitoring, you are activating metrics scrapping via service monitors, which is done by enabling both, Prometheus Autobind and Metrics Exporter.
                             </p>
                             <div class="col">
                                 <label>Monitoring</label>  
-                                <label for="enableMonitoring" class="switch yes-no">Enable<input type="checkbox" id="enableMonitoring" v-model="enableMonitoring" data-switch="YES" @change="checkenableMonitoring()"></label>
+                                <label for="enableMonitoring" class="switch yes-no">Enable<input type="checkbox" id="enableMonitoring" v-model="enableMonitoring" data-switch="YES" @change="toggleMonitoring()"></label>
                                 <span class="helpTooltip" data-tooltip="StackGres supports enabling automatic monitoring for your Postgres cluster, but you need to provide or install the <a href='https://stackgres.io/doc/latest/install/prerequisites/monitoring/' target='_blank'>Prometheus stack as a pre-requisite</a>. Then, check this option to configure automatically sending metrics to the Prometheus stack."></span>
                             </div>                  
                         </div>
@@ -410,10 +371,11 @@
                                     </div>
                                     <template v-if="backups[0].paths.length">
                                         <div class="row" v-for="(path, index) in backups[0].paths">
-                                            <label v-if="!index">Coordinator Path</label>
-                                            <label v-else>Shard Path #{{ index + 1 }}</label>
+                                            <label>
+                                                {{ !index ? 'Coordinator Path' : 'Shard Path #' + index }}
+                                            </label>
                                             
-                                            <input v-model="backups[0].paths[index]" autocomplete="off" :data-field="'spec.configurations.backups.paths[' + index + ']'" :class="( ( index == (backups[0].paths.length - 1) ) && 'noMargin')">
+                                            <input v-model="backups[0].paths[index]" :required="!index" autocomplete="off" :data-field="'spec.configurations.backups.paths[' + index + ']'" :class="( ( index == (backups[0].paths.length - 1) ) && 'noMargin')">
 
                                             <a class="addRow delete topRight" @click="spliceArray(backups[0].paths, index)">Delete</a>
                                         </div>
@@ -465,7 +427,7 @@
                                 <label for="spec.prometheusAutobind">Prometheus Autobind</label>  
                                 <label for="prometheusAutobind" class="switch yes-no">
                                     Enable
-                                    <input type="checkbox" id="prometheusAutobind" v-model="prometheusAutobind" data-switch="NO" data-field="spec.prometheusAutobind" @change="checkPrometheusAutobind()">
+                                    <input type="checkbox" id="prometheusAutobind" v-model="prometheusAutobind" data-switch="NO" data-field="spec.prometheusAutobind" @change="checkEnableMonitoring()">
                                 </label>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.prometheusAutobind')"></span>
                             </div>
@@ -493,7 +455,7 @@
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs.sgDistributedLogs')"></span>
                             </div>
 
-                            <div class="col" v-if="distributedLogs.length">
+                            <div class="col" v-if="( (typeof distributedLogs !== 'undefined') && distributedLogs.length)">
                                 <label for="spec.distributedLogs.retention">Retention</label>
                                 <input v-model="retention" data-field="spec.distributedLogs.retention" autocomplete="off">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs.retention')"></span>
@@ -523,7 +485,7 @@
 
                             <div class="col" v-if="['sync', 'strict-sync'].includes(replication.mode)">
                                 <label for="spec.replication.syncInstances">Sync Instances</label>
-                                <input type="number" min="1" :max="(instances - 1)" v-model="replication.syncInstances" data-field="spec.replication.syncInstances">
+                                <input type="number" min="1" :max="(shards.instancesPerCluster - 1)" v-model="replication.syncInstances" data-field="spec.replication.syncInstances">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.replication.syncInstances')"></span>
                             </div>
                         </div>
@@ -545,7 +507,7 @@
                             </div>
 
                             <fieldset data-field="spec.metadata.labels.clusterPods">
-                                <div class="header">
+                                <div class="header" :class="!podsMetadata.length && 'noMargin noPadding'">
                                     <h3 for="spec.metadata.labels.clusterPods">
                                         Cluster Pods
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.metadata.labels.clusterPods')"></span> 
@@ -582,7 +544,7 @@
 
                         <div class="repeater">
                             <fieldset data-field="spec.metadata.annotations.allResources">
-                                <div class="header">
+                                <div class="header" :class="!annotationsAll.length && 'noMargin noPadding'">
                                     <h3 for="spec.metadata.annotations.allResources">
                                         All Resources
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.metadata.annotations.allResources')"></span>
@@ -611,7 +573,7 @@
 
                         <div class="repeater">
                             <fieldset data-field="spec.metadata.annotations.clusterPods">
-                                <div class="header">
+                                <div class="header" :class="!annotationsPods.length && 'noMargin noPadding'">
                                     <h3 for="spec.metadata.annotations.clusterPods">
                                         Cluster Pods
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.metadata.annotations.clusterPods')"></span>
@@ -640,7 +602,7 @@
 
                         <div class="repeater">
                             <fieldset data-field="spec.metadata.annotations.services">
-                                <div class="header">
+                                <div class="header" :class="!annotationsServices.length && 'noMargin noPadding'">
                                     <h3 for="spec.metadata.annotations.services">
                                         Services
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.metadata.annotations.services')"></span>
@@ -669,7 +631,7 @@
 
                         <div class="repeater">
                             <fieldset data-field="spec.metadata.annotations.primaryService">
-                                <div class="header">
+                                <div class="header" :class="!postgresServicesPrimaryAnnotations.length && 'noMargin noPadding'">
                                     <h3 for="spec.metadata.annotations.primaryService">
                                         Primary Service 
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.metadata.annotations.primaryService')"></span>
@@ -698,7 +660,7 @@
 
                         <div class="repeater">
                             <fieldset data-field="spec.metadata.annotations.replicasService">
-                                <div class="header">
+                                <div class="header" :class="!postgresServicesReplicasAnnotations.length && 'noMargin noPadding'">
                                     <h3 for="spec.metadata.annotations.replicasService">
                                         Replicas Service
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.metadata.annotations.replicasService')"></span>
@@ -781,7 +743,7 @@
 
                             <div class="col">
                                 <label for="spec.coordinator.configurations.sgPostgresConfig">Postgres Configuration</label>
-                                <select v-model="coordinator.configurations.sgPostgresConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig" @change="(pgConfig == 'createNewResource') && createNewResource('sgpgconfigs')" :set="( (pgConfig == 'createNewResource') && (pgConfig = '') )">
+                                <select v-model="coordinator.configurations.sgPostgresConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig" @change="(coordinator.configurations.sgPostgresConfig == 'createNewResource') && createNewResource('sgpgconfigs')" :set="( (coordinator.configurations.sgPostgresConfig == 'createNewResource') && (coordinator.configurations.sgPostgresConfig = '') )">
                                     <option value="" selected>Default</option>
                                     <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == shortPostgresVersion) )">{{ conf.name }}</option>
                                     <template v-if="iCan('create', 'sgpgconfigs', $route.params.namespace)">
@@ -849,7 +811,7 @@
                                 <label for="connectionPoolingConfigCoord">
                                     Connection Pooling Configuration
                                 </label>
-                                <select v-model="coordinator.configurations.sgPoolingConfig" class="connectionPoolingConfig" @change="(connectionPoolingConfig == 'createNewResource') && createNewResource('sgpoolconfigs')" :set="( (connectionPoolingConfig == 'createNewResource') && (coordinator.configurations.sgPoolingConfig = '') )">
+                                <select v-model="coordinator.configurations.sgPoolingConfig" class="connectionPoolingConfig" @change="(coordinator.configurations.sgPoolingConfig == 'createNewResource') && createNewResource('sgpoolconfigs')" :set="( (coordinator.configurations.sgPoolingConfig == 'createNewResource') && (coordinator.configurations.sgPoolingConfig = '') )">
                                     <option value="" selected>Default</option>
                                     <option v-for="conf in connPoolConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
                                     <template v-if="iCan('create', 'sgpoolconfigs', $route.params.namespace)">
@@ -887,7 +849,7 @@
                                 <label for="spec.coordinator.pods.disableMetricsExporter">Metrics Exporter</label>  
                                 <label for="metricsExporterCoord" class="switch yes-no">
                                     Enable
-                                    <input :checked="!coordinator.pods.disableMetricsExporter" type="checkbox" id="metricsExporterCoord" @change="( (coordinator.pods.disableMetricsExporter = !coordinator.pods.disableMetricsExporter), checkMetricsExporter() )" data-switch="YES">
+                                    <input :checked="!coordinator.pods.disableMetricsExporter" type="checkbox" id="metricsExporterCoord" @change="( (coordinator.pods.disableMetricsExporter = !coordinator.pods.disableMetricsExporter), checkEnableMonitoring() )" data-switch="YES">
                                 </label>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.pods.disableMetricsExporter').replace('If set to `true`', 'If disabled').replace('Recommended', 'Recommended to be disabled')"></span>
                             </div>
@@ -1154,7 +1116,7 @@
                         <div class="repeater">
                             <fieldset
                                 class="noPaddingBottom"
-                                v-if="coordinator.pods.customVolumes.length"
+                                v-if="(coordinator.pods.hasOwnProperty('customVolumes') && coordinator.pods.customVolumes.length)"
                                 data-fieldset="spec.coordinator.pods.customVolumes"
                             >
                                 <template v-for="(vol, index) in coordinator.pods.customVolumes">
@@ -1372,10 +1334,10 @@
                                     </div>
                                 </template>
                             </fieldset>
-                            <div class="fieldsetFooter" :class="!coordinator.pods.customVolumes.length && 'topBorder'">
+                            <div class="fieldsetFooter" :class="(!coordinator.pods.hasOwnProperty('customVolumes') || (coordinator.pods.hasOwnProperty('customVolumes') && !coordinator.pods.customVolumes.length) ) && 'topBorder'">
                                 <a 
                                     class="addRow"
-                                    @click="coordinator.pods.customVolumes.push({ name: null}); customVolumesType.coordinator.push(null)"
+                                    @click="customVolumesType.coordinator.push(null); (!coordinator.pods.hasOwnProperty('customVolumes') && (coordinator.pods['customVolumes'] = []) ); coordinator.pods.customVolumes.push({ name: null});"
                                 >
                                     Add Volume
                                 </a>
@@ -1384,7 +1346,7 @@
 
                         <br/><br/><br/>
 
-                        <template v-if="!editMode || coordinator.pods.customInitContainers.length">
+                        <template v-if="!editMode || (coordinator.pods.hasOwnProperty('customInitContainers') && coordinator.pods.customInitContainers.length)">
                             <div class="header">
                                 <h3 for="spec.coordinator.pods.customInitContainers">
                                     Custom Init Containers
@@ -1696,7 +1658,7 @@
 
                         </template>
 
-                        <template v-if="!editMode || coordinator.pods.customContainers.length">
+                        <template v-if="!editMode || (coordinator.pods.hasOwnProperty('customContainers') && coordinator.pods.customContainers.length)">
                             <div class="header">
                                 <h3 for="spec.coordinator.pods.customContainers">
                                     Custom Containers
@@ -2207,13 +2169,13 @@
                             </div>
 
                             <fieldset data-field="spec.coordinator.metadata.labels.clusterPods">
-                                <div class="header" :class="!coordinator.metadata.labels.clusterPods.length && 'noMargin'">
+                                <div class="header" :class="( !hasProp(coordinator, 'metadata.labels.clusterPods') || !coordinator.metadata.labels.clusterPods.length ) && 'noMargin noPadding'">
                                     <h3 for="spec.coordinator.metadata.labels.clusterPods">
                                         Cluster Pods
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.metadata.labels.clusterPods')"></span> 
                                     </h3>
                                 </div>
-                                <div class="metadata" v-if="coordinator.metadata.labels.clusterPods.length">
+                                <div class="metadata" v-if="hasProp(coordinator, 'metadata.labels.clusterPods') && coordinator.metadata.labels.clusterPods.length">
                                     <div class="row" v-for="(field, index) in coordinator.metadata.labels.clusterPods">
                                         <label>Label</label>
                                         <input class="label" v-model="field.label" autocomplete="off" :data-field="'spec.coordinator.metadata.labels.clusterPods[' + index + '].label'">
@@ -2228,7 +2190,7 @@
                                 </div>
                             </fieldset>
                             <div class="fieldsetFooter">
-                                <a class="addRow" @click="coordinator.metadata.labels.clusterPods.push({ label: '', value: ''})">Add Label</a>
+                                <a class="addRow" @click="pushElement(coordinator, 'metadata.labels.clusterPods', { label: '', value: ''})">Add Label</a>
                             </div>
                         </div>
 
@@ -2244,13 +2206,13 @@
 
                         <div class="repeater">
                             <fieldset data-field="spec.coordinator.metadata.annotations.allResources">
-                                <div class="header">
+                                <div class="header" :class="(!hasProp(coordinator, 'metadata.annotations.allResources') || !coordinator.metadata.annotations.allResources.length ) && 'noMargin noPadding'">
                                     <h3 for="spec.coordinator.metadata.annotations.allResources">
                                         All Resources
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.metadata.annotations.allResources')"></span>
                                     </h3>
                                 </div>
-                                <div class="annotation" v-if="coordinator.metadata.annotations.allResources.length">
+                                <div class="annotation" v-if="(hasProp(coordinator, 'metadata.annotations.allResources') && coordinator.metadata.annotations.allResources.length)">
                                     <div class="row" v-for="(field, index) in coordinator.metadata.annotations.allResources">
                                         <label>Annotation</label>
                                         <input class="annotation" v-model="field.annotation" autocomplete="off" :data-field="'spec.coordinator.metadata.annotations.allResources[' + index + '].annotation'">
@@ -2265,7 +2227,7 @@
                                 </div>
                             </fieldset>
                             <div class="fieldsetFooter">
-                                <a class="addRow" @click="coordinator.metadata.annotations.allResources.push({ label: '', value: ''})">Add Annotation</a>
+                                <a class="addRow" @click="pushElement(coordinator, 'metadata.annotations.allResources', { label: '', value: ''})">Add Annotation</a>
                             </div>
                         </div>
                         
@@ -2273,13 +2235,13 @@
 
                         <div class="repeater">
                             <fieldset data-field="spec.coordinator.metadata.annotations.clusterPods">
-                                <div class="header">
+                                <div class="header" :class="(!hasProp(coordinator, 'metadata.annotations.clusterPods') || !coordinator.metadata.annotations.clusterPods.length ) && 'noMargin noPadding'">
                                     <h3 for="spec.coordinator.metadata.annotations.clusterPods">
                                         Cluster Pods
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.metadata.annotations.clusterPods')"></span>
                                     </h3>
                                 </div>
-                                <div class="annotation" v-if="coordinator.metadata.annotations.clusterPods.length">
+                                <div class="annotation" v-if="(hasProp(coordinator, 'metadata.annotations.clusterPods') && coordinator.metadata.annotations.clusterPods.length)">
                                     <div class="row" v-for="(field, index) in coordinator.metadata.annotations.clusterPods">
                                         <label>Annotation</label>
                                         <input class="annotation" v-model="field.annotation" autocomplete="off" :data-field="'spec.coordinator.metadata.annotations.clusterPods[' + index + '].annotation'">
@@ -2294,7 +2256,7 @@
                                 </div>
                             </fieldset>
                             <div class="fieldsetFooter">
-                                <a class="addRow" @click="coordinator.metadata.annotations.clusterPods.push({ label: '', value: ''})">Add Annotation</a>
+                                <a class="addRow" @click="pushElement(coordinator, 'metadata.annotations.clusterPods', { label: '', value: ''})">Add Annotation</a>
                             </div>
                         </div>
 
@@ -2302,13 +2264,13 @@
 
                         <div class="repeater">
                             <fieldset data-field="spec.coordinator.metadata.annotations.services">
-                                <div class="header">
+                                <div class="header" :class="(!hasProp(coordinator, 'metadata.annotations.services') || !coordinator.metadata.annotations.services.length ) && 'noMargin noPadding'">
                                     <h3 for="spec.coordinator.metadata.annotations.services">
                                         Services
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.metadata.annotations.services')"></span>
                                     </h3>
                                 </div>
-                                <div class="annotation" v-if="coordinator.metadata.annotations.services.length">
+                                <div class="annotation" v-if="(hasProp(coordinator, 'metadata.annotations.services') && coordinator.metadata.annotations.services.length)">
                                     <div class="row" v-for="(field, index) in coordinator.metadata.annotations.services">
                                         <label>Annotation</label>
                                         <input class="annotation" v-model="field.annotation" autocomplete="off" :data-field="'spec.coordinator.metadata.annotations.services[' + index + '].annotation'">
@@ -2323,7 +2285,7 @@
                                 </div>
                             </fieldset>
                             <div class="fieldsetFooter">
-                                <a class="addRow" @click="coordinator.metadata.annotations.services.push({ label: '', value: ''})">Add Annotation</a>
+                                <a class="addRow" @click="pushElement(coordinator, 'metadata.annotations.services', { label: '', value: ''})">Add Annotation</a>
                             </div>
                         </div>
 
@@ -2331,13 +2293,13 @@
 
                         <div class="repeater">
                             <fieldset data-field="spec.coordinator.metadata.annotations.primaryService">
-                                <div class="header">
+                                <div class="header" :class="(!hasProp(coordinator, 'metadata.annotations.primaryService') || !coordinator.metadata.annotations.primaryService.length ) && 'noMargin noPadding'">
                                     <h3 for="spec.coordinator.metadata.annotations.primaryService">
                                         Primary Service 
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.metadata.annotations.primaryService')"></span>
                                     </h3>
                                 </div>
-                                <div class="annotation" v-if="coordinator.metadata.annotations.primaryService.length">
+                                <div class="annotation" v-if="(hasProp(coordinator, 'metadata.annotations.primaryService') && coordinator.metadata.annotations.primaryService.length)">
                                     <div class="row" v-for="(field, index) in coordinator.metadata.annotations.primaryService">
                                         <label>Annotation</label>
                                         <input class="annotation" v-model="field.annotation" autocomplete="off" :data-field="'spec.coordinator.metadata.annotations.primaryService[' + index + '].annotation'">
@@ -2352,7 +2314,7 @@
                                 </div>
                             </fieldset>
                             <div class="fieldsetFooter">
-                                <a class="addRow" @click="coordinator.metadata.annotations.primaryService.push({ label: '', value: ''})">Add Annotation</a>
+                                <a class="addRow" @click="pushElement(coordinator, 'metadata.annotations.primaryService', { label: '', value: ''})">Add Annotation</a>
                             </div>
                         </div>
 
@@ -2360,13 +2322,13 @@
 
                         <div class="repeater">
                             <fieldset data-field="spec.coordinator.metadata.annotations.replicasService">
-                                <div class="header">
+                                <div class="header" :class="(!hasProp(coordinator, 'metadata.annotations.replicasService') || !coordinator.metadata.annotations.replicasService.length) && 'noMargin noPadding'">
                                     <h3 for="spec.coordinator.metadata.annotations.replicasService">
                                         Replicas Service
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.metadata.annotations.replicasService')"></span>
                                     </h3>
                                 </div>
-                                <div class="annotation repeater" v-if="coordinator.metadata.annotations.replicasService.length">
+                                <div class="annotation repeater" v-if="(hasProp(coordinator, 'metadata.annotations.replicasService') && coordinator.metadata.annotations.replicasService.length)">
                                     <div class="row" v-for="(field, index) in coordinator.metadata.annotations.replicasService">
                                         <label>Annotation</label>
                                         <input class="annotation" v-model="field.annotation" autocomplete="off" :data-field="'spec.coordinator.metadata.annotations.replicasService[' + index + '].annotation'">
@@ -2381,7 +2343,7 @@
                                 </div>
                             </fieldset>
                             <div class="fieldsetFooter">
-                                <a class="addRow" @click="coordinator.metadata.annotations.replicasService.push({ label: '', value: ''})">Add Annotation</a>
+                                <a class="addRow" @click="pushElement(coordinator, 'metadata.annotations.replicasService', { label: '', value: ''})">Add Annotation</a>
                             </div>
                         </div>
                     </div>
@@ -2400,7 +2362,7 @@
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.pods.scheduling.nodeSelector')"></span>
                                 </h3>
                             </div>
-                            <fieldset v-if="coordinator.pods.scheduling.nodeSelector.length" data-field="spec.coordinator.pods.scheduling.nodeSelector">
+                            <fieldset v-if="(hasProp(coordinator, 'pods.scheduling.nodeSelector') && coordinator.pods.scheduling.nodeSelector.length)" data-field="spec.coordinator.pods.scheduling.nodeSelector">
                                 <div class="scheduling">
                                     <div class="row" v-for="(field, index) in coordinator.pods.scheduling.nodeSelector">
                                         <label>Label</label>
@@ -2415,8 +2377,8 @@
                                     </div>
                                 </div>
                             </fieldset>
-                            <div class="fieldsetFooter" :class="!coordinator.pods.scheduling.nodeSelector.length && 'topBorder'">
-                                <a class="addRow" @click="coordinator.pods.scheduling.nodeSelector.push({ label: '', value: ''})">Add Node Selector</a>
+                            <div class="fieldsetFooter" :class="( (!hasProp(coordinator, 'pods.scheduling.nodeSelector') || !coordinator.pods.scheduling.nodeSelector.length) && 'topBorder' )">
+                                <a class="addRow" @click="pushElement(coordinator, 'pods.scheduling.nodeSelector', { label: '', value: ''})">Add Node Selector</a>
                             </div>
                         </div>
 
@@ -2430,7 +2392,7 @@
                         </div>
                 
                         <div class="scheduling repeater">
-                            <fieldset v-if="coordinator.pods.scheduling.tolerations.length" data-field="spec.coordinator.pods.scheduling.tolerations">
+                            <fieldset v-if="(hasProp(coordinator, 'pods.scheduling.tolerations') && coordinator.pods.scheduling.tolerations.length)" data-field="spec.coordinator.pods.scheduling.tolerations">
                                 <div class="section" v-for="(field, index) in coordinator.pods.scheduling.tolerations">
                                     <div class="header">
                                         <h4 for="spec.coordinator.pods.scheduling.tolerations">Toleration #{{ index+1 }}</h4>
@@ -2478,8 +2440,8 @@
                                     </div>
                                 </div>
                             </fieldset>
-                            <div class="fieldsetFooter" :class="!coordinator.pods.scheduling.tolerations.length && 'topBorder'">
-                                <a class="addRow" @click="pushToleration(coordinator.pods.scheduling.tolerations)">Add Toleration</a>
+                            <div class="fieldsetFooter" :class="( (!hasProp(coordinator, 'pods.scheduling.tolerations') || !coordinator.pods.scheduling.tolerations.length) && 'topBorder')">
+                                <a class="addRow" @click="pushElement(coordinator, 'pods.scheduling.tolerations', { key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null })">Add Toleration</a>
                             </div>
                         </div>
 
@@ -2501,11 +2463,11 @@
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms')"></span>
                                 </h4>
                             </div>
-                            <fieldset v-if="coordinator.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.length">
-                                <div class="section" v-for="(requiredAffinityTerm, termIndex) in coordinator.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution">
+                            <fieldset v-if="(hasProp(coordinator, 'pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms') && coordinator.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.length)">
+                                <div class="section" v-for="(requiredAffinityTerm, termIndex) in coordinator.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms">
                                     <div class="header">
                                         <h5>Term #{{ termIndex + 1 }}</h5>
-                                        <a class="addRow" @click="spliceArray(coordinator.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution, termIndex)">Delete</a>
+                                        <a class="addRow" @click="spliceArray(coordinator.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms, termIndex)">Delete</a>
                                     </div>
                                     <fieldset class="affinityMatch noMargin">
                                         <div class="header">
@@ -2626,8 +2588,8 @@
                                     </div>
                                 </div>
                             </fieldset>
-                            <div class="fieldsetFooter" :class="!coordinator.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.length && 'topBorder'">
-                                <a class="addRow" @click="addRequiredAffinityTerm(coordinator.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution)">Add Term</a>
+                            <div class="fieldsetFooter" :class="( (!hasProp(coordinator, 'pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms') || !coordinator.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.length) && 'topBorder' )">
+                                <a class="addRow" @click="addRequiredAffinityTerm(coordinator, 'pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms')">Add Term</a>
                             </div>
                         </div>
 
@@ -2649,7 +2611,7 @@
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items')"></span> 
                                 </h4>
                             </div>
-                            <fieldset v-if="coordinator.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.length">
+                            <fieldset v-if="(hasProp(coordinator, 'pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution') && coordinator.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.length)">
                                 <div class="section" v-for="(preferredAffinityTerm, termIndex) in coordinator.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution">
                                     <div class="header">
                                         <h5>Term #{{ termIndex + 1 }}</h5>
@@ -2779,7 +2741,7 @@
                                 </div>
                             </fieldset>
                             <div class="fieldsetFooter" :class="!preferredAffinity.length && 'topBorder'">
-                                <a class="addRow" @click="addPreferredAffinityTerm(coordinator.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution)">Add Term</a>
+                                <a class="addRow" @click="addPreferredAffinityTerm(coordinator, 'pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution')">Add Term</a>
                             </div>
                         </div>
 
@@ -2811,7 +2773,7 @@
                             <h3>Instances</h3>
 
                             <div class="col">
-                                <label for="spec.shards.instancesPerCluster">Number of Instances <span class="req">*</span></label>
+                                <label for="spec.shards.instancesPerCluster">Number of Instances per Cluster<span class="req">*</span></label>
                                 <input type="number" v-model="shards.instancesPerCluster" required data-field="spec.shards.instancesPerCluster" min="1" max="16">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.instancesPerCluster')"></span>
                             </div>
@@ -2836,7 +2798,7 @@
 
                             <div class="col">
                                 <label for="spec.shards.configurations.sgPostgresConfig">Postgres Configuration</label>
-                                <select v-model="shards.configurations.sgPostgresConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig" @change="(pgConfig == 'createNewResource') && createNewResource('sgpgconfigs')" :set="( (pgConfig == 'createNewResource') && (pgConfig = '') )">
+                                <select v-model="shards.configurations.sgPostgresConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig" @change="(shards.configurations.sgPostgresConfig == 'createNewResource') && createNewResource('sgpgconfigs')" :set="( (shards.configurations.sgPostgresConfig == 'createNewResource') && (shards.configurations.sgPostgresConfig = '') )">
                                     <option value="" selected>Default</option>
                                     <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == shortPostgresVersion) )">{{ conf.name }}</option>
                                     <template v-if="iCan('create', 'sgpgconfigs', $route.params.namespace)">
@@ -2904,7 +2866,7 @@
                                 <label for="connectionPoolingConfigShards">
                                     Connection Pooling Configuration
                                 </label>
-                                <select v-model="shards.configurations.sgPoolingConfig" class="connectionPoolingConfig" @change="(connectionPoolingConfig == 'createNewResource') && createNewResource('sgpoolconfigs')" :set="( (connectionPoolingConfig == 'createNewResource') && (shards.configurations.sgPoolingConfig = '') )">
+                                <select v-model="shards.configurations.sgPoolingConfig" class="connectionPoolingConfig" @change="(shards.configurations.sgPoolingConfig == 'createNewResource') && createNewResource('sgpoolconfigs')" :set="( (shards.configurations.sgPoolingConfig == 'createNewResource') && (shards.configurations.sgPoolingConfig = '') )">
                                     <option value="" selected>Default</option>
                                     <option v-for="conf in connPoolConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
                                     <template v-if="iCan('create', 'sgpoolconfigs', $route.params.namespace)">
@@ -2942,86 +2904,12 @@
                                 <label for="spec.shards.pods.disableMetricsExporter">Metrics Exporter</label>  
                                 <label for="metricsExporterShards" class="switch yes-no">
                                     Enable
-                                    <input :checked="!shards.pods.disableMetricsExporter" type="checkbox" id="metricsExporterShards" @change="( (shards.pods.disableMetricsExporter = !shards.pods.disableMetricsExporter), checkMetricsExporter() )" data-switch="YES">
+                                    <input :checked="!shards.pods.disableMetricsExporter" type="checkbox" id="metricsExporterShards" @change="( (shards.pods.disableMetricsExporter = !shards.pods.disableMetricsExporter), checkEnableMonitoring() )" data-switch="YES">
                                 </label>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.pods.disableMetricsExporter').replace('If set to `true`', 'If disabled').replace('Recommended', 'Recommended to be disabled')"></span>
                             </div>
                         </div>
                     </div>
-                </fieldset>
-
-                <fieldset v-if="(currentStep.shards == 'initialization')"  class="step active" data-fieldset="shards.initialization">
-                    <div class="header">
-                        <h2>Cluster Initialization</h2>
-                    </div>
-
-                    <template v-if="!editMode || (editMode && restoreBackup.length)">
-                        <p>Use this option to initialize the cluster with the data from an existing backup.</p><br/><br/>
-
-                        <div class="fields">
-                            <div class="header">
-                                <h3 for="spec.shards.initialData.restore.fromBackup">
-                                    Initialization Backup
-                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.initialData.restore.fromBackup')"></span>
-                                </h3>
-                            </div>
-                            <fieldset class="row-50">
-                                <div class="col">
-                                    <label for="spec.shards.initialData.restore.fromBackup.name">Backup Selection</label>
-                                    <template v-if="editMode">
-                                        <input v-model="shards.initialData.restore.fromBackup" disabled>
-                                    </template>
-                                    <template v-else>
-                                        <select v-model="shards.initialData.restore.fromBackup.name" data-field="spec.shards.initialData.restore.fromBackup.name" @change="(restoreBackup == 'createNewResource') ? createNewResource('sgbackups') : (!hasPITR() && (pitr = ''))" :set="( (restoreBackup == 'createNewResource') && (restoreBackup = '') )">
-                                            <option value="">Select a Backup</option>
-                                            <template v-for="backup in sgbackups" v-if="( (backup.data.metadata.namespace == namespace) && (hasProp(backup, 'data.status.process.status')) && (backup.data.status.process.status === 'Completed') && (backup.data.status.backupInformation.postgresVersion.substring(0,2) == shortPostgresVersion) )">
-                                                <option :value="backup.name">
-                                                    {{ backup.name }} ({{ backup.data.status.process.timing.stored | formatTimestamp('date') }} {{ backup.data.status.process.timing.stored | formatTimestamp('time') }} {{ showTzOffset() }}) [{{ backup.data.metadata.uid.substring(0,4) }}...{{ backup.data.metadata.uid.slice(-4) }}]
-                                                </option>
-                                            </template>
-                                            <template v-if="iCan('create', 'sgbackups', $route.params.namespace)">
-                                                <option value="" disabled>– OR –</option>
-                                                <option value="createNewResource">Create new backup</option>
-                                            </template>
-                                        </select>
-                                    </template>
-                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.initialData.restore.fromBackup')"></span>
-                                </div>
-
-                                <div class="col" v-if="shards.initialData.restore.fromBackup.name.length">
-                                    <label for="spec.shards.initialData.restore.downloadDiskConcurrency">Download Disk Concurrency</label>
-                                    <input v-model="shards.initialData.restore.downloadDiskConcurrency" data-field="spec.initialData.restore.downloadDiskConcurrency" autocomplete="off" type="number" min="1" :disabled="editMode">
-                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.initialData.restore.downloadDiskConcurrency')"></span>
-                                </div>
-
-                                <template v-if="( (!editMode && hasPITR()) || (editMode && pitr.length) )">
-                                    <div class="col">
-                                        <label>Point-in-Time Recovery (PITR)</label>  
-                                        <label for="enableShardsPITR" class="switch yes-no" @change="initDatepicker('shards')" :disabled="editMode">
-                                            Enable
-                                            <input type="checkbox" id="enableShardsPITR" v-model="enablePITR.shards" data-switch="NO" data-field="spec.shards.initialData.restore.fromBackup.pointInTimeRecovery" :disabled="editMode">
-                                        </label>
-                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.initialData.restore.fromBackup.pointInTimeRecovery')"></span>
-                                    </div>
-
-                                    <div class="col" :class="!enablePITR.shards && 'hidden'">
-                                        <label for="spec.shards.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp">Restore To Timestamp</label>
-                                        <template v-if="editMode">
-                                            <input disabled :value="pitrTimezone.shards" data-field="spec.shards.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp">
-                                        </template>
-                                        <template v-else>
-                                            <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :disabled="!enablePITR.shards" data-field="spec.shards.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp">
-                                        </template>
-                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp')"></span>
-                                    </div>
-                                </template>
-                            </fieldset>
-                            <br/><br/><br/>
-                        </div>
-                    </template>
-                    <template v-else-if="editMode && !spec.shards.initialData.restore.fromBackup.name.length">
-                        <p class="warning orange">Data initialization is only available on cluster creation</p>
-                    </template>
                 </fieldset>
 
                 <fieldset v-if="(currentStep.shards == 'scripts')" class="step active" data-fieldset="shards.scripts">
@@ -3283,7 +3171,7 @@
                         <div class="repeater">
                             <fieldset
                                 class="noPaddingBottom"
-                                v-if="shards.pods.customVolumes.length"
+                                v-if="(shards.pods.hasOwnProperty('customVolumes') && shards.pods.customVolumes.length)"
                                 data-fieldset="spec.shards.pods.customVolumes"
                             >
                                 <template v-for="(vol, index) in shards.pods.customVolumes">
@@ -3501,10 +3389,10 @@
                                     </div>
                                 </template>
                             </fieldset>
-                            <div class="fieldsetFooter" :class="!shards.pods.customVolumes.length && 'topBorder'">
+                            <div class="fieldsetFooter" :class="(!shards.pods.hasOwnProperty('customVolumes') || (shards.pods.hasOwnProperty('customVolumes') && !shards.pods.customVolumes.length) ) && 'topBorder'">
                                 <a 
                                     class="addRow"
-                                    @click="shards.pods.customVolumes.push({ name: null}); customVolumesType.shards.push(null)"
+                                    @click="customVolumesType.shards.push(null); (!shards.pods.hasOwnProperty('customVolumes') && (shards.pods['customVolumes'] = []) ); shards.pods.customVolumes.push({ name: null});"
                                 >
                                     Add Volume
                                 </a>
@@ -3513,7 +3401,7 @@
 
                         <br/><br/><br/>
 
-                        <template v-if="!editMode || shards.pods.customInitContainers.length">
+                        <template v-if="!editMode || (shards.pods.hasOwnProperty('customInitContainers') && shards.pods.customInitContainers.length)">
                             <div class="header">
                                 <h3 for="spec.shards.pods.customInitContainers">
                                     Custom Init Containers
@@ -3825,7 +3713,7 @@
 
                         </template>
 
-                        <template v-if="!editMode || shards.pods.customContainers.length">
+                        <template v-if="!editMode || (shards.pods.hasOwnProperty('customContainers') && shards.pods.customContainers.length)">
                             <div class="header">
                                 <h3 for="spec.shards.pods.customContainers">
                                     Custom Containers
@@ -4160,7 +4048,7 @@
 
                             <div class="col" v-if="['sync', 'strict-sync'].includes(shards.replication.mode)">
                                 <label for="spec.shards.replication.syncInstances">Sync Instances</label>
-                                <input type="number" min="1" :max="(shards.instances - 1)" v-model="shards.replication.syncInstances" data-field="spec.shards.replication.syncInstances">
+                                <input type="number" min="1" :max="(shards.instancesPerCluster - 1)" v-model="shards.replication.syncInstances" data-field="spec.shards.replication.syncInstances">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.replication.syncInstances')"></span>
                             </div>
                         </div>
@@ -4300,13 +4188,13 @@
                             </div>
 
                             <fieldset data-field="spec.shards.metadata.labels.clusterPods">
-                                <div class="header" :class="!shards.metadata.labels.clusterPods.length && 'noMargin'">
+                                <div class="header" :class="( !hasProp(shards, 'metadata.labels.clusterPods') || !shards.metadata.labels.clusterPods.length ) && 'noMargin noPadding'">
                                     <h3 for="spec.shards.metadata.labels.clusterPods">
                                         Cluster Pods
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.metadata.labels.clusterPods')"></span> 
                                     </h3>
                                 </div>
-                                <div class="metadata" v-if="shards.metadata.labels.clusterPods.length">
+                                <div class="metadata" v-if="hasProp(shards, 'metadata.labels.clusterPods') && shards.metadata.labels.clusterPods.length">
                                     <div class="row" v-for="(field, index) in shards.metadata.labels.clusterPods">
                                         <label>Label</label>
                                         <input class="label" v-model="field.label" autocomplete="off" :data-field="'spec.shards.metadata.labels.clusterPods[' + index + '].label'">
@@ -4321,7 +4209,7 @@
                                 </div>
                             </fieldset>
                             <div class="fieldsetFooter">
-                                <a class="addRow" @click="shards.metadata.labels.clusterPods.push({ label: '', value: ''})">Add Label</a>
+                                <a class="addRow" @click="pushElement(shards, 'metadata.labels.clusterPods', { label: '', value: ''})">Add Label</a>
                             </div>
                         </div>
 
@@ -4337,13 +4225,13 @@
 
                         <div class="repeater">
                             <fieldset data-field="spec.shards.metadata.annotations.allResources">
-                                <div class="header">
+                                <div class="header" :class="(!hasProp(shards, 'metadata.annotations.allResources') || !shards.metadata.annotations.allResources.length) && 'noMargin noPadding'">
                                     <h3 for="spec.shards.metadata.annotations.allResources">
                                         All Resources
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.metadata.annotations.allResources')"></span>
                                     </h3>
                                 </div>
-                                <div class="annotation" v-if="shards.metadata.annotations.allResources.length">
+                                <div class="annotation" v-if="(hasProp(shards, 'metadata.annotations.allResources') && shards.metadata.annotations.allResources.length)">
                                     <div class="row" v-for="(field, index) in shards.metadata.annotations.allResources">
                                         <label>Annotation</label>
                                         <input class="annotation" v-model="field.annotation" autocomplete="off" :data-field="'spec.shards.metadata.annotations.allResources[' + index + '].annotation'">
@@ -4358,7 +4246,7 @@
                                 </div>
                             </fieldset>
                             <div class="fieldsetFooter">
-                                <a class="addRow" @click="shards.metadata.annotations.allResources.push({ label: '', value: ''})">Add Annotation</a>
+                                <a class="addRow" @click="pushElement(shards, 'metadata.annotations.allResources', { label: '', value: ''})">Add Annotation</a>
                             </div>
                         </div>
                         
@@ -4366,13 +4254,13 @@
 
                         <div class="repeater">
                             <fieldset data-field="spec.shards.metadata.annotations.clusterPods">
-                                <div class="header">
+                                <div class="header" :class="(!hasProp(shards, 'metadata.annotations.clusterPods') || !shards.metadata.annotations.clusterPods.length) && 'noMargin noPadding'">
                                     <h3 for="spec.shards.metadata.annotations.clusterPods">
                                         Cluster Pods
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.metadata.annotations.clusterPods')"></span>
                                     </h3>
                                 </div>
-                                <div class="annotation" v-if="shards.metadata.annotations.clusterPods.length">
+                                <div class="annotation" v-if="(hasProp(shards, 'metadata.annotations.clusterPods') && shards.metadata.annotations.clusterPods.length)">
                                     <div class="row" v-for="(field, index) in shards.metadata.annotations.clusterPods">
                                         <label>Annotation</label>
                                         <input class="annotation" v-model="field.annotation" autocomplete="off" :data-field="'spec.shards.metadata.annotations.clusterPods[' + index + '].annotation'">
@@ -4387,7 +4275,7 @@
                                 </div>
                             </fieldset>
                             <div class="fieldsetFooter">
-                                <a class="addRow" @click="shards.metadata.annotations.clusterPods.push({ label: '', value: ''})">Add Annotation</a>
+                                <a class="addRow" @click="pushElement(shards, 'metadata.annotations.clusterPods', { label: '', value: ''})">Add Annotation</a>
                             </div>
                         </div>
 
@@ -4395,13 +4283,13 @@
 
                         <div class="repeater">
                             <fieldset data-field="spec.shards.metadata.annotations.services">
-                                <div class="header">
+                                <div class="header" :class="(!hasProp(shards, 'metadata.annotations.services') || !shards.metadata.annotations.services.length) && 'noMargin noPadding'">
                                     <h3 for="spec.shards.metadata.annotations.services">
                                         Services
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.metadata.annotations.services')"></span>
                                     </h3>
                                 </div>
-                                <div class="annotation" v-if="shards.metadata.annotations.services.length">
+                                <div class="annotation" v-if="(hasProp(shards, 'metadata.annotations.services') && shards.metadata.annotations.services.length)">
                                     <div class="row" v-for="(field, index) in shards.metadata.annotations.services">
                                         <label>Annotation</label>
                                         <input class="annotation" v-model="field.annotation" autocomplete="off" :data-field="'spec.shards.metadata.annotations.services[' + index + '].annotation'">
@@ -4416,7 +4304,7 @@
                                 </div>
                             </fieldset>
                             <div class="fieldsetFooter">
-                                <a class="addRow" @click="shards.metadata.annotations.services.push({ label: '', value: ''})">Add Annotation</a>
+                                <a class="addRow" @click="pushElement(shards, 'metadata.annotations.services', { label: '', value: ''})">Add Annotation</a>
                             </div>
                         </div>
 
@@ -4424,13 +4312,13 @@
 
                         <div class="repeater">
                             <fieldset data-field="spec.shards.metadata.annotations.primaryService">
-                                <div class="header">
+                                <div class="header" :class="(!hasProp(shards, 'metadata.annotations.primaryService') || !shards.metadata.annotations.primaryService.length) && 'noMargin noPadding'">
                                     <h3 for="spec.shards.metadata.annotations.primaryService">
                                         Primary Service 
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.metadata.annotations.primaryService')"></span>
                                     </h3>
                                 </div>
-                                <div class="annotation" v-if="shards.metadata.annotations.primaryService.length">
+                                <div class="annotation" v-if="(hasProp(shards, 'metadata.annotations.primaryService') && shards.metadata.annotations.primaryService.length)">
                                     <div class="row" v-for="(field, index) in shards.metadata.annotations.primaryService">
                                         <label>Annotation</label>
                                         <input class="annotation" v-model="field.annotation" autocomplete="off" :data-field="'spec.shards.metadata.annotations.primaryService[' + index + '].annotation'">
@@ -4445,7 +4333,7 @@
                                 </div>
                             </fieldset>
                             <div class="fieldsetFooter">
-                                <a class="addRow" @click="shards.metadata.annotations.primaryService.push({ label: '', value: ''})">Add Annotation</a>
+                                <a class="addRow" @click="pushElement(shards, 'metadata.annotations.primaryService', { label: '', value: ''})">Add Annotation</a>
                             </div>
                         </div>
 
@@ -4453,13 +4341,13 @@
 
                         <div class="repeater">
                             <fieldset data-field="spec.shards.metadata.annotations.replicasService">
-                                <div class="header">
+                                <div class="header" :class="(!hasProp(shards, 'metadata.annotations.replicasService') || !shards.metadata.annotations.replicasService.length) && 'noMargin noPadding'">
                                     <h3 for="spec.shards.metadata.annotations.replicasService">
                                         Replicas Service
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.metadata.annotations.replicasService')"></span>
                                     </h3>
                                 </div>
-                                <div class="annotation repeater" v-if="shards.metadata.annotations.replicasService.length">
+                                <div class="annotation repeater" v-if="(hasProp(shards, 'metadata.annotations.replicasService') && shards.metadata.annotations.replicasService.length)">
                                     <div class="row" v-for="(field, index) in shards.metadata.annotations.replicasService">
                                         <label>Annotation</label>
                                         <input class="annotation" v-model="field.annotation" autocomplete="off" :data-field="'spec.shards.metadata.annotations.replicasService[' + index + '].annotation'">
@@ -4474,7 +4362,7 @@
                                 </div>
                             </fieldset>
                             <div class="fieldsetFooter">
-                                <a class="addRow" @click="shards.metadata.annotations.replicasService.push({ label: '', value: ''})">Add Annotation</a>
+                                <a class="addRow" @click="pushElement(shards, 'metadata.annotations.replicasService', { label: '', value: ''})">Add Annotation</a>
                             </div>
                         </div>
                     </div>
@@ -4493,7 +4381,7 @@
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.pods.scheduling.nodeSelector')"></span>
                                 </h3>
                             </div>
-                            <fieldset v-if="shards.pods.scheduling.nodeSelector.length" data-field="spec.shards.pods.scheduling.nodeSelector">
+                            <fieldset v-if="(hasProp(shards, 'pods.scheduling.nodeSelector') && shards.pods.scheduling.nodeSelector.length)" data-field="spec.shards.pods.scheduling.nodeSelector">
                                 <div class="scheduling">
                                     <div class="row" v-for="(field, index) in shards.pods.scheduling.nodeSelector">
                                         <label>Label</label>
@@ -4508,8 +4396,8 @@
                                     </div>
                                 </div>
                             </fieldset>
-                            <div class="fieldsetFooter" :class="!shards.pods.scheduling.nodeSelector.length && 'topBorder'">
-                                <a class="addRow" @click="shards.pods.scheduling.nodeSelector.push({ label: '', value: ''})">Add Node Selector</a>
+                            <div class="fieldsetFooter" :class="( (!hasProp(shards, 'pods.scheduling.nodeSelector') || !shards.pods.scheduling.nodeSelector.length) && 'topBorder' )">
+                                <a class="addRow" @click="pushElement(shards, 'pods.scheduling.nodeSelector', { label: '', value: ''})">Add Node Selector</a>
                             </div>
                         </div>
 
@@ -4523,7 +4411,7 @@
                         </div>
                 
                         <div class="scheduling repeater">
-                            <fieldset v-if="shards.pods.scheduling.tolerations.length" data-field="spec.shards.pods.scheduling.tolerations">
+                            <fieldset v-if="(hasProp(shards, 'pods.scheduling.tolerations') && shards.pods.scheduling.tolerations.length)" data-field="spec.shards.pods.scheduling.tolerations">
                                 <div class="section" v-for="(field, index) in shards.pods.scheduling.tolerations">
                                     <div class="header">
                                         <h4 for="spec.shards.pods.scheduling.tolerations">Toleration #{{ index+1 }}</h4>
@@ -4571,8 +4459,8 @@
                                     </div>
                                 </div>
                             </fieldset>
-                            <div class="fieldsetFooter" :class="!shards.pods.scheduling.tolerations.length && 'topBorder'">
-                                <a class="addRow" @click="pushToleration(shards.pods.scheduling.tolerations)">Add Toleration</a>
+                            <div class="fieldsetFooter" :class="( (!hasProp(shards, 'pods.scheduling.tolerations') || !shards.pods.scheduling.tolerations.length) && 'topBorder')">
+                                <a class="addRow" @click="pushElement(shards, 'pods.scheduling.tolerations', { key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null })">Add Toleration</a>
                             </div>
                         </div>
 
@@ -4594,11 +4482,11 @@
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms')"></span>
                                 </h4>
                             </div>
-                            <fieldset v-if="shards.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.length">
-                                <div class="section" v-for="(requiredAffinityTerm, termIndex) in shards.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution">
+                            <fieldset v-if="(hasProp(shards, 'pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms') && shards.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.length)">
+                                <div class="section" v-for="(requiredAffinityTerm, termIndex) in shards.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms">
                                     <div class="header">
                                         <h5>Term #{{ termIndex + 1 }}</h5>
-                                        <a class="addRow" @click="spliceArray(shards.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution, termIndex)">Delete</a>
+                                        <a class="addRow" @click="spliceArray(shards.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms, termIndex)">Delete</a>
                                     </div>
                                     <fieldset class="affinityMatch noMargin">
                                         <div class="header">
@@ -4719,8 +4607,8 @@
                                     </div>
                                 </div>
                             </fieldset>
-                            <div class="fieldsetFooter" :class="!shards.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.length && 'topBorder'">
-                                <a class="addRow" @click="addRequiredAffinityTerm(shards.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution)">Add Term</a>
+                            <div class="fieldsetFooter" :class="( (!hasProp(shards, 'pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms') || !shards.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.length) && 'topBorder' )">
+                                <a class="addRow" @click="addRequiredAffinityTerm(shards, 'pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms')">Add Term</a>
                             </div>
                         </div>
 
@@ -4742,7 +4630,7 @@
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items')"></span> 
                                 </h4>
                             </div>
-                            <fieldset v-if="shards.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.length">
+                            <fieldset v-if="(hasProp(shards, 'pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution') && shards.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.length)">
                                 <div class="section" v-for="(preferredAffinityTerm, termIndex) in shards.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution">
                                     <div class="header">
                                         <h5>Term #{{ termIndex + 1 }}</h5>
@@ -4872,7 +4760,7 @@
                                 </div>
                             </fieldset>
                             <div class="fieldsetFooter" :class="!preferredAffinity.length && 'topBorder'">
-                                <a class="addRow" @click="addPreferredAffinityTerm(shards.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution)">Add Term</a>
+                                <a class="addRow" @click="addPreferredAffinityTerm(shards, 'pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution')">Add Term</a>
                             </div>
                         </div>
 
@@ -4898,7 +4786,7 @@
         
         </form>
         
-        <ClusterSummary :cluster="previewCRD" :extensionsList="extensionsList" v-if="showSummary" @closeSummary="showSummary = false"></ClusterSummary>
+        <ShardedClusterSummary :cluster="previewCRD" :extensionsList="extensionsList[flavor][postgresVersion]" v-if="showSummary" @closeSummary="showSummary = false"></ShardedClusterSummary>
     </div>
 </template>
 
@@ -4908,8 +4796,7 @@
     import router from '../../router'
     import store from '../../store'
     import sgApi from '../../api/sgApi'
-    import moment from 'moment'
-    import ClusterSummary from './summary/SGClusterSummary.vue'
+    import ShardedClusterSummary from './summary/SGShardedClusterSummary.vue'
 
     export default {
         name: 'CreateSGShardedClusters',
@@ -4917,7 +4804,7 @@
         mixins: [mixin, sgclusterform],
 
         components: {
-          ClusterSummary
+          ShardedClusterSummary
         },
 
         data: function() {
@@ -4957,20 +4844,21 @@
                     },
                     sgObjectStorage: ''
                 }],
-                instances: 1,
-                pgConfig: '',
-                connPooling: true,
-                connectionPoolingConfig: '',
-                restoreBackup: '',
-                enablePITR: false,
-                pitr: '',
-                downloadDiskConcurrency: 1,
-                replicateFrom: {},
-                replicateFromSource: '',
                 replication: {
                     mode: 'async'
                 },
                 pgConfigExists: true,
+                ssl: {
+                    enabled: true,
+                    certificateSecretKeySelector: {
+                        name: '',
+                        key: ''
+                    },
+                    privateKeySecretKeySelector: {
+                        name: '',
+                        key: ''
+                    }
+                },
                 postgresServices: {
                     coordinator: {
                         any: {
@@ -5100,16 +4988,18 @@
                             nodeSelector: [ { label: '', value: ''} ],
                             tolerations: [ { key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null } ],
                             nodeAffinity: {
-                                requiredDuringSchedulingIgnoredDuringExecution: [
-                                    {   
-                                        matchExpressions: [
-                                            { key: '', operator: '', values: [ '' ] }
-                                        ],
-                                        matchFields: [
-                                            { key: '', operator: '', values: [ '' ] }
-                                        ]
-                                    }
-                                ],
+                                requiredDuringSchedulingIgnoredDuringExecution: {
+                                    nodeSelectorTerms: [
+                                        {   
+                                            matchExpressions: [
+                                                { key: '', operator: '', values: [ '' ] }
+                                            ],
+                                            matchFields: [
+                                                { key: '', operator: '', values: [ '' ] }
+                                            ]
+                                        }
+                                    ],
+                                },
                                 preferredDuringSchedulingIgnoredDuringExecution: [
                                     {
                                         preference: {
@@ -5220,16 +5110,18 @@
                             nodeSelector: [ { label: '', value: ''} ],
                             tolerations: [ { key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null } ],
                             nodeAffinity: {
-                                requiredDuringSchedulingIgnoredDuringExecution: [
-                                    {   
-                                        matchExpressions: [
-                                            { key: '', operator: '', values: [ '' ] }
-                                        ],
-                                        matchFields: [
-                                            { key: '', operator: '', values: [ '' ] }
-                                        ]
-                                    }
-                                ],
+                                requiredDuringSchedulingIgnoredDuringExecution: {
+                                    nodeSelectorTerms: [
+                                        {   
+                                            matchExpressions: [
+                                                { key: '', operator: '', values: [ '' ] }
+                                            ],
+                                            matchFields: [
+                                                { key: '', operator: '', values: [ '' ] }
+                                            ]
+                                        }
+                                    ],
+                                },
                                 preferredDuringSchedulingIgnoredDuringExecution: [
                                     {
                                         preference: {
@@ -5269,11 +5161,11 @@
         
         computed: {
 
-            sgshardedclusters () {
+            sgshardedclusters() {
                 return store.state.sgshardedclusters
             },
 
-            cluster () {
+            cluster() {
 
                 var vm = this;
                 var cluster = {};
@@ -5281,141 +5173,130 @@
                 if( vm.editMode && !vm.editReady ) {
                     store.state.sgshardedclusters.forEach(function( c ){
                         if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
-                            let volumeSize = c.data.spec.pods.persistentVolume.size.match(/\d+/g);
-                            let volumeUnit = c.data.spec.pods.persistentVolume.size.match(/[a-zA-Z]+/g);
+                            vm.database = c.data.spec.database;
+                            vm.shardingType = c.data.spec.type;
 
-                            vm.flavor = c.data.spec.postgres.hasOwnProperty('flavor') ? c.data.spec.postgres.flavor : 'vanilla' ;
+                            vm.managedBackups = vm.hasProp(c, 'data.spec.configurations.backups') && c.data.spec.configurations.backups.length;
+                            if (vm.managedBackups) {
+                                vm.backups = c.data.spec.configurations.backups;
+                                let cronScheduleSplit = vm.tzCrontab(vm.backups[0].cronSchedule, true).split(' ');
+                                vm.cronSchedule[0].ref = {};
+                                vm.cronSchedule[0].ref.value = vm.backups[0].cronSchedule;
+                                vm.cronSchedule[0].ref.min = cronScheduleSplit[0];
+                                vm.cronSchedule[0].ref.hour = cronScheduleSplit[1];
+                                vm.cronSchedule[0].ref.dom = cronScheduleSplit[2];
+                                vm.cronSchedule[0].ref.month = cronScheduleSplit[3];
+                                vm.cronSchedule[0].ref.dow = cronScheduleSplit[4];
+                                vm.cronSchedule[0].min = cronScheduleSplit[0];
+                                vm.cronSchedule[0].hour = cronScheduleSplit[1];
+                                vm.cronSchedule[0].dom = cronScheduleSplit[2];
+                                vm.cronSchedule[0].month = cronScheduleSplit[3];
+                                vm.cronSchedule[0].dow = cronScheduleSplit[4];
+
+                                if(!c.data.spec.configurations.backups[0].hasOwnProperty('performance')) {
+                                    vm.backups[0].performance = {
+                                        maxNetworkBandwidth: '',
+                                        maxDiskBandwidth: '',
+                                        uploadDiskConcurrency: 1
+                                    }
+                                }
+                            }
+
+                            vm.distributedLogs = (typeof c.data.spec.distributedLogs !== 'undefined') ? c.data.spec.distributedLogs.sgDistributedLogs : '';
+                            vm.retention = vm.hasProp(c, 'data.spec.distributedLogs.retention') ? c.data.spec.distributedLogs.retention : ''; 
+                            vm.replication = vm.hasProp(c, 'data.spec.replication') && c.data.spec.replication;
+                            vm.prometheusAutobind =  (typeof c.data.spec.prometheusAutobind !== 'undefined') ? c.data.spec.prometheusAutobind : false;
+                            vm.enableClusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? !c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : true;
                             vm.babelfishFeatureGates = vm.hasProp(c, 'data.spec.nonProductionOptions.enabledFeatureGates') && c.data.spec.nonProductionOptions.enabledFeatureGates.includes('babelfish-flavor');
                             
+                            vm.podsMetadata = vm.hasProp(c, 'data.spec.metadata.labels.clusterPods') ? vm.unparseProps(c.data.spec.metadata.labels.clusterPods, 'label') : [];
+                            vm.annotationsAll = vm.hasProp(c, 'data.spec.metadata.annotations.allResources') ? vm.unparseProps(c.data.spec.metadata.annotations.allResources) : [];
+                            vm.annotationsPods = vm.hasProp(c, 'data.spec.metadata.annotations.clusterPods') ? vm.unparseProps(c.data.spec.metadata.annotations.clusterPods) : [];
+                            vm.annotationsServices = vm.hasProp(c, 'data.spec.metadata.annotations.services') ? vm.unparseProps(c.data.spec.metadata.annotations.services) : [];
+                            vm.postgresServicesPrimaryAnnotations = vm.hasProp(c, 'data.spec.metadata.annotations.primaryService') ?  vm.unparseProps(c.data.spec.metadata.annotations.primaryService) : [];
+                            vm.postgresServicesReplicasAnnotations = vm.hasProp(c, 'data.spec.metadata.annotations.replicasService') ?  vm.unparseProps(c.data.spec.metadata.annotations.replicasService) : [];
+                            vm.postgresServices = vm.hasProp(c, 'data.spec.postgresServices') && c.data.spec.postgresServices;
+
+                            vm.flavor = c.data.spec.postgres.hasOwnProperty('flavor') ? c.data.spec.postgres.flavor : 'vanilla' ;
+                            vm.selectedExtensions = vm.hasProp(c, 'data.spec.postgres.extensions') ? c.data.spec.postgres.extensions : [];
+
                             if (vm.postgresVersion != c.data.spec.postgres.version) {
                                 vm.postgresVersion = c.data.spec.postgres.version;
                                 vm.getFlavorExtensions()
                             }
 
-                            if(vm.hasProp(c, 'data.spec.postgres.ssl.enabled') && c.data.spec.postgres.ssl.enabled) {
+                            if(c.data.spec.postgres.hasOwnProperty('ssl')) {
                                 vm.ssl = c.data.spec.postgres.ssl
-                            }
-                            
-                            vm.instances = c.data.spec.instances;
-                            vm.resourceProfile = c.data.spec.sgInstanceProfile;
-                            vm.pgConfig = c.data.spec.configurations.sgPostgresConfig;
-                            vm.storageClass = c.data.spec.pods.persistentVolume.hasOwnProperty('storageClass') ? c.data.spec.pods.persistentVolume.storageClass : '';
-                            vm.volumeSize = volumeSize;
-                            vm.volumeUnit = ''+volumeUnit;
-                            vm.connPooling = !c.data.spec.pods.disableConnectionPooling,
-                            vm.connectionPoolingConfig = (typeof c.data.spec.configurations.sgPoolingConfig !== 'undefined') ? c.data.spec.configurations.sgPoolingConfig : '';
-                            vm.managedBackups = vm.hasProp(c, 'data.spec.configurations.backups') && c.data.spec.configurations.backups.length;
-                            if (typeof c.data.spec.configurations.backups !== 'undefined') {
-                              vm.backups = c.data.spec.configurations.backups;
-                              let cronScheduleSplit = vm.tzCrontab(vm.backups[0].cronSchedule, true).split(' ');
-                              vm.cronSchedule[0].ref = {};
-                              vm.cronSchedule[0].ref.value = vm.backups[0].cronSchedule;
-                              vm.cronSchedule[0].ref.min = cronScheduleSplit[0];
-                              vm.cronSchedule[0].ref.hour = cronScheduleSplit[1];
-                              vm.cronSchedule[0].ref.dom = cronScheduleSplit[2];
-                              vm.cronSchedule[0].ref.month = cronScheduleSplit[3];
-                              vm.cronSchedule[0].ref.dow = cronScheduleSplit[4];
-                              vm.cronSchedule[0].min = cronScheduleSplit[0];
-                              vm.cronSchedule[0].hour = cronScheduleSplit[1];
-                              vm.cronSchedule[0].dom = cronScheduleSplit[2];
-                              vm.cronSchedule[0].month = cronScheduleSplit[3];
-                              vm.cronSchedule[0].dow = cronScheduleSplit[4];
-                            }
-                            if(vm.managedBackups && !c.data.spec.configurations.backups[0].hasOwnProperty('performance')) {
-                                vm.backups[0].performance = {
-                                    maxNetworkBandwidth: '',
-                                    maxDiskBandwidth: '',
-                                    uploadDiskConcurrency: 1
-                                }
-                            };
-                            vm.distributedLogs = (typeof c.data.spec.distributedLogs !== 'undefined') ? c.data.spec.distributedLogs.sgDistributedLogs : '';
-                            vm.retention = vm.hasProp(c, 'data.spec.distributedLogs.retention') ? c.data.spec.distributedLogs.retention : ''; 
-                            vm.replicateFrom = vm.hasProp(c, 'data.spec.replicateFrom') ? c.data.spec.replicateFrom : {};
-                            vm.replicateFromSource = vm.getReplicationSource(c);
-                            vm.replication = vm.hasProp(c, 'data.spec.replication') && c.data.spec.replication;
-                            vm.prometheusAutobind =  (typeof c.data.spec.prometheusAutobind !== 'undefined') ? c.data.spec.prometheusAutobind : false;
-                            vm.enableClusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? !c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : true;
-                            vm.metricsExporter = vm.hasProp(c, 'data.spec.pods.disableMetricsExporter') ? !c.data.spec.pods.disableMetricsExporter : true ;
-                            vm.enableMonitoring = ( (!vm.hasProp(c, 'data.spec.pods.disableMetricsExporter')) && (typeof c.data.spec.prometheusAutobind !== 'undefined') ) ? true : false;
-                            vm.postgresUtil = vm.hasProp(c, 'data.spec.pods.disablePostgresUtil') ? !c.data.spec.pods.disablePostgresUtil : true ;
-                            vm.podsMetadata = vm.hasProp(c, 'data.spec.metadata.labels.clusterPods') ? vm.unparseProps(c.data.spec.metadata.labels.clusterPods, 'label') : [];
-                            vm.nodeSelector = vm.hasProp(c, 'data.spec.pods.scheduling.nodeSelector') ? vm.unparseProps(c.data.spec.pods.scheduling.nodeSelector, 'label') : [];
-                            vm.tolerations = vm.hasProp(c, 'data.spec.pods.scheduling.tolerations') ? c.data.spec.pods.scheduling.tolerations : [];
-                            vm.preferredAffinity = vm.hasProp(c, 'data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution') ? c.data.spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution : [];
-                            vm.requiredAffinity = vm.hasProp(c, 'data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution') ? c.data.spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms : [];
-                            vm.tolerations = vm.hasProp(c, 'data.spec.pods.scheduling.tolerations') ? c.data.spec.pods.scheduling.tolerations : [];
-                            
-                            vm.pods.customVolumes = vm.hasProp(c, 'data.spec.pods.customVolumes') ? c.data.spec.pods.customVolumes : [];
-                            vm.customVolumesType = [];
-                            vm.pods.customVolumes.forEach( (v) => {
-                                if(v.hasOwnProperty('emptyDir')) {
-                                    vm.customVolumesType.push('emptyDir');
-                                } else if(v.hasOwnProperty('configMap')) {
-                                    vm.customVolumesType.push('configMap');
-                                } else if(v.hasOwnProperty('secret')) {
-                                    vm.customVolumesType.push('secret');
-                                }
-                            });
-                            
-                            vm.pods.customInitContainers = vm.hasProp(c, 'data.spec.pods.customInitContainers') ? c.data.spec.pods.customInitContainers : [];
-                            vm.pods.customContainers = vm.hasProp(c, 'data.spec.pods.customContainers') ? c.data.spec.pods.customContainers : [];
-                            
-                            if(vm.hasProp(c, 'data.spec.managedSql.scripts')) {
-                                vm.scriptSource = [];
-                                c.data.spec.managedSql.scripts.forEach(function(baseScript, baseIndex) {
-                                    
-                                    vm.scriptSource.push({ base: baseScript.sgScript, entries: [] })
 
-                                    if(vm.hasProp(baseScript, 'scriptSpec.scripts')) {
-                                        baseScript.scriptSpec.scripts.forEach(function(script, index){
-                                            if(script.hasOwnProperty('script')) {
-                                                vm.scriptSource[baseIndex].entries.push('raw');
-                                            } else if(script.scriptFrom.hasOwnProperty('secretKeyRef')) {
-                                                vm.scriptSource[baseIndex].entries.push('secretKeyRef');
-                                            } else if(script.scriptFrom.hasOwnProperty('configMapScript')) {
-                                                vm.scriptSource[baseIndex].entries.push('configMapKeyRef');
-                                            }
-                                        })
+                                if(!vm.ssl.hasOwnProperty('certificateSecretKeySelector')) {
+                                    vm.ssl['certificateSecretKeySelector'] = {
+                                        name: '',
+                                        key: ''
+                                    };
+                                }
+                                if(!vm.ssl.hasOwnProperty('privateKeySecretKeySelector')) {
+                                    vm.ssl['privateKeySecretKeySelector'] = {
+                                        name: '',
+                                        key: ''
+                                    }
+                                }
+                            }
+
+                            // Set Coordinator & Shards spec
+                            ['coordinator', 'shards'].forEach( (type) => {
+                                vm[type] = c.data.spec[type];
+
+                                // Volume Size
+                                let volumeSize = {
+                                   size: vm[type].pods.persistentVolume.size.match(/\d+/g)[0],
+                                   unit: vm[type].pods.persistentVolume.size.match(/[a-zA-Z]+/g)[0],
+                                };
+                                vm[type].pods.persistentVolume.size = volumeSize;
+
+                                // Script Sources
+                                vm.setScriptsSource(c.data.spec[type], type);
+
+                                // Custom Volumes
+                                vm.customVolumesType[type] = [];
+                                if(vm.hasProp(c, 'data.spec.' + type + '.pods.customVolumes')) {
+                                    vm[type].pods.customVolumes.forEach( (v) => {
+                                        if(v.hasOwnProperty('emptyDir')) {
+                                            vm.customVolumesType[type].push('emptyDir');
+                                        } else if(v.hasOwnProperty('configMap')) {
+                                            vm.customVolumesType[type].push('configMap');
+                                        } else if(v.hasOwnProperty('secret')) {
+                                            vm.customVolumesType[type].push('secret');
+                                        }
+                                    });
+                                }
+
+                                // Replication
+                                if(!vm.hasProp(c, 'data.spec.' + type + '.replication')) {
+                                    vm[type]['replication'] = {
+                                        mode: 'async'
+                                    };
+                                }
+
+                                // Metadata
+                                if(vm.hasProp(c, 'data.spec.' + type + '.metadata.labels.clusterPods')) {
+                                    vm[type].metadata.labels.clusterPods = vm.unparseProps(c.data.spec[type].metadata.labels.clusterPods, 'label');
+                                }
+
+                                ['allResources', 'clusterPods', 'services', 'primaryService', 'replicasService'].forEach( (annotation) => {
+                                    if(vm.hasProp(c, 'data.spec.' + type + '.metadata.annotations.' + annotation)) {
+                                        vm[type].metadata.annotations[annotation] = vm.unparseProps(c.data.spec[type].metadata.annotations[annotation]);
                                     }
                                 })
-                                
-                                vm.managedSql = c.data.spec.managedSql;
-                            } else {
-                                vm.managedSql.scripts = {
-                                    continueOnSGScriptError: false,
-                                    scripts: [ { 
-                                        continueOnError: false,
-                                        scriptSpec: {
-                                            continueOnError: false,
-                                            managedVersions: true,
-                                            scripts: [ {
-                                                name: '',
-                                                wrapInTransaction: null,
-                                                storeStatusInDatabase: false,
-                                                retryOnError: false,
-                                                user: 'postgres',
-                                                database: '',
-                                                script: ''
-                                            } ],
-                                        }
-                                    } ]
-                                };
-                            }
 
-                            vm.annotationsAll = vm.hasProp(c, 'data.spec.metadata.annotations.allResources') ? vm.unparseProps(c.data.spec.metadata.annotations.allResources) : [];
-                            vm.annotationsPods = vm.hasProp(c, 'data.spec.metadata.annotations.clusterPods') ? vm.unparseProps(c.data.spec.metadata.annotations.clusterPods) : [];
-                            vm.annotationsServices = vm.hasProp(c, 'data.spec.metadata.annotations.services') ? vm.unparseProps(c.data.spec.metadata.annotations.services) : [];
-                            vm.postgresServices = vm.hasProp(c, 'data.spec.postgresServices') && c.data.spec.postgresServices;
-                            vm.postgresServicesPrimaryAnnotations = vm.hasProp(c, 'data.spec.metadata.annotations.primaryService') ?  vm.unparseProps(c.data.spec.metadata.annotations.primaryService) : [];
-                            vm.postgresServicesReplicasAnnotations = vm.hasProp(c, 'data.spec.metadata.annotations.replicasService') ?  vm.unparseProps(c.data.spec.metadata.annotations.replicasService) : [];
-                            vm.selectedExtensions = vm.hasProp(c, 'data.spec.postgres.extensions') ? c.data.spec.postgres.extensions : [];
+                                // Scheduling
+                                if(vm.hasProp(c, 'data.spec.' + type + '.pods.scheduling.nodeSelector')) {
+                                    vm[type].pods.scheduling.nodeSelector = vm.unparseProps(c.data.spec[type].pods.scheduling.nodeSelector, 'label');
+                                }
+                            });
 
-                            vm.restoreBackup = vm.hasProp(c, 'data.spec.initialData.restore.fromBackup.name') ? c.data.spec.initialData.restore.fromBackup.name : '';
-                            vm.downloadDiskConcurrency = vm.hasProp(c, 'data.spec.initialData.restore.downloadDiskConcurrency') ? c.data.spec.initialData.restore.downloadDiskConcurrency : 1;
-                            vm.pitr = vm.hasProp(c, 'data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp') ? c.data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp : ''
-                            vm.enablePITR = (vm.pitr.length > 0);
-                            $('.datePicker').val(vm.pitrTimezone);
-                            
+                            // Check if Monitoring should be enabled
+                            vm.checkEnableMonitoring(c.data.spec);
+
                             vm.editReady = vm.advancedMode = true
                             return false
                         }
@@ -5427,7 +5308,22 @@
 
             currentStepIndex() {
                 return this.formSteps[this.currentSection].indexOf(this.currentStep[this.currentSection])
-            }
+            },
+
+            nameColission() {
+
+                const vc = this;
+                var nameColission = false;
+                
+                store.state.sgshardedclusters.forEach(function(item, index){
+                    if( (item.name == vc.name) && (item.data.metadata.namespace == vc.$route.params.namespace ) ) {
+                        nameColission = true;
+                        return false
+                    }
+                })
+
+                return nameColission
+            },
 
         },
 
@@ -5458,16 +5354,20 @@
                 }
 
                 let requiredAffinity = {
-                    coordinator: vc.cleanNodeAffinity(this.coordinator.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution),
-                    shards: vc.cleanNodeAffinity(this.shards.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution)
+                    coordinator: this.hasProp(this.coordinator, 'pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms') ?
+                        vc.cleanNodeAffinity(this.coordinator.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms) : [],
+                    shards: this.hasProp(this.shards, 'pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms') ?
+                        vc.cleanNodeAffinity(this.shards.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms) : [],
                 };
                 let preferredAffinity = {
-                    coordinator: vc.cleanNodeAffinity(this.coordinator.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution),
-                    shards: vc.cleanNodeAffinity(this.shards.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution)
+                    coordinator: this.hasProp(this.coordinator, 'pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution') ?
+                        vc.cleanNodeAffinity(this.coordinator.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution) : [],
+                    shards: this.hasProp(this.shards, 'pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution') ?
+                        vc.cleanNodeAffinity(this.shards.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution) : [],
                 };
                 let userSuppliedSidecars = {
-                    coordinator: vc.cleanUpUserSuppliedSidecars($.extend(true,{},this.coordinator.pods)),
-                    shards: vc.cleanUpUserSuppliedSidecars($.extend(true,{},this.shards.pods))
+                    coordinator: this.coordinator.hasOwnProperty('pods') ? vc.cleanUpUserSuppliedSidecars($.extend(true,{},this.coordinator.pods)) : {},
+                    shards: this.shards.hasOwnProperty('pods') ? vc.cleanUpUserSuppliedSidecars($.extend(true,{},this.shards.pods)) : {},
                 };
                 
                 var cluster = {
@@ -5480,47 +5380,17 @@
                         ...(this.hasProp(previous, 'spec') && previous.spec),
                         "database": this.database,
                         "type": this.shardingType,
-                        "pods": {
-                            ...(this.hasProp(previous, 'spec.pods') && previous.spec.pods),
-                            
-                            ...(!this.metricsExporter && { "disableMetricsExporter": !this.metricsExporter } || { "disableMetricsExporter": null} ),
-                            ...(!this.postgresUtil && { "disablePostgresUtil": !this.postgresUtil } || { "disablePostgresUtil": null} ),
-                            ...(!$.isEmptyObject(this.parseProps(this.podsMetadata, 'label')) && {
-                                "metadata": {
-                                    "labels": this.parseProps(this.podsMetadata, 'label')
-                                }
-                            } || { "metadata": null} ),
-                            ...( ( this.hasProp(previous, 'spec.pods.scheduling') || this.hasNodeSelectors() || this.hasTolerations() || requiredAffinity.length || preferredAffinity.length ) && {
-                                "scheduling": {
-                                    ...(this.hasProp(previous, 'spec.pods.scheduling') && previous.spec.pods.scheduling),
-                                    ...(this.hasNodeSelectors() && {"nodeSelector": this.parseProps(this.nodeSelector, 'label')} || {"nodeSelector": null} ),
-                                    ...(this.hasTolerations() && {"tolerations": this.tolerations} || {"tolerations": null} ),
-                                    ...(requiredAffinity.length || preferredAffinity.length ) && {
-                                        "nodeAffinity": {
-                                            ...(requiredAffinity.length && {
-                                                "requiredDuringSchedulingIgnoredDuringExecution": {
-                                                    "nodeSelectorTerms": requiredAffinity
-                                                },
-                                            }),
-                                            ...(preferredAffinity.length && {
-                                                "preferredDuringSchedulingIgnoredDuringExecution": preferredAffinity
-                                            })
-                                        }
-                                    } || { "nodeAffinity": null }
-                                }
-                            } ),
-                        },
-                        ...( (this.hasProp(previous, 'spec.configurations') || this.pgConfig.length || this.managedBackups || this.connectionPoolingConfig.length) && ({
+                        ...( (this.hasProp(previous, 'spec.configurations') || this.managedBackups ) && ({
                             "configurations": {
                                 ...(this.managedBackups && {
                                     "backups": this.backups
                                 } || { "backups": null }),
                             }
                         }) ),
-                        ...( (this.hasProp(previous, 'spec.distributedLogs') || this.distributedLogs.length) && {
+                        ...( (this.hasProp(previous, 'spec.distributedLogs') || ( (typeof this.distributedLogs !== 'undefined') && this.distributedLogs.length) ) && {
                             "distributedLogs": {
                                 ...(this.hasProp(previous, 'spec.distributedLogs') && previous.spec.distributedLogs),
-                                ...(this.distributedLogs.length && { "sgDistributedLogs": this.distributedLogs }),
+                                ...(( (typeof this.distributedLogs !== 'undefined') && this.distributedLogs.length ) && { "sgDistributedLogs": this.distributedLogs }),
                                 ...(this.retention.length && {
                                     "retention": this.retention
                                 })
@@ -5616,9 +5486,15 @@
                                 "extensions": this.selectedExtensions
                             } || {"extensions": null} ),
                             "flavor": this.flavor,
-                            ...(this.ssl.enabled && {
-                                "ssl": this.ssl
-                            } || {"ssl": null} )
+                            "ssl": {
+                                enabled: this.ssl.enabled,
+                                ...( (this.ssl.hasOwnProperty('certificateSecretKeySelector') && this.ssl.certificateSecretKeySelector.name.length && this.ssl.certificateSecretKeySelector.key.length) && {
+                                    certificateSecretKeySelector: this.ssl.certificateSecretKeySelector
+                                }),
+                                ...( (this.ssl.hasOwnProperty('privateKeySecretKeySelector') && this.ssl.privateKeySecretKeySelector.name.length && this.ssl.privateKeySecretKeySelector.key.length) && {
+                                    privateKeySecretKeySelector: this.ssl.privateKeySecretKeySelector
+                                }),
+                            }
                         },
                         "coordinator": {
                             ...(this.hasProp(previous, 'spec.coordinator') && previous.spec.coordinator),
@@ -5643,7 +5519,7 @@
                                 ...(this.hasProp(previous, 'spec.coordinator.pods') && previous.spec.coordinator.pods),
                                 "persistentVolume": {
                                     "size": this.coordinator.pods.persistentVolume.size.size+this.coordinator.pods.persistentVolume.size.unit,
-                                    ...(this.coordinator.pods.persistentVolume.storageClass.length && {
+                                    ...( (this.coordinator.pods.persistentVolume.hasOwnProperty('storageClass') && this.coordinator.pods.persistentVolume.storageClass.length) && {
                                         "storageClass": this.coordinator.pods.persistentVolume.storageClass
                                     })
                                 },
@@ -5653,7 +5529,7 @@
                                 ...(this.coordinator.pods.disablePostgresUtil && {
                                     "disablePostgresUtil": this.coordinator.pods.disablePostgresUtil
                                 }),
-                                ...(this.coordinator.pods.disableMetricsExporter && {
+                                ...(this.coordinator.pods.hasOwnProperty('disableMetricsExporter') && {
                                     "disableMetricsExporter": this.coordinator.pods.disableMetricsExporter
                                 }),
                                 ...((
@@ -5671,17 +5547,22 @@
                                         "customContainers": userSuppliedSidecars.coordinator.customContainers
                                     } || { "customContainers": null }
                                 )),
-                                ...( ( this.hasProp(previous, 'spec.coordinator.pods.scheduling') || this.hasNodeSelectors(this.coordinator.pods.scheduling.nodeSelector) || this.hasTolerations(this.coordinator.pods.scheduling.tolerations) || requiredAffinity.coordinator.length || preferredAffinity.coordinator.length ) && {
+                                ...( ( 
+                                    this.hasProp(previous, 'spec.coordinator.pods.scheduling') || 
+                                    (this.hasProp(this.coordinator, 'pods.scheduling.nodeSelector') && this.hasNodeSelectors(this.coordinator.pods.scheduling.nodeSelector)) || 
+                                    (this.hasProp(this.coordinator, 'pods.scheduling.tolerations') && this.hasTolerations(this.coordinator.pods.scheduling.tolerations)) || 
+                                    requiredAffinity.coordinator.length || preferredAffinity.coordinator.length 
+                                    ) && {
                                     "scheduling": {
                                         ...(this.hasProp(previous, 'spec.pods.scheduling') && previous.spec.pods.scheduling),
-                                        ...(this.hasNodeSelectors(this.coordinator.pods.scheduling.nodeSelector) && {"nodeSelector": this.parseProps(this.coordinator.pods.scheduling.nodeSelector, 'label')} || {"nodeSelector": null} ),
-                                        ...(this.hasTolerations(this.coordinator.pods.scheduling.tolerations) && {"tolerations": this.coordinator.pods.scheduling.tolerations} || {"tolerations": null} ),
+                                        ...( (this.hasProp(this.coordinator, 'pods.scheduling.nodeSelector') && this.hasNodeSelectors(this.coordinator.pods.scheduling.nodeSelector)) && {"nodeSelector": this.parseProps(this.coordinator.pods.scheduling.nodeSelector, 'label')} || {"nodeSelector": null} ),
+                                        ...( (this.hasProp(this.coordinator, 'pods.scheduling.tolerations') && this.hasTolerations(this.coordinator.pods.scheduling.tolerations)) && {"tolerations": this.coordinator.pods.scheduling.tolerations} || {"tolerations": null} ),
                                         ...(requiredAffinity.coordinator.length || preferredAffinity.coordinator.length ) && {
                                             "nodeAffinity": {
                                                 ...(requiredAffinity.coordinator.length && {
                                                     "requiredDuringSchedulingIgnoredDuringExecution": {
                                                         "nodeSelectorTerms": requiredAffinity.coordinator
-                                                    },
+                                                    }
                                                 }),
                                                 ...(preferredAffinity.coordinator.length && {
                                                     "preferredDuringSchedulingIgnoredDuringExecution": preferredAffinity.coordinator
@@ -5689,9 +5570,9 @@
                                             }
                                         } || { "nodeAffinity": null }
                                     }
-                                } ),
+                                } || { "scheduling": null } ),
                             },
-                            ...( (this.hasProp(previous, 'spec.coordinator.replication') || (this.coordinator.replication.mode !== 'async') ) && {
+                            ...( (this.hasProp(previous, 'spec.coordinator.replication') || ( this.hasProp(this.coordinator, 'replication.mode') && (this.coordinator.replication.mode !== 'async') ) ) && {
                                 "replication": {
                                     "mode": this.coordinator.replication.mode,
                                     ...(['sync', 'strict-sync'].includes(this.coordinator.replication.mode) && ({
@@ -5699,31 +5580,41 @@
                                     }) )
                                 }
                             } || {"replication": null} ),
-                            ...( (this.hasProp(previous, 'spec.coordinator.metadata') || !$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.allResources)) || !$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.clusterPods)) || !$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.services))
-                                || !$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.primaryService)) || !$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.replicasService)) || !$.isEmptyObject(this.parseProps(this.coordinator.metadata.labels.clusterPods, 'label')) ) && ({
+                            ...( (
+                                this.hasProp(previous, 'spec.coordinator.metadata') || 
+                                (
+                                    (this.hasProp(this.coordinator, 'metadata.annotations.allResources') && !$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.allResources)) ) ||
+                                    (this.hasProp(this.coordinator, 'metadata.annotations.clusterPods') && !$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.clusterPods)) ) ||
+                                    (this.hasProp(this.coordinator, 'metadata.annotations.services') && !$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.services)) ) ||
+                                    (this.hasProp(this.coordinator, 'metadata.annotations.primaryService') && !$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.primaryService)) ) ||
+                                    (this.hasProp(this.coordinator, 'metadata.annotations.replicasService') && !$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.replicasService)) )
+                                ) ||
+                                (
+                                    ( this.hasProp(this.coordinator, 'metadata.labels.clusterPods')  && !$.isEmptyObject(this.parseProps(this.coordinator.metadata.labels.clusterPods, 'label')) )
+                                ) ) && {
                                 "metadata": {
                                     ...(this.hasProp(previous, 'spec.coordinator.metadata') && previous.spec.coordinator.metadata),
-                                    ...( (this.hasProp(previous, 'spec.coordinator.metadata') || !$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.allResources)) || !$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.clusterPods)) || !$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.services))
-                                    || !$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.primaryService)) || !$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.replicasService))) && {
-                                        "annotations": {
-                                            ...(this.hasProp(previous, 'spec.coordinator.metadata.annotations') && previous.spec.coordinator.metadata.annotations),
-                                            ...(!$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.allResources)) && ( {"allResources": this.parseProps(this.coordinator.metadata.annotations.allResources) }) ),
-                                            ...(!$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.clusterPods)) && ( {"clusterPods": this.parseProps(this.coordinator.metadata.annotations.clusterPods) }) ),
-                                            ...(!$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.services)) && ( {"services": this.parseProps(this.coordinator.metadata.annotations.services) }) ),
-                                            ...(!$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.primaryService)) && ( {"primaryService": this.parseProps(this.coordinator.metadata.annotations.primaryService) }) ),
-                                            ...(!$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.replicasService)) && ( {"replicasService": this.parseProps(this.coordinator.metadata.annotations.replicasService) }) ),
-                                        }
-                                    } || {"annotations": null}),
-                                    ...( (this.hasProp(previous, 'spec.coordinator.metadata.labels') || !$.isEmptyObject(this.parseProps(this.coordinator.metadata.labels.clusterPods, 'label'))) && {
-                                        "labels": {
-                                            ...(this.hasProp(previous, 'spec.coordinator.metadata.labels') && previous.spec.coordinator.metadata.labels),
-                                            ...(!$.isEmptyObject(this.parseProps(this.coordinator.metadata.labels.clusterPods, 'label')) && {
-                                                "clusterPods": this.parseProps(this.coordinator.metadata.labels.clusterPods, 'label')
-                                            })
-                                        }
-                                    } || {"labels": null})
+                                    ...( (this.hasProp(previous, 'spec.coordinator.metadata.annotations') || this.hasProp(this.coordinator, 'metadata.annotations.clusterPods') || this.hasProp(this.coordinator, 'metadata.annotations.services')
+                                    || this.hasProp(this.coordinator, 'metadata.annotations.primaryService') || this.hasProp(this.coordinator, 'metadata.annotations.replicasService') ) && {
+                                            "annotations": {
+                                                ...(this.hasProp(previous, 'spec.coordinator.metadata.annotations') && previous.spec.coordinator.metadata.annotations),
+                                                ...( (this.hasProp(this.coordinator, 'metadata.annotations.allResources') && !$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.allResources)) ) && ( {"allResources": this.parseProps(this.coordinator.metadata.annotations.allResources) }) ),
+                                                ...( (this.hasProp(this.coordinator, 'metadata.annotations.clusterPods') && !$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.clusterPods)) ) && ( {"clusterPods": this.parseProps(this.coordinator.metadata.annotations.clusterPods) }) ),
+                                                ...( (this.hasProp(this.coordinator, 'metadata.annotations.services') && !$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.services)) ) && ( {"services": this.parseProps(this.coordinator.metadata.annotations.services) }) ),
+                                                ...( (this.hasProp(this.coordinator, 'metadata.annotations.primaryService') && !$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.primaryService)) ) && ( {"primaryService": this.parseProps(this.coordinator.metadata.annotations.primaryService) }) ),
+                                                ...( (this.hasProp(this.coordinator, 'metadata.annotations.replicasService') && !$.isEmptyObject(this.parseProps(this.coordinator.metadata.annotations.replicasService)) ) && ( {"replicasService": this.parseProps(this.coordinator.metadata.annotations.replicasService) }) ),
+                                            }
+                                        } || {"annotations": null}),
+                                        ...( ( this.hasProp(previous, 'spec.coordinator.metadata.labels') || ( this.hasProp(this.coordinator, 'metadata.labels.clusterPods')  && !$.isEmptyObject(this.parseProps(this.coordinator.metadata.labels.clusterPods, 'label')) ) ) && {
+                                            "labels": {
+                                                ...(this.hasProp(previous, 'spec.coordinator.metadata.labels') && previous.spec.coordinator.metadata.labels),
+                                                ...( (this.hasProp(this.coordinator, 'metadata.labels.clusterPods') && !$.isEmptyObject(this.parseProps(this.coordinator.metadata.labels.clusterPods, 'label')) ) && {
+                                                    "clusterPods": this.parseProps(this.coordinator.metadata.labels.clusterPods, 'label')
+                                                })
+                                            }
+                                        } || {"labels": null})
                                 }
-                            }) ),
+                            } || { "metadata": null })
                         },
                         "shards": {
                             ...(this.hasProp(previous, 'spec.shards') && previous.spec.shards),
@@ -5749,7 +5640,7 @@
                                 ...(this.hasProp(previous, 'spec.shards.pods') && previous.spec.shards.pods),
                                 "persistentVolume": {
                                     "size": this.shards.pods.persistentVolume.size.size+this.shards.pods.persistentVolume.size.unit,
-                                    ...(this.shards.pods.persistentVolume.storageClass.length && {
+                                    ...( (this.shards.pods.persistentVolume.hasOwnProperty('storageClass') && this.shards.pods.persistentVolume.storageClass.length) && {
                                         "storageClass": this.shards.pods.persistentVolume.storageClass
                                     })
                                 },
@@ -5759,7 +5650,7 @@
                                 ...(this.shards.pods.disablePostgresUtil && {
                                     "disablePostgresUtil": this.shards.pods.disablePostgresUtil
                                 }),
-                                ...(this.shards.pods.disableMetricsExporter && {
+                                ...(this.shards.pods.hasOwnProperty('disableMetricsExporter') && {
                                     "disableMetricsExporter": this.shards.pods.disableMetricsExporter
                                 }),
                                 ...((
@@ -5777,17 +5668,22 @@
                                         "customContainers": userSuppliedSidecars.shards.customContainers
                                     } || { "customContainers": null }
                                 )),
-                                ...( ( this.hasProp(previous, 'spec.shards.pods.scheduling') || this.hasNodeSelectors(this.shards.pods.scheduling.nodeSelector) || this.hasTolerations(this.shards.pods.scheduling.tolerations) || requiredAffinity.shards.length || preferredAffinity.shards.length ) && {
+                                ...( ( 
+                                    this.hasProp(previous, 'spec.shards.pods.scheduling') || 
+                                    (this.hasProp(this.shards, 'pods.scheduling.nodeSelector') && this.hasNodeSelectors(this.shards.pods.scheduling.nodeSelector)) || 
+                                    (this.hasProp(this.shards, 'pods.scheduling.tolerations') && this.hasTolerations(this.shards.pods.scheduling.tolerations)) || 
+                                    requiredAffinity.shards.length || preferredAffinity.shards.length 
+                                    ) && {
                                     "scheduling": {
                                         ...(this.hasProp(previous, 'spec.pods.scheduling') && previous.spec.pods.scheduling),
-                                        ...(this.hasNodeSelectors(this.shards.pods.scheduling.nodeSelector) && {"nodeSelector": this.parseProps(this.shards.pods.scheduling.nodeSelector, 'label')} || {"nodeSelector": null} ),
-                                        ...(this.hasTolerations(this.shards.pods.scheduling.tolerations) && {"tolerations": this.shards.pods.scheduling.tolerations} || {"tolerations": null} ),
+                                        ...( (this.hasProp(this.shards, 'pods.scheduling.nodeSelector') && this.hasNodeSelectors(this.shards.pods.scheduling.nodeSelector)) && {"nodeSelector": this.parseProps(this.shards.pods.scheduling.nodeSelector, 'label')} || {"nodeSelector": null} ),
+                                        ...( (this.hasProp(this.shards, 'pods.scheduling.tolerations') && this.hasTolerations(this.shards.pods.scheduling.tolerations)) && {"tolerations": this.shards.pods.scheduling.tolerations} || {"tolerations": null} ),
                                         ...(requiredAffinity.shards.length || preferredAffinity.shards.length ) && {
                                             "nodeAffinity": {
                                                 ...(requiredAffinity.shards.length && {
                                                     "requiredDuringSchedulingIgnoredDuringExecution": {
                                                         "nodeSelectorTerms": requiredAffinity.shards
-                                                    },
+                                                    }
                                                 }),
                                                 ...(preferredAffinity.shards.length && {
                                                     "preferredDuringSchedulingIgnoredDuringExecution": preferredAffinity.shards
@@ -5795,9 +5691,9 @@
                                             }
                                         } || { "nodeAffinity": null }
                                     }
-                                } ),
+                                } || { "scheduling": null } ),
                             },
-                            ...( (this.hasProp(previous, 'spec.shards.replication') || (this.shards.replication.mode !== 'async') ) && {
+                            ...( (this.hasProp(previous, 'spec.shards.replication') || ( this.hasProp(this.shards, 'replication.mode') && (this.shards.replication.mode !== 'async') ) ) && {
                                 "replication": {
                                     "mode": this.shards.replication.mode,
                                     ...(['sync', 'strict-sync'].includes(this.shards.replication.mode) && ({
@@ -5805,32 +5701,42 @@
                                     }) )
                                 }
                             } || {"replication": null} ),
-                            ...( (this.hasProp(previous, 'spec.shards.metadata') || !$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.allResources)) || !$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.clusterPods)) || !$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.services))
-                                || !$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.primaryService)) || !$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.replicasService)) || !$.isEmptyObject(this.parseProps(this.shards.metadata.labels.clusterPods, 'label')) ) && ({
+                            ...( (
+                                this.hasProp(previous, 'spec.shards.metadata') || 
+                                (
+                                    (this.hasProp(this.shards, 'metadata.annotations.allResources') && !$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.allResources)) ) ||
+                                    (this.hasProp(this.shards, 'metadata.annotations.clusterPods') && !$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.clusterPods)) ) ||
+                                    (this.hasProp(this.shards, 'metadata.annotations.services') && !$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.services)) ) ||
+                                    (this.hasProp(this.shards, 'metadata.annotations.primaryService') && !$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.primaryService)) ) ||
+                                    (this.hasProp(this.shards, 'metadata.annotations.replicasService') && !$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.replicasService)) )
+                                ) ||
+                                (
+                                    ( this.hasProp(this.shards, 'metadata.labels.clusterPods')  && !$.isEmptyObject(this.parseProps(this.shards.metadata.labels.clusterPods, 'label')) )
+                                ) ) && {
                                 "metadata": {
                                     ...(this.hasProp(previous, 'spec.shards.metadata') && previous.spec.shards.metadata),
-                                    ...( (this.hasProp(previous, 'spec.shards.metadata') || !$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.allResources)) || !$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.clusterPods)) || !$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.services))
-                                    || !$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.primaryService)) || !$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.replicasService))) && {
-                                        "annotations": {
-                                            ...(this.hasProp(previous, 'spec.shards.metadata.annotations') && previous.spec.shards.metadata.annotations),
-                                            ...(!$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.allResources)) && ( {"allResources": this.parseProps(this.shards.metadata.annotations.allResources) }) ),
-                                            ...(!$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.clusterPods)) && ( {"clusterPods": this.parseProps(this.shards.metadata.annotations.clusterPods) }) ),
-                                            ...(!$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.services)) && ( {"services": this.parseProps(this.shards.metadata.annotations.services) }) ),
-                                            ...(!$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.primaryService)) && ( {"primaryService": this.parseProps(this.shards.metadata.annotations.primaryService) }) ),
-                                            ...(!$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.replicasService)) && ( {"replicasService": this.parseProps(this.shards.metadata.annotations.replicasService) }) ),
-                                        }
-                                    } || {"annotations": null}),
-                                    ...( (this.hasProp(previous, 'spec.shards.metadata.labels') || !$.isEmptyObject(this.parseProps(this.shards.metadata.labels.clusterPods, 'label'))) && {
-                                        "labels": {
-                                            ...(this.hasProp(previous, 'spec.shards.metadata.labels') && previous.spec.shards.metadata.labels),
-                                            ...(!$.isEmptyObject(this.parseProps(this.shards.metadata.labels.clusterPods, 'label')) && {
-                                                "clusterPods": this.parseProps(this.shards.metadata.labels.clusterPods, 'label')
-                                            })
-                                        }
-                                    } || {"labels": null})
+                                    ...( (this.hasProp(previous, 'spec.shards.metadata.annotations') || this.hasProp(this.shards, 'metadata.annotations.clusterPods') || this.hasProp(this.shards, 'metadata.annotations.services')
+                                    || this.hasProp(this.shards, 'metadata.annotations.primaryService') || this.hasProp(this.shards, 'metadata.annotations.replicasService') ) && {
+                                            "annotations": {
+                                                ...(this.hasProp(previous, 'spec.shards.metadata.annotations') && previous.spec.shards.metadata.annotations),
+                                                ...( (this.hasProp(this.shards, 'metadata.annotations.allResources') && !$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.allResources)) ) && ( {"allResources": this.parseProps(this.shards.metadata.annotations.allResources) }) ),
+                                                ...( (this.hasProp(this.shards, 'metadata.annotations.clusterPods') && !$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.clusterPods)) ) && ( {"clusterPods": this.parseProps(this.shards.metadata.annotations.clusterPods) }) ),
+                                                ...( (this.hasProp(this.shards, 'metadata.annotations.services') && !$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.services)) ) && ( {"services": this.parseProps(this.shards.metadata.annotations.services) }) ),
+                                                ...( (this.hasProp(this.shards, 'metadata.annotations.primaryService') && !$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.primaryService)) ) && ( {"primaryService": this.parseProps(this.shards.metadata.annotations.primaryService) }) ),
+                                                ...( (this.hasProp(this.shards, 'metadata.annotations.replicasService') && !$.isEmptyObject(this.parseProps(this.shards.metadata.annotations.replicasService)) ) && ( {"replicasService": this.parseProps(this.shards.metadata.annotations.replicasService) }) ),
+                                            }
+                                        } || {"annotations": null}),
+                                        ...( ( this.hasProp(previous, 'spec.shards.metadata.labels') || ( this.hasProp(this.shards, 'metadata.labels.clusterPods')  && !$.isEmptyObject(this.parseProps(this.shards.metadata.labels.clusterPods, 'label')) ) ) && {
+                                            "labels": {
+                                                ...(this.hasProp(previous, 'spec.shards.metadata.labels') && previous.spec.shards.metadata.labels),
+                                                ...( (this.hasProp(this.shards, 'metadata.labels.clusterPods') && !$.isEmptyObject(this.parseProps(this.shards.metadata.labels.clusterPods, 'label')) ) && {
+                                                    "clusterPods": this.parseProps(this.shards.metadata.labels.clusterPods, 'label')
+                                                })
+                                            }
+                                        } || {"labels": null})
                                 }
-                            }) ),
-                        }
+                            } || { "metadata": null })
+                        },
 
                     }
                 }
@@ -5839,7 +5745,6 @@
 
                     vc.previewCRD = {};
                     vc.previewCRD['data'] = cluster;
-                    console.log(cluster);
                     vc.showSummary = true;
 
                 } else {
@@ -5877,90 +5782,6 @@
                 }
 
             }, 
-
-            hasPITR() {
-                const vc = this;
-
-                if(!vc.restoreBackup.length) {
-                    return false
-                } else {
-                    const baseBk = store.state.sgbackups.find( (bk) => (bk.data.metadata.name == vc.restoreBackup) );
-                    const postBk = store.state.sgbackups.find( (bk) => (
-                        (bk.data.spec.sgCluster == baseBk.data.spec.sgCluster) && 
-                        (bk.data.status.process.status == 'Completed') &&
-                        moment(bk.data.status.process.timing.stored).isAfter(moment(baseBk.data.status.process.timing.stored))
-                    ) )
-                    if (typeof postBk == 'undefined') {
-                        return true
-                    } else {
-                        vc.enablePITR = false;
-                        return false
-                    }
-                }
-            },
-
-            initDatepicker() {
-                const vc = this;
-
-                vc.pitr = '';
-
-                if(!vc.enablePITR) {
-                    $('.daterangepicker').remove();
-                } else if (vc.hasPITR()) { // Initialize PITR datepicker only if there's no backup newer than the chosen one
-                    
-                    const baseBk = store.state.sgbackups.find( (bk) => (bk.data.metadata.name == vc.restoreBackup) );
-                    
-                    // Load datepicker
-                    require('daterangepicker');
-
-                    $('.daterangepicker').remove();
-                    $(document).find('.datePicker').daterangepicker({
-                        "autoApply": true,
-                        "singleDatePicker": true,
-                        "timePicker": true,
-                        "opens": "right",
-                        "minDate": (store.state.timezone == 'local') ? new Date(new Date(baseBk.data.status.process.timing.stored).getTime()) : moment(new Date(new Date(baseBk.data.status.process.timing.stored).getTime())).utc(),
-                        "maxDate": moment(),
-                        "timePicker24Hour": true,
-                        "timePickerSeconds": true,
-                        locale: {
-                            cancelLabel: "Clear",
-                            format: 'YYYY-MM-DD HH:mm:ss'
-                        }
-                    }, function(start, end, label) {
-                        vc.pitr = (store.state.timezone == 'local') ? start.utc().format() : ( start.format('YYYY-MM-DDTHH:mm:ss') + 'Z' );
-                        $('.datePicker').val(vc.pitrTimezone);
-                    })
-                    .on('apply.daterangepicker', function(ev, picker) {
-                        if(!vc.pitrTimezone.length) {
-                            $('.datePicker').val('');    
-                        } else {
-                            $('.datePicker').val(vc.pitrTimezone);
-                        }
-                    })
-                    .on('cancel.daterangepicker', function(ev, picker) {
-                        vc.pitr = '';
-                        $('.datePicker').val('');
-                    });
-
-                    if($('.datePicker').val().length && !vc.pitr.length) {
-                        vc.pitr = ( $('.datePicker').val() + 'Z' ).replace(' ', 'T');
-                    }
-                }
-            },
-
-            validateSelectedRestoreBackup() {
-                const vc = this;
-
-                if(vc.restoreBackup.length) {
-                    let bk = vc.backups.find(b => (b.data.metadata.name == vc.restoreBackup) && (b.data.metadata.namespace == vc.$route.params.namespace) && (b.data.status.backupInformation.postgresVersion.substring(0,2) == vc.shortPostgresVersion))
-
-                    if(typeof bk == 'undefined') {
-                        vc.notify('The <strong>initialization backup</strong> you selected is not available for this postgres version. Choose a new backup from the list or no data will be restored.', 'message', 'sgshardedclusters');
-                        vc.restoreBackup = '';
-                    }
-                }
-            },
 
             updateCronSchedule(index) {
                 if (this.cronSchedule[index].ref
@@ -6001,8 +5822,64 @@
                 }
 
             },
-        
-        },
+
+            setScriptsSource(el, type) {
+                const vm = this;
+
+                if(el.hasOwnProperty('managedSql')) {
+                    vm.scriptSource[type] = [];
+                    el.managedSql.scripts.forEach( (baseScript, baseIndex) => {
+                        vm.scriptSource[type].push({ base: baseScript.sgScript, entries: [] });
+
+                        if(vm.hasProp(baseScript, 'scriptSpec.scripts')) {
+                            baseScript.scriptSpec.scripts.forEach(function(script, index){
+                                if(script.hasOwnProperty('script')) {
+                                    vm.scriptSource[type][baseIndex].entries.push('raw');
+                                } else if(script.scriptFrom.hasOwnProperty('secretKeyRef')) {
+                                    vm.scriptSource[type][baseIndex].entries.push('secretKeyRef');
+                                } else if(script.scriptFrom.hasOwnProperty('configMapScript')) {
+                                    vm.scriptSource[type][baseIndex].entries.push('configMapKeyRef');
+                                }
+                            })
+                        }
+                    })
+                } else {
+                    vm[type]['managedSql'] = {
+                        continueOnSGScriptError: false,
+                        scripts: []
+                    };
+
+                    vm.scriptSource[type] = [];
+                }
+            },
+
+            checkEnableMonitoring(el = this) {
+                this.enableMonitoring = (
+                    (
+                        el.hasOwnProperty('prometheusAutobind') && el.prometheusAutobind) && (
+                        ( 
+                            !this.hasProp(this.coordinator, 'pods.disableMetricsExporter') || 
+                                ( this.hasProp(this.coordinator, 'pods.disableMetricsExporter') && !this.coordinator.pods.disableMetricsExporter ) 
+                        ) && ( 
+                            !this.hasProp(this.shards, 'pods.disableMetricsExporter') || 
+                                ( this.hasProp(this.shards, 'pods.disableMetricsExporter') && !this.shards.pods.disableMetricsExporter ) 
+                        )
+                    )
+                );
+            },
+
+            toggleMonitoring() {
+                this.prometheusAutobind = this.enableMonitoring;
+                
+                if(this.hasProp(this.coordinator, 'pods.disableMetricsExporter')) {
+                    this.coordinator.pods.disableMetricsExporter = !this.enableMonitoring;
+                }
+
+                if(this.hasProp(this.shards, 'pods.disableMetricsExporter')) {
+                    this.shards.pods.disableMetricsExporter = !this.enableMonitoring;
+                }
+            }
+        }
 
     }
 </script>
@@ -6414,6 +6291,10 @@
     form#createShardedCluster {
         width: 1120px;
         max-width: 100%;
+    }
+
+    .annotation.repeater .row:last-child input {
+        margin-bottom: -10px;
     }
 
 </style>

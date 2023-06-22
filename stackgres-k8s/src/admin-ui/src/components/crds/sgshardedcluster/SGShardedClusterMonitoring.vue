@@ -1,0 +1,210 @@
+<template>
+	<div id="grafana" v-if="iCanLoad">
+        <div class="content grafana">
+            <template v-if="hasActivePods">
+                <div class="grafanaActions">
+                    <select class="plain" id="timeRange" v-model="timeRange" @change="goTo('/' + $route.params.namespace + '/sgshardedcluster/' + cluster.name + '/monitor/' + selectedNode + '/' + timeRange)">
+                        <option disabled value=""><strong>Choose time range</strong></option>
+                        <option v-for="(time, id) in timeRangeOptions" :value="id">
+                            {{ time.label }}
+                        </option>
+                    </select>
+
+                    <select class="plain" v-model="selectedNode" @change="goTo('/' + $route.params.namespace + '/sgshardedcluster/' + cluster.name + '/monitor/' + selectedNode + '/' + timeRange)">
+                        <option disabled value=""><strong>Choose node</strong></option>
+                        <option v-for="pod in clusterPods" v-if="pod.status == 'Active'" :value="pod.ip">
+                            {{ pod.name }}
+                            <template v-if="(pod.role == 'primary')"><span>(primary) </span></template>
+                        </option>
+                        <template v-if="clusterPods.filter(p => (p.status != 'Active')).length">
+                            <option disabled value="">--</option>
+                            <option disabled value="">Inactive nodes:</option>
+                            <option v-for="pod in clusterPods" v-if="pod.status != 'Active'" :value="pod.ip" disabled>
+                                {{ pod.name }}
+                            </option>
+                        </template>
+                    </select>
+                </div>
+
+                <iframe v-if="grafanaUrl.length" :src="(grafanaUrl + (($route.params.hasOwnProperty('pod') && $route.params.pod.length) ? $route.params.pod : selectedNode) + ($route.params.hasOwnProperty('range') ? timeRangeOptions[timeRange].range : ''))" id="grafana"></iframe>
+            </template>
+            <div v-else class="warningText">
+                No active pods have been found for this cluster
+            </div>
+        </div>
+	</div>
+</template>
+
+<script>
+	import router from '@/router'
+	import store from '@/store'
+	import { mixin } from '../../mixins/mixin'
+
+
+    export default {
+        name: 'ShardedClusterMonitoring',
+
+		mixins: [mixin],
+
+		data: function() {
+
+			return {
+				grafanaUrl: '',
+				timeRange: this.$route.params.hasOwnProperty('range') ? this.$route.params.range : '',
+				timeRangeOptions: {
+					'last-5-minutes': { label: 'Last 5 minutes', range: '&from=now-5m&to=now' },
+					'last-15-minutes': { label: 'Last 15 minutes', range: '&from=now-15m&to=now' },
+					'last-30-minutes': { label: 'Last 30 minutes', range: '&from=now-30m&to=now' },
+					'last-1-hour': { label: 'Last 1 hour', range: '&from=now-1h&to=now' },
+					'last-3-hours': { label: 'Last 3 hours', range: '&from=now-3h&to=now' },
+					'last-6-hours': { label: 'Last 6 hours', range: '&from=now-6h&to=now' },
+					'last-12-hours': { label: 'Last 12 hours', range: '&from=now-12h&to=now' },
+					'last-24-hours': { label: 'Last 24 hours', range: '&from=now-24h&to=now' },
+					'last-2-days': { label: 'Last 2 days', range: '&from=now-2d&to=now' },
+					'last-7-days': { label: 'Last 7 days', range: '&from=now-7d&to=now' },
+					'last-30-days': { label: 'Last 30 days', range: '&from=now-30d&to=now' },
+					'last-90-days': { label: 'Last 90 days', range: '&from=now-90d&to=now' },
+					'last-6-months': { label: 'Last 6 months', range: '&from=now-6M&to=now' },
+					'last-1-year': { label: 'Last 1 year', range: '&from=now-1y&to=now' },
+					'last-3-years': { label: 'Last 3 years', range: '&from=now-3y&to=now' },
+					'last-5-years': { label: 'Last 5 years', range: '&from=now-5y&to=now' },
+					'yesterday': { label: 'Yesterday', range: '&from=now-1d%2Fd&to=now-1d%2Fd' },
+					'day-before-yesterday': { label: 'Day before yesterday', range: '&from=now-2d%2Fd&to=now-2d%2Fd' },
+					'this-day-last-week': { label: 'This day last week', range: '&from=now-7d%2Fd&to=now-7d%2Fd' },
+					'day-before-yesterday': { label: 'Day before yesterday', range: '&from=now-2d%2Fd&to=now-2d%2Fd' },
+					'previous-week': { label: 'Previous week', range: '&from=now-1w%2Fw&to=now-1w%2Fw' },
+					'previous-month': { label: 'Previous month', range: '&from=now-1M%2FM&to=now-1M%2FM' },
+					'previous-year': { label: 'Previous year', range: '&from=now-1y%2Fy&to=now-1y%2Fy' },
+					'today': { label: 'Today', range: '&from=now%2Fd&to=now%2Fd' },
+					'today-so-far': { label: 'Today so far', range: '&from=now%2Fd&to=now' },
+					'this-week': { label: 'This week', range: '&from=now%2Fw&to=now%2Fw' },
+					'this-week-so-far': { label: 'This week so far', range: '&from=now%2Fw&to=now' },
+					'this-month': { label: 'This month', range: '&from=now%2FM&to=now%2FM' },
+					'this-month-so-far': { label: 'This month so far', range: '&from=now%2FM&to=now' },
+					'this-year': { label: 'This year', range: '&from=now%2Fy&to=now%2Fy' },
+					'this-year-so-far': { label: 'This year so far', range: '&from=now%2Fy&to=now' }
+				},
+				selectedNode: this.$route.params.hasOwnProperty('pod') ? this.$route.params.pod : ''
+			}
+		},
+		
+		computed: {
+
+			cluster() {
+				let vc = this;
+				let cluster = store.state.sgshardedclusters.find(c => ((vc.$route.params.namespace == c.data.metadata.namespace) && (vc.$route.params.name == c.name)));
+
+				if(typeof cluster != 'undefined') {
+
+                    let clusterPods = cluster.stats.coordinator.pods.concat(cluster.stats.shards.pods);
+
+					// Read Grafana URL
+					if(!vc.$route.params.hasOwnProperty('pod')) {
+						
+						let primaryNode = clusterPods.find(p => (p.role == 'primary'));
+
+						if(typeof primaryNode != 'undefined') {
+							if(vc.$route.path.endsWith('/'))
+								router.replace(vc.$route.path + primaryNode.ip)
+							else 
+								router.replace(vc.$route.path + '/' + primaryNode.ip)
+						}
+					} else {
+
+						if(typeof clusterPods.find(p => (p.ip == vc.$route.params.pod)) != 'undefined') {
+
+							if(vc.$route.params.hasOwnProperty('range') && !vc.timeRangeOptions.hasOwnProperty(vc.$route.params.range)) {
+								store.commit('notFound',true)
+								return false;
+							}
+
+							$.get("/grafana")
+							.done(function( data, textStatus, jqXHR ) {
+								
+								if(!data.startsWith('<!DOCTYPE html>')) { // Check "/grafana" isn't just returning web console's HTML content
+									vc.grafanaUrl = data + (data.includes('?') ? '&' : '?') + 'theme=' + vc.theme + '&kiosk&var-instance=';
+								} else {
+									vc.notifyGrafanaError();
+								}
+							})
+							.fail(function( jqXHR, textStatus, errorThrown ) {
+								if(textStatus == 'error') {
+									vc.notifyGrafanaError();
+								}       
+							})
+
+						} else {
+							store.commit('notFound',true)
+						}
+					}
+
+                    return cluster
+				} else {
+                    return null
+                }
+			},
+
+            hasActivePods() {
+				return ( 
+                    (   
+                        this.hasProp(this.cluster, 'stats.coordinator.pods') && 
+                        this.cluster.stats.coordinator.pods.filter(p => (p.status == 'Active')).length
+                    ) || 
+                    (   
+                        this.hasProp(this.cluster, 'stats.shards.pods') && 
+                        this.cluster.stats.shards.pods.filter(p => (p.status == 'Active')).length
+                    )
+                )
+			},
+
+            clusterPods() {
+                if (this.hasProp(this.cluster, 'stats.coordinator.pods') && this.hasProp(this.cluster, 'stats.coordinator.pods')) {
+                    return this.cluster.stats.coordinator.pods.concat( this.cluster.stats.shards.pods);
+                } else {
+                    return [];
+                }
+            },
+
+			theme () {
+				return store.state.theme
+			},
+
+		},
+		
+		methods: {
+
+			notifyGrafanaError() {
+				this.notify({
+					title: '',
+					detail: 'There was a problem when trying to access Grafana\'s dashboard. Please confirm the cluster is functioning properly and that you have correctly setup the operator\'s credentials to view Grafana.',
+					type: 'https://stackgres.io/doc/latest/install/prerequisites/monitoring/#installing-grafana-and-create-basic-dashboards',
+					status: 403
+				},'error')
+				$('#grafana').remove();
+			}
+		}
+	}
+</script>
+
+<style scoped>
+	.grafana {
+		position: relative;
+	}
+
+	.grafanaActions {
+		position: absolute;
+		right: 0;
+		top: -63px;
+	}
+
+	.grafanaActions select {
+		margin-left: 10px;
+		text-align: left;
+	}
+	
+	#timeRange.active {
+	    max-height: 40vh;
+		overflow-y: auto;
+		width: auto;
+	}	
+</style>

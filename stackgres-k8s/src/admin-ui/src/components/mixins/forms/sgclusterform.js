@@ -1,7 +1,5 @@
-import router from '../../../router'
 import store from '../../../store'
 import sgApi from '../../../api/sgApi'
-import moment from 'moment'
 
 export const sgclusterform = {
     data: function() {
@@ -43,7 +41,6 @@ export const sgclusterform = {
             prometheusAutobind: false,
             enableClusterPodAntiAffinity: true,
             postgresUtil: true,
-            metricsExporter: true,
             enableMonitoring: false,
             podsMetadata: [ { label: '', value: ''} ],
             nodeSelector: [ { label: '', value: ''} ],
@@ -227,20 +224,6 @@ export const sgclusterform = {
             return store.state.sgscripts
         },
 
-        nameColission() {
-
-            const vc = this;
-            var nameColission = false;
-            
-            store.state.sgclusters.forEach(function(item, index){
-                if( (item.name == vc.name) && (item.data.metadata.namespace == vc.$route.params.namespace ) ) {
-                    nameColission = true;
-                    return false
-                }
-            })
-
-            return nameColission
-        },
         isReady() {
             return store.state.ready
         },
@@ -293,6 +276,7 @@ export const sgclusterform = {
         },
 
         pushScriptSet(scriptSource = this.scriptSource, managedSql = this.managedSql) {
+            scriptSource.push({ base: 'createNewScript', entries: ['raw'] });
             managedSql.scripts.push( { 
                 continueOnError: false,
                 scriptSpec: {
@@ -309,8 +293,6 @@ export const sgclusterform = {
                     }],
                 }
             } );
-
-            scriptSource.push({ base: '', entries: ['raw'] });
         },
 
         setScriptSource( baseIndex, index, scriptSource = this.scriptSource, managedSql = this.managedSql ) {
@@ -491,7 +473,7 @@ export const sgclusterform = {
             const vc = this
             var jsonString = '{';
             props.forEach(function(p, i){
-                if(p[key].length && p.value.length) {
+                if( p.hasOwnProperty(key) && p[key].length && p.hasOwnProperty('value') && p.value.length) {
                     if(i)
                         jsonString += ','
                     
@@ -612,33 +594,53 @@ export const sgclusterform = {
             affinity.push({ key: '', operator: '', values: [ '' ] })
         },
 
-        addRequiredAffinityTerm(term = this.requiredAffinity) {
-            term.push({
-                matchExpressions: [
-                    { key: '', operator: '', values: [ '' ] }
-                ],
-                matchFields: [
-                    { key: '', operator: '', values: [ '' ] }
-                ]
-            })
-        },
-        
-        addPreferredAffinityTerm(term = this.preferredAffinity) {
-            term.push({
-                preference: {
+        addRequiredAffinityTerm(term = this.requiredAffinity, path = '') {
+            if(!path.length) {
+                term.push({
                     matchExpressions: [
                         { key: '', operator: '', values: [ '' ] }
                     ],
                     matchFields: [
                         { key: '', operator: '', values: [ '' ] }
                     ]
-                },
-                weight: 1
-            })
+                });
+            } else {
+                let [prop, ...pathSplit] = path.split('.');
+                    
+                if(!term.hasOwnProperty(prop)) {
+                    term[prop] = pathSplit.length ? {} : [];
+                }
+
+                this.addRequiredAffinityTerm(term[prop], pathSplit.join('.'));
+            }
+        },
+        
+        addPreferredAffinityTerm(term = this.preferredAffinity, path = '') {
+            if(!path.length) {
+                term.push({
+                    preference: {
+                        matchExpressions: [
+                            { key: '', operator: '', values: [ '' ] }
+                        ],
+                        matchFields: [
+                            { key: '', operator: '', values: [ '' ] }
+                        ]
+                    },
+                    weight: 1
+                });
+            } else {
+                let [prop, ...pathSplit] = path.split('.');
+                    
+                if(!term.hasOwnProperty(prop)) {
+                    term[prop] = pathSplit.length ? {} : [];
+                }
+
+                this.addPreferredAffinityTerm(term[prop], pathSplit.join('.'));
+            }
         },
 
         cleanNodeAffinity (affinity) {
-            if( !['[{"matchExpressions":[{"key":"","operator":"","values":[""]}],"matchFields":[{"key":"","operator":"","values":[""]}]}]','[{"preference":{"matchExpressions":[{"key":"","operator":"","values":[""]}],"matchFields":[{"key":"","operator":"","values":[""]}]},"weight":1}]'].includes(JSON.stringify(affinity))) {
+            if( affinity.length && !['[{"matchExpressions":[{"key":"","operator":"","values":[""]}],"matchFields":[{"key":"","operator":"","values":[""]}]}]','[{"preference":{"matchExpressions":[{"key":"","operator":"","values":[""]}],"matchFields":[{"key":"","operator":"","values":[""]}]},"weight":1}]'].includes(JSON.stringify(affinity))) {
                 let aff = JSON.parse(JSON.stringify(affinity));
 
                 aff.forEach(function(a, affIndex) {
@@ -772,7 +774,7 @@ export const sgclusterform = {
         validateSelectedPgConfig() {
             const vc = this;
 
-            if(vc.pgConfig.length) {
+            if( vc.hasOwnProperty('pgConfig') && (vc.pgConfig.length) ) {
                 let config = vc.pgConf.find(c => (c.data.metadata.name == vc.pgConfig) && (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.postgresVersion == vc.shortPostgresVersion))
 
                 if(typeof config == 'undefined') {
@@ -799,10 +801,13 @@ export const sgclusterform = {
             this.validateSelectedPgVersion();
             this.validateSelectedPgConfig();
             this.getFlavorExtensions();
-            this.validateSelectedRestoreBackup();
+
+            if(this.hasOwnProperty('restoreBackup')) {
+                this.validateSelectedRestoreBackup();
+            }
         }, 
 
-        validateStep: function (event) {
+        validateStep(event) {
             const vc = this;
 
             let dataFieldset = event.detail.fieldset;
@@ -812,39 +817,6 @@ export const sgclusterform = {
                     vc._data.errorStep.splice(i, 1); 
                     break;
                 }
-            }
-        }, 
-
-        checkenableMonitoring() {
-            const vc = this;  
-
-            if(vc.enableMonitoring) {
-                // If Monitoring is ON, Metrics Exporter and Prometheus Atobind should be ON
-                vc.metricsExporter = true;
-                vc.prometheusAutobind = true
-            } else {
-                // If Monitoring if OFF, PA should be OFF. ME default is ON
-                vc.prometheusAutobind = false
-            }
-        },
-
-        checkMetricsExporter() {
-            const vc = this; 
-
-            if(!vc.metricsExporter) {
-                vc.enableMonitoring = false;
-            } else if(vc.metricsExporter && vc.prometheusAutobind) {
-                vc.enableMonitoring = true;
-            }
-        },
-
-        checkPrometheusAutobind() {
-            const vc = this; 
-
-            if(!vc.prometheusAutobind) {
-                vc.enableMonitoring = false;
-            } else if(vc.prometheusAutobind && vc.metricsExporter) {
-                vc.enableMonitoring = true;
             }
         },
 
@@ -1013,6 +985,25 @@ export const sgclusterform = {
             }
         },
 
+        pushElement(parent, path, el) {
+            if(!path.length) {
+                parent.push(el);
+            } else {
+                if (this.hasProp(parent, path)) {
+                    let lastEl = path.split('.').reduce(function(p,prop) { return p[prop] }, parent);
+                    lastEl.push(el);
+                } else {
+                    let [prop, ...pathSplit] = path.split('.');
+                
+                    if(!parent.hasOwnProperty(prop)) {
+                        parent[prop] = pathSplit.length ? {} : [];
+                    }
+
+                    this.pushElement(parent[prop], pathSplit.join('.'), el);
+                }
+            }
+        }
+
     },
 
     created() {
@@ -1029,9 +1020,9 @@ export const sgclusterform = {
         });
     }, 
 
-    mounted: () => {
+    mounted() {
         var that = this;
         window.addEventListener('fieldSetListener', function(e) {that.validateStep(e);});
-    },
+    }
 
 }

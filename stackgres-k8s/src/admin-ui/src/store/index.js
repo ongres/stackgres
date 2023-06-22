@@ -173,15 +173,6 @@ export default new Vuex.Store({
       
     },
 
-    updateShardedClusterStats (state, clusterStats) {
-
-      let cluster = state.sgshardedclusters.find(c => (clusterStats.name == c.name) && (clusterStats.namespace == c.data.metadata.namespace) ); 
-
-      if ( typeof cluster !== "undefined" )
-        cluster.status = clusterStats.stats
-      
-    },
-
     updateBackups ( state, backup ) {
 
         let index = state.sgbackups.find(p => (backup.data.metadata.name == p.name) && (backup.data.metadata.namespace == p.data.metadata.namespace) ); 
