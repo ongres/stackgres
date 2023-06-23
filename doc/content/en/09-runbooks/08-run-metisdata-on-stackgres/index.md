@@ -1,12 +1,12 @@
 ---
-title: Run MetisData on top of StackGres
+title: Run Metis on top of StackGres
 weight: 7
 url: runbooks/metisdata-stackgres
-description: How to run MetisData on top of StackGres
+description: How to run Metis on top of StackGres
 showToc: true
 ---
 
-This runbook will show you how to install [MetisData](https://metisdata.io/) on Kubernetes, with a production-grade database provided by StackGres. MetisData  guardrail enables a proactive approach to database code, empowering devs to better understand, control, troubleshoot, fix, and own the entire data layer.improving their experiences and preventing code from breaking production.
+This runbook will show you how to install [Metis](https://metisdata.io/) on Kubernetes, with a production-grade database provided by StackGres. MetisData  guardrail enables a proactive approach to database code, empowering devs to better understand, control, troubleshoot, fix, and own the entire data layer.improving their experiences and preventing code from breaking production.
 
 
 ## Scenario
@@ -110,12 +110,12 @@ kubectl -n metisdata exec -it metisdata-0 -c postgres-util -- psql -l metisdata
 ```
 
 
-## Deploy MetisData
+## Deploy 
 
 Add the Metis Helm repository to your local Helm installation and update the Helm repository to ensure that you have the latest version:
 
 ```
-helm repo add metis-data https://metis-data.github.io/helm-charts/
+helm repo add metis-data https://metis-data.github.io/helm-charts/Metis
 helm repo update
 ```
 
@@ -128,7 +128,7 @@ helm install metis-mmc metis-data/metis-md-collector \
 ```
 
 Where the:
-*****1 - Represents the API token from Metisdata, that you could find in the web console at:
+*****1 - Represents the API token from Metis, that you could find in the web console at:
 ![Metisdata-API](metisdata-api.png)
 
 
