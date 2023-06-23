@@ -162,13 +162,20 @@ export const mixin = {
   
           $('#reload').addClass('active');
     
-          // Read and set user permissions first
-          sgApi
-          .get('can_i')
-          .then( function(response) {
-            store.commit('setPermissions', response.data);
-          })
-          .then( function() {
+          if(!store.state.permissions.allowed.namespaced.length) {
+            // Read and set user permissions first
+            sgApi
+            .get('can_i')
+            .then( function(response) {
+              store.commit('setPermissions', response.data);
+              vc.fetchAPI();
+            })
+            .catch(function(err) {
+              console.log(err);
+              vc.checkAuthError(err);
+            });
+          } else {
+
 
             if ( vc.iCan('list', 'namespaces') && ( !kind.length || (kind == 'namespaces') ) ) {
               /* Namespaces Data */
@@ -487,12 +494,7 @@ export const mixin = {
                 vc.checkAuthError(err);
               });
             }
-  
-          })
-          .catch(function(err) {
-            console.log(err);
-            vc.checkAuthError(err);
-          });
+          }
 
           if(!Object.keys(store.state.tooltips).length && !store.state.tooltips.hasOwnProperty('error')) {
             fetch('/admin/info/sg-tooltips.json')
