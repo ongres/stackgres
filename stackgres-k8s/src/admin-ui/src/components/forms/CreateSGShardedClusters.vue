@@ -1981,11 +1981,11 @@
                         <div class="row-50">
                             <div class="col">
                                 <label for="spec.coordinator.replication.mode">Mode</label>
-                                <select v-model="coordinator.replication.mode" required data-field="spec.replication.mode" @change="['sync', 'strict-sync'].includes(coordinator.replication.mode) ? (coordinator.replication['syncInstances'] = 1) : ((coordinator.replication.hasOwnProperty('syncInstances') && delete coordinator.replication.syncInstances) )">    
+                                <select v-model="coordinator.replication.mode" required data-field="spec.coordinator.replication.mode" @change="['sync', 'strict-sync'].includes(coordinator.replication.mode) ? (coordinator.replication['syncInstances'] = 1) : ((coordinator.replication.hasOwnProperty('syncInstances') && delete coordinator.replication.syncInstances) )">    
                                     <option>async</option>
                                     <option>sync</option>
                                     <option>strict-sync</option>
-                                    <option>sync-all</option>
+                                    <option selected>sync-all</option>
                                     <option>strict-sync-all</option>
                                 </select>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.replication.mode')"></span>
@@ -4036,8 +4036,8 @@
                         <div class="row-50">
                             <div class="col">
                                 <label for="spec.shards.replication.mode">Mode</label>
-                                <select v-model="shards.replication.mode" required data-field="spec.replication.mode" @change="['sync', 'strict-sync'].includes(shards.replication.mode) ? (shards.replication['syncInstances'] = 1) : ((shards.replication.hasOwnProperty('syncInstances') && delete shards.replication.syncInstances) )">    
-                                    <option>async</option>
+                                <select v-model="shards.replication.mode" required data-field="spec.shards.replication.mode" @change="['sync', 'strict-sync'].includes(shards.replication.mode) ? (shards.replication['syncInstances'] = 1) : ((shards.replication.hasOwnProperty('syncInstances') && delete shards.replication.syncInstances) )">    
+                                    <option selected>async</option>
                                     <option>sync</option>
                                     <option>strict-sync</option>
                                     <option>sync-all</option>
@@ -4900,7 +4900,7 @@
                     instances: 1,
                     sgInstanceProfile: '',
                     replication: {
-                        mode: 'async'
+                        mode: 'sync-all'
                     },
                     configurations: {
                         sgPostgresConfig: '',
