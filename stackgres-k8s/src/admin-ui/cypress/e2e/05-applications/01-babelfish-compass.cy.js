@@ -7,9 +7,14 @@ describe('Test Babelfish Compass', () => {
     let resourceName;
 
     before( () => {
+      cy.login()
+    });
+
+    beforeEach( () => {
         cy.gc()
         cy.login()
         cy.setCookie('sgReload', '0')
+        cy.setCookie('sgTimezone', 'utc')
         cy.visit(namespace + '/application/babelfish-compass')
     });
 

@@ -1822,7 +1822,6 @@ describe('Create SGShardedCluster', () => {
 
     
     it('Updating an advanced SGShardedCluster should be possible', () => {
-        resourceName = "667430"
         // Edit advanced cluster
         cy.visit(namespace + '/sgshardedcluster/advanced-' + resourceName + '/edit')
     
