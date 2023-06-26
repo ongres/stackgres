@@ -1257,6 +1257,7 @@ describe('Create SGCluster', () => {
 
         // Disable SSL Connections
         cy.get('input[data-field="spec.postgres.ssl.enabled"]')
+            .should('be.enabled')
             .click()
 
         // Test some extensions

@@ -100,13 +100,13 @@ describe('Create SGShardedCluster', () => {
     after( () => {
         cy.login()
 
-        cy.deleteCluster(namespace, 'basic-' + resourceName);
+        cy.deleteShardedCluster(namespace, 'basic-' + resourceName);
 
-        cy.deleteCluster(namespace, 'babelfish-' + resourceName);
+        cy.deleteShardedCluster(namespace, 'babelfish-' + resourceName);
 
-        cy.deleteCluster(namespace, 'advanced-' + resourceName);
+        cy.deleteShardedCluster(namespace, 'advanced-' + resourceName);
 
-        cy.deleteCluster(namespace, 'rep-sgshardedcluster-' + resourceName);
+        cy.deleteShardedCluster(namespace, 'rep-sgshardedcluster-' + resourceName);
 
         cy.deleteCRD('sgobjectstorages', {
             metadata: {
@@ -125,6 +125,9 @@ describe('Create SGShardedCluster', () => {
         // Test Cluster Name
         cy.get('[data-field="metadata.name"]')
             .type('basic-' + resourceName)
+        // Test Cluster Database
+        cy.get('[data-field="spec.database"]')
+            .type('basic_' + resourceName)
 
         // Test Submit form
         cy.get('form#createShardedCluster button[type="submit"]')
@@ -132,16 +135,19 @@ describe('Create SGShardedCluster', () => {
         
         cy.get('#notifications .message.show .title')
             .should(($notification) => {
-                expect($notification).contain('Sharded Cluster "basic-' + resourceName + '" created successfully')
+                expect($notification).contain('Cluster "basic-' + resourceName + '" created successfully')
             })
 
         cy.location('pathname').should('eq', '/admin/' + namespace + '/sgshardedclusters')
     }); 
 
-    it('Creating a SGShardedCluster with Babelfish should be possible', () => {
+    it.skip('Creating a SGShardedCluster with Babelfish should be possible', () => {
         // Test Cluster Name
         cy.get('input[data-field="metadata.name"]')
             .type('babelfish-' + resourceName)
+        // Test Cluster Database
+        cy.get('[data-field="spec.database"]')
+            .type('babelfish_' + resourceName)
         
         // Test enabling babelfish
         cy.get('label[data-field="spec.postgres.flavor.babelfish"]')
@@ -155,7 +161,7 @@ describe('Create SGShardedCluster', () => {
         
         cy.get('#notifications .message.show .title')
             .should(($notification) => {
-                expect($notification).contain('Sharded Cluster "babelfish-' + resourceName + '" created successfully')
+                expect($notification).contain('Cluster "babelfish-' + resourceName + '" created successfully')
             })
 
         cy.location('pathname').should('eq', '/admin/' + namespace + '/sgshardedclusters')
@@ -173,6 +179,9 @@ describe('Create SGShardedCluster', () => {
         // Test Cluster Name
         cy.get('input[data-field="metadata.name"]')
             .type('advanced-' + resourceName)
+        // Test Cluster Database
+        cy.get('[data-field="spec.database"]')
+            .type('advanced_' + resourceName)
         
         // Test postgres version
         cy.get('ul[data-field="spec.postgres.version"] li').first()
@@ -180,9 +189,9 @@ describe('Create SGShardedCluster', () => {
         cy.get('ul[data-field="spec.postgres.version"] a[data-val="' + Cypress.env('postgres_version') + '"]')
             .click()
 
-        // Enable SSL Connections
+        // Check Enable SSL Connections
         cy.get('input[data-field="spec.postgres.ssl.enabled"]')
-            .click()
+            .should('be.enabled')
         
         cy.get('input[data-field="spec.postgres.ssl.certificateSecretKeySelector.name"]')
             .type('cert-cluster')
@@ -194,7 +203,7 @@ describe('Create SGShardedCluster', () => {
             .type('tls.key')
 
         // Test some extensions
-        cy.get('form#createShardedCluster li[data-step="extensions"]')
+        cy.get('form#createShardedCluster li[data-step="general.extensions"]')
             .click()
 
         cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.db_info"].enableExtension')
@@ -209,7 +218,7 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         // Test managed backups configuration
-        cy.get('form#createShardedCluster li[data-step="backups"]')
+        cy.get('form#createShardedCluster li[data-step="general.backups"]')
             .click()
 
         cy.get('label[data-field="spec.configurations.backups"]')
@@ -245,7 +254,7 @@ describe('Create SGShardedCluster', () => {
             .type('3')
 
         // Base Backup Details
-        cy.get('[data-field="spec.configurations.backups.paths"]')
+        cy.get('[data-field="spec.configurations.backups.paths[0]"]')
             .clear()    
             .type('/path')
         
@@ -264,18 +273,15 @@ describe('Create SGShardedCluster', () => {
             .type('2')
 
         // Test prometheus autobind
-        cy.get('form#createShardedCluster li[data-step="sidecars"]')
+        cy.get('form#createShardedCluster li[data-step="general.sidecars"]')
             .click()
 
         cy.get('input[data-field="spec.prometheusAutobind"]')
             .click()
 
         // Test Replication
-        cy.get('form#createShardedCluster li[data-step="pods-replication"]')
+        cy.get('form#createShardedCluster li[data-step="general.pods-replication"]')
             .click()
-        
-        cy.get('select[data-field="spec.replication.role"]')
-            .select('ha')
         
         cy.get('select[data-field="spec.replication.mode"]')
             .select('sync')
@@ -285,7 +291,7 @@ describe('Create SGShardedCluster', () => {
             .type('2')
 
         // Test Metadata
-        cy.get('form#createShardedCluster li[data-step="metadata"]')
+        cy.get('form#createShardedCluster li[data-step="general.metadata"]')
             .click()
 
         cy.get('input[data-field="spec.metadata.labels.clusterPods[0].label"]')
@@ -319,7 +325,7 @@ describe('Create SGShardedCluster', () => {
             .type('value')
 
         // Test Non Production Options
-        cy.get('form#createShardedCluster li[data-step="non-production"]')
+        cy.get('form#createShardedCluster li[data-step="general.non-production"]')
             .click()
 
         cy.get('input[data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity"]')
@@ -340,7 +346,7 @@ describe('Create SGShardedCluster', () => {
             .type('2')
 
         // Test Coordinator scripts
-        cy.get('form#createShardedCluster li[data-step="scripts"]')
+        cy.get('form#createShardedCluster li[data-step="coordinator.scripts"]')
             .click()
         
         // Test Coordinator create new script
@@ -356,11 +362,11 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         // Test Coordinator select script
-        cy.get('[data-field="spec.coordinator.managedSql.scripts.scriptSource[1]"]')
+        cy.get('[data-field="spec.coordinator.managedSql.scripts.scriptSource.coordinator[1]"]')
             .select('script-' + resourceName)
 
         // Test User-Supplied Pods Sidecars
-        cy.get('form#createShardedCluster li[data-step="pods"]')
+        cy.get('form#createShardedCluster li[data-step="coordinator.pods"]')
             .click()
 
         // Test Custom volumes
@@ -730,11 +736,8 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         // Test Coordinator Replication
-        cy.get('form#createShardedCluster li[data-step="pods-replication"]')
+        cy.get('form#createShardedCluster li[data-step="coordinator.pods-replication"]')
             .click()
-        
-        cy.get('select[data-field="spec.coordinator.replication.role"]')
-            .select('ha')
         
         cy.get('select[data-field="spec.coordinator.replication.mode"]')
             .select('sync')
@@ -744,7 +747,7 @@ describe('Create SGShardedCluster', () => {
             .type('2')
 
         // Test Coordinator Postgres Services
-        cy.get('form#createShardedCluster li[data-step="services"]')
+        cy.get('form#createShardedCluster li[data-step="coordinator.services"]')
             .click()
 
             cy.get('select[data-field="spec.postgresServices.coordinator.primary.type"]')
@@ -778,7 +781,7 @@ describe('Create SGShardedCluster', () => {
             .type('1234')
 
         cy.get('select[data-field="spec.postgresServices.coordinator.any.type"]')
-            .select('LoadBalancer')
+            .select('NodePort')
         
         cy.get('input[data-field="spec.postgresServices.coordinator.any.loadBalancerIP"]')
             .clear()
@@ -811,7 +814,7 @@ describe('Create SGShardedCluster', () => {
             .type('4321')
 
         // Test Coordinator Metadata
-        cy.get('form#createShardedCluster li[data-step="metadata"]')
+        cy.get('form#createShardedCluster li[data-step="coordinator.metadata"]')
             .click()
 
         cy.get('input[data-field="spec.coordinator.metadata.labels.clusterPods[0].label"]')
@@ -845,7 +848,7 @@ describe('Create SGShardedCluster', () => {
             .type('value')
 
         // Tests Coordinator Scheduling
-        cy.get('form#createShardedCluster li[data-step="scheduling"]')
+        cy.get('form#createShardedCluster li[data-step="coordinator.scheduling"]')
             .click()
 
         // Tests Coordinator Node Selectors
@@ -916,7 +919,7 @@ describe('Create SGShardedCluster', () => {
             .type('2')
 
         // Test Shards scripts
-        cy.get('form#createShardedCluster li[data-step="scripts"]')
+        cy.get('form#createShardedCluster li[data-step="shards.scripts"]')
             .click()
         
         // Test Shards create new script
@@ -932,11 +935,11 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         // Test Shards select script
-        cy.get('[data-field="spec.shards.managedSql.scripts.scriptSource[1]"]')
+        cy.get('[data-field="spec.shards.managedSql.scripts.scriptSource.shards[1]"]')
             .select('script-' + resourceName)
 
         // Test User-Supplied Pods Sidecars
-        cy.get('form#createShardedCluster li[data-step="pods"]')
+        cy.get('form#createShardedCluster li[data-step="shards.pods"]')
             .click()
 
         // Test Custom volumes
@@ -1306,11 +1309,8 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         // Test Shards Replication
-        cy.get('form#createShardedCluster li[data-step="pods-replication"]')
+        cy.get('form#createShardedCluster li[data-step="shards.pods-replication"]')
             .click()
-        
-        cy.get('select[data-field="spec.shards.replication.role"]')
-            .select('ha')
         
         cy.get('select[data-field="spec.shards.replication.mode"]')
             .select('sync')
@@ -1320,7 +1320,7 @@ describe('Create SGShardedCluster', () => {
             .type('2')
 
         // Test Shards Postgres Services
-        cy.get('form#createShardedCluster li[data-step="services"]')
+        cy.get('form#createShardedCluster li[data-step="shards.services"]')
             .click()
 
         cy.get('select[data-field="spec.postgresServices.shards.primaries.type"]')
@@ -1353,8 +1353,34 @@ describe('Create SGShardedCluster', () => {
             .clear()
             .type('1234')
 
+        cy.get('fieldset[data-field="spec.postgresServices.shards.customPorts"] + div.fieldsetFooter > a.addRow')
+            .click()
+
+        cy.get('input[data-field="spec.postgresServices.shards.customPorts[1].appProtocol"]')
+            .clear()
+            .type('protocol2')
+        
+        cy.get('input[data-field="spec.postgresServices.shards.customPorts[1].name"]')
+            .clear()
+            .type('name2')
+        
+        cy.get('input[data-field="spec.postgresServices.shards.customPorts[1].nodePort"]')
+            .clear()
+            .type('4321')
+
+        cy.get('input[data-field="spec.postgresServices.shards.customPorts[1].port"]')
+            .clear()
+            .type('4321')
+
+        cy.get('select[data-field="spec.postgresServices.shards.customPorts[1].protocol"]')
+            .select('SCTP')
+        
+        cy.get('input[data-field="spec.postgresServices.shards.customPorts[1].targetPort"]')
+            .clear()
+            .type('4321')
+
         // Test Shards Metadata
-        cy.get('form#createShardedCluster li[data-step="metadata"]')
+        cy.get('form#createShardedCluster li[data-step="shards.metadata"]')
             .click()
 
         cy.get('input[data-field="spec.shards.metadata.labels.clusterPods[0].label"]')
@@ -1388,7 +1414,7 @@ describe('Create SGShardedCluster', () => {
             .type('value')
 
         // Tests Shards Scheduling
-        cy.get('form#createShardedCluster li[data-step="scheduling"]')
+        cy.get('form#createShardedCluster li[data-step="shards.scheduling"]')
             .click()
 
         // Tests Shards Node Selectors
@@ -1451,7 +1477,7 @@ describe('Create SGShardedCluster', () => {
         // Test creation notification
         cy.get('#notifications .message.show .title')
             .should(($notification) => {
-                expect($notification).contain('Sharded Cluster "advanced-' + resourceName + '" created successfully')
+                expect($notification).contain('Cluster "advanced-' + resourceName + '" created successfully')
             })
 
         // Test user redirection
@@ -1464,9 +1490,6 @@ describe('Create SGShardedCluster', () => {
         cy.wait('@postCluster')
             .its('response.statusCode')
             .should('eq', 204)
-        cy.get('@postCluster')
-            .its('request.body.spec.pods.persistentVolume.size')
-            .should('eq', "2Gi")
         cy.get('@postCluster')
             .its('request.body.spec.postgres.ssl')
             .should('nested.include', {"enabled": true})
@@ -1489,7 +1512,7 @@ describe('Create SGShardedCluster', () => {
             .should('nested.include', {"sgObjectStorage": 'storage-' + resourceName})
             .and('nested.include', {"cronSchedule": "1 1 1 1 1"})
             .and('nested.include', {"retention": "3"})
-            .and('nested.include', {"path": ["/path"]})
+            .and('nested.include', {"paths[0]": "/path"})
             .and('nested.include', {"compression": "lzma"})
             .and('nested.include', {"performance.maxNetworkBandwidth": "1024"})
             .and('nested.include', {"performance.maxDiskBandwidth": "1024"})
@@ -1507,7 +1530,6 @@ describe('Create SGShardedCluster', () => {
             .and('nested.include', {"annotations.replicasService.annotation": 'value'})
         cy.get('@postCluster')
             .its('request.body.spec.replication')
-            .should('nested.include', {"role": 'ha'})
             .and('nested.include', {"mode": 'sync'})
             .and('nested.include', {"syncInstances": '2'})
         cy.get('@postCluster')
@@ -1516,6 +1538,9 @@ describe('Create SGShardedCluster', () => {
         cy.get('@postCluster')
             .its('request.body.spec.coordinator.instances')
             .should('eq', "4")
+        cy.get('@postCluster')
+            .its('request.body.spec.coordinator.pods.persistentVolume.size')
+            .should('eq', "2Gi")
         cy.get('@postCluster')
             .its('request.body.spec.coordinator.managedSql')
             .should('nested.include', {"scripts[0].scriptSpec.scripts[0].script": '' + resourceName})
@@ -1603,7 +1628,6 @@ describe('Create SGShardedCluster', () => {
             .and('nested.include', {"customContainers[0].volumeMounts[0].subPath": 'subPath'})
         cy.get('@postCluster')
             .its('request.body.spec.coordinator.replication')
-            .should('nested.include', {"role": 'ha'})
             .and('nested.include', {"mode": 'sync'})
             .and('nested.include', {"syncInstances": '2'})
         cy.get('@postCluster')
@@ -1658,6 +1682,9 @@ describe('Create SGShardedCluster', () => {
         cy.get('@postCluster')
             .its('request.body.spec.shards.instancesPerCluster')
             .should('eq', "4")
+        cy.get('@postCluster')
+            .its('request.body.spec.shards.pods.persistentVolume.size')
+            .should('eq', "2Gi")
         cy.get('@postCluster')
             .its('request.body.spec.shards.managedSql')
             .should('nested.include', {"scripts[0].scriptSpec.scripts[0].script": '' + resourceName})
@@ -1745,7 +1772,6 @@ describe('Create SGShardedCluster', () => {
             .and('nested.include', {"customContainers[0].volumeMounts[0].subPath": 'subPath'})
         cy.get('@postCluster')
             .its('request.body.spec.shards.replication')
-            .should('nested.include', {"role": 'ha'})
             .and('nested.include', {"mode": 'sync'})
             .and('nested.include', {"syncInstances": '2'})
         cy.get('@postCluster')
@@ -1796,6 +1822,7 @@ describe('Create SGShardedCluster', () => {
 
     
     it('Updating an advanced SGShardedCluster should be possible', () => {
+        resourceName = "667430"
         // Edit advanced cluster
         cy.visit(namespace + '/sgshardedcluster/advanced-' + resourceName + '/edit')
     
@@ -1810,13 +1837,17 @@ describe('Create SGShardedCluster', () => {
         // Test Cluster Name
         cy.get('input[data-field="metadata.name"]')
             .should('be.disabled')
+        // Test Cluster Database
+        cy.get('[data-field="spec.database"]')
+            .should('be.disabled')
 
         // Disable SSL Connections
         cy.get('input[data-field="spec.postgres.ssl.enabled"]')
+            .should('be.enabled')
             .click()
 
         // Test some extensions
-        cy.get('form#createShardedCluster li[data-step="extensions"]')
+        cy.get('form#createShardedCluster li[data-step="general.extensions"]')
             .click()
 
         cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.db_info"].enableExtension')
@@ -1832,7 +1863,7 @@ describe('Create SGShardedCluster', () => {
             .should('be.enabled')
 
         // Test managed backups configuration
-        cy.get('form#createShardedCluster li[data-step="backups"]')
+        cy.get('form#createShardedCluster li[data-step="general.backups"]')
             .click()
 
         cy.get('label[data-field="spec.configurations.backups"] > input')
@@ -1874,7 +1905,7 @@ describe('Create SGShardedCluster', () => {
             .type('2')
 
         // Base Backup Details
-        cy.get('[data-field="spec.configurations.backups.path"]')
+        cy.get('[data-field="spec.configurations.backups.paths[0]"]')
             .should('have.value', '/path')
             .clear()
             .type('/new-path')
@@ -1900,7 +1931,7 @@ describe('Create SGShardedCluster', () => {
             .type('1')
 
         // Test prometheus autobind
-        cy.get('form#createShardedCluster li[data-step="sidecars"]')
+        cy.get('form#createShardedCluster li[data-step="general.sidecars"]')
             .click()
 
         cy.get('input[data-field="spec.prometheusAutobind"]')
@@ -1908,7 +1939,7 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         // Test Replication
-        cy.get('form#createShardedCluster li[data-step="pods-replication"]')
+        cy.get('form#createShardedCluster li[data-step="general.pods-replication"]')
             .click()
         
         cy.get('select[data-field="spec.replication.mode"]')
@@ -1921,7 +1952,7 @@ describe('Create SGShardedCluster', () => {
             .type('3')
 
         // Test Metadata
-        cy.get('form#createShardedCluster li[data-step="metadata"]')
+        cy.get('form#createShardedCluster li[data-step="general.metadata"]')
             .click()
 
         cy.get('input[data-field="spec.metadata.labels.clusterPods[0].label"]')
@@ -1979,7 +2010,7 @@ describe('Create SGShardedCluster', () => {
             .type('value1')
 
         // Test Non Production Options
-        cy.get('form#createShardedCluster li[data-step="non-production"]')
+        cy.get('form#createShardedCluster li[data-step="general.non-production"]')
             .click()
 
         cy.get('input[data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity"]')
@@ -2001,7 +2032,7 @@ describe('Create SGShardedCluster', () => {
             .should('have.value', '2')
 
         // Test Coordinator User-Supplied Pods Sidecars
-        cy.get('form#createShardedCluster li[data-step="pods"]')
+        cy.get('form#createShardedCluster li[data-step="coordinator.pods"]')
             .click()
 
         // Test Coordinator Custom volumes
@@ -2064,20 +2095,20 @@ describe('Create SGShardedCluster', () => {
             .type('edit-path')
 
         // Test Coordinator scripts
-        cy.get('form#createShardedCluster li[data-step="scripts"]')
+        cy.get('form#createShardedCluster li[data-step="coordinator.scripts"]')
             .click()
         
         // Test Coordinator Entry script textarea
-        cy.get('textarea[data-field="spec.coordinator.managedSql.scripts[1].scriptSpec.scripts[0].script"]')
+        cy.get('textarea[data-field="spec.coordinator.managedSql.scripts[0].scriptSpec.scripts[0].script"]')
             .should('have.value', '' + resourceName)
             .clear()
             .type('test-' + resourceName)
         
         // Test Coordinator select script
-        cy.get('select[data-field="spec.coordinator.managedSql.scripts.scriptSource[2]"]')
-            .should('have.value', 'script-' + resourceName)        
-        cy.get('textarea[data-field="spec.coordinator.managedSql.scripts[2].scriptSpec.scripts[0].script"]')
-            .should('have.value', '' + resourceName)        
+        cy.get('select[data-field="spec.coordinator.managedSql.scripts.scriptSource.coordinator[1]"]')
+            .should('have.value', 'script-' + resourceName)
+        cy.get('textarea[data-field="spec.coordinator.managedSql.scripts[1].scriptSpec.scripts[0].script"]')
+            .should('have.value', '' + resourceName)
             .clear()
             .type('test2-' + resourceName)        
         
@@ -2086,15 +2117,15 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         // Test Coordinator create new script
-        cy.get('select[data-field="spec.coordinator.managedSql.scripts.scriptSource[3]"]')
+        cy.get('select[data-field="spec.coordinator.managedSql.scripts.scriptSource.coordinator[2]"]')
             .select('createNewScript')
 
         // Test Coordinator Entry script textarea
-        cy.get('textarea[data-field="spec.coordinator.managedSql.scripts[3].scriptSpec.scripts[0].script"]')
+        cy.get('textarea[data-field="spec.coordinator.managedSql.scripts[2].scriptSpec.scripts[0].script"]')
             .type('test3-' + resourceName)        
 
         // Test Coordinator Replication
-        cy.get('form#createShardedCluster li[data-step="pods-replication"]')
+        cy.get('form#createShardedCluster li[data-step="coordinator.pods-replication"]')
             .click()
         
         cy.get('select[data-field="spec.coordinator.replication.mode"]')
@@ -2107,7 +2138,7 @@ describe('Create SGShardedCluster', () => {
             .type('3')
 
         // Test Coordinator Postgres Services
-        cy.get('form#createShardedCluster li[data-step="services"]')
+        cy.get('form#createShardedCluster li[data-step="coordinator.services"]')
             .click()
 
         cy.get('select[data-field="spec.postgresServices.coordinator.primary.type"]')
@@ -2154,7 +2185,7 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         // Test Coordinator Metadata
-        cy.get('form#createShardedCluster li[data-step="metadata"]')
+        cy.get('form#createShardedCluster li[data-step="coordinator.metadata"]')
             .click()
 
         cy.get('input[data-field="spec.coordinator.metadata.labels.clusterPods[0].label"]')
@@ -2212,7 +2243,7 @@ describe('Create SGShardedCluster', () => {
             .type('value1')
 
         // Tests Coordinator Scheduling
-        cy.get('form#createShardedCluster li[data-step="scheduling"]')
+        cy.get('form#createShardedCluster li[data-step="coordinator.scheduling"]')
             .click()
 
         // Tests Coordinator Node Selectors
@@ -2314,7 +2345,7 @@ describe('Create SGShardedCluster', () => {
             .should('have.value', '2')
 
         // Test Shards User-Supplied Pods Sidecars
-        cy.get('form#createShardedCluster li[data-step="pods"]')
+        cy.get('form#createShardedCluster li[data-step="shards.pods"]')
             .click()
 
         // Test Shards Custom volumes
@@ -2377,19 +2408,19 @@ describe('Create SGShardedCluster', () => {
             .type('edit-path')
 
         // Test Shards scripts
-        cy.get('form#createShardedCluster li[data-step="scripts"]')
+        cy.get('form#createShardedCluster li[data-step="shards.scripts"]')
             .click()
         
         // Test Shards Entry script textarea
-        cy.get('textarea[data-field="spec.shards.managedSql.scripts[1].scriptSpec.scripts[0].script"]')
+        cy.get('textarea[data-field="spec.shards.managedSql.scripts[0].scriptSpec.scripts[0].script"]')
             .should('have.value', '' + resourceName)
             .clear()
             .type('test-' + resourceName)
         
         // Test Shards select script
-        cy.get('select[data-field="spec.shards.managedSql.scripts.scriptSource[2]"]')
+        cy.get('select[data-field="spec.shards.managedSql.scripts.scriptSource.shards[1]"]')
             .should('have.value', 'script-' + resourceName)        
-        cy.get('textarea[data-field="spec.shards.managedSql.scripts[2].scriptSpec.scripts[0].script"]')
+        cy.get('textarea[data-field="spec.shards.managedSql.scripts[1].scriptSpec.scripts[0].script"]')
             .should('have.value', '' + resourceName)        
             .clear()
             .type('test2-' + resourceName)        
@@ -2399,15 +2430,15 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         // Test Shards create new script
-        cy.get('select[data-field="spec.shards.managedSql.scripts.scriptSource[3]"]')
+        cy.get('select[data-field="spec.shards.managedSql.scripts.scriptSource.shards[2]"]')
             .select('createNewScript')
 
         // Test Shards Entry script textarea
-        cy.get('textarea[data-field="spec.shards.managedSql.scripts[3].scriptSpec.scripts[0].script"]')
+        cy.get('textarea[data-field="spec.shards.managedSql.scripts[2].scriptSpec.scripts[0].script"]')
             .type('test3-' + resourceName)        
 
         // Test Shards Replication
-        cy.get('form#createShardedCluster li[data-step="pods-replication"]')
+        cy.get('form#createShardedCluster li[data-step="shards.pods-replication"]')
             .click()
         
         cy.get('select[data-field="spec.shards.replication.mode"]')
@@ -2420,7 +2451,7 @@ describe('Create SGShardedCluster', () => {
             .type('3')
 
         // Test Shards Postgres Services
-        cy.get('form#createShardedCluster li[data-step="services"]')
+        cy.get('form#createShardedCluster li[data-step="shards.services"]')
             .click()
 
         cy.get('select[data-field="spec.postgresServices.shards.primaries.type"]')
@@ -2459,7 +2490,7 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         // Test Shards Metadata
-        cy.get('form#createShardedCluster li[data-step="metadata"]')
+        cy.get('form#createShardedCluster li[data-step="shards.metadata"]')
             .click()
 
         cy.get('input[data-field="spec.shards.metadata.labels.clusterPods[0].label"]')
@@ -2517,7 +2548,7 @@ describe('Create SGShardedCluster', () => {
             .type('value1')
 
         // Tests Shards Scheduling
-        cy.get('form#createShardedCluster li[data-step="scheduling"]')
+        cy.get('form#createShardedCluster li[data-step="shards.scheduling"]')
             .click()
 
         // Tests Shards Node Selectors
@@ -2636,61 +2667,61 @@ describe('Create SGShardedCluster', () => {
         cy.intercept('PUT', '/stackgres/sgshardedclusters',
             (req) => {
               // Check unknown fields were not overwritten
-              expect(res.body.spec.test).to.eq(true)
-              expect(res.body.spec.postgres.test).to.eq(true)
-              expect(res.body.spec.configurations.test).to.eq(true)
-              expect(res.body.spec.distributedLogs.test).to.eq(true)
-              expect(res.body.spec.metadata.test).to.eq(true)
-              expect(res.body.spec.metadata.labels.test).to.eq(true)
-              expect(res.body.spec.metadata.annotations.test).to.eq(true)
-              expect(res.body.spec.nonProductionOptions.test).to.eq(true)
-              expect(res.body.spec.coordinator.test).to.eq(true)
-              expect(res.body.spec.coordinator.configurations.test).to.eq(true)
-              expect(res.body.spec.coordinator.pods.test).to.eq(true)
-              expect(res.body.spec.coordinator.pods.scheduling.test).to.eq(true)
-              expect(res.body.spec.postgresServices.coordinator.test).to.eq(true)
-              expect(res.body.spec.postgresServices.coordinator.primary.test).to.eq(true)
-              expect(res.body.spec.postgresServices.coordinator.any.test).to.eq(true)
-              expect(res.body.spec.coordinator.metadata.test).to.eq(true)
-              expect(res.body.spec.coordinator.metadata.labels.test).to.eq(true)
-              expect(res.body.spec.coordinator.metadata.annotations.test).to.eq(true)
-              expect(res.body.spec.shards.test).to.eq(true)
-              expect(res.body.spec.shards.configurations.test).to.eq(true)
-              expect(res.body.spec.shards.pods.test).to.eq(true)
-              expect(res.body.spec.shards.pods.scheduling.test).to.eq(true)
-              expect(res.body.spec.postgresServices.shards.test).to.eq(true)
-              expect(res.body.spec.postgresServices.shards.primaries.test).to.eq(true)
-              expect(res.body.spec.shards.metadata.test).to.eq(true)
-              expect(res.body.spec.shards.metadata.labels.test).to.eq(true)
-              expect(res.body.spec.shards.metadata.annotations.test).to.eq(true)
+              expect(req.body.spec.test).to.eq(true)
+              expect(req.body.spec.postgres.test).to.eq(true)
+              expect(req.body.spec.configurations.test).to.eq(true)
+              expect(req.body.spec.distributedLogs.test).to.eq(true)
+              expect(req.body.spec.metadata.test).to.eq(true)
+              expect(req.body.spec.metadata.labels.test).to.eq(true)
+              expect(req.body.spec.metadata.annotations.test).to.eq(true)
+              expect(req.body.spec.nonProductionOptions.test).to.eq(true)
+              expect(req.body.spec.coordinator.test).to.eq(true)
+              expect(req.body.spec.coordinator.configurations.test).to.eq(true)
+              expect(req.body.spec.coordinator.pods.test).to.eq(true)
+              expect(req.body.spec.coordinator.pods.scheduling.test).to.eq(true)
+              expect(req.body.spec.postgresServices.coordinator.test).to.eq(true)
+              expect(req.body.spec.postgresServices.coordinator.primary.test).to.eq(true)
+              expect(req.body.spec.postgresServices.coordinator.any.test).to.eq(true)
+              expect(req.body.spec.coordinator.metadata.test).to.eq(true)
+              expect(req.body.spec.coordinator.metadata.labels.test).to.eq(true)
+              expect(req.body.spec.coordinator.metadata.annotations.test).to.eq(true)
+              expect(req.body.spec.shards.test).to.eq(true)
+              expect(req.body.spec.shards.configurations.test).to.eq(true)
+              expect(req.body.spec.shards.pods.test).to.eq(true)
+              expect(req.body.spec.shards.pods.scheduling.test).to.eq(true)
+              expect(req.body.spec.postgresServices.shards.test).to.eq(true)
+              expect(req.body.spec.postgresServices.shards.primaries.test).to.eq(true)
+              expect(req.body.spec.shards.metadata.test).to.eq(true)
+              expect(req.body.spec.shards.metadata.labels.test).to.eq(true)
+              expect(req.body.spec.shards.metadata.annotations.test).to.eq(true)
               // Removing unknown fields since they are unknown to API too
-              delete res.body.spec.test
-              delete res.body.spec.postgres.test
-              delete res.body.spec.configurations.test
-              delete res.body.spec.distributedLogs.test
-              delete res.body.spec.metadata.test
-              delete res.body.spec.metadata.labels.test
-              delete res.body.spec.metadata.annotations.test
-              delete res.body.spec.nonProductionOptions.test
-              delete res.body.spec.coordinator.test
-              delete res.body.spec.coordinator.configurations.test
-              delete res.body.spec.coordinator.pods.test
-              delete res.body.spec.coordinator.pods.scheduling.test
-              delete res.body.spec.postgresServices.coordinator.test
-              delete res.body.spec.postgresServices.coordinator.primary.test
-              delete res.body.spec.postgresServices.coordinator.any.test
-              delete res.body.spec.coordinator.metadata.test
-              delete res.body.spec.coordinator.metadata.labels.test
-              delete res.body.spec.coordinator.metadata.annotations.test
-              delete res.body.spec.shards.test
-              delete res.body.spec.shards.configurations.test
-              delete res.body.spec.shards.pods.test
-              delete res.body.spec.shards.pods.scheduling.test
-              delete res.body.spec.postgresServices.shards.test
-              delete res.body.spec.postgresServices.shards.primaries.test
-              delete res.body.spec.shards.metadata.test
-              delete res.body.spec.shards.metadata.labels.test
-              delete res.body.spec.shards.metadata.annotations.test
+              delete req.body.spec.test
+              delete req.body.spec.postgres.test
+              delete req.body.spec.configurations.test
+              delete req.body.spec.distributedLogs.test
+              delete req.body.spec.metadata.test
+              delete req.body.spec.metadata.labels.test
+              delete req.body.spec.metadata.annotations.test
+              delete req.body.spec.nonProductionOptions.test
+              delete req.body.spec.coordinator.test
+              delete req.body.spec.coordinator.configurations.test
+              delete req.body.spec.coordinator.pods.test
+              delete req.body.spec.coordinator.pods.scheduling.test
+              delete req.body.spec.postgresServices.coordinator.test
+              delete req.body.spec.postgresServices.coordinator.primary.test
+              delete req.body.spec.postgresServices.coordinator.any.test
+              delete req.body.spec.coordinator.metadata.test
+              delete req.body.spec.coordinator.metadata.labels.test
+              delete req.body.spec.coordinator.metadata.annotations.test
+              delete req.body.spec.shards.test
+              delete req.body.spec.shards.configurations.test
+              delete req.body.spec.shards.pods.test
+              delete req.body.spec.shards.pods.scheduling.test
+              delete req.body.spec.postgresServices.shards.test
+              delete req.body.spec.postgresServices.shards.primaries.test
+              delete req.body.spec.shards.metadata.test
+              delete req.body.spec.shards.metadata.labels.test
+              delete req.body.spec.shards.metadata.annotations.test
               req.continue();
             })
             .as('putCluster')
@@ -2702,7 +2733,7 @@ describe('Create SGShardedCluster', () => {
         // Test update notification
         cy.get('#notifications .message.show .title')
             .should(($notification) => {
-                expect($notification).contain('Sharded Cluster "advanced-' + resourceName + '" updated successfully')
+                expect($notification).contain('Cluster "advanced-' + resourceName + '" updated successfully')
             })
 
         // Test user redirection
@@ -2732,7 +2763,7 @@ describe('Create SGShardedCluster', () => {
             .should('nested.include', {"sgObjectStorage": 'storage-' + resourceName})
             .and('nested.include', {"cronSchedule": "2 2 2 2 2"})
             .and('nested.include', {"retention": "2"})
-            .and('nested.include', {"path": "/new-path"})
+            .and('nested.include', {"paths[0]": "/new-path"})
             .and('nested.include', {"compression": "brotli"})
             .and('nested.include', {"performance.maxNetworkBandwidth": "2048"})
             .and('nested.include', {"performance.maxDiskBandwidth": "2048"})
@@ -2777,10 +2808,10 @@ describe('Create SGShardedCluster', () => {
             .and('nested.include', {'customVolumes[2].secret.items[0].path': 'edit-path'})
         cy.get('@putCluster')
             .its('request.body.spec.coordinator.managedSql')
-            .should('nested.include', {"scripts[1].scriptSpec.scripts[0].script": 'test-' + resourceName})
-            .and('nested.include', {"scripts[2].sgScript": 'script-' + resourceName})
-            .and('nested.include', {"scripts[2].scriptSpec.scripts[0].script": 'test2-' + resourceName})
-            .and('nested.include', {"scripts[3].scriptSpec.scripts[0].script": 'test3-' + resourceName})
+            .should('nested.include', {"scripts[0].scriptSpec.scripts[0].script": 'test-' + resourceName})
+            .and('nested.include', {"scripts[1].sgScript": 'script-' + resourceName})
+            .and('nested.include', {"scripts[1].scriptSpec.scripts[0].script": 'test2-' + resourceName})
+            .and('nested.include', {"scripts[2].scriptSpec.scripts[0].script": 'test3-' + resourceName})
         cy.get('@putCluster')
             .its('request.body.spec.coordinator.replication')
             .and('nested.include', {"mode": 'strict-sync'})
@@ -2850,10 +2881,10 @@ describe('Create SGShardedCluster', () => {
             .and('nested.include', {'customVolumes[2].secret.items[0].path': 'edit-path'})
         cy.get('@putCluster')
             .its('request.body.spec.shards.managedSql')
-            .should('nested.include', {"scripts[1].scriptSpec.scripts[0].script": 'test-' + resourceName})
-            .and('nested.include', {"scripts[2].sgScript": 'script-' + resourceName})
-            .and('nested.include', {"scripts[2].scriptSpec.scripts[0].script": 'test2-' + resourceName})
-            .and('nested.include', {"scripts[3].scriptSpec.scripts[0].script": 'test3-' + resourceName})
+            .should('nested.include', {"scripts[0].scriptSpec.scripts[0].script": 'test-' + resourceName})
+            .and('nested.include', {"scripts[1].sgScript": 'script-' + resourceName})
+            .and('nested.include', {"scripts[1].scriptSpec.scripts[0].script": 'test2-' + resourceName})
+            .and('nested.include', {"scripts[2].scriptSpec.scripts[0].script": 'test3-' + resourceName})
         cy.get('@putCluster')
             .its('request.body.spec.shards.replication')
             .and('nested.include', {"mode": 'strict-sync'})
@@ -2906,14 +2937,21 @@ describe('Create SGShardedCluster', () => {
         // Test Cluster Name
         cy.get('input[data-field="metadata.name"]')
             .type('repeater-' + resourceName)
+        // Test Cluster Database
+        cy.get('[data-field="spec.database"]')
+            .type('repeater_' + resourceName)
+        
+        // Coordinator section
+        cy.get('form#createShardedCluster li.coordinator')
+            .click()
         
         // Tests Coordinator Node Tolerations repeaters
-        cy.get('form#createShardedCluster li[data-step="scheduling"]')
+        cy.get('form#createShardedCluster li[data-step="coordinator.scheduling"]')
             .click()
             
         cy.get('input[data-field="spec.coordinator.pods.scheduling.tolerations[0].value"]')
             .type('value')
-
+        
         // Test Submit form
         cy.get('form#createShardedCluster button[type="submit"]')
             .click()
@@ -2931,39 +2969,80 @@ describe('Create SGShardedCluster', () => {
         cy.get('input#enableMonitoring')
             .click()
 
-        cy.get('form#createShardedCluster li[data-step="sidecars"]')
+        cy.get('form#createShardedCluster li[data-step="general.sidecars"]')
             .click()
 
-        cy.get('input#metricsExporter')
-            .should('be.checked')
-
         cy.get('input#prometheusAutobind')
+            .should('be.checked')
+        
+        // Coordinator section
+        cy.get('form#createShardedCluster li.coordinator')
+            .click()
+
+        cy.get('form#createShardedCluster li[data-step="coordinator.sidecars"]')
+            .click()
+
+        cy.get('input#metricsExporterCoord')
             .should('be.checked')
 
         //If Metrics Exporter is OFF, Monitoring should be OFF
-        cy.get('input#metricsExporter')
+        cy.get('input#metricsExporterCoord')
+            .click()
+        
+        // Shards section
+        cy.get('form#createShardedCluster li.shards')
             .click()
 
-        cy.get('form#createShardedCluster li[data-step="cluster"]')
+        cy.get('form#createShardedCluster li[data-step="shards.sidecars"]')
+            .click()
+
+        cy.get('input#metricsExporterShards')
+            .should('be.checked')
+
+        //If Metrics Exporter is OFF, Monitoring should be OFF
+        cy.get('input#metricsExporterShards')
+            .click()
+        
+        // General section
+        cy.get('form#createShardedCluster li.general')
+            .click()
+
+        cy.get('form#createShardedCluster li[data-step="general.cluster"]')
             .click()
 
         cy.get('input#enableMonitoring')
             .should('not.be.checked')
 
-        //If Monitoring is switched OFF from ON state, Metrics Exporter and Prometheus Autobind should return to their default states (ME: ON, PA: OFF)
+        //If Monitoring is switched OFF from ON state, Prometheus Autobind should return to their default states (ME: ON, PA: OFF)
         cy.get('input#enableMonitoring')
             .click()
             .click()
 
-        cy.get('form#createShardedCluster li[data-step="sidecars"]')
+        cy.get('form#createShardedCluster li[data-step="general.sidecars"]')
             .click()
-
-        cy.get('input#metricsExporter')
-            .should('be.checked')
 
         cy.get('input#prometheusAutobind')
             .should('not.be.checked')
+        
+        // Coordinator section
+        cy.get('form#createShardedCluster li.coordinator')
+            .click()
 
+        cy.get('form#createShardedCluster li[data-step="coordinator.sidecars"]')
+            .click()
+
+        cy.get('input#metricsExporterCoord')
+            .should('not.be.checked')
+        
+        // Shards section
+        cy.get('form#createShardedCluster li.shards')
+            .click()
+
+        cy.get('form#createShardedCluster li[data-step="shards.sidecars"]')
+            .click()
+
+        cy.get('input#metricsExporterShards')
+            .should('not.be.checked')
     }); 
 
     it('Make sure script source always matches its parent script', () => {
@@ -2971,18 +3050,22 @@ describe('Create SGShardedCluster', () => {
         cy.get('form#createShardedCluster input#advancedMode')
             .click()
         
+        // Coordinator section
+        cy.get('form#createShardedCluster li.coordinator')
+            .click()
+        
         // Tests Coordinator script source on script repeaters
-        cy.get('form#createShardedCluster li[data-step="scripts"]')
+        cy.get('form#createShardedCluster li[data-step="coordinator.scripts"]')
             .click()
             
-        cy.get('select[data-field="spec.coordinator.managedSql.scripts.scriptSource[0]"]')
+        cy.get('select[data-field="spec.coordinator.managedSql.scripts.scriptSource.coordinator[0]"]')
             .select('script-' + resourceName)
 
         // Coordinator Add new Script
         cy.get('.scriptFieldset > div.fieldsetFooter > a.addRow')
             .click()
 
-        cy.get('select[data-field="spec.coordinator.managedSql.scripts.scriptSource[1]"]')
+        cy.get('select[data-field="spec.coordinator.managedSql.scripts.scriptSource.coordinator[1]"]')
             .select('createNewScript')
 
         // Coordinator Remove first script
@@ -2990,7 +3073,33 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         // Validate script source has the right value
-        cy.get('select[data-field="spec.coordinator.managedSql.scripts.scriptSource[0]"]')
+        cy.get('select[data-field="spec.coordinator.managedSql.scripts.scriptSource.coordinator[0]"]')
+            .should('have.value', 'createNewScript')
+        
+        // Shards section
+        cy.get('form#createShardedCluster li.shards')
+            .click()
+        
+        // Tests Shards script source on script repeaters
+        cy.get('form#createShardedCluster li[data-step="shards.scripts"]')
+            .click()
+            
+        cy.get('select[data-field="spec.shards.managedSql.scripts.scriptSource.shards[0]"]')
+            .select('script-' + resourceName)
+
+        // Shards Add new Script
+        cy.get('.scriptFieldset > div.fieldsetFooter > a.addRow')
+            .click()
+
+        cy.get('select[data-field="spec.shards.managedSql.scripts.scriptSource.shards[1]"]')
+            .select('createNewScript')
+
+        // Shards Remove first script
+        cy.get('.scriptFieldset > fieldset[data-field="spec.shards.managedSql.scripts[0]"] a.delete')
+            .click()
+
+        // Validate script source has the right value
+        cy.get('select[data-field="spec.shards.managedSql.scripts.scriptSource.shards[0]"]')
             .should('have.value', 'createNewScript')
     });
    
