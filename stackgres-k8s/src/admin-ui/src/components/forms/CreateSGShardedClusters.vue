@@ -5442,8 +5442,9 @@
                             ...(this.hasProp(previous, 'spec.postgresServices') && previous.spec.postgresServices),
                             "coordinator": {
                                 ...(this.hasProp(previous, 'spec.postgresServices.coordinator') && previous.spec.postgresServices.coordinator),
-                                ...(this.hasProp(this.postgresServices, 'coordinator.primary') && ({
+                                ...((this.hasProp(previous, 'spec.postgresServices.coordinator.primary') || this.hasProp(this.postgresServices, 'coordinator.primary')) && ({
                                     "primary": {
+                                        ...(this.hasProp(previous, 'spec.postgresServices.coordinator.primary') && previous.spec.postgresServices.coordinator.primary),
                                         "enabled": this.postgresServices.coordinator.primary.enabled,
                                         "type": this.postgresServices.coordinator.primary.type,
                                         ...( (this.hasProp(this.postgresServices, 'coordinator.primary.loadBalancerIP') && this.postgresServices.coordinator.primary.loadBalancerIP.length) && {
@@ -5451,8 +5452,9 @@
                                         }),
                                     }
                                 }) ),
-                                ...(this.hasProp(this.postgresServices, 'coordinator.any') && ({
+                                ...((this.hasProp(previous, 'spec.postgresServices.coordinator.any') || this.hasProp(this.postgresServices, 'coordinator.any')) && ({
                                     "any": {
+                                        ...(this.hasProp(previous, 'spec.postgresServices.coordinator.any') && previous.spec.postgresServices.coordinator.any),
                                         "enabled": this.postgresServices.coordinator.any.enabled,
                                         "type": this.postgresServices.coordinator.any.type,
                                         ...( (this.hasProp(this.postgresServices, 'coordinator.any.loadBalancerIP') && this.postgresServices.coordinator.any.loadBalancerIP.length) && {
@@ -5466,8 +5468,9 @@
                             },
                             "shards": {
                                 ...(this.hasProp(previous, 'spec.postgresServices.shards') && previous.spec.postgresServices.shards),
-                                ...(this.hasProp(this.postgresServices, 'shards.primaries') && ({
+                                ...((this.hasProp(previous, 'spec.postgresServices.shards.primaries') || this.hasProp(this.postgresServices, 'shards.primaries')) && ({
                                     "primaries": {
+                                        ...(this.hasProp(previous, 'spec.postgresServices.shards.primaries') && previous.spec.postgresServices.shards.primaries),
                                         "enabled": this.postgresServices.shards.primaries.enabled,
                                         "type": this.postgresServices.shards.primaries.type,
                                         ...( (this.hasProp(this.postgresServices, 'shards.primaries.loadBalancerIP') && this.postgresServices.shards.primaries.loadBalancerIP.length) && {
@@ -5556,7 +5559,7 @@
                                     requiredAffinity.coordinator.length || preferredAffinity.coordinator.length 
                                     ) && {
                                     "scheduling": {
-                                        ...(this.hasProp(previous, 'spec.pods.scheduling') && previous.spec.pods.scheduling),
+                                        ...(this.hasProp(previous, 'spec.coordinator.pods.scheduling') && previous.spec.coordinator.pods.scheduling),
                                         ...( (this.hasProp(this.coordinator, 'pods.scheduling.nodeSelector') && this.hasNodeSelectors(this.coordinator.pods.scheduling.nodeSelector)) && {"nodeSelector": this.parseProps(this.coordinator.pods.scheduling.nodeSelector, 'label')} || {"nodeSelector": null} ),
                                         ...( (this.hasProp(this.coordinator, 'pods.scheduling.tolerations') && this.hasTolerations(this.coordinator.pods.scheduling.tolerations)) && {"tolerations": this.coordinator.pods.scheduling.tolerations} || {"tolerations": null} ),
                                         ...(requiredAffinity.coordinator.length || preferredAffinity.coordinator.length ) && {
@@ -5678,7 +5681,7 @@
                                     requiredAffinity.shards.length || preferredAffinity.shards.length 
                                     ) && {
                                     "scheduling": {
-                                        ...(this.hasProp(previous, 'spec.pods.scheduling') && previous.spec.pods.scheduling),
+                                        ...(this.hasProp(previous, 'spec.shards.pods.scheduling') && previous.spec.shards.pods.scheduling),
                                         ...( (this.hasProp(this.shards, 'pods.scheduling.nodeSelector') && this.hasNodeSelectors(this.shards.pods.scheduling.nodeSelector)) && {"nodeSelector": this.parseProps(this.shards.pods.scheduling.nodeSelector, 'label')} || {"nodeSelector": null} ),
                                         ...( (this.hasProp(this.shards, 'pods.scheduling.tolerations') && this.hasTolerations(this.shards.pods.scheduling.tolerations)) && {"tolerations": this.shards.pods.scheduling.tolerations} || {"tolerations": null} ),
                                         ...(requiredAffinity.shards.length || preferredAffinity.shards.length ) && {
