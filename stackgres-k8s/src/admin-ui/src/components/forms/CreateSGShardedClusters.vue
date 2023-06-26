@@ -5382,6 +5382,7 @@
                         "type": this.shardingType,
                         ...( (this.hasProp(previous, 'spec.configurations') || this.managedBackups ) && ({
                             "configurations": {
+                                ...(this.hasProp(previous, 'spec.configurations') && previous.spec.configurations),
                                 ...(this.managedBackups && {
                                     "backups": this.backups
                                 } || { "backups": null }),
@@ -5502,8 +5503,9 @@
                             ...(this.coordinator.sgInstanceProfile.length && {
                                 "sgInstanceProfile": this.coordinator.sgInstanceProfile
                             }),
-                            ...( (this.coordinator.configurations.sgPoolingConfig.length || this.coordinator.configurations.sgPostgresConfig.length) && ({
+                            ...( (this.hasProp(previous, 'spec.coordinator.configurations') || this.coordinator.configurations.sgPoolingConfig.length || this.coordinator.configurations.sgPostgresConfig.length) && ({
                                 "configurations": {
+                                    ...(this.hasProp(previous, 'spec.coordinator.configurations') && previous.spec.coordinator.configurations),
                                     ...(this.coordinator.configurations.sgPoolingConfig.length && {
                                         "sgPoolingConfig": this.coordinator.configurations.sgPoolingConfig
                                     }),
@@ -5623,8 +5625,9 @@
                             ...(this.shards.sgInstanceProfile.length && {
                                 "sgInstanceProfile": this.shards.sgInstanceProfile
                             }),
-                            ...( (this.shards.configurations.sgPoolingConfig.length || this.shards.configurations.sgPostgresConfig.length) && ({
+                            ...( (this.hasProp(previous, 'spec.shards.configurations') || this.shards.configurations.sgPoolingConfig.length || this.shards.configurations.sgPostgresConfig.length) && ({
                                 "configurations": {
+                                    ...(this.hasProp(previous, 'spec.shards.configurations') && previous.spec.shards.configurations),
                                     ...(this.shards.configurations.sgPoolingConfig.length && {
                                         "sgPoolingConfig": this.shards.configurations.sgPoolingConfig
                                     }),
