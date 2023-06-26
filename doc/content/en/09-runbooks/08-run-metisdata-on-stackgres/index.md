@@ -112,7 +112,7 @@ kubectl -n metisdata exec -it metisdata-0 -c postgres-util -- psql -l metisdata
 
 ## Deploy 
 
-Add the Metis Helm repository to your local Helm installation and update the Helm repository to ensure that you have the latest version:
+Add the [Metis Helm repository](https://github.com/metis-data/helm-charts) to your local Helm installation and update the Helm repository to ensure that you have the latest version:
 
 ```
 helm repo add metis-data https://metis-data.github.io/helm-charts/Metis
