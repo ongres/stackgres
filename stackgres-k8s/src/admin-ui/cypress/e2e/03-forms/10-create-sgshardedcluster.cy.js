@@ -2749,7 +2749,7 @@ describe('Create SGShardedCluster', () => {
             .should('eq', false)
         cy.get('@putCluster')
             .its('request.body.spec.postgres.extensions')
-            .should('have.lengthOf', 5)
+            .should('have.lengthOf', 4)
             .then((list) => Cypress._.map(list, 'name'))
             .should('include', "pg_repack")
             .and('include', "plpgsql_check")
