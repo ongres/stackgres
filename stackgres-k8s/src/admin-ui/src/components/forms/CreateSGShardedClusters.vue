@@ -3,7 +3,7 @@
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(cluster).length > 0"></template>
 
-        <form id="createShardedCluster" class="form" @submit.prevent>
+        <form id="createShardedCluster" class="form" @submit.prevent v-if="!editMode || editReady">
             <div class="header stickyHeader">
                 <h2>
                     <span>{{ editMode ? 'Edit' :  'Create' }} Sharded Cluster</span>
@@ -4830,6 +4830,7 @@
                     shards: 2,
                 },
                 editMode: (vc.$route.name === 'EditShardedCluster'),
+                editReady: false,
                 database: '',
                 shardingType: 'citus',
                 backups: [{

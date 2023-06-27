@@ -1,9 +1,9 @@
 <template>
-    <div id="create-backup-config" v-if="loggedIn && isReady&& !notFound">
+    <div id="create-backup-config" v-if="iCanLoad">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
                 
-        <form id="createBackupConfig" class="form" @submit.prevent>
+        <form id="createBackupConfig" class="form" @submit.prevent v-if="!editMode || editReady">
             <div class="header">
                 <h2>Backup Configuration Details</h2>
                 <label for="advancedMode" class="floatRight">

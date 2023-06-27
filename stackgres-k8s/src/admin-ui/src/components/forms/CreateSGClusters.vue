@@ -3,7 +3,7 @@
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(cluster).length > 0"></template>
 
-        <form id="createCluster" class="form" @submit.prevent>
+        <form id="createCluster" class="form" @submit.prevent v-if="!editMode || editReady">
             <div class="header stickyHeader">
                 <h2>
                     <span>{{ editMode ? 'Edit' :  'Create' }} Cluster</span>
@@ -3014,6 +3014,7 @@
             return {
                 formSteps: ['cluster', 'extensions', 'backups', 'initialization', 'replicate-from', 'scripts', 'sidecars', 'pods', 'pods-replication', 'services', 'metadata', 'scheduling', 'non-production'],
                 editMode: (vc.$route.name === 'EditCluster'),
+                editReady: false,
                 instances: 1,
                 pgConfig: '',
                 connPooling: true,
