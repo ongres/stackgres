@@ -802,7 +802,7 @@ router.beforeResolve((to, from, next) => {
     .then( function() {
       
       /* First check if Namespace exist */
-      if(to.params.hasOwnProperty('namespace') && (kind != 'BabelfishCompass')) {
+      if(to.params.hasOwnProperty('namespace') && (kind != 'applications' && kind != 'BabelfishCompass')) {
 
         let namespaceName = to.params.namespace;
         
