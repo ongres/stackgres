@@ -251,6 +251,8 @@ spec:
   jobs:
     image:
       tag: "$IMAGE_TAG"
+  developer:
+    version: $STACKGRES_VERSION
 EOF
   kubectl patch -n "$OPERATOR_NAMESPACE" subscription stackgres --type merge \
     -p '{"spec":{"config":{"env":[{"name":"SGCONFIG","value":'"$(yq '. | tostring' "$LOG_PATH/sgconfig-patch.yaml")"'}]}}}'
