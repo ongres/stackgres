@@ -91,6 +91,10 @@ Cypress.Commands.add('deleteCluster', (namespace, clusterName) => {
     cy.getResources('sgclusters').then(resp => {
         let cluster = resp.find(el => (el.metadata.namespace === namespace) && (el.metadata.name === clusterName))
 
+        if (cluster === undefined) {
+          return
+        }
+
         cy.deleteCRD('sgclusters', {
             metadata: {
                 name: cluster.metadata.name,
@@ -98,6 +102,10 @@ Cypress.Commands.add('deleteCluster', (namespace, clusterName) => {
             }
         })
         .then( () => {
+            if (cluster === undefined) {
+                return
+            }
+
             cy.deleteCRD('sginstanceprofiles', {
                 metadata: {
                     name: cluster.spec.sgInstanceProfile,
@@ -126,6 +134,10 @@ Cypress.Commands.add('deleteShardedCluster', (namespace, clusterName) => {
     cy.getResources('sgshardedclusters').then(resp => {
         let cluster = resp.find(el => (el.metadata.namespace === namespace) && (el.metadata.name === clusterName))
 
+        if (cluster === undefined) {
+            return
+        }
+
         cy.deleteCRD('sgshardedclusters', {
             metadata: {
                 name: cluster.metadata.name,
@@ -133,6 +145,10 @@ Cypress.Commands.add('deleteShardedCluster', (namespace, clusterName) => {
             }
         })
         .then( () => {
+            if (cluster === undefined) {
+                return
+            }
+
             cy.deleteCRD('sginstanceprofiles', {
                 metadata: {
                     name: cluster.spec.coordinator.sgInstanceProfile,
@@ -154,26 +170,26 @@ Cypress.Commands.add('deleteShardedCluster', (namespace, clusterName) => {
                 }
             })
 
-          cy.deleteCRD('sginstanceprofiles', {
-              metadata: {
-                  name: cluster.spec.shards.sgInstanceProfile,
-                  namespace: cluster.metadata.namespace
-              }
-          });
-      
-          cy.deleteCRD('sgpgconfigs', {
-              metadata: {
-                  name: cluster.spec.shards.configurations.sgPostgresConfig,
-                  namespace: cluster.metadata.namespace
-              }
-          });
-      
-          cy.deleteCRD('sgpoolconfigs', {
-              metadata: {
-                  name: cluster.spec.shards.configurations.sgPoolingConfig,
-                  namespace: cluster.metadata.namespace
-              }
-          })
+            cy.deleteCRD('sginstanceprofiles', {
+                metadata: {
+                    name: cluster.spec.shards.sgInstanceProfile,
+                    namespace: cluster.metadata.namespace
+                }
+            });
+        
+            cy.deleteCRD('sgpgconfigs', {
+                metadata: {
+                    name: cluster.spec.shards.configurations.sgPostgresConfig,
+                    namespace: cluster.metadata.namespace
+                }
+            });
+        
+            cy.deleteCRD('sgpoolconfigs', {
+                metadata: {
+                    name: cluster.spec.shards.configurations.sgPoolingConfig,
+                    namespace: cluster.metadata.namespace
+                }
+            })
         })
     })
 });
