@@ -2069,7 +2069,7 @@ describe('Create SGShardedCluster', () => {
             .type('edit-name')
 
         cy.get('input[data-field="spec.coordinator.pods.customVolumes[2].secret.optional"]')
-            .should('be.checked')
+            .should('not.be.checked')
             .click()
 
         cy.get('input[data-field="spec.coordinator.pods.customVolumes[2].secret.defaultMode"]')
@@ -2382,7 +2382,7 @@ describe('Create SGShardedCluster', () => {
             .type('edit-name')
 
         cy.get('input[data-field="spec.shards.pods.customVolumes[2].secret.optional"]')
-            .should('be.checked')
+            .should('not.be.checked')
             .click()
 
         cy.get('input[data-field="spec.shards.pods.customVolumes[2].secret.defaultMode"]')
