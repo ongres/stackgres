@@ -82,6 +82,7 @@ copy_from_image() {
   SOURCE_IMAGE_PLATFORM="$(get_image_platform "$SOURCE_IMAGE_NAME")"
   # shellcheck disable=SC2046
   docker_run -i $(! test -t 1 || printf '%s' '-t') --rm \
+    --pull always \
     --platform "$SOURCE_IMAGE_PLATFORM" \
     --volume "${PROJECT_PATH:-$(pwd)}:/project-target" \
     --user "$(id -u):$(id -g)" \
@@ -154,6 +155,7 @@ EOF
    "  > "stackgres-k8s/ci/build/target/$MODULE-build-env"
   # shellcheck disable=SC2046
   docker_run -i $(! test -t 1 || printf '%s' '-t') --rm \
+    --pull always \
     --volume "/var/run/docker.sock:/var/run/docker.sock" \
     --volume "${PROJECT_PATH:-$(pwd)}:/project" \
     --workdir /project \
@@ -245,6 +247,7 @@ EOF
   # shellcheck disable=SC2086
   # shellcheck disable=SC2046
   docker_build $DOCKER_BUILD_OPTS -t "$IMAGE_NAME" \
+    --pull \
     --build-arg "BUILD_UID=${BUILD_UID%:*}" \
     --build-arg "TARGET_IMAGE_NAME=$TARGET_IMAGE_NAME" \
     $(jq -r ".modules[\"$MODULE\"].dockerfile.args
@@ -394,6 +397,7 @@ extract_from_image() {
   local IMAGE_PLATFORM
   IMAGE_PLATFORM="$(get_image_platform "$IMAGE_NAME")"
   docker_run --rm --entrypoint /bin/sh --platform "$IMAGE_PLATFORM" \
+    --pull always \
     --user "$(id -u):$(id -g)" \
     --env HOME=/tmp \
     -v "${PROJECT_PATH:-$(pwd)}:/out" \
