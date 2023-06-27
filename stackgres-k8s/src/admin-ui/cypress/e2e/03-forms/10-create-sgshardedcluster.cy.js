@@ -2012,7 +2012,7 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         cy.get('input[data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity"]')
-            .should('be.checked')
+            .should('not.be.checked')
             .click()
         
         // Coordinator section
