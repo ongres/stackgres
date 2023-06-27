@@ -104,7 +104,7 @@ describe('Create SGShardedCluster', () => {
 
         cy.deleteShardedCluster(namespace, 'babelfish-' + resourceName);
 
-        cy.deleteShardedCluster(namespace, 'advanced-' + resourceName);
+        //cy.deleteShardedCluster(namespace, 'advanced-' + resourceName);
 
         cy.deleteShardedCluster(namespace, 'rep-sgshardedcluster-' + resourceName);
 
@@ -191,7 +191,7 @@ describe('Create SGShardedCluster', () => {
 
         // Check Enable SSL Connections
         cy.get('input[data-field="spec.postgres.ssl.enabled"]')
-            .should('be.enabled')
+            .should('be.checked')
         
         cy.get('input[data-field="spec.postgres.ssl.certificateSecretKeySelector.name"]')
             .type('cert-cluster')
@@ -380,7 +380,7 @@ describe('Create SGShardedCluster', () => {
             .type('medium')
         
         cy.get('input[data-field="spec.coordinator.pods.customVolumes[0].emptyDir.sizeLimit"]')
-            .type('sizeLimit')
+            .type('1Gi')
         
         cy.get('fieldset[data-fieldset="spec.coordinator.pods.customVolumes"] + .fieldsetFooter .addRow')
             .click()
@@ -953,7 +953,7 @@ describe('Create SGShardedCluster', () => {
             .type('medium')
         
         cy.get('input[data-field="spec.shards.pods.customVolumes[0].emptyDir.sizeLimit"]')
-            .type('sizeLimit')
+            .type('1Gi')
         
         cy.get('fieldset[data-fieldset="spec.shards.pods.customVolumes"] + .fieldsetFooter .addRow')
             .click()
@@ -1482,7 +1482,6 @@ describe('Create SGShardedCluster', () => {
 
         // Test user redirection
         cy.location('pathname').should('eq', '/admin/' + namespace + '/sgshardedclusters')
-
         // Test data sent to API
         cy.wait('@getCluster')
             .its('response.statusCode')
@@ -1549,7 +1548,7 @@ describe('Create SGShardedCluster', () => {
             .its('request.body.spec.coordinator.pods')
             .should('nested.include', {"customVolumes[0].name": 'vol1'})
             .and('nested.include', {"customVolumes[0].emptyDir.medium": 'medium'})
-            .and('nested.include', {"customVolumes[0].emptyDir.sizeLimit": 'sizeLimit'})
+            .and('nested.include', {"customVolumes[0].emptyDir.sizeLimit": '1Gi'})
             .and('nested.include', {"customVolumes[1].name": 'vol2'})
             .and('nested.include', {"customVolumes[1].configMap.name": 'name'})
             .and('nested.include', {"customVolumes[1].configMap.optional": false})
@@ -1693,7 +1692,7 @@ describe('Create SGShardedCluster', () => {
             .its('request.body.spec.shards.pods')
             .should('nested.include', {"customVolumes[0].name": 'vol1'})
             .and('nested.include', {"customVolumes[0].emptyDir.medium": 'medium'})
-            .and('nested.include', {"customVolumes[0].emptyDir.sizeLimit": 'sizeLimit'})
+            .and('nested.include', {"customVolumes[0].emptyDir.sizeLimit": '1Gi'})
             .and('nested.include', {"customVolumes[1].name": 'vol2'})
             .and('nested.include', {"customVolumes[1].configMap.name": 'name'})
             .and('nested.include', {"customVolumes[1].configMap.optional": false})
@@ -1825,9 +1824,9 @@ describe('Create SGShardedCluster', () => {
         // Edit advanced cluster
         cy.visit(namespace + '/sgshardedcluster/advanced-' + resourceName + '/edit')
     
-        // Advanced options should be enabled
+        // Advanced options should be checked
         cy.get('form#createShardedCluster input#advancedMode')
-            .should('be.enabled')
+            .should('be.checked')
         
         // General section
         cy.get('form#createShardedCluster li.general')
@@ -1842,7 +1841,7 @@ describe('Create SGShardedCluster', () => {
 
         // Disable SSL Connections
         cy.get('input[data-field="spec.postgres.ssl.enabled"]')
-            .should('be.enabled')
+            .should('be.checked')
             .click()
 
         // Test some extensions
@@ -1850,23 +1849,23 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.db_info"].enableExtension')
-            .should('be.enabled')
+            .should('be.checked')
             .click()
         cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.pg_repack"].enableExtension')
-            .should('be.enabled')
+            .should('be.checked')
         cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.plpgsql_check"].enableExtension')
-            .should('be.enabled')
+            .should('be.checked')
         cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.http"].enableExtension')
-            .should('be.enabled')
+            .should('be.checked')
         cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.hostname"].enableExtension')
-            .should('be.enabled')
+            .should('be.checked')
 
         // Test managed backups configuration
         cy.get('form#createShardedCluster li[data-step="general.backups"]')
             .click()
 
         cy.get('label[data-field="spec.configurations.backups"] > input')
-            .should('be.enabled')
+            .should('be.checked')
 
         // Storage Details
         cy.get('[data-field="spec.configurations.backups.sgObjectStorage"]')
@@ -1934,7 +1933,7 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         cy.get('input[data-field="spec.prometheusAutobind"]')
-            .should('be.enabled')
+            .should('be.checked')
             .click()
 
         // Test Replication
@@ -2013,7 +2012,7 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         cy.get('input[data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity"]')
-            .should('be.enabled')
+            .should('be.checked')
             .click()
         
         // Coordinator section
@@ -2041,7 +2040,7 @@ describe('Create SGShardedCluster', () => {
             .type('edit-medium')
         
         cy.get('input[data-field="spec.coordinator.pods.customVolumes[1].configMap.optional"]')
-            .should('be.enabled')
+            .should('be.checked')
             .click()
 
         cy.get('input[data-field="spec.coordinator.pods.customVolumes[1].configMap.defaultMode"]')
@@ -2070,7 +2069,7 @@ describe('Create SGShardedCluster', () => {
             .type('edit-name')
 
         cy.get('input[data-field="spec.coordinator.pods.customVolumes[2].secret.optional"]')
-            .should('be.enabled')
+            .should('be.checked')
             .click()
 
         cy.get('input[data-field="spec.coordinator.pods.customVolumes[2].secret.defaultMode"]')
@@ -2354,7 +2353,7 @@ describe('Create SGShardedCluster', () => {
             .type('edit-medium')
         
         cy.get('input[data-field="spec.shards.pods.customVolumes[1].configMap.optional"]')
-            .should('be.enabled')
+            .should('be.checked')
             .click()
 
         cy.get('input[data-field="spec.shards.pods.customVolumes[1].configMap.defaultMode"]')
@@ -2383,7 +2382,7 @@ describe('Create SGShardedCluster', () => {
             .type('edit-name')
 
         cy.get('input[data-field="spec.shards.pods.customVolumes[2].secret.optional"]')
-            .should('be.enabled')
+            .should('be.checked')
             .click()
 
         cy.get('input[data-field="spec.shards.pods.customVolumes[2].secret.defaultMode"]')
@@ -2627,7 +2626,7 @@ describe('Create SGShardedCluster', () => {
             .should('have.value', '10')
             .clear()
             .type('20')
-
+        
         // Setup get and put mock to check resource is not found and all fields are correctly set
         cy.intercept('GET', '/stackgres/namespaces/' + namespace + '/sgshardedclusters/advanced-' + resourceName,
             (req) => {
@@ -2747,7 +2746,7 @@ describe('Create SGShardedCluster', () => {
             .should('eq', 204)
         cy.get('@putCluster')
             .its('request.body.spec.postgres.ssl.enabled')
-            .should('eq', true)
+            .should('eq', false)
         cy.get('@putCluster')
             .its('request.body.spec.postgres.extensions')
             .should('have.lengthOf', 5)
