@@ -3,7 +3,7 @@
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
         
-        <form id="createPoolConfig" class="form" @submit.prevent>
+        <form id="createPoolConfig" class="form" @submit.prevent v-if="!editMode || editReady">
             <div class="header">
                 <h2>
                     <span>{{ editMode ? 'Edit' : 'Create' }} Connection Pooling Configuration</span>

@@ -3,7 +3,7 @@
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(script).length > 0"></template>
         
-        <form id="createScripts" class="form" @submit.prevent>
+        <form id="createScripts" class="form" @submit.prevent v-if="!editMode || editReady">
             <div class="header">
                 <h2>
                     <span>{{ editMode ? 'Edit' : 'Create' }} Script Configuration</span>
