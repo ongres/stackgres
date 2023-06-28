@@ -13,7 +13,7 @@ Run the next command (make sure you are in the root path of the [repository](htt
 
 ## Configurable parameters
 
-See https://stackgres.io/doc/latest/03-production-installation/02-installation-via-helm/
+See https://stackgres.io/doc/latest/install/helm/
 
 ## List the chart deployment
 
@@ -21,4 +21,12 @@ See https://stackgres.io/doc/latest/03-production-installation/02-installation-v
 
 ## Delete the StackGres Operator
 
-`helm uninstall stackgres-operator --namespace stackgres`
+See https://stackgres.io/doc/latest/administration/uninstall/
+
+# Developers
+
+Documentation is generate by [helm-docs](https://github.com/norwoodj/helm-docs):
+
+```
+helm-docs -o VALUES.md -f values.yaml -t VALUES.md.gotmpl
+```

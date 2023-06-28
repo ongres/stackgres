@@ -5,7 +5,7 @@
 
 package io.stackgres.operatorframework.resource;
 
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.Watcher;
@@ -18,11 +18,11 @@ public abstract class AbstractResourceWatcherFactory {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  public <T extends HasMetadata> Watcher<T> createWatcher(Consumer<Action> actionConsumer) {
+  public <T extends HasMetadata> Watcher<T> createWatcher(BiConsumer<Action, T> actionConsumer) {
     return new WatcherInstance<>(actionConsumer, new EmptyWatcherListener<>());
   }
 
-  public <T extends HasMetadata> Watcher<T> createWatcher(Consumer<Action> actionConsumer,
+  public <T extends HasMetadata> Watcher<T> createWatcher(BiConsumer<Action, T> actionConsumer,
       WatcherListener<T> watcherListener) {
     return new WatcherInstance<>(actionConsumer, watcherListener);
   }
@@ -33,11 +33,11 @@ public abstract class AbstractResourceWatcherFactory {
 
   private class WatcherInstance<T extends HasMetadata> implements Watcher<T> {
 
-    private final Consumer<Action> actionConsumer;
+    private final BiConsumer<Action, T> actionConsumer;
     private final WatcherListener<T> watcherListener;
 
-    public WatcherInstance(Consumer<Action> actionConsumer, WatcherListener<T> watcherListener) {
-      super();
+    public WatcherInstance(
+        BiConsumer<Action, T> actionConsumer, WatcherListener<T> watcherListener) {
       this.actionConsumer = actionConsumer;
       this.watcherListener = watcherListener;
     }
@@ -47,7 +47,7 @@ public abstract class AbstractResourceWatcherFactory {
       log.debug("Action <{}> on resource: [{}] {}.{}", action, resource.getKind(),
           resource.getMetadata().getNamespace(), resource.getMetadata().getName());
       try {
-        actionConsumer.accept(action);
+        actionConsumer.accept(action, resource);
         watcherListener.eventReceived(action, resource);
       } catch (Exception ex) {
         log.error("Error while performing action: <{}>", action, ex);

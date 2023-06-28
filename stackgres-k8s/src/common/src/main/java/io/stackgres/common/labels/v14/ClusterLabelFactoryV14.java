@@ -5,10 +5,6 @@
 
 package io.stackgres.common.labels.v14;
 
-import java.util.Map;
-
-import com.google.common.collect.ImmutableMap;
-import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.labels.ClusterLabelMapper;
 import org.jetbrains.annotations.NotNull;
@@ -29,28 +25,6 @@ public class ClusterLabelFactoryV14 extends AbstractLabelFactoryForCluster<Stack
   @Override
   public String resourceScope(@NotNull StackGresCluster resource) {
     throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Map<String, String> patroniClusterLabelsWithoutScope(StackGresCluster resource) {
-    return patroniClusterLabels(resource);
-  }
-
-  @Override
-  public Map<String, String> patroniPrimaryLabelsWithoutScope(StackGresCluster resource) {
-    return patroniPrimaryLabels(resource);
-  }
-
-  @Override
-  public Map<String, String> patroniReplicaLabelsWithoutScope(StackGresCluster resource) {
-    return patroniReplicaLabels(resource);
-  }
-
-  @Override
-  public Map<String, String> patroniReplicaLabels(StackGresCluster resource) {
-    return ImmutableMap.<String, String>builder().putAll(super.patroniReplicaLabels(resource))
-        .put(PatroniUtil.NOLOADBALANCE_TAG, PatroniUtil.FALSE_TAG_VALUE)
-        .build();
   }
 
 }

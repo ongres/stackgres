@@ -146,7 +146,7 @@ public class PatroniServices implements
                 .withPort(EnvoyUtil.PATRONI_ENTRY_PORT)
                 .withTargetPort(new IntOrString(EnvoyUtil.PATRONI_RESTAPI_PORT_NAME))
                 .build())
-        .withSelector(labelFactory.patroniClusterLabels(cluster))
+        .withSelector(labelFactory.clusterLabels(cluster))
         .withType(StackGresPostgresServiceType.CLUSTER_IP.toString())
         .endSpec()
         .build();
@@ -158,7 +158,7 @@ public class PatroniServices implements
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(readWriteName(context))
-        .withLabels(labelFactory.patroniPrimaryLabels(cluster))
+        .withLabels(labelFactory.clusterPrimaryLabels(cluster))
         .withAnnotations(getPrimaryServiceAnnotations(cluster))
         .endMetadata()
         .withSpec(cluster.getSpec().getPostgresServices().getPrimary())
@@ -231,7 +231,7 @@ public class PatroniServices implements
 
   private Service createReplicaService(StackGresClusterContext context) {
     StackGresCluster cluster = context.getSource();
-    final Map<String, String> replicaLabels = labelFactory.patroniReplicaLabels(cluster);
+    final Map<String, String> replicaLabels = labelFactory.clusterReplicaLabels(cluster);
     return new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())

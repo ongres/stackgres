@@ -19,19 +19,17 @@ public abstract class AbstractLabelFactoryForCluster<T extends CustomResource<?,
 
   @Override
   public Map<String, String> clusterLabels(T resource) {
-    return Map.of(labelMapper().appKey(), labelMapper().appName(),
-        labelMapper().resourceNameKey(resource), labelValue(resourceName(resource)),
-        labelMapper().resourceScopeKey(resource), labelValue(resourceScope(resource)),
-        labelMapper().clusterKey(resource), StackGresContext.RIGHT_VALUE,
-        labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)));
+    return ImmutableMap.<String, String>builder().putAll(clusterLabelsWithoutUid(resource))
+        .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
+        .build();
   }
 
   @Override
   public Map<String, String> clusterLabelsWithoutUid(T resource) {
-    return Map.of(labelMapper().appKey(), labelMapper().appName(),
-        labelMapper().resourceNameKey(resource), labelValue(resourceName(resource)),
-        labelMapper().resourceScopeKey(resource), labelValue(resourceScope(resource)),
-        labelMapper().clusterKey(resource), StackGresContext.RIGHT_VALUE);
+    return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
+        .put(labelMapper().resourceScopeKey(resource), labelValue(resourceScope(resource)))
+        .put(labelMapper().clusterKey(resource), StackGresContext.RIGHT_VALUE)
+        .build();
   }
 
   @Override
@@ -42,64 +40,54 @@ public abstract class AbstractLabelFactoryForCluster<T extends CustomResource<?,
   }
 
   @Override
-  public Map<String, String> patroniPrimaryLabels(T resource) {
-    return ImmutableMap.<String, String>builder().putAll(patroniClusterLabels(resource))
+  public Map<String, String> clusterPrimaryLabels(T resource) {
+    return ImmutableMap.<String, String>builder().putAll(clusterLabels(resource))
         .put(PatroniUtil.ROLE_KEY, PatroniUtil.PRIMARY_ROLE)
         .build();
   }
 
   @Override
-  public Map<String, String> patroniReplicaLabels(T resource) {
-    return ImmutableMap.<String, String>builder().putAll(patroniClusterLabels(resource))
-        .put(PatroniUtil.ROLE_KEY, PatroniUtil.REPLICA_ROLE)
+  public Map<String, String> clusterLabelsWithoutUidAndScope(T resource) {
+    return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
+        .put(labelMapper().clusterKey(resource), StackGresContext.RIGHT_VALUE)
         .build();
   }
 
   @Override
-  public Map<String, String> patroniPrimaryLabelsWithoutScope(T resource) {
-    return ImmutableMap.<String, String>builder().putAll(patroniClusterLabelsWithoutScope(resource))
+  public Map<String, String> clusterPrimaryLabelsWithoutUidAndScope(T resource) {
+    return ImmutableMap.<String, String>builder().putAll(clusterLabelsWithoutUidAndScope(resource))
         .put(PatroniUtil.ROLE_KEY, PatroniUtil.PRIMARY_ROLE)
         .build();
   }
 
   @Override
-  public Map<String, String> patroniClusterLabelsWithoutScope(T resource) {
-    return Map.of(labelMapper().appKey(), labelMapper().appName(),
-        labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)),
-        labelMapper().resourceNameKey(resource), labelValue(resourceName(resource)),
-        labelMapper().clusterKey(resource), StackGresContext.RIGHT_VALUE);
-  }
-
-  @Override
-  public Map<String, String> patroniReplicaLabelsWithoutScope(T resource) {
-    return ImmutableMap.<String, String>builder().putAll(patroniClusterLabelsWithoutScope(resource))
+  public Map<String, String> clusterReplicaLabels(T resource) {
+    return ImmutableMap.<String, String>builder().putAll(clusterLabels(resource))
         .put(PatroniUtil.ROLE_KEY, PatroniUtil.REPLICA_ROLE)
+        .put(PatroniUtil.NOLOADBALANCE_TAG, PatroniUtil.FALSE_TAG_VALUE)
         .build();
   }
 
   @Override
   public Map<String, String> statefulSetPodLabels(T resource) {
-    return Map.of(labelMapper().appKey(), labelMapper().appName(),
-        labelMapper().clusterKey(resource), StackGresContext.RIGHT_VALUE,
-        labelMapper().disruptibleKey(resource), StackGresContext.RIGHT_VALUE,
-        labelMapper().resourceNameKey(resource), labelValue(resourceName(resource)),
-        labelMapper().resourceScopeKey(resource), labelValue(resourceScope(resource)),
-        labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)));
+    return ImmutableMap.<String, String>builder().putAll(clusterLabels(resource))
+        .put(labelMapper().disruptibleKey(resource), StackGresContext.RIGHT_VALUE)
+        .build();
   }
 
   @Override
   public Map<String, String> scheduledBackupPodLabels(T resource) {
-    return Map.of(labelMapper().appKey(), labelMapper().appName(),
-        labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)),
-        labelMapper().resourceNameKey(resource), labelValue(resourceName(resource)),
-        labelMapper().scheduledBackupKey(resource), StackGresContext.RIGHT_VALUE);
+    return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
+        .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
+        .put(labelMapper().scheduledBackupKey(resource), StackGresContext.RIGHT_VALUE)
+        .build();
   }
 
   public Map<String, String> clusterCrossNamespaceLabels(T resource) {
-    return Map.of(labelMapper().appKey(), labelMapper().appName(),
-        labelMapper().resourceNamespaceKey(resource), labelValue(resourceNamespace(resource)),
-        labelMapper().resourceNameKey(resource), labelValue(resourceName(resource)),
-        labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)));
+    return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
+        .put(labelMapper().resourceNamespaceKey(resource), labelValue(resourceNamespace(resource)))
+        .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
+        .build();
   }
 
 }

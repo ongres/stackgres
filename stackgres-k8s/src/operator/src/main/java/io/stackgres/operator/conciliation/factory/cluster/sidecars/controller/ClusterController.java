@@ -113,12 +113,6 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
                 .build(),
             new EnvVarBuilder()
                 .withName(ClusterControllerProperty
-                    .CLUSTER_CONTROLLER_RECONCILE_POSTGRES_SSL
-                    .getEnvironmentVariableName())
-                .withValue(Boolean.TRUE.toString())
-                .build(),
-            new EnvVarBuilder()
-                .withName(ClusterControllerProperty
                     .CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL
                     .getEnvironmentVariableName())
                 .withValue(Boolean.TRUE.toString())

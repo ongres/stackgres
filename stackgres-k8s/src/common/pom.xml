@@ -17,10 +17,6 @@
   <packaging>jar</packaging>
   <name>StackGres Common</name>
 
-  <properties>
-    <checks.location>${project.parent.basedir}/checks</checks.location>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>io.stackgres</groupId>

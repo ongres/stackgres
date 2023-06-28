@@ -1,7 +1,7 @@
 ---
 title: Admin UI
-weight: 12
-url: administration/adminui
+weight: 10
+url: /administration/adminui
 description: This page contains details about how to connect on the StackGres admin UI.
 ---
 

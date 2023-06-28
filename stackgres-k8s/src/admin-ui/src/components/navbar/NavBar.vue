@@ -531,7 +531,7 @@
 				vc.polling = setInterval( function(){
 					if(store.state.loginToken.length > 0)
 						vc.fetchAPI();
-				}.bind(this), store.state.interval * 10000);
+				}.bind(this), store.state.interval * 30000);
 				
 				vc.initialized = true;
 			}

@@ -16,6 +16,7 @@ import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.crd.sgbackup.BackupEventReason;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.event.EventEmitter;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.PatchResumer;
@@ -33,6 +34,7 @@ public class BackupReconciliator
   @Dependent
   static class Parameters {
     @Inject CustomResourceScanner<StackGresBackup> scanner;
+    @Inject CustomResourceFinder<StackGresBackup> finder;
     @Inject Conciliator<StackGresBackup> conciliator;
     @Inject HandlerDelegator<StackGresBackup> handlerDelegator;
     @Inject KubernetesClient client;
@@ -49,7 +51,8 @@ public class BackupReconciliator
 
   @Inject
   public BackupReconciliator(Parameters parameters) {
-    super(parameters.scanner, parameters.conciliator, parameters.handlerDelegator,
+    super(parameters.scanner, parameters.finder,
+        parameters.conciliator, parameters.handlerDelegator,
         parameters.client, StackGresBackup.KIND);
     this.eventController = parameters.eventController;
     this.patchResumer = new PatchResumer<>(parameters.resourceComparator);
@@ -66,16 +69,21 @@ public class BackupReconciliator
   }
 
   @Override
-  public void onPreReconciliation(StackGresBackup config) {
+  protected void reconciliationCycle(StackGresBackup configKey, boolean load) {
+    super.reconciliationCycle(configKey, load);
+  }
+
+  @Override
+  protected void onPreReconciliation(StackGresBackup config) {
     backupScheduler.update(config, statusManager::refreshCondition);
   }
 
   @Override
-  public void onPostReconciliation(StackGresBackup config) {
+  protected void onPostReconciliation(StackGresBackup config) {
   }
 
   @Override
-  public void onConfigCreated(StackGresBackup backup, ReconciliationResult result) {
+  protected void onConfigCreated(StackGresBackup backup, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(backup, result);
     eventController.sendEvent(BackupEventReason.BACKUP_CREATED,
         "Backup " + backup.getMetadata().getNamespace() + "."
@@ -83,7 +91,7 @@ public class BackupReconciliator
   }
 
   @Override
-  public void onConfigUpdated(StackGresBackup backup, ReconciliationResult result) {
+  protected void onConfigUpdated(StackGresBackup backup, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(backup, result);
     eventController.sendEvent(BackupEventReason.BACKUP_UPDATED,
         "Backup " + backup.getMetadata().getNamespace() + "."
@@ -91,7 +99,7 @@ public class BackupReconciliator
   }
 
   @Override
-  public void onError(Exception ex, StackGresBackup backup) {
+  protected void onError(Exception ex, StackGresBackup backup) {
     String message = MessageFormatter.arrayFormat(
         "Backup reconciliation cycle failed",
         new String[]{

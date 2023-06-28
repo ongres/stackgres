@@ -146,7 +146,7 @@ public class PatroniServices implements
                 .withPort(EnvoyUtil.PATRONI_ENTRY_PORT)
                 .withTargetPort(new IntOrString(EnvoyUtil.PATRONI_RESTAPI_PORT_NAME))
                 .build())
-        .withSelector(labelFactory.patroniClusterLabels(cluster))
+        .withSelector(labelFactory.clusterLabels(cluster))
         .withType(StackGresPostgresServiceType.CLUSTER_IP.toString())
         .endSpec()
         .build();
@@ -242,7 +242,7 @@ public class PatroniServices implements
         .endMetadata()
         .withSpec(cluster.getSpec().getPostgresServices().getReplicas())
         .editSpec()
-        .withSelector(labelFactory.patroniReplicaLabels(cluster))
+        .withSelector(labelFactory.clusterReplicaLabels(cluster))
         .addAllToPorts(List.of(
             new ServicePortBuilder()
                 .withProtocol("TCP")

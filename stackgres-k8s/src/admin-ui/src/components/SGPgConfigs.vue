@@ -75,86 +75,12 @@
 					<div class="info"></div>
 				</div>
 			</template>
-			<template v-else>
-				<h2>Configuration Details</h2>
-				<template v-for="conf in config" v-if="conf.name == $route.params.name">
+			<template v-else>		
+				<template v-for="conf in config" v-if="conf.name == $route.params.name">				
+					<h2>Configuration Details</h2>
+					
 					<div class="configurationDetails">
-						<table class="crdDetails">
-							<tbody>
-								<tr>
-									<td class="label">Name <span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.metadata.name')"></span></td>
-									<td>{{ conf.name }}</td>
-								</tr>
-								<tr>
-									<td class="label">Postgres Version <span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.spec.postgresVersion')"></span></td>
-									<td>{{ conf.data.spec.postgresVersion }}</td>
-								</tr>
-								<tr v-if="conf.data.status.clusters.length  | ((typeof logsClusters.find(l => ( (l.data.metadata.namespace == conf.data.metadata.namespace) && (l.data.spec.configurations.sgPostgresConfig == conf.name) ))) != 'undefined' )">
-									<td class="label">Used on  <span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.status.clusters').replace('[SGClusters](https://stackgres.io/doc/latest/04-postgres-cluster-management/01-postgres-clusters/)', 'resources')"></span></td>
-									<td class="usedOn">
-										<ul>
-											<li v-for="cluster in conf.data.status.clusters">
-												<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster" title="Cluster Details">
-													{{ cluster }}
-													<span class="eyeIcon"></span>
-												</router-link>
-											</li>
-											<template v-for="lcluster in logsClusters">
-												<li v-if="(lcluster.data.metadata.namespace == conf.data.metadata.namespace) && (lcluster.data.spec.configurations.sgPostgresConfig == conf.name)">
-													<router-link :to="'/' + $route.params.namespace + '/sgdistributedlog/' + lcluster.name" title="Logs Server Details">
-														{{ lcluster.name }}
-														<span class="eyeIcon"></span>
-													</router-link>
-												</li>
-											</template>
-										</ul>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-					<div class="paramDetails" v-if="conf.data.status['postgresql.conf'].length">
-						<template v-if="hasParamsSet(conf)">
-							<h2>
-								Parameters
-								<span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.spec.postgresql.conf')"></span>
-							</h2>
-							<table>
-								<tbody>
-									<tr v-for="param in conf.data.status['postgresql.conf']" v-if="(!conf.data.status.defaultParameters.hasOwnProperty(param.parameter) || (conf.data.status.defaultParameters.hasOwnProperty(param.parameter) && (conf.data.status.defaultParameters[param.parameter] != param.value)) )">
-										<td class="label">
-											{{ param.parameter }}
-											<a v-if="(typeof param.documentationLink !== 'undefined')" :href="param.documentationLink" target="_blank" :title="'Read documentation about ' + param.parameter" class="paramDoc">
-												<!--<svg xmlns="http://www.w3.org/2000/svg" width="14.999" height="14.999" viewBox="0 0 14.999 14.999"><g transform="translate(4.772 3.02)"><path d="M10.271,6.274A1.006,1.006,0,0,1,9.162,5.266a1.236,1.236,0,0,1,1.263-1.2,1,1,0,0,1,1.12,1.006A1.227,1.227,0,0,1,10.271,6.274Z" transform="translate(-7.191 -4.062)" fill="#d3d3d6"/><path d="M9.635,13.986a2.8,2.8,0,0,1-.624-.067,1.807,1.807,0,0,1-.784-.382,1.548,1.548,0,0,1-.45-.681,2,2,0,0,1-.1-.634,3.539,3.539,0,0,1,.077-.636l.016-.081c.076-.307.382-1.486.382-1.486A.573.573,0,0,0,8.178,9.6a.4.4,0,0,0-.365-.223H6.837A.423.423,0,0,1,6.7,9.344a.261.261,0,0,1-.1-.06.252.252,0,0,1-.059-.094,2.271,2.271,0,0,1,.123-.857l.02-.088a.753.753,0,0,1,.046-.163.277.277,0,0,1,.214-.16h3.083a.319.319,0,0,1,.256.127.288.288,0,0,1,.053.252l-.784,3.351a1.41,1.41,0,0,0-.043.265c0,.361.188.538.576.538a1.469,1.469,0,0,0,.467-.1l.131-.043a.9.9,0,0,1,.166-.021c.145.019.2.052.23.1.051.091.232.726.271.877a.639.639,0,0,1,.028.18.312.312,0,0,1-.185.23,3.627,3.627,0,0,1-.356.106,6.275,6.275,0,0,1-.624.145A3.656,3.656,0,0,1,9.635,13.986Z" transform="translate(-6.534 -5.027)" fill="#d3d3d6"/></g><path d="M7.67.035a7.5,7.5,0,1,0,7.5,7.5A7.5,7.5,0,0,0,7.67.035Zm0,13.511a6.012,6.012,0,1,1,6.012-6.012A6.019,6.019,0,0,1,7.67,13.546Z" transform="translate(-0.17 -0.035)" fill="#d3d3d6"/></svg>-->
-											</a>
-										</td>
-										<td class="paramValue">
-											{{ param.value }}
-										</td>
-									</tr>
-								</tbody>
-							</table>
-						</template>
-
-						<template v-if="Object.keys(conf.data.status.defaultParameters).length">
-							<h2>
-								Default Parameters
-								<span class="helpTooltip" :data-tooltip="getTooltip('sgpostgresconfig.status.defaultParameters')"></span>
-							</h2>
-							<table class="defaultParams">
-								<tbody>
-									<tr v-for="param in conf.data.status['postgresql.conf']" v-if="( conf.data.status.defaultParameters.hasOwnProperty(param.parameter) && (conf.data.status.defaultParameters[param.parameter] == param.value))">
-										<td class="label">
-											{{ param.parameter }}
-											<a v-if="(typeof param.documentationLink !== 'undefined')" :href="param.documentationLink" target="_blank" :title="'Read documentation about ' + param.parameter" class="paramDoc"></a>
-										</td>
-										<td class="paramValue">
-											{{ param.value }}
-										</td>
-									</tr>
-								</tbody>
-							</table>
-						</template>
+						<CRDSummary :crd="crd" kind="SGPostgresConfig" :details="true"></CRDSummary>
 					</div>
 				</template>
 			</template>
@@ -165,12 +91,17 @@
 <script>
 	import { mixin } from './mixins/mixin'
 	import store from '../store'
+	import CRDSummary from './forms/summary/CRDSummary.vue'
 
 
     export default {
         name: 'SGPgConfigs',
 
 		mixins: [mixin],
+
+		components: {
+            CRDSummary
+        },
 
 		data: function() {
 
@@ -194,6 +125,10 @@
 
 			tooltips() {
 				return store.state.tooltips
+			},
+
+			crd () {
+				return store.state.sgpgconfigs.find(c => (c.data.metadata.namespace == this.$route.params.namespace) && (c.data.metadata.name == this.$route.params.name))
 			}
 
 		},

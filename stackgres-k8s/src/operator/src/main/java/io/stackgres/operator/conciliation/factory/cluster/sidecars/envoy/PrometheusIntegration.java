@@ -69,7 +69,7 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
     final Map<String, String> crossNamespaceLabels = labelFactory
         .clusterCrossNamespaceLabels(cluster);
     final Map<String, String> clusterSelectorLabels = labelFactory
-        .patroniClusterLabels(cluster);
+        .clusterLabels(cluster);
     PodMonitor podMonitor = new PodMonitor();
     podMonitor.setMetadata(new ObjectMetaBuilder()
         .withNamespace(prometheusInstallation.getNamespace())

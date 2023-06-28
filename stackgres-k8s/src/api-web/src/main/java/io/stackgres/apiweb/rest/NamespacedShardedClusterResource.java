@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.rest;
 
-import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
@@ -14,12 +12,10 @@ import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.Path;
 
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterDto;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -30,7 +26,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 @RequestScoped
 @Authenticated
 public class NamespacedShardedClusterResource
-    extends AbstractNamespacedRestServiceDependency<ShardedClusterDto, StackGresShardedCluster> {
+    extends AbstractNamespacedRestService<ShardedClusterDto, StackGresShardedCluster> {
 
   private final ShardedClusterResource shardedClusterResource;
 
@@ -43,25 +39,6 @@ public class NamespacedShardedClusterResource
   public NamespacedShardedClusterResource() {
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
     this.shardedClusterResource = null;
-  }
-
-  @Override
-  public boolean belongsToCluster(StackGresShardedCluster resource, StackGresCluster cluster) {
-    String shardedNamespace = resource.getMetadata().getNamespace();
-    String clusterNamespace = cluster.getMetadata().getNamespace();
-
-    if (!Objects.equals(shardedNamespace, clusterNamespace)) {
-      return false;
-    }
-
-    String shardedName = resource.getMetadata().getName();
-    return Optional.of(cluster)
-        .map(StackGresCluster::getMetadata)
-        .map(ObjectMeta::getOwnerReferences)
-        .stream()
-        .flatMap(List::stream)
-        .anyMatch(ownerReference -> Objects.equals(shardedName, ownerReference.getName())
-            && Objects.equals(StackGresShardedCluster.KIND, ownerReference.getKind()));
   }
 
   @Operation(

@@ -5,8 +5,6 @@
 
 package io.stackgres.common.labels.v14;
 
-import java.util.Map;
-
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.labels.DistributedLogsLabelMapper;
 import org.jetbrains.annotations.NotNull;
@@ -21,23 +19,8 @@ public class DistributedLogsLabelFactoryV14
   }
 
   @Override
-  public Map<String, String> patroniClusterLabelsWithoutScope(StackGresDistributedLogs resource) {
-    return patroniClusterLabels(resource);
-  }
-
-  @Override
-  public Map<String, String> patroniPrimaryLabelsWithoutScope(StackGresDistributedLogs resource) {
-    return patroniPrimaryLabels(resource);
-  }
-
-  @Override
-  public Map<String, String> patroniReplicaLabelsWithoutScope(StackGresDistributedLogs resource) {
-    return patroniReplicaLabels(resource);
-  }
-
-  @Override
   public String resourceScope(@NotNull StackGresDistributedLogs resource) {
-    return resourceName(resource);
+    throw new UnsupportedOperationException();
   }
 
   @Override

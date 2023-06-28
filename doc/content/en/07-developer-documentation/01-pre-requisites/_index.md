@@ -1,7 +1,7 @@
 ---
 title: Pre-Requisites
 weight: 1
-url: developer/prerequisites
+url: /developer/prerequisites
 description: Details about the necessary tools to build and use StackGres.
 ---
 

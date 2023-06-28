@@ -1,8 +1,8 @@
 ---
-title: Non-Production Options
+title: Cluster Non-Production Options
 weight: 2
-url: install/helm/nonproduction
-aliases: [ /install/prerequisites/nonproduction ]
+url: /administration/cluster-creation/nonproduction
+aliases: [ /install/prerequisites/nonproduction, /install/helm/nonproduction ]
 description: Important notes for non-production options in the production environment.
 ---
 
@@ -14,3 +14,30 @@ nonProductionOptions: {}
 ```
 
 For reference, you can see a list of all of these [non-production options]({{% relref "06-crd-reference/01-sgcluster" %}}#non-production-options).
+
+## Scaling with limited resources
+
+By default StackGres enforces some rules and resource requirements and limitatios in order to be production Ready by default. In case you are testing StackGres functionality it is possible to configure StackGres so that it does not prevent Pods from being scheduled in a Kubernetes cluster with insufficient resources.
+
+Normally StackGres requires each Pod of a Postgres cluster to be scheduled on a separate node using a Pod anti affinity rule. To disable such rule you may set the following options:
+
+```yaml
+spec:
+  nonProductionOptions:
+    disableClusterPodAntiAffinity: true
+```
+
+Another aspect that may prevent Postgres cluster Pods from being scheduled are the resource requests and limits requirements. To disable such requirements you may set the following options:
+
+```yaml
+spec:
+  nonProductionOptions:
+    disablePatroniResourceRequirements: true
+    disableClusterResourceRequirements: true
+```
+
+After setting those options you will have to restart the Postgres cluster Pods by simply deleting them (or using a [restart SGDbOps]({{% relref "06-crd-reference/09-sgdbops#restart" %}})):
+
+```bash
+kubectl delete pod -l app=StackGresCluster,stackgres.io/cluster-name=simple
+```

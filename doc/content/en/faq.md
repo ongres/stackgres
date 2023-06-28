@@ -3,7 +3,7 @@ title: FAQ
 weight: 999
 chapter: false
 hidden: true
-url: faq
+url: /faq
 ---
 
 ## Is StackGres a modified version of Postgres?

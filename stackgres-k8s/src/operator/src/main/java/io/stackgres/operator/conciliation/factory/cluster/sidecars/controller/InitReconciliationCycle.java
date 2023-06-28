@@ -18,6 +18,7 @@ import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresController;
 import io.stackgres.common.StackGresInitContainer;
+import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
@@ -83,12 +84,6 @@ public class InitReconciliationCycle implements ContainerFactory<ClusterContaine
                 .build(),
             new EnvVarBuilder()
                 .withName(ClusterControllerProperty
-                    .CLUSTER_CONTROLLER_RECONCILE_POSTGRES_SSL
-                    .getEnvironmentVariableName())
-                .withValue(Boolean.FALSE.toString())
-                .build(),
-            new EnvVarBuilder()
-                .withName(ClusterControllerProperty
                     .CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL
                     .getEnvironmentVariableName())
                 .withValue(Boolean.TRUE.toString())
@@ -118,6 +113,16 @@ public class InitReconciliationCycle implements ContainerFactory<ClusterContaine
             .withName(context.getDataVolumeName())
             .withMountPath(ClusterStatefulSetPath.PG_BASE_PATH.path())
             .build())
+        .addToVolumeMounts(
+            new VolumeMountBuilder()
+                .withName(StackGresVolume.POSTGRES_SSL.getName())
+                .withMountPath(ClusterStatefulSetPath.SSL_PATH.path())
+                .build())
+        .addToVolumeMounts(
+            new VolumeMountBuilder()
+                .withName(StackGresVolume.POSTGRES_SSL_COPY.getName())
+                .withMountPath(ClusterStatefulSetPath.SSL_COPY_PATH.path())
+                .build())
         .build();
   }
 

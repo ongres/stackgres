@@ -7,7 +7,6 @@ package io.stackgres.apiweb.resource;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -94,12 +93,13 @@ public class ClusterDtoScanner implements CustomResourceScanner<ClusterDto> {
     }
 
     ClusterDto transform(StackGresCluster cluster) {
+      var clusterLabels = labelFactory.clusterLabels(cluster);
       return clusterTransformer.toResourceWithPods(cluster,
           clusterPods.stream()
-          .filter(pod -> Objects.equals(
-              cluster.getMetadata().getUid(),
-              pod.getMetadata().getLabels().get(
-                  labelFactory.labelMapper().resourceUidKey(cluster))))
+          .filter(pod -> pod.getMetadata().getLabels() != null
+              && clusterLabels.entrySet().stream()
+              .allMatch(clusterLabel -> pod.getMetadata().getLabels().entrySet().stream()
+                  .anyMatch(clusterLabel::equals)))
           .toList());
     }
   }

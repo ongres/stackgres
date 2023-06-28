@@ -81,13 +81,14 @@ copy_from_image() {
   fi
   SOURCE_IMAGE_PLATFORM="$(get_image_platform "$SOURCE_IMAGE_NAME")"
   # shellcheck disable=SC2046
-  docker_run -i $(! test -t 1 || printf '%s' '-t') --rm \
+  docker_run -i $(! test -t 1 || printf %s '-t') --rm \
+    $([ "$SKIP_REMOTE_MANIFEST" = true ] || printf %s '--pull always') \
     --platform "$SOURCE_IMAGE_PLATFORM" \
     --volume "${PROJECT_PATH:-$(pwd)}:/project-target" \
     --user "$(id -u):$(id -g)" \
     --env HOME=/tmp \
     "$SOURCE_IMAGE_NAME" \
-    sh -ec $(echo "$-" | grep -v -q x || printf '%s' '-x') \
+    sh -ec $(echo "$-" | grep -v -q x || printf %s '-x') \
       'cp -a /project/. /project-target/.'
 }
 
@@ -153,7 +154,8 @@ $(
 EOF
    "  > "stackgres-k8s/ci/build/target/$MODULE-build-env"
   # shellcheck disable=SC2046
-  docker_run -i $(! test -t 1 || printf '%s' '-t') --rm \
+  docker_run -i $(! test -t 1 || printf %s '-t') --rm \
+    --pull always \
     --volume "/var/run/docker.sock:/var/run/docker.sock" \
     --volume "${PROJECT_PATH:-$(pwd)}:/project" \
     --workdir /project \
@@ -163,10 +165,10 @@ EOF
     --env "BUILD_COMMANDS=$BUILD_COMMANDS" \
     --env "POST_BUILD_COMMANDS=$POST_BUILD_COMMANDS" \
     --env "MODULE_PATH=$MODULE_PATH" \
-    --env "SHELL_XTRACE=$([ "$DEBUG" != true ] || printf '%s' -x)" \
+    --env "SHELL_XTRACE=$([ "$DEBUG" != true ] || printf %s -x)" \
     --entrypoint /bin/sh \
     "$BUILD_IMAGE_NAME" \
-    -ec $(echo "$-" | grep -v -q x || printf '%s' '-x') "
+    -ec $(echo "$-" | grep -v -q x || printf %s '-x') "
       $(cat "stackgres-k8s/ci/build/target/$MODULE-build-env")
       $COMMANDS"
 }
@@ -245,6 +247,7 @@ EOF
   # shellcheck disable=SC2086
   # shellcheck disable=SC2046
   docker_build $DOCKER_BUILD_OPTS -t "$IMAGE_NAME" \
+    --pull \
     --build-arg "BUILD_UID=${BUILD_UID%:*}" \
     --build-arg "TARGET_IMAGE_NAME=$TARGET_IMAGE_NAME" \
     $(jq -r ".modules[\"$MODULE\"].dockerfile.args
@@ -252,7 +255,7 @@ EOF
         | map(.key + \" \" + .value + \"\")[]" stackgres-k8s/ci/build/target/config.json \
       | while read -r KEY VALUE
         do
-          printf ' %s %s=%s' '--build-arg' "$KEY" "$(eval "printf '%s' \"$VALUE\"")"
+          printf ' %s %s=%s' '--build-arg' "$KEY" "$(eval "printf %s \"$VALUE\"")"
         done) \
     -f "stackgres-k8s/ci/build/target/Dockerfile.$MODULE" .
 }
@@ -265,7 +268,7 @@ module_list() {
   MODULE_FILES="$(
     jq -r ".modules[\"$MODULE\"][\"$MODULE_FILES_PATH\"] | if . != null then if (.|type) == \"array\" then . else (to_entries | map(.value)) end else [] end | sort | .[]" stackgres-k8s/ci/build/target/config.json
     )"
-  printf '%s' "$MODULE_FILES"
+  printf %s "$MODULE_FILES"
 }
 
 init_hash() {
@@ -301,7 +304,7 @@ module_type() {
   local MODULE_TYPE
   MODULE_TYPE="$(jq -r ".modules | select(has(\"$MODULE\"))[\"$MODULE\"] | select(has(\"type\")).type" stackgres-k8s/ci/build/target/config.json)"
   [ -n "$MODULE_TYPE" ] || die "Module $MODULE is not defined or has no type in stackgres-k8s/ci/build/config.yml" 1
-  printf '%s' "$MODULE_TYPE"
+  printf %s "$MODULE_TYPE"
 }
 
 source_image_name() {
@@ -336,7 +339,7 @@ image_name() {
   fi
   IMAGE_NAME="$(grep "^$MODULE=.*$MODULE_PLATFORM$" stackgres-k8s/ci/build/target/image-hashes)" \
     || die "Unable to retrieve hash for module $MODULE in stackgres-k8s/ci/build/target/image-hashes" 1
-  IMAGE_NAME="$(printf '%s' "$IMAGE_NAME"| cut -d = -f 2-)"
+  IMAGE_NAME="$(printf %s "$IMAGE_NAME"| cut -d = -f 2-)"
   [ -n "$IMAGE_NAME" ] \
     || die "Unable to retrieve hash for module $MODULE in stackgres-k8s/ci/build/target/image-hashes" 1
   printf '%s\n' "$IMAGE_NAME"
@@ -394,6 +397,7 @@ extract_from_image() {
   local IMAGE_PLATFORM
   IMAGE_PLATFORM="$(get_image_platform "$IMAGE_NAME")"
   docker_run --rm --entrypoint /bin/sh --platform "$IMAGE_PLATFORM" \
+    --pull always \
     --user "$(id -u):$(id -g)" \
     --env HOME=/tmp \
     -v "${PROJECT_PATH:-$(pwd)}:/out" \
@@ -514,7 +518,7 @@ show_image_hashes() {
 
 find_image_digests() {
   sort "$1" | uniq \
-    | xargs -I @ -P 16 sh $(! echo $- | grep -q x || printf '%s' "-x") \
+    | xargs -I @ -P 16 sh $(! echo $- | grep -q x || printf %s "-x") \
       stackgres-k8s/ci/build/build-functions.sh find_image_digest @
   (! ls stackgres-k8s/ci/build/target/image-digests.* > /dev/null 2>&1 \
     || cat stackgres-k8s/ci/build/target/image-digests.*)
@@ -560,7 +564,7 @@ get_image_platform() {
           if jq -r '.[]|.Descriptor.platform.os + "/" + .Descriptor.platform.architecture' \
             "stackgres-k8s/ci/build/target/manifest.${IMAGE_NAME##*/}" | grep -qxF "$IMAGE_PLATFORM"
           then
-            printf '%s' "$IMAGE_PLATFORM"
+            printf %s "$IMAGE_PLATFORM"
             break
           fi
         done

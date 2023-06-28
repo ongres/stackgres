@@ -7,12 +7,13 @@ package io.stackgres.operator.conciliation;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Stream;
+import java.util.concurrent.atomic.AtomicReference;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -20,7 +21,10 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
+import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,11 +38,14 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
       .RECONCILIATION_PAUSE_KEY;
 
   private final CustomResourceScanner<T> scanner;
+  private final CustomResourceFinder<T> finder;
   private final Conciliator<T> conciliator;
   private final HandlerDelegator<T> handlerDelegator;
   private final KubernetesClient client;
   private final String reconciliationName;
   private final ExecutorService executorService;
+  private final AtomicReference<List<Optional<T>>> atomicReference =
+      new AtomicReference<List<Optional<T>>>(List.of());
   private final ArrayBlockingQueue<Boolean> arrayBlockingQueue = new ArrayBlockingQueue<>(1);
 
   private final CompletableFuture<Void> stopped = new CompletableFuture<>();
@@ -46,11 +53,13 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
 
   protected AbstractReconciliator(
       CustomResourceScanner<T> scanner,
+      CustomResourceFinder<T> finder,
       Conciliator<T> conciliator,
       HandlerDelegator<T> handlerDelegator,
       KubernetesClient client,
       String reconciliationName) {
     this.scanner = scanner;
+    this.finder = finder;
     this.conciliator = conciliator;
     this.handlerDelegator = handlerDelegator;
     this.client = client;
@@ -62,6 +71,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
   public AbstractReconciliator() {
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
     this.scanner = null;
+    this.finder = null;
     this.conciliator = null;
     this.handlerDelegator = null;
     this.client = null;
@@ -75,9 +85,9 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
 
   protected void stop() {
     close = true;
-    reconcile();
+    reconcile(List.of());
     executorService.shutdown();
-    reconcile();
+    reconcile(List.of());
     stopped.join();
   }
 
@@ -85,10 +95,22 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     return reconciliationName;
   }
 
+  public void reconcileAll() {
+    reconcile(List.of(Optional.empty()));
+  }
+
+  public void reconcile(T config) {
+    reconcile(List.of(Optional.of(config)));
+  }
+
   @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED_BAD_PRACTICE",
       justification = "We do not care if queue is already filled")
-  public void reconcile() {
-    arrayBlockingQueue.offer(Boolean.TRUE);
+  private void reconcile(List<Optional<T>> configs) {
+    atomicReference.updateAndGet(atomicConfigs -> Seq
+        .seq(atomicConfigs)
+        .append(configs)
+        .toList());
+    arrayBlockingQueue.offer(true);
   }
 
   private void reconciliationLoop() {
@@ -96,10 +118,11 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     while (true) {
       try {
         arrayBlockingQueue.take();
+        List<Optional<T>> configs = atomicReference.getAndSet(List.of());
         if (close) {
           break;
         }
-        reconciliationCycle();
+        reconciliationsCycle(configs);
       } catch (Exception ex) {
         LOGGER.error("{} reconciliation loop was interrupted", getReconciliationName(), ex);
       }
@@ -108,98 +131,126 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     stopped.complete(null);
   }
 
-  public synchronized void reconciliationCycle() {
-    getExistentSources().forEach(customResource -> {
-      final ObjectMeta metadata = customResource.getMetadata();
-      final String customResourceId = customResource.getKind()
-          + " " + metadata.getNamespace() + "/" + metadata.getName();
-
-      try {
-        onPreReconciliation(customResource);
-        LOGGER.info("Checking reconciliation status of {}", customResourceId);
-        ReconciliationResult result = conciliator.evalReconciliationState(customResource);
-        if (!result.isUpToDate()) {
-          LOGGER.info("{} it's not up to date. Reconciling", customResourceId);
-
-          result.getCreations()
-              .stream()
-              .sorted(ReconciliationOperations.RESOURCES_COMPARATOR)
-              .forEach(resource -> {
-                LOGGER.info("Creating resource {}.{} of kind: {}",
-                    resource.getMetadata().getNamespace(),
-                    resource.getMetadata().getName(),
-                    resource.getKind());
-                handlerDelegator.create(customResource, resource);
-              });
-
-          result.getPatches()
-              .stream()
-              .sorted(Comparator.comparing(
-                  Tuple2::v1, ReconciliationOperations.RESOURCES_COMPARATOR))
-              .forEach(resource -> {
-                LOGGER.info("Patching resource {}.{} of kind: {}",
-                    resource.v2.getMetadata().getNamespace(),
-                    resource.v2.getMetadata().getName(),
-                    resource.v2.getKind());
-                handlerDelegator.patch(customResource, resource.v1, resource.v2);
-              });
-
-          result.getDeletions()
-              .stream()
-              .sorted(Collections.reverseOrder(
-                  ReconciliationOperations.RESOURCES_COMPARATOR))
-              .forEach(resource -> {
-                LOGGER.info("Deleting resource {}.{} of kind: {}",
-                    resource.getMetadata().getNamespace(),
-                    resource.getMetadata().getName(),
-                    resource.getKind());
-                handlerDelegator.delete(customResource, resource);
-              });
-          if (result.getDeletions().isEmpty() && result.getPatches().isEmpty()) {
-            onConfigCreated(customResource, result);
-          } else {
-            onConfigUpdated(customResource, result);
-          }
-        } else {
-          LOGGER.info("{} it's up to date", customResourceId);
-        }
-
-        onPostReconciliation(customResource);
-
-      } catch (Exception e) {
-        LOGGER.error("Reconciliation of {} failed", customResourceId, e);
-        try {
-          onError(e, customResource);
-        } catch (Exception onErrorEx) {
-          LOGGER.error("Failed executing on error event of {}", customResourceId, onErrorEx);
-        }
-      }
-    });
+  protected void reconciliationsCycle(List<Optional<T>> configs) {
+    mergedConfigs(configs).stream()
+        .filter(t -> Optional.ofNullable(t.v1.getMetadata().getAnnotations())
+            .map(annotations -> annotations.get(STACKGRES_IO_RECONCILIATION))
+            .map(Boolean::parseBoolean)
+            .map(b -> !b)
+            .orElse(true))
+        .forEach(t -> reconciliationCycle(t.v1, t.v2));
   }
 
-  private Stream<T> getExistentSources() {
+  private List<Tuple2<T, Boolean>> mergedConfigs(List<Optional<T>> configs) {
+    if (configs.stream().anyMatch(Optional::isEmpty)) {
+      return getExistentSources().stream()
+          .map(config -> Tuple.tuple(config, false))
+          .toList();
+    }
+    return Seq.seq(configs)
+        .map(Optional::get)
+        .grouped(this::configId)
+        .flatMap(t -> t.v2.limit(1))
+        .map(config -> Tuple.tuple(config, true))
+        .toList();
+  }
+
+  private List<T> getExistentSources() {
     try {
-      return scanner.getResources().stream()
-          .filter(r -> Optional.ofNullable(r.getMetadata().getAnnotations())
-              .map(annotations -> annotations.get(STACKGRES_IO_RECONCILIATION))
-              .map(Boolean::parseBoolean)
-              .map(b -> !b)
-              .orElse(true));
+      return scanner.getResources();
     } catch (Exception ex) {
       LOGGER.error("Failed retrieving existing sources", ex);
-      return Stream.of();
+      return List.of();
     }
   }
 
-  public abstract void onPreReconciliation(T config);
+  private String configId(T config) {
+    return config.getMetadata().getNamespace() + "." + config.getMetadata().getName();
+  }
 
-  public abstract void onPostReconciliation(T config);
+  protected void reconciliationCycle(T configKey, boolean load) {
+    final ObjectMeta metadata = configKey.getMetadata();
+    final String configId = configKey.getKind()
+        + " " + metadata.getNamespace() + "/" + metadata.getName();
 
-  public abstract void onConfigCreated(T context, ReconciliationResult result);
+    try {
+      final T config;
+      if (load) {
+        config = finder.findByNameAndNamespace(metadata.getName(), metadata.getNamespace())
+            .orElseThrow(() -> new IllegalArgumentException(configKey + " not found"));
+      } else {
+        config = configKey;
+      }
+      onPreReconciliation(config);
+      LOGGER.info("Checking reconciliation status of {}", configId);
+      ReconciliationResult result = conciliator.evalReconciliationState(config);
+      if (!result.isUpToDate()) {
+        LOGGER.info("{} it's not up to date. Reconciling", configId);
 
-  public abstract void onConfigUpdated(T context, ReconciliationResult result);
+        result.getCreations()
+            .stream()
+            .sorted(ReconciliationOperations.RESOURCES_COMPARATOR)
+            .forEach(resource -> {
+              LOGGER.info("Creating resource {}.{} of kind: {}",
+                  resource.getMetadata().getNamespace(),
+                  resource.getMetadata().getName(),
+                  resource.getKind());
+              handlerDelegator.create(config, resource);
+            });
 
-  public abstract void onError(Exception e, T context);
+        result.getPatches()
+            .stream()
+            .sorted(Comparator.comparing(
+                Tuple2::v1, ReconciliationOperations.RESOURCES_COMPARATOR))
+            .forEach(resource -> {
+              LOGGER.info("Patching resource {}.{} of kind: {}",
+                  resource.v2.getMetadata().getNamespace(),
+                  resource.v2.getMetadata().getName(),
+                  resource.v2.getKind());
+              handlerDelegator.patch(config, resource.v1, resource.v2);
+            });
+
+        result.getDeletions()
+            .stream()
+            .sorted(Collections.reverseOrder(
+                ReconciliationOperations.RESOURCES_COMPARATOR))
+            .forEach(resource -> {
+              LOGGER.info("Deleting resource {}.{} of kind: {}",
+                  resource.getMetadata().getNamespace(),
+                  resource.getMetadata().getName(),
+                  resource.getKind());
+              handlerDelegator.delete(config, resource);
+            });
+        if (result.getDeletions().isEmpty() && result.getPatches().isEmpty()) {
+          onConfigCreated(config, result);
+        } else {
+          onConfigUpdated(config, result);
+        }
+      } else {
+        LOGGER.info("{} it's up to date", configId);
+      }
+
+      onPostReconciliation(config);
+
+    } catch (Exception e) {
+      LOGGER.error("Reconciliation of {} failed", configId, e);
+      try {
+        onError(e, configKey);
+      } catch (Exception onErrorEx) {
+        LOGGER.error("Failed executing on error event of {}", configId, onErrorEx);
+      }
+    }
+  }
+
+  protected abstract void onPreReconciliation(T config);
+
+  protected abstract void onPostReconciliation(T config);
+
+  protected abstract void onConfigCreated(T context, ReconciliationResult result);
+
+  protected abstract void onConfigUpdated(T context, ReconciliationResult result);
+
+  protected abstract void onError(Exception e, T context);
 
   public KubernetesClient getClient() {
     return client;

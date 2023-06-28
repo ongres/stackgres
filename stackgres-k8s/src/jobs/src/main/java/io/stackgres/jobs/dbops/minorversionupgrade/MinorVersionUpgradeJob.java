@@ -21,6 +21,7 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.jobs.dbops.ClusterRestartStateHandler;
 import io.stackgres.jobs.dbops.DatabaseOperation;
 import io.stackgres.jobs.dbops.DatabaseOperationJob;
+import io.stackgres.jobs.dbops.MutinyUtil;
 import io.stackgres.jobs.dbops.StateHandler;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.securityupgrade.SecurityUpgradeJob;
@@ -65,6 +66,8 @@ public class MinorVersionUpgradeJob implements DatabaseOperationJob {
           setTargetMinorVersion(dbOps, cluster);
           return clusterScheduler.update(cluster);
         })
+        .onFailure()
+        .transform(MutinyUtil.logOnFailureToRetry("updating SGCluster"))
         .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))

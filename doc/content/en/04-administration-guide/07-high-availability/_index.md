@@ -1,7 +1,7 @@
 ---
 title: High Availability
 weight: 7
-url: administration/patroni
+url: /administration/patroni
 aliases: [ /administration/patroni/management ]
 description: Details about how to use Patroni to handle the database replicas and primary nodes.
 ---

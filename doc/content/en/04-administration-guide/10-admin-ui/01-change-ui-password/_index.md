@@ -1,7 +1,7 @@
 ---
 title: Change password
 weight: 1
-url: administration/adminui/change/password
+url: /administration/adminui/change/password
 description: Changing the UI password.
 showToc: true
 ---

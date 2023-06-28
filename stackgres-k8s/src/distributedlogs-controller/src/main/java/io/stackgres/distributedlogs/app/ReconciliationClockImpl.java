@@ -24,6 +24,6 @@ public class ReconciliationClockImpl extends AbstractReconciliationClock {
 
   @Override
   protected void reconcile() {
-    distributedLogsReconciliationCycle.reconcile();
+    distributedLogsReconciliationCycle.reconcileAll();
   }
 }

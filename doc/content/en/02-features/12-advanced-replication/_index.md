@@ -1,7 +1,7 @@
 ---
 title: Advanced Replication Modes
 weight: 12
-url: features/advanced-replication-modes
+url: /features/advanced-replication-modes
 description: Make use of advanced replication modes, including async, sync and group replication.
 ---
 

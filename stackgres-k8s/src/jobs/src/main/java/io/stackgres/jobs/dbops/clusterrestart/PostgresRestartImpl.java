@@ -14,6 +14,7 @@ import javax.inject.Inject;
 import com.google.common.base.Predicates;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.RetryUtil;
+import io.stackgres.jobs.dbops.MutinyUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +33,9 @@ public class PostgresRestartImpl implements PostgresRestart {
   @Override
   public Uni<Void> restartPostgres(String memberName, String clusterName, String namespace) {
     return restartPostgresWithoutRetry(memberName, clusterName, namespace)
+        .onFailure()
+        .transform(MutinyUtil.logOnFailureToRetry(
+            "performing the restart of postgres"))
         .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))

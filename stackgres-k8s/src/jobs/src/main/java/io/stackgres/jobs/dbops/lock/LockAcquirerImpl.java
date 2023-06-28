@@ -19,6 +19,7 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.jobs.dbops.MutinyUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,6 +77,8 @@ public class LockAcquirerImpl implements LockAcquirer<StackGresCluster> {
       Uni.createFrom().item(() -> getCluster(target))
           .invoke(StackGresUtil::resetLock)
           .invoke(clusterScheduler::update)
+          .onFailure()
+          .transform(MutinyUtil.logOnFailureToRetry("updating the lock"))
           .onFailure()
           .retry()
           .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))

@@ -58,18 +58,74 @@
                 </table>
             </div>
 
+            <div class="card" v-if="iCan('any','sgshardedclusters',$route.params.namespace)">
+                <table class="fullWidth">
+                    <thead>
+                        <th class="crdName">
+                            <template v-if="iCan('list', 'sgshardedclusters', $route.params.namespace)">
+                                <router-link :to="'/' + $route.params.namespace + '/sgshardedclusters/'" title="Sharded Cluster Overview">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g fill="#36A8FF"><path d="m19 15.3-1.4-1.2c-.4-.3-1-.3-1.3.1-.3.4-.3 1 .1 1.3h.1l.2.2-5.6 2.1v-4.1l.2.1c.1.1.3.1.5.1.3 0 .6-.2.8-.5.3-.4.1-1-.3-1.3l-1.6-.9c-.3-.2-.6-.2-.9 0l-1.6.9c-.4.3-.6.8-.3 1.3.2.4.8.6 1.2.4l.2-.1v4l-5.6-2.1.2-.2c.4-.3.5-.9.2-1.3s-.9-.5-1.3-.2L1 15.3c-.2.2-.4.5-.3.9L1 18c.1.5.6.8 1.1.8.4-.1.8-.5.8-.9v-.5l6.9 2.5c0 .1.1.1.2.1h.1c.1 0 .2 0 .3-.1l6.8-2.5v.3c-.1.5.3 1 .8 1.1h.2c.4 0 .8-.3.9-.8l.3-1.8c-.1-.3-.2-.7-.4-.9"/><path d="M10 0C4.9 0 .9 2.2.9 5.1v6.3c0 .6.4 1 1 1h.2c.4 0 .8-.3.8-.8.1.1.2.1.4.2h.1c.1 0 .1.1.2.1.1.1.3.1.4.2.1 0 .1.1.2.1s.1 0 .2.1h.1c.1.1.2.1.3.1.1 0 .2.1.3.1.4 0 .8-.3.9-.6 0-.1 0-.1.1-.2.1-.5-.2-.9-.6-1.1-.2-.1-.4-.2-.6-.2-.3-.1-.6-.3-.9-.5-.1-.1-.2-.1-.2-.2l-.1-.1c-.2-.1-.4-.3-.5-.5-.2-.2-.2-.4-.3-.6V8.2c2.1 1.3 4.6 2 7.1 1.9 2.5.1 5-.6 7.1-1.9v.2c0 .2-.1.5-.3.7-.1.2-.3.4-.5.5l-.1.1c-.1.1-.2.1-.3.2-.3.2-.6.3-.9.5-.2.1-.4.2-.6.2-.4.2-.7.6-.6 1.1 0 .1 0 .1.1.2.1.4.5.6.9.6.1 0 .2 0 .4-.1.1-.1.2-.1.4-.1h.1c.1 0 .1-.1.2-.1s.1-.1.2-.1c.1-.1.2-.1.4-.2.1 0 .1-.1.2-.1h.1c.1-.1.3-.1.4-.2 0 .4.3.8.8.8h.2c.6 0 1-.4 1-1V5.1C19.1 2.2 15.1 0 10 0m0 8.1C5.8 8.1 2.9 6.5 2.9 5S5.8 2 10 2s7.1 1.6 7.1 3.1-2.9 3-7.1 3"/></g></svg>
+                                    <span>SGShardedCluster <i class="length">{{ sgshardedclusters.length }}</i></span>
+                                </router-link>
+                            </template>
+                            <template v-else>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g fill="#36A8FF"><path d="m19 15.3-1.4-1.2c-.4-.3-1-.3-1.3.1-.3.4-.3 1 .1 1.3h.1l.2.2-5.6 2.1v-4.1l.2.1c.1.1.3.1.5.1.3 0 .6-.2.8-.5.3-.4.1-1-.3-1.3l-1.6-.9c-.3-.2-.6-.2-.9 0l-1.6.9c-.4.3-.6.8-.3 1.3.2.4.8.6 1.2.4l.2-.1v4l-5.6-2.1.2-.2c.4-.3.5-.9.2-1.3s-.9-.5-1.3-.2L1 15.3c-.2.2-.4.5-.3.9L1 18c.1.5.6.8 1.1.8.4-.1.8-.5.8-.9v-.5l6.9 2.5c0 .1.1.1.2.1h.1c.1 0 .2 0 .3-.1l6.8-2.5v.3c-.1.5.3 1 .8 1.1h.2c.4 0 .8-.3.9-.8l.3-1.8c-.1-.3-.2-.7-.4-.9"/><path d="M10 0C4.9 0 .9 2.2.9 5.1v6.3c0 .6.4 1 1 1h.2c.4 0 .8-.3.8-.8.1.1.2.1.4.2h.1c.1 0 .1.1.2.1.1.1.3.1.4.2.1 0 .1.1.2.1s.1 0 .2.1h.1c.1.1.2.1.3.1.1 0 .2.1.3.1.4 0 .8-.3.9-.6 0-.1 0-.1.1-.2.1-.5-.2-.9-.6-1.1-.2-.1-.4-.2-.6-.2-.3-.1-.6-.3-.9-.5-.1-.1-.2-.1-.2-.2l-.1-.1c-.2-.1-.4-.3-.5-.5-.2-.2-.2-.4-.3-.6V8.2c2.1 1.3 4.6 2 7.1 1.9 2.5.1 5-.6 7.1-1.9v.2c0 .2-.1.5-.3.7-.1.2-.3.4-.5.5l-.1.1c-.1.1-.2.1-.3.2-.3.2-.6.3-.9.5-.2.1-.4.2-.6.2-.4.2-.7.6-.6 1.1 0 .1 0 .1.1.2.1.4.5.6.9.6.1 0 .2 0 .4-.1.1-.1.2-.1.4-.1h.1c.1 0 .1-.1.2-.1s.1-.1.2-.1c.1-.1.2-.1.4-.2.1 0 .1-.1.2-.1h.1c.1-.1.3-.1.4-.2 0 .4.3.8.8.8h.2c.6 0 1-.4 1-1V5.1C19.1 2.2 15.1 0 10 0m0 8.1C5.8 8.1 2.9 6.5 2.9 5S5.8 2 10 2s7.1 1.6 7.1 3.1-2.9 3-7.1 3"/></g></svg>
+                                <span>SGShardedCluster <i class="length">{{ sgshardedclusters.length }}</i></span>
+                            </template>
+                        </th>
+                        <th class="icon invisible">
+                            <router-link 
+                                :to="'/' + $route.params.namespace + '/sgshardedclusters/new'"
+                                title="Create Sharded Cluster"
+                                v-if="iCan('create', 'sgshardedclusters', $route.params.namespace)"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15" width="16px"><g fill="#36A8FF"><path d="M7.5 15C3.4 15 0 11.6 0 7.5S3.4 0 7.5 0 15 3.4 15 7.5 11.6 15 7.5 15zm0-13.4c-3.3 0-5.9 2.7-5.9 5.9s2.7 5.9 5.9 5.9 5.9-2.7 5.9-5.9-2.6-5.9-5.9-5.9z"/><path class="prefix__st0" d="M10.7 6.9H8.2V4.5H6.8v2.4H4.3v1.4h2.5v2.5h1.4V8.3h2.5z"/></g></svg>
+                            </router-link>
+                        </th>
+                    </thead>
+                    <tbody>
+                        <template v-if="!sgshardedclusters.length || !iCan('list', 'sgshardedclusters', $route.params.namespace)">
+                            <tr class="no-results">
+                                <td colspan="2" v-if="iCan('create', 'sgshardedclusters', $route.params.namespace)">
+                                    No sharded clusters have been found, would you like to <router-link :to="'/' + $route.params.namespace + '/sgshardedclusters/new'" title="Create Sharded Cluster">create a new one?</router-link>
+                                </td>
+                                <td v-else colspan="2">
+                                    No sharded clusters have been found. You don't have enough permissions to create a new one.
+                                </td>
+                            </tr>
+                        </template>
+                        <template v-else>
+                            <template v-for="cluster in sgshardedclusters">
+                                <tr>
+                                    <td class="hasTooltip">
+                                        <span>
+                                            <router-link :to="'/' + $route.params.namespace + '/sgshardedcluster/' + cluster.name" title="Sharded Cluster Status">
+                                                {{ cluster.name }}
+                                            </router-link>
+                                        </span>
+                                    </td>
+                                    <td class="icon invisible">
+                                        <router-link :to="'/' + $route.params.namespace + '/sgshardedcluster/' + cluster.name" title="Sharded Cluster Status" target="_blank"></router-link>
+                                    </td>
+                                </tr>
+                            </template>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+
             <div class="card" v-if="iCan('any', 'sginstanceprofiles', $route.params.namespace)">
                 <table class="fullWidth">
                     <thead>
                         <th class="crdName">
                             <template v-if="iCan('list', 'sginstanceprofiles', $route.params.namespace)">
                                 <router-link :to="'/' + $route.params.namespace + '/sginstanceprofiles'" title="Instance Profiles List">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><g transform="translate(0 -242)"><path d="M19.649,256.971l-1.538-1.3a.992.992,0,1,0-1.282,1.514l.235.2-6.072,2.228v-4.373l.266.154a.974.974,0,0,0,.491.132.99.99,0,0,0,.862-.506,1.012,1.012,0,0,0-.369-1.372l-1.75-1.013a.983.983,0,0,0-.984,0l-1.75,1.013a1.012,1.012,0,0,0-.369,1.372.985.985,0,0,0,1.353.374l.266-.154v4.353l-6.07-2.21.233-.2a.992.992,0,1,0-1.282-1.514l-1.538,1.3a.992.992,0,0,0-.337.925l.342,1.987a.992.992,0,0,0,.977.824.981.981,0,0,0,.169-.015.992.992,0,0,0,.81-1.145l-.052-.3,7.4,2.694A1.011,1.011,0,0,0,10,262c.01,0,.02,0,.03-.005s.02.005.03.005a1,1,0,0,0,.342-.061l7.335-2.691-.051.3a.992.992,0,0,0,.811,1.145.953.953,0,0,0,.168.015.992.992,0,0,0,.977-.824l.341-1.987A.992.992,0,0,0,19.649,256.971Z" fill="#36A8FF"/><path d="M20,246.25a.99.99,0,0,0-.655-.93l-9-3.26a1,1,0,0,0-.681,0l-9,3.26a.99.99,0,0,0-.655.93.9.9,0,0,0,.016.1c0,.031-.016.057-.016.089v5.886a1.052,1.052,0,0,0,.992,1.1,1.052,1.052,0,0,0,.992-1.1v-4.667l7.676,2.779a1.012,1.012,0,0,0,.681,0l7.675-2.779v4.667a1,1,0,1,0,1.984,0v-5.886c0-.032-.014-.058-.016-.089A.9.9,0,0,0,20,246.25Zm-10,2.207L3.9,246.25l6.1-2.206,6.095,2.206Z" fill="#36A8FF"/></g></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g fill="#36A8FF"><path d="M10 0h.3l8.8 3c.5.2.8.7.6 1.2-.1.3-.3.5-.6.6l-8.8 2.9c-.2.1-.4.1-.6 0L.9 4.9C.4 4.7.1 4.1.3 3.6c.1-.3.3-.5.6-.6L9.7.1c.1-.1.2-.1.3-.1zm5.7 3.9L10 2 4.3 3.9 10 5.8l5.7-1.9zM1.2 6.2c.1 0 .2 0 .3.1l7.3 2.4c.4.1.7.5.7.9V19c0 .5-.4 1-1 1-.1 0-.2 0-.3-.1L.9 17.5c-.4-.1-.7-.5-.7-.9V7.2c0-.6.4-1 1-1zm6.2 4.1L2.1 8.6v7.3l5.3 1.8v-7.4zM18.8 6.2c.5 0 1 .4 1 1v9.4c0 .4-.3.8-.7.9l-7.3 2.4c-.5.2-1.1-.1-1.2-.6 0-.1-.1-.2-.1-.3V9.6c0-.4.3-.8.7-.9l7.3-2.4c.1-.1.2-.1.3-.1zm-.9 9.7V8.6l-5.3 1.8v7.3l5.3-1.8z"/></g></svg>
                                     <span>SGInstanceProfile <i class="length">{{ profiles.length }}</i></span>
                                 </router-link>
                             </template>
                             <template v-else>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><g transform="translate(0 -242)"><path d="M19.649,256.971l-1.538-1.3a.992.992,0,1,0-1.282,1.514l.235.2-6.072,2.228v-4.373l.266.154a.974.974,0,0,0,.491.132.99.99,0,0,0,.862-.506,1.012,1.012,0,0,0-.369-1.372l-1.75-1.013a.983.983,0,0,0-.984,0l-1.75,1.013a1.012,1.012,0,0,0-.369,1.372.985.985,0,0,0,1.353.374l.266-.154v4.353l-6.07-2.21.233-.2a.992.992,0,1,0-1.282-1.514l-1.538,1.3a.992.992,0,0,0-.337.925l.342,1.987a.992.992,0,0,0,.977.824.981.981,0,0,0,.169-.015.992.992,0,0,0,.81-1.145l-.052-.3,7.4,2.694A1.011,1.011,0,0,0,10,262c.01,0,.02,0,.03-.005s.02.005.03.005a1,1,0,0,0,.342-.061l7.335-2.691-.051.3a.992.992,0,0,0,.811,1.145.953.953,0,0,0,.168.015.992.992,0,0,0,.977-.824l.341-1.987A.992.992,0,0,0,19.649,256.971Z" fill="#36A8FF"/><path d="M20,246.25a.99.99,0,0,0-.655-.93l-9-3.26a1,1,0,0,0-.681,0l-9,3.26a.99.99,0,0,0-.655.93.9.9,0,0,0,.016.1c0,.031-.016.057-.016.089v5.886a1.052,1.052,0,0,0,.992,1.1,1.052,1.052,0,0,0,.992-1.1v-4.667l7.676,2.779a1.012,1.012,0,0,0,.681,0l7.675-2.779v4.667a1,1,0,1,0,1.984,0v-5.886c0-.032-.014-.058-.016-.089A.9.9,0,0,0,20,246.25Zm-10,2.207L3.9,246.25l6.1-2.206,6.095,2.206Z" fill="#36A8FF"/></g></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g fill="#36A8FF"><path d="M10 0h.3l8.8 3c.5.2.8.7.6 1.2-.1.3-.3.5-.6.6l-8.8 2.9c-.2.1-.4.1-.6 0L.9 4.9C.4 4.7.1 4.1.3 3.6c.1-.3.3-.5.6-.6L9.7.1c.1-.1.2-.1.3-.1zm5.7 3.9L10 2 4.3 3.9 10 5.8l5.7-1.9zM1.2 6.2c.1 0 .2 0 .3.1l7.3 2.4c.4.1.7.5.7.9V19c0 .5-.4 1-1 1-.1 0-.2 0-.3-.1L.9 17.5c-.4-.1-.7-.5-.7-.9V7.2c0-.6.4-1 1-1zm6.2 4.1L2.1 8.6v7.3l5.3 1.8v-7.4zM18.8 6.2c.5 0 1 .4 1 1v9.4c0 .4-.3.8-.7.9l-7.3 2.4c-.5.2-1.1-.1-1.2-.6 0-.1-.1-.2-.1-.3V9.6c0-.4.3-.8.7-.9l7.3-2.4c.1-.1.2-.1.3-.1zm-.9 9.7V8.6l-5.3 1.8v7.3l5.3-1.8z"/></g></svg>
                                 <span>SGInstanceProfile <i class="length">{{ profiles.length }}</i></span>
                             </template>
                         </th>
@@ -543,6 +599,10 @@ export default {
     computed: {
         clusters () {
             return store.state.sgclusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace))
+        },
+
+        sgshardedclusters () {
+            return store.state.sgshardedclusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace))
         },
 
         profiles () {

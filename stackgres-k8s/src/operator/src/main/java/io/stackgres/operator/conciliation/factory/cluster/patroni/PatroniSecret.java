@@ -120,35 +120,39 @@ public class PatroniSecret
 
   private void setSuperuserCredentials(StackGresClusterContext context,
       Map<String, String> previousSecretData, Map<String, String> data) {
-    data.put(SUPERUSER_USERNAME_ENV, context.getSuperuserUsername()
+    data.put(SUPERUSER_USERNAME_KEY, context.getSuperuserUsername()
         .orElse(previousSecretData
-            .getOrDefault(SUPERUSER_USERNAME_ENV, SUPERUSER_USERNAME)));
+            .getOrDefault(SUPERUSER_USERNAME_KEY, previousSecretData
+                .getOrDefault(SUPERUSER_USERNAME_ENV, SUPERUSER_USERNAME))));
+    data.put(SUPERUSER_USERNAME_ENV, data.get(SUPERUSER_USERNAME_KEY));
     data.put(SUPERUSER_PASSWORD_KEY, context.getSuperuserPassword()
         .orElse(previousSecretData
             .getOrDefault(SUPERUSER_PASSWORD_KEY, previousSecretData
                 .getOrDefault(SUPERUSER_PASSWORD_ENV, generatePassword()))));
-    data.put(SUPERUSER_PASSWORD_ENV, context.getSuperuserPassword()
-        .orElse(data.get(SUPERUSER_PASSWORD_KEY)));
+    data.put(SUPERUSER_PASSWORD_ENV, data.get(SUPERUSER_PASSWORD_KEY));
   }
 
   private void setReplicationCredentials(StackGresClusterContext context,
       Map<String, String> previousSecretData, Map<String, String> data) {
-    data.put(REPLICATION_USERNAME_ENV, context.getReplicationUsername()
+    data.put(REPLICATION_USERNAME_KEY, context.getReplicationUsername()
         .orElse(previousSecretData
-            .getOrDefault(REPLICATION_USERNAME_ENV, REPLICATION_USERNAME)));
+            .getOrDefault(REPLICATION_USERNAME_KEY, previousSecretData
+                .getOrDefault(REPLICATION_USERNAME_ENV, REPLICATION_USERNAME))));
+    data.put(REPLICATION_USERNAME_ENV, data.get(REPLICATION_USERNAME_KEY));
     data.put(REPLICATION_PASSWORD_KEY, context.getReplicationPassword()
         .orElse(previousSecretData
             .getOrDefault(REPLICATION_PASSWORD_KEY, previousSecretData
                 .getOrDefault(REPLICATION_PASSWORD_ENV, generatePassword()))));
-    data.put(REPLICATION_PASSWORD_ENV, context.getReplicationPassword()
-        .orElse(data.get(REPLICATION_PASSWORD_KEY)));
+    data.put(REPLICATION_PASSWORD_ENV, data.get(REPLICATION_PASSWORD_KEY));
   }
 
   private void setAuthenticatorCredentials(StackGresClusterContext context,
       Map<String, String> previousSecretData, Map<String, String> data) {
-    data.put(AUTHENTICATOR_USERNAME_ENV, context.getAuthenticatorUsername()
+    data.put(AUTHENTICATOR_USERNAME_KEY, context.getAuthenticatorUsername()
         .orElse(previousSecretData
-            .getOrDefault(AUTHENTICATOR_USERNAME_ENV, AUTHENTICATOR_USERNAME)));
+            .getOrDefault(AUTHENTICATOR_USERNAME_KEY, previousSecretData
+                .getOrDefault(AUTHENTICATOR_USERNAME_ENV, AUTHENTICATOR_USERNAME))));
+    data.put(AUTHENTICATOR_USERNAME_ENV, data.get(AUTHENTICATOR_USERNAME_KEY));
     final String authenticatorPasswordEnv = AUTHENTICATOR_PASSWORD_ENV
         .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV));
     final String authenticatorOptionsEnv = AUTHENTICATOR_OPTIONS_ENV
@@ -157,8 +161,7 @@ public class PatroniSecret
         .orElse(previousSecretData
             .getOrDefault(AUTHENTICATOR_PASSWORD_KEY, previousSecretData
                 .getOrDefault(authenticatorPasswordEnv, generatePassword()))));
-    data.put(authenticatorPasswordEnv, context.getAuthenticatorPassword()
-        .orElse(data.get(AUTHENTICATOR_PASSWORD_KEY)));
+    data.put(authenticatorPasswordEnv, data.get(AUTHENTICATOR_PASSWORD_KEY));
     data.put(authenticatorOptionsEnv, "superuser");
   }
 
@@ -186,7 +189,8 @@ public class PatroniSecret
   private void setRestApiCredentials(StackGresClusterContext context,
       final Map<String, String> previousSecretData,
       final Map<String, String> data) {
-    data.put(RESTAPI_USERNAME_ENV, RESTAPI_USERNAME);
+    data.put(RESTAPI_USERNAME_KEY, RESTAPI_USERNAME);
+    data.put(RESTAPI_USERNAME_ENV, data.get(RESTAPI_USERNAME_KEY));
     data.put(RESTAPI_PASSWORD_KEY, context.getPatroniRestApiPassword()
         .orElse(previousSecretData
             .getOrDefault(RESTAPI_PASSWORD_KEY, previousSecretData

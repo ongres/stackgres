@@ -1,6 +1,6 @@
 ---
 title: Runbooks
-url: runbooks
+url: /runbooks
 weight: 9
 chapter: true
 ---

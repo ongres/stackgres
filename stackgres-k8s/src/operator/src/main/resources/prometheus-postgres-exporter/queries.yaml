@@ -832,8 +832,6 @@ pg_vaccuum_wraparound:
         usage: "GAUGE"
         description: "Percentage"
 
-# PGBOUNCER QUERIES
-
 pgbouncer_show_clients:
   master: true
   query: |
@@ -854,10 +852,11 @@ pgbouncer_show_clients:
     _.link,
     _.remote_pid,
     _.tls
+    _.application_name
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show clients'::text)
     _(type text, "user" text, database text, state text, addr text, port integer, local_addr text, local_port integer,
     connect_time timestamp with time zone, request_time timestamp with time zone, wait integer, wait_us integer, close_needed integer,
-    ptr text, link text, remote_pid integer, tls text);
+    ptr text, link text, remote_pid integer, tls text, application_name text) END;
   metrics:
     - type:
         usage: "LABEL"
@@ -910,6 +909,9 @@ pgbouncer_show_clients:
     - tls:
         usage: "LABEL"
         description: "A string with TLS connection information, or empty if not using TLS"
+    - application_name:
+        usage: "LABEL"
+        description: "A string containing the application_name set by the client for this connection, or empty if this was not set"
 
 pgbouncer_show_pools:
   master: true
@@ -918,8 +920,11 @@ pgbouncer_show_pools:
     _."user",
     _.cl_active,
     _.cl_waiting,
-    _.cl_cancel_req,
+    _.cl_active_cancel_req,
+    _.cl_waiting_cancel_req,
     _.sv_active,
+    _.sv_active_cancel,
+    _.sv_being_canceled,
     _.sv_idle,
     _.sv_used,
     _.sv_tested,
@@ -928,7 +933,8 @@ pgbouncer_show_pools:
     _.maxwait_us,
     _.pool_mode
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show pools'::text)
-    _(database text, "user" text, cl_active integer, cl_waiting integer, cl_cancel_req integer, sv_active integer, sv_idle integer,
+    _(database text, "user" text, cl_active_cancel_req integer, cl_waiting_cancel_req integer, cl_waiting integer,
+    cl_cancel_req integer, sv_active integer, sv_active_cancel integer, sv_being_canceled integer, sv_idle integer,
     sv_used integer, sv_tested integer, sv_login integer, maxwait integer, maxwait_us integer, pool_mode text);
   metrics:
     - database:
@@ -943,12 +949,21 @@ pgbouncer_show_pools:
     - cl_waiting:
         usage: "GAUGE"
         description: "Client connections that have sent queries but have not yet got a server connection"
-    - cl_cancel_req:
+    - cl_active_cancel_req:
         usage: "GAUGE"
-        description: "Client connections that have not forwarded query cancellations to the server yet"
+        description: "    Client connections that have forwarded query cancellations to the server and are waiting for the server response"
+    - cl_waiting_cancel_req:
+        usage: "GAUGE"
+        description: "    Client connections that have not forwarded query cancellations to the server yet"
     - sv_active:
         usage: "GAUGE"
         description: "Server connections that are linked to a client"
+    - sv_active_cancel:
+        usage: "GAUGE"
+        description: "    Server connections that are currently forwarding a cancel request"
+    - sv_being_canceled:
+        usage: "GAUGE"
+        description: "    Servers that normally could become idle but are waiting to do so until all in-flight cancel requests have completed that were sent to cancel a query on this server"
     - sv_idle:
         usage: "GAUGE"
         description: "Server connections that are unused and immediately usable for client queries"

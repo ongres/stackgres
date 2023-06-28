@@ -19,7 +19,6 @@
   <properties>
     <stackgres.authentication.secretName>stackgres-api-admin</stackgres.authentication.secretName>
     <stackgres.restapiNamespace>stackgres</stackgres.restapiNamespace>
-    <checks.location>${project.parent.basedir}/checks</checks.location>
   </properties>
 
   <dependencies>

@@ -1,7 +1,7 @@
 ---
 title: Installation via OperatorHub
 weight: 3
-url: install/operatorhub
+url: /install/operatorhub
 description: Details about how to install the StackGres operator using OperatorHub.
 showToc: true
 ---

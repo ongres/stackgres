@@ -252,6 +252,15 @@ $(document).ready(function(){
     $('[data-tab].active, [data-tab="' + $(this).data('tab') + '"]').toggleClass('active');
   })
 
+  $(document).on('click','.summary button.toggleSummary', function(){
+    let el = $(this)
+    let ul = el.siblings("ul")
+    let parentLi = $(this).parent()
+
+    parentLi.toggleClass("collapsed");
+    ul.slideToggle();
+  })
+
   $(document).on("click", ".box h4", function() {
     
     $(this).parents(".box").toggleClass("show");

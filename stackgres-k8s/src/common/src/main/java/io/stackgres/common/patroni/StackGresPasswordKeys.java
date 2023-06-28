@@ -11,14 +11,17 @@ public interface StackGresPasswordKeys {
   String SUPERUSER_USERNAME = "postgres";
   String SUPERUSER_USERNAME_ENV = "PATRONI_SUPERUSER_USERNAME";
   String SUPERUSER_PASSWORD_ENV = "PATRONI_SUPERUSER_PASSWORD";
+  String SUPERUSER_USERNAME_KEY = "superuser-username";
   String SUPERUSER_PASSWORD_KEY = "superuser-password";
   String REPLICATION_USERNAME = "replicator";
   String REPLICATION_USERNAME_ENV = "PATRONI_REPLICATION_USERNAME";
   String REPLICATION_PASSWORD_ENV = "PATRONI_REPLICATION_PASSWORD";
+  String REPLICATION_USERNAME_KEY = "replication-username";
   String REPLICATION_PASSWORD_KEY = "replication-password";
   String AUTHENTICATOR_USERNAME = "authenticator";
   String AUTHENTICATOR_USERNAME_ENV = "PATRONI_authenticator_USERNAME";
   String AUTHENTICATOR_PASSWORD_ENV = "PATRONI_authenticator_PASSWORD";
+  String AUTHENTICATOR_USERNAME_KEY = "authenticator-username";
   String AUTHENTICATOR_PASSWORD_KEY = "authenticator-password";
   String AUTHENTICATOR_OPTIONS_ENV = "PATRONI_authenticator_OPTIONS";
   String PGBOUNCER_ADMIN_USERNAME = "pgbouncer_admin";
@@ -33,6 +36,7 @@ public interface StackGresPasswordKeys {
   String RESTAPI_USERNAME = "superuser";
   String RESTAPI_USERNAME_ENV = "PATRONI_RESTAPI_USERNAME";
   String RESTAPI_PASSWORD_ENV = "PATRONI_RESTAPI_PASSWORD";
+  String RESTAPI_USERNAME_KEY = "restapi-username";
   String RESTAPI_PASSWORD_KEY = "restapi-password";
 
 }

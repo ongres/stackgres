@@ -1,7 +1,7 @@
 ---
 title: "Extensions up to 1.0.0"
 weight: 2
-url: intro/extensions/v1
+url: /intro/extensions/v1
 ---
 
 The table below contains the list of all available extensions:

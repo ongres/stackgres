@@ -1,7 +1,7 @@
 ---
 title: SGPoolingConfig
 weight: 4
-url: reference/crd/sgpoolingconfig
+url: /reference/crd/sgpoolingconfig
 description: Details about SGPoolingConfig
 ---
 

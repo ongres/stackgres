@@ -99,6 +99,9 @@ entries:
   - name: stackgres.v$BUNDLE_STACKGRES_VERSION
     replaces: stackgres.v$BUNDLE_STACKGRES_PREVIOUS_VERSION
 EOF
+  sed -i "s/^name: stackgres.v${BUNDLE_STACKGRES_VERSION%-*}.*$/name: stackgres.v$BUNDLE_STACKGRES_VERSION/" "$LOG_PATH/helm-operator-catalog/operator.yaml"
+  sed -i "s/^    version: ${BUNDLE_STACKGRES_VERSION%-*}.*$/    version: $BUNDLE_STACKGRES_VERSION/" "$LOG_PATH/helm-operator-catalog/operator.yaml"
+  sed -i "s/^- image: \([^:]\+\):${BUNDLE_STACKGRES_VERSION%-*}.*$/- image: \1:$BUNDLE_STACKGRES_VERSION/" "$LOG_PATH/helm-operator-catalog/operator.yaml"
   opm validate "$LOG_PATH/helm-operator-catalog"
   (
   cd "$LOG_PATH"
@@ -248,6 +251,8 @@ spec:
   jobs:
     image:
       tag: "$IMAGE_TAG"
+  developer:
+    version: $STACKGRES_VERSION
 EOF
   kubectl patch -n "$OPERATOR_NAMESPACE" subscription stackgres --type merge \
     -p '{"spec":{"config":{"env":[{"name":"SGCONFIG","value":'"$(yq '. | tostring' "$LOG_PATH/sgconfig-patch.yaml")"'}]}}}'
