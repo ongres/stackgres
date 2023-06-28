@@ -24,6 +24,7 @@ import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
+import io.stackgres.jobs.dbops.MutinyUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -226,6 +227,9 @@ public class ClusterRestartImpl implements ClusterRestart {
                 .eventType(RestartEventType.POD_RESTARTED)
                 .build());
           })
+          .onFailure()
+          .transform(ex -> MutinyUtil.logOnFailureToRetry(ex,
+              "restarting replica {}", replica.getMetadata().getName()))
           .onFailure()
           .retry()
           .indefinitely()

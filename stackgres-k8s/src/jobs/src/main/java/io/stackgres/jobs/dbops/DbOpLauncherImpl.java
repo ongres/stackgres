@@ -150,6 +150,8 @@ public class DbOpLauncherImpl implements DbOpLauncher {
         .invoke(currentDbOps -> currentDbOps.getStatus().setConditions(conditions))
         .invoke(dbOpsScheduler::update)
         .onFailure()
+        .transform(MutinyUtil.logOnFailureToRetry("updating conditions for SGDbOps"))
+        .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
         .indefinitely()

@@ -54,8 +54,14 @@ public abstract class AbstractLabelFactoryForCluster<T extends CustomResource<?,
   }
 
   @Override
-  public Map<String, String> clusterPrimaryLabelsWithoutUidAndScope(T resource) {
+  public Map<String, String> clusterLabelsWithoutUidAndScope(T resource) {
     return ImmutableMap.<String, String>builder().putAll(clusterLabelsWithoutUid(resource))
+        .build();
+  }
+
+  @Override
+  public Map<String, String> clusterPrimaryLabelsWithoutUidAndScope(T resource) {
+    return ImmutableMap.<String, String>builder().putAll(clusterLabelsWithoutUidAndScope(resource))
         .put(PatroniUtil.ROLE_KEY, PatroniUtil.PRIMARY_ROLE)
         .build();
   }

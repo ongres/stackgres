@@ -21,6 +21,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
+import io.stackgres.jobs.dbops.MutinyUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,6 +91,8 @@ public class ClusterWatcherImpl implements ClusterWatcher {
         .call(cluster -> scanClusterPods(cluster)
             .chain(() -> getClusterMembers(cluster))
             .onFailure()
+            .transform(MutinyUtil.logOnFailureToRetry("scanning cluster and Pods"))
+            .onFailure()
             .retry()
             .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
             .indefinitely());
@@ -97,7 +100,7 @@ public class ClusterWatcherImpl implements ClusterWatcher {
 
   private Uni<List<Pod>> scanClusterPods(StackGresCluster cluster) {
     return Uni.createFrom().item(() -> {
-      var podsLabels = labelFactory.clusterLabels(cluster);
+      var podsLabels = labelFactory.clusterLabelsWithoutUidAndScope(cluster);
       final String labelsAsString = Joiner.on(",").withKeyValueSeparator(":").join(podsLabels);
       LOGGER.debug("Scanning for pods of cluster {} with labels {}",
           cluster.getMetadata().getName(), labelsAsString);
@@ -143,6 +146,8 @@ public class ClusterWatcherImpl implements ClusterWatcher {
   @Override
   public Uni<Optional<String>> getAvailablePrimary(String clusterName, String namespace) {
     return patroniApiHandler.getClusterMembers(clusterName, namespace)
+        .onFailure()
+        .transform(MutinyUtil.logOnFailureToRetry("retrieving cluster members"))
         .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))

@@ -15,6 +15,7 @@ import javax.inject.Inject;
 
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.jobs.dbops.MutinyUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +34,8 @@ public class ClusterSwitchoverHandlerImpl implements ClusterSwitchoverHandler {
   public Uni<Void> performSwitchover(String leader, String clusterName, String clusterNamespace) {
     return patroniApi.getClusterMembers(clusterName, clusterNamespace)
         .chain(members -> doSwitchover(members, leader))
+        .onFailure()
+        .transform(MutinyUtil.logOnFailureToRetry("performing the switchover"))
         .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))

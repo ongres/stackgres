@@ -22,6 +22,7 @@ import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceScanner;
+import io.stackgres.jobs.dbops.MutinyUtil;
 
 @ApplicationScoped
 public class ClusterInstanceManagerImpl implements ClusterInstanceManager {
@@ -47,6 +48,8 @@ public class ClusterInstanceManagerImpl implements ClusterInstanceManager {
   public Uni<Pod> increaseClusterInstances(String name, String namespace) {
     return increaseInstances(name, namespace)
         .onFailure()
+        .transform(MutinyUtil.logOnFailureToRetry("increasing instances"))
+        .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
         .indefinitely()
@@ -61,6 +64,8 @@ public class ClusterInstanceManagerImpl implements ClusterInstanceManager {
   @Override
   public Uni<Void> decreaseClusterInstances(String name, String namespace) {
     return decreaseInstances(name, namespace)
+        .onFailure()
+        .transform(MutinyUtil.logOnFailureToRetry("decreasing instances"))
         .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
@@ -102,7 +107,7 @@ public class ClusterInstanceManagerImpl implements ClusterInstanceManager {
   }
 
   private List<Pod> geClusterPods(StackGresCluster cluster) {
-    Map<String, String> podLabels = labelFactory.clusterLabels(cluster);
+    Map<String, String> podLabels = labelFactory.clusterLabelsWithoutUidAndScope(cluster);
     final String namespace = cluster.getMetadata().getNamespace();
     return podScanner.findByLabelsAndNamespace(namespace, podLabels);
   }

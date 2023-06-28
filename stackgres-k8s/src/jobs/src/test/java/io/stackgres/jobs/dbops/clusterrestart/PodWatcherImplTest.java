@@ -73,7 +73,7 @@ class PodWatcherImplTest {
   @Timeout(3)
   void givenNoPodCreated_waitUntilIsCreatedShouldFail() throws Exception {
     UniAssertSubscriber<Pod> subscriber = podWatcher.waitUntilIsCreated(podName, namespace)
-        .runSubscriptionOn(Executors.newSingleThreadExecutor())
+        .runSubscriptionOn(testExecutor)
         .subscribe().withSubscriber(UniAssertSubscriber.create());
 
     Thread.sleep(100);
@@ -88,7 +88,7 @@ class PodWatcherImplTest {
         .create();
 
     var pod = podWatcher.waitUntilIsCreated(podName, namespace)
-        .runSubscriptionOn(Executors.newSingleThreadExecutor())
+        .runSubscriptionOn(testExecutor)
         .subscribe().withSubscriber(UniAssertSubscriber.create())
         .awaitItem()
         .assertCompleted().getItem();
@@ -99,7 +99,7 @@ class PodWatcherImplTest {
   @Test
   void givenADelayedPodCreation_waitUntilIsCreatedShouldWaitForTheCreation() throws Exception {
     UniAssertSubscriber<Pod> subscriber = podWatcher.waitUntilIsCreated(podName, namespace)
-        .runSubscriptionOn(Executors.newSingleThreadExecutor())
+        .runSubscriptionOn(testExecutor)
         .subscribe().withSubscriber(UniAssertSubscriber.create());
 
     Thread.sleep(100);
@@ -123,7 +123,7 @@ class PodWatcherImplTest {
   @Timeout(3)
   void givenNoPodCreated_waitUntilIsRemovedShouldPass() {
     podWatcher.waitUntilIsRemoved(podName, namespace)
-        .runSubscriptionOn(Executors.newSingleThreadExecutor())
+        .runSubscriptionOn(testExecutor)
         .subscribe().withSubscriber(UniAssertSubscriber.create())
         .awaitItem()
         .assertCompleted();
@@ -141,7 +141,7 @@ class PodWatcherImplTest {
         .create();
 
     UniAssertSubscriber<Void> subscriber = podWatcher.waitUntilIsRemoved(podName, namespace)
-        .runSubscriptionOn(Executors.newSingleThreadExecutor())
+        .runSubscriptionOn(testExecutor)
         .subscribe().withSubscriber(UniAssertSubscriber.create());
 
     Thread.sleep(100);
@@ -166,7 +166,7 @@ class PodWatcherImplTest {
         .create();
 
     Pod returnedPod = podWatcher.waitUntilIsReplaced(pod)
-        .runSubscriptionOn(Executors.newSingleThreadExecutor())
+        .runSubscriptionOn(testExecutor)
         .subscribe().withSubscriber(UniAssertSubscriber.create())
         .awaitItem()
         .assertCompleted().getItem();
@@ -185,7 +185,7 @@ class PodWatcherImplTest {
         .create();
 
     UniAssertSubscriber<Pod> subscriber = podWatcher.waitUntilIsReplaced(pod)
-        .runSubscriptionOn(Executors.newSingleThreadExecutor())
+        .runSubscriptionOn(testExecutor)
         .subscribe().withSubscriber(UniAssertSubscriber.create());
 
     Thread.sleep(100);
@@ -224,7 +224,7 @@ class PodWatcherImplTest {
         .create();
 
     var returnedPod = podWatcher.waitUntilIsReady(clusterName, podName, namespace, false)
-        .runSubscriptionOn(Executors.newSingleThreadExecutor())
+        .runSubscriptionOn(testExecutor)
         .subscribe().withSubscriber(UniAssertSubscriber.create())
         .awaitItem()
         .assertCompleted().getItem();
@@ -249,7 +249,7 @@ class PodWatcherImplTest {
 
     UniAssertSubscriber<Pod> subscriber = podWatcher
         .waitUntilIsReady(clusterName, podName, namespace, false)
-        .runSubscriptionOn(Executors.newSingleThreadExecutor())
+        .runSubscriptionOn(testExecutor)
         .subscribe().withSubscriber(UniAssertSubscriber.create());
 
     Thread.sleep(100);
@@ -296,7 +296,7 @@ class PodWatcherImplTest {
 
     UniAssertSubscriber<Pod> subscriber = podWatcher
         .waitUntilIsReady(clusterName, podName, namespace, true)
-        .runSubscriptionOn(Executors.newSingleThreadExecutor())
+        .runSubscriptionOn(testExecutor)
         .subscribe().withSubscriber(UniAssertSubscriber.create());
 
     Thread.sleep(100);
@@ -342,7 +342,7 @@ class PodWatcherImplTest {
         .create();
 
     podWatcher.waitUntilIsReady(clusterName, podName, namespace, true)
-        .runSubscriptionOn(Executors.newSingleThreadExecutor())
+        .runSubscriptionOn(testExecutor)
         .subscribe().withSubscriber(UniAssertSubscriber.create())
         .awaitFailure()
         .assertFailedWith(StatefulSetChangedException.class, null);
