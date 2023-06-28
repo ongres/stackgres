@@ -80,7 +80,7 @@ CURRENT_VERSION="$VERSION"
 IS_GA="$(printf %s "$CURRENT_VERSION" | grep -q '^[0-9]\+\.[0-9]\+\.[0-9]\+$' && printf true || printf false)"
 IS_PATCH="$(printf %s "$CURRENT_VERSION" | grep -q '^[0-9]\+\.[0-9]\+\.[1-9][0-9]\+$' && printf true || printf false)"
 IS_BETA="$(printf %s "$CURRENT_VERSION" | grep -q '^[0-9]\+\.[0-9]\+\.[0-9]\+-beta[0-9]\+$' && printf true || printf false)"
-IS_RC="$(printf %s "$CURRENT_VERSION" | grep -q '^[0-9]\+\.[0-9]\+\.[0-9]\+-RC[0-9]\+$' && printf true || printf false)"
+IS_RC="$(printf %s "$CURRENT_VERSION" | grep -q '^[0-9]\+\.[0-9]\+\.[0-9]\+-rc[0-9]\+$' && printf true || printf false)"
 IS_SNAPSHOT="$(printf %s "$CURRENT_VERSION" | grep -q '[-]SNAPSHOT$' && printf true || printf false)"
 CURRENT_PATCH_VERSION="$("$IS_GA" && printf 0 || git tag | grep "^${NEXT_MINOR_PATCH_VERSION}\." | sort -V | tail -n 1)"
 CURRENT_MAJOR_VERSION="$(printf %s "$CURRENT_VERSION" | cut -d . -f 1)"
@@ -91,7 +91,7 @@ CURRENT_RC_VERSION="$("$IS_RC" && printf %s "$CURRENT_VERSION" | cut -d - -f 2 |
 
 if ! "$IS_SNAPSHOT"
 then
-  if "$IS_GA"
+  if "$IS_GA" || "$IS_PATCH"
   then
     VERSION="$CURRENT_MAJOR_VERSION.$CURRENT_MINOR_VERSION.$(( $CURRENT_PATCH_VERSION + 1 ))"
 
@@ -110,7 +110,7 @@ then
 
     sh stackgres-k8s/ci/utils/generate-release-template.sh "$VERSION" > .gitlab/issue_templates/"Beta Release.md"
 
-    VERSION="$CURRENT_MAJOR_VERSION.$(( CURRENT_MINOR_VERSION + $("$IS_GA" && printf 1 || printf 0) )).0-RC$((CURRENT_RC_VERSION + 1))"
+    VERSION="$CURRENT_MAJOR_VERSION.$(( CURRENT_MINOR_VERSION + $("$IS_GA" && printf 1 || printf 0) )).0-rc$((CURRENT_RC_VERSION + 1))"
 
     echo
     echo "Generating new minor release template .gitlab/issue_templates/RC Release.md for $VERSION"

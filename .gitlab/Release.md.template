@@ -316,3 +316,7 @@ Thank you for all the issues created, ideas, and code contributions by the Stack
 
 ## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/${VERSION})
 ~~~
+
+/label ~StackGres ~"target_version::${VERSION}" ~"team::DEV" 
+/milestone %"StackGres ${VERSION}"
+/confidential 

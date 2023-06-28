@@ -23,6 +23,8 @@ public interface LabelFactoryForCluster<T extends CustomResource<?, ?>>
 
   Map<String, String> clusterReplicaLabels(T resource);
 
+  Map<String, String> clusterLabelsWithoutUidAndScope(T resource);
+
   Map<String, String> clusterPrimaryLabelsWithoutUidAndScope(T resource);
 
   Map<String, String> statefulSetPodLabels(T resource);

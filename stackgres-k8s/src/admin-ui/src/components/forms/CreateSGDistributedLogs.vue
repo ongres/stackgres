@@ -3,7 +3,7 @@
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(cluster).length > 0"></template>
 
-        <form id="createLogsServer" class="form logsForm" @submit.prevent>
+        <form id="createLogsServer" class="form logsForm" @submit.prevent v-if="!editMode || editReady">
             <div class="header stickyHeader">
                 <h2>
                     <span>{{ editMode ? 'Edit' : 'Create' }} Logs Server</span>

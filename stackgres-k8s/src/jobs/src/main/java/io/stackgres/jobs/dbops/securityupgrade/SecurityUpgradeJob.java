@@ -27,6 +27,7 @@ import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.jobs.dbops.ClusterRestartStateHandler;
 import io.stackgres.jobs.dbops.DatabaseOperation;
 import io.stackgres.jobs.dbops.DatabaseOperationJob;
+import io.stackgres.jobs.dbops.MutinyUtil;
 import io.stackgres.jobs.dbops.StateHandler;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import org.slf4j.Logger;
@@ -80,6 +81,8 @@ public class SecurityUpgradeJob implements DatabaseOperationJob {
           return clusterScheduler.update(cluster);
         })
         .onFailure()
+        .transform(MutinyUtil.logOnFailureToRetry("updating version of SGCluster"))
+        .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
         .indefinitely();
@@ -92,6 +95,8 @@ public class SecurityUpgradeJob implements DatabaseOperationJob {
           .subscribe().with((v) -> em.complete(cluster), em::fail);
     })
         .onFailure()
+        .transform(MutinyUtil.logOnFailureToRetry("updating the StatefulSet"))
+        .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
         .atMost(10);
@@ -103,6 +108,8 @@ public class SecurityUpgradeJob implements DatabaseOperationJob {
           removeIgnoredMark(cluster);
           return clusterScheduler.update(cluster);
         })
+        .onFailure()
+        .transform(MutinyUtil.logOnFailureToRetry("updating SGCluster"))
         .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))

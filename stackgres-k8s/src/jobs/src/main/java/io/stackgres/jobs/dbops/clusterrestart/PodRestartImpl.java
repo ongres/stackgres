@@ -13,13 +13,10 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.resource.ResourceWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.stackgres.jobs.dbops.MutinyUtil;
 
 @ApplicationScoped
 public class PodRestartImpl implements PodRestart {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(PodRestartImpl.class);
 
   private final ResourceWriter<Pod> podWriter;
 
@@ -44,11 +41,8 @@ public class PodRestartImpl implements PodRestart {
         .onFailure(StatefulSetChangedException.class::isInstance)
         .retry().indefinitely()
         .onFailure()
-        .transform(failure -> {
-          LOGGER.info("Error while restarting pod {}: {}",
-              pod.getMetadata().getName(), failure.getMessage());
-          return failure;
-        })
+        .transform(ex -> MutinyUtil.logOnFailureToRetry(ex,
+            "restarting pod {}", pod.getMetadata().getName()))
         .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))

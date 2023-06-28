@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -22,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -46,7 +48,6 @@ import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestart;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
-import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartStateHandlerImpl;
 import io.stackgres.jobs.dbops.clusterrestart.InvalidClusterException;
 import io.stackgres.jobs.dbops.clusterrestart.RestartEvent;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -57,7 +58,7 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractRestartStateHandler implements ClusterRestartStateHandler {
 
   private static final Logger LOGGER = LoggerFactory
-      .getLogger(ClusterRestartStateHandlerImpl.class);
+      .getLogger(ClusterRestartStateHandler.class);
 
   @Inject
   ClusterRestart clusterRestart;
@@ -111,6 +112,8 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
         .call(this::initClusterDbOpsStatus)
         .call(clusterRestartState -> initDbOpsStatus(clusterRestartState, dbOps))
         .onFailure()
+        .transform(MutinyUtil.logOnFailureToRetry("asserting the operation status"))
+        .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
         .atMost(10)
@@ -135,6 +138,8 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
             clusterRestartState.getNamespace())
             .chain(this::cleanCluster)
             .onFailure()
+            .transform(MutinyUtil.logOnFailureToRetry("cleaning cluster status"))
+            .onFailure()
             .retry()
             .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
             .indefinitely())
@@ -147,6 +152,8 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
       ClusterRestartState clusterRestartState) {
     return findDbOps(clusterRestartState.getDbOpsName(), clusterRestartState.getNamespace())
         .chain(dbOps -> updateDbOpsStatus(dbOps, event))
+        .onFailure()
+        .transform(MutinyUtil.logOnFailureToRetry("updating SGDbOps status"))
         .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
@@ -200,9 +207,32 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
     return Uni.createFrom().item(() -> {
       String namespace = cluster.getMetadata().getNamespace();
 
-      final Map<String, String> podLabels = labelFactory.clusterLabels(cluster);
+      final Map<String, String> podLabels = labelFactory.clusterLabelsWithoutUidAndScope(cluster);
 
       List<Pod> clusterPods = podScanner.findByLabelsAndNamespace(namespace, podLabels);
+
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("Retrieved cluster pods with labels {}: {}",
+            podLabels.entrySet().stream()
+            .map(e -> e.getKey() + "=" + e.getValue())
+            .collect(Collectors.joining(",")),
+            clusterPods.stream()
+            .map(HasMetadata::getMetadata)
+            .map(ObjectMeta::getName)
+            .collect(Collectors.joining(" ")));
+        List<Pod> allPods = podScanner.findResourcesInNamespace(namespace);
+        LOGGER.trace("Found pods with labels: {}",
+            allPods.stream()
+            .map(HasMetadata::getMetadata)
+            .map(metadata -> metadata.getName() + ":"
+                + Optional.ofNullable(metadata.getLabels())
+                .map(Map::entrySet)
+                .stream()
+                .flatMap(Set::stream)
+                .map(e -> e.getKey() + "=" + e.getValue())
+                .collect(Collectors.joining(",")))
+            .collect(Collectors.joining(" ")));
+      }
 
       return clusterPods;
     });
@@ -322,41 +352,65 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
   protected ClusterRestartState buildClusterRestartState(StackGresDbOps dbOps,
       StackGresCluster cluster, Optional<StatefulSet> statefulSet, List<Pod> clusterPods,
       Optional<Endpoints> patroniConfigEndpoints) {
-    DbOpsRestartStatus restartStatus = getDbOpRestartStatus(dbOps);
-    Map<String, Pod> podsDict = clusterPods.stream()
-        .collect(Collectors.toMap(pod -> pod.getMetadata().getName(), Function.identity()));
-
-    var initialInstances = Optional.ofNullable(restartStatus.getInitialInstances())
-        .map(instances -> instances.stream().map(podsDict::get)
-            .toList())
-        .orElse(clusterPods);
-
-    var restartedInstances = Optional.ofNullable(restartStatus.getRestartedInstances())
-        .map(instances -> instances.stream().map(podsDict::get)
-            .toList())
-        .orElse(List.of());
-
-    var podRestartReasonsMap = clusterPods.stream()
-        .collect(Collectors.toUnmodifiableMap(
-            Function.identity(),
-            pod -> getPodRestartReasons(cluster, statefulSet, pod)));
-
+    final DbOpsOperation operation = DbOpsOperation.fromString(dbOps.getSpec().getOp());
     final DbOpsMethodType method = getRestartMethod(dbOps)
         .orElse(DbOpsMethodType.REDUCED_IMPACT);
-
     final boolean onlyPendingRestart = Optional.of(dbOps.getSpec())
         .map(StackGresDbOpsSpec::getRestart)
         .map(StackGresDbOpsRestart::getOnlyPendingRestart)
         .orElse(false);
+    final DbOpsRestartStatus restartStatus = getDbOpRestartStatus(dbOps);
+    final Map<String, Pod> podsDict = clusterPods.stream()
+        .collect(Collectors.toMap(pod -> pod.getMetadata().getName(), Function.identity()));
+    final Pod primaryInstance = getPrimaryInstance(clusterPods, patroniConfigEndpoints);
+    final var initialInstances = Optional.ofNullable(restartStatus.getInitialInstances())
+        .map(instances -> instances.stream().map(podsDict::get)
+            .toList())
+        .orElse(clusterPods);
+    final var restartedInstances = Optional.ofNullable(restartStatus.getRestartedInstances())
+        .map(instances -> instances.stream().map(podsDict::get)
+            .toList())
+        .orElse(List.of());
+    final var podRestartReasonsMap = clusterPods.stream()
+        .collect(Collectors.toUnmodifiableMap(
+            Function.identity(),
+            pod -> getPodRestartReasons(cluster, statefulSet, pod)));
+
+    LOGGER.info("Operation: " + operation.toString());
+    LOGGER.info("Restart method: " + method.toString());
+    LOGGER.info("Only pending restart: " + onlyPendingRestart);
+    LOGGER.info("Found cluster pods: " + clusterPods.stream()
+        .map(HasMetadata::getMetadata)
+        .map(ObjectMeta::getName)
+        .collect(Collectors.joining(" ")));
+    LOGGER.info("Primary instance: " + primaryInstance.getMetadata().getName());
+    LOGGER.info("Initial pods: " + initialInstances.stream()
+        .map(HasMetadata::getMetadata)
+        .map(ObjectMeta::getName)
+        .collect(Collectors.joining(" ")));
+    LOGGER.info("Already restarted pods: " + restartedInstances.stream()
+        .map(HasMetadata::getMetadata)
+        .map(ObjectMeta::getName)
+        .collect(Collectors.joining(" ")));
+    LOGGER.info("Restart reasons: " + podRestartReasonsMap.entrySet().stream()
+        .map(e -> e.getKey().getMetadata().getName() + ":" + e.getValue().getReasons()
+            .stream().map(Enum::name).collect(Collectors.joining(",")))
+        .collect(Collectors.joining(" ")));
+    LOGGER.info("Switchover initialized: " + Optional.of(restartStatus)
+        .map(DbOpsRestartStatus::getSwitchoverInitiated)
+        .orElse("no"));
+    LOGGER.info("Switchover finalized: " + Optional.of(restartStatus)
+        .map(DbOpsRestartStatus::getSwitchoverFinalized)
+        .orElse("no"));
 
     return ClusterRestartState.builder()
         .namespace(dbOps.getMetadata().getNamespace())
         .dbOpsName(dbOps.getMetadata().getName())
-        .dbOpsOperation(DbOpsOperation.fromString(dbOps.getSpec().getOp()))
+        .dbOpsOperation(operation)
         .clusterName(cluster.getMetadata().getName())
         .restartMethod(method)
         .isOnlyPendingRestart(onlyPendingRestart)
-        .primaryInstance(getPrimaryInstance(clusterPods, patroniConfigEndpoints))
+        .primaryInstance(primaryInstance)
         .isSwitchoverInitiated(restartStatus.getSwitchoverInitiated() != null)
         .isSwitchoverFinalized(restartStatus.getSwitchoverFinalized() != null)
         .initialInstances(initialInstances)

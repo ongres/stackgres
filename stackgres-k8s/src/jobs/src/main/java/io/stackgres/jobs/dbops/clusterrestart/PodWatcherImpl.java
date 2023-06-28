@@ -21,6 +21,7 @@ import io.stackgres.common.ClusterPendingRestartUtil;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.jobs.dbops.MutinyUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,27 +44,30 @@ public class PodWatcherImpl implements PodWatcher {
   }
 
   private Uni<Pod> waitUntilReady(String clusterName, Pod pod, boolean checkStatefulSetChanges) {
-    String podName = pod.getMetadata().getName();
+    String name = pod.getMetadata().getName();
     String namespace = pod.getMetadata().getNamespace();
 
-    return findPod(podName, namespace)
+    return findPod(name, namespace)
         .onItem()
         .transform(updatedPod -> updatedPod
-            .orElseThrow(() -> new RuntimeException("Pod " + podName + " not found")))
+            .orElseThrow(() -> new RuntimeException("Pod " + name + " not found")))
         .chain(updatedPod -> Uni.createFrom().item(() -> {
-          LOGGER.info("Waiting for pod {} to be ready. Current state {}", podName,
+          LOGGER.info("Waiting for pod {} to be ready. Current state {}", name,
               updatedPod.getStatus().getPhase());
           if (!Readiness.getInstance().isReady(updatedPod)) {
             throw Optional.of(checkStatefulSetChanges)
                 .filter(check -> check)
                 .flatMap(check -> getStatefulSetChangedException(
-                    clusterName, podName, namespace, updatedPod))
+                    clusterName, name, namespace, updatedPod))
                 .map(RuntimeException.class::cast)
-                .orElse(new RuntimeException("Pod " + podName + " not ready"));
+                .orElse(new RuntimeException("Pod " + name + " not ready"));
           }
-          LOGGER.info("Pod {} ready!", podName);
+          LOGGER.info("Pod {} ready!", name);
           return updatedPod;
         }))
+        .onFailure()
+        .transform(ex -> MutinyUtil.logOnFailureToRetry(ex,
+            "waiting for Pod {} to be ready", name))
         .onFailure(failure -> !(failure instanceof StatefulSetChangedException))
         .retry()
         .withBackOff(Duration.ofSeconds(2), Duration.ofSeconds(60))
@@ -98,6 +102,9 @@ public class PodWatcherImpl implements PodWatcher {
         .transform(pod -> pod
             .orElseThrow(() -> new RuntimeException("Pod " + name + " not found")))
         .onFailure()
+        .transform(ex -> MutinyUtil.logOnFailureToRetry(ex,
+            "searching for pod {}", name))
+        .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
         .indefinitely();
@@ -111,6 +118,9 @@ public class PodWatcherImpl implements PodWatcher {
             .ifPresent(pod -> {
               throw new RuntimeException("Pod " + name + " not removed");
             }))
+        .onFailure()
+        .transform(ex -> MutinyUtil.logOnFailureToRetry(ex,
+            "deleting Pod {}", name))
         .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
@@ -138,6 +148,9 @@ public class PodWatcherImpl implements PodWatcher {
             return newPod;
           }
         })
+        .onFailure()
+        .transform(ex -> MutinyUtil.logOnFailureToRetry(ex,
+            "waiting for Pod {} to be replaced", name))
         .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))

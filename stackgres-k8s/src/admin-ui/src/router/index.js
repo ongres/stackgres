@@ -5,6 +5,7 @@ import sgApi from '../api/sgApi'
 
 // Form Components
 import CreateCluster from '../components/forms/CreateSGClusters.vue'
+import CreateShardedCluster from '../components/forms/CreateSGShardedClusters.vue'
 import CreateProfile from '../components/forms/CreateSGInstanceProfiles.vue'
 import CreatePgConfig from '../components/forms/CreateSGPgConfigs.vue'
 import CreatePoolConfig from '../components/forms/CreateSGPoolConfigs.vue'
@@ -17,11 +18,22 @@ import CreateDbOps from '../components/forms/CreateSGDbOps.vue'
 // Main Components
 import GlobalDashboard from '../components/GlobalDashboard.vue'
 import NamespaceOverview from '../components/NamespaceOverview.vue'
+
+// SGClusters
 import ClusterOverview from '../components/ClusterOverview.vue'
 import ClusterInfo from '../components/ClusterInfo.vue'
 import ClusterStatus from '../components/ClusterStatus.vue'
 import ClusterLogs from '../components/ClusterLogs.vue'
 import ClusterEvents from '../components/ClusterEvents.vue'
+import Grafana from '../components/ClusterMonitoring.vue'
+
+// SGShardedsClusters
+import ShardedClusterOverview from '../components/crds/sgshardedcluster/SGShardedClusterOverview.vue'
+import ShardedClusterStatus from '../components/crds/sgshardedcluster/SGShardedClusterStatus.vue'
+import ShardedClusterConfig from '../components/crds/sgshardedcluster/SGShardedClusterConfig.vue'
+import ShardedClusterMonitoring from '../components/crds/sgshardedcluster/SGShardedClusterMonitoring.vue'
+
+// Other CRDs
 import SGBackups from '../components/SGBackups.vue'
 import SGPgConfigs from '../components/SGPgConfigs.vue'
 import SGPoolConfigs from '../components/SGPoolConfigs.vue'
@@ -30,7 +42,8 @@ import SGScripts from '../components/SGScripts'
 import SGInstanceProfiles from '../components/SGInstanceProfiles.vue'
 import SGDistributedLogs from '../components/SGDistributedLogs.vue'
 import SGDbOps from '../components/SGDbOps.vue'
-import Grafana from '../components/ClusterMonitoring.vue'
+
+// Misc
 import NotFound from '../components/NotFound.vue'
 
 // Applications
@@ -56,6 +69,24 @@ const routes = [
     meta: {
       conditionalRoute: false,
       componentName: 'SGCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedclusters/new', 
+    component: CreateShardedCluster,
+    name: 'CreateShardedCluster',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster' 
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/edit', 
+    component: CreateShardedCluster,
+    name: 'EditShardedCluster',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
     },
   },
   { 
@@ -171,6 +202,15 @@ const routes = [
     },
   },
   { 
+    path: '/:namespace/sgshardedcluster/:name/sgbackups/new', 
+    component: CreateBackup,
+    name: 'CreateShardedClusterBackup',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
+  { 
     path: '/:namespace/sgbackup/:backupname/edit', 
     component: CreateBackup,
     name: 'EditBackup',
@@ -186,6 +226,15 @@ const routes = [
     meta: {
       conditionalRoute: false,
       componentName: 'SGCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/sgbackup/:backupname/edit', 
+    component: CreateBackup,
+    name: 'EditShardedClusterBackup',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
     },
   },
   { 
@@ -302,6 +351,70 @@ const routes = [
       componentName: 'SGCluster'
     },
   },
+  { 
+    path: '/sgshardedclusters', 
+    component: ShardedClusterOverview,
+    name: 'ShardedClusterOverviewEmpty',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster',
+      kind: 'SGShardedCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedclusters', 
+    component: ShardedClusterOverview,
+    name: 'ShardedClusterOverview',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/config', 
+    component: ShardedClusterConfig,
+    name: 'ShardedClusterConfig',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name', 
+    component: ShardedClusterStatus,
+    name: 'ShardedClusterStatus',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/logs', 
+    component: ClusterLogs,
+    name: 'ShardedClusterLogs',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/events', 
+    component: ClusterEvents,
+    name: 'ShardedClusterEvents',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/event/:uid', 
+    component: ClusterEvents,
+    name: 'SingleShardedClusterEvents',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
   {  
     path: '/:namespace/sgbackups', 
     component: SGBackups,
@@ -336,6 +449,24 @@ const routes = [
     meta: {
       conditionalRoute: false,
       componentName: 'SGCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/sgbackups', 
+    component: SGBackups,
+    name: 'ShardedClusterBackups',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/sgbackup/:backupname', 
+    component: SGBackups,
+    name: 'SingleShardedClusterBackups',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
     },
   },
   { 
@@ -504,6 +635,33 @@ const routes = [
       componentName: 'SGCluster'
     },
   },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/monitor', 
+    component: ShardedClusterMonitoring,
+    name: 'ShardedClusterMonitor',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/monitor/:pod', 
+    component: ShardedClusterMonitoring,
+    name: 'SingleShardedClusterMonitor',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
+  {
+    path: '/:namespace/sgshardedcluster/:name/monitor/:pod/:range', 
+    component: ShardedClusterMonitoring,
+    name: 'SingleShardedClusterMonitorRange',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
   {
     path: '/:namespace/application/babelfish-compass/', 
     component: BabelfishCompass,
@@ -617,15 +775,18 @@ router.beforeResolve((to, from, next) => {
 
   // If loading CRD from direct URL validate if CRD exists on the API before loading
   if( from.path == '/') {
-    let kind = ( 
-      to.matched[0].components.default.name.startsWith('Cluster') ? 
-        'sgclusters' : 
-        ( 
-          to.matched[0].components.default.name.startsWith('Create') ? 
-            to.matched[0].components.default.name.replace('Create', '') : 
-            to.matched[0].components.default.name 
-        ) 
-    );
+    
+    let kind = 
+      to.matched[0].meta.hasOwnProperty('componentName') ? 
+        (to.matched[0].meta.componentName.toLowerCase() + 's') : (
+          to.matched[0].components.default.name.startsWith('Cluster') ? 
+            'sgclusters' : 
+            ( 
+              to.matched[0].components.default.name.startsWith('Create') ? 
+                to.matched[0].components.default.name.replace('Create', '') : 
+                to.matched[0].components.default.name 
+            )
+        );
 
     if(!checkLogin()) {
       next(); 
@@ -641,7 +802,7 @@ router.beforeResolve((to, from, next) => {
     .then( function() {
       
       /* First check if Namespace exist */
-      if(to.params.hasOwnProperty('namespace') && (kind != 'BabelfishCompass')) {
+      if(to.params.hasOwnProperty('namespace') && (kind != 'applications' && kind != 'BabelfishCompass')) {
 
         let namespaceName = to.params.namespace;
         
