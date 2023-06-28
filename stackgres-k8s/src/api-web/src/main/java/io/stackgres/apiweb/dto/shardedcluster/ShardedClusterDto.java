@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.dto.shardedcluster;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -22,9 +20,6 @@ public class ShardedClusterDto extends ResourceDto {
 
   @JsonProperty("status")
   private ShardedClusterStatus status;
-
-  @JsonProperty("clusters")
-  private List<String> clusters;
 
   @JsonProperty("grafanaEmbedded")
   private boolean grafanaEmbedded;
@@ -46,14 +41,6 @@ public class ShardedClusterDto extends ResourceDto {
 
   public void setStatus(ShardedClusterStatus status) {
     this.status = status;
-  }
-
-  public List<String> getClusters() {
-    return clusters;
-  }
-
-  public void setClusters(List<String> clusters) {
-    this.clusters = clusters;
   }
 
   public boolean isGrafanaEmbedded() {
