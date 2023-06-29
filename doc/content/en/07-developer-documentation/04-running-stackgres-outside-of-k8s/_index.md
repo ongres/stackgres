@@ -1,7 +1,7 @@
 ---
 title: Running StackGres Outside of K8s
 weight: 4
-url: developer/stackgres/outside
+url: /developer/stackgres/outside
 description: Details about how to run the operator outside of Kubernetes.
 ---
 

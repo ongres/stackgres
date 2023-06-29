@@ -131,7 +131,6 @@ public class ShardedClusterServices implements
         .endMetadata()
         .withSpec(cluster.getSpec().getPostgresServices().getCoordinator().getPrimary())
         .editSpec()
-        .withClusterIP("None")
         .addAllToPorts(List.of(
             new ServicePortBuilder()
                 .withProtocol("TCP")
@@ -170,7 +169,6 @@ public class ShardedClusterServices implements
         .endMetadata()
         .withSpec(cluster.getSpec().getPostgresServices().getShards().getPrimaries())
         .editSpec()
-        .withClusterIP("None")
         .addAllToPorts(List.of(
             new ServicePortBuilder()
                 .withProtocol("TCP")

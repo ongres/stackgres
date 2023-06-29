@@ -27,14 +27,14 @@ public class ShardedClusterDtoScanner implements CustomResourceScanner<ShardedCl
   @Override
   public List<ShardedClusterDto> getResources() {
     return Seq.seq(shardedClusterScanner.getResources())
-        .map(resrouce -> shardedClusterTransformer.toResource(resrouce, List.of()))
+        .map(resrouce -> shardedClusterTransformer.toDto(resrouce))
         .toList();
   }
 
   @Override
   public List<ShardedClusterDto> getResources(String namespace) {
     return Seq.seq(shardedClusterScanner.getResources(namespace))
-        .map(resrouce -> shardedClusterTransformer.toResource(resrouce, List.of()))
+        .map(resrouce -> shardedClusterTransformer.toDto(resrouce))
         .toList();
   }
 
@@ -42,7 +42,7 @@ public class ShardedClusterDtoScanner implements CustomResourceScanner<ShardedCl
   public List<ShardedClusterDto> getResourcesWithLabels(
       Map<String, String> labels) {
     return Seq.seq(shardedClusterScanner.getResourcesWithLabels(labels))
-        .map(resrouce -> shardedClusterTransformer.toResource(resrouce, List.of()))
+        .map(resrouce -> shardedClusterTransformer.toDto(resrouce))
         .toList();
   }
 
@@ -50,7 +50,7 @@ public class ShardedClusterDtoScanner implements CustomResourceScanner<ShardedCl
   public List<ShardedClusterDto> getResourcesWithLabels(
       String namespace, Map<String, String> labels) {
     return Seq.seq(shardedClusterScanner.getResourcesWithLabels(namespace, labels))
-        .map(resrouce -> shardedClusterTransformer.toResource(resrouce, List.of()))
+        .map(resrouce -> shardedClusterTransformer.toDto(resrouce))
         .toList();
   }
 
@@ -58,7 +58,7 @@ public class ShardedClusterDtoScanner implements CustomResourceScanner<ShardedCl
   public Optional<List<ShardedClusterDto>> findResources() {
     return shardedClusterScanner.findResources()
         .map(resources -> Seq.seq(resources)
-            .map(resrouce -> shardedClusterTransformer.toResource(resrouce, List.of()))
+            .map(resrouce -> shardedClusterTransformer.toDto(resrouce))
             .toList());
   }
 
@@ -66,7 +66,7 @@ public class ShardedClusterDtoScanner implements CustomResourceScanner<ShardedCl
   public Optional<List<ShardedClusterDto>> findResources(String namespace) {
     return shardedClusterScanner.findResources(namespace)
         .map(resources -> Seq.seq(resources)
-            .map(resrouce -> shardedClusterTransformer.toResource(resrouce, List.of()))
+            .map(resrouce -> shardedClusterTransformer.toDto(resrouce))
             .toList());
   }
 

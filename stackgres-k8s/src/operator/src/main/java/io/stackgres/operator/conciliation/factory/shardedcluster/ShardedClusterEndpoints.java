@@ -6,16 +6,16 @@
 package io.stackgres.operator.conciliation.factory.shardedcluster;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import io.fabric8.kubernetes.api.model.EndpointPortBuilder;
+import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.stackgres.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.labels.LabelFactoryForShardedCluster;
@@ -56,67 +56,34 @@ public class ShardedClusterEndpoints implements ResourceGenerator<StackGresShard
   }
 
   private Stream<HasMetadata> getPrimaryEndpoints(StackGresShardedClusterContext context) {
-    return context.getCoordinatorPrimaryService()
-        .stream()
-        .filter(service -> service.getSpec() != null)
-        .filter(service -> service.getSpec().getClusterIP() != null)
-        .filter(service -> service.getSpec().getPorts() != null)
-        .map(service -> new EndpointsBuilder()
-            .withNewMetadata()
-            .withNamespace(context.getSource().getMetadata().getNamespace())
-            .withName(StackGresShardedClusterForCitusUtil.primaryCoordinatorServiceName(
-                context.getSource()))
-            .addToLabels(labelFactory.genericLabels(context.getSource()))
-            .endMetadata()
-            .addNewSubset()
-            .addNewAddress()
-            .withIp(service.getSpec().getClusterIP())
-            .endAddress()
-            .addAllToPorts(Optional.of(service.getSpec())
-                .map(ServiceSpec::getPorts)
-                .stream()
-                .flatMap(List::stream)
-                .map(servicePort -> new EndpointPortBuilder()
-                    .withAppProtocol(servicePort.getAppProtocol())
-                    .withName(servicePort.getName())
-                    .withPort(servicePort.getPort())
-                    .withProtocol(servicePort.getProtocol())
-                    .build())
-                .toList())
-            .endSubset()
-            .build());
+    return Stream.of(new EndpointsBuilder()
+        .withNewMetadata()
+        .withNamespace(context.getSource().getMetadata().getNamespace())
+        .withName(StackGresShardedClusterForCitusUtil.primaryCoordinatorServiceName(
+            context.getSource()))
+        .addToLabels(labelFactory.genericLabels(context.getSource()))
+        .endMetadata()
+        .addAllToSubsets(context.getCoordinatorPrimaryEndpoints()
+            .map(Endpoints::getSubsets)
+            .orElse(List.of()))
+        .build());
   }
 
   private Stream<HasMetadata> getShardsEndpoints(StackGresShardedClusterContext context) {
-    return context.getShardsPrimaryServices()
-        .stream()
-        .filter(service -> service.getSpec() != null)
-        .filter(service -> service.getSpec().getClusterIP() != null)
-        .filter(service -> service.getSpec().getPorts() != null)
-        .map(service -> new EndpointsBuilder()
-            .withNewMetadata()
-            .withNamespace(context.getSource().getMetadata().getNamespace())
-            .withName(StackGresShardedClusterForCitusUtil.primariesShardsServiceName(
-                context.getSource()))
-            .addToLabels(labelFactory.genericLabels(context.getSource()))
-            .endMetadata()
-            .addNewSubset()
-            .addNewAddress()
-            .withIp(service.getSpec().getClusterIP())
-            .endAddress()
-            .addAllToPorts(Optional.of(service.getSpec())
-                .map(ServiceSpec::getPorts)
-                .stream()
-                .flatMap(List::stream)
-                .map(servicePort -> new EndpointPortBuilder()
-                    .withAppProtocol(servicePort.getAppProtocol())
-                    .withName(servicePort.getName())
-                    .withPort(servicePort.getPort())
-                    .withProtocol(servicePort.getProtocol())
-                    .build())
-                .toList())
-            .endSubset()
-            .build());
+    return Stream.of(new EndpointsBuilder()
+        .withNewMetadata()
+        .withNamespace(context.getSource().getMetadata().getNamespace())
+        .withName(StackGresShardedClusterForCitusUtil.primariesShardsServiceName(
+            context.getSource()))
+        .addToLabels(labelFactory.genericLabels(context.getSource()))
+        .endMetadata()
+        .addAllToSubsets(context.getShardsPrimaryEndpoints()
+            .stream()
+            .map(Endpoints::getSubsets)
+            .filter(Objects::nonNull)
+            .flatMap(List::stream)
+            .toList())
+        .build());
   }
 
 }

@@ -30,9 +30,7 @@ import io.stackgres.cluster.common.ClusterPatroniConfigEventReason;
 import io.stackgres.cluster.common.PatroniUtil;
 import io.stackgres.cluster.common.PostgresUtil;
 import io.stackgres.cluster.common.StackGresClusterContext;
-import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterContext;
-import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -55,14 +53,12 @@ public class PostgresSslReconciliator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresSslReconciliator.class);
 
-  private final boolean reconcilePostgresSsl;
   private final EventController eventController;
   private final ResourceFinder<Secret> secretFinder;
   private final PostgresConnectionManager postgresConnectionManager;
 
   @Dependent
   public static class Parameters {
-    @Inject ClusterControllerPropertyContext propertyContext;
     @Inject EventController eventController;
     @Inject ResourceFinder<Secret> secretFinder;
     @Inject PostgresConnectionManager postgresConnectionManager;
@@ -70,8 +66,6 @@ public class PostgresSslReconciliator {
 
   @Inject
   public PostgresSslReconciliator(Parameters parameters) {
-    this.reconcilePostgresSsl = parameters.propertyContext
-        .getBoolean(ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_POSTGRES_SSL);
     this.eventController = parameters.eventController;
     this.secretFinder = parameters.secretFinder;
     this.postgresConnectionManager = parameters.postgresConnectionManager;
@@ -79,11 +73,8 @@ public class PostgresSslReconciliator {
 
   public ReconciliationResult<Void> reconcile(KubernetesClient client,
       StackGresClusterContext context) {
-    if (!reconcilePostgresSsl) {
-      return new ReconciliationResult<>();
-    }
     try {
-      reconcilePatroni(client, context);
+      reconcilePostgresSsl(client, context);
       return new ReconciliationResult<>();
     } catch (IOException | RuntimeException ex) {
       LOGGER.error("An error occurred while reconciling postgres SSL", ex);
@@ -104,7 +95,7 @@ public class PostgresSslReconciliator {
    *  patroni reload.
    * </p>
    */
-  private void reconcilePatroni(KubernetesClient client, StackGresClusterContext context)
+  private void reconcilePostgresSsl(KubernetesClient client, StackGresClusterContext context)
       throws IOException {
     final StackGresCluster cluster = context.getCluster();
 
@@ -117,7 +108,11 @@ public class PostgresSslReconciliator {
             .orElse(false)
             && !testPostgresSsl(context))) {
       copySsl();
-      PatroniUtil.reloadPatroniConfig();
+      try {
+        PatroniUtil.reloadPatroniConfig();
+      } catch (Exception ex) {
+        LOGGER.warn("Was not able to reload Patroni, will try later if needed: " + ex.getMessage());
+      }
       LOGGER.info("SSL config updated");
       eventController.sendEvent(ClusterPatroniConfigEventReason.CLUSTER_PATRONI_CONFIG_UPDATED,
           "SSL config updated", client);

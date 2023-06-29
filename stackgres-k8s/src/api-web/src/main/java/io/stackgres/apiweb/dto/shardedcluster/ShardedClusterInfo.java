@@ -12,16 +12,25 @@ import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public final class ShardedClusterInfoDto {
+public final class ShardedClusterInfo {
 
   @JsonProperty("primaryDns")
   private String primaryDns;
+
+  @JsonProperty("readsDns")
+  private String readsDns;
+
+  @JsonProperty("primariesDns")
+  private String primariesDns;
 
   @JsonProperty("superuserUsername")
   private String superuserUsername;
 
   @JsonProperty("superuserSecretName")
   private String superuserSecretName;
+
+  @JsonProperty("superuserUsernameKey")
+  private String superuserUsernameKey;
 
   @JsonProperty("superuserPasswordKey")
   private String superuserPasswordKey;
@@ -32,6 +41,22 @@ public final class ShardedClusterInfoDto {
 
   public void setPrimaryDns(String primaryDns) {
     this.primaryDns = primaryDns;
+  }
+
+  public String getReadsDns() {
+    return readsDns;
+  }
+
+  public void setReadsDns(String readsDns) {
+    this.readsDns = readsDns;
+  }
+
+  public String getPrimariesDns() {
+    return primariesDns;
+  }
+
+  public void setPrimariesDns(String primariesDns) {
+    this.primariesDns = primariesDns;
   }
 
   public String getSuperuserUsername() {
@@ -48,6 +73,14 @@ public final class ShardedClusterInfoDto {
 
   public void setSuperuserSecretName(String superuserSecretName) {
     this.superuserSecretName = superuserSecretName;
+  }
+
+  public String getSuperuserUsernameKey() {
+    return superuserUsernameKey;
+  }
+
+  public void setSuperuserUsernameKey(String superuserUsernameKey) {
+    this.superuserUsernameKey = superuserUsernameKey;
   }
 
   public String getSuperuserPasswordKey() {

@@ -2,7 +2,7 @@
 title: Operator API
 weight: 8
 chapter: true
-url: api
+url: /api
 ---
 
 ### Chapter 8

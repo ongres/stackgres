@@ -72,7 +72,7 @@
                 </template>
 
                 <!--Cluster Tabs-->
-                <template v-if="($route.meta.componentName == 'SGCluster') && (($route.name != 'ClusterOverview') && ($route.name != 'EditCluster') && ($route.name != 'CreateCluster'))">
+                <template v-if="['SGCluster', 'SGShardedCluster'].includes($route.meta.componentName) && !['ClusterOverview', 'EditCluster', 'CreateCluster'].includes($route.name)">
                     <li>
                         <template v-if="$route.name.includes('Backup') && $route.name != 'ClusterBackups'">
                             <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + ($route.params.hasOwnProperty('name') ? $route.params.name : currentPath.name) + '/sgbackups'" title="Backups">
@@ -195,25 +195,25 @@
         </template>
 
         <!--Cluster Tabs-->
-        <template v-if="(($route.meta.componentName == 'SGCluster') && (($route.name != 'EditCluster') && ($route.name != 'CreateCluster') && ($route.name != 'ClusterOverview')))">
+        <template v-if="['SGCluster', 'SGShardedCluster'].includes($route.meta.componentName) && !['ClusterOverview', 'ShardedClusterOverview', 'EditCluster', 'CreateCluster', 'EditShardedCluster', 'CreateShardedCluster'].includes($route.name)">
             <ul class="tabs">
                 <li>
-                    <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name" title="Status" class="status">Status</router-link>
+                    <router-link :to="'/' + $route.params.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name" title="Status" class="status">Status</router-link>
                 </li>
                 <li>
-                    <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/config'" title="Configuration" class="info">Configuration</router-link>
+                    <router-link :to="'/' + $route.params.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name + '/config'" title="Configuration" class="info">Configuration</router-link>
                 </li>
-                <li v-if="iCan('list','sgbackups',$route.params.namespace)" :class="$route.name.includes('Backup') && 'active'">
-                    <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/sgbackups'" title="Backups" class="backups">Backups</router-link>
+                <li v-if="iCan('list','sgbackups',$route.params.namespace) && ($route.meta.componentName == 'SGCluster')" :class="$route.name.includes('Backup') && 'active'">
+                    <router-link :to="'/' + $route.params.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name + '/sgbackups'" title="Backups" class="backups">Backups</router-link>
                 </li>
-                <li v-if="iCan('list','sgdistributedlogs',$route.params.namespace) && hasLogs">
-                    <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/logs'" title="Distributed Logs" class="logs">Logs</router-link>
+                <li v-if="iCan('list','sgdistributedlogs',$route.params.namespace) && ($route.meta.componentName == 'SGCluster') && hasLogs">
+                    <router-link :to="'/' + $route.params.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name + '/logs'" title="Distributed Logs" class="logs">Logs</router-link>
                 </li>
                 <li v-if="hasMonitoring" :class="$route.name.includes('Monitor') && 'active'">
-                    <router-link id="grafana-btn" :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/monitor'" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
+                    <router-link id="grafana-btn" :to="'/' + $route.params.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name + '/monitor'" title="Grafana Dashboard" class="grafana">Monitoring</router-link>
                 </li>
-                <li :class="$route.name == 'SingleClusterEvents' && 'active'">
-                    <router-link :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/events'" title="Events" class="events">Events</router-link>
+                <li v-if="($route.meta.componentName == 'SGCluster')" :class="$route.name == 'SingleClusterEvents' && 'active'">
+                    <router-link :to="'/' + $route.params.namespace +'/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name + '/events'" title="Events" class="events">Events</router-link>
                 </li>
             </ul>
         </template>
@@ -286,12 +286,9 @@
             hasMonitoring () {
                 const vc = this;
 
-                let cluster = store.state.sgclusters.filter(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name))
+                let cluster = store.state[vc.$route.meta.componentName.toLowerCase() + 's'].find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name) && c.data.hasOwnProperty('grafanaEmbedded') && c.data.grafanaEmbedded)
 
-                if((cluster.length > 0) && (cluster[0].data.grafanaEmbedded))
-                    return true
-                else
-                    return false
+                return (typeof cluster !== 'undefined');
             }
 		}, 
 
@@ -301,6 +298,7 @@
 
                 let suffixes = {
                     'SGCluster': 'Cluster',
+                    'SGShardedCluster': 'Sharded Cluster',
 					'SGInstanceProfile': 'Profile',
                     'SGPgConfig': 'Configuration',
                     'SGPoolConfig': 'Configuration',
@@ -346,8 +344,13 @@
         transform: scale(.8) translateY(-3px);
     }
 
+    .component.sgshardedcluster {
+        background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCI+PGcgZmlsbD0iIzM2QThGRiI+PHBhdGggZD0ibTE5IDE1LjMtMS40LTEuMmMtLjQtLjMtMS0uMy0xLjMuMS0uMy40LS4zIDEgLjEgMS4zaC4xbC4yLjItNS42IDIuMXYtNC4xbC4yLjFjLjEuMS4zLjEuNS4xLjMgMCAuNi0uMi44LS41LjMtLjQuMS0xLS4zLTEuM2wtMS42LS45Yy0uMy0uMi0uNi0uMi0uOSAwbC0xLjYuOWMtLjQuMy0uNi44LS4zIDEuMy4yLjQuOC42IDEuMi40bC4yLS4xdjRsLTUuNi0yLjEuMi0uMmMuNC0uMy41LS45LjItMS4zcy0uOS0uNS0xLjMtLjJMMSAxNS4zYy0uMi4yLS40LjUtLjMuOUwxIDE4Yy4xLjUuNi44IDEuMS44LjQtLjEuOC0uNS44LS45di0uNWw2LjkgMi41YzAgLjEuMS4xLjIuMWguMWMuMSAwIC4yIDAgLjMtLjFsNi44LTIuNXYuM2MtLjEuNS4zIDEgLjggMS4xaC4yYy40IDAgLjgtLjMuOS0uOGwuMy0xLjhjLS4xLS4zLS4yLS43LS40LS45Ii8+PHBhdGggZD0iTTEwIDBDNC45IDAgLjkgMi4yLjkgNS4xdjYuM2MwIC42LjQgMSAxIDFoLjJjLjQgMCAuOC0uMy44LS44LjEuMS4yLjEuNC4yaC4xYy4xIDAgLjEuMS4yLjEuMS4xLjMuMS40LjIuMSAwIC4xLjEuMi4xcy4xIDAgLjIuMWguMWMuMS4xLjIuMS4zLjEuMSAwIC4yLjEuMy4xLjQgMCAuOC0uMy45LS42IDAtLjEgMC0uMS4xLS4yLjEtLjUtLjItLjktLjYtMS4xLS4yLS4xLS40LS4yLS42LS4yLS4zLS4xLS42LS4zLS45LS41LS4xLS4xLS4yLS4xLS4yLS4ybC0uMS0uMWMtLjItLjEtLjQtLjMtLjUtLjUtLjItLjItLjItLjQtLjMtLjZ2LS4zYzIuMSAxLjMgNC42IDIgNy4xIDEuOSAyLjUuMSA1LS42IDcuMS0xLjl2LjJjMCAuMi0uMS41LS4zLjctLjEuMi0uMy40LS41LjVsLS4xLjFjLS4xLjEtLjIuMS0uMy4yLS4zLjItLjYuMy0uOS41LS4yLjEtLjQuMi0uNi4yLS40LjItLjcuNi0uNiAxLjEgMCAuMSAwIC4xLjEuMi4xLjQuNS42LjkuNi4xIDAgLjIgMCAuNC0uMS4xLS4xLjItLjEuNC0uMWguMWMuMSAwIC4xLS4xLjItLjFzLjEtLjEuMi0uMWMuMS0uMS4yLS4xLjQtLjIuMSAwIC4xLS4xLjItLjFoLjFjLjEtLjEuMy0uMS40LS4yIDAgLjQuMy44LjguOGguMmMuNiAwIDEtLjQgMS0xVjUuMUMxOS4xIDIuMiAxNS4xIDAgMTAgMG0wIDguMUM1LjggOC4xIDIuOSA2LjUgMi45IDVTNS44IDIgMTAgMnM3LjEgMS42IDcuMSAzLjEtMi45IDMtNy4xIDMiLz48L2c+PC9zdmc+);
+        transform: scale(.8) translateY(-3px);
+    }
+
     .component.sginstanceprofile {
-        background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxnIGZpbGw9IiMzNkE4RkYiPjxwYXRoIGQ9Im0xOS42NDkgMTQuOTcxLTEuNTM4LTEuM2EuOTkyLjk5MiAwIDEgMC0xLjI4MiAxLjUxNGwuMjM1LjItNi4wNzIgMi4yMjhWMTMuMjRsLjI2Ni4xNTRhLjk3NC45NzQgMCAwIDAgLjQ5MS4xMzIuOTkuOTkgMCAwIDAgLjg2Mi0uNTA2IDEuMDEyIDEuMDEyIDAgMCAwLS4zNjktMS4zNzJsLTEuNzUtMS4wMTNhLjk4My45ODMgMCAwIDAtLjk4NCAwbC0xLjc1IDEuMDEzYTEuMDEyIDEuMDEyIDAgMCAwLS4zNjkgMS4zNzIuOTg1Ljk4NSAwIDAgMCAxLjM1My4zNzRsLjI2Ni0uMTU0djQuMzUzbC02LjA3LTIuMjEuMjMzLS4yYS45OTIuOTkyIDAgMSAwLTEuMjgyLTEuNTE0bC0xLjUzOCAxLjNhLjk5Mi45OTIgMCAwIDAtLjMzNy45MjVsLjM0MiAxLjk4N2EuOTkyLjk5MiAwIDAgMCAuOTc3LjgyNC45ODEuOTgxIDAgMCAwIC4xNjktLjAxNS45OTIuOTkyIDAgMCAwIC44MS0xLjE0NWwtLjA1Mi0uMyA3LjQgMi42OTRBMS4wMTEgMS4wMTEgMCAwIDAgMTAgMjBjLjAxIDAgLjAyIDAgLjAzLS4wMDVzLjAyLjAwNS4wMy4wMDVhMSAxIDAgMCAwIC4zNDItLjA2MWw3LjMzNS0yLjY5MS0uMDUxLjNhLjk5Mi45OTIgMCAwIDAgLjgxMSAxLjE0NS45NTMuOTUzIDAgMCAwIC4xNjguMDE1Ljk5Mi45OTIgMCAwIDAgLjk3Ny0uODI0bC4zNDEtMS45ODdhLjk5Mi45OTIgMCAwIDAtLjMzNC0uOTI2WiIvPjxwYXRoIGQ9Ik0yMCA0LjI1YS45OS45OSAwIDAgMC0uNjU1LS45M2wtOS0zLjI2YTEgMSAwIDAgMC0uNjgxIDBsLTkgMy4yNmEuOTkuOTkgMCAwIDAtLjY1NS45My45LjkgMCAwIDAgLjAxNi4xYzAgLjAzMS0uMDE2LjA1Ny0uMDE2LjA4OXY1Ljg4NmExLjA1MiAxLjA1MiAwIDAgMCAuOTkyIDEuMSAxLjA1MiAxLjA1MiAwIDAgMCAuOTkyLTEuMVY1LjY1OGw3LjY3NiAyLjc3OWExLjAxMiAxLjAxMiAwIDAgMCAuNjgxIDBsNy42NzUtMi43Nzl2NC42NjdhMSAxIDAgMSAwIDEuOTg0IDBWNC40MzljMC0uMDMyLS4wMTQtLjA1OC0uMDE2LS4wODlhLjkuOSAwIDAgMCAuMDA3LS4xWk0xMCA2LjQ1NyAzLjkgNC4yNSAxMCAyLjA0NGw2LjA5NSAyLjIwNloiLz48L2c+PC9zdmc+);
+        background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCI+PHBhdGggZmlsbD0iIzM2QThGRiIgZD0iTTEwIDBoLjNsOC44IDNjLjUuMi44LjcuNiAxLjItLjEuMy0uMy41LS42LjZsLTguOCAyLjljLS4yLjEtLjQuMS0uNiAwTC45IDQuOUMuNCA0LjcuMSA0LjEuMyAzLjZjLjEtLjMuMy0uNS42LS42TDkuNy4xYy4xLS4xLjItLjEuMy0uMXptNS43IDMuOUwxMCAyIDQuMyAzLjkgMTAgNS44bDUuNy0xLjl6TTEuMiA2LjJjLjEgMCAuMiAwIC4zLjFsNy4zIDIuNGMuNC4xLjcuNS43LjlWMTljMCAuNS0uNCAxLTEgMS0uMSAwLS4yIDAtLjMtLjFMLjkgMTcuNWMtLjQtLjEtLjctLjUtLjctLjlWNy4yYzAtLjYuNC0xIDEtMXptNi4yIDQuMUwyLjEgOC42djcuM2w1LjMgMS44di03LjR6bTExLjQtNC4xYy41IDAgMSAuNCAxIDF2OS40YzAgLjQtLjMuOC0uNy45bC03LjMgMi40Yy0uNS4yLTEuMS0uMS0xLjItLjYgMC0uMS0uMS0uMi0uMS0uM1Y5LjZjMC0uNC4zLS44LjctLjlsNy4zLTIuNGMuMS0uMS4yLS4xLjMtLjF6bS0uOSA5LjdWOC42bC01LjMgMS44djcuM2w1LjMtMS44eiIvPjwvc3ZnPg==);
         transform: scale(.8) translateY(-3px);
     }
 

@@ -1,7 +1,7 @@
 ---
 title: PgBadger Reports
 weight: 1
-url: runbooks/pgbadger-reports
+url: /runbooks/pgbadger-reports
 description: Details about how to generate a pgBadger report from the distributed logs server.
 showToc: true
 ---
@@ -80,7 +80,7 @@ spec:
 Execute the command below to locate the pod of the distributed log server:
 
 ```
-$ kubectl get pods -o name -l distributed-logs-name=my-distributed-logs 
+$ kubectl get pods -o name -l stackgres.io/distributed-logs-name=my-distributed-logs 
 pod/my-distributed-logs-0
 ```
 
@@ -140,7 +140,7 @@ PgBadger supports defining an external command to get the log info.
 Using that, it is possible to create an all-in-one script that generates the pgBadger report.
 
 ```
-POD=$(kubectl get pods -o name -l distributed-logs-name=my-distributed-logs)
+POD=$(kubectl get pods -o name -l stackgres.io/distributed-logs-name=my-distributed-logs)
 CLUSTER_NAME="my-db-cluster"
 QUERY=$(cat <<EOF
 COPY (

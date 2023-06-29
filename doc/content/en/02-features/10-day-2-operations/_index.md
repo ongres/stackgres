@@ -1,7 +1,7 @@
 ---
 title: Day-2 Operations
 weight: 10
-url: features/day-2-operations
+url: /features/day-2-operations
 description: "Automated day-2 operations such as minor & major PostgreSQL version upgrades, container upgrades, controlled restarts, vacuum, or repack"
 ---
 

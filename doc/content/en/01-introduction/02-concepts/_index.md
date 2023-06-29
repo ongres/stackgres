@@ -1,7 +1,7 @@
 ---
 title: "Concepts"
 weight: 2
-url: intro/concepts
+url: /intro/concepts
 description: Details about StackGres' concepts.
 showToc: true
 ---

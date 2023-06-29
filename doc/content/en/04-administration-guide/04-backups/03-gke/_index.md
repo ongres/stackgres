@@ -1,7 +1,7 @@
 ---
 title: GKE
 weight: 3
-url: administration/backups/gke
+url: /administration/backups/gke
 aliases: [ /install/prerequisites/backups/gke ]
 description: Details about how to set up and configure the backups on Google Cloud Storage.
 showToc: true

@@ -12,7 +12,7 @@ import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public final class ClusterInfoDto {
+public final class ClusterInfo {
 
   @JsonProperty("primaryDns")
   private String primaryDns;
@@ -25,6 +25,9 @@ public final class ClusterInfoDto {
 
   @JsonProperty("superuserSecretName")
   private String superuserSecretName;
+
+  @JsonProperty("superuserUsernameKey")
+  private String superuserUsernameKey;
 
   @JsonProperty("superuserPasswordKey")
   private String superuserPasswordKey;
@@ -59,6 +62,14 @@ public final class ClusterInfoDto {
 
   public void setSuperuserSecretName(String superuserSecretName) {
     this.superuserSecretName = superuserSecretName;
+  }
+
+  public String getSuperuserUsernameKey() {
+    return superuserUsernameKey;
+  }
+
+  public void setSuperuserUsernameKey(String superuserUsernameKey) {
+    this.superuserUsernameKey = superuserUsernameKey;
   }
 
   public String getSuperuserPasswordKey() {

@@ -1,13 +1,13 @@
 <template>
-	<div id="crdSummary" class="contentTooltip show">
-        <div class="close" @click="closeSummary()"></div>
+	<div id="crdSummary" class="visible" :class="details ? 'crdDetails' : 'contentTooltip'">
+        <div v-if="!details" class="close" @click="closeSummary()"></div>
         
         <div class="info">
         
-            <span class="close" @click="closeSummary()">CLOSE</span>
+            <span v-if="!details" class="close" @click="closeSummary()">CLOSE</span>
             
             <div class="content">
-                <div class="header">
+                <div v-if="!details" class="header">
                     <h2>Summary</h2>
                     <label for="showDefaults" class="switch floatRight upper">
                         <span>Show Default Values</span>
@@ -27,11 +27,18 @@
     export default {
         name: 'CRDSummary',
 
-        props: ['kind', 'crd'],
+        props: {
+            kind: String,
+            crd: Object,
+            details: {
+                type: Boolean,
+                default: false
+            }
+        },
 
         data() {
             return {
-                showDefaults: false,
+                showDefaults: this.details
             }
         },
 
@@ -152,7 +159,7 @@
         top: 8px;
     }
 
-    .summary ul ul li:before {
+    .summary ul ul li:not(.warning):before {
         content: "";
         display: inline;
         height: 2px;
@@ -175,8 +182,54 @@
         z-index: 3;
     }
 
+    .crdDetails .summary {
+        height: 100%;
+        max-height: 100%;
+    }
+
     .darkmode .summary ul ul ul li:last-of-type:after, .darkmode .summary ul.section > li > ul > li:last-child:after {
         background: var(--activeBg);
+    }
+
+    .darkmode .crdDetails .summary ul ul ul li:last-of-type:after, .darkmode .crdDetails .summary ul.section > li > ul > li:last-child:after {
+        background: var(--bgColor);
+    }
+
+    span.arrow {
+        background: "▾";
+    }
+
+    .summary button.toggleSummary {
+        background: transparent;
+        font-weight: bold;
+        border: 0;
+        margin: 0;
+        padding: 10px;
+        position: relative;
+        top: -5px;
+        left: -5px;
+        margin-bottom: -6px;
+        background: var(--activeBg);
+    }
+
+    .crdDetails .summary button.toggleSummary {
+        background: var(--bgColor);
+    }
+
+    .summary button.toggleSummary:before {
+        content: "▾";
+        display: block;
+        position: absolute;
+        top: 1px;
+        left: 4px;
+        width: 14px;
+        color: var(--textColor);
+        transition: all .3s ease-out;
+    }
+
+    .summary .collapsed button.toggleSummary:before {
+        transform: rotate(-90deg);
+        transition: all .3s ease-out;
     }
 
 </style>

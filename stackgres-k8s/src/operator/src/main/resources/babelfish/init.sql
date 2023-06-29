@@ -18,7 +18,7 @@ SELECT append_system_parameter_line('babelfish_pg_tsql.sql_dialect = ''tsql''');
 
 DROP FUNCTION append_system_parameter_line(line text);
 
+SELECT pg_reload_conf();
+
 ALTER DATABASE babelfish SET babelfishpg_tsql.migration_mode = 'single-db';
 CALL SYS.INITIALIZE_BABELFISH('babelfish');
-
-SELECT pg_reload_conf();

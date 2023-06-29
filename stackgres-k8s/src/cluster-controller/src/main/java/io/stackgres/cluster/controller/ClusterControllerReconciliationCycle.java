@@ -5,6 +5,9 @@
 
 package io.stackgres.cluster.controller;
 
+import static io.stackgres.common.ClusterControllerProperty.CLUSTER_NAME;
+import static io.stackgres.common.ClusterControllerProperty.CLUSTER_NAMESPACE;
+
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -25,7 +28,6 @@ import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.cluster.resource.ClusterResourceHandlerSelector;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
@@ -152,12 +154,23 @@ public class ClusterControllerReconciliationCycle
   }
 
   @Override
-  protected ImmutableList<StackGresCluster> getExistingContextResources() {
+  public ImmutableList<StackGresCluster> getExistingContextResources() {
     return clusterFinder.findByNameAndNamespace(
-        propertyContext.getString(ClusterControllerProperty.CLUSTER_NAME),
-        propertyContext.getString(ClusterControllerProperty.CLUSTER_NAMESPACE))
+        propertyContext.getString(CLUSTER_NAME),
+        propertyContext.getString(CLUSTER_NAMESPACE))
         .stream()
         .collect(ImmutableList.toImmutableList());
+  }
+
+  @Override
+  public StackGresCluster getExistingContextResource(StackGresCluster source) {
+    final String namespace = source.getMetadata().getNamespace();
+    final String name = source.getMetadata().getName();
+    return clusterFinder.findByNameAndNamespace(
+        name,
+        namespace)
+        .orElseThrow(() -> new IllegalArgumentException(StackGresCluster.KIND
+            + " " + name + "." + namespace + " not found"));
   }
 
   @Override

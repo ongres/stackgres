@@ -71,7 +71,6 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
   public static final String POD_MONITOR = "-stackgres-envoy";
   public static final String SERVICE = "-envoyexp";
 
-  private static final String CONFIG_SUFFIX = "-envoy-config";
   protected static final Logger ENVOY_LOGGER = LoggerFactory.getLogger("io.stackgres.envoy");
   protected static final Map<String, Integer> PORT_MAPPING =
       Map.of(
@@ -100,11 +99,6 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
     this.labelFactory = labelFactory;
     this.objectMapper = jsonMapper;
     this.containerUserOverrideMounts = containerUserOverrideMounts;
-  }
-
-  public static String configName(StackGresClusterContext clusterContext) {
-    String name = clusterContext.getSource().getMetadata().getName();
-    return ResourceUtil.resourceName(name + CONFIG_SUFFIX);
   }
 
   public static String serviceName(StackGresClusterContext clusterContext) {
@@ -322,7 +316,8 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
     }
 
     String namespace = stackGresCluster.getMetadata().getNamespace();
-    String configMapName = configName(context);
+    String clusterName = stackGresCluster.getMetadata().getName();
+    String configMapName = StackGresVolume.ENVOY.getResourceName(clusterName);
 
     return new ConfigMapBuilder()
         .withNewMetadata()

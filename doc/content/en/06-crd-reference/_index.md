@@ -2,7 +2,7 @@
 title: CRD Reference
 weight: 6
 chapter: true
-url: reference/crd
+url: /reference/crd
 ---
 
 ### Chapter 6

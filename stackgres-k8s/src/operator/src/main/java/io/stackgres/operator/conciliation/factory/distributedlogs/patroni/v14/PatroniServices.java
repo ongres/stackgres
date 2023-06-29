@@ -109,7 +109,7 @@ public class PatroniServices implements
   private Service createPrimaryService(StackGresDistributedLogsContext context) {
     StackGresDistributedLogs cluster = context.getSource();
 
-    final Map<String, String> primaryLabels = labelFactory.patroniPrimaryLabels(cluster);
+    final Map<String, String> primaryLabels = labelFactory.clusterPrimaryLabels(cluster);
 
     return new ServiceBuilder()
         .withNewMetadata()
@@ -158,7 +158,7 @@ public class PatroniServices implements
   private Service createReplicaService(StackGresDistributedLogsContext context) {
     StackGresDistributedLogs cluster = context.getSource();
 
-    final Map<String, String> replicaLabels = labelFactory.patroniReplicaLabels(cluster);
+    final Map<String, String> replicaLabels = labelFactory.clusterReplicaLabels(cluster);
 
     final String namespace = cluster.getMetadata().getNamespace();
     final String serviceName = readOnlyName(context);

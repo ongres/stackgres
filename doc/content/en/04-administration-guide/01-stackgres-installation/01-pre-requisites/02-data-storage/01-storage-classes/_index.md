@@ -1,7 +1,7 @@
 ---
 title: Storage Classes
 weight: 1
-url: install/prerequisites/storage/storageclass
+url: /install/prerequisites/storage/storageclass
 description: "Details about how to set up and configure the storage classes. Storage classes are used by the database clusters and will impact the performance and availability of the cluster."
 ---
 

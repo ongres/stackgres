@@ -1,7 +1,7 @@
 ---
 title: "Licensing"
 weight: 5
-url: intro/license
+url: /intro/license
 description: Details about StackGres' license.
 ---
 

@@ -81,7 +81,7 @@ public class ClusterStatusManager
         .map(StackGresClusterStatus::getPodStatuses)
         .orElse(ImmutableList.of());
     Optional<StatefulSet> clusterStatefulSet = getClusterStatefulSet(cluster);
-    List<Pod> clusterPods = clusterStatefulSet.map(sts -> getStsPods(sts, cluster))
+    List<Pod> clusterPods = clusterStatefulSet.map(sts -> getClusterPods(sts, cluster))
         .orElse(ImmutableList.of());
     RestartReasons reasons = ClusterPendingRestartUtil.getRestartReasons(
         clusterPodStatuses, clusterStatefulSet, clusterPods);
@@ -138,9 +138,9 @@ public class ClusterStatusManager
         .findFirst();
   }
 
-  private List<Pod> getStsPods(StatefulSet sts, StackGresCluster cluster) {
+  private List<Pod> getClusterPods(StatefulSet sts, StackGresCluster cluster) {
     final Map<String, String> podClusterLabels =
-        labelFactory.patroniClusterLabels(cluster);
+        labelFactory.clusterLabels(cluster);
 
     return client.pods().inNamespace(sts.getMetadata().getNamespace())
         .withLabels(podClusterLabels)

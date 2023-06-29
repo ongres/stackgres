@@ -2,7 +2,7 @@
 title: StackGres REST API Reference
 weight: 3
 layout: swagger
-url: api/reference
+url: /api/reference
 aliases: [ /08-stackgres-web-api/03-api-reference/ ]
 description: Details about StackGres' REST API and its endpoints.
 ---

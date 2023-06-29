@@ -15,6 +15,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -40,6 +41,8 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
   protected final Reconciliator<T> reconciliator;
   protected final S handlerSelector;
   private final ExecutorService executorService;
+  private final AtomicReference<ImmutableList<Optional<H>>> atomicReference =
+      new AtomicReference<>(ImmutableList.of());
   private final ArrayBlockingQueue<Boolean> arrayBlockingQueue = new ArrayBlockingQueue<>(1);
 
   private final CompletableFuture<Void> stopped = new CompletableFuture<>();
@@ -63,16 +66,28 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
 
   public void stop() {
     close = true;
-    reconcile();
+    reconcile(ImmutableList.of());
     executorService.shutdown();
-    reconcile();
+    reconcile(ImmutableList.of());
     stopped.join();
+  }
+
+  public void reconcileAll() {
+    reconcile(ImmutableList.of(Optional.empty()));
+  }
+
+  public void reconcile(H existingContextResource) {
+    reconcile(ImmutableList.of(Optional.of(existingContextResource)));
   }
 
   @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED_BAD_PRACTICE",
       justification = "We do not care if queue is already filled")
-  public void reconcile() {
-    arrayBlockingQueue.offer(Boolean.TRUE);
+  private void reconcile(List<Optional<H>> existingContextResources) {
+    atomicReference.updateAndGet(atomicExistingContextResources -> Seq
+        .seq(atomicExistingContextResources)
+        .append(existingContextResources)
+        .collect(ImmutableList.toImmutableList()));
+    arrayBlockingQueue.offer(true);
   }
 
   private void reconciliationCycleLoop() {
@@ -80,10 +95,12 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
     while (true) {
       try {
         arrayBlockingQueue.take();
+        ImmutableList<Optional<H>> existingContextResources =
+            atomicReference.getAndSet(ImmutableList.of());
         if (close) {
           break;
         }
-        reconciliationCycle();
+        reconciliationCycle(existingContextResources);
       } catch (Exception ex) {
         logger.error(name + " reconciliation cycle loop was interrupted", ex);
       }
@@ -92,17 +109,30 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
     stopped.complete(null);
   }
 
-  public synchronized ReconciliationCycleResult<H> reconciliationCycle() {
+  public synchronized ReconciliationCycleResult<H> reconciliationCycle(
+      ImmutableList<Optional<H>> requestedContextResources) {
     final ImmutableMap.Builder<H, Exception> contextExceptions = ImmutableMap.builder();
     final int cycleId = reconciliationCount.incrementAndGet();
     final String cycleName = cycleId + "| " + name + " reconciliation cycle";
 
     logger.trace("{} starting", cycleName);
     logger.trace("{} getting existing {} list", cycleName, name.toLowerCase(Locale.US));
-    final ImmutableList<H> existingContextResources;
+    final ImmutableList<Tuple2<H, Boolean>> contextResources;
 
     try {
-      existingContextResources = getExistingContextResources();
+      if (requestedContextResources.stream().anyMatch(Optional::isEmpty)) {
+        contextResources = getExistingContextResources()
+            .stream()
+            .map(existingContextResource -> Tuple.tuple(existingContextResource, false))
+            .collect(ImmutableList.toImmutableList());
+      } else {
+        contextResources = Seq.seq(requestedContextResources)
+            .map(Optional::get)
+            .grouped(this::getRequestedContextResourceKey)
+            .flatMap(t -> t.v2.limit(1))
+            .map(requestedContextResource -> Tuple.tuple(requestedContextResource, false))
+            .collect(ImmutableList.toImmutableList());
+      }
     } catch (RuntimeException ex) {
       logger.error(cycleName + " failed", ex);
       try {
@@ -114,12 +144,20 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
       return new ReconciliationCycleResult<>(ex);
     }
 
+    ImmutableList.Builder<H> existingContextResourcesBuilder = ImmutableList.builder();
     try {
-      for (H contextResource : existingContextResources) {
-        T context = getContextFromResource(contextResource);
+      for (Tuple2<H, Boolean> contextResource : contextResources) {
+        final H exisitingContextResource;
+        if (contextResource.v2) {
+          exisitingContextResource = getExistingContextResource(contextResource.v1);
+        } else {
+          exisitingContextResource = contextResource.v1;
+        }
+        existingContextResourcesBuilder.add(exisitingContextResource);
+        final T context = getContextFromResource(exisitingContextResource);
 
-        String contextId = contextResource.getMetadata().getNamespace() + "."
-            + contextResource.getMetadata().getName();
+        String contextId = exisitingContextResource.getMetadata().getNamespace() + "."
+            + exisitingContextResource.getMetadata().getName();
 
         try {
           logger.trace("{} working on {}", cycleName, contextId);
@@ -155,20 +193,22 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
           ReconciliationResult<?> reconciliationResult =
               reconciliator.reconcile(client, contextWithExistingAndRequiredResources);
           if (!reconciliationResult.success()) {
-            contextExceptions.put(contextResource, reconciliationResult.getException());
+            contextExceptions.put(exisitingContextResource, reconciliationResult.getException());
           }
         } catch (Exception ex) {
-          contextExceptions.put(contextResource, ex);
+          contextExceptions.put(exisitingContextResource, ex);
           logger.error(cycleName + " failed reconciling " + contextId, ex);
           try {
-            onConfigError(context, contextResource, ex);
+            onConfigError(context, exisitingContextResource, ex);
           } catch (RuntimeException rex) {
             logger.error(cycleName + " failed sending event while reconciling " + contextId, rex);
           }
         }
       }
       logger.trace(cycleName + " ended successfully");
-      return new ReconciliationCycleResult<>(existingContextResources, contextExceptions.build());
+      return new ReconciliationCycleResult<>(
+          existingContextResourcesBuilder.build(),
+          contextExceptions.build());
     } catch (RuntimeException ex) {
       logger.error(cycleName + " failed", ex);
       try {
@@ -178,6 +218,11 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
       }
       return new ReconciliationCycleResult<>(ex);
     }
+  }
+
+  private String getRequestedContextResourceKey(H requestedContextResource) {
+    return requestedContextResource.getMetadata().getNamespace()
+        + "." + requestedContextResource.getMetadata().getName();
   }
 
   public static class ReconciliationCycleResult<T extends CustomResource<?, ?>> {
@@ -259,15 +304,12 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
 
   protected abstract ImmutableList<H> getExistingContextResources();
 
+  protected abstract H getExistingContextResource(H contextResource);
+
   protected abstract T getContextFromResource(H contextResource);
 
   private ImmutableList<HasMetadata> getExistingResources(KubernetesClient client, T context) {
-    return ImmutableList.<HasMetadata>builder()
-        .addAll(handlerSelector.getResources(client, context)
-            .iterator())
-        .build()
-        .stream()
-        .collect(ImmutableList.toImmutableList());
+    return handlerSelector.getResources(client, context).collect(ImmutableList.toImmutableList());
   }
 
 }

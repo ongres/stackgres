@@ -1,7 +1,7 @@
 ---
 title: Envoy
 weight: 1
-url: administration/monitoring/envoy
+url: /administration/monitoring/envoy
 aliases: [ /monitoring/metrics/envoy ]
 description: Contains details about the metrics collected by the envoy proxy with the Postgres filter.
 ---

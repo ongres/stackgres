@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -20,12 +21,19 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
+import io.fabric8.kubernetes.api.model.PodList;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
@@ -40,13 +48,18 @@ import io.stackgres.apiweb.dto.script.ScriptFrom;
 import io.stackgres.apiweb.dto.script.ScriptSpec;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterDto;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterSpec;
+import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterStatsDto;
+import io.stackgres.apiweb.resource.ShardedClusterStatsDtoFinder;
+import io.stackgres.apiweb.transformer.ClusterPodTransformer;
 import io.stackgres.apiweb.transformer.ScriptTransformer;
+import io.stackgres.apiweb.transformer.ShardedClusterStatsTransformer;
 import io.stackgres.apiweb.transformer.ShardedClusterTransformer;
 import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
@@ -54,12 +67,22 @@ import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.labels.ClusterLabelFactory;
+import io.stackgres.common.labels.ClusterLabelMapper;
+import io.stackgres.common.labels.ShardedClusterLabelFactory;
+import io.stackgres.common.labels.ShardedClusterLabelMapper;
 import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.common.resource.PersistentVolumeClaimFinder;
+import io.stackgres.common.resource.PodExecutor;
+import io.stackgres.common.resource.PodFinder;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.testutil.JsonUtil;
+import org.eclipse.microprofile.context.ManagedExecutor;
 import org.jooq.lambda.Seq;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -68,18 +91,22 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.mockito.stubbing.Answer;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ShardedClusterResourceMockedTest extends
-    AbstractDependencyCustomResourceTest<ShardedClusterDto, StackGresShardedCluster,
+    AbstractCustomResourceTest<ShardedClusterDto, StackGresShardedCluster,
       ShardedClusterResource, NamespacedShardedClusterResource> {
 
   @Mock
+  ManagedExecutor managedExecutor;
+  @Mock
   private StackGresPropertyContext<WebApiProperty> configContext;
-
   @Mock
   private CustomResourceFinder<StackGresShardedCluster> shardedClusterFinder;
+  @Mock
+  protected CustomResourceScanner<StackGresCluster> clusterScanner;
   @Mock
   private CustomResourceScheduler<StackGresScript> scriptScheduler;
   @Mock
@@ -94,12 +121,21 @@ class ShardedClusterResourceMockedTest extends
   private ResourceFinder<Secret> secretFinder;
   @Mock
   private ResourceFinder<Service> serviceFinder;
+  @Mock
+  private PodExecutor podExecutor;
+  @Mock
+  private PodFinder podFinder;
+  @Mock
+  private PersistentVolumeClaimFinder persistentVolumeClaimFinder;
 
   private ScriptTransformer scriptTransformer;
+
+  private ExecutorService executorService;
 
   private StackGresShardedCluster cluster;
   private Service servicePrimary;
   private ConfigMap configMap;
+  private PodList podList;
 
   @Override
   @BeforeEach
@@ -125,6 +161,30 @@ class ShardedClusterResourceMockedTest extends
         .withData(ImmutableMap.of(
             "script", "CREATE DATABASE test WITH OWNER test"))
         .build();
+    when(clusterScanner.getResourcesWithLabels(any(), any()))
+        .thenReturn(List.of(Fixtures.cluster().loadDefault().get()));
+    podList = Fixtures.cluster().podList().loadDefault().get();
+    when(podFinder.findByLabelsAndNamespace(anyString(), any()))
+        .thenReturn(podList.getItems());
+    when(persistentVolumeClaimFinder.findByNameAndNamespace(anyString(), anyString()))
+        .thenReturn(Optional.of(new PersistentVolumeClaimBuilder()
+            .withNewSpec()
+            .withNewResources()
+            .withRequests(ImmutableMap.of("storage", Quantity.parse("5Gi")))
+            .endResources()
+            .endSpec()
+            .build()));
+    executorService = Executors.newWorkStealingPool();
+    doAnswer((Answer<Void>) invocation -> {
+      executorService.execute(Runnable.class.cast(invocation.getArgument(0)));
+      return null;
+    }).when(managedExecutor).execute(any());
+  }
+
+  @AfterEach
+  public void tearDown() throws Exception {
+    executorService.shutdown();
+    executorService.awaitTermination(1, TimeUnit.SECONDS);
   }
 
   @Test
@@ -142,8 +202,22 @@ class ShardedClusterResourceMockedTest extends
   }
 
   @Test
+  void getOfAnExistingDtoStatsShouldReturnTheExistingDtoStats() {
+    clusterMocks();
+    mockPodExecutor();
+
+    when(finder.findByNameAndNamespace(getResourceName(), getResourceNamespace()))
+        .thenReturn(Optional.of(customResources.getItems().get(0)));
+
+    ShardedClusterStatsDto dto =
+        getShardedClusterStatsResource().stats(getResourceNamespace(), getResourceName());
+
+    checkStatsDto(dto);
+  }
+
+  @Test
   void createShardedClusterWithScriptReference_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
 
     super.createShouldNotFail();
 
@@ -164,7 +238,7 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void updateShardedClusterWithScriptReference_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
 
     super.updateShouldNotFail();
 
@@ -185,9 +259,9 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void createShardedClusterWithExistingInlineScript_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
     ScriptSpec scriptSpec = buildInlineScriptSpec();
-    resourceDto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
+    dto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
         .setScriptSpec(scriptSpec);
 
     when(scriptFinder.findByNameAndNamespace(any(), any()))
@@ -212,9 +286,9 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void createShardedClusterWithInlineScript_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
     ScriptSpec scriptSpec = buildInlineScriptSpec();
-    resourceDto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
+    dto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
         .setScriptSpec(scriptSpec);
 
     super.createShouldNotFail();
@@ -236,10 +310,10 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void createShardedClusterWithInlineScriptWithoutName_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
     ScriptSpec scriptSpec = buildInlineScriptSpec();
-    resourceDto.getSpec().getCoordinator().getManagedSql().getScripts().get(0).setSgScript(null);
-    resourceDto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
+    dto.getSpec().getCoordinator().getManagedSql().getScripts().get(0).setSgScript(null);
+    dto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
         .setScriptSpec(scriptSpec);
 
     super.createShouldNotFail();
@@ -261,9 +335,9 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void createShardedClusterWithSecretScript_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
     ScriptSpec scriptSpec = buildSecretScriptSpec();
-    resourceDto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
+    dto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
         .setScriptSpec(scriptSpec);
 
     super.createShouldNotFail();
@@ -273,7 +347,7 @@ class ShardedClusterResourceMockedTest extends
     verify(secretWriter).create(secretArgument.capture());
 
     Secret createdSecret = secretArgument.getValue();
-    assertEquals(resourceDto.getMetadata().getNamespace(),
+    assertEquals(dto.getMetadata().getNamespace(),
         createdSecret.getMetadata().getNamespace());
 
     final ScriptFrom scriptFrom = scriptSpec.getScripts().get(0).getScriptFrom();
@@ -302,9 +376,9 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void createShardedClusterWithExistingSecretScript_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
     ScriptSpec scriptSpec = buildSecretScriptSpec();
-    resourceDto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
+    dto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
         .setScriptSpec(scriptSpec);
 
     when(secretFinder.findByNameAndNamespace(any(), any()))
@@ -317,7 +391,7 @@ class ShardedClusterResourceMockedTest extends
     verify(secretWriter).update(secretArgument.capture());
 
     Secret createdSecret = secretArgument.getValue();
-    assertEquals(resourceDto.getMetadata().getNamespace(),
+    assertEquals(dto.getMetadata().getNamespace(),
         createdSecret.getMetadata().getNamespace());
 
     final ScriptFrom scriptFrom = scriptSpec.getScripts().get(0).getScriptFrom();
@@ -346,10 +420,10 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void createShardedClusterWithSecretScriptWithoutName_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
     ScriptSpec scriptSpec = buildSecretScriptSpec();
     scriptSpec.getScripts().get(0).getScriptFrom().setSecretKeyRef(null);
-    resourceDto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
+    dto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
         .setScriptSpec(scriptSpec);
 
     super.createShouldNotFail();
@@ -359,7 +433,7 @@ class ShardedClusterResourceMockedTest extends
     verify(secretWriter).create(secretArgument.capture());
 
     Secret createdSecret = secretArgument.getValue();
-    assertEquals(resourceDto.getMetadata().getNamespace(),
+    assertEquals(dto.getMetadata().getNamespace(),
         createdSecret.getMetadata().getNamespace());
 
     final ScriptFrom scriptFrom = scriptSpec.getScripts().get(0).getScriptFrom();
@@ -388,9 +462,9 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void createShardedClusterWithConfigMapScript_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
     ScriptSpec scriptSpec = buildConfigMapScriptSpec();
-    resourceDto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
+    dto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
         .setScriptSpec(scriptSpec);
 
     super.createShouldNotFail();
@@ -400,7 +474,7 @@ class ShardedClusterResourceMockedTest extends
     verify(configMapWriter).create(secretArgument.capture());
 
     ConfigMap createdConfigMap = secretArgument.getValue();
-    assertEquals(resourceDto.getMetadata().getNamespace(),
+    assertEquals(dto.getMetadata().getNamespace(),
         createdConfigMap.getMetadata().getNamespace());
 
     final ScriptFrom scriptFrom = scriptSpec.getScripts().get(0).getScriptFrom();
@@ -427,9 +501,9 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void createShardedClusterWithExistingConfigMapScript_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
     ScriptSpec scriptSpec = buildConfigMapScriptSpec();
-    resourceDto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
+    dto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
         .setScriptSpec(scriptSpec);
 
     when(configMapFinder.findByNameAndNamespace(any(), any()))
@@ -442,7 +516,7 @@ class ShardedClusterResourceMockedTest extends
     verify(configMapWriter).update(secretArgument.capture());
 
     ConfigMap createdConfigMap = secretArgument.getValue();
-    assertEquals(resourceDto.getMetadata().getNamespace(),
+    assertEquals(dto.getMetadata().getNamespace(),
         createdConfigMap.getMetadata().getNamespace());
 
     final ScriptFrom scriptFrom = scriptSpec.getScripts().get(0).getScriptFrom();
@@ -469,10 +543,10 @@ class ShardedClusterResourceMockedTest extends
 
   @Test
   void createShardedClusterWithConfigMapScriptWithoutName_shouldNotFail() {
-    resourceDto = getShardedClusterScriptReference();
+    dto = getShardedClusterScriptReference();
     ScriptSpec scriptSpec = buildConfigMapScriptSpec();
     scriptSpec.getScripts().get(0).getScriptFrom().setConfigMapKeyRef(null);
-    resourceDto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
+    dto.getSpec().getCoordinator().getManagedSql().getScripts().get(0)
         .setScriptSpec(scriptSpec);
 
     super.createShouldNotFail();
@@ -482,7 +556,7 @@ class ShardedClusterResourceMockedTest extends
     verify(configMapWriter).create(secretArgument.capture());
 
     ConfigMap createdConfigMap = secretArgument.getValue();
-    assertEquals(resourceDto.getMetadata().getNamespace(),
+    assertEquals(dto.getMetadata().getNamespace(),
         createdConfigMap.getMetadata().getNamespace());
 
     final ScriptFrom scriptFrom = scriptSpec.getScripts().get(0).getScriptFrom();
@@ -573,13 +647,48 @@ class ShardedClusterResourceMockedTest extends
         .thenReturn(Optional.of(configMap));
   }
 
+  private void mockPodExecutor() {
+    when(podExecutor.exec(any(), anyString(), any())).thenReturn(ImmutableList.of(
+        "cpuFound:4",
+        "cpuQuota:50000",
+        "cpuPeriod:100000",
+        "cpuPsiAvg10:0.50",
+        "cpuPsiAvg60:cat: /sys/fs/cgroup/cpu.pressure: No such file or directory",
+        "cpuPsiAvg300:1.50",
+        "cpuPsiTotal:10000000000",
+        "memoryFound:" + (512L * 1024 * 1024),
+        "memoryUsed:" + (278L * 1024 * 1024),
+        "memoryPsiAvg10:0.50",
+        "memoryPsiAvg60:1.00",
+        "memoryPsiAvg300:1.50",
+        "memoryPsiTotal:10000000000",
+        "memoryPsiFullAvg10:0.50",
+        "memoryPsiFullAvg60:1.00",
+        "memoryPsiFullAvg300:1.50",
+        "memoryPsiFullTotal:10000000000",
+        "diskFound:" + (5L * 1024 * 1024 * 1024),
+        "diskUsed:" + (1L * 1024 * 1024 * 1024 + 410L * 1024 * 1024),
+        "diskPsiAvg10:0.50",
+        "diskPsiAvg60:1.00",
+        "diskPsiAvg300:1.50",
+        "diskPsiTotal:10000000000",
+        "diskPsiFullAvg10:0.50",
+        "diskPsiFullAvg60:1.00",
+        "diskPsiFullAvg300:1.50",
+        "diskPsiFullTotal:10000000000",
+        "load1m:0.5",
+        "load5m:1.0",
+        "load10m:1.5",
+        "connections:2000"));
+  }
+
   @Override
   protected DefaultKubernetesResourceList<StackGresShardedCluster> getCustomResourceList() {
     return Fixtures.shardedClusterList().loadDefault().get();
   }
 
   @Override
-  protected ShardedClusterDto getResourceDto() {
+  protected ShardedClusterDto getDto() {
     return DtoFixtures.shardedCluster().loadDefault().get();
   }
 
@@ -609,6 +718,21 @@ class ShardedClusterResourceMockedTest extends
     return new NamespacedShardedClusterResource(service);
   }
 
+  private NamespacedShardedClusterStatsResource getShardedClusterStatsResource() {
+    final ShardedClusterLabelFactory shardedClusterLabelFactory = new ShardedClusterLabelFactory(
+        new ShardedClusterLabelMapper());
+    final ClusterLabelFactory clusterLabelFactory = new ClusterLabelFactory(
+        new ClusterLabelMapper());
+    final ShardedClusterStatsTransformer shardedClusterStatsTransformer =
+        new ShardedClusterStatsTransformer(new ClusterPodTransformer());
+    final ShardedClusterStatsDtoFinder statsDtoFinder = new ShardedClusterStatsDtoFinder(
+        shardedClusterFinder, clusterScanner, managedExecutor, podFinder,
+        podExecutor, persistentVolumeClaimFinder, shardedClusterLabelFactory,
+        clusterLabelFactory, shardedClusterStatsTransformer);
+
+    return new NamespacedShardedClusterStatsResource(statsDtoFinder);
+  }
+
   @Override
   protected String getResourceNamespace() {
     return "stackgres";
@@ -620,7 +744,7 @@ class ShardedClusterResourceMockedTest extends
   }
 
   @Override
-  protected void checkDto(ShardedClusterDto dto) {
+  protected void checkDto(ShardedClusterDto dto, StackGresShardedCluster customResource) {
     if (dto.getInfo() != null) {
       String appendDns = "." + "stackgres";
       String expectedPrimaryDns = StackGresShardedClusterForCitusUtil
@@ -636,8 +760,9 @@ class ShardedClusterResourceMockedTest extends
   @Override
   protected void checkCustomResource(
       StackGresShardedCluster resource,
+      ShardedClusterDto dto,
       Operation operation) {
-    final Metadata dtoMetadata = resourceDto.getMetadata();
+    final Metadata dtoMetadata = dto.getMetadata();
     final ObjectMeta resourceMetadata = resource.getMetadata();
     if (dtoMetadata != null) {
       assertNotNull(resourceMetadata);
@@ -648,7 +773,7 @@ class ShardedClusterResourceMockedTest extends
       assertNull(resourceMetadata);
     }
 
-    final ShardedClusterSpec dtoSpec = resourceDto.getSpec();
+    final ShardedClusterSpec dtoSpec = dto.getSpec();
     final StackGresShardedClusterSpec resourceSpec = resource.getSpec();
 
     if (dtoSpec != null) {
@@ -709,6 +834,233 @@ class ShardedClusterResourceMockedTest extends
     } else {
       assertNull(resourceSpec);
     }
+  }
+
+  private void checkStatsDto(ShardedClusterStatsDto resource) {
+    assertNotNull(resource.getMetadata());
+    assertEquals("stackgres", resource.getMetadata().getNamespace());
+    assertEquals("stackgres", resource.getMetadata().getName());
+    assertEquals("6fe0edf5-8a6d-43b7-99bd-131e2efeab66", resource.getMetadata().getUid());
+
+    assertEquals("1000m", resource.getCoordinator().getCpuRequested());
+    assertEquals("500m", resource.getCoordinator().getCpuFound());
+    assertEquals("0.50", resource.getCoordinator().getCpuPsiAvg10());
+    assertNull(resource.getCoordinator().getCpuPsiAvg60());
+    assertEquals("1.50", resource.getCoordinator().getCpuPsiAvg300());
+    assertEquals("10000000000", resource.getCoordinator().getCpuPsiTotal());
+    assertEquals("1.00Gi", resource.getCoordinator().getMemoryRequested());
+    assertEquals("512.00Mi", resource.getCoordinator().getMemoryFound());
+    assertEquals("278.00Mi", resource.getCoordinator().getMemoryUsed());
+    assertEquals("0.50", resource.getCoordinator().getMemoryPsiAvg10());
+    assertEquals("1.00", resource.getCoordinator().getMemoryPsiAvg60());
+    assertEquals("1.50", resource.getCoordinator().getMemoryPsiAvg300());
+    assertEquals("10000000000", resource.getCoordinator().getMemoryPsiTotal());
+    assertEquals("0.50", resource.getCoordinator().getMemoryPsiFullAvg10());
+    assertEquals("1.00", resource.getCoordinator().getMemoryPsiFullAvg60());
+    assertEquals("1.50", resource.getCoordinator().getMemoryPsiFullAvg300());
+    assertEquals("10000000000", resource.getCoordinator().getMemoryPsiFullTotal());
+    assertEquals("10.00Gi", resource.getCoordinator().getDiskRequested());
+    assertEquals("5.00Gi", resource.getCoordinator().getDiskFound());
+    assertEquals("1.40Gi", resource.getCoordinator().getDiskUsed());
+    assertEquals("0.50", resource.getCoordinator().getDiskPsiAvg10());
+    assertEquals("1.00", resource.getCoordinator().getDiskPsiAvg60());
+    assertEquals("1.50", resource.getCoordinator().getDiskPsiAvg300());
+    assertEquals("10000000000", resource.getCoordinator().getDiskPsiTotal());
+    assertEquals("0.50", resource.getCoordinator().getDiskPsiFullAvg10());
+    assertEquals("1.00", resource.getCoordinator().getDiskPsiFullAvg60());
+    assertEquals("1.50", resource.getCoordinator().getDiskPsiFullAvg300());
+    assertEquals("10000000000", resource.getCoordinator().getDiskPsiFullTotal());
+    assertEquals("0.50", resource.getCoordinator().getAverageLoad1m());
+    assertEquals("1.00", resource.getCoordinator().getAverageLoad5m());
+    assertEquals("1.50", resource.getCoordinator().getAverageLoad10m());
+    assertEquals(1, resource.getCoordinator().getPodsReady());
+    assertNotNull(resource.getCoordinator().getPods());
+    assertEquals(2, resource.getCoordinator().getPods().size());
+    assertEquals(4, resource.getCoordinator().getPods().get(0).getContainers());
+    assertEquals(4, resource.getCoordinator().getPods().get(0).getContainersReady());
+    assertEquals("10.244.3.23", resource.getCoordinator().getPods().get(0).getIp());
+    assertEquals("stackgres-0", resource.getCoordinator().getPods().get(0).getName());
+    assertEquals("stackgres", resource.getCoordinator().getPods().get(0).getNamespace());
+    assertEquals("primary", resource.getCoordinator().getPods().get(0).getRole());
+    assertEquals("Active", resource.getCoordinator().getPods().get(0).getStatus());
+    assertEquals("500m", resource.getCoordinator().getPods().get(0).getCpuRequested());
+    assertEquals("500m", resource.getCoordinator().getPods().get(0).getCpuFound());
+    assertEquals("0.50", resource.getCoordinator().getPods().get(0).getCpuPsiAvg10());
+    assertNull(resource.getCoordinator().getPods().get(0).getCpuPsiAvg60());
+    assertEquals("1.50", resource.getCoordinator().getPods().get(0).getCpuPsiAvg300());
+    assertEquals("10000000000", resource.getCoordinator().getPods().get(0).getCpuPsiTotal());
+    assertEquals("512.00Mi", resource.getCoordinator().getPods().get(0).getMemoryRequested());
+    assertEquals("512.00Mi", resource.getCoordinator().getPods().get(0).getMemoryFound());
+    assertEquals("278.00Mi", resource.getCoordinator().getPods().get(0).getMemoryUsed());
+    assertEquals("0.50", resource.getCoordinator().getPods().get(0).getMemoryPsiAvg10());
+    assertEquals("1.00", resource.getCoordinator().getPods().get(0).getMemoryPsiAvg60());
+    assertEquals("1.50", resource.getCoordinator().getPods().get(0).getMemoryPsiAvg300());
+    assertEquals("10000000000", resource.getCoordinator().getPods().get(0).getMemoryPsiTotal());
+    assertEquals("0.50", resource.getCoordinator().getPods().get(0).getMemoryPsiFullAvg10());
+    assertEquals("1.00", resource.getCoordinator().getPods().get(0).getMemoryPsiFullAvg60());
+    assertEquals("1.50", resource.getCoordinator().getPods().get(0).getMemoryPsiFullAvg300());
+    assertEquals("10000000000", resource.getCoordinator().getPods().get(0).getMemoryPsiFullTotal());
+    assertEquals("5.00Gi", resource.getCoordinator().getPods().get(0).getDiskRequested());
+    assertEquals("5.00Gi", resource.getCoordinator().getPods().get(0).getDiskFound());
+    assertEquals("1.40Gi", resource.getCoordinator().getPods().get(0).getDiskUsed());
+    assertEquals("0.50", resource.getCoordinator().getPods().get(0).getDiskPsiAvg10());
+    assertEquals("1.00", resource.getCoordinator().getPods().get(0).getDiskPsiAvg60());
+    assertEquals("1.50", resource.getCoordinator().getPods().get(0).getDiskPsiAvg300());
+    assertEquals("10000000000", resource.getCoordinator().getPods().get(0).getDiskPsiTotal());
+    assertEquals("0.50", resource.getCoordinator().getPods().get(0).getDiskPsiFullAvg10());
+    assertEquals("1.00", resource.getCoordinator().getPods().get(0).getDiskPsiFullAvg60());
+    assertEquals("1.50", resource.getCoordinator().getPods().get(0).getDiskPsiFullAvg300());
+    assertEquals("10000000000", resource.getCoordinator().getPods().get(0).getDiskPsiFullTotal());
+    assertEquals("0.50", resource.getCoordinator().getPods().get(0).getAverageLoad1m());
+    assertEquals("1.00", resource.getCoordinator().getPods().get(0).getAverageLoad5m());
+    assertEquals("1.50", resource.getCoordinator().getPods().get(0).getAverageLoad10m());
+    assertEquals(4, resource.getCoordinator().getPods().get(1).getContainers());
+    assertEquals(0, resource.getCoordinator().getPods().get(1).getContainersReady());
+    assertNull(resource.getCoordinator().getPods().get(1).getIp());
+    assertEquals("stackgres-1", resource.getCoordinator().getPods().get(1).getName());
+    assertEquals("stackgres", resource.getCoordinator().getPods().get(1).getNamespace());
+    assertNull(resource.getCoordinator().getPods().get(1).getRole());
+    assertEquals("Pending", resource.getCoordinator().getPods().get(1).getStatus());
+    assertEquals("500m", resource.getCoordinator().getPods().get(1).getCpuRequested());
+    assertNull(resource.getCoordinator().getPods().get(1).getCpuFound());
+    assertNull(resource.getCoordinator().getPods().get(1).getCpuPsiAvg10());
+    assertNull(resource.getCoordinator().getPods().get(1).getCpuPsiAvg60());
+    assertNull(resource.getCoordinator().getPods().get(1).getCpuPsiAvg300());
+    assertNull(resource.getCoordinator().getPods().get(1).getCpuPsiTotal());
+    assertEquals("512.00Mi", resource.getCoordinator().getPods().get(1).getMemoryRequested());
+    assertNull(resource.getCoordinator().getPods().get(1).getMemoryFound());
+    assertNull(resource.getCoordinator().getPods().get(1).getMemoryUsed());
+    assertNull(resource.getCoordinator().getPods().get(1).getMemoryPsiAvg10());
+    assertNull(resource.getCoordinator().getPods().get(1).getMemoryPsiAvg60());
+    assertNull(resource.getCoordinator().getPods().get(1).getMemoryPsiAvg300());
+    assertNull(resource.getCoordinator().getPods().get(1).getMemoryPsiTotal());
+    assertNull(resource.getCoordinator().getPods().get(1).getMemoryPsiFullAvg10());
+    assertNull(resource.getCoordinator().getPods().get(1).getMemoryPsiFullAvg60());
+    assertNull(resource.getCoordinator().getPods().get(1).getMemoryPsiFullAvg300());
+    assertNull(resource.getCoordinator().getPods().get(1).getMemoryPsiFullTotal());
+    assertEquals("5.00Gi", resource.getCoordinator().getPods().get(1).getDiskRequested());
+    assertNull(resource.getCoordinator().getPods().get(1).getDiskFound());
+    assertNull(resource.getCoordinator().getPods().get(1).getDiskUsed());
+    assertNull(resource.getCoordinator().getPods().get(1).getDiskPsiAvg10());
+    assertNull(resource.getCoordinator().getPods().get(1).getDiskPsiAvg60());
+    assertNull(resource.getCoordinator().getPods().get(1).getDiskPsiAvg300());
+    assertNull(resource.getCoordinator().getPods().get(1).getDiskPsiFullAvg10());
+    assertNull(resource.getCoordinator().getPods().get(1).getDiskPsiFullAvg60());
+    assertNull(resource.getCoordinator().getPods().get(1).getDiskPsiFullAvg300());
+    assertNull(resource.getCoordinator().getPods().get(1).getDiskPsiFullTotal());
+    assertNull(resource.getCoordinator().getPods().get(1).getAverageLoad1m());
+    assertNull(resource.getCoordinator().getPods().get(1).getAverageLoad5m());
+    assertNull(resource.getCoordinator().getPods().get(1).getAverageLoad10m());
+
+    assertEquals("1000m", resource.getShards().getCpuRequested());
+    assertEquals("500m", resource.getShards().getCpuFound());
+    assertEquals("0.50", resource.getShards().getCpuPsiAvg10());
+    assertNull(resource.getShards().getCpuPsiAvg60());
+    assertEquals("1.50", resource.getShards().getCpuPsiAvg300());
+    assertEquals("10000000000", resource.getShards().getCpuPsiTotal());
+    assertEquals("1.00Gi", resource.getShards().getMemoryRequested());
+    assertEquals("512.00Mi", resource.getShards().getMemoryFound());
+    assertEquals("278.00Mi", resource.getShards().getMemoryUsed());
+    assertEquals("0.50", resource.getShards().getMemoryPsiAvg10());
+    assertEquals("1.00", resource.getShards().getMemoryPsiAvg60());
+    assertEquals("1.50", resource.getShards().getMemoryPsiAvg300());
+    assertEquals("10000000000", resource.getShards().getMemoryPsiTotal());
+    assertEquals("0.50", resource.getShards().getMemoryPsiFullAvg10());
+    assertEquals("1.00", resource.getShards().getMemoryPsiFullAvg60());
+    assertEquals("1.50", resource.getShards().getMemoryPsiFullAvg300());
+    assertEquals("10000000000", resource.getShards().getMemoryPsiFullTotal());
+    assertEquals("10.00Gi", resource.getShards().getDiskRequested());
+    assertEquals("5.00Gi", resource.getShards().getDiskFound());
+    assertEquals("1.40Gi", resource.getShards().getDiskUsed());
+    assertEquals("0.50", resource.getShards().getDiskPsiAvg10());
+    assertEquals("1.00", resource.getShards().getDiskPsiAvg60());
+    assertEquals("1.50", resource.getShards().getDiskPsiAvg300());
+    assertEquals("10000000000", resource.getShards().getDiskPsiTotal());
+    assertEquals("0.50", resource.getShards().getDiskPsiFullAvg10());
+    assertEquals("1.00", resource.getShards().getDiskPsiFullAvg60());
+    assertEquals("1.50", resource.getShards().getDiskPsiFullAvg300());
+    assertEquals("10000000000", resource.getShards().getDiskPsiFullTotal());
+    assertEquals("0.50", resource.getShards().getAverageLoad1m());
+    assertEquals("1.00", resource.getShards().getAverageLoad5m());
+    assertEquals("1.50", resource.getShards().getAverageLoad10m());
+    assertEquals(1, resource.getShards().getPodsReady());
+    assertNotNull(resource.getShards().getPods());
+    assertEquals(2, resource.getShards().getPods().size());
+    assertEquals(4, resource.getShards().getPods().get(0).getContainers());
+    assertEquals(4, resource.getShards().getPods().get(0).getContainersReady());
+    assertEquals("10.244.3.23", resource.getShards().getPods().get(0).getIp());
+    assertEquals("stackgres-0", resource.getShards().getPods().get(0).getName());
+    assertEquals("stackgres", resource.getShards().getPods().get(0).getNamespace());
+    assertEquals("primary", resource.getShards().getPods().get(0).getRole());
+    assertEquals("Active", resource.getShards().getPods().get(0).getStatus());
+    assertEquals("500m", resource.getShards().getPods().get(0).getCpuRequested());
+    assertEquals("500m", resource.getShards().getPods().get(0).getCpuFound());
+    assertEquals("0.50", resource.getShards().getPods().get(0).getCpuPsiAvg10());
+    assertNull(resource.getShards().getPods().get(0).getCpuPsiAvg60());
+    assertEquals("1.50", resource.getShards().getPods().get(0).getCpuPsiAvg300());
+    assertEquals("10000000000", resource.getShards().getPods().get(0).getCpuPsiTotal());
+    assertEquals("512.00Mi", resource.getShards().getPods().get(0).getMemoryRequested());
+    assertEquals("512.00Mi", resource.getShards().getPods().get(0).getMemoryFound());
+    assertEquals("278.00Mi", resource.getShards().getPods().get(0).getMemoryUsed());
+    assertEquals("0.50", resource.getShards().getPods().get(0).getMemoryPsiAvg10());
+    assertEquals("1.00", resource.getShards().getPods().get(0).getMemoryPsiAvg60());
+    assertEquals("1.50", resource.getShards().getPods().get(0).getMemoryPsiAvg300());
+    assertEquals("10000000000", resource.getShards().getPods().get(0).getMemoryPsiTotal());
+    assertEquals("0.50", resource.getShards().getPods().get(0).getMemoryPsiFullAvg10());
+    assertEquals("1.00", resource.getShards().getPods().get(0).getMemoryPsiFullAvg60());
+    assertEquals("1.50", resource.getShards().getPods().get(0).getMemoryPsiFullAvg300());
+    assertEquals("10000000000", resource.getShards().getPods().get(0).getMemoryPsiFullTotal());
+    assertEquals("5.00Gi", resource.getShards().getPods().get(0).getDiskRequested());
+    assertEquals("5.00Gi", resource.getShards().getPods().get(0).getDiskFound());
+    assertEquals("1.40Gi", resource.getShards().getPods().get(0).getDiskUsed());
+    assertEquals("0.50", resource.getShards().getPods().get(0).getDiskPsiAvg10());
+    assertEquals("1.00", resource.getShards().getPods().get(0).getDiskPsiAvg60());
+    assertEquals("1.50", resource.getShards().getPods().get(0).getDiskPsiAvg300());
+    assertEquals("10000000000", resource.getShards().getPods().get(0).getDiskPsiTotal());
+    assertEquals("0.50", resource.getShards().getPods().get(0).getDiskPsiFullAvg10());
+    assertEquals("1.00", resource.getShards().getPods().get(0).getDiskPsiFullAvg60());
+    assertEquals("1.50", resource.getShards().getPods().get(0).getDiskPsiFullAvg300());
+    assertEquals("10000000000", resource.getShards().getPods().get(0).getDiskPsiFullTotal());
+    assertEquals("0.50", resource.getShards().getPods().get(0).getAverageLoad1m());
+    assertEquals("1.00", resource.getShards().getPods().get(0).getAverageLoad5m());
+    assertEquals("1.50", resource.getShards().getPods().get(0).getAverageLoad10m());
+    assertEquals(4, resource.getShards().getPods().get(1).getContainers());
+    assertEquals(0, resource.getShards().getPods().get(1).getContainersReady());
+    assertNull(resource.getShards().getPods().get(1).getIp());
+    assertEquals("stackgres-1", resource.getShards().getPods().get(1).getName());
+    assertEquals("stackgres", resource.getShards().getPods().get(1).getNamespace());
+    assertNull(resource.getShards().getPods().get(1).getRole());
+    assertEquals("Pending", resource.getShards().getPods().get(1).getStatus());
+    assertEquals("500m", resource.getShards().getPods().get(1).getCpuRequested());
+    assertNull(resource.getShards().getPods().get(1).getCpuFound());
+    assertNull(resource.getShards().getPods().get(1).getCpuPsiAvg10());
+    assertNull(resource.getShards().getPods().get(1).getCpuPsiAvg60());
+    assertNull(resource.getShards().getPods().get(1).getCpuPsiAvg300());
+    assertNull(resource.getShards().getPods().get(1).getCpuPsiTotal());
+    assertEquals("512.00Mi", resource.getShards().getPods().get(1).getMemoryRequested());
+    assertNull(resource.getShards().getPods().get(1).getMemoryFound());
+    assertNull(resource.getShards().getPods().get(1).getMemoryUsed());
+    assertNull(resource.getShards().getPods().get(1).getMemoryPsiAvg10());
+    assertNull(resource.getShards().getPods().get(1).getMemoryPsiAvg60());
+    assertNull(resource.getShards().getPods().get(1).getMemoryPsiAvg300());
+    assertNull(resource.getShards().getPods().get(1).getMemoryPsiTotal());
+    assertNull(resource.getShards().getPods().get(1).getMemoryPsiFullAvg10());
+    assertNull(resource.getShards().getPods().get(1).getMemoryPsiFullAvg60());
+    assertNull(resource.getShards().getPods().get(1).getMemoryPsiFullAvg300());
+    assertNull(resource.getShards().getPods().get(1).getMemoryPsiFullTotal());
+    assertEquals("5.00Gi", resource.getShards().getPods().get(1).getDiskRequested());
+    assertNull(resource.getShards().getPods().get(1).getDiskFound());
+    assertNull(resource.getShards().getPods().get(1).getDiskUsed());
+    assertNull(resource.getShards().getPods().get(1).getDiskPsiAvg10());
+    assertNull(resource.getShards().getPods().get(1).getDiskPsiAvg60());
+    assertNull(resource.getShards().getPods().get(1).getDiskPsiAvg300());
+    assertNull(resource.getShards().getPods().get(1).getDiskPsiFullAvg10());
+    assertNull(resource.getShards().getPods().get(1).getDiskPsiFullAvg60());
+    assertNull(resource.getShards().getPods().get(1).getDiskPsiFullAvg300());
+    assertNull(resource.getShards().getPods().get(1).getDiskPsiFullTotal());
+    assertNull(resource.getShards().getPods().get(1).getAverageLoad1m());
+    assertNull(resource.getShards().getPods().get(1).getAverageLoad5m());
+    assertNull(resource.getShards().getPods().get(1).getAverageLoad10m());
   }
 
 }

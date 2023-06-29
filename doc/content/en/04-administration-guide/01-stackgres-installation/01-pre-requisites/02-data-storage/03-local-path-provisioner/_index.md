@@ -1,7 +1,7 @@
 ---
 title: Local Path Provisioner
 weight: 3
-url: install/prerequisites/storage/local-path-provisioner
+url: /install/prerequisites/storage/local-path-provisioner
 description: "Details about how to install Local Path Provisioner"
 ---
 

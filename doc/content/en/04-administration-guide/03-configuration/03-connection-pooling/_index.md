@@ -1,7 +1,7 @@
 ---
 title: Connection Pooling Configuration
 weight: 5
-url: administration/configuration/pool
+url: /administration/configuration/pool
 aliases: [ /tutorial/complete-cluster/pooling-config, /administration/cluster/pool/ ]
 description: Details about how to update the pooling configuration.
 showToc: true

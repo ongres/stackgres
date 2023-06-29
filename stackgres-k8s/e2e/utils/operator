@@ -63,7 +63,7 @@ setup_images() {
 
 build_all() {
   echo "Building all..."
-  sh stackgres-k8s/ci/build/build.sh parent-java operator-framework-java test-util-java common-java \
+  "$SHELL" $SHELL_XTRACE "$PROJECT_PATH"/stackgres-k8s/ci/build/build.sh parent-java operator-framework-java test-util-java common-java \
     operator-java restapi-java jobs-java cluster-controller-java distributedlogs-controller-java admin-ui \
     operator-jvm-image restapi-jvm-image jobs-jvm-image cluster-controller-jvm-image distributedlogs-controller-jvm-image \
     admin-ui-image helm-packages helm-templates helm-operator-bundle helm-operator-image helm-operator-bundle-image
@@ -1434,7 +1434,7 @@ traceable_get_version_as_number() {
   elif [ "$SUFFIX" = "beta" ]
   then
     SUFFIX_MAJOR_VERSION=2
-  elif [ "$SUFFIX" = "RC" ]
+  elif [ "$SUFFIX" = "RC" ] || [ "$SUFFIX" = "rc" ]
   then
     SUFFIX_MAJOR_VERSION=3
   elif [ -z "$SUFFIX" ]

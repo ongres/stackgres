@@ -1,7 +1,7 @@
 ---
 title: RBAC Authorization Overview
 weight: 2
-url: api/rbac
+url: /api/rbac
 description: Details about how to set up RBAC autorization.
 showToc: true
 ---

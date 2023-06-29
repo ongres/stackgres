@@ -1,9 +1,9 @@
 <template>
-    <div id="create-object-storage" v-if="loggedIn && isReady&& !notFound">
+    <div id="create-object-storage" v-if="iCanLoad">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
 
-        <form id="createObjectStorage" class="form" @submit.prevent>
+        <form id="createObjectStorage" class="form" @submit.prevent v-if="!editMode || editReady">
             <div class="header">
                 <h2>
                     <span>{{ editMode ? 'Edit' : 'Create' }} Object Storage Configuration</span>

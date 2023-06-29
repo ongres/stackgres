@@ -21,6 +21,7 @@ import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.event.EventEmitter;
+import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.ClusterPatchResumer;
@@ -40,6 +41,7 @@ public class ClusterReconciliator
   @Dependent
   static class Parameters {
     @Inject CustomResourceScanner<StackGresCluster> scanner;
+    @Inject CustomResourceFinder<StackGresCluster> finder;
     @Inject Conciliator<StackGresCluster> conciliator;
     @Inject HandlerDelegator<StackGresCluster> handlerDelegator;
     @Inject KubernetesClient client;
@@ -56,7 +58,8 @@ public class ClusterReconciliator
 
   @Inject
   public ClusterReconciliator(Parameters parameters) {
-    super(parameters.scanner, parameters.conciliator, parameters.handlerDelegator,
+    super(parameters.scanner, parameters.finder,
+        parameters.conciliator, parameters.handlerDelegator,
         parameters.client, StackGresCluster.KIND);
     this.statusManager = parameters.statusManager;
     this.eventController = parameters.eventController;
@@ -73,7 +76,12 @@ public class ClusterReconciliator
   }
 
   @Override
-  public void onPreReconciliation(StackGresCluster config) {
+  protected void reconciliationCycle(StackGresCluster configKey, boolean load) {
+    super.reconciliationCycle(configKey, load);
+  }
+
+  @Override
+  protected void onPreReconciliation(StackGresCluster config) {
     if (PostgresConfigValidator.BUGGY_PG_VERSIONS.keySet()
         .contains(config.getSpec().getPostgres().getVersion())) {
       eventController.sendEvent(ClusterEventReason.CLUSTER_SECURITY_WARNING,
@@ -86,7 +94,7 @@ public class ClusterReconciliator
   }
 
   @Override
-  public void onPostReconciliation(StackGresCluster config) {
+  protected void onPostReconciliation(StackGresCluster config) {
     statusManager.refreshCondition(config);
 
     clusterScheduler.update(config,
@@ -118,7 +126,7 @@ public class ClusterReconciliator
   }
 
   @Override
-  public void onConfigCreated(StackGresCluster cluster, ReconciliationResult result) {
+  protected void onConfigCreated(StackGresCluster cluster, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(cluster, result);
     eventController.sendEvent(ClusterEventReason.CLUSTER_CREATED,
         "Cluster " + cluster.getMetadata().getNamespace() + "."
@@ -128,7 +136,7 @@ public class ClusterReconciliator
   }
 
   @Override
-  public void onConfigUpdated(StackGresCluster cluster, ReconciliationResult result) {
+  protected void onConfigUpdated(StackGresCluster cluster, ReconciliationResult result) {
     final String resourceChanged = patchResumer.resourceChanged(cluster, result);
     eventController.sendEvent(ClusterEventReason.CLUSTER_UPDATED,
         "Cluster " + cluster.getMetadata().getNamespace() + "."
@@ -138,7 +146,7 @@ public class ClusterReconciliator
   }
 
   @Override
-  public void onError(Exception ex, StackGresCluster cluster) {
+  protected void onError(Exception ex, StackGresCluster cluster) {
     String message = MessageFormatter.arrayFormat(
         "Cluster reconciliation cycle failed",
         new String[]{

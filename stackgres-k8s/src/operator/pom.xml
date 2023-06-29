@@ -22,7 +22,6 @@
     <stackgres.authentication.secretName>stackgres-restapi</stackgres.authentication.secretName>
     <stackgres.prometheus.allowAutobind>true</stackgres.prometheus.allowAutobind>
     <stackgres.prometheus.grafanaEmbedded>false</stackgres.prometheus.grafanaEmbedded>
-    <checks.location>${project.parent.basedir}/checks</checks.location>
   </properties>
 
   <dependencies>

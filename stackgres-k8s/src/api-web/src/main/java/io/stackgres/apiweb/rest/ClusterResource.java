@@ -7,6 +7,7 @@ package io.stackgres.apiweb.rest;
 
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME_KEY;
 
 import java.util.List;
 import java.util.Map;
@@ -27,7 +28,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
-import io.stackgres.apiweb.dto.cluster.ClusterInfoDto;
+import io.stackgres.apiweb.dto.cluster.ClusterInfo;
 import io.stackgres.apiweb.dto.cluster.ClusterManagedScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterManagedSql;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
@@ -154,7 +155,7 @@ public class ClusterResource
     }
     final String namespace = resource.getMetadata().getNamespace();
     final String clusterName = resource.getMetadata().getName();
-    final ClusterInfoDto info = new ClusterInfoDto();
+    final ClusterInfo info = new ClusterInfo();
 
     var foundCluster = clusterFinder.findByNameAndNamespace(clusterName, namespace);
     foundCluster
@@ -166,6 +167,7 @@ public class ClusterResource
 
     info.setSuperuserUsername(SUPERUSER_USERNAME);
     info.setSuperuserSecretName(clusterName);
+    info.setSuperuserUsernameKey(SUPERUSER_USERNAME_KEY);
     info.setSuperuserPasswordKey(SUPERUSER_PASSWORD_KEY);
 
     resource.setInfo(info);

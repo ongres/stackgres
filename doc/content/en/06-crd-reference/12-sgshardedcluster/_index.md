@@ -1,7 +1,7 @@
 ---
 title: SGShardedCluster
 weight: 12
-url: reference/crd/sgshardedcluster
+url: /reference/crd/sgshardedcluster
 description: Details about SGShardedCluster
 showToc: true
 ---

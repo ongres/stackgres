@@ -1,7 +1,7 @@
 ---
 title: Running the e2e tests
 weight: 5
-url: developer/stackgres/e2e
+url: /developer/stackgres/e2e
 description: Details about how to run E2E tests.
 showToc: true
 ---

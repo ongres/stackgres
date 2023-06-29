@@ -162,13 +162,20 @@ export const mixin = {
   
           $('#reload').addClass('active');
     
-          // Read and set user permissions first
-          sgApi
-          .get('can_i')
-          .then( function(response) {
-            store.commit('setPermissions', response.data);
-          })
-          .then( function() {
+          if(!store.state.permissions.allowed.namespaced.length) {
+            // Read and set user permissions first
+            sgApi
+            .get('can_i')
+            .then( function(response) {
+              store.commit('setPermissions', response.data);
+              vc.fetchAPI();
+            })
+            .catch(function(err) {
+              console.log(err);
+              vc.checkAuthError(err);
+            });
+          } else {
+
 
             if ( vc.iCan('list', 'namespaces') && ( !kind.length || (kind == 'namespaces') ) ) {
               /* Namespaces Data */
@@ -225,6 +232,45 @@ export const mixin = {
                   // Set as current cluster if no other cluster has already been set
                   if(!store.state.currentCluster)
                     store.commit('setCurrentCluster', cluster);
+    
+                });
+                
+              }).catch(function(err) {
+                console.log(err);
+                vc.checkAuthError(err);
+              });
+      
+            }
+
+            if ( vc.iCan('list', 'sgshardedclusters') && ( !kind.length || (kind == 'sgshardedclusters') ) ){
+              /* Clusters Data */
+              sgApi
+              .get('sgshardedclusters')
+              .then( function(response){
+    
+                vc.lookupCRDs('sgshardedclusters', response.data);
+      
+                response.data.forEach( function(item, index) {
+    
+                  var cluster = {
+                    name: item.metadata.name,
+                    data: item,
+                    hasBackups: false,
+                    stats: {}
+                  };
+                  
+                  sgApi
+                  .getResourceDetails('sgshardedclusters', cluster.data.metadata.namespace, cluster.data.metadata.name, 'stats')
+                  .then( function(resp) {
+                    cluster.stats = resp.data;
+                  }).catch(function(err) {
+                    console.log(err);
+                  });
+
+                  if(!store.state.namespaces.includes(item.metadata.namespace))
+                    store.commit('updateNamespaces', item.metadata.namespace);
+    
+                  store.commit('updateShardedClusters', cluster);
     
                 });
                 
@@ -487,12 +533,7 @@ export const mixin = {
                 vc.checkAuthError(err);
               });
             }
-  
-          })
-          .catch(function(err) {
-            console.log(err);
-            vc.checkAuthError(err);
-          });
+          }
 
           if(!Object.keys(store.state.tooltips).length && !store.state.tooltips.hasOwnProperty('error')) {
             fetch('/admin/info/sg-tooltips.json')
@@ -1295,7 +1336,7 @@ export const mixin = {
             let fieldset = $(this);
             let fieldsetAttr = fieldset.attr('data-fieldset'); 
             let notValidFields = fieldset.find('.notValid');
-                      
+            
             if(notValidFields.length) {
               if(!data.errorStep.includes(fieldsetAttr))
                 data.errorStep.push(fieldsetAttr);
@@ -1367,7 +1408,7 @@ export const mixin = {
       // Allow API fetching from child browser tabs
       window.fetchParentAPI = function(kind) {
         vc.fetchAPI(kind);
-      }
+      };
 
     },
 

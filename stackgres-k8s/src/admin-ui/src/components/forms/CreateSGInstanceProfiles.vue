@@ -3,7 +3,7 @@
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(config).length > 0"></template>
 
-        <form id="createProfile" class="form" @submit.prevent>
+        <form id="createProfile" class="form" @submit.prevent v-if="!editMode || editReady">
             <div class="header stickyHeader">
                 <h2>
                     {{ editMode ? 'Edit' : 'Create' }} Instance Profile

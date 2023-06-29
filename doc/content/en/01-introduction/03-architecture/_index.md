@@ -1,7 +1,7 @@
 ---
 title: "Architecture"
 weight: 3
-url: intro/architecture
+url: /intro/architecture
 description: Details about StackGres' architecture.
 showToc: true
 ---

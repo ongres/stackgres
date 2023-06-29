@@ -1,7 +1,7 @@
 ---
 title: SGInstanceProfile
 weight: 2
-url: reference/crd/sginstanceprofile
+url: /reference/crd/sginstanceprofile
 description: Details about SGInstanceProfile
 ---
 

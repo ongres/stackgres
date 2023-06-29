@@ -1,7 +1,7 @@
 ---
 title: Recovering PGDATA From an Existing Volume
 weight: 5
-url: runbooks/recover-pgdata-from-existing-volume
+url: /runbooks/recover-pgdata-from-existing-volume
 description: How recover Postgres PGDATA from an existing volume
 showToc: true
 ---

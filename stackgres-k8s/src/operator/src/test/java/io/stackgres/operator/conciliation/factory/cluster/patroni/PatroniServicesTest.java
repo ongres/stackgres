@@ -62,9 +62,9 @@ class PatroniServicesTest {
 
     lenient().when(labelFactory.genericLabels(any(StackGresCluster.class)))
         .thenReturn(ImmutableMap.of());
-    lenient().when(labelFactory.patroniPrimaryLabels(any(StackGresCluster.class)))
+    lenient().when(labelFactory.clusterPrimaryLabels(any(StackGresCluster.class)))
         .thenReturn(ImmutableMap.of());
-    lenient().when(labelFactory.patroniReplicaLabels(any(StackGresCluster.class)))
+    lenient().when(labelFactory.clusterReplicaLabels(any(StackGresCluster.class)))
         .thenReturn(ImmutableMap.of());
 
     when(context.getSource())
