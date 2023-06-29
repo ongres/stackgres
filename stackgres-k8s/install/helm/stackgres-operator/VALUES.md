@@ -1,6 +1,4 @@
-## Values
-
-| Key | Type | Default | Description |
+| <div style="width:12rem">Property</dev> | <div style="width:5rem">Type</dev> | <div style="width:5rem">Default</div> | Description |
 |-----|------|---------|-------------|
 | adminui.image.name | string | `"stackgres/admin-ui"` | Web Console image name |
 | adminui.image.pullPolicy | string | `"IfNotPresent"` | Web Console image pull policy |

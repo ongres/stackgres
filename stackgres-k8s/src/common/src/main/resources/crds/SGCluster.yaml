@@ -59,6 +59,8 @@ spec:
                     The name must be unique across all SGCluster, SGShardedCluster and SGDistributedLogs in the same namespace.
             spec:
               type: object
+              description: |
+                Specification of the desired behavior of a StackGres cluster.
               properties:
                 postgres:
                   type: object
@@ -76,9 +78,14 @@ spec:
                       type: string
                       description: |
                         Postgres flavor used on the cluster. It is either of:
-                        *  `babelfish` will use the [Babelfish for Postgres](https://babelfish-for-postgresql.github.io/babelfish-for-postgresql/).
+
+                          * `vanilla` will use the [Official Postgres](https://www.postgresql.org/)
+                          * `babelfish` will use the [Babelfish for Postgres](https://babelfish-for-postgresql.github.io/babelfish-for-postgresql/).
                         
                         If not specified then the vanilla Postgres will be used for the cluster.
+
+                        **This field can only be set on creation.**
+                      default: vanilla
                     extensions:
                       type: array
                       description: |
@@ -91,6 +98,19 @@ spec:
                         * Upgrading extensions that overwrite any file that is not the extension''s control file or extension''s script file.
                         * Removing extensions. Until the cluster is not restarted a removed extension will still be available.
                         * Install of extensions that require extra mount. After installed the cluster will require to be restarted.
+
+                        **Example:**
+
+                        ``` yaml
+                        apiVersion: stackgres.io/v1
+                        kind: SGCluster
+                        metadata:
+                          name: stackgres
+                        spec:
+                          postgres:
+                            extensions:
+                              - {name: 'timescaledb', version: '2.3.1'}
+                        ```
                       items:
                         type: object
                         properties:
@@ -100,17 +120,40 @@ spec:
                           publisher:
                             type: string
                             description: The id of the publisher of the extension to deploy. If not specified `com.ongres` will be used by default.
+                            default: com.ongres
                           version:
                             type: string
-                            description: The version of the extension to deploy. If not specified version of `stable` channel will be used by default.
+                            description: The version of the extension to deploy. If not specified version of `stable` channel will be used by default and if only a version is available that one will be used.
                           repository:
                             type: string
-                            description: The repository base URL from where to obtain the extension to deploy. If not specified https://stackgres.io/downloads/postgres/extensions will be used by default (or the value specified during operator deployment).
+                            description: |
+                              The repository base URL from where to obtain the extension to deploy.
+
+                              **This section is filled by the operator.**
                         required: ["name"]
                     ssl:
                       type: object
                       description: |
                         This section allows to use SSL when connecting to Postgres
+
+                        **Example:**
+
+                        ```yaml
+                        apiVersion: stackgres.io/v1
+                        kind: SGCluster
+                        metadata:
+                          name: stackgres
+                        spec:
+                          postgres:
+                            ssl:
+                              enabled: true
+                              certificateSecretKeySelector:
+                                name: stackgres-secrets
+                                key: cert
+                              privateKeySecretKeySelector:
+                                name: stackgres-secrets
+                                key: key
+                        ```
                       properties:
                         enabled:
                           type: boolean
@@ -175,7 +218,7 @@ spec:
                         * `sync-all`
                         * `strict-sync-all`
                         
-                        ### `async` Mode
+                        **async**
                         
                         When in asynchronous mode the cluster is allowed to lose some committed transactions.
                          When the primary server fails or becomes unavailable for any other reason a sufficiently healthy standby
@@ -183,7 +226,7 @@ spec:
                          remain in a "forked timeline" on the primary, and are effectively unrecoverable (the data is still there,
                          but recovering it requires a manual recovery effort by data recovery specialists).
                         
-                        ### `sync` Mode
+                        **sync**
                         
                         When in synchronous mode a standby will not be promoted unless it is certain that the standby contains all
                          transactions that may have returned a successful commit status to client (clients can change the behavior
@@ -203,7 +246,7 @@ spec:
                          mode. Manually shutting down or restarting a standby will not cause a commit service interruption. Standby will
                          signal the primary to release itself from synchronous standby duties before PostgreSQL shutdown is initiated.
                         
-                        ### `strict-sync` Mode
+                        **strict-sync**
                         
                         When it is absolutely necessary to guarantee that each write is stored durably on at least two nodes, use the strict
                          synchronous mode. This mode prevents synchronous replication to be switched off on the primary when no synchronous
@@ -216,15 +259,16 @@ spec:
                          replication (as a result of packet cancellation due to client timeout or backend failure) transaction changes become
                          visible for other backends. Such changes are not yet replicated and may be lost in case of standby promotion.
                         
-                        ### `sync-all` Mode
+                        **sync-all**
                         
                         The same as `sync` but `syncInstances` is ignored and the number of synchronous instances is equals to the total number
                          of instances less one.
                         
-                        ### `strict-sync-all` Mode
+                        **strict-sync-all**
                         
                         The same as `strict-sync` but `syncInstances` is ignored and the number of synchronous instances is equals to the total number
                          of instances less one.
+                      default: async
                     role:
                       type: string
                       description: |
@@ -234,12 +278,14 @@ spec:
                         * `ha`
                         The primary instance will be elected among all the replication groups that are either `ha` or `ha-read`.
                         Only if the role is set to `ha-read` instances of main replication group will be exposed via the replicas service.
+                      default: ha-read
                     syncInstances:
                       type: integer
                       minimum: 1
                       description: |
                         Number of synchronous standby instances. Must be less than the total number of instances. It is set to 1 by default.
                          Only setteable if mode is `sync` or `strict-sync`.
+                      default: 1
                     groups:
                       type: array
                       description: |
@@ -276,14 +322,39 @@ spec:
                 sgInstanceProfile:
                   type: string
                   description: |
-                    Name of the [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-resource-profiles/). A SGInstanceProfile defines CPU and memory limits. Must exist before creating a cluster. When no profile is set, a default (currently: 1 core, 2 GiB RAM) one is used.
+                    Name of the [SGInstanceProfile](https://stackgres.io/doc/latest/reference/crd/sginstanceprofile/).
+
+                    A SGInstanceProfile defines CPU and memory limits. Must exist before creating a cluster.
+
+                    When no profile is set, a default (1 core, 2 GiB RAM) one is used.
+
+                    **Changing this field may require a restart.**
                 metadata:
                   type: object
                   description: Metadata information from cluster created resources.
                   properties:
                     annotations:
                       type: object
-                      description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) to be passed to resources created and managed by StackGres.
+                      description: |
+                        Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) to be passed to resources created and managed by StackGres.
+
+                        **Example:**
+
+                        ```yaml
+                        apiVersion: stackgres.io/v1
+                        kind: SGCluster
+                        metadata:
+                          name: stackgres
+                        spec:
+                          metadata:
+                            annotations:
+                              clusterPods:
+                                customAnnotations: customAnnotationValue
+                              primaryService:
+                                customAnnotations: customAnnotationValue
+                              replicasService:
+                                customAnnotations: customAnnotationValue
+                        ```
                       properties:
                         allResources:
                           type: object
@@ -312,7 +383,24 @@ spec:
                             type: string
                     labels:
                       type: object
-                      description: Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) to be passed to resources created and managed by StackGres.
+                      description: |
+                        Custom Kubernetes [labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) to be passed to resources created and managed by StackGres.
+
+                        **Example:**
+
+                        ```yaml
+                        apiVersion: stackgres.io/v1
+                        kind: SGCluster
+                        metadata:
+                          name: stackgres
+                        spec:
+                          metadata:
+                            labels:
+                              clusterPods:
+                                customLabel: customLabelValue
+                              services:
+                                customLabel: customLabelValue
+                        ```
                       properties:
                         clusterPods:
                           type: object
@@ -340,6 +428,7 @@ spec:
                         enabled:
                           type: boolean
                           description: Specify if the service should be created or not.
+                          default: true
                         type:
                           type: string
                           enum: ["ClusterIP", "LoadBalancer", "NodePort"]
@@ -351,6 +440,7 @@ spec:
                             "LoadBalancer" builds on NodePort and creates
                             an external load-balancer (if supported in the current cloud).
                             More info: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+                          default: ClusterIP
                         customPorts:
                           type: array
                           description: |
@@ -363,6 +453,8 @@ spec:
                              that can be referenced in this section will be only those defined under
                              .spec.pods.customContainers[].ports sections were names are also prepended with the same
                              prefix.
+
+                            **Changing this field may require a restart.**
                             
                             See: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#serviceport-v1-core
                           items:
@@ -371,7 +463,7 @@ spec:
                               
                               The name of the custom port will be prefixed with the string `custom-` so it does not
                                conflict with ports defined for the service.
-                              
+                              m
                               The name of target port will be prefixed with the string `custom-` so that the port
                                that can be referenced in this section will be only those defined under
                                .spec.pods.customContainers[].ports sections were names are also prepended with the same
@@ -410,7 +502,22 @@ spec:
                   properties:
                     persistentVolume:
                       type: object
-                      description: Pod's persistent volume configuration.
+                      description: |
+                        Pod's persistent volume configuration.
+
+                        **Example:**
+
+                        ```yaml
+                        apiVersion: stackgres.io/v1
+                        kind: SGCluster
+                        metadata:
+                          name: stackgres
+                        spec:
+                          pods:
+                            persistentVolume:
+                              size: '5Gi'
+                              storageClass: default
+                        ```
                       properties:
                         size:
                           type: string
@@ -424,23 +531,39 @@ spec:
                       required: ["size"]
                     disableConnectionPooling:
                       type: boolean
-                      description: If set to `true`, avoids creating a connection pooling (using [PgBouncer](https://www.pgbouncer.org/)) sidecar.
+                      description: |
+                        If set to `true`, avoids creating a connection pooling (using [PgBouncer](https://www.pgbouncer.org/)) sidecar.
+
+                        **Changing this field may require a restart.**
+                      default: false
                     disableMetricsExporter:
                       type: boolean
                       description: If set to `true`, avoids creating the Prometheus exporter sidecar. Recommended when there's no intention to use Prometheus for monitoring.
+                      default: false
                     disablePostgresUtil:
                       type: boolean
-                      description: If set to `true`, avoids creating the `postgres-util` sidecar. This sidecar contains usual Postgres administration utilities *that are not present in the main (`patroni`) container*, like `psql`. Only disable if you know what you are doing.
+                      description: |
+                        If set to `true`, avoids creating the `postgres-util` sidecar. This sidecar contains usual Postgres administration utilities *that are not present in the main (`patroni`) container*, like `psql`. Only disable if you know what you are doing.
+
+                        **Changing this field may require a restart.**
+                      default: false
                     resources:
                       type: object
                       description: Pod custom resources configuration.
                       properties:
                         enableClusterLimitsRequirements:
                           type: boolean
-                          description: When enabled resource limits for containers other than the patroni container wil be set just like for patroni contianer as specified in the SGInstanceProfile.
+                          description: |
+                            When enabled resource limits for containers other than the patroni container wil be set just like for patroni contianer as specified in the SGInstanceProfile.
+
+                            **Changing this field may require a restart.**
+                          default: false
                     scheduling:
                       type: object
-                      description: Pod custom scheduling, affinity and topology spread constratins configuration.
+                      description: |
+                        Pod custom scheduling, affinity and topology spread constratins configuration.
+
+                        **Changing this field may require a restart.**
                       properties:
                         nodeSelector: &node-selector
                           type: object
@@ -481,6 +604,7 @@ spec:
                          ready before continuing. When scaling down, the pods are removed in the opposite order.
                          The alternative policy is `Parallel` which will create pods in parallel to match the desired
                          scale without waiting, and on scale down will delete all pods at once.
+                      default: OrderedReady
                     customVolumes:
                       type: array
                       description: |
@@ -493,6 +617,8 @@ spec:
                         
                         Only the following volume types are allowed: configMap, downwardAPI, emptyDir,
                          gitRepo, glusterfs, hostPath, nfs, projected and secret
+
+                        **Changing this field may require a restart.**
                          
                         See: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#volume-v1-core
                       items:
@@ -507,6 +633,8 @@ spec:
                         The name used in this section will be prefixed with the string `custom-` so that when
                          referencing them in the .spec.containers section of SGInstanceProfile the name used
                          have to be prepended with the same prefix.
+
+                        **Changing this field may require a restart.**
                          
                         See: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#container-v1-core
                       items: &containers-items
@@ -519,6 +647,8 @@ spec:
                         The name used in this section will be prefixed with the string `custom-` so that when
                          referencing them in the .spec.containers section of SGInstanceProfile the name used
                          have to be prepended with the same prefix.
+
+                        **Changing this field may require a restart.**
                          
                         See: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#container-v1-core
                       items: *containers-items
@@ -527,27 +657,50 @@ spec:
                   type: object
                   description: |
                     Cluster custom configurations.
+
+                    **Example:**
+
+                    ``` yaml
+                    apiVersion: stackgres.io/v1
+                    kind: SGCluster
+                    metadata:
+                      name: stackgres
+                    spec:
+                      configurations:
+                        sgPostgresConfig: 'postgresconf'
+                        sgPoolingConfig: 'pgbouncerconf'
+                        backups:
+                        - sgObjectStorage: 'backupconf'
+                    ```
                   properties:
                     sgPostgresConfig:
                       type: string
                       description: |
-                        Name of the [SGPostgresConfig](https://stackgres.io/doc/latest/reference/crd/sgpgconfig) used for the cluster. It must exist. When not set, a default Postgres config, for the major version selected, is used.
+                        Name of the [SGPostgresConfig](https://stackgres.io/doc/latest/reference/crd/sgpgconfig) used for the cluster.
+
+                        It must exist. When not set, a default Postgres config, for the major version selected, is used.
+
+                        **Changing this field may require a restart.**
                     sgPoolingConfig:
                       type: string
                       description: |
-                        Name of the [SGPoolingConfig](https://stackgres.io/doc/latest/reference/crd/sgpoolconfig) used for this cluster. Each pod contains a sidecar with a connection pooler (currently: [PgBouncer](https://www.pgbouncer.org/)). The connection pooler is implemented as a sidecar.
+                        Name of the [SGPoolingConfig](https://stackgres.io/doc/latest/reference/crd/sgpoolconfig) used for this cluster.
+
+                        Each pod contains a sidecar with a connection pooler (currently: [PgBouncer](https://www.pgbouncer.org/)). The connection pooler is implemented as a sidecar.
 
                         If not set, a default configuration will be used. Disabling connection pooling altogether is possible if the disableConnectionPooling property of the pods object is set to true.
+
+                        **Changing this field may require a restart.**
                     sgBackupConfig:
                       type: string
                       description: |
-                        **Deprecated**: use instead .spec.configurations.backups with sgObjectStorage.
+                        **Deprecated**: use instead `.spec.configurations.backups[].sgObjectStorage`
 
                         Name of the [SGBackupConfig](https://stackgres.io/doc/latest/reference/crd/sgbackupconfig) to use for the cluster. It defines the backups policy, storage and retention, among others, applied to the cluster. When not set, backup configuration will not be used.
                     backupPath:
                       type: string
                       description: |
-                        **Deprecated**: use instead .spec.configurations.backups[].path
+                        **Deprecated**: use instead `.spec.configurations.backups[].path`
 
                         The path were the backup is stored. If not set this field is filled up by the operator.
 
@@ -581,6 +734,7 @@ spec:
                               Also ranges of values (`start-end`), the symbol `*` (meaning `first-last`) or even `*/N`, where `N` is a number, meaning ""every `N`, may be used. All times are UTC. It is recommended to avoid 00:00 as base backup time, to avoid overlapping with any other external operations happening at this time.
                               
                               If not set, full backups are performed each day at 05:00 UTC.
+                            default: "0 5 * * *"
                           performance:
                             type: object
                             description: |
@@ -618,10 +772,13 @@ spec:
                               Consequently, the time range covered by backups is `periodicity*retention`, where `periodicity` is the separation between backups as specified by the `cronSchedule` property.
                               
                               Default is 5.
+                            default: 5
                           sgObjectStorage:
                             type: string
                             description: |
-                              Name of the [SGObjectStorage](https://stackgres.io/doc/latest/reference/crd/sgobjectstorage) to use for the cluster. It defines the location in which the the backups will be stored.
+                              Name of the [SGObjectStorage](https://stackgres.io/doc/latest/reference/crd/sgobjectstorage) to use for the cluster.
+
+                              It defines the location in which the the backups will be stored.
                           path:
                             type: string
                             description: |
@@ -635,16 +792,22 @@ spec:
                       properties:
                         initialConfig:
                           type: object
-                          description: Allow to specify Patroni configuration that will overwrite the generated one
+                          description: |
+                            Allow to specify Patroni configuration that will overwrite the generated one
+
+                            **This field can only be set on creation.**
                           "x-kubernetes-preserve-unknown-fields": true
                     credentials:
                       type: object
-                      description: Allow to specify custom credentials for Postgres users and Patroni REST API
+                      description: |
+                        Allow to specify custom credentials for Postgres users and Patroni REST API
                       properties:
                         patroni:
                           type: object
                           description: |
                             Kubernetes [SecretKeySelectors](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#secretkeyselector-v1-core) that contains the credentials for patroni REST API.
+
+                            **Changing this field may require a restart.**
                           properties:
                             restApiPassword:
                               type: object
@@ -662,6 +825,38 @@ spec:
                           type: object
                           description: |
                             Kubernetes [SecretKeySelectors](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#secretkeyselector-v1-core) that contains the credentials of the users.
+
+                            **Changing this field may require a manual modification of the database users to reflect the new values specified.**
+
+                            In particular you may have to create those users if username is changed or alter password if it is changed. Here are the SQL commands to perform such operation (replace
+                             default usernames with the new ones and `***` with their respective passwords):
+
+                            * Superuser username changed:
+                            ```
+                            CREATE ROLE postgres;
+                            ```
+                            * Superuser password changed:
+                            ```
+                            ALTER ROLE postgres WITH SUPERUSER INHERIT CREATEROLE CREATEDB LOGIN REPLICATION BYPASSRLS PASSWORD '***';
+                            ```
+                            * Replication username changed:
+                            ```
+                            CREATE ROLE replicator;
+                            ```
+                            * Replication password changed:
+                            ```
+                            ALTER ROLE replicator WITH NOSUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN REPLICATION NOBYPASSRLS PASSWORD '***';
+                            ```
+                            * Authenticator username changed:
+                            ```
+                            CREATE ROLE authenticator;
+                            ```
+                            * Authenticator password changed:
+                            ```
+                            ALTER ROLE authenticator WITH SUPERUSER INHERIT NOCREATEROLE NOCREATEDB LOGIN NOREPLICATION NOBYPASSRLS PASSWORD '***';
+                            ```
+
+                            **Changing this field may require a restart.**
                           properties:
                             superuser:
                               type: object
@@ -758,6 +953,7 @@ spec:
                     continueOnSGScriptError:
                       type: boolean
                       description: If true, when any entry of any `SGScript` fail will not prevent subsequent `SGScript` from being executed. By default is `false`.
+                      default: false
                     scripts:
                       type: array
                       description: |
@@ -770,23 +966,43 @@ spec:
                         properties:
                           id:
                             type: integer
-                            description: The id is immutable and must be unique across all the `SGScript` entries. It is replaced by the operator and is used
-                             to identify the `SGScript` entry.
+                            description: |
+                              The id is immutable and must be unique across all the `SGScript` entries. It is replaced by the operator and is used to identify the `SGScript` entry.
                           sgScript:
                             type: string
                             description: A reference to an `SGScript`
                 initialData:
                   type: object
-                  description: Cluster initialization data options. Cluster may be initialized empty, or from a backup restoration.
-                   Specifying scripts to run on the database after cluster creation is also possible.
+                  description: |
+                    Cluster initialization data options. Cluster may be initialized empty, or from a backup restoration.
+                    Specifying scripts to run on the database after cluster creation is also possible.
+
+                    **This field can only be set on creation.**
                   properties:
                     restore:
                       type: object
+                      description: |
+                        This section allows to restore a cluster from an existing copy of the metadata and data.
                       properties:
                         fromBackup:
                           type: object
                           description: |
                             From which backup to restore and how the process is configured
+
+                            **Example:**
+
+                            ```yaml
+                            apiVersion: stackgres.io/v1
+                            kind: SGCluster
+                            metadata:
+                              name: stackgres
+                            spec:
+                              initialData:
+                                restore:
+                                  fromBackup:
+                                    name: stackgres-backup
+                                  downloadDiskConcurrency: 1
+                            ```
                           properties:
                             uid:
                               type: string
@@ -1080,6 +1296,7 @@ spec:
                   type: boolean
                   description: |
                     If enabled, a ServiceMonitor is created for each Prometheus instance found in order to collect metrics.
+                  default: false
                 nonProductionOptions:
                   type: object
                   properties:
@@ -1089,18 +1306,27 @@ spec:
                         It is a best practice, on non-containerized environments, when running production workloads, to run each database server on a different server (virtual or physical), i.e., not to co-locate more than one database server per host.
 
                         The same best practice applies to databases on containers. By default, StackGres will not allow to run more than one StackGres pod on a given Kubernetes node. Set this property to true to allow more than one StackGres pod per node.
+
+                        **Changing this field may require a restart.**
+                      default: false
                     disablePatroniResourceRequirements:
                       type: boolean
                       description: |
                         It is a best practice, on containerized environments, when running production workloads, to enforce container's resources requirements.
 
                         The same best practice applies to databases on containers. By default, StackGres will configure resource requirements for patroni container. Set this property to true to prevent StackGres from setting patroni container's resources requirement.
+
+                        **Changing this field may require a restart.**
+                      default: false
                     disableClusterResourceRequirements:
                       type: boolean
                       description: |
                         It is a best practice, on containerized environments, when running production workloads, to enforce container's resources requirements.
 
                         By default, StackGres will configure resource requirements for all the containers. Set this property to true to prevent StackGres from setting container's resources requirements (except for patroni container, see `disablePatroniResourceRequirements`).
+
+                        **Changing this field may require a restart.**
+                      default: false
                     enableSetPatroniCpuRequests:
                       type: boolean
                       description: |
@@ -1109,6 +1335,9 @@ spec:
 
                         By default, StackGres will configure cpu requirements to have the same limit and request for the patroni container. Set this property to true to prevent StackGres from setting patroni container's cpu requirements request equals to the limit
                          when `.spec.requests.cpu` is configured in the referenced `SGInstanceProfile`.
+
+                        **Changing this field may require a restart.**
+                      default: false
                     enableSetClusterCpuRequests:
                       type: boolean
                       description: |
@@ -1117,6 +1346,9 @@ spec:
 
                         By default, StackGres will configure cpu requirements to have the same limit and request for all the containers. Set this property to true to prevent StackGres from setting container's cpu requirements request equals to the limit (except for patroni container, see `enablePatroniCpuRequests`)
                          when `.spec.requests.containers.<container name>.cpu` `.spec.requests.initContainers.<container name>.cpu` is configured in the referenced `SGInstanceProfile`.
+
+                        **Changing this field may require a restart.**
+                      default: false
                     enableSetPatroniMemoryRequests:
                       type: boolean
                       description: |
@@ -1125,6 +1357,9 @@ spec:
 
                         By default, StackGres will configure memory requirements to have the same limit and request for the patroni container. Set this property to true to prevent StackGres from setting patroni container's memory requirements request equals to the limit
                          when `.spec.requests.memory` is configured in the referenced `SGInstanceProfile`.
+
+                        **Changing this field may require a restart.**
+                      default: false
                     enableSetClusterMemoryRequests:
                       type: boolean
                       description: |
@@ -1133,6 +1368,9 @@ spec:
 
                         By default, StackGres will configure memory requirements to have the same limit and request for all the containers. Set this property to true to prevent StackGres from setting container's memory requirements request equals to the limit (except for patroni container, see `enablePatroniCpuRequests`)
                          when `.spec.requests.containers.<container name>.memory` `.spec.requests.initContainers.<container name>.memory` is configured in the referenced `SGInstanceProfile`.
+
+                        **Changing this field may require a restart.**
+                      default: false
                     enabledFeatureGates:
                       type: array
                       description: |
@@ -1145,12 +1383,25 @@ spec:
                         description: The name of the fature gate to enable.
                 distributedLogs:
                   type: object
-                  description: StackGres features a functionality for all pods to send Postgres, Patroni and PgBouncer logs to a central (distributed) location, which is in turn another Postgres database. Logs can then be accessed via SQL interface or from the web UI. This section controls whether to enable this feature or not. If not enabled, logs are send to the pod's standard output.
+                  description: |
+                    StackGres features a functionality for all pods to send Postgres, Patroni and PgBouncer logs to a central (distributed) location, which is in turn another Postgres database. Logs can then be accessed via SQL interface or from the web UI. This section controls whether to enable this feature or not. If not enabled, logs are send to the pod's standard output.
+
+                    **Example:**
+
+                    ```yaml
+                    apiVersion: stackgres.io/v1
+                    kind: SGCluster
+                    metadata:
+                      name: stackgres
+                    spec:
+                      distributedLogs:
+                        sgDistributedLogs: distributedlogs
+                    ```
                   properties:
                     sgDistributedLogs:
                       type: string
                       description: |
-                        Name of the [SGDistributedLogs](https://stackgres.io/doc/latest/04-postgres-cluster-management/06-distributed-logs/) to use for this cluster. It must exist.
+                        Name of the [SGDistributedLogs](https://stackgres.io/doc/latest/reference/crd/sgdistributedlogs/) to use for this cluster. It must exist.
                     retention:
                       type: string
                       pattern: '^[0-9]+ (minutes?|hours?|days?|months?)'
@@ -1164,7 +1415,10 @@ spec:
                          apply after UTC timestamp calculated with: `SELECT date_trunc('days', now() at time zone 'UTC') - INTERVAL '7 days'`.
                 toInstallPostgresExtensions:
                   type: array
-                  description: The list of Postgres extensions to install. This section is filled by the operator.
+                  description: |
+                    The list of Postgres extensions to install.
+                    
+                    **This section is filled by the operator.**
                   items:
                     type: object
                     properties:
@@ -1196,6 +1450,7 @@ spec:
               required: ["instances", "postgres", "pods"]
             status:
               type: object
+              description: Current status of a StackGres cluster.
               properties:
                 conditions:
                   type: array
