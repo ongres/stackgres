@@ -43,9 +43,9 @@ Upgrading an operator serves two purposes:
 
 After the upgrade completes, any new cluster will be created with the updated components.
 Existing clusters will work using the previous version of the operator.
-They will be able to use some or all the features available in the new operator version and will receive bugfixes (this may require a [cluster restart]({{% relref "06-crd-reference/09-sgdbops#restart" %}})).
+They will be able to use some or all the features available in the new operator version and will receive bugfixes (this may require a [cluster restart]({{% relref "06-crd-reference/08-sgdbops#restart" %}})).
 
-To make use of all the functionalities available in the updated operator version, a [cluster security upgrade]({{% relref "06-crd-reference/09-sgdbops#security-upgrade" %}}) has to be performed.
+To make use of all the functionalities available in the updated operator version, a [cluster security upgrade]({{% relref "06-crd-reference/08-sgdbops#security-upgrade" %}}) has to be performed.
 There are two methods to perform such a security upgrade: *in-place* and *reduced-impact*.
 While both methods are similar in what they accomplish, they differ in the impact they have on the throughput.
 The *in-place* upgrade restarts one pod at a time, and with this the total number of running pods is (roughly) constant at all times.

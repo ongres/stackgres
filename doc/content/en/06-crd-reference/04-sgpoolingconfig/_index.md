@@ -3,9 +3,8 @@ title: SGPoolingConfig
 weight: 4
 url: /reference/crd/sgpoolingconfig
 description: Details about SGPoolingConfig
+shotToc: true
 ---
-
-The `SGPoolingConfig` custom resource represents the configuration of the connection pooling, in particular of PgBouncer.
 
 ___
 
@@ -16,51 +15,13 @@ ___
 **plural:** sgpoolconfigs
 
 **singular:** sgpoolconfig
+
+**shortNames** sgpoc
 ___
 
-**Spec**
+The `SGPoolingConfig` custom resource represents the configuration of the connection pooling, in particular of PgBouncer.
 
-| Property                | Required | Updatable | Type    | Default   | Description |
-|:------------------------|----------|-----------|:--------|:----------|:------------|
-| [pgBouncer](#pgbouncer) |          | ✓         | object  | see below | {{< crd-field-description SGPoolingConfig.spec.pgBouncer >}} |
-
-## PgBouncer
-
-| <div style="width:7rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default   | Description |
-|:---------------------------------------|----------|-----------|:-----------------------------------|:----------|:------------|
-| pgbouncer.ini                          |          | ✓         | object                             | see below | {{< crd-field-description "SGPoolingConfig.spec.pgBouncer.pgbouncer\.ini" >}} |
-
-## pgbouncer.ini Sections
-
-| <div style="width:6rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default   | Description |
-|:---------------------------------------|----------|-----------|:-----------------------------------|:----------|:------------|
-| pgbouncer                              |          | ✓         | object                             | see below | {{< crd-field-description "SGPoolingConfig.spec.pgBouncer.pgbouncer\.ini.pgbouncer" >}} |
-| databases                              |          | ✓         | object                             |           | {{< crd-field-description "SGPoolingConfig.spec.pgBouncer.pgbouncer\.ini.databases" >}} |
-| users                                  |          | ✓         | object                             |           | {{< crd-field-description "SGPoolingConfig.spec.pgBouncer.pgbouncer\.ini.users" >}} |
-
-### Default Values
-
-These are the default values of the `pgbouncer.ini` property:
-
-```yaml
-  admin_users: "postgres",
-  application_name_add_host: "1",
-  auth_query: "SELECT usename, passwd FROM pg_shadow WHERE usename=$1",
-  auth_type: "md5",
-  auth_user: "authenticator",
-  default_pool_size: "50",
-  ignore_startup_parameters: "extra_float_digits",
-  listen_addr: "127.0.0.1",
-  max_client_conn: "200",
-  max_db_connections: "0",
-  max_user_connections: "0",
-  pool_mode: "transaction",
-  stats_users: "postgres"
-```
-
-## Example
-
-`SGPoolingConfig` example:
+**Example:**
 
 ```yaml
 apiVersion: stackgres.io/v1
@@ -88,7 +49,31 @@ spec:
           max_user_connections: '100'
 ```
 
-## Immutable Parameters
+See also [Coonection Pooling Configuration section]({{%  relref "04-administration-guide/03-configuration/03-connection-pooling" %}}).
+
+{{% include "generated/SGPoolingConfig.md" %}}
+
+## Default Values
+
+These are the default values of the `pgbouncer.ini` property:
+
+```yaml
+  admin_users: "postgres",
+  application_name_add_host: "1",
+  auth_query: "SELECT usename, passwd FROM pg_shadow WHERE usename=$1",
+  auth_type: "md5",
+  auth_user: "authenticator",
+  default_pool_size: "50",
+  ignore_startup_parameters: "extra_float_digits",
+  listen_addr: "127.0.0.1",
+  max_client_conn: "200",
+  max_db_connections: "0",
+  max_user_connections: "0",
+  pool_mode: "transaction",
+  stats_users: "postgres"
+```
+
+## Parameter Denylist / Blocklist
 
 To guarantee a functional PgBouncer configuration, most of the parameters specified in the [PgBouncer configuration documentation](https://www.pgbouncer.org/config.html#generic-settings) for section `pgbouncer` are not allowed to be changed.
 If these are specified in the CR configuration, they will be ignored and the default values will be used instead.

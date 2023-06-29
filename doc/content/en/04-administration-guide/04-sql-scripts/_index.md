@@ -8,7 +8,7 @@ showToc: true
 ---
 
 In StackGres, you can define SQL scripts that are executed on the database instances.
-The [SGScript]({{% relref "06-crd-reference/11-sgscript" %}}) type is used to define these scripts that are referenced in a StackGres cluster.
+The [SGScript]({{% relref "06-crd-reference/10-sgscript" %}}) type is used to define these scripts that are referenced in a StackGres cluster.
 
 There are multiple ways to define scripts, depending on whether you need to define them as custom resource, within a config map, or within a secret.
 

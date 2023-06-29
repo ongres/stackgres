@@ -111,8 +111,8 @@ No resources found in default namespace.
 
 The `SGCluster` depends on other objects to work properly, such as [instance profiles]({{% relref "/06-crd-reference/02-sginstanceprofile" %}}),
  [postgres configurations]({{% relref "/06-crd-reference/03-sgpostgresconfig" %}}), [connection pooling]({{% relref "/06-crd-reference/04-sgpoolingconfig/" %}}),
- [object storage]({{% relref "/06-crd-reference/10-sgobjectstorage/" %}}), [backups]({{% relref "/06-crd-reference/06-sgbackup/" %}}),
- [scripts]({{% relref "/06-crd-reference/11-sgscript/" %}}) .
+ [object storage]({{% relref "/06-crd-reference/09-sgobjectstorage/" %}}), [backups]({{% relref "/06-crd-reference/06-sgbackup/" %}}),
+ [scripts]({{% relref "/06-crd-reference/10-sgscript/" %}}) .
  Execute the commands below to find and delete those objects:
 
 List all StackGres objects:

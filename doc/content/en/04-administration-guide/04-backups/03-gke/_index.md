@@ -59,7 +59,7 @@ rm -rfv my-creds.json
 ```
 
 Having the resources created, we now need to create the object storage configuration and to set the backup configuration.
-The object storage configuration it is governed by the [SGObjectStorage]({{% relref "06-crd-reference/10-sgobjectstorage" %}}) CRD.
+The object storage configuration it is governed by the [SGObjectStorage]({{% relref "06-crd-reference/09-sgobjectstorage" %}}) CRD.
 This CRD allows to specify the object storage technology, required parameters, as well as a reference to the credentials secret.
 
 Create a file `sgobjectstorage-backupconfig1.yaml` with the following contents:

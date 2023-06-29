@@ -58,7 +58,7 @@ StackGres support backups with the following storage options:
 > The examples are using the [MinIO](https://min.io/) service as a S3 compatible service for a quick setup on local Kubernetes clusters.
 > Although StackGres definitely recommends to choose a Storage-as-a-Service for production setups.
 
-All the storage-related configuration is defined in the [SGObjectStorage]({{% relref "06-crd-reference/10-sgobjectstorage" %}}) CRD.
+All the storage-related configuration is defined in the [SGObjectStorage]({{% relref "06-crd-reference/09-sgobjectstorage" %}}) CRD.
 
 ```yaml
 apiVersion: stackgres.io/v1beta1

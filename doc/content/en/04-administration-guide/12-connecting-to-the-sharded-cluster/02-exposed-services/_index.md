@@ -39,7 +39,7 @@ spec:
         type: NodePort
 ```
 
-> Check the [SGShardedCluster reference]({{% relref "06-crd-reference/12-sgshardedcluster" %}}) for more details about the sharde cluster configuration.
+> Check the [SGShardedCluster reference]({{% relref "06-crd-reference/11-sgshardedcluster" %}}) for more details about the sharde cluster configuration.
 
 Once applied, the service configuration is updated to `NodePort`:
 
@@ -100,7 +100,7 @@ spec:
         type: loadBalancer
 ```
 
-> Check the [SGShardedCluster reference]({{% relref "06-crd-reference/12-sgshardedcluster" %}}) for more details about the sharded cluster configuration.
+> Check the [SGShardedCluster reference]({{% relref "06-crd-reference/11-sgshardedcluster" %}}) for more details about the sharded cluster configuration.
 
 Once updated, get the service information:
 
@@ -125,7 +125,7 @@ psql -h 172.18.0.102 -U postgres
 
 By default, the service type `LoadBalancer` create an external IP that is publicly accessible, so it is not a recommended option to expose the database service, but there's an option to create `internal` load balancers that create External IP but only accesible from your private network, so you can take advantage of load balance functionality without risking your database.
 
-To configure this type or LoadBalancer is usually by setting some annotations to the services. The annotations are provided by each cloud provider, check the examples below and make sure you add them to your [SGShardedCluster]({{% relref "06-crd-reference/12-sgshardedcluster" %}}) manifest:
+To configure this type or LoadBalancer is usually by setting some annotations to the services. The annotations are provided by each cloud provider, check the examples below and make sure you add them to your [SGShardedCluster]({{% relref "06-crd-reference/11-sgshardedcluster" %}}) manifest:
 
 
 **[GKE](https://cloud.google.com/kubernetes-engine/docs/how-to/internal-load-balancing):**
