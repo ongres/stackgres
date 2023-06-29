@@ -5,14 +5,14 @@ url: /administration/sharded-cluster-creation/nonproduction
 description: Important notes for non-production options in the production environment.
 ---
 
-There are certain [non-production options]({{% relref "06-crd-reference/12-sgshardedcluster" %}}#non-production-options) supported in StackGres, that we recommend to disable in a production environment.
+There are certain [non-production options]({{% relref "06-crd-reference/11-sgshardedcluster" %}}#non-production-options) supported in StackGres, that we recommend to disable in a production environment.
 To disable all of these options, create a YAML values file to include in the helm installation (`-f` or `--values` parameters) of the StackGres operator similar to the following:
 
 ```yaml
 nonProductionOptions: {}
 ```
 
-For reference, you can see a list of all of these [non-production options]({{% relref "06-crd-reference/12-sgshardedcluster" %}}#non-production-options).
+For reference, you can see a list of all of these [non-production options]({{% relref "06-crd-reference/11-sgshardedcluster" %}}#non-production-options).
 
 ## Scaling with limited resources
 
@@ -35,7 +35,7 @@ spec:
     disableClusterResourceRequirements: true
 ```
 
-After setting those options you will have to restart the Postgres cluster Pods by simply deleting them (or using a [restart SGDbOps]({{% relref "06-crd-reference/09-sgdbops#restart" %}})):
+After setting those options you will have to restart the Postgres cluster Pods by simply deleting them (or using a [restart SGDbOps]({{% relref "06-crd-reference/08-sgdbops#restart" %}})):
 
 ```bash
 kubectl delete pod -l app=StackGresCluster,stackgres.io/cluster-name=simple

@@ -57,7 +57,24 @@ spec:
                 postgresServices:
                   type: object
                   nullable: true
-                  description: Kubernetes [services](https://kubernetes.io/docs/concepts/services-networking/service/) created or managed by StackGres.
+                  description: |
+                    Kubernetes [services](https://kubernetes.io/docs/concepts/services-networking/service/) created or managed by StackGres.
+
+                    **Example:**
+
+                    ```yaml
+                    apiVersion: stackgres.io/v1
+                    kind: SGDistributedLogs
+                    metadata:
+                      name: stackgres
+                    spec:
+                      postgresServices:
+                        primary:
+                          type: ClusterIP
+                        replicas:
+                          enabled: true
+                          type: ClusterIP
+                    ```
                   properties:
                     primary:
                       type: object
@@ -71,7 +88,23 @@ spec:
                           type: object
                           additionalProperties:
                             type: string
-                          description: Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) passed to the `-primary` service.
+                          description: |
+                            Custom Kubernetes [annotations](https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/) passed to the `-primary` service.
+
+                            **Example:**
+                            
+                            ```yaml
+                            apiVersion: stackgres.io/v1
+                            kind: SGDistributedLogs
+                            metadata:
+                              name: stackgres
+                            spec:
+                              pods:
+                                metadata:
+                                  annotations:
+                                    allResources:
+                                      customAnnotations: customAnnotationValue
+                            ```
                         loadBalancerIP:
                           type: string
                           description: Specify loadBalancer IP of Postgres primary service for Distributed Log
@@ -100,10 +133,16 @@ spec:
                   properties:
                     enableClusterLimitsRequirements:
                       type: boolean
-                      description: When enabled resource limits for containers other than the patroni container wil be set just like for patroni contianer as specified in the SGInstanceProfile.
+                      description: |
+                        When enabled resource limits for containers other than the patroni container wil be set just like for patroni contianer as specified in the SGInstanceProfile.
+
+                        **Changing this field may require a restart.**
                 scheduling:
                   type: object
-                  description: Pod custom scheduling and affinity configuration.
+                  description: |
+                    Pod custom scheduling and affinity configuration.
+
+                    **Changing this field may require a restart.**
                   properties:
                     nodeSelector:
                       type: object
@@ -127,6 +166,8 @@ spec:
                   type: string
                   description: |
                     Name of the [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-resource-profiles/). A SGInstanceProfile defines CPU and memory limits. Must exist before creating a distributed logs. When no profile is set, a default (currently: 1 core, 2 GiB RAM) one is used.
+
+                    **Changing this field may require a restart.**
                 configurations:
                   type: object
                   description: |
@@ -136,6 +177,8 @@ spec:
                       type: string
                       description: |
                         Name of the [SGPostgresConfig](https://stackgres.io/doc/latest/reference/crd/sgpgconfig) used for the distributed logs. It must exist. When not set, a default Postgres config, for the major version selected, is used.
+
+                        **Changing this field may require a restart.**
                 metadata:
                   type: object
                   description: Metadata information from cluster created resources.
@@ -161,7 +204,10 @@ spec:
                             type: string
                 toInstallPostgresExtensions:
                   type: array
-                  description: The list of Postgres extensions to install.
+                  description: |
+                    The list of Postgres extensions to install.
+                    
+                    **This section is filled by the operator.**
                   items:
                     type: object
                     properties:
@@ -199,18 +245,24 @@ spec:
                         It is a best practice, on non-containerized environments, when running production workloads, to run each database server on a different server (virtual or physical), i.e., not to co-locate more than one database server per host.
 
                         The same best practice applies to databases on containers. By default, StackGres will not allow to run more than one StackGres or Distributed Logs pod on a given Kubernetes node. If set to `true` it will allow more than one StackGres pod per node.
+
+                        **Changing this field may require a restart.**
                     disablePatroniResourceRequirements:
                       type: boolean
                       description: |
                         It is a best practice, on containerized environments, when running production workloads, to enforce container's resources requirements.
 
                         The same best practice applies to databases on containers. By default, StackGres will configure resource requirements for patroni container. Set this property to true to prevent StackGres from setting patroni container's resources requirement.
+
+                        **Changing this field may require a restart.**
                     disableClusterResourceRequirements:
                       type: boolean
                       description: |
                         It is a best practice, on containerized environments, when running production workloads, to enforce container's resources requirements.
 
                         By default, StackGres will configure resource requirements for all the containers. Set this property to true to prevent StackGres from setting container's resources requirements (except for patroni container, see `disablePatroniResourceRequirements`).
+
+                        **Changing this field may require a restart.**
                     enableSetPatroniCpuRequests:
                       type: boolean
                       description: |
@@ -219,6 +271,8 @@ spec:
 
                         By default, StackGres will configure cpu requirements to have the same limit and request for the patroni container. Set this property to true to prevent StackGres from setting patroni container's cpu requirements request equals to the limit
                          when `.spec.requests.cpu` is configured in the referenced `SGInstanceProfile`.
+
+                        **Changing this field may require a restart.**
                     enableSetClusterCpuRequests:
                       type: boolean
                       description: |
@@ -227,6 +281,8 @@ spec:
 
                         By default, StackGres will configure cpu requirements to have the same limit and request for all the containers. Set this property to true to prevent StackGres from setting container's cpu requirements request equals to the limit (except for patroni container, see `enablePatroniCpuRequests`)
                          when `.spec.requests.containers.<container name>.cpu` `.spec.requests.initContainers.<container name>.cpu` is configured in the referenced `SGInstanceProfile`.
+
+                        **Changing this field may require a restart.**
                     enableSetPatroniMemoryRequests:
                       type: boolean
                       description: |
@@ -235,6 +291,8 @@ spec:
 
                         By default, StackGres will configure memory requirements to have the same limit and request for the patroni container. Set this property to true to prevent StackGres from setting patroni container's memory requirements request equals to the limit
                          when `.spec.requests.memory` is configured in the referenced `SGInstanceProfile`.
+
+                        **Changing this field may require a restart.**
                     enableSetClusterMemoryRequests:
                       type: boolean
                       description: |
@@ -243,6 +301,8 @@ spec:
 
                         By default, StackGres will configure memory requirements to have the same limit and request for all the containers. Set this property to true to prevent StackGres from setting container's memory requirements request equals to the limit (except for patroni container, see `enablePatroniCpuRequests`)
                          when `.spec.requests.containers.<container name>.memory` `.spec.requests.initContainers.<container name>.memory` is configured in the referenced `SGInstanceProfile`.
+
+                        **Changing this field may require a restart.**
               required: ["persistentVolume"]
             status:
               type: object

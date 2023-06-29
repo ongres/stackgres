@@ -1,11 +1,11 @@
-SGBackup.yaml
-SGBackupConfig.yaml
 SGCluster.yaml
-SGDbOps.yaml
-SGDistributedLogs.yaml
 SGInstanceProfile.yaml
-SGPoolingConfig.yaml
 SGPostgresConfig.yaml
+SGPoolingConfig.yaml
+SGBackupConfig.yaml
+SGBackup.yaml
+SGDistributedLogs.yaml
+SGDbOps.yaml
 SGObjectStorage.yaml
 SGScript.yaml
 SGShardedCluster.yaml

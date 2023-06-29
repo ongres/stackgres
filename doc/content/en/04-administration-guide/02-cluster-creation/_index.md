@@ -16,7 +16,7 @@ In general, these steps are optional, but we do recommend to consider these feat
 
 ### Configuring an Instance Profile
 
-You can create your cluster with different hardware specifications using an [SGInstanceProfile](https://stackgres.io/doc/latest/04-postgres-cluster-management/03-instance-profiles/) custom resource (CR) as follows:
+You can create your cluster with different hardware specifications using an [SGInstanceProfile]({{% relref "06-crd-reference/02-sginstanceprofile" %}}) custom resource (CR) as follows:
 
 ```yaml
 cat << EOF | kubectl apply -f -
@@ -33,7 +33,7 @@ EOF
 
 ### Configuring Postgres and PGBouncer
 
-You can also change Postgres' configuration using an [SGPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}}) CR, or the PGBouncer settings using [SGPoolingConfig]({{% relref "06-crd-reference/04-sgpoolingconfig" %}}), the backup storage specification using [SGObjectStorage]({{% relref "06-crd-reference/10-sgobjectstorage" %}}), and more.
+You can also change Postgres' configuration using an [SGPostgresConfig]({{% relref "06-crd-reference/03-sgpostgresconfig" %}}) CR, or the PGBouncer settings using [SGPoolingConfig]({{% relref "06-crd-reference/04-sgpoolingconfig" %}}), the backup storage specification using [SGObjectStorage]({{% relref "06-crd-reference/09-sgobjectstorage" %}}), and more.
 
 The next code snippets will show you how to use these CRs.
 
@@ -82,7 +82,7 @@ EOF
 
 ### Configuring Backups
 
-The [SGObjectStorage]({{% relref "06-crd-reference/10-sgobjectstorage" %}}) CRs are used to configure how backups are being taken.
+The [SGObjectStorage]({{% relref "06-crd-reference/09-sgobjectstorage" %}}) CRs are used to configure how backups are being taken.
 
 The following shows and example configuration using [Google Cloud Storage](https://cloud.google.com/storage/):
 
@@ -156,7 +156,7 @@ kubectl -n my-cluster create secret generic pgbench-user-password-secret \
   --from-literal=pgbench-create-user-sql="create user pgbench password 'admin123'"
 ```
 
-Then we reference the secret in a [SGScript]({{% relref "06-crd-reference/11-sgscript" %}}):
+Then we reference the secret in a [SGScript]({{% relref "06-crd-reference/10-sgscript" %}}):
 
 ```yaml
 cat << EOF | kubectl apply -f -
