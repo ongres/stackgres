@@ -377,7 +377,7 @@ calculate_spec_hashes() {
 
   local HELM_MODULE_HASH JVM_IMAGE_MODULE_HASH NATIVE_IMAGE_MODULE_HASH UI_IMAGE_MODULE_HASH
   HELM_MODULE_HASH="$(
-    grep '^helm=' "$PROJECT_PATH/stackgres-k8s/ci/build/target/image-type-hashes" \
+    grep '^helm-packages=' "$PROJECT_PATH/stackgres-k8s/ci/build/target/image-hashes" \
       | cut -d = -f 2)"
   JVM_IMAGE_MODULE_HASH="$(
     grep '^jvm-image=' "$PROJECT_PATH/stackgres-k8s/ci/build/target/image-type-hashes" \
