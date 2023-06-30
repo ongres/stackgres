@@ -529,11 +529,11 @@ find_image_digest() {
   if retrieve_image_manifest "$IMAGE_NAME" >/dev/null 2>&1
   then
     if ! IMAGE_DIGEST="$(jq -r \
-      '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].RepoDigests | map(split(":")[1]) | join("-")' \
+      '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].RepoDigests | map(split(":")[1]) | sort | unique | join("-")' \
       "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
       2>/dev/null)"
     then
-      IMAGE_DIGEST="$(jq -r 'if (.|type) == "array" then . else [.] end | map(.Descriptor.digest) | join("-")' \
+      IMAGE_DIGEST="$(jq -r 'if (.|type) == "array" then . else [.] end | map(.Descriptor.digest) | sort | unique | join("-")' \
         "stackgres-k8s/ci/build/target/manifest.${IMAGE_NAME##*/}")"
     fi
     printf '%s=%s\n' "$IMAGE_NAME" "$IMAGE_DIGEST" \
@@ -588,7 +588,7 @@ retrieve_image_manifest() {
       > "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
       2>/dev/null \
       || ! jq -r \
-      '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].RepoDigests | map(split(":")[1]) | if length == 0 then halt_error else . end | join("-")' \
+      '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].RepoDigests | map(split(":")[1]) | if length == 0 then halt_error else . end | sort | unique | join("-")' \
       "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
       >/dev/null 2>&1
     then
