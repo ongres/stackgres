@@ -461,6 +461,7 @@ modules:
       9: stackgres-k8s/install/helm/stackgres-cluster/cluster-restart.sh
       10: stackgres-k8s/install/helm/stackgres-cluster/.helmignore
       11: stackgres-k8s/install/helm/build-helm-templates.sh
+      12: stackgres-k8s/src/common/src/main/resources/crds
     build_image: *ci_image
     build_commands:
       - export HOME=/project
