@@ -68,6 +68,7 @@
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
+      - $DO_RELEASE_IMAGE
 
 .release native image amd64:
   extends: .release image
@@ -83,6 +84,7 @@
       - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
       - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY && $DO_NATIVE
+      - $DO_RELEASE_IMAGE && $DO_NATIVE
 
 release operator jvm image amd64:
   extends: .release jvm image amd64
@@ -171,6 +173,7 @@ release admin-ui image amd64:
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
+      - $DO_RELEASE_IMAGE
 
 .release jvm image arm64:
   extends: .release image
@@ -185,6 +188,7 @@ release admin-ui image amd64:
     variables:
       - $SKIP_DEPLOY != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY && $DO_ARM
+      - $DO_RELEASE_IMAGE && $DO_ARM
 
 .release native image arm64:
   extends: .release image
@@ -199,6 +203,7 @@ release admin-ui image amd64:
     variables:
       - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY && $DO_NATIVE && $DO_ARM
+      - $DO_RELEASE_IMAGE && $DO_NATIVE && $DO_ARM
 
 release operator jvm image arm64:
   extends: .release jvm image arm64
@@ -286,6 +291,7 @@ release admin-ui image arm64:
     variables:
       - $SKIP_DEPLOY != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY && $DO_ARM
+      - $DO_RELEASE_IMAGE && $DO_ARM
 
 .release jvm image multi archs:
   extends: .release image multi archs
@@ -298,6 +304,7 @@ release admin-ui image arm64:
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
+      - $DO_RELEASE_IMAGE
 
 .release native image multi archs:
   extends: .release image multi archs
@@ -310,6 +317,7 @@ release admin-ui image arm64:
       - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
       - $SKIP_DEPLOY != "true" && $SKIP_NATIVE != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY && $DO_NATIVE
+      - $DO_RELEASE_IMAGE && $DO_NATIVE
 
 release operator jvm image multi archs:
   extends: .release jvm image multi archs
@@ -373,6 +381,7 @@ release admin-ui image multi archs:
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
+      - $DO_RELEASE_IMAGE
 
 .release helm operator image amd64:
   extends: .release image
@@ -389,6 +398,7 @@ release admin-ui image multi archs:
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
+      - $DO_RELEASE_IMAGE
 
 .release helm operator image arm64:
   extends: .release image
@@ -404,6 +414,7 @@ release admin-ui image multi archs:
     variables:
       - $SKIP_DEPLOY != "true" && $SKIP_ARM != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY && $DO_ARM
+      - $DO_RELEASE_IMAGE && $DO_ARM
 
 release helm operator image amd64:
   extends: .release helm operator image amd64
@@ -473,6 +484,7 @@ release helm operator openshift bundle image arm64:
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_REF_NAME =~ /^main.*$/
       - $SKIP_DEPLOY != "true" && $CI_COMMIT_TAG && $CI_COMMIT_TAG !~ /^latest-.*$/
       - $DO_DEPLOY
+      - $DO_RELEASE_IMAGE
 
 release helm operator image multi archs:
   extends: .release helm operator image multi archs

@@ -140,6 +140,7 @@ reset_k8s() {
   fi
   export PATH="$PATH:/usr/sbin"
   crc start \
+    $([ -z "$E2E_CRC_BUNDLE" ] || printf %s "--bundle $E2E_CRC_BUNDLE") \
     --pull-secret-file "$HOME/.crc/pull-secret" \
     --cpus "$K8S_CRC_CPUS" \
     --memory "$K8S_CRC_MEMORY" \
