@@ -1,12 +1,6 @@
 #!/bin/sh
 
 K8S_EKS_NAME="${K8S_EKS_NAME:-stackgres-e2e}"
-K8S_VERSION="${K8S_VERSION:-1.18.20}"
-if [ "$K8S_VERSION" = "$DEFAULT_K8S_VERSION" ]
-then
-  >&2 echo "Warning: using kubernetes version 1.16 since e2e default $DEFAULT_K8S_VERSION is not available for eks"
-  K8S_VERSION=1.18.11
-fi
 K8S_EKS_REGION="${K8S_EKS_REGION:-us-west-2}"
 K8S_EKS_NODE_TYPE="${K8S_EKS_NODE_TYPE:-m5.large}"
 K8S_EKS_NODES="${K8S_EKS_NODES:-1}"
@@ -44,6 +38,7 @@ reset_k8s() {
   delete_k8s
 
   eksctl create cluster --name "$K8S_EKS_NAME" \
+    --spot \
     --region "$K8S_EKS_REGION" \
     --node-type "$K8S_EKS_NODE_TYPE" \
     --node-volume-size "$K8S_EKS_DISK_SIZE" \
