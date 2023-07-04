@@ -14,7 +14,7 @@ PROJECT_PATH=../../../../
 
 cd "$(dirname "$0")"
 
-STACKGRES_VERSION="$(sh "$PROJECT_PATH"/stackgres-k8s/ci/build/version.sh)"
+STACKGRES_VERSION="${STACKGRES_VERSION:-$(sh "$PROJECT_PATH"/stackgres-k8s/ci/build/version.sh)}"
 
 mkdir -p target
 echo "Cloning Upstream Red Hat Certified"
