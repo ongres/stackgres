@@ -54,10 +54,14 @@ fi
 if [ -d "$FORK_GIT_PATH" ] && git -C "$FORK_GIT_PATH" remote -v | grep -qF "$FORK_GIT_URL"
 then
   echo "Resetting OperatorHub fork for StackGres from $FORK_GIT_URL"
-  git -C "$FORK_GIT_PATH" fetch
+  if ! git -C "$FORK_GIT_PATH" remote -v | tr -s '[:blank:]' ' ' | grep -qxF "upstream $UPSTREAM_GIT_URL (fetch)"
+  then
+    git -C "$FORK_GIT_PATH" remote add upstream "$UPSTREAM_GIT_URL"
+  fi
+  git -C "$FORK_GIT_PATH" fetch upstream
   git -C "$FORK_GIT_PATH" reset --hard HEAD
   git -C "$FORK_GIT_PATH" checkout main
-  git -C "$FORK_GIT_PATH" reset --hard origin/main
+  git -C "$FORK_GIT_PATH" reset --hard upstream/main
 else
   echo "Cloning OperatorHub fork for StackGres from $FORK_GIT_URL"
   rm -rf "$FORK_GIT_PATH"
@@ -120,4 +124,14 @@ git -C "$FORK_GIT_PATH" commit -m "operator $PROJECT_NAME (${STACKGRES_VERSION})
 echo "To push use the following command"
 echo git -C "$PROJECT_PATH"/stackgres-k8s/install/operator-sdk/stackgres-operator/"$FORK_GIT_PATH" push
 echo
-echo "To create the PR go to: $UPSTREAM_GIT_URL/compare"
+if [ "$UPSTREAM_GIT_URL" != "${UPSTREAM_GIT_URL#https://github.com}" ]
+then
+  if [ "$FORK_GIT_URL" != "${FORK_GIT_URL#https://github.com}" ]
+  then
+    echo "To create the PR go to: $UPSTREAM_GIT_URL/compare/main...$(printf %s "$FORK_GIT_URL" | cut -d / -f 4):$(printf %s "$FORK_GIT_URL" | cut -d / -f 5):main?expand=1"
+  fi
+  if [ "$FORK_GIT_URL" != "${FORK_GIT_URL#git@github.com}" ]
+  then
+    echo "To create the PR go to: $UPSTREAM_GIT_URL/compare/main...$(printf %s "$FORK_GIT_URL" | cut -d / -f 1 | cut -d : -f 2):$(printf %s "$FORK_GIT_URL" | cut -d / -f 2 | cut -d . -f 1):main?expand=1"
+  fi
+fi
