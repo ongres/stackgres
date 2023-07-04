@@ -70,6 +70,10 @@ $(
   maintainers:
   - email: stackgres@ongres.com
     name: OnGres
+  labels:
+    operatorframework.io/arch.amd64: supported
+    operatorframework.io/arch.arm64: supported
+    operatorframework.io/os.linux: supported
   relatedImages:
   - image: ongres/kubectl:v1.25.5-build-6.19
     name: kubectl_1_25_5
