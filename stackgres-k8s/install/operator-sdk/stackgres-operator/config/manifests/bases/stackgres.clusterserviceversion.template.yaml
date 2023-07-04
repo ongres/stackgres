@@ -13,14 +13,13 @@ metadata:
     categories: Database
     repository: https://gitlab.com/ongresinc/stackgres
     containerImage: quay.io/stackgres/operator:${VERSION}
-    olm.skipRange: '>=$(printf %s "$VERSION" | cut -d . -f 1).$(( $(printf %s "$VERSION" | cut -d . -f 2) - 2 )).0 <${VERSION}'
 spec:
   displayName: StackGres
   provider:
     name: OnGres
     url: https://ongres.com
   version: "${VERSION}"
-  replaces: "stackgres.v$(sh "$PROJECT_PATH"/stackgres-k8s/e2e/e2e eval 'echo "$STACKGRES_PREVIOUS_VERSION"')"
+  replaces: "stackgres.v$([ "${VERSION##*.}" -eq 0 ] && sh "$PROJECT_PATH"/stackgres-k8s/e2e/e2e eval 'echo "$STACKGRES_PREVIOUS_VERSION"' || printf %s "${VERSION%.*}.$(( ${VERSION##*.} - 1))")"
   minKubeVersion: "$(yq -r '.kubeVersion|match("^([^.]+\\.[^.]+)\\..*$").captures[0].string' helm-charts/stackgres-operator/Chart.yaml).0"
   maturity: stable
   apiservicedefinitions: {}
