@@ -419,58 +419,58 @@ release admin-ui image multi archs:
 release helm operator image amd64:
   extends: .release helm operator image amd64
   variables:
-    LOCK_FILE: stackgres-helm-operator-build-image
-    IMAGE_MODULE_NAME: helm-operator-image
+    LOCK_FILE: stackgres-helm-operator-release-build-image
+    IMAGE_MODULE_NAME: helm-operator-release-image
 
 release helm operator image arm64:
   extends: .release helm operator image arm64
   variables:
-    LOCK_FILE: stackgres-helm-operator-build-image
-    IMAGE_MODULE_NAME: helm-operator-image
+    LOCK_FILE: stackgres-helm-operator-release-build-image
+    IMAGE_MODULE_NAME: helm-operator-release-image
 
 release helm operator bundle image amd64:
   extends: .release helm operator image amd64
   variables:
     IMAGE_BASE_NAME: stackgres/helm-operator-bundle
-    LOCK_FILE: stackgres-helm-operator-bundle-build-image
-    IMAGE_MODULE_NAME: helm-operator-bundle-image
+    LOCK_FILE: stackgres-helm-operator-release-bundle-build-image
+    IMAGE_MODULE_NAME: helm-operator-release-bundle-image
 
 release helm operator bundle image arm64:
   extends: .release helm operator image arm64
   variables:
     IMAGE_BASE_NAME: stackgres/helm-operator-bundle
-    LOCK_FILE: stackgres-helm-operator-bundle-build-image
-    IMAGE_MODULE_NAME: helm-operator-bundle-image
+    LOCK_FILE: stackgres-helm-operator-release-bundle-build-image
+    IMAGE_MODULE_NAME: helm-operator-release-bundle-image
 
 release helm operator openshift image amd64:
   extends: .release helm operator image amd64
   variables:
     IMAGE_SUFFIX: '-release-openshift-amd64'
-    LOCK_FILE: stackgres-helm-operator-openshift-build-image
-    IMAGE_MODULE_NAME: helm-operator-openshift-image
+    LOCK_FILE: stackgres-helm-operator-release-openshift-build-image
+    IMAGE_MODULE_NAME: helm-operator-release-openshift-image
 
 release helm operator openshift image arm64:
   extends: .release helm operator image arm64
   variables:
     IMAGE_SUFFIX: '-release-openshift-arm64'
-    LOCK_FILE: stackgres-helm-operator-openshift-build-image
-    IMAGE_MODULE_NAME: helm-operator-openshift-image
+    LOCK_FILE: stackgres-helm-operator-release-openshift-build-image
+    IMAGE_MODULE_NAME: helm-operator-release-openshift-image
 
 release helm operator openshift bundle image amd64:
   extends: .release helm operator image amd64
   variables:
     IMAGE_SUFFIX: '-release-openshift-amd64'
     IMAGE_BASE_NAME: stackgres/helm-operator-bundle
-    LOCK_FILE: stackgres-helm-operator-openshift-bundle-build-image
-    IMAGE_MODULE_NAME: helm-operator-openshift-bundle-image
+    LOCK_FILE: stackgres-helm-operator-release-openshift-bundle-build-image
+    IMAGE_MODULE_NAME: helm-operator-release-openshift-bundle-image
 
 release helm operator openshift bundle image arm64:
   extends: .release helm operator image arm64
   variables:
     IMAGE_SUFFIX: '-release-openshift-arm64'
     IMAGE_BASE_NAME: stackgres/helm-operator-bundle
-    LOCK_FILE: stackgres-helm-operator-openshift-bundle-build-image
-    IMAGE_MODULE_NAME: helm-operator-openshift-bundle-image
+    LOCK_FILE: stackgres-helm-operator-release-openshift-bundle-build-image
+    IMAGE_MODULE_NAME: helm-operator-release-openshift-bundle-image
 
 .release helm operator image multi archs:
   extends: .release image multi archs
