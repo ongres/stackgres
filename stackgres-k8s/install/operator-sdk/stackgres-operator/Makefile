@@ -7,7 +7,7 @@ PROJECT_DIR ?= ../../../..
 STACKGRES_VERSION ?= $(shell sh $(PROJECT_DIR)/stackgres-k8s/ci/build/version.sh)
 VERSION = $(shell echo $(STACKGRES_VERSION) | tr A-Z a-z)
 IMAGE_TAG ?= $(VERSION)
-HELM_OPERATOR_BASE_IMAGE ?= quay.io/operator-framework/helm-operator:v1.26.0
+HELM_OPERATOR_BASE_IMAGE ?= quay.io/operator-framework/helm-operator:v1.30.0
 BUNDLE_BASE_IMAGE ?= scratch
 
 # CHANNELS define the bundle channels used in the bundle.
