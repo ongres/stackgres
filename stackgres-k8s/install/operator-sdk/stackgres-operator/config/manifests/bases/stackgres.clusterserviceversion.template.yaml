@@ -19,7 +19,8 @@ spec:
   provider:
     name: OnGres
     url: https://ongres.com
-  version: ${VERSION}
+  version: "${VERSION}"
+  replaces: "stackgres.v$(sh "$PROJECT_PATH"/stackgres-k8s/e2e/e2e eval 'echo "$STACKGRES_PREVIOUS_VERSION"')"
   minKubeVersion: "$(yq -r '.kubeVersion|match("^([^.]+\\.[^.]+)\\..*$").captures[0].string' helm-charts/stackgres-operator/Chart.yaml).0"
   maturity: stable
   apiservicedefinitions: {}

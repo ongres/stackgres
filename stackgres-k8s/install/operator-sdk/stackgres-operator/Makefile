@@ -3,8 +3,8 @@
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
-PROJECT_DIR ?= ../../../..
-STACKGRES_VERSION ?= $(shell sh $(PROJECT_DIR)/stackgres-k8s/ci/build/version.sh)
+PROJECT_PATH ?= ../../../..
+STACKGRES_VERSION ?= $(shell sh $(PROJECT_PATH)/stackgres-k8s/ci/build/version.sh)
 VERSION = $(shell echo $(STACKGRES_VERSION) | tr A-Z a-z)
 IMAGE_TAG ?= $(VERSION)
 HELM_OPERATOR_BASE_IMAGE ?= quay.io/operator-framework/helm-operator:v1.30.0
@@ -84,7 +84,7 @@ run: helm-operator ## Run against the configured Kubernetes cluster in ~/.kube/c
 
 .PHONY: docker-build
 docker-build: ## Build docker image with the manager.
-	docker build -t ${IMG} -f Dockerfile --build-arg BASE_IMAGE=$(HELM_OPERATOR_BASE_IMAGE) $(PROJECT_DIR)
+	docker build -t ${IMG} -f Dockerfile --build-arg BASE_IMAGE=$(HELM_OPERATOR_BASE_IMAGE) $(PROJECT_PATH)
 
 .PHONY: docker-push
 docker-push: ## Push docker image with the manager.
@@ -164,11 +164,11 @@ endif
 
 .PHONY: bundle
 bundle: kustomize ## Generate bundle manifests and metadata, then validate generated files.
-	VERSION="$(VERSION)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/manifests/bases/stackgres.clusterserviceversion.template.yaml)")" \
+	VERSION="$(VERSION)" PROJECT_PATH="$(PROJECT_PATH)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/manifests/bases/stackgres.clusterserviceversion.template.yaml)")" \
 		> config/manifests/bases/stackgres.clusterserviceversion.yaml
 	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat config/manager/kustomization.template.yaml)\nMAKE_EOF")" \
 		> config/manager/kustomization.yaml
-	cp -a "$(PROJECT_DIR)/stackgres-k8s/src/common/src/main/resources/crds/." config/crd/bases/.
+	cp -a "$(PROJECT_PATH)/stackgres-k8s/src/common/src/main/resources/crds/." config/crd/bases/.
 	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat config/crd/kustomization.template.yaml)\nMAKE_EOF")" \
 		> config/crd/kustomization.yaml
 	VERSION="$(VERSION)" OPENSHIFT_BUNDLE="$(OPENSHIFT_BUNDLE)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/manager/manager.template.yaml)")" \
@@ -200,7 +200,7 @@ bundle-openshift: bundle
 
 .PHONY: bundle-build
 bundle-build: ## Build the bundle image.
-	docker build -f Dockerfile.bundle -t $(BUNDLE_IMG) --build-arg BASE_IMAGE="$(BUNDLE_BASE_IMAGE)" $(PROJECT_DIR)
+	docker build -f Dockerfile.bundle -t $(BUNDLE_IMG) --build-arg BASE_IMAGE="$(BUNDLE_BASE_IMAGE)" $(PROJECT_PATH)
 
 .PHONY: bundle-push
 bundle-push: ## Push the bundle image.
