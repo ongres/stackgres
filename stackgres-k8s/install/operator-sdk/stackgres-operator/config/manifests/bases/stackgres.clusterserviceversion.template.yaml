@@ -9,7 +9,7 @@ metadata:
       Fully Open Source.
     alm-examples: '[]'
     capabilities: Deep Insights
-    operatorhub.io/ui-metadata-max-k8s-version: "1.25.999"
+    operatorhub.io/ui-metadata-max-k8s-version: "$(yq -r '.kubeVersion|match("^[^ ]+ - ([^.]+\\.[^.]+)\\..*$").captures[0].string' helm-charts/stackgres-operator/Chart.yaml).999"
     categories: Database
     repository: https://gitlab.com/ongresinc/stackgres
     containerImage: quay.io/stackgres/operator:${VERSION}
@@ -20,7 +20,7 @@ spec:
     name: OnGres
     url: https://ongres.com
   version: ${VERSION}
-  minKubeVersion: "1.18.0"
+  minKubeVersion: "$(yq -r '.kubeVersion|match("^([^.]+\\.[^.]+)\\..*$").captures[0].string' helm-charts/stackgres-operator/Chart.yaml).0"
   maturity: stable
   apiservicedefinitions: {}
   customresourcedefinitions:
