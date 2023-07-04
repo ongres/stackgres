@@ -13,7 +13,7 @@ metadata:
     categories: Database
     repository: https://gitlab.com/ongresinc/stackgres
     containerImage: quay.io/stackgres/operator:${VERSION}
-    olm.skipRange: '<${VERSION}'
+    olm.skipRange: '>=$(printf %s "$VERSION" | cut -d . -f 1).$(( $(printf %s "$VERSION" | cut -d . -f 2) - 2 )).0 <${VERSION}'
 spec:
   displayName: StackGres
   provider:
