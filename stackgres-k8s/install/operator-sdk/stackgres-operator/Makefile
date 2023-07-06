@@ -164,7 +164,7 @@ endif
 
 .PHONY: bundle
 bundle: kustomize ## Generate bundle manifests and metadata, then validate generated files.
-	VERSION="$(VERSION)" PROJECT_PATH="$(PROJECT_PATH)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/manifests/bases/stackgres.clusterserviceversion.template.yaml)")" \
+	VERSION="$(VERSION)" IMAGE_TAG="$(IMAGE_TAG)" PROJECT_PATH="$(PROJECT_PATH)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/manifests/bases/stackgres.clusterserviceversion.template.yaml)")" \
 		> config/manifests/bases/stackgres.clusterserviceversion.yaml
 	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat config/manager/kustomization.template.yaml)\nMAKE_EOF")" \
 		> config/manager/kustomization.yaml
@@ -190,12 +190,13 @@ bundle-openshift: bundle
 	yq -y -s '.[0] * .[1]' \
 		bundle/manifests/stackgres.clusterserviceversion.yaml \
 		openshift-operator-bundle/manifests/stackgres.clusterserviceversion.yaml \
-		> bundle/manifests/stackgres.clusterserviceversion.yaml.bak && mv bundle/manifests/stackgres.clusterserviceversion.yaml.bak bundle/manifests/stackgres.clusterserviceversion.yaml
+		> bundle/manifests/stackgres.clusterserviceversion.yaml.new
+	mv bundle/manifests/stackgres.clusterserviceversion.yaml.new bundle/manifests/stackgres.clusterserviceversion.yaml
 	yq -y -s '.[0] * .[1]' \
 		bundle/metadata/annotations.yaml \
 		openshift-operator-bundle/metadata/annotations.yaml \
-		> bundle/metadata/annotations.yaml.bak
-	mv bundle/metadata/annotations.yaml.bak bundle/metadata/annotations.yaml
+		> bundle/metadata/annotations.yaml.new
+	mv bundle/metadata/annotations.yaml.new bundle/metadata/annotations.yaml
 	operator-sdk bundle validate ./bundle
 
 .PHONY: bundle-build
