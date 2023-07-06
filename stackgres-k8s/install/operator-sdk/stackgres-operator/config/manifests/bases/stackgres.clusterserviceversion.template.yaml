@@ -12,14 +12,13 @@ metadata:
     operatorhub.io/ui-metadata-max-k8s-version: "$(yq -r '.kubeVersion|match("^[^ ]+ - ([^.]+\\.[^.]+)\\..*$").captures[0].string' helm-charts/stackgres-operator/Chart.yaml).999"
     categories: Database
     repository: https://gitlab.com/ongresinc/stackgres
-    containerImage: quay.io/stackgres/operator:${VERSION}
+    containerImage: quay.io/stackgres/operator:${IMAGE_TAG}
 spec:
   displayName: StackGres
   provider:
     name: OnGres
     url: https://ongres.com
   version: "${VERSION}"
-  replaces: "stackgres.v$([ "${VERSION##*.}" -eq 0 ] && sh "$PROJECT_PATH"/stackgres-k8s/e2e/e2e eval 'echo "$STACKGRES_PREVIOUS_VERSION"' || printf %s "${VERSION%.*}.$(( ${VERSION##*.} - 1))")"
   minKubeVersion: "$(yq -r '.kubeVersion|match("^([^.]+\\.[^.]+)\\..*$").captures[0].string' helm-charts/stackgres-operator/Chart.yaml).0"
   maturity: stable
   apiservicedefinitions: {}
@@ -74,11 +73,11 @@ $(
     operatorframework.io/arch.arm64: supported
     operatorframework.io/os.linux: supported
   relatedImages:
-  - image: ongres/kubectl:v1.25.5-build-6.19
+  - image: quay.io/ongres/kubectl:v1.25.5-build-6.19
     name: kubectl_1_25_5
   - image: gcr.io/kubebuilder/kube-rbac-proxy:v0.13.0
     name: kube-rbac-proxy_0_13_0
-  - image: quay.io/stackgres/helm-operator:${VERSION}
+  - image: quay.io/stackgres/helm-operator:${IMAGE_TAG}
     name: stackgres-operator-helm
   - image: quay.io/stackgres/operator:${VERSION}
     name: stackgres-operator

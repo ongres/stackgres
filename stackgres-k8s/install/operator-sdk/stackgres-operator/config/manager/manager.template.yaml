@@ -167,6 +167,8 @@ spec:
               name: \$OPERATOR_NAME
               uid: \$OPERATOR_UID
           EOF
+
+          while true; do sleep 3600; done
         image: quay.io/ongres/kubectl:v1.25.5-build-6.19
         imagePullPolicy: IfNotPresent
         name: default

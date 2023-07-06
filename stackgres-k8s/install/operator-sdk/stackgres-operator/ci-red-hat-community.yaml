@@ -1,8 +1,2 @@
 ---
-cert_project_id: 641b15d6b22c5a72d6155224
-updateGraph: semver-mode
-
-reviewers:
-- ahachete
-- teoincontatto
-- jorsol
+cert_project_id: 64a687c10ac1519ed78df760

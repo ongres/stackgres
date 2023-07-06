@@ -92,8 +92,6 @@ find "$FORK_GIT_PATH" -name '.wh*' \
       rm "$FILE"
     done
 cp ci-"$UPSTREAM_SUFFIX".yaml "$FORK_GIT_PATH/operators/$PROJECT_NAME/ci.yaml"
-git -C "$FORK_GIT_PATH" add .
-git -C "$FORK_GIT_PATH" status
 
 if [ "$DO_PIN_IMAGES" = true ]
 then
@@ -109,13 +107,26 @@ then
         IMAGE_NAME="${IMAGE%%:*}"
         IMAGE_NAME="${IMAGE_NAME%%@sha256}"
         echo "Pinning $IMAGE to $IMAGE_NAME@$DIGEST"
-        sed -i "s#image: $IMAGE\$#image: $IMAGE_NAME@$DIGEST#" "manifests/stackgres.clusterserviceversion.yaml"
+        sed -i "s#\([iI]\)mage: $IMAGE\$#\1mage: $IMAGE_NAME@$DIGEST#" "manifests/stackgres.clusterserviceversion.yaml"
       done
   echo
   )
   git -C "$FORK_GIT_PATH" diff
   echo "Pinning done!"
 fi
+
+if command -v deploy_extra_steps > /dev/null 2>&1
+then
+  deploy_extra_steps
+fi
+
+mv "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/stackgres.clusterserviceversion.yaml \
+  "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/"${PROJECT_NAME}.clusterserviceversion.yaml"
+
+# Pass Red Hat YAML checks
+find "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION" -name '*.yaml' | xargs -I % sh -c 'yq -y . % > %.new && mv %.new %'
+
+operator-sdk bundle validate "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"
 
 git -C "$FORK_GIT_PATH" add .
 git -C "$FORK_GIT_PATH" status
