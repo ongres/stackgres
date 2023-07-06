@@ -756,6 +756,7 @@ th {
 td {
     padding: 0.5rem;
     border: 1px solid var(--borderColor);
+    vertical-align: top;
 }
 .button {
     background: var(--baseColor);
@@ -1206,4 +1207,8 @@ pre .copy-to-clipboard {
 
 #searchResults {
     text-align: left;
+}
+
+td:first-of-type {
+    word-break: initial;
 }
