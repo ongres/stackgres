@@ -1212,3 +1212,11 @@ pre .copy-to-clipboard {
 td:first-of-type {
     word-break: initial;
 }
+
+td p {
+    margin-top: 0;
+}
+
+td p:last-of-type {
+    margin-bottom: 0;
+}
