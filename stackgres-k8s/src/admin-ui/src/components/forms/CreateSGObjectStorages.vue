@@ -113,7 +113,7 @@
                             <div class="col">
                                 <label for="spec.s3.storageClass">Storage Class</label>
                                 <select v-model="s3StorageClass" data-field="spec.s3.storageClass">
-                                    <option disabled value="">Select Storage Class...</option>
+                                    <option value="">Select Storage Class...</option>
                                     <option value="STANDARD">Standard</option>
                                     <option value="STANDARD_IA">Infrequent Access</option>
                                     <option value="REDUCED_REDUNDANCY">Reduced Redundancy</option>
@@ -175,7 +175,7 @@
                             <div class="col">
                                 <label for="spec.s3Compatible.storageClass">Storage Class</label>
                                 <select v-model="s3CompatibleStorageClass" data-field="spec.s3Compatible.storageClass">
-                                    <option disabled value="">Select Storage Class...</option>
+                                    <option value="">Select Storage Class...</option>
                                     <option value="STANDARD">Standard</option>
                                     <option value="STANDARD_IA">Infrequent Access</option>
                                     <option value="REDUCED_REDUNDANCY">Reduced Redundancy</option>
