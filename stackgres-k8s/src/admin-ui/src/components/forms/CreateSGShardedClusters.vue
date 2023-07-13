@@ -445,7 +445,7 @@
                             <div class="col">
                                 <label for="spec.distributedLogs.sgDistributedLogs">Logs Cluster</label>
                                 <select v-model="distributedLogs" class="distributedLogs" data-field="spec.distributedLogs.sgDistributedLogs" @change="(distributedLogs == 'createNewResource') && createNewResource('sgdistributedlogs')" :set="( (distributedLogs == 'createNewResource') && (distributedLogs = '') )">
-                                    <option value="" disabled>Select Logs Server</option>
+                                    <option value="">Select Logs Server</option>
                                     <option v-for="cluster in logsClusters" :value="( (cluster.data.metadata.namespace !== $route.params.namespace) ? cluster.data.metadata.namespace + '.' : '') + cluster.data.metadata.name">{{ cluster.data.metadata.name }}</option>
                                     <template v-if="iCan('create', 'sgdistributedlogs', $route.params.namespace)">
                                         <option :value="nullVal" disabled>– OR –</option>
@@ -1136,7 +1136,7 @@
                                             <div class="col">
                                                 <label>Type</label>
                                                 <select v-model="customVolumesType.coordinator[index]" @change="initCustomVolume(index, coordinator.pods.customVolumes, customVolumesType.coordinator)" :data-field="'spec.coordinator.pods.customVolumes[' + index + '].type'">
-                                                    <option :value="null" disabled selected>Choose one...</option>
+                                                    <option :value="null" selected>Choose one...</option>
                                                     <option value="emptyDir">Empty Directory</option>
                                                     <option value="configMap">ConfigMap</option>
                                                     <option value="secret">Secret</option>
@@ -3191,7 +3191,7 @@
                                             <div class="col">
                                                 <label>Type</label>
                                                 <select v-model="customVolumesType.shards[index]" @change="initCustomVolume(index, shards.pods.customVolumes, customVolumesType.shards)" :data-field="'spec.shards.pods.customVolumes[' + index + '].type'">
-                                                    <option :value="null" disabled selected>Choose one...</option>
+                                                    <option :value="null" selected>Choose one...</option>
                                                     <option value="emptyDir">Empty Directory</option>
                                                     <option value="configMap">ConfigMap</option>
                                                     <option value="secret">Secret</option>
