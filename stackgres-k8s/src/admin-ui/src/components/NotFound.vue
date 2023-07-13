@@ -30,3 +30,20 @@
         }
     }
 </script>
+
+<style scoped>
+	body:not(.collapsed) #nav #notFound {
+		width: calc(100vw - 350px);
+		margin-left: 350px;
+	}
+
+    #notFound h1 {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    #notFound p {
+        margin-bottom: 20px;
+        font-size: 1rem;
+    }
+</style>

@@ -147,15 +147,8 @@
 		</div>
 
 		<div id="helpTooltip" class="hideOnClick"><vue-markdown :source=tooltipsText :breaks=false></vue-markdown></div>
-		<div id="notFound" v-if="loggedIn && notFound">
-            <h1>Not Found</h1>
-            <p>
-                The resource you're looking for doesn't exist,<br/>
-                confirm your URL is correct and try again
-            </p>
-            <br/>
-            <router-link to="/" class="btn">Go to Homepage</router-link>
-        </div>
+		
+		<NotFound v-if="loggedIn && notFound"></NotFound>
 	</aside>
 </template>
 
@@ -167,6 +160,7 @@
 
 	/* Child Components */
 	import NotificationsArea from './NotificationsArea.vue'
+	import NotFound from '../NotFound.vue'
 
 
     export default {
@@ -175,7 +169,8 @@
 		mixins: [mixin],
 
 		components: {
-			NotificationsArea
+			NotificationsArea,
+			NotFound
 		},
 
 		data: function() {
@@ -551,21 +546,6 @@
 
 
 <style scoped>
-	#notFound {
-		width: calc(100vw - 350px);
-		margin-left: 350px;
-	}
-
-    #notFound h1 {
-        font-size: 2rem;
-        margin-bottom: 10px;
-    }
-
-    #notFound p {
-        margin-bottom: 20px;
-        font-size: 1rem;
-    }
-
 	#tzToggle {
 		position: relative;
 	}
