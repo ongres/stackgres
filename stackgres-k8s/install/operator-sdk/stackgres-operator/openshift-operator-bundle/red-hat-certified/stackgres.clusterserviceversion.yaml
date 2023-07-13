@@ -1,0 +1,4 @@
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    certified: 'true'

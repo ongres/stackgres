@@ -3,24 +3,13 @@
 K8S_AZ_LOCATION="${K8S_AZ_LOCATION:-northeurope}"
 K8S_AZ_RESOURCE_GROUP="${K8S_AZ_RESOURCE_GROUP:-stackgres-e2e}"
 K8S_AZ_K8S_NAME="${K8S_AZ_K8S_NAME:-stackgres}"
-K8S_VERSION="${K8S_VERSION:-1.21.9}"
-K8S_AZ_NODE_SIZE="${K8S_AZ_NODE_SIZE:-Standard_B2s}"
+K8S_VERSION="${K8S_VERSION:-1.27}"
+K8S_AZ_NODE_SIZE="${K8S_AZ_NODE_SIZE:-Standard_A2m_v2}"
 K8S_AZ_NODE_COUNT="${K8S_AZ_NODE_COUNT:-4}"
 K8S_AZ_REGISTRY="${K8S_AZ_REGISTRY:-stackgrese2e}"
 
 export E2E_USE_INTERMIDIATE_PRIVATE_REPO="${E2E_USE_INTERMIDIATE_PRIVATE_REPO:-true}"
 export E2E_OPERATOR_PULL_POLICY=Always
-
-if [ "$K8S_AZ_NODE_SIZE" = "Standard_B2s" ] && [ "$E2E_PARALLELISM" -gt "$K8S_AZ_NODE_COUNT" ]
-then
-  echo "Warning: to avoid false failures is recommended to match the E2E_PARALLELISM with K8S_AZ_NODE_COUNT"
-fi
-
-if [ "$K8S_VERSION" = "$DEFAULT_K8S_VERSION" ]
-then
-  >&2 echo "Warning: using kubernetes version 1.21.9 since e2e default $DEFAULT_K8S_VERSION is not available for aks"
-  K8S_VERSION=1.21.9
-fi
 
 get_k8s_env_version() {
   echo "az version $(az version 2>/dev/null | grep -F '"azure-cli"' | cut -d '"' -f 4)"
@@ -47,14 +36,16 @@ reset_k8s() {
     az aks create --name "$K8S_AZ_K8S_NAME" --resource-group "$K8S_AZ_RESOURCE_GROUP" \
       --kubernetes-version "$K8S_VERSION" --node-count "$K8S_AZ_NODE_COUNT" \
       --node-vm-size "$K8S_AZ_NODE_SIZE" \
-      --generate-ssh-keys
+      --generate-ssh-keys \
+      --enable-node-public-ip
   else
     az aks create --name "$K8S_AZ_K8S_NAME" --resource-group "$K8S_AZ_RESOURCE_GROUP" \
       --kubernetes-version "$K8S_VERSION" --node-count "$K8S_AZ_NODE_COUNT" \
       --node-vm-size "$K8S_AZ_NODE_SIZE" \
       --service-principal "$SP_APP_ID" \
       --client-secret "$SP_PASSWORD" \
-      --generate-ssh-keys
+      --generate-ssh-keys \
+      --enable-node-public-ip
   fi    
 
   az aks get-credentials --name "$K8S_AZ_K8S_NAME" --resource-group "$K8S_AZ_RESOURCE_GROUP" --overwrite-existing

@@ -1,0 +1,21 @@
+apiVersion: stackgres.io/v1alpha1
+kind: SGShardedCluster
+metadata:
+  namespace: demo-db
+  name: demo-shardeddb
+spec:
+  type: citus
+  database: sharded
+  postgres:
+    version: '15.3'
+  coordinator:
+    instances: 2
+    pods:
+      persistentVolume:
+        size: 10Gi
+  shards:
+    clusters: 3
+    instancesPerCluster: 2
+    pods:
+      persistentVolume:
+        size: 10Gi

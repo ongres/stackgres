@@ -18,7 +18,6 @@ Built by [OnGres](https://ongres.com) ("**On** Post**Gres**"), StackGres require
 * **100% Open Source**. No "premium version with advanced features", no production usage restrictions. Just Open Source.
 * **[24/7 Support](https://stackgres.io/pricing/) Available from OnGres**
 
-
 ## Installation and documentation
 
 Installation:
