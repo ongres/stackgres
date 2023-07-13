@@ -1,0 +1,5 @@
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    marketplace.openshift.io/remote-workflow: "https://marketplace.redhat.com/en-us/operators/stackgres/pricing?utm_source=openshift_console"
+    marketplace.openshift.io/support-workflow: "https://marketplace.redhat.com/en-us/operators/stackgres/support?utm_source=openshift_console"

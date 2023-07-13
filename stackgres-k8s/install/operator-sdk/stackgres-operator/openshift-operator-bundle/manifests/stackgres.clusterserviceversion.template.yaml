@@ -1,25 +1,6 @@
-apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
-metadata:
-  annotations:
-    marketplace.openshift.io/remote-workflow: "https://marketplace.redhat.com/en-us/operators/stackgres/pricing?utm_source=openshift_console"
-    marketplace.openshift.io/support-workflow: "https://marketplace.redhat.com/en-us/operators/stackgres/support?utm_source=openshift_console"
-    # olm.properties: '[{"type": "olm.maxOpenShiftVersion", "value": "4.11"}]' # Uncomment to specify max OpenShift supported version. 
-                                                                               # Beware that k8s version is already enforced and this check may prevent
-                                                                               #  operator installation on newer OpenShift version without a real need.
-spec:
-  relatedImages:
-    - name: kubectl_1_25_5
-      image: ongres/kubectl:v1.25.5-build-6.19
-    - name: kube-rbac-proxy_0_13_0
-      image: gcr.io/kubebuilder/kube-rbac-proxy:v0.13.0
-    - name: stackgres-operator-helm
-      image: quay.io/stackgres/helm-operator:${VERSION}-openshift
-    - name: stackgres-operator
-      image: quay.io/stackgres/operator:${VERSION}
-    - name: stackgres-restapi
-      image: quay.io/stackgres/restapi:${VERSION}
-    - name: stackgres-admin-ui
-      image: quay.io/stackgres/admin-ui:${VERSION}
-    - name: stackgres-jobs
-      image: quay.io/stackgres/jobs:${VERSION}
+# metadata:
+#   annotations:
+#     olm.properties: '[{"type": "olm.maxOpenShiftVersion", "value": "4.13"}]' # Uncomment to specify max OpenShift supported version. 
+#                                                                                # Beware that k8s version is already enforced and this check may prevent
+#                                                                                #  operator installation on newer OpenShift version without a real need.
