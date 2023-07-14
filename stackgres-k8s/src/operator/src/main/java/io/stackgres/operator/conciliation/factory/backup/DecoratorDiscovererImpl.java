@@ -7,15 +7,14 @@ package io.stackgres.operator.conciliation.factory.backup;
 
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-
 import io.stackgres.operator.conciliation.ResourceDiscoverer;
 import io.stackgres.operator.conciliation.backup.StackGresBackupContext;
 import io.stackgres.operator.conciliation.factory.Decorator;
 import io.stackgres.operator.conciliation.factory.DecoratorDiscoverer;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Any;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class DecoratorDiscovererImpl

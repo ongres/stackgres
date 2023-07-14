@@ -7,13 +7,12 @@ package io.stackgres.operator.conciliation.cluster;
 
 import java.util.stream.Collectors;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.Conciliator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.ReconciliationUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ClusterConciliator extends Conciliator<StackGresCluster> {

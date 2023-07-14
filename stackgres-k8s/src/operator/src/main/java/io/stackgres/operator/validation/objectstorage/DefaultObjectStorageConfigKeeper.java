@@ -5,13 +5,12 @@
 
 package io.stackgres.operator.validation.objectstorage;
 
-import javax.inject.Singleton;
-
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.operator.common.ObjectStorageReview;
 import io.stackgres.operator.validation.AbstractDefaultConfigKeeper;
 import io.stackgres.operator.validation.ValidationType;
+import jakarta.inject.Singleton;
 
 @Singleton
 @ValidationType(ErrorType.DEFAULT_CONFIGURATION)

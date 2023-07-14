@@ -8,9 +8,6 @@ package io.stackgres.operator.conciliation.dbops;
 import java.util.Map;
 import java.util.function.Function;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
@@ -24,6 +21,8 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.labels.LabelFactoryForDbOps;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
 import io.stackgres.operator.conciliation.ReconciliationOperations;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class DbOpsDeployedResourceScanner extends DeployedResourcesScanner<StackGresDbOps>

@@ -5,9 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.cluster;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
@@ -19,6 +16,8 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 @Singleton
 @OperatorVersionBinder

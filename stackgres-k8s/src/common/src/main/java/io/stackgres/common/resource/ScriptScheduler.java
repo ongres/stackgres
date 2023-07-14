@@ -5,10 +5,9 @@
 
 package io.stackgres.common.resource;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptList;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ScriptScheduler extends

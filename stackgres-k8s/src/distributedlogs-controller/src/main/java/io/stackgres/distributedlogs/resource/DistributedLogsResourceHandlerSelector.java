@@ -8,14 +8,13 @@ package io.stackgres.distributedlogs.resource;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-
 import io.stackgres.distributedlogs.common.StackGresDistributedLogsContext;
 import io.stackgres.operatorframework.resource.AbstractResourceHandlerSelector;
 import io.stackgres.operatorframework.resource.ResourceHandler;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Any;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped

@@ -5,9 +5,8 @@
 
 package io.stackgres.apiweb.config;
 
-import javax.inject.Singleton;
-
 import io.stackgres.common.StackGresPropertyContext;
+import jakarta.inject.Singleton;
 
 @Singleton
 public class WebApiPropertyContext implements StackGresPropertyContext<WebApiProperty> {

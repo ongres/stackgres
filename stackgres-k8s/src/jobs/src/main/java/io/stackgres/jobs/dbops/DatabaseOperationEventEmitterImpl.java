@@ -7,12 +7,11 @@ package io.stackgres.jobs.dbops;
 
 import java.util.function.Supplier;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.resource.CustomResourceFinder;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class DatabaseOperationEventEmitterImpl implements DatabaseOperationEventEmitter {

@@ -5,13 +5,12 @@
 
 package io.stackgres.operator.validation.backup;
 
-import javax.inject.Inject;
-
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ValidationPipelineTest;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 @QuarkusTest

@@ -21,10 +21,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableMap;
 import com.ongres.process.FluentProcess;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -45,6 +41,9 @@ import io.stackgres.common.crd.sgcluster.StackGresReplicationRole;
 import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple2;

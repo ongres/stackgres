@@ -9,12 +9,11 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-import javax.annotation.PreDestroy;
-import javax.enterprise.inject.Produces;
-import javax.inject.Singleton;
-
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -7,7 +7,7 @@
 #
 ###
 
-FROM ghcr.io/graalvm/graalvm-ce:ol8-java17-22.3.0
+FROM ghcr.io/graalvm/graalvm-ce:ol8-java17-22.3.2
   ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
   RUN gu --auto-yes install native-image
   RUN microdnf --nodocs install python3-pip jq util-linux

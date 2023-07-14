@@ -5,11 +5,10 @@
 
 package io.stackgres.operator.conciliation.distributedlogs;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import io.stackgres.operator.conciliation.comparator.AbstractComparator;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 @ReconciliationScope(value = StackGresDistributedLogs.class, kind = "HasMetadata")

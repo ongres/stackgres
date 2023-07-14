@@ -5,11 +5,10 @@
 
 package io.stackgres.operator.mutation.pgbouncer;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.mutation.AbstractAnnotationMutator;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class PgBouncerAnnotationMutator

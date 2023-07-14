@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.validation.cluster;
 
-import javax.validation.constraints.AssertTrue;
-
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCredentials;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniCredentials;
@@ -17,6 +15,7 @@ import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import jakarta.validation.constraints.AssertTrue;
 import org.junit.jupiter.api.Test;
 
 class ClusterConstraintValidatorCredentialsTest

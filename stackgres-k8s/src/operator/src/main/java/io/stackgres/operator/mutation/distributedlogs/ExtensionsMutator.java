@@ -8,9 +8,6 @@ package io.stackgres.operator.mutation.distributedlogs;
 import java.util.List;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresUtil;
@@ -22,6 +19,8 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.operator.common.OperatorExtensionMetadataManager;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.mutation.AbstractExtensionsMutator;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped

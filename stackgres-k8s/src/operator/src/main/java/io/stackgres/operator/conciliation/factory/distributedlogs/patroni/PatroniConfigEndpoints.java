@@ -9,9 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -26,6 +23,8 @@ import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
 
 @Singleton

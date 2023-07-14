@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.mutation.shardedcluster;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
@@ -16,6 +14,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresS
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresShardsServices;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class DefaultPostgresServicesMutator implements ShardedClusterMutator {

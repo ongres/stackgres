@@ -7,12 +7,11 @@ package io.stackgres.apiweb.transformer;
 
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
 import io.stackgres.apiweb.resource.PodStats;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ClusterStatsTransformer

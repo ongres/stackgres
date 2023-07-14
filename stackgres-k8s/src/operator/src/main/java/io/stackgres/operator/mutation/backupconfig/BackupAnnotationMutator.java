@@ -5,11 +5,10 @@
 
 package io.stackgres.operator.mutation.backupconfig;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operator.mutation.AbstractAnnotationMutator;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class BackupAnnotationMutator

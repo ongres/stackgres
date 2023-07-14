@@ -16,9 +16,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableMap;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
@@ -28,6 +25,8 @@ import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.ext.web.client.WebClient;
 import io.vertx.mutiny.ext.web.codec.BodyCodec;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

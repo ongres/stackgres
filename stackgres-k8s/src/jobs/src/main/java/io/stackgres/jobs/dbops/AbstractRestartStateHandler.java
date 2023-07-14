@@ -17,8 +17,6 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -51,6 +49,7 @@ import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.InvalidClusterException;
 import io.stackgres.jobs.dbops.clusterrestart.RestartEvent;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

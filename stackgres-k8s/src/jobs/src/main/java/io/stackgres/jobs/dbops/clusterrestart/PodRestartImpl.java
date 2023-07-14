@@ -7,13 +7,12 @@ package io.stackgres.jobs.dbops.clusterrestart;
 
 import java.time.Duration;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.Pod;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.jobs.dbops.MutinyUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class PodRestartImpl implements PodRestart {

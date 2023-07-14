@@ -10,9 +10,6 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.StackGresUtil;
@@ -20,6 +17,8 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.jobs.dbops.MutinyUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

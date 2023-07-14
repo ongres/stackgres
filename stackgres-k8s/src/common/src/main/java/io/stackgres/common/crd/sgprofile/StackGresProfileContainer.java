@@ -7,14 +7,13 @@ package io.stackgres.common.crd.sgprofile;
 
 import java.util.Objects;
 
-import javax.validation.Valid;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
+import jakarta.validation.Valid;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)

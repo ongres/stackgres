@@ -9,12 +9,11 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.Map;
 
-import javax.inject.Inject;
-
 import io.stackgres.common.StackGresContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
+import jakarta.inject.Inject;
 
 public abstract class AbstractPostgresUtil
     implements ContainerFactory<ClusterContainerContext> {

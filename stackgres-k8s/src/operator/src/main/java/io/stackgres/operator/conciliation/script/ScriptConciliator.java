@@ -5,10 +5,9 @@
 
 package io.stackgres.operator.conciliation.script;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.operator.conciliation.Conciliator;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ScriptConciliator extends Conciliator<StackGresScript> {

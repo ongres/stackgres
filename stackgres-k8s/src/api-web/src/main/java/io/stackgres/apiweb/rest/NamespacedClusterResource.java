@@ -5,11 +5,6 @@
 
 package io.stackgres.apiweb.rest;
 
-import javax.enterprise.context.RequestScoped;
-import javax.inject.Inject;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.Path;
-
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -18,6 +13,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.Path;
 
 @Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgclusters")
 @RequestScoped

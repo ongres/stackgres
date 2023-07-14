@@ -8,9 +8,6 @@ package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.ConfigMapEnvSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -45,6 +42,8 @@ import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
 import io.stackgres.operator.conciliation.factory.distributedlogs.HugePagesMounts;
 import io.stackgres.operator.conciliation.factory.distributedlogs.PostgresExtensionMounts;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 @Singleton
 @OperatorVersionBinder

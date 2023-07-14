@@ -9,12 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.distributedlogs.common.StackGresDistributedLogsContext;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class DistributedLogsStatusManager

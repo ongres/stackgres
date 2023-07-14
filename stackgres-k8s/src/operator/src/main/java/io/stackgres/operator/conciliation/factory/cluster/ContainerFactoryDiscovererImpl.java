@@ -7,15 +7,14 @@ package io.stackgres.operator.conciliation.factory.cluster;
 
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-
 import io.stackgres.operator.conciliation.AnnotatedResourceDiscoverer;
 import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Any;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ContainerFactoryDiscovererImpl

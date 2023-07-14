@@ -7,9 +7,8 @@ package io.stackgres.operator.conciliation;
 
 import java.util.Objects;
 
-import javax.enterprise.util.AnnotationLiteral;
-
 import io.fabric8.kubernetes.client.CustomResource;
+import jakarta.enterprise.util.AnnotationLiteral;
 
 public class ReconciliationScopeLiteral extends AnnotationLiteral<ReconciliationScope>
     implements ReconciliationScope {

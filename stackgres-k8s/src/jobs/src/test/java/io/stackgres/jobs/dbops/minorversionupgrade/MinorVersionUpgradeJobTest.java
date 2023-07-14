@@ -13,8 +13,6 @@ import static org.mockito.Mockito.verify;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.inject.Inject;
-
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.smallrye.mutiny.Uni;
@@ -25,6 +23,7 @@ import io.stackgres.jobs.dbops.DatabaseOperation;
 import io.stackgres.jobs.dbops.StateHandler;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
 import io.stackgres.testutil.StringUtils;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

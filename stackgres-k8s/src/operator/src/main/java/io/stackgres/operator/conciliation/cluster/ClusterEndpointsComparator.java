@@ -5,14 +5,13 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import io.stackgres.operator.conciliation.comparator.PatroniEndpointsComparator;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ReconciliationScope(value = StackGresCluster.class, kind = "Endpoints")
 @ApplicationScoped

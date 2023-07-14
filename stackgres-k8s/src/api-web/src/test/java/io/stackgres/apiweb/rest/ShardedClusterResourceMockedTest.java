@@ -648,7 +648,7 @@ class ShardedClusterResourceMockedTest extends
   }
 
   private void mockPodExecutor() {
-    when(podExecutor.exec(any(), anyString(), any())).thenReturn(ImmutableList.of(
+    when(podExecutor.exec(any(), anyString(), any(String[].class))).thenReturn(ImmutableList.of(
         "cpuFound:4",
         "cpuQuota:50000",
         "cpuPeriod:100000",

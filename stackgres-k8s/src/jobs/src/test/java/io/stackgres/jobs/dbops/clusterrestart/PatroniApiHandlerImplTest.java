@@ -14,8 +14,6 @@ import java.time.Duration;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import javax.inject.Inject;
-
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.stackgres.testutil.StringUtils;
@@ -31,6 +29,7 @@ import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.junit5.VertxTestContext;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

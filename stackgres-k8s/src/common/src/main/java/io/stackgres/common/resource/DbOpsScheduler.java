@@ -5,10 +5,9 @@
 
 package io.stackgres.common.resource;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsList;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class DbOpsScheduler

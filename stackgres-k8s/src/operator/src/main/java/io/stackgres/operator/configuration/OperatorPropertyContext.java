@@ -5,10 +5,9 @@
 
 package io.stackgres.operator.configuration;
 
-import javax.inject.Singleton;
-
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresPropertyContext;
+import jakarta.inject.Singleton;
 
 @Singleton
 public class OperatorPropertyContext implements StackGresPropertyContext<OperatorProperty> {

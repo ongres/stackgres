@@ -16,9 +16,6 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -57,6 +54,8 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;

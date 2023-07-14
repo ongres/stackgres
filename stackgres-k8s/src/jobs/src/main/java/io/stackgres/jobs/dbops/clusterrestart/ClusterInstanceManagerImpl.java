@@ -10,9 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.smallrye.mutiny.Uni;
@@ -23,6 +20,8 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.jobs.dbops.MutinyUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ClusterInstanceManagerImpl implements ClusterInstanceManager {

@@ -19,8 +19,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
@@ -36,6 +34,7 @@ import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
 import io.stackgres.common.crd.sgdbops.DbOpsOperation;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.fixture.Fixtures;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

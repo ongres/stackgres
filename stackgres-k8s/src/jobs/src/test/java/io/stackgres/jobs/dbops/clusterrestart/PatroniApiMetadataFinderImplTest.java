@@ -12,8 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
@@ -24,6 +22,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.StringUtils;
+import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

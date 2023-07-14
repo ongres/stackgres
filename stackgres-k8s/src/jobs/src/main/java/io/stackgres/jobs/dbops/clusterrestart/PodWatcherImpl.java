@@ -9,9 +9,6 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -22,6 +19,8 @@ import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.jobs.dbops.MutinyUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -11,9 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
@@ -29,6 +26,8 @@ import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.mutation.AbstractExtensionsMutator;
 import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 

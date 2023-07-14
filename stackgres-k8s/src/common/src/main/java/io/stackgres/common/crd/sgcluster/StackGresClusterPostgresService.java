@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import javax.validation.Valid;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.SessionAffinityConfig;
@@ -20,6 +18,7 @@ import io.stackgres.common.crd.CustomServicePort;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
+import jakarta.validation.Valid;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)

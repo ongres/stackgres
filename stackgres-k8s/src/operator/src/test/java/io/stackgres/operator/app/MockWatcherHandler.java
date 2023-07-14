@@ -5,9 +5,8 @@
 
 package io.stackgres.operator.app;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.quarkus.test.Mock;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @Mock
 @ApplicationScoped

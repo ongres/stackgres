@@ -8,15 +8,14 @@ package io.stackgres.apiweb.transformer;
 import java.util.List;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.apiweb.dto.objectstorage.ObjectStorageDto;
 import io.stackgres.apiweb.dto.objectstorage.ObjectStorageStatus;
 import io.stackgres.apiweb.dto.storages.BackupStorageDto;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.storages.BackupStorage;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

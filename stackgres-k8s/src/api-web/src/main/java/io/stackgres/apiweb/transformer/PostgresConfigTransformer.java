@@ -8,8 +8,6 @@ package io.stackgres.apiweb.transformer;
 import java.util.List;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.apiweb.dto.pgconfig.PostgresConfigDto;
 import io.stackgres.apiweb.dto.pgconfig.PostgresConfigSpec;
 import io.stackgres.apiweb.dto.pgconfig.PostgresConfigStatus;
@@ -18,6 +16,7 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple3;
 

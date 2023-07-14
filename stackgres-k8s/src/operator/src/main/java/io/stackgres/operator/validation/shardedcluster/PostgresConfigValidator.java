@@ -16,9 +16,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
@@ -39,6 +36,8 @@ import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
 

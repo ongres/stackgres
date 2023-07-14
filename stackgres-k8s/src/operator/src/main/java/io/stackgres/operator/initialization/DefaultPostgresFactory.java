@@ -10,10 +10,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
@@ -22,6 +18,9 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigBuilder;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 
 @Dependent

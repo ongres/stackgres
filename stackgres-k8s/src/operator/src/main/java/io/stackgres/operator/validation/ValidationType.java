@@ -11,10 +11,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import javax.inject.Qualifier;
-
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.ErrorType;
+import jakarta.inject.Qualifier;
 
 @Qualifier
 @Target({ElementType.TYPE})

@@ -5,13 +5,12 @@
 
 package io.stackgres.operator.mutation;
 
-import javax.enterprise.inject.Instance;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
 import io.stackgres.operatorframework.admissionwebhook.mutating.Mutator;
+import jakarta.enterprise.inject.Instance;
 
 public abstract class AbstractMutationPipeline<R extends HasMetadata, T extends AdmissionReview<R>>
     extends MutationPipeline<R, T> {

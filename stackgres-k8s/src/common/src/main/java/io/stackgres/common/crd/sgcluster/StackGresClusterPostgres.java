@@ -8,9 +8,6 @@ package io.stackgres.common.crd.sgcluster;
 import java.util.List;
 import java.util.Objects;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -18,6 +15,8 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.ValidEnum;
 import io.sundr.builder.annotations.Buildable;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)

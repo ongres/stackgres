@@ -16,11 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
-import javax.ws.rs.NotFoundException;
-
 import com.google.common.collect.ImmutableMap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.Secret;
@@ -31,6 +26,10 @@ import io.stackgres.common.postgres.PostgresConnectionManager;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.distributedlogs.common.StackGresDistributedLogsContext;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.NotFoundException;
 
 @ApplicationScoped
 public class DistributedLogsDatabaseManager {

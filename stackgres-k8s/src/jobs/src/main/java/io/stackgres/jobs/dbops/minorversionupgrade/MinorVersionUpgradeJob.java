@@ -8,9 +8,6 @@ package io.stackgres.jobs.dbops.minorversionupgrade;
 import java.time.Duration;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -25,6 +22,8 @@ import io.stackgres.jobs.dbops.MutinyUtil;
 import io.stackgres.jobs.dbops.StateHandler;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.securityupgrade.SecurityUpgradeJob;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

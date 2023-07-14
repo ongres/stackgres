@@ -7,12 +7,11 @@ package io.stackgres.operator.conciliation.shardedcluster;
 
 import java.util.regex.Pattern;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import io.stackgres.operator.conciliation.comparator.AbstractComparator;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ReconciliationScope(value = StackGresShardedCluster.class, kind = "SGCluster")
 @ApplicationScoped

@@ -9,8 +9,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -18,6 +16,7 @@ import io.fabric8.kubernetes.client.dsl.Namespaceable;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
+import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?, ?>,

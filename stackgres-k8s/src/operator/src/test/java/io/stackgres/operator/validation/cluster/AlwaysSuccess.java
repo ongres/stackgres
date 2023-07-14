@@ -5,9 +5,8 @@
 
 package io.stackgres.operator.validation.cluster;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.operator.common.StackGresClusterReview;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class AlwaysSuccess implements ClusterValidator {

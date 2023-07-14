@@ -7,7 +7,7 @@ package io.stackgres.operator.conciliation;
 
 import java.lang.annotation.Annotation;
 
-import javax.enterprise.inject.Instance;
+import jakarta.enterprise.inject.Instance;
 
 public abstract class AnnotatedResourceDiscoverer<T, A extends Annotation>
     extends ResourceDiscoverer<T> {

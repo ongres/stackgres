@@ -12,9 +12,6 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -24,6 +21,8 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.initialization.PostgresConfigurationFactory;
 import io.stackgres.operator.initialization.PostgresDefaultFactoriesProvider;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.jooq.lambda.Unchecked;
 
 @ApplicationScoped

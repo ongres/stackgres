@@ -17,9 +17,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -50,6 +47,8 @@ import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

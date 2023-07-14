@@ -10,9 +10,6 @@ import static io.stackgres.common.patroni.StackGresPasswordKeys.PGBOUNCER_ADMIN_
 import static io.stackgres.common.patroni.StackGresPasswordKeys.PGBOUNCER_STATS_PASSWORD_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.PGBOUNCER_STATS_USERNAME;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
@@ -24,6 +21,8 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 @Singleton
 @OperatorVersionBinder

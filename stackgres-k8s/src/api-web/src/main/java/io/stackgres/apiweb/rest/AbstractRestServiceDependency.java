@@ -8,13 +8,6 @@ package io.stackgres.apiweb.rest;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-
 import io.fabric8.kubernetes.client.CustomResource;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.ResourceDto;
@@ -25,6 +18,12 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 

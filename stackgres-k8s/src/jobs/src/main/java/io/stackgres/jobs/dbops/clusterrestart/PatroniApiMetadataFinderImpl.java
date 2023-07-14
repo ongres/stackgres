@@ -9,11 +9,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class PatroniApiMetadataFinderImpl implements PatroniApiMetadataFinder {

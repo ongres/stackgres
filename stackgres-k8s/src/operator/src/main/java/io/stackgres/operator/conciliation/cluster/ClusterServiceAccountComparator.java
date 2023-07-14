@@ -5,11 +5,10 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import io.stackgres.operator.conciliation.comparator.ServiceAccountComparator;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ReconciliationScope(value = StackGresCluster.class, kind = "ServiceAccount")
 @ApplicationScoped

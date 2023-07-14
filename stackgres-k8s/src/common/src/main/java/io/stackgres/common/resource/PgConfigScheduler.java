@@ -5,10 +5,9 @@
 
 package io.stackgres.common.resource;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigList;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class PgConfigScheduler

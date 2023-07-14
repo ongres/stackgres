@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.ws.rs.core.Response;
-
 import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReview;
 import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReviewStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -27,6 +25,7 @@ import io.quarkus.security.identity.SecurityIdentity;
 import io.stackgres.apiweb.app.KubernetesClientProvider;
 import io.stackgres.apiweb.dto.PermissionsListDto;
 import io.stackgres.apiweb.dto.PermissionsListDto.Namespaced;
+import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

@@ -19,8 +19,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.apiweb.dto.pooling.PgBouncerIniParameter;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigDto;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigPgBouncer;
@@ -32,6 +30,7 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerPgbouncerIni;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigSpec;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.apache.commons.configuration2.INIConfiguration;
 import org.apache.commons.configuration2.SubnodeConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationException;

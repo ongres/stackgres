@@ -7,9 +7,6 @@ package io.stackgres.operator.conciliation.cluster;
 
 import java.util.Map;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.OwnerReference;
@@ -19,6 +16,8 @@ import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import io.stackgres.operator.conciliation.comparator.StatefulSetComparator;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ReconciliationScope(value = StackGresCluster.class, kind = "StatefulSet")
 @ApplicationScoped

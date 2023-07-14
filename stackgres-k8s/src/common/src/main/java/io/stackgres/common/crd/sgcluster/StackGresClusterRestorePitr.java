@@ -9,9 +9,6 @@ import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.Objects;
 
-import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -21,6 +18,8 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.sundr.builder.annotations.Buildable;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotNull;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)

@@ -12,9 +12,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import com.google.common.collect.ImmutableSet;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapKeySelector;
@@ -32,6 +29,8 @@ import io.stackgres.operator.common.StackGresScriptReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 @Singleton
 @ValidationType(ErrorType.CONSTRAINT_VIOLATION)

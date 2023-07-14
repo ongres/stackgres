@@ -13,10 +13,9 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.enterprise.inject.Instance;
-
 import com.google.common.base.Predicates;
 import io.stackgres.common.StackGresVersion;
+import jakarta.enterprise.inject.Instance;
 
 public abstract class ResourceDiscoverer<T> implements AnnotationFinder {
 

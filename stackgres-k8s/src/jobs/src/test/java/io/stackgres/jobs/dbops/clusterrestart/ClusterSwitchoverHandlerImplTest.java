@@ -14,13 +14,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableMap;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.PatroniUtil;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
