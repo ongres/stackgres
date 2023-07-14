@@ -7,9 +7,6 @@ package io.stackgres.apiweb.transformer;
 
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.apiweb.dto.dbops.DbOpsDto;
 import io.stackgres.apiweb.dto.dbops.DbOpsSpec;
@@ -17,6 +14,8 @@ import io.stackgres.apiweb.dto.dbops.DbOpsStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class DbOpsTransformer

@@ -63,7 +63,7 @@ public abstract class AbstractReconciliationHandler<T extends CustomResource<?, 
   public HasMetadata replace(T context, HasMetadata resource) {
     return client.resource(resource)
         .lockResourceVersion(resource.getMetadata().getResourceVersion())
-        .replace();
+        .update();
   }
 
   @Override

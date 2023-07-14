@@ -7,13 +7,12 @@ package io.stackgres.operator.mutation.backupconfig;
 
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.operator.common.BackupConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class BackupPerformanceMutator implements BackupConfigMutator {

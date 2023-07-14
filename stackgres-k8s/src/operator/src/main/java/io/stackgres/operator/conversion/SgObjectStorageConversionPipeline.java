@@ -7,11 +7,10 @@ package io.stackgres.operator.conversion;
 
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 @Conversion(StackGresObjectStorage.KIND)

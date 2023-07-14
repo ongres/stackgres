@@ -23,13 +23,11 @@ import static org.mockito.Mockito.when;
 import java.time.Duration;
 import java.time.Instant;
 
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.junit.mockito.InjectSpy;
 import io.smallrye.mutiny.TimeoutException;
 import io.smallrye.mutiny.Uni;
@@ -48,6 +46,7 @@ import io.stackgres.jobs.dbops.lock.LockRequest;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
 import io.stackgres.jobs.dbops.securityupgrade.SecurityUpgradeJob;
 import io.stackgres.testutil.StringUtils;
+import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

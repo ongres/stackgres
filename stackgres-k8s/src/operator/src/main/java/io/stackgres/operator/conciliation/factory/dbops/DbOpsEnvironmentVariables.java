@@ -7,13 +7,12 @@ package io.stackgres.operator.conciliation.factory.dbops;
 
 import java.util.stream.Stream;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped

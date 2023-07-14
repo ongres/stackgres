@@ -11,8 +11,6 @@ import static org.hamcrest.Matchers.is;
 import java.util.Arrays;
 import java.util.Map;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.quarkus.test.junit.QuarkusTest;
@@ -25,6 +23,7 @@ import io.stackgres.operator.common.ObjectStorageReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.RandomObjectUtils;
 import io.stackgres.testutil.StringUtils;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

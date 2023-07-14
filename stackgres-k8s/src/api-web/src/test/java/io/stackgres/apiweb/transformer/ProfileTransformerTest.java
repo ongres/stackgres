@@ -8,8 +8,6 @@ package io.stackgres.apiweb.transformer;
 import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Inject;
-
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.apiweb.dto.profile.ProfileDto;
 import io.stackgres.apiweb.dto.profile.ProfileSpec;
@@ -17,6 +15,7 @@ import io.stackgres.apiweb.dto.profile.ProfileStatus;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 import io.stackgres.testutil.StringUtils;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest

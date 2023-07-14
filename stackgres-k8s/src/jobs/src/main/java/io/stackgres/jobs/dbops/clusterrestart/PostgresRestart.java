@@ -8,13 +8,12 @@ package io.stackgres.jobs.dbops.clusterrestart;
 import java.time.Duration;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.google.common.base.Predicates;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.RetryUtil;
 import io.stackgres.jobs.dbops.MutinyUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -12,12 +12,10 @@ import static org.mockito.Mockito.lenient;
 import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.ClusterDbOpsRestartStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -36,6 +34,7 @@ import io.stackgres.jobs.dbops.clusterrestart.ImmutablePatroniInformation;
 import io.stackgres.jobs.dbops.clusterrestart.MemberRole;
 import io.stackgres.jobs.dbops.clusterrestart.MemberState;
 import io.stackgres.jobs.dbops.clusterrestart.PatroniApiHandler;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 
 @QuarkusTest

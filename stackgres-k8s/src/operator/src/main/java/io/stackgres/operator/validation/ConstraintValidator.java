@@ -12,10 +12,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-import javax.validation.ConstraintViolation;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Status;
@@ -28,6 +24,9 @@ import io.stackgres.common.validation.FieldReference;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+import jakarta.validation.ConstraintViolation;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
@@ -38,7 +37,7 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private javax.validation.Validator constraintValidator;
+  private jakarta.validation.Validator constraintValidator;
 
   private String constraintViolationDocumentationUri;
 
@@ -164,7 +163,7 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
   }
 
   @Inject
-  public void setConstraintValidator(javax.validation.Validator constraintValidator) {
+  public void setConstraintValidator(jakarta.validation.Validator constraintValidator) {
     this.constraintValidator = constraintValidator;
   }
 }

@@ -5,10 +5,9 @@
 
 package io.stackgres.common.resource;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigList;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ConfigScheduler extends
@@ -26,7 +25,7 @@ public class ConfigScheduler extends
     return client.resources(StackGresConfig.class, StackGresConfigList.class)
         .resource(resource)
         .lockResourceVersion(resource.getMetadata().getResourceVersion())
-        .replace();
+        .update();
   }
 
 }

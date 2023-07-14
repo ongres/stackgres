@@ -10,12 +10,11 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.Objects;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class DefaultPostgresVersionMutator implements ShardedClusterMutator {

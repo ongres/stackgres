@@ -8,14 +8,13 @@ package io.stackgres.operator.conciliation.config;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.WebUtil;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigGrafana;
 import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.common.crd.sgconfig.StackGresConfigStatus;
 import io.stackgres.common.crd.sgconfig.StackGresConfigStatusGrafana;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ConfigGrafanaIntegrationChecker {

@@ -9,9 +9,6 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
@@ -26,6 +23,8 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutatorWeight;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 @MutatorWeight(10)

@@ -5,14 +5,13 @@
 
 package io.stackgres.operator.validation;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ErrorType;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionRequest;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
+import jakarta.inject.Inject;
 
 public abstract class AbstractDefaultConfigKeeper
     <R extends CustomResource<?, ?>, T extends AdmissionReview<R>>

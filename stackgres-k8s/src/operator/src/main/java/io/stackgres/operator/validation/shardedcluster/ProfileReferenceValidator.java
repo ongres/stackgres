@@ -8,9 +8,6 @@ package io.stackgres.operator.validation.shardedcluster;
 import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -20,6 +17,8 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 @Singleton
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)

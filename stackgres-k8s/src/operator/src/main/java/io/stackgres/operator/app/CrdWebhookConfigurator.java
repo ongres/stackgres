@@ -15,9 +15,6 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.admissionregistration.v1.MutatingWebhookBuilder;
 import io.fabric8.kubernetes.api.model.admissionregistration.v1.MutatingWebhookConfiguration;
@@ -40,6 +37,8 @@ import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operator.conversion.ConversionUtil;
 import io.stackgres.operator.mutation.MutationUtil;
 import io.stackgres.operator.validation.ValidationUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

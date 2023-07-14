@@ -9,8 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.StackGresComponent;
@@ -31,6 +29,7 @@ import io.stackgres.operator.conciliation.cluster.ClusterResourceGenerationDisco
 import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.testutil.StringUtils;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 
 public abstract class GeneratorTest {

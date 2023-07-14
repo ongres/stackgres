@@ -5,9 +5,6 @@
 
 package io.stackgres.operator.validation.pgconfig;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Singleton;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Status;
@@ -21,6 +18,8 @@ import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Singleton;
 
 @Singleton
 @ValidationType(ErrorType.FORBIDDEN_CR_UPDATE)

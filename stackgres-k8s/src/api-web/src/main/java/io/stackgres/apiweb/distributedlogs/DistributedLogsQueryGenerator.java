@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.distributedlogs.LogTableFields;
 import io.stackgres.common.distributedlogs.PostgresTableFields;
@@ -33,6 +34,8 @@ import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
+@SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE",
+    justification = "false positive")
 public class DistributedLogsQueryGenerator {
 
   public static final String LOG_POSTGRES_TABLE = Tables.LOG_POSTGRES.getTableName();

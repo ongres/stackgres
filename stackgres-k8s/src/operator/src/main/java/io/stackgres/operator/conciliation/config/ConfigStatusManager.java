@@ -8,14 +8,13 @@ package io.stackgres.operator.conciliation.config;
 import java.util.List;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigStatus;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ConfigStatusManager

@@ -8,8 +8,6 @@ package io.stackgres.common.crd.sgprofile;
 import java.math.BigDecimal;
 import java.util.Objects;
 
-import javax.validation.constraints.AssertTrue;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -20,6 +18,7 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.sundr.builder.annotations.Buildable;
+import jakarta.validation.constraints.AssertTrue;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)

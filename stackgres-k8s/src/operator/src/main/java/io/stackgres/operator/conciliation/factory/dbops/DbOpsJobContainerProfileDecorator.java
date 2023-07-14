@@ -7,8 +7,6 @@ package io.stackgres.operator.conciliation.factory.dbops;
 
 import java.util.Optional;
 
-import javax.inject.Singleton;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
@@ -22,6 +20,7 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import io.stackgres.operator.conciliation.factory.AbstractContainerProfileDecorator;
 import io.stackgres.operator.conciliation.factory.Decorator;
+import jakarta.inject.Singleton;
 
 @Singleton
 @OperatorVersionBinder

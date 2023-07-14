@@ -9,12 +9,11 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-
 import io.stackgres.operator.conciliation.AbstractDiscoverer;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class DbOpsJobsDiscoverer

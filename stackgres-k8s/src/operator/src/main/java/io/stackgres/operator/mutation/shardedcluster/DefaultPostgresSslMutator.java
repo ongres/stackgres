@@ -5,12 +5,11 @@
 
 package io.stackgres.operator.mutation.shardedcluster;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class DefaultPostgresSslMutator implements ShardedClusterMutator {

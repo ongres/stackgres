@@ -5,12 +5,11 @@
 
 package io.stackgres.jobs;
 
-import javax.inject.Inject;
-
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
 import io.stackgres.jobs.app.JobsProperty;
 import io.stackgres.jobs.dbops.DbOpsLauncher;
+import jakarta.inject.Inject;
 
 @QuarkusMain
 public class Main implements QuarkusApplication {

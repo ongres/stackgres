@@ -7,13 +7,12 @@ package io.stackgres.common.labels;
 
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.labels.v14.ClusterLabelMapperV14;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ClusterLabelMapper implements LabelMapperForCluster<StackGresCluster> {

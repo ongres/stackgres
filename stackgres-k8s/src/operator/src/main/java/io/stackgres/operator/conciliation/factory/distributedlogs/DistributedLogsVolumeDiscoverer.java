@@ -5,15 +5,14 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-
 import io.stackgres.common.StackGresGroupKind;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.AbstractVolumeDiscoverer;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Any;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class DistributedLogsVolumeDiscoverer

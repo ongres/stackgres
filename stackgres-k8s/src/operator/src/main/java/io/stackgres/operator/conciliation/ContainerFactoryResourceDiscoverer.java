@@ -8,12 +8,11 @@ package io.stackgres.operator.conciliation;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
-import javax.enterprise.inject.Instance;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
+import jakarta.enterprise.inject.Instance;
 
 public abstract class ContainerFactoryResourceDiscoverer<
       T extends ContainerContext, A extends Annotation>

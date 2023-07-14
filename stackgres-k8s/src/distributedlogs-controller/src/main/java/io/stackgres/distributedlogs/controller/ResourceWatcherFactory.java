@@ -5,9 +5,6 @@
 
 package io.stackgres.distributedlogs.controller;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.client.WatcherException;
 import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -15,6 +12,8 @@ import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.distributedlogs.common.DistributedLogsControllerEventReason;
 import io.stackgres.operatorframework.resource.AbstractResourceWatcherFactory;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ResourceWatcherFactory extends AbstractResourceWatcherFactory {

@@ -7,9 +7,6 @@ package io.stackgres.jobs.dbops.minorversionupgrade;
 
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -28,6 +25,8 @@ import io.stackgres.jobs.dbops.StateHandler;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.PatroniApiHandler;
 import io.stackgres.jobs.dbops.clusterrestart.PatroniInformation;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 @StateHandler("minorVersionUpgrade")

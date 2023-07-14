@@ -5,10 +5,9 @@
 
 package io.stackgres.operator.validation.backupconfig;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.operator.validation.AbstractDefaultCustomResourceHolder;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class BackupConfigDefaultCustomResourceHolder

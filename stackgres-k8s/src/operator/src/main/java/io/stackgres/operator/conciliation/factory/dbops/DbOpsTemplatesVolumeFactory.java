@@ -7,8 +7,6 @@ package io.stackgres.operator.conciliation.factory.dbops;
 
 import java.util.stream.Stream;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
@@ -18,6 +16,7 @@ import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped

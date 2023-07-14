@@ -8,8 +8,6 @@ package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import javax.inject.Singleton;
-
 import io.fabric8.kubernetes.api.model.EmptyDirVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
@@ -23,6 +21,7 @@ import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLo
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
+import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
 
 @Singleton

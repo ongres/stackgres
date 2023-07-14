@@ -7,13 +7,12 @@ package io.stackgres.apiweb.resource;
 
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterDto;
 import io.stackgres.apiweb.transformer.ShardedClusterTransformer;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ShardedClusterDtoFinder implements CustomResourceFinder<ShardedClusterDto> {

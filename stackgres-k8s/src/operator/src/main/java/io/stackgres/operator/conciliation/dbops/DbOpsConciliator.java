@@ -5,9 +5,6 @@
 
 package io.stackgres.operator.conciliation.dbops;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -15,6 +12,8 @@ import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class DbOpsConciliator extends AbstractConciliator<StackGresDbOps> {

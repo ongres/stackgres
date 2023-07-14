@@ -5,11 +5,10 @@
 
 package io.stackgres.distributedlogs.configuration;
 
-import javax.inject.Singleton;
-
 import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.controller.PodLocalControllerContext;
+import jakarta.inject.Singleton;
 
 @Singleton
 public class DistributedLogsControllerPropertyContext

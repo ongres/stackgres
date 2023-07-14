@@ -5,13 +5,12 @@
 
 package io.stackgres.distributedlogs.controller;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.stackgres.common.FileSystemHandler;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.extension.ExtensionManager;
 import io.stackgres.common.extension.ExtensionMetadataManager;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class DistributedLogsExtensionManager extends ExtensionManager {

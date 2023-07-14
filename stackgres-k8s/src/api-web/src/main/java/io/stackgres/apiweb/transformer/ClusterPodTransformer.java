@@ -11,12 +11,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.apiweb.dto.cluster.KubernetesPod;
 import io.stackgres.common.PatroniUtil;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ClusterPodTransformer {

@@ -9,8 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.inject.Singleton;
-
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
@@ -21,6 +19,7 @@ import io.stackgres.common.crd.sgprofile.StackGresProfileRequests;
 import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
+import jakarta.inject.Singleton;
 
 @Singleton
 public class PatroniRequirementsFactory

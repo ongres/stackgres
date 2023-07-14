@@ -5,11 +5,10 @@
 
 package io.stackgres.operator.mutation.dbops;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.operator.common.DbOpsReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class DbOpsStatusResetMutator implements DbOpsMutator {

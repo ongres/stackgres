@@ -5,9 +5,6 @@
 
 package io.stackgres.operator.app;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionVersion;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -15,6 +12,8 @@ import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
 import io.stackgres.common.CrdLoader;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +77,7 @@ public class CrUpdater {
                     client.genericKubernetesResources(context)
                         .resource(currentResource)
                         .lockResourceVersion(currentResource.getMetadata().getResourceVersion())
-                        .replace();
+                        .update();
                   }
                 }), 5));
   }

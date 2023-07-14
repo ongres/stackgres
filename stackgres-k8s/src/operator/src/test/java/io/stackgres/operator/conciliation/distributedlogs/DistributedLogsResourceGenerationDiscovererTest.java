@@ -11,8 +11,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.quarkus.test.junit.QuarkusTest;
@@ -23,6 +21,7 @@ import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceGeneratorTest;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 
 @QuarkusTest

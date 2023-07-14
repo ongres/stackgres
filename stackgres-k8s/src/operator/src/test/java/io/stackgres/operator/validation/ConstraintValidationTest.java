@@ -12,16 +12,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.lang.annotation.Annotation;
 import java.util.Locale;
 
-import javax.validation.Validation;
-import javax.validation.ValidatorFactory;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-
 import io.fabric8.kubernetes.api.model.Status;
 import io.stackgres.common.ErrorType;
 import io.stackgres.operator.utils.ValidationUtils;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import jakarta.validation.Validation;
+import jakarta.validation.ValidatorFactory;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import org.hibernate.validator.HibernateValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

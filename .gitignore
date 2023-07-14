@@ -125,6 +125,7 @@ hs_err_pid*
 ## ignoring target file
 target/
 dist/
+stackgres-k8s/ci/build/target
 
 # maven-release-plugin
 release.properties

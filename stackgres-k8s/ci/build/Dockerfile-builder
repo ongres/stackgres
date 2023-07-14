@@ -3,11 +3,11 @@
 #
 # Build the image with:
 #
-# docker build -f stackgres-k8s/ci/build/Dockerfile.build -t registry.gitlab.com/ongresinc/stackgres/build-amd64:1.5 stackgres-k8s/ci/build/
+# docker build -f stackgres-k8s/ci/build/Dockerfile-builder -t "registry.gitlab.com/ongresinc/stackgres/$(yq -r '.variables.BUILDER_IMAGE_NAME' .gitlab-ci.yml)-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)" stackgres-k8s/ci/build/
 #
 ###
 
-FROM ghcr.io/graalvm/graalvm-ce:ol8-java17-22.3.0
+FROM ghcr.io/graalvm/graalvm-ce:ol8-java17-22.3.3
   ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
   RUN gu --auto-yes install native-image
   RUN microdnf --nodocs install python3-pip jq util-linux

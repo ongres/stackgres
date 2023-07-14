@@ -5,12 +5,14 @@
 
 package io.stackgres.common.crd;
 
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.Quantity;
+import io.fabric8.kubernetes.api.model.ResourceClaim;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
@@ -35,9 +37,10 @@ public class ResourceRequirements extends io.fabric8.kubernetes.api.model.Resour
   }
 
   public ResourceRequirements(
+      List<ResourceClaim> claims,
       Map<String, Quantity> limits,
       Map<String, Quantity> requests) {
-    super(limits, requests);
+    super(claims, limits, requests);
   }
 
   @Override

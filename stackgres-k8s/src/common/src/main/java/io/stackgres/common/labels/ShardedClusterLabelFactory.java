@@ -9,11 +9,10 @@ import static io.stackgres.operatorframework.resource.ResourceUtil.labelValue;
 
 import java.util.Map;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped

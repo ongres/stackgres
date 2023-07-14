@@ -5,10 +5,9 @@
 
 package io.stackgres.common.resource;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterList;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ShardedClusterScheduler extends
@@ -26,7 +25,7 @@ public class ShardedClusterScheduler extends
     return client.resources(StackGresShardedCluster.class, StackGresShardedClusterList.class)
         .resource(resource)
         .lockResourceVersion(resource.getMetadata().getResourceVersion())
-        .replace();
+        .update();
   }
 
 }

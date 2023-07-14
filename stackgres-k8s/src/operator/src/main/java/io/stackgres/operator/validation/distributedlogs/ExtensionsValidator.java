@@ -10,9 +10,6 @@ import static io.stackgres.common.StackGresDistributedLogsUtil.getStackGresClust
 import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresUtil;
@@ -28,6 +25,8 @@ import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.validation.AbstractExtensionsValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 @Singleton
 public class ExtensionsValidator

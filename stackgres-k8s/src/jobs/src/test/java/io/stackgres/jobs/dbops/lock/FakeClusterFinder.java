@@ -7,11 +7,10 @@ package io.stackgres.jobs.dbops.lock;
 
 import java.util.Optional;
 
-import javax.inject.Inject;
-
 import io.quarkus.test.Mock;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
+import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 
 @Mock

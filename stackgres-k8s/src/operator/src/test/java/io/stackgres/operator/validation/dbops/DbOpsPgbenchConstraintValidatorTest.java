@@ -5,10 +5,6 @@
 
 package io.stackgres.operator.validation.dbops;
 
-import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotEmpty;
-
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsBenchmark;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbench;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
@@ -16,6 +12,9 @@ import io.stackgres.operator.common.DbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.ConstraintValidationTest;
 import io.stackgres.operator.validation.ConstraintValidator;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
 import org.junit.jupiter.api.Test;
 
 class DbOpsPgbenchConstraintValidatorTest extends ConstraintValidationTest<DbOpsReview> {

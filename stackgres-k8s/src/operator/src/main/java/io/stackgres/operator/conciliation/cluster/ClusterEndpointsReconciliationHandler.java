@@ -9,9 +9,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +23,8 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.operator.conciliation.ReconciliationScope;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
 
@@ -108,7 +107,7 @@ public class ClusterEndpointsReconciliationHandler
             .endMetadata()
             .build())
             .lockResourceVersion(foundResource.getMetadata().getResourceVersion())
-            .replace())
+            .update())
         .orElseGet(() -> client.endpoints().resource((Endpoints) resource).create()));
   }
 

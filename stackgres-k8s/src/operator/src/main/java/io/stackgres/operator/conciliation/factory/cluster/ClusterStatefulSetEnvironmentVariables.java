@@ -8,13 +8,12 @@ package io.stackgres.operator.conciliation.factory.cluster;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.inject.Singleton;
-
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetEnvVars;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
 
 @Singleton

@@ -8,9 +8,6 @@ package io.stackgres.operator.conciliation.factory;
 import java.util.List;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -26,6 +23,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpecBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresExtensionMounts;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class MajorVersionUpgradeMounts implements VolumeMountsProvider<ClusterContainerContext> {
