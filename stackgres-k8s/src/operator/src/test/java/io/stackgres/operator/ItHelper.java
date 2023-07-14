@@ -28,14 +28,13 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-
 import com.github.dockerjava.api.exception.DockerException;
 import com.google.common.collect.ImmutableList;
 import com.ongres.junit.docker.Container;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response.Status;
 import org.apache.commons.io.FileUtils;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;

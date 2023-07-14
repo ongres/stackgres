@@ -5,11 +5,10 @@
 
 package io.stackgres.operator.conciliation.backup;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import io.stackgres.operator.conciliation.comparator.JobComparator;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ReconciliationScope(value = StackGresBackup.class, kind = "Job")
 @ApplicationScoped

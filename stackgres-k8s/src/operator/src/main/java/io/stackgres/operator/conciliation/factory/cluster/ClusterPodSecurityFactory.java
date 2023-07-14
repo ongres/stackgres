@@ -5,12 +5,11 @@
 
 package io.stackgres.operator.conciliation.factory.cluster;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.PodSecurityFactory;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ClusterPodSecurityFactory extends PodSecurityFactory

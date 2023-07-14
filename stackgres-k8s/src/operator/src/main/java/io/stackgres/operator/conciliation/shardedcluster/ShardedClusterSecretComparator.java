@@ -5,11 +5,10 @@
 
 package io.stackgres.operator.conciliation.shardedcluster;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import io.stackgres.operator.conciliation.comparator.SecretComparator;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ReconciliationScope(value = StackGresShardedCluster.class, kind = "Secret")
 @ApplicationScoped

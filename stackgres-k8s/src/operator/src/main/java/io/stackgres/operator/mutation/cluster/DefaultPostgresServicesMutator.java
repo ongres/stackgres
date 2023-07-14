@@ -5,8 +5,6 @@
 
 package io.stackgres.operator.mutation.cluster;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -14,6 +12,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class DefaultPostgresServicesMutator implements ClusterMutator {

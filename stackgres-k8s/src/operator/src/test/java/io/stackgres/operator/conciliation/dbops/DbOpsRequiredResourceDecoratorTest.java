@@ -7,8 +7,6 @@ package io.stackgres.operator.conciliation.dbops;
 
 import java.io.IOException;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -19,6 +17,7 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceDecoratorTest;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 
 @QuarkusTest

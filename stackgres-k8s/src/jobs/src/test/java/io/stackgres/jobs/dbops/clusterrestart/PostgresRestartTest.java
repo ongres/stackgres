@@ -14,23 +14,22 @@ import static org.mockito.Mockito.when;
 import java.time.Duration;
 import java.util.List;
 
-import javax.inject.Inject;
-
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.testutil.StringUtils;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class PostgresRestartImplTest {
+class PostgresRestartTest {
 
   @Inject
-  PostgresRestartImpl postgresRestart;
+  PostgresRestart postgresRestart;
 
   @InjectMock
-  PatroniApiHandlerImpl patroniApiHandler;
+  PatroniApiHandler patroniApiHandler;
 
   String clusterName;
 

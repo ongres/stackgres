@@ -7,14 +7,13 @@ package io.stackgres.operator.validation.pooling;
 
 import java.util.Objects;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.validation.DependenciesValidator;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 @ValidationType(ErrorType.FORBIDDEN_CR_DELETION)

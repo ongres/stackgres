@@ -7,16 +7,15 @@ package io.stackgres.common;
 
 import java.util.function.Supplier;
 
-import javax.inject.Singleton;
-
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator.Feature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import io.fabric8.kubernetes.client.utils.Serialization;
+import io.fabric8.kubernetes.client.utils.KubernetesSerialization;
 import io.quarkus.arc.Unremovable;
+import jakarta.inject.Singleton;
 
 @Singleton
 @Unremovable
@@ -32,7 +31,8 @@ public class YamlMapperProvider implements Supplier<YAMLMapper> {
       .build();
 
   static {
-    YAML_MAPPER.registerModules(Serialization.UNMATCHED_FIELD_TYPE_MODULE);
+    var kubernetesSerialization = new KubernetesSerialization();
+    YAML_MAPPER.registerModules(kubernetesSerialization.getUnmatchedFieldTypeModule());
   }
 
   @Override

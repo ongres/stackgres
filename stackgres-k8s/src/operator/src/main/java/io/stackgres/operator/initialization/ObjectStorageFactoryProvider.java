@@ -7,10 +7,9 @@ package io.stackgres.operator.initialization;
 
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ObjectStorageFactoryProvider

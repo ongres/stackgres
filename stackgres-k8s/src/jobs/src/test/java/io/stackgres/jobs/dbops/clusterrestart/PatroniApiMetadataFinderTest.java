@@ -12,31 +12,33 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 
-import javax.inject.Inject;
-
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.StringUtils;
+import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @WithKubernetesTestServer
 @QuarkusTest
-class PatroniApiMetadataFinderImplTest {
+class PatroniApiMetadataFinderTest {
 
   @Inject
   KubernetesClient client;
 
   @Inject
-  PatroniApiMetadataFinderImpl patroniApiFinder;
+  PatroniApiMetadataFinder patroniApiFinder;
 
   String clusterName;
   String namespace;
@@ -55,19 +57,25 @@ class PatroniApiMetadataFinderImplTest {
     patroniService.getMetadata().setNamespace(namespace);
     patroniService.getMetadata().setName(clusterName + "-rest");
 
-    client.namespaces()
-        .resource(new NamespaceBuilder()
-            .withMetadata(new ObjectMetaBuilder()
-                .withName(namespace)
-                .build())
+    createOrUpdate(client.namespaces(),
+        new NamespaceBuilder()
+        .withMetadata(new ObjectMetaBuilder()
+            .withName(namespace)
             .build())
-        .create();
-    client.secrets().inNamespace(namespace)
-        .resource(secret)
-        .create();
-    client.services().inNamespace(namespace)
-        .resource(patroniService)
-        .create();
+        .build());
+    createOrUpdate(client.secrets(), secret);
+    createOrUpdate(client.services(), patroniService);
+  }
+
+  private <T extends HasMetadata, L, R extends Resource<T>> void createOrUpdate(
+      NonNamespaceOperation<T, L, R> operation, T resource) {
+    var found = operation.resource(resource).get();
+    if (found == null) {
+      operation.resource(resource).create();
+    } else {
+      resource.setMetadata(found.getMetadata());
+      operation.resource(resource).update();
+    }
   }
 
   @Test
@@ -125,7 +133,7 @@ class PatroniApiMetadataFinderImplTest {
         .build()));
     client.services().inNamespace(namespace)
         .resource(service)
-        .replace();
+        .update();
 
     var ex = assertThrows(InvalidClusterException.class,
         () -> patroniApiFinder.getPatroniPort(clusterName, namespace));
@@ -144,10 +152,7 @@ class PatroniApiMetadataFinderImplTest {
   void givenAnInvalidClusterState_shouldToFindPasword() {
     secret.getData().remove("restapi-password");
     final String name = secret.getMetadata().getName();
-    client.secrets()
-        .inNamespace(namespace)
-        .resource(secret)
-        .replace();
+    createOrUpdate(client.secrets(), secret);
     var ex = assertThrows(InvalidClusterException.class,
         () -> patroniApiFinder.getPatroniPassword(clusterName, namespace));
     assertEquals("Could not find restapi-password in secret " + name,

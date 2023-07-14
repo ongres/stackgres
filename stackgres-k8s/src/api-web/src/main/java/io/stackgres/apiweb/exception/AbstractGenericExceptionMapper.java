@@ -5,14 +5,14 @@
 
 package io.stackgres.apiweb.exception;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.ext.ExceptionMapper;
-
 import com.google.common.base.Throwables;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.quarkus.security.UnauthorizedException;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.ext.ExceptionMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +22,8 @@ public abstract class AbstractGenericExceptionMapper<T extends Throwable>
   private static final Logger LOGGER = LoggerFactory.getLogger(
       AbstractGenericExceptionMapper.class);
 
+  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
+      justification = "false positive")
   @Override
   public Response toResponse(T throwable) {
     int statusCode = Status.INTERNAL_SERVER_ERROR.getStatusCode();

@@ -13,10 +13,8 @@ import static org.mockito.Mockito.when;
 
 import java.util.Optional;
 
-import javax.inject.Inject;
-
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -26,6 +24,7 @@ import io.stackgres.common.resource.DistributedLogsFinder;
 import io.stackgres.distributedlogs.common.ExtensionEventReason;
 import io.stackgres.operatorframework.resource.EventReason;
 import io.stackgres.testutil.StringUtils;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

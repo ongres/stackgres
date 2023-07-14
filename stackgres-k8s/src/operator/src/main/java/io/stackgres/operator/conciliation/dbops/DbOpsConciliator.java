@@ -5,10 +5,9 @@
 
 package io.stackgres.operator.conciliation.dbops;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.operator.conciliation.Conciliator;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class DbOpsConciliator extends Conciliator<StackGresDbOps> {

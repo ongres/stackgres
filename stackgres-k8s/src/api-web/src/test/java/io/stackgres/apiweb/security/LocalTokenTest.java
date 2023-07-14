@@ -77,13 +77,13 @@ class LocalTokenTest {
 
     mockServer.getClient().secrets().inNamespace(namespace)
         .resource(demoUser)
-        .createOrReplace();
+        .create();
     mockServer.getClient().secrets().inNamespace(namespace)
         .resource(demoUserNoLabels)
-        .createOrReplace();
+        .create();
     mockServer.getClient().secrets().inNamespace(namespace)
         .resource(demoUserNoApiUser)
-        .createOrReplace();
+        .create();
   }
 
   @AfterEach

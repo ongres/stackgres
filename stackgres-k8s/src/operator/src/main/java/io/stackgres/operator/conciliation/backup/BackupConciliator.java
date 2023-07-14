@@ -5,10 +5,9 @@
 
 package io.stackgres.operator.conciliation.backup;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.conciliation.Conciliator;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class BackupConciliator extends Conciliator<StackGresBackup> {

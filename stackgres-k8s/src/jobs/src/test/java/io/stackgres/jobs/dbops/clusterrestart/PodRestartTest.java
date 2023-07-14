@@ -16,30 +16,29 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import io.stackgres.common.resource.PodWriter;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
 @QuarkusTest
-class PodRestartImplTest {
+class PodRestartTest {
 
   private static final int MAX_RETRY_ATTEMPTS = 11;
 
   @Inject
-  PodRestartImpl podRestart;
+  PodRestart podRestart;
 
   @InjectMock
-  PodWatcherImpl podWatcher;
+  PodWatcher podWatcher;
 
   @InjectMock
   PodWriter podWriter;

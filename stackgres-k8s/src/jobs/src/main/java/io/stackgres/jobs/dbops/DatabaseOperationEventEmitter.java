@@ -5,13 +5,76 @@
 
 package io.stackgres.jobs.dbops;
 
-public interface DatabaseOperationEventEmitter {
+import java.util.function.Supplier;
 
-  void operationStarted(String dbOpName, String namespace);
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import io.stackgres.common.event.EventEmitter;
+import io.stackgres.common.resource.CustomResourceFinder;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
-  void operationCompleted(String dbOpName, String namespace);
+@ApplicationScoped
+public class DatabaseOperationEventEmitter {
 
-  void operationFailed(String dbOpName, String namespace);
+  private final EventEmitter<StackGresDbOps> eventEmitter;
+  private final CustomResourceFinder<StackGresDbOps> dbOpsFinder;
 
-  void operationTimedOut(String dbOpName, String namespace);
+  @Inject
+  public DatabaseOperationEventEmitter(
+      EventEmitter<StackGresDbOps> eventEmitter,
+      CustomResourceFinder<StackGresDbOps> dbOpsFinder) {
+    this.eventEmitter = eventEmitter;
+    this.dbOpsFinder = dbOpsFinder;
+  }
+
+  public void operationStarted(String dbOpName, String namespace) {
+
+    var dbOp = dbOpsFinder.findByNameAndNamespace(dbOpName, namespace)
+        .orElseThrow(dbOpsNotFound(dbOpName, namespace));
+
+    var operation = dbOp.getSpec().getOp();
+
+    eventEmitter.sendEvent(DbOpsEvents.DB_OP_STARTED,
+        "Database operation " + operation + " started", dbOp);
+  }
+
+  public void operationCompleted(String dbOpName, String namespace) {
+
+    var dbOp = dbOpsFinder.findByNameAndNamespace(dbOpName, namespace)
+        .orElseThrow(dbOpsNotFound(dbOpName, namespace));
+
+    var operation = dbOp.getSpec().getOp();
+
+    eventEmitter.sendEvent(DbOpsEvents.DB_OP_COMPLETED,
+        "Database operation " + operation + " completed", dbOp);
+
+  }
+
+  public void operationFailed(String dbOpName, String namespace) {
+    var dbOp = dbOpsFinder.findByNameAndNamespace(dbOpName, namespace)
+        .orElseThrow(dbOpsNotFound(dbOpName, namespace));
+
+    var operation = dbOp.getSpec().getOp();
+
+    eventEmitter.sendEvent(DbOpsEvents.DB_OP_FAILED,
+        "Database operation " + operation + " failed", dbOp);
+  }
+
+  public void operationTimedOut(String dbOpName, String namespace) {
+
+    var dbOp = dbOpsFinder.findByNameAndNamespace(dbOpName, namespace)
+        .orElseThrow(dbOpsNotFound(dbOpName, namespace));
+
+    var operation = dbOp.getSpec().getOp();
+
+    eventEmitter.sendEvent(DbOpsEvents.DB_OP_TIMEOUT,
+        "Database operation " + operation + " timed out", dbOp);
+
+  }
+
+  private Supplier<RuntimeException> dbOpsNotFound(String dbOpName, String namespace) {
+    return () ->
+        new IllegalArgumentException("DbOps " + dbOpName + "not found in namespace " + namespace);
+  }
+
 }

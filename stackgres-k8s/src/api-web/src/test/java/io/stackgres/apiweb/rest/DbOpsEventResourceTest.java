@@ -52,8 +52,8 @@ class DbOpsEventResourceTest implements AuthenticatedResourceTest {
 
   @Test
   void ifEventsAreCreated_itShouldReturnThenInAnArray() {
-    Job testJob = mockServer.getClient().batch().v1().jobs().inNamespace("test-namespace")
-        .create(new JobBuilder()
+    Job testJob = mockServer.getClient().batch().v1().jobs()
+        .resource(new JobBuilder()
             .withNewMetadata()
             .withNamespace("test-namespace")
             .withName("test-job")
@@ -64,9 +64,10 @@ class DbOpsEventResourceTest implements AuthenticatedResourceTest {
                 .withUid("1")
                 .build()))
             .endMetadata()
-            .build());
-    Pod testPod = mockServer.getClient().pods().inNamespace("test-namespace")
-        .create(new PodBuilder()
+            .build())
+        .create();
+    Pod testPod = mockServer.getClient().pods()
+        .resource(new PodBuilder()
             .withNewMetadata()
             .withNamespace("test-namespace")
             .withName("test-pod")
@@ -77,9 +78,10 @@ class DbOpsEventResourceTest implements AuthenticatedResourceTest {
                 .withUid("1")
                 .build()))
             .endMetadata()
-            .build());
-    mockServer.getClient().v1().events().inNamespace("test-namespace")
-        .create(new EventBuilder()
+            .build())
+        .create();
+    mockServer.getClient().v1().events()
+        .resource(new EventBuilder()
             .withNewMetadata()
             .withNamespace("test-namespace")
             .withName("test.1")
@@ -93,9 +95,10 @@ class DbOpsEventResourceTest implements AuthenticatedResourceTest {
                 .withName("test")
                 .withUid("1")
                 .build())
-            .build());
-    mockServer.getClient().v1().events().inNamespace("test-namespace")
-        .create(new EventBuilder()
+            .build())
+        .create();
+    mockServer.getClient().v1().events()
+        .resource(new EventBuilder()
             .withNewMetadata()
             .withNamespace("test-namespace")
             .withName("test.2")
@@ -109,9 +112,10 @@ class DbOpsEventResourceTest implements AuthenticatedResourceTest {
                 .withName("test-job")
                 .withUid(testJob.getMetadata().getUid())
                 .build())
-            .build());
-    mockServer.getClient().v1().events().inNamespace("test-namespace")
-        .create(new EventBuilder()
+            .build())
+        .create();
+    mockServer.getClient().v1().events()
+        .resource(new EventBuilder()
             .withNewMetadata()
             .withNamespace("test-namespace")
             .withName("test.3")
@@ -125,9 +129,10 @@ class DbOpsEventResourceTest implements AuthenticatedResourceTest {
                 .withName("test-pod")
                 .withUid(testPod.getMetadata().getUid())
                 .build())
-            .build());
-    mockServer.getClient().v1().events().inNamespace("test-namespace")
-        .create(new EventBuilder()
+            .build())
+        .create();
+    mockServer.getClient().v1().events()
+        .resource(new EventBuilder()
             .withNewMetadata()
             .withNamespace("test-namespace")
             .withName("test.4")
@@ -141,9 +146,10 @@ class DbOpsEventResourceTest implements AuthenticatedResourceTest {
                 .withName("test")
                 .withUid("1")
                 .build())
-            .build());
-    mockServer.getClient().v1().events().inNamespace("test-namespace")
-        .create(new EventBuilder()
+            .build())
+        .create();
+    mockServer.getClient().v1().events()
+        .resource(new EventBuilder()
             .withNewMetadata()
             .withNamespace("test-namespace")
             .withName("test.5")
@@ -157,7 +163,8 @@ class DbOpsEventResourceTest implements AuthenticatedResourceTest {
                 .withName("test")
                 .withUid("1")
                 .build())
-            .build());
+            .build())
+        .create();
 
     given()
         .when()

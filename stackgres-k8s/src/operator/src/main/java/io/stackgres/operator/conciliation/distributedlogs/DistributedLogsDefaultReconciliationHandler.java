@@ -5,13 +5,12 @@
 
 package io.stackgres.operator.conciliation.distributedlogs;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.AbstractReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ReconciliationScope(value = StackGresDistributedLogs.class, kind = "HasMetadata")
 @ApplicationScoped

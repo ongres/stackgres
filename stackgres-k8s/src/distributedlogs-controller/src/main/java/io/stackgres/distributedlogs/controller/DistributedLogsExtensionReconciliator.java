@@ -5,10 +5,6 @@
 
 package io.stackgres.distributedlogs.controller;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -17,6 +13,9 @@ import io.stackgres.common.extension.ExtensionReconciliator;
 import io.stackgres.distributedlogs.common.DistributedLogsControllerEventReason;
 import io.stackgres.distributedlogs.common.StackGresDistributedLogsContext;
 import io.stackgres.distributedlogs.configuration.DistributedLogsControllerPropertyContext;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;

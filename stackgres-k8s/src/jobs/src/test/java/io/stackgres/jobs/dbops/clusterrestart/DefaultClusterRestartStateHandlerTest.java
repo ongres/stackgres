@@ -8,8 +8,6 @@ package io.stackgres.jobs.dbops.clusterrestart;
 import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.quarkus.test.junit.QuarkusTest;
@@ -26,13 +24,14 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.jobs.dbops.AbstractRestartStateHandler;
 import io.stackgres.jobs.dbops.ClusterStateHandlerTest;
 import io.stackgres.jobs.dbops.StateHandler;
+import jakarta.inject.Inject;
 
 @QuarkusTest
-class ClusterRestartStateHandlerImplTest extends ClusterStateHandlerTest {
+class DefaultClusterRestartStateHandlerTest extends ClusterStateHandlerTest {
 
   @Inject
   @StateHandler("restart")
-  ClusterRestartStateHandlerImpl restartStateHandler;
+  DefaultClusterRestartStateHandler restartStateHandler;
 
   @Override
   public AbstractRestartStateHandler getRestartStateHandler() {

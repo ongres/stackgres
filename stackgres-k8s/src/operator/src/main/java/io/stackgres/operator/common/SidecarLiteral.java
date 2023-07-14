@@ -7,9 +7,8 @@ package io.stackgres.operator.common;
 
 import java.util.Objects;
 
-import javax.enterprise.util.AnnotationLiteral;
-
 import io.stackgres.common.StackGresContainer;
+import jakarta.enterprise.util.AnnotationLiteral;
 
 public class SidecarLiteral extends AnnotationLiteral<Sidecar> implements Sidecar {
 

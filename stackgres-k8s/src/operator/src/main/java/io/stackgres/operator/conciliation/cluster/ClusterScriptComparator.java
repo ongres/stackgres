@@ -7,12 +7,11 @@ package io.stackgres.operator.conciliation.cluster;
 
 import java.util.regex.Pattern;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import io.stackgres.operator.conciliation.comparator.AbstractComparator;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ReconciliationScope(value = StackGresCluster.class, kind = "SGScript")
 @ApplicationScoped

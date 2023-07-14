@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -18,6 +16,7 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.operator.conciliation.DeployedResourcesScanner;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ScriptDeployedResourceScanner extends DeployedResourcesScanner<StackGresScript> {

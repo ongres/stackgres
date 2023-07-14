@@ -12,11 +12,10 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import com.ongres.process.FluentProcess;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.StackGresUtil;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 

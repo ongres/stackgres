@@ -14,27 +14,26 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableMap;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.PatroniUtil;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
 @QuarkusTest
-class ClusterSwitchoverHandlerImplTest {
+class ClusterSwitchoverHandlerTest {
 
   private static final String TEST_CLUSTER_NAME = "test-cluster";
   private static final String TEST_NAMESPACE_NAME = "test-namespace";
   @Inject
-  ClusterSwitchoverHandlerImpl switchoverHandler;
+  ClusterSwitchoverHandler switchoverHandler;
 
   @InjectMock
-  PatroniApiHandlerImpl patroniApiHandler;
+  PatroniApiHandler patroniApiHandler;
 
   @Test
   void switchover_shouldScanTheMembersBeforeDoASwitchOver() {

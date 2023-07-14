@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.rest;
 
-import javax.ws.rs.core.Response;
-
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.fabric8.kubernetes.api.model.StatusDetailsBuilder;
@@ -16,6 +14,7 @@ import io.stackgres.apiweb.exception.KubernetesExceptionMapper;
 import io.stackgres.apiweb.rest.utils.Kubernetes16StatusParser;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.fixture.Fixtures;
+import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

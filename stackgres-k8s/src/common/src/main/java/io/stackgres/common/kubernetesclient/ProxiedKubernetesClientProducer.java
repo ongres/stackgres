@@ -9,42 +9,42 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-import javax.annotation.PreDestroy;
-import javax.enterprise.inject.Produces;
-import javax.inject.Singleton;
-
+import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
+import io.fabric8.kubernetes.client.utils.KubernetesSerialization;
+import jakarta.annotation.PreDestroy;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-public class KubernetesClientProducer {
+public class ProxiedKubernetesClientProducer {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(KubernetesClientProducer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(
+      ProxiedKubernetesClientProducer.class);
 
-  private volatile KubernetesClient client;
-  private volatile KubernetesClient proxyClient;
+  private final KubernetesClient client;
+  private final KubernetesClient proxyClient;
+
+  @Inject
+  public ProxiedKubernetesClientProducer(
+      KubernetesSerialization kubernetesSerialization, Config config) {
+    this.client = new KubernetesClientBuilder()
+        .withKubernetesSerialization(kubernetesSerialization)
+        .withConfig(config)
+        .build();
+    this.proxyClient = (KubernetesClient) Proxy
+        .newProxyInstance(ProxiedKubernetesClientProducer.class.getClassLoader(),
+            new Class[] { KubernetesClient.class },
+            new KubernetesClientInvocationHandler(client));
+  }
 
   @Produces
   public KubernetesClient create() {
-    LOGGER.trace("Returning proxy instance of Kubernetes Client");
-    if (proxyClient == null) {
-      createClient();
-    }
     return proxyClient;
-  }
-
-  private synchronized void createClient() {
-    if (proxyClient == null) {
-      LOGGER.info("Creating proxy instance of Kubernetes client");
-      client = new KubernetesClientBuilder().build();
-
-      proxyClient = (KubernetesClient) Proxy
-          .newProxyInstance(KubernetesClientProducer.class.getClassLoader(),
-              new Class[] { KubernetesClient.class },
-              new KubernetesClientInvocationHandler(client));
-    }
   }
 
   @PreDestroy
@@ -57,7 +57,7 @@ public class KubernetesClientProducer {
     }
   }
 
-  private static class KubernetesClientInvocationHandler implements InvocationHandler {
+  public static class KubernetesClientInvocationHandler implements InvocationHandler {
 
     private final KubernetesClient client;
 
@@ -68,7 +68,7 @@ public class KubernetesClientProducer {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
       if ("close".equals(method.getName())) {
-        LOGGER.trace("Ignoring close call of KubernetesClient instance.");
+        LOGGER.warn("Ignoring close call of KubernetesClient instance.", new Exception());
         return null;
       }
       try {

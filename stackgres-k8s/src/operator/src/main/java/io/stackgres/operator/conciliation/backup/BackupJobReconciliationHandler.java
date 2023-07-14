@@ -7,9 +7,6 @@ package io.stackgres.operator.conciliation.backup;
 
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
@@ -22,6 +19,8 @@ import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operator.conciliation.AbstractJobReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ReconciliationScope(value = StackGresBackup.class, kind = "Job")
 @ApplicationScoped

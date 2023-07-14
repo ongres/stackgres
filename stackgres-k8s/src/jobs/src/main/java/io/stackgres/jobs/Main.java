@@ -5,8 +5,6 @@
 
 package io.stackgres.jobs;
 
-import javax.inject.Inject;
-
 import com.fasterxml.jackson.databind.SerializationFeature;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.utils.Serialization;
@@ -22,6 +20,7 @@ import io.stackgres.jobs.crdupgrade.CustomResourceDefinitionFinder;
 import io.stackgres.jobs.crdupgrade.WebhookConfigurator;
 import io.stackgres.jobs.crdupgrade.WebhookConfiguratorImpl;
 import io.stackgres.jobs.dbops.DbOpLauncher;
+import jakarta.inject.Inject;
 
 @QuarkusMain
 public class Main implements QuarkusApplication {

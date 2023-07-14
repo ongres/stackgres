@@ -8,9 +8,6 @@ package io.stackgres.operator.validation.cluster;
 import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
@@ -27,6 +24,8 @@ import io.stackgres.operator.validation.AbstractExtensionsValidator;
 import io.stackgres.operator.validation.ExtensionReview;
 import io.stackgres.operator.validation.ImmutableExtensionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 @Singleton
 public class ExtensionsValidator extends AbstractExtensionsValidator<StackGresClusterReview>

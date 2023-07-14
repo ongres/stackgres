@@ -9,8 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Instant;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.Event;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectReference;
@@ -22,6 +20,7 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
 import io.stackgres.testutil.StringUtils;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,7 +28,7 @@ import org.opentest4j.AssertionFailedError;
 
 @WithKubernetesTestServer
 @QuarkusTest
-class DatabaseOperationEventEmitterImplTest {
+class DatabaseOperationEventEmitterTest {
 
   @Inject
   public MockKubeDb kubeDb;
@@ -38,7 +37,7 @@ class DatabaseOperationEventEmitterImplTest {
   public String clusterName = StringUtils.getRandomClusterName();
   public StackGresDbOps dbOps;
   @Inject
-  DatabaseOperationEventEmitterImpl databaseOperationEventEmitter;
+  DatabaseOperationEventEmitter databaseOperationEventEmitter;
   @Inject
   KubernetesClient client;
 

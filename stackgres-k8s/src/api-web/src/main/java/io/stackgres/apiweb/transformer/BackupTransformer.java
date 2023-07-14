@@ -5,9 +5,6 @@
 
 package io.stackgres.apiweb.transformer;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.apiweb.dto.backup.BackupDto;
 import io.stackgres.apiweb.dto.backup.BackupInformation;
@@ -19,6 +16,8 @@ import io.stackgres.common.crd.sgbackup.StackGresBackupInformation;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class BackupTransformer extends AbstractResourceTransformer<BackupDto, StackGresBackup> {

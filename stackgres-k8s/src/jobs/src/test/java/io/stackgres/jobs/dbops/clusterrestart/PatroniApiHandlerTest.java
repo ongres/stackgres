@@ -14,10 +14,8 @@ import java.time.Duration;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-import javax.inject.Inject;
-
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import io.stackgres.testutil.StringUtils;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -31,22 +29,23 @@ import io.vertx.ext.web.handler.AuthenticationHandler;
 import io.vertx.ext.web.handler.BasicAuthHandler;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.junit5.VertxTestContext;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class PatroniApiHandlerImplTest {
+class PatroniApiHandlerTest {
 
   Vertx vertx = Vertx.vertx();
 
   HttpServer mockServer;
 
   @InjectMock
-  PatroniApiMetadataFinderImpl patroniApiFinder;
+  PatroniApiMetadataFinder patroniApiFinder;
 
   @Inject
-  PatroniApiHandlerImpl patroniApiHandler;
+  PatroniApiHandler patroniApiHandler;
 
   String username = StringUtils.getRandomString();
   String password = StringUtils.getRandomString();

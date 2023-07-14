@@ -7,7 +7,7 @@ package io.stackgres.common.prometheus;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.fabric8.kubernetes.client.CustomResourceList;
+import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.sundr.builder.annotations.Buildable;
 
@@ -17,7 +17,7 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class PrometheusConfigList extends CustomResourceList<PrometheusConfig> {
+public class PrometheusConfigList extends DefaultKubernetesResourceList<PrometheusConfig> {
 
   private static final long serialVersionUID = 1L;
 

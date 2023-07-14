@@ -10,8 +10,6 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import javax.inject.Singleton;
-
 import com.google.common.io.Resources;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.SecretKeySelector;
@@ -20,6 +18,7 @@ import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.common.crd.sgscript.StackGresScriptFrom;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
+import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 

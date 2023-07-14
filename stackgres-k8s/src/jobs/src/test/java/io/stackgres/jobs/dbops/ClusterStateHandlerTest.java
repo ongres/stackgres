@@ -24,12 +24,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
-import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.Multi;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
@@ -42,7 +40,7 @@ import io.stackgres.common.crd.sgdbops.DbOpsRestartStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.event.DbOpsEventEmitter;
 import io.stackgres.common.fixture.Fixtures;
-import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartImpl;
+import io.stackgres.jobs.dbops.clusterrestart.ClusterRestart;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.ImmutableRestartEventForTest;
 import io.stackgres.jobs.dbops.clusterrestart.InvalidClusterException;
@@ -50,6 +48,7 @@ import io.stackgres.jobs.dbops.clusterrestart.PodTestUtil;
 import io.stackgres.jobs.dbops.clusterrestart.RestartEventType;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
 import io.stackgres.testutil.StringUtils;
+import jakarta.inject.Inject;
 import org.apache.commons.compress.utils.Lists;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,7 +59,7 @@ import org.mockito.InOrder;
 public abstract class ClusterStateHandlerTest {
 
   @InjectMock
-  public ClusterRestartImpl clusterRestart;
+  public ClusterRestart clusterRestart;
 
   @Inject
   public PodTestUtil podTestUtil;

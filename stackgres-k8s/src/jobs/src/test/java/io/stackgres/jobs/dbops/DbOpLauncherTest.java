@@ -23,13 +23,11 @@ import static org.mockito.Mockito.when;
 import java.time.Duration;
 import java.time.Instant;
 
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.junit.mockito.InjectSpy;
 import io.smallrye.mutiny.TimeoutException;
 import io.smallrye.mutiny.Uni;
@@ -43,11 +41,12 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
-import io.stackgres.jobs.dbops.lock.LockAcquirerImpl;
+import io.stackgres.jobs.dbops.lock.LockAcquirer;
 import io.stackgres.jobs.dbops.lock.LockRequest;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
 import io.stackgres.jobs.dbops.securityupgrade.SecurityUpgradeJob;
 import io.stackgres.testutil.StringUtils;
+import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,23 +55,23 @@ import org.mockito.InOrder;
 import org.mockito.stubbing.Answer;
 
 @QuarkusTest
-class DbOpLauncherImplTest {
+class DbOpLauncherTest {
 
   @InjectMock
   @DatabaseOperation("securityUpgrade")
   SecurityUpgradeJob securityUpgradeJob;
 
   @Inject
-  DbOpLauncherImpl dbOpLauncher;
+  DbOpLauncher dbOpLauncher;
 
   @Inject
   MockKubeDb mockKubeDb;
 
   @InjectSpy
-  LockAcquirerImpl lockAcquirer;
+  LockAcquirer lockAcquirer;
 
   @InjectMock
-  DatabaseOperationEventEmitterImpl databaseOperationEventEmitter;
+  DatabaseOperationEventEmitter databaseOperationEventEmitter;
 
   StackGresDbOps dbOps;
 

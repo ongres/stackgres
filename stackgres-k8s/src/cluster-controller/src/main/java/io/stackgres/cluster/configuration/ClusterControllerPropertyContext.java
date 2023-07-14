@@ -5,11 +5,10 @@
 
 package io.stackgres.cluster.configuration;
 
-import javax.inject.Singleton;
-
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.controller.PodLocalControllerContext;
+import jakarta.inject.Singleton;
 
 @Singleton
 public class ClusterControllerPropertyContext

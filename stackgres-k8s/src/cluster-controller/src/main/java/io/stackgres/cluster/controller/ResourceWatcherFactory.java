@@ -5,13 +5,12 @@
 
 package io.stackgres.cluster.controller;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.WatcherException;
 import io.stackgres.cluster.common.ClusterControllerEventReason;
 import io.stackgres.operatorframework.resource.AbstractResourceWatcherFactory;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ResourceWatcherFactory extends AbstractResourceWatcherFactory {
