@@ -159,7 +159,7 @@ cluster:
     sgPoolingConfig: pgbouncerconf
     backups:
       retention: 5
-      cronSchedule: "*/2 * * * *"
+      cronSchedule: "0 5 * * *"
       compression: lz4
       performance:
         uploadDiskConcurrency: 1
