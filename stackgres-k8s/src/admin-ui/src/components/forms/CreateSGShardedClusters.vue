@@ -211,8 +211,9 @@
                                 v-if="( ( (extLicense == 'opensource') && (ext.name != 'timescaledb_tsl') ) || ( (extLicense == 'nonopensource') && (ext.name == 'timescaledb_tsl') ) ) && (!searchExtension.length || (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)) && ext.versions.length" 
                                 class="extension" 
                                 :class="( (viewExtension == index) && 'show')">
-                                <label>
-                                    <input type="checkbox" class="plain enableExtension" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)" :disabled="!ext.versions.length || !ext.selectedVersion.length" :data-field="'spec.postgres.extensions.' + ext.name" />
+                                <label><input type="checkbox" class="plain enableExtension" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)" :disabled="!ext.versions.length || !ext.selectedVersion.length" :data-field="'spec.postgres.extensions.' + ext.name" /></label>
+                                
+                                <span class="extInfo" @click.stop.prevent="viewExt(index)">
                                     <span class="hasTooltip extName">
                                         <span class="name">
                                             <span>{{ ext.name }}</span>
@@ -231,8 +232,9 @@
                                             <span>{{ ext.abstract }}</span>
                                         </span>
                                     </span>
-                                </label>
-                                <button type="button" class="textBtn anchor toggleExt" @click.stop.prevent="viewExt(index)">-</button>
+                                
+                                    <button type="button" class="textBtn anchor toggleExt">-</button>
+                                </span>
 
                                 <div v-if="(viewExtension == index)" class="extDetails">
                                     <div class="header">
@@ -5987,9 +5989,19 @@
     }
 
     .extension > label {
-        font-weight: bold;
         cursor: pointer;
-        width: calc(100% - 30px);
+        width: 68px;
+        display: inline-block;
+    }
+
+    .extInfo {
+        cursor: pointer;
+        width: calc(100% - 68px);
+        display: inline-block;
+    }
+
+    .extName {
+        font-weight: bold;
     }
 
     .extension > label input {
@@ -6076,9 +6088,11 @@
         display: block;
     }
 
-    li.extension.show > label:after {
+    li.extension.show .extInfo:after {
         height: 1px;
-        width: calc(100% + 30px);
+        width: calc(100% + 68px);
+        left: -68px;
+        position: relative;
         content: " ";
         margin-top: 10px;
         display: block;
@@ -6205,6 +6219,7 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         transform: translateY(3px);
+        width: calc(100% - 320px);
     }
 
     .extension a.newTab {
