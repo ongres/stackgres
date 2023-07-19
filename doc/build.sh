@@ -41,6 +41,11 @@ cat "$CRD_PATH/index.txt" \
       crdoc --resources "$CRD_PATH/$CRD_FILE" \
         -o "$(dirname "$0")/generated/${CRD_FILE%.yaml}.md" \
         --template "$(dirname "$0")/CRD.tmpl"
+      TARGET_PATH="$(ls -d "$(dirname "$0")/content/en/06-crd-reference/"*"-$(echo "${CRD_FILE%.yaml}" | tr 'A-Z' 'a-z')")"
+      INCLUDE_LINE="$(cat "$TARGET_PATH/_index.template.md" | grep -nxF '{{% include "generated/'"${CRD_FILE%.yaml}"'.md" %}}' | cut -d : -f 1)"
+      head -n "$((INCLUDE_LINE - 1))" "$TARGET_PATH/_index.template.md" > "$TARGET_PATH/_index.md"
+      cat "$(dirname "$0")/generated/${CRD_FILE%.yaml}.md" >> "$TARGET_PATH/_index.md"
+      tail -n +"$((INCLUDE_LINE + 1))" "$TARGET_PATH/_index.template.md" >> "$TARGET_PATH/_index.md"
     done
     }
 mv "$(dirname "$0")/../stackgres-k8s/install/helm/stackgres-operator/generated.md" \
