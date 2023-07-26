@@ -306,6 +306,13 @@ EOF
   fi
   echo "...done"
 
+  if [ "$ENABLE_METRIC_SERVER" = true ]
+  then
+    setup_metric_server
+  fi
+}
+
+setup_metric_server() {
   echo "Setting up metric server for kind..."
   kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
   kubectl patch -n kube-system deploy metrics-server --type json \
