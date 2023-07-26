@@ -18,8 +18,8 @@ import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceScheduler;
-import io.stackgres.operator.conciliation.ComparisonDelegator;
-import io.stackgres.operator.conciliation.Conciliator;
+import io.stackgres.operator.conciliation.AbstractConciliator;
+import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
@@ -36,7 +36,9 @@ class ScriptReconciliatorTest {
 
   private final StackGresScript script = Fixtures.script().loadDefault().get();
   @Mock
-  Conciliator<StackGresScript> conciliator;
+  AbstractConciliator<StackGresScript> conciliator;
+  @Mock
+  DeployedResourcesCache deployedResourcesCache;
   @Mock
   HandlerDelegator<StackGresScript> handlerDelegator;
   @Mock
@@ -45,8 +47,6 @@ class ScriptReconciliatorTest {
   EventEmitter<StackGresScript> eventController;
   @Mock
   CustomResourceScheduler<StackGresScript> scriptScheduler;
-  @Mock
-  ComparisonDelegator<StackGresScript> resourceComparator;
 
   private ScriptReconciliator reconciliator;
 
@@ -54,6 +54,7 @@ class ScriptReconciliatorTest {
   void setUp() {
     ScriptReconciliator.Parameters parameters = new ScriptReconciliator.Parameters();
     parameters.conciliator = conciliator;
+    parameters.deployedResourcesCache = deployedResourcesCache;
     parameters.handlerDelegator = handlerDelegator;
     parameters.eventController = eventController;
     parameters.statusManager = statusManager;

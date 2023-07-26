@@ -27,7 +27,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniInitialConfig;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.patroni.PatroniConfig;
-import io.stackgres.common.resource.ResourceUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.LoggerFactory;
@@ -128,7 +128,11 @@ public interface PatroniUtil {
   }
 
   static String restName(StackGresCluster cluster) {
-    return ResourceUtil.nameIsValidService(cluster.getMetadata().getName() + REST_SERVICE);
+    return restName(cluster.getMetadata().getName());
+  }
+
+  static String restName(String clusterName) {
+    return ResourceUtil.nameIsValidService(clusterName + REST_SERVICE);
   }
 
   static String configName(CustomResource<?, ?> cluster) {

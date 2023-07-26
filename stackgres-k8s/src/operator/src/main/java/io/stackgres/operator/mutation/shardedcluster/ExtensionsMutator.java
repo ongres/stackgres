@@ -26,8 +26,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
+import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
-import io.stackgres.operator.common.OperatorExtensionMetadataManager;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.mutation.AbstractExtensionsMutator;
 import io.stackgres.operator.validation.ValidationUtil;
@@ -40,19 +40,19 @@ public class ExtensionsMutator
     extends AbstractExtensionsMutator<StackGresShardedCluster, StackGresShardedClusterReview>
     implements ShardedClusterMutator {
 
-  private final OperatorExtensionMetadataManager extensionMetadataManager;
+  private final ExtensionMetadataManager extensionMetadataManager;
   private final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
       supportedPostgresVersions;
 
   @Inject
   public ExtensionsMutator(
-      OperatorExtensionMetadataManager extensionMetadataManager) {
+      ExtensionMetadataManager extensionMetadataManager) {
     this(extensionMetadataManager,
         ValidationUtil.SUPPORTED_SHARDED_CLUSTER_POSTGRES_VERSIONS);
   }
 
   public ExtensionsMutator(
-      OperatorExtensionMetadataManager extensionMetadataManager,
+      ExtensionMetadataManager extensionMetadataManager,
       Map<StackGresComponent, Map<StackGresVersion, List<String>>> supportedPostgresVersions) {
     this.extensionMetadataManager = extensionMetadataManager;
     this.supportedPostgresVersions = supportedPostgresVersions;
@@ -129,7 +129,7 @@ public class ExtensionsMutator
   }
 
   @Override
-  protected OperatorExtensionMetadataManager getExtensionMetadataManager() {
+  protected ExtensionMetadataManager getExtensionMetadataManager() {
     return extensionMetadataManager;
   }
 

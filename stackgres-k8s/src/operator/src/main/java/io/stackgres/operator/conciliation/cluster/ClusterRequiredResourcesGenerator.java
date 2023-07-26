@@ -59,13 +59,13 @@ import io.stackgres.common.prometheus.PrometheusInstallation;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresSslSecret;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

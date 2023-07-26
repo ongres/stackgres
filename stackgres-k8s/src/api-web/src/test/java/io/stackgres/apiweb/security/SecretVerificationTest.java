@@ -16,7 +16,7 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.quarkus.security.AuthenticationFailedException;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.resource.ResourceScanner;
-import io.stackgres.common.resource.ResourceUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

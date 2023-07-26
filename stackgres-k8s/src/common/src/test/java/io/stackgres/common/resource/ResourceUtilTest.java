@@ -5,6 +5,7 @@
 
 package io.stackgres.common.resource;
 
+import static io.stackgres.operatorframework.resource.ResourceUtil.labelKey;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -78,46 +79,46 @@ class ResourceUtilTest {
   void testIllegalArgumentPrefix() {
     String rand = StringUtil.generateRandom(10);
     assertThrows(IllegalArgumentException.class,
-        () -> ResourceUtil.labelKey("kubernetes.io/" + rand));
+        () -> labelKey("kubernetes.io/" + rand));
     assertThrows(IllegalArgumentException.class,
-        () -> ResourceUtil.labelKey("k8s.io/" + rand));
+        () -> labelKey("k8s.io/" + rand));
 
     assertThrows(IllegalArgumentException.class,
-        () -> ResourceUtil.labelKey("devil-variety-list-blow-valence-"
+        () -> labelKey("devil-variety-list-blow-valence-"
             + "flow-boundary-Bromine-hall-imitate.moment.none.witness.everlasting."
             + "overcome.noble.box-ecosystem-scrape.measure-5.stackgres.io/" + rand));
 
     assertThrows(IllegalArgumentException.class,
-        () -> ResourceUtil.labelKey("could-office-golden-describe-"
+        () -> labelKey("could-office-golden-describe-"
             + "destruction-depolymerization-particle-speed-heating-industry-1"));
 
     assertThrows(IllegalArgumentException.class,
-        () -> ResourceUtil.labelKey("could-office-golden-describe-"
+        () -> labelKey("could-office-golden-describe-"
             + "destruction-depolymerization-particle-speed-heating-industry-"));
 
     assertThrows(IllegalArgumentException.class,
-        () -> ResourceUtil.labelKey("aPp.stackgres.io/This-is.a-demo"));
+        () -> labelKey("aPp.stackgres.io/This-is.a-demo"));
 
     assertThrows(IllegalArgumentException.class,
-        () -> ResourceUtil.labelKey("app/"));
+        () -> labelKey("app/"));
 
     assertThrows(IllegalArgumentException.class,
-        () -> ResourceUtil.labelKey("App/My.demoApp"));
+        () -> labelKey("App/My.demoApp"));
 
     assertThrows(IllegalArgumentException.class,
-        () -> ResourceUtil.labelKey("-My-App-9"));
+        () -> labelKey("-My-App-9"));
     assertThrows(IllegalArgumentException.class,
-        () -> ResourceUtil.labelKey("My-App-9."));
+        () -> labelKey("My-App-9."));
   }
 
   @Test
   void testValidPrefix() {
     String rand = StringUtil.generateRandom(10);
-    assertDoesNotThrow(() -> ResourceUtil.labelKey("environment/" + rand));
+    assertDoesNotThrow(() -> labelKey("environment/" + rand));
 
-    assertDoesNotThrow(() -> ResourceUtil.labelKey(""));
+    assertDoesNotThrow(() -> labelKey(""));
 
-    assertDoesNotThrow(() -> ResourceUtil.labelKey("loop.halloween.beta.case.generates.departments."
+    assertDoesNotThrow(() -> labelKey("loop.halloween.beta.case.generates.departments."
         + "cancelled.kingdom.million.resources.com/My-App"));
   }
 

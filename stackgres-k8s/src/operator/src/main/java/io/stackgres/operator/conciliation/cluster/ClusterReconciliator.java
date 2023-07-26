@@ -12,6 +12,7 @@ import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
@@ -25,9 +26,9 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.ClusterPatchResumer;
+import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
-import io.stackgres.operator.conciliation.ComparisonDelegator;
-import io.stackgres.operator.conciliation.Conciliator;
+import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
@@ -42,13 +43,14 @@ public class ClusterReconciliator
   static class Parameters {
     @Inject CustomResourceScanner<StackGresCluster> scanner;
     @Inject CustomResourceFinder<StackGresCluster> finder;
-    @Inject Conciliator<StackGresCluster> conciliator;
+    @Inject AbstractConciliator<StackGresCluster> conciliator;
+    @Inject DeployedResourcesCache deployedResourcesCache;
     @Inject HandlerDelegator<StackGresCluster> handlerDelegator;
     @Inject KubernetesClient client;
     @Inject StatusManager<StackGresCluster, Condition> statusManager;
     @Inject EventEmitter<StackGresCluster> eventController;
     @Inject CustomResourceScheduler<StackGresCluster> clusterScheduler;
-    @Inject ComparisonDelegator<StackGresCluster> resourceComparator;
+    @Inject ObjectMapper objectMapper;
   }
 
   private final StatusManager<StackGresCluster, Condition> statusManager;
@@ -59,12 +61,13 @@ public class ClusterReconciliator
   @Inject
   public ClusterReconciliator(Parameters parameters) {
     super(parameters.scanner, parameters.finder,
-        parameters.conciliator, parameters.handlerDelegator,
-        parameters.client, StackGresCluster.KIND);
+        parameters.conciliator, parameters.deployedResourcesCache,
+        parameters.handlerDelegator, parameters.client,
+        StackGresCluster.KIND);
     this.statusManager = parameters.statusManager;
     this.eventController = parameters.eventController;
     this.clusterScheduler = parameters.clusterScheduler;
-    this.patchResumer = new ClusterPatchResumer(parameters.resourceComparator);
+    this.patchResumer = new ClusterPatchResumer(parameters.objectMapper);
   }
 
   void onStart(@Observes StartupEvent ev) {

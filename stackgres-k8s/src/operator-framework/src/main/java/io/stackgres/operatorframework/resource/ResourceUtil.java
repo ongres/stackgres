@@ -5,6 +5,8 @@
 
 package io.stackgres.operatorframework.resource;
 
+import static java.lang.String.format;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
+import com.google.common.net.InternetDomainName;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectReference;
@@ -23,10 +26,23 @@ import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public interface ResourceUtil {
+
+  int DNS_SUBDOMAIN_NAME_MAX_LENGTH = 253;
+  int DNS_LABEL_MAX_LENGTH = 63;
+  int STS_DNS_LABEL_MAX_LENGTH = 52;
+  int JOB_DNS_LABEL_MAX_LENGTH = 53;
+  int CRON_JOB_DNS_LABEL_MAX_LENGTH = 52;
+
+  Pattern DNS_LABEL_NAME = Pattern.compile("^[a-z]([-a-z0-9]*[a-z0-9])?$");
+  Pattern VALID_VALUE =
+      Pattern.compile("^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$");
+  Pattern PREFIX_PART =
+      Pattern.compile("^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$");
 
   Logger LOGGER = LoggerFactory.getLogger(ResourceUtil.class);
   Pattern INDEX_PATTERN = Pattern.compile("^.*-([0-9]+)$");
@@ -53,11 +69,6 @@ public interface ResourceUtil {
         .anyMatch(name::equals);
   }
 
-  static String resourceName(String name) {
-    Preconditions.checkArgument(name.length() <= 253);
-    return name;
-  }
-
   static String sanitizedResourceName(String name) {
     return name
         .toLowerCase(Locale.US)
@@ -65,9 +76,39 @@ public interface ResourceUtil {
         .replaceAll("(^-+|-+$)", "");
   }
 
-  static String volumeName(String name) {
-    Preconditions.checkArgument(name.length() <= 63);
+  private static String resourceName(String name, int maxLength) {
+    Preconditions.checkArgument(name.length() <= maxLength,
+        format("Valid name must be %s characters or less. But was %d (%s)",
+            maxLength, name.length(), name));
+    Preconditions.checkArgument(DNS_LABEL_NAME.matcher(name).matches(),
+        format("Name must consist of lower case alphanumeric "
+            + "characters or '-', start with an alphabetic character, "
+            + "and end with an alphanumeric character. But was %s", name));
     return name;
+  }
+
+  static String resourceName(String name) {
+    return resourceName(name, 253);
+  }
+
+  static String nameIsValidService(String name) {
+    return resourceName(name, DNS_LABEL_MAX_LENGTH);
+  }
+
+  static String nameIsValidDnsSubdomainForSts(String name) {
+    return resourceName(name, STS_DNS_LABEL_MAX_LENGTH);
+  }
+
+  static String nameIsValidDnsSubdomainForJob(String name) {
+    return resourceName(name, JOB_DNS_LABEL_MAX_LENGTH);
+  }
+
+  static String nameIsValidDnsSubdomainForCronJob(String name) {
+    return resourceName(name, CRON_JOB_DNS_LABEL_MAX_LENGTH);
+  }
+
+  static String nameIsValidDnsSubdomain(String name) {
+    return resourceName(name, DNS_SUBDOMAIN_NAME_MAX_LENGTH);
   }
 
   static String cutVolumeName(String name) {
@@ -86,13 +127,47 @@ public interface ResourceUtil {
     return name;
   }
 
-  static String labelKey(String name) {
-    Preconditions.checkArgument(name.length() <= 63);
+  static @NotNull String labelKey(@NotNull String name) {
+    String label = name;
+    if (name.indexOf('/') != -1) {
+      Preconditions.checkArgument(
+          !name.startsWith("kubernetes.io/") && !name.startsWith("k8s.io/"),
+          format("The kubernetes.io/ and k8s.io/ prefixes are reserved"
+              + " for Kubernetes core components. But was %s", name));
+
+      final String[] split = name.split("/");
+      Preconditions.checkArgument(split.length == 2, "name part must be non-empty");
+
+      String prefix = split[0];
+
+      Preconditions.checkArgument(PREFIX_PART.matcher(prefix).matches(),
+          format("Prefix part a lowercase RFC 1123 subdomain must consist of lower case "
+              + "alphanumeric characters, '-' or '.', and must start and end "
+              + "with an alphanumeric character. But was %s", prefix));
+
+      InternetDomainName.from(prefix);
+
+      label = split[1];
+    }
+
+    if (!label.isBlank()) {
+      Preconditions.checkArgument(VALID_VALUE.matcher(label).matches(),
+          "Label key not compliant with pattern %s, was %s", VALID_VALUE.pattern(), name);
+    }
+
+    Preconditions.checkArgument(label.length() <= 63,
+        format("Label key must be 63 characters or less but was %d (%s)", name.length(), name));
+
     return name;
   }
 
-  static String labelValue(String name) {
-    Preconditions.checkArgument(name.length() <= 63);
+  static @NotNull String labelValue(@NotNull String name) {
+    if (!name.isBlank()) {
+      Preconditions.checkArgument(VALID_VALUE.matcher(name).matches(),
+          "Label value not compliant with pattern %s, was %s", VALID_VALUE.pattern(), name);
+    }
+    Preconditions.checkArgument(name.length() <= 63,
+        format("Label value must be 63 characters or less but was %d (%s)", name.length(), name));
     return name;
   }
 
@@ -101,11 +176,19 @@ public interface ResourceUtil {
   }
 
   static Pattern getNameWithIndexPattern(String name) {
-    return Pattern.compile("^" + Pattern.quote(name) + "-([0-9]+)$");
+    return Pattern.compile(getNameWithIndexPatternString(name));
+  }
+
+  static String getNameWithIndexPatternString(@NotNull String name) {
+    return "^" + Pattern.quote(name) + "-([0-9]+)$";
   }
 
   static Pattern getNameWithHashPattern(String name) {
-    return Pattern.compile("^" + Pattern.quote(name) + "-([a-z0-9]+){10}-([a-z0-9]+){5}$");
+    return Pattern.compile(getNameWithHashPatternString(name));
+  }
+
+  static String getNameWithHashPatternString(@NotNull String name) {
+    return "^" + Pattern.quote(name) + "-([a-z0-9]+){10}-([a-z0-9]+){5}$";
   }
 
   /**
@@ -139,6 +222,18 @@ public interface ResourceUtil {
    * Get the owner reference of any resource.
    */
   static OwnerReference getOwnerReference(HasMetadata resource) {
+    return new OwnerReferenceBuilder()
+        .withApiVersion(resource.getApiVersion())
+        .withKind(resource.getKind())
+        .withName(resource.getMetadata().getName())
+        .withUid(resource.getMetadata().getUid())
+        .build();
+  }
+
+  /**
+   * Get the owner reference of any resource.
+   */
+  static OwnerReference getControllerOwnerReference(HasMetadata resource) {
     return new OwnerReferenceBuilder()
         .withApiVersion(resource.getApiVersion())
         .withKind(resource.getKind())

@@ -51,8 +51,6 @@ public interface StackGresContext {
 
   String VERSION_KEY = STACKGRES_KEY_PREFIX + "operatorVersion";
   String RECONCILIATION_PAUSE_KEY = STACKGRES_KEY_PREFIX + "reconciliation-pause";
-  String RECONCILIATION_PAUSE_UNTIL_RESTART_KEY =
-      STACKGRES_KEY_PREFIX + "reconciliation-pause-until-restart";
   String CLUSTER_CONTROLLER_VERSION_KEY = STACKGRES_KEY_PREFIX + "cluster-controller-version";
   String DISTRIBUTEDLOGS_CONTROLLER_VERSION_KEY =
       STACKGRES_KEY_PREFIX + "distributedlogs-controller-version";

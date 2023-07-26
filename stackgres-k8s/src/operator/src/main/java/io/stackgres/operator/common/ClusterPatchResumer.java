@@ -6,18 +6,18 @@
 package io.stackgres.operator.common;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.conciliation.ComparisonDelegator;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
 public class ClusterPatchResumer extends PatchResumer<StackGresCluster> {
 
-  public ClusterPatchResumer(ComparisonDelegator<StackGresCluster> resourceComparator) {
-    super(resourceComparator);
+  public ClusterPatchResumer(ObjectMapper objectMapper) {
+    super(objectMapper);
   }
 
   @Override

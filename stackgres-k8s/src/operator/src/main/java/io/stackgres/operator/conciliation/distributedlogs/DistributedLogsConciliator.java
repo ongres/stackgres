@@ -5,41 +5,64 @@
 
 package io.stackgres.operator.conciliation.distributedlogs;
 
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.operator.conciliation.Conciliator;
-import io.stackgres.operator.conciliation.ReconciliationResult;
-import io.stackgres.operator.conciliation.ReconciliationUtil;
+import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.operator.conciliation.AbstractConciliator;
+import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
+import io.stackgres.operator.conciliation.DeployedResourcesCache;
+import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 
 @ApplicationScoped
-public class DistributedLogsConciliator extends Conciliator<StackGresDistributedLogs> {
+public class DistributedLogsConciliator extends AbstractConciliator<StackGresDistributedLogs> {
 
-  private final DistributedLogsStatusManager distributedLogsStatusManager;
+  private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
   @Inject
-  public DistributedLogsConciliator(DistributedLogsStatusManager distributedLogsStatusManager) {
-    this.distributedLogsStatusManager = distributedLogsStatusManager;
+  public DistributedLogsConciliator(
+      RequiredResourceGenerator<StackGresDistributedLogs> requiredResourceGenerator,
+      AbstractDeployedResourcesScanner<StackGresDistributedLogs> deployedResourcesScanner,
+      DeployedResourcesCache deployedResourcesCache,
+      LabelFactoryForCluster<StackGresDistributedLogs> labelFactory) {
+    super(requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
+    this.labelFactory = labelFactory;
   }
 
   @Override
-  public ReconciliationResult evalReconciliationState(StackGresDistributedLogs config) {
-    final ReconciliationResult reconciliationResult = super.evalReconciliationState(config);
-
-    if (distributedLogsStatusManager.isPendingRestart(config)) {
-      reconciliationResult.setDeletions(reconciliationResult.getDeletions().stream()
-          .filter(ReconciliationUtil::isResourceReconciliationNotPausedUntilRestart)
-          .collect(Collectors.toUnmodifiableList()));
-
-      reconciliationResult.setPatches(reconciliationResult.getPatches().stream()
-          .filter(tuple -> ReconciliationUtil
-              .isResourceReconciliationNotPausedUntilRestart(tuple.v2))
-          .collect(Collectors.toUnmodifiableList()));
+  protected boolean forceChange(HasMetadata requiredResource, StackGresDistributedLogs config) {
+    if (requiredResource instanceof StatefulSet requiredStatefulSet
+        && requiredStatefulSet.getMetadata().getName().equals(
+            config.getMetadata().getName())) {
+      Map<String, String> primaryLabels =
+          labelFactory.clusterPrimaryLabelsWithoutUidAndScope(config);
+      boolean result = deployedResourcesCache
+          .stream()
+          .noneMatch(deployedResource -> deployedResource.deployed() instanceof Pod deployedPod
+              && Optional.of(deployedPod.getMetadata())
+              .map(ObjectMeta::getLabels)
+              .filter(labels -> primaryLabels.entrySet().stream()
+                  .allMatch(primaryLabel -> labels.entrySet().stream()
+                      .anyMatch(primaryLabel::equals)))
+              .isPresent());
+      if (result && LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Will force StatefulSet reconciliation since no primary pod with labels {} was"
+            + " found for SGDistributedLogs {}.{}",
+            primaryLabels,
+            config.getMetadata().getNamespace(),
+            config.getMetadata().getName());
+      }
+      return result;
     }
-
-    return reconciliationResult;
+    return false;
   }
+
 }

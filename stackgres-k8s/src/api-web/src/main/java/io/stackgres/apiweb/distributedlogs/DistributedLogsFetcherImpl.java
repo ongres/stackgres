@@ -31,7 +31,7 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.postgres.PostgresConnectionManager;
 import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.common.resource.ResourceUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Select;

@@ -27,8 +27,9 @@ import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
-import io.stackgres.operator.conciliation.Conciliator;
+import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
@@ -41,7 +42,8 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
   static class Parameters {
     @Inject CustomResourceScanner<StackGresDistributedLogs> scanner;
     @Inject CustomResourceFinder<StackGresDistributedLogs> finder;
-    @Inject Conciliator<StackGresDistributedLogs> conciliator;
+    @Inject AbstractConciliator<StackGresDistributedLogs> conciliator;
+    @Inject DeployedResourcesCache deployedResourcesCache;
     @Inject HandlerDelegator<StackGresDistributedLogs> handlerDelegator;
     @Inject KubernetesClient client;
     @Inject ConnectedClustersScanner connectedClustersScanner;
@@ -58,8 +60,9 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
   @Inject
   public DistributedLogsReconciliator(Parameters parameters) {
     super(parameters.scanner, parameters.finder,
-        parameters.conciliator, parameters.handlerDelegator,
-        parameters.client, StackGresDistributedLogs.KIND);
+        parameters.conciliator, parameters.deployedResourcesCache,
+        parameters.handlerDelegator, parameters.client,
+        StackGresDistributedLogs.KIND);
     this.connectedClustersScanner = parameters.connectedClustersScanner;
     this.distributedLogsScheduler = parameters.distributedLogsScheduler;
     this.statusManager = parameters.statusManager;

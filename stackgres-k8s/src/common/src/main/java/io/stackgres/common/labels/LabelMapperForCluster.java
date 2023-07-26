@@ -5,9 +5,10 @@
 
 package io.stackgres.common.labels;
 
+import static io.stackgres.operatorframework.resource.ResourceUtil.labelKey;
+
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.resource.ResourceUtil;
 
 public interface LabelMapperForCluster<T extends CustomResource<?, ?>>
     extends LabelMapper<T> {
@@ -29,7 +30,7 @@ public interface LabelMapperForCluster<T extends CustomResource<?, ?>>
   }
 
   default String clusterScopeKey(T resource) {
-    return ResourceUtil.labelKey(resourceScopeKey(resource));
+    return labelKey(resourceScopeKey(resource));
   }
 
   String resourceScopeKey(T resource);

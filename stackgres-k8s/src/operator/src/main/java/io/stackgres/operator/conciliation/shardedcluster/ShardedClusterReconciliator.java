@@ -10,6 +10,7 @@ import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
@@ -22,9 +23,9 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.PatchResumer;
+import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
-import io.stackgres.operator.conciliation.ComparisonDelegator;
-import io.stackgres.operator.conciliation.Conciliator;
+import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
@@ -39,13 +40,14 @@ public class ShardedClusterReconciliator
   static class Parameters {
     @Inject CustomResourceScanner<StackGresShardedCluster> scanner;
     @Inject CustomResourceFinder<StackGresShardedCluster> finder;
-    @Inject Conciliator<StackGresShardedCluster> conciliator;
+    @Inject AbstractConciliator<StackGresShardedCluster> conciliator;
+    @Inject DeployedResourcesCache deployedResourcesCache;
     @Inject HandlerDelegator<StackGresShardedCluster> handlerDelegator;
     @Inject KubernetesClient client;
     @Inject StatusManager<StackGresShardedCluster, Condition> statusManager;
     @Inject EventEmitter<StackGresShardedCluster> eventController;
     @Inject CustomResourceScheduler<StackGresShardedCluster> clusterScheduler;
-    @Inject ComparisonDelegator<StackGresShardedCluster> resourceComparator;
+    @Inject ObjectMapper objectMapper;
   }
 
   private final StatusManager<StackGresShardedCluster, Condition> statusManager;
@@ -56,12 +58,13 @@ public class ShardedClusterReconciliator
   @Inject
   public ShardedClusterReconciliator(Parameters parameters) {
     super(parameters.scanner, parameters.finder,
-        parameters.conciliator, parameters.handlerDelegator,
-        parameters.client, StackGresShardedCluster.KIND);
+        parameters.conciliator, parameters.deployedResourcesCache,
+        parameters.handlerDelegator, parameters.client,
+        StackGresShardedCluster.KIND);
     this.statusManager = parameters.statusManager;
     this.eventController = parameters.eventController;
     this.clusterScheduler = parameters.clusterScheduler;
-    this.patchResumer = new PatchResumer<>(parameters.resourceComparator);
+    this.patchResumer = new PatchResumer<>(parameters.objectMapper);
   }
 
   void onStart(@Observes StartupEvent ev) {

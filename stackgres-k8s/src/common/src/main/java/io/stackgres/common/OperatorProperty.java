@@ -21,7 +21,9 @@ public enum OperatorProperty implements StackGresPropertyReader {
   EXTENSIONS_REPOSITORY_URLS("stackgres.extensionsRepositoryUrls"),
   CONFLICT_SLEEP_SECONDS("stackgres.conflictSleepSeconds"),
   LOCK_POLL_INTERVAL("stackgres.lockPollInterval"),
-  LOCK_TIMEOUT("stackgres.lockTimeout");
+  LOCK_TIMEOUT("stackgres.lockTimeout"),
+  RECONCILIATION_CACHE_EXPIRATION("stackgres.reconciliationCacheExpitarion"),
+  RECONCILIATION_CACHE_SIZE("stackgres.reconciliationCacheSize");
 
   private static final Properties APPLICATION_PROPERTIES =
       StackGresPropertyReader.readApplicationProperties(OperatorProperty.class);

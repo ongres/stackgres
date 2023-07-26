@@ -19,8 +19,9 @@ import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
-import io.stackgres.operator.conciliation.Conciliator;
+import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import org.slf4j.helpers.MessageFormatter;
@@ -33,7 +34,8 @@ public class ScriptReconciliator
   public static class Parameters {
     @Inject CustomResourceScanner<StackGresScript> scanner;
     @Inject CustomResourceFinder<StackGresScript> finder;
-    @Inject Conciliator<StackGresScript> conciliator;
+    @Inject AbstractConciliator<StackGresScript> conciliator;
+    @Inject DeployedResourcesCache deployedResourcesCache;
     @Inject HandlerDelegator<StackGresScript> handlerDelegator;
     @Inject KubernetesClient client;
     @Inject EventEmitter<StackGresScript> eventController;
@@ -48,8 +50,9 @@ public class ScriptReconciliator
   @Inject
   public ScriptReconciliator(Parameters parameters) {
     super(parameters.scanner, parameters.finder,
-        parameters.conciliator, parameters.handlerDelegator,
-        parameters.client, StackGresScript.KIND);
+        parameters.conciliator, parameters.deployedResourcesCache,
+        parameters.handlerDelegator, parameters.client,
+        StackGresScript.KIND);
     this.eventController = parameters.eventController;
     this.scriptScheduler = parameters.scriptScheduler;
     this.statusManager = parameters.statusManager;

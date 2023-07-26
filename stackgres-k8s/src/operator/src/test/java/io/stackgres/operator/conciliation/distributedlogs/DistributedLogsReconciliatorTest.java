@@ -20,7 +20,8 @@ import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
-import io.stackgres.operator.conciliation.Conciliator;
+import io.stackgres.operator.conciliation.AbstractConciliator;
+import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
@@ -41,7 +42,9 @@ class DistributedLogsReconciliatorTest {
   @Mock
   CustomResourceFinder<StackGresDistributedLogs> finder;
   @Mock
-  Conciliator<StackGresDistributedLogs> conciliator;
+  AbstractConciliator<StackGresDistributedLogs> conciliator;
+  @Mock
+  DeployedResourcesCache deployedResourcesCache;
   @Mock
   HandlerDelegator<StackGresDistributedLogs> handlerDelegator;
   @Mock
@@ -61,6 +64,7 @@ class DistributedLogsReconciliatorTest {
         new DistributedLogsReconciliator.Parameters();
     parameters.finder = finder;
     parameters.conciliator = conciliator;
+    parameters.deployedResourcesCache = deployedResourcesCache;
     parameters.handlerDelegator = handlerDelegator;
     parameters.eventController = eventController;
     parameters.statusManager = statusManager;

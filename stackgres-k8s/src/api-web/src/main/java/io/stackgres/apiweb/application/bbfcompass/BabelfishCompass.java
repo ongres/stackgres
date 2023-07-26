@@ -42,7 +42,7 @@ import io.stackgres.apiweb.application.SgApplication;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.resource.PodExecutor;
-import io.stackgres.common.resource.ResourceUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

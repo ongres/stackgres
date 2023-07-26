@@ -44,7 +44,7 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.common.resource.ResourceUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;

@@ -10,12 +10,12 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import io.stackgres.operator.conciliation.ResourceDiscoverer;
+import io.stackgres.operator.conciliation.AbstractResourceDiscoverer;
 import io.stackgres.operator.conciliation.factory.PodTemplateFactory;
 
 @ApplicationScoped
 public class PodTemplateFactoryDiscovererImpl
-    extends ResourceDiscoverer<PodTemplateFactory<ClusterContainerContext>>
+    extends AbstractResourceDiscoverer<PodTemplateFactory<ClusterContainerContext>>
     implements PodTemplateFactoryDiscoverer<ClusterContainerContext> {
 
   @Inject

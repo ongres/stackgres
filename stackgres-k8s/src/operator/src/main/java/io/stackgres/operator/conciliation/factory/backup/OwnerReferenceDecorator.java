@@ -12,10 +12,10 @@ import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.OwnerReference;
-import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.backup.StackGresBackupContext;
 import io.stackgres.operator.conciliation.factory.Decorator;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 
 @Singleton
@@ -27,7 +27,7 @@ public class OwnerReferenceDecorator implements
   public void decorate(StackGresBackupContext context,
       Iterable<? extends HasMetadata> resources) {
     List<OwnerReference> ownerReferences = List
-        .of(ResourceUtil.getOwnerReference(context.getSource()));
+        .of(ResourceUtil.getControllerOwnerReference(context.getSource()));
     Seq.seq(resources)
         .filter(resource -> Objects.equals(
             resource.getMetadata().getNamespace(),

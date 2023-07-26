@@ -15,11 +15,11 @@ import javax.inject.Inject;
 
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.StackGresVersion;
-import io.stackgres.operator.conciliation.ResourceDiscoverer;
+import io.stackgres.operator.conciliation.AbstractResourceDiscoverer;
 
 @ApplicationScoped
 public class ClusterEnvironmentVariablesFactoryDiscovererImpl
-    extends ResourceDiscoverer<ClusterEnvironmentVariablesFactory<ClusterContext>>
+    extends AbstractResourceDiscoverer<ClusterEnvironmentVariablesFactory<ClusterContext>>
     implements ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext> {
 
   @Inject

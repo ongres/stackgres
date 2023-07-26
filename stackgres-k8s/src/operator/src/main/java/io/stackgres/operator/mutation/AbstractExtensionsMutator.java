@@ -14,8 +14,8 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.extension.ExtensionUtil;
-import io.stackgres.operator.common.OperatorExtensionMetadataManager;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.mutating.Mutator;
@@ -24,7 +24,7 @@ import org.jooq.lambda.Seq;
 public abstract class AbstractExtensionsMutator<R extends CustomResource<?, ?>,
     T extends AdmissionReview<R>> implements Mutator<R, T> {
 
-  protected abstract OperatorExtensionMetadataManager getExtensionMetadataManager();
+  protected abstract ExtensionMetadataManager getExtensionMetadataManager();
 
   @Override
   public R mutate(T review, R resource) {

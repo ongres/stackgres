@@ -20,13 +20,15 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.labels.LabelFactoryForDbOps;
-import io.stackgres.operator.conciliation.DeployedResourcesScanner;
+import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
+import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.ReconciliationOperations;
 
 @ApplicationScoped
-public class DbOpsDeployedResourceScanner extends DeployedResourcesScanner<StackGresDbOps>
+public class DbOpsDeployedResourceScanner extends AbstractDeployedResourcesScanner<StackGresDbOps>
     implements ReconciliationOperations {
 
   private final KubernetesClient client;
@@ -34,10 +36,19 @@ public class DbOpsDeployedResourceScanner extends DeployedResourcesScanner<Stack
 
   @Inject
   public DbOpsDeployedResourceScanner(
+      DeployedResourcesCache deployedResourcesCache,
       KubernetesClient client,
       LabelFactoryForDbOps labelFactory) {
+    super(deployedResourcesCache);
     this.client = client;
     this.labelFactory = labelFactory;
+  }
+
+  public DbOpsDeployedResourceScanner() {
+    super(null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.client = null;
+    this.labelFactory = null;
   }
 
   @Override

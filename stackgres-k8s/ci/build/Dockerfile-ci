@@ -131,9 +131,9 @@ FROM registry.access.redhat.com/ubi8-minimal:8.7-1107
   RUN chmod a+x /bin/kubectl
   RUN wget -O /bin/kind-0.15.0 "https://github.com/kubernetes-sigs/kind/releases/download/v0.15.0/kind-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
   RUN chmod a+x /bin/kind-0.15.0
-  RUN wget -O /bin/kind-0.19.0 "https://github.com/kubernetes-sigs/kind/releases/download/v0.19.0/kind-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
-  RUN chmod a+x /bin/kind-0.19.0
-  RUN ln -s /bin/kind-0.19.0 /bin/kind
+  RUN wget -O /bin/kind-0.20.0 "https://github.com/kubernetes-sigs/kind/releases/download/v0.20.0/kind-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
+  RUN chmod a+x /bin/kind-0.20.0
+  RUN ln -s /bin/kind-0.20.0 /bin/kind
   RUN wget -O /bin/k3d "https://github.com/rancher/k3d/releases/download/v5.5.1/k3d-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
   RUN chmod a+x /bin/k3d
   RUN wget "https://get.helm.sh/helm-v3.12.0-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64).tar.gz" -O -|tar xz --strip-components=1 -C /bin -f - "linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/helm"

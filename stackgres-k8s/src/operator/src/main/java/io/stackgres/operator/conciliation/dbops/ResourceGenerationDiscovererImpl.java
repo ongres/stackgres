@@ -12,13 +12,13 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import io.stackgres.operator.conciliation.ResourceDiscoverer;
+import io.stackgres.operator.conciliation.AbstractResourceDiscoverer;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 
 @ApplicationScoped
 public class ResourceGenerationDiscovererImpl
-    extends ResourceDiscoverer<ResourceGenerator<StackGresDbOpsContext>>
+    extends AbstractResourceDiscoverer<ResourceGenerator<StackGresDbOpsContext>>
     implements ResourceGenerationDiscoverer<StackGresDbOpsContext> {
 
   @Inject

@@ -12,7 +12,7 @@ import static org.junit.Assert.assertNotNull;
 import java.io.IOException;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.stackgres.common.resource.ResourceUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 class CrdMatchMetadataNamePatternTest extends CrdMatchTestHelper {
 

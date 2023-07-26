@@ -16,9 +16,9 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
-import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceDecoratorTest;
 import io.stackgres.operator.conciliation.RequiredResourceDecorator;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.junit.jupiter.api.BeforeEach;
 
 @QuarkusTest

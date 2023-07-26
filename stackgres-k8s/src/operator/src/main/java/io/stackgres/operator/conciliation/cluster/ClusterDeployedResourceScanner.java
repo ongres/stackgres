@@ -17,16 +17,19 @@ import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
-import io.stackgres.operator.conciliation.DeployedResourcesScanner;
+import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
+import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.ReconciliationOperations;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 
 @ApplicationScoped
-public class ClusterDeployedResourceScanner extends DeployedResourcesScanner<StackGresCluster>
+public class ClusterDeployedResourceScanner
+    extends AbstractDeployedResourcesScanner<StackGresCluster>
     implements ReconciliationOperations {
 
   private final KubernetesClient client;
@@ -35,12 +38,22 @@ public class ClusterDeployedResourceScanner extends DeployedResourcesScanner<Sta
 
   @Inject
   public ClusterDeployedResourceScanner(
+      DeployedResourcesCache deployedResourcesCache,
       KubernetesClient client,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
       OperatorPropertyContext operatorContext) {
+    super(deployedResourcesCache);
     this.client = client;
     this.labelFactory = labelFactory;
     this.prometheusAutobind = operatorContext.getBoolean(OperatorProperty.PROMETHEUS_AUTOBIND);
+  }
+
+  public ClusterDeployedResourceScanner() {
+    super(null);
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.client = null;
+    this.labelFactory = null;
+    this.prometheusAutobind = false;
   }
 
   @Override

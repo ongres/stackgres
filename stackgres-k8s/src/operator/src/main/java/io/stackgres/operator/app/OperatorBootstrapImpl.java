@@ -41,7 +41,6 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
 
   @Override
   public void bootstrap() {
-
     try {
       if (client.getKubernetesVersion() != null) {
         LOGGER.info("Kubernetes version: {}", client.getKubernetesVersion().getGitVersion());
@@ -65,7 +64,6 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
       }
       throw e;
     }
-
   }
 
   private boolean hasCustomResource(KubernetesClient client,
