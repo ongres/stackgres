@@ -1,13 +1,10 @@
 ---
 title: SGPostgresConfig
 weight: 3
-url: /reference/crd/sgpgconfig
+url: /reference/crd/sgpostgresconfig
 description: Details about SGPostgresConfig
+shotToc: true
 ---
-
-The `SGPostgresConfig` custom resource represents the PostgreSQL configuration.
-
-> Have a look at [postgresqlco.nf](https://postgresqlco.nf) to help you tune and optimize your PostgreSQL configuration.
 
 ___
 
@@ -18,14 +15,33 @@ ___
 **plural:** sgpgconfigs
 
 **singular:** sgpgconfig
+
+**shortNames** sgpgc
 ___
 
-**Spec**
+The `SGPostgresConfig` custom resource represents the PostgreSQL configuration.
 
-| <div style="width:9rem">Property</div> | Required | Updatable | <div style="width:4rem">Type</div> | Default   | Description |
-|:---------------------------------------|----------|-----------|:-----------------------------------|:----------|:------------|
-| postgresVersion                        |          |           | string                             | 12        | {{< crd-field-description SGPostgresConfig.spec.postgresVersion >}} |
-| postgresql.conf                        |          | ✓         | object                             | see below | {{< crd-field-description "SGPostgresConfig.spec.postgresql\.conf" >}} |
+> Have a look at [postgresqlco.nf](https://postgresqlco.nf) to help you tune and optimize your PostgreSQL configuration.
+
+**Example:**
+
+```yaml
+apiVersion: stackgres.io/v1
+kind: SGPostgresConfig
+metadata:
+  name: postgresconf
+spec:
+  postgresVersion: "11"
+  postgresql.conf:
+    password_encryption: 'scram-sha-256'
+    random_page_cost: '1.5'
+    shared_buffers: '256MB'
+    wal_compression: 'on'
+```
+
+See also [Postgres Configuration section]({{%  relref "04-administration-guide/03-configuration/01-postgres-configuration" %}}).
+
+{{% include "generated/SGPostgresConfig.md" %}}
 
 ## Default Values
 
@@ -98,24 +114,6 @@ pg_stat_statements.track_utility: off
 
 # see https://gitlab.com/ongresinc/stackgres/-/issues/741
 jit_inline_above_cost: -1
-```
-
-## Example
-
-`SGPostgresConfig` example:
-
-```yaml
-apiVersion: stackgres.io/v1
-kind: SGPostgresConfig
-metadata:
-  name: postgresconf
-spec:
-  postgresVersion: "11"
-  postgresql.conf:
-    password_encryption: 'scram-sha-256'
-    random_page_cost: '1.5'
-    shared_buffers: '256MB'
-    wal_compression: 'on'
 ```
 
 ## Parameter Denylist / Blocklist

@@ -3,6 +3,7 @@
 K8S_K3D_NAME="${K8S_K3D_NAME:-k3s-default}"
 K8S_K3S_VERSION="${K8S_K3S_VERSION:-k3s1}"
 K8S_VERSION="${K8S_VERSION:-1.13.12}"
+K8S_USE_INTERNAL_REPOSITORY=false
 if [ "$K8S_VERSION" = "$DEFAULT_K8S_VERSION" ]
 then
   >&2 echo "Warning: using kubernetes version 1.17.2 since e2e default $DEFAULT_K8S_VERSION is not available for k3s"
@@ -10,20 +11,31 @@ then
 fi
 
 export K8S_K3D_NAME K8S_VERSION K8S_K3S_VERSION
+K3D_5_5_1="${K3D_5_5_1:-k3d-5.5.1}"
+
+check_k3d_version() {
+  K3D="$K3D_5_5_1"
+  if ! "$K3D" version | grep -q -F 'k3d version v5.5.1'
+  then
+    echo "To run Kubernetes 1.18+ k3d v5.5.1 is required"
+    return 1
+  fi
+}
 
 get_k8s_env_version() {
-  echo "K3D version $(k3d version | head -n 1 | cut -d ' ' -f 3)"
-  echo "K3S version $(k3d version | tail -n 1 | cut -d ' ' -f 3)"
+  echo "K3D version $("$K3D" version | head -n 1 | cut -d ' ' -f 3)"
+  echo "K3S version $("$K3D" version | tail -n 1 | cut -d ' ' -f 3)"
   echo
 }
 
 update_k8s_config() {
+  check_k3d_version
+
   mkdir -p "$HOME/.kube"
-  mkdir -p "$HOME/.config/k3d/$K8S_K3D_NAME"
 
   (
-  k3d get-kubeconfig -o --name "$K8S_K3D_NAME"
-  K8S_K3D_CONFIG="$(k3d get-kubeconfig --name "$K8S_K3D_NAME")"
+  K8S_K3D_CONFIG="$HOME/.config/k3d-$K8S_K3D_NAME"
+  "$K3D" kubeconfig get "$K8S_K3D_NAME" > "$K8S_K3D_CONFIG"
   if [ "$K8S_FROM_DIND" = true ]
   then
     DOCKER_NAME="$(docker inspect -f '{{.Name}}' "$(hostname)"|cut -d '/' -f 2)"
@@ -46,8 +58,10 @@ update_k8s_config() {
 }
 
 reuse_k8s() {
-  if ! k3d list 2>/dev/null | grep -q "^|[ ]\+$K8S_K3D_NAME[ ]\+|" \
-      || ! docker inspect "k3d-$K8S_K3D_NAME-server" -f '{{ .State.Status }}' | grep -q 'running'
+  check_k3d_version
+
+  if ! "$K3D" cluster list 2>/dev/null | tail -n +2 | tr -s ' ' | cut -d ' ' -f 1 | grep -qxF "$K8S_K3D_NAME" \
+      || ! docker inspect "k3d-$K8S_K3D_NAME-server-0" -f '{{ .State.Status }}' | grep -q 'running'
   then
     echo "Can not reuse k3d environment $K8S_K3D_NAME"
     reset_k8s
@@ -60,6 +74,8 @@ reuse_k8s() {
 }
 
 reset_k8s() {
+  check_k3d_version
+
   echo "Setting up k3d environment $K8S_K3D_NAME..."
 
   delete_k8s
@@ -73,11 +89,11 @@ reset_k8s() {
   else
     K8S_K3D_API_PORT="${K8S_K3D_API_PORT:-6443}"
   fi
-  k3d create --name "$K8S_K3D_NAME" \
+  "$K3D" cluster create "$K8S_K3D_NAME" --no-lb \
     --api-port "$K8S_K3D_API_PORT" \
-    --workers 2 \
+    --servers 1 \
     --image "docker.io/rancher/k3s:v${K8S_VERSION}-${K8S_K3S_VERSION}" \
-    --wait "$E2E_TIMEOUT"
+    --wait --timeout "${E2E_TIMEOUT}s"
 
   update_k8s_config
 
@@ -85,27 +101,33 @@ reset_k8s() {
 }
 
 delete_k8s() {
+  check_k3d_version
+
   echo "Deleting k3s environment $K8S_K3D_NAME..."
 
-  rm -f "$(k3d get-kubeconfig --name "$K8S_K3D_NAME")"
+  rm -f "$HOME/.config/k3d-$K8S_K3D_NAME"
 
-  if k3d list 2>/dev/null | grep -q "^|[ ]\+$K8S_K3D_NAME[ ]\+|"
+  if "$K3D" cluster list 2>/dev/null | tail -n +2 | tr -s ' ' | cut -d ' ' -f 1 | grep -qxF "$K8S_K3D_NAME"
   then
-    k3d delete --name "$K8S_K3D_NAME"
+    "$K3D" cluster delete "$K8S_K3D_NAME"
   fi
 
   echo "...done"
 }
 
 load_image_k8s() {
+  check_k3d_version
+
   echo "Loading image $1 in k3d environemnt $K8S_K3D_NAME..."
   
-  k3d import-images --name "$K8S_K3D_NAME" "$1"
+  "$K3D" images import -c "$K8S_K3D_NAME" "$1"
 
   echo "...done"
 }
 
 load_certificate_k8s() {
+  check_k3d_version
+
   echo "Loading certificate $1 in k3d environemnt $KIND_NAME..."
 
   echo "k3d-$K8S_K3D_NAME-server" "k3d-$K8S_K3D_NAME-worker-0" "k3d-$K8S_K3D_NAME-worker-1" \
