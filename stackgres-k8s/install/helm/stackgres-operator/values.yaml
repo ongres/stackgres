@@ -287,19 +287,9 @@ grafana:
   #   StackGres dashboards will be created. (used to embed automatically Grafana)
   dashboardConfigMap:
   # -- (array) The URLs of the PostgreSQL dashboards created in Grafana (used to embed manually
-  #   Grafana). It must contain an entry for each JSON file under `grafana-dashboards` folder.
-  #   Example:
-  #   ```
-  #   urls:
-  #     archiving.json:
-  #     connection-pooling.json:
-  #     current-activity.json:
-  #     db-info.json:
-  #     db-objects.json:
-  #     db-os.json:
-  #     queries.json:
-  #     replication.json:
-  #   ```
+  #   Grafana). It must contain an entry for each JSON file under `grafana-dashboards` folder: `archiving.json`, 
+  #   `connection-pooling.json`, `current-activity.json`, `db-info.json`, `db-objects.json`, `db-os.json`, `queries.json`
+  #   and `replication.json`
   urls:
   # Create and copy/paste grafana API token:
   # - Grafana > Configuration > API Keys > Add API key (for viewer) > Copy key value
