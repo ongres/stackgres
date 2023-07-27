@@ -7,9 +7,11 @@ package io.stackgres.operator.conciliation.factory.config.webconsole;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -77,11 +79,12 @@ public class WebConsoleGrafanaIntegartionConfigMap
             "/webconsole/integrate-grafana.sh")),
             StandardCharsets.UTF_8)
         .read()).get());
-    data.put("grafana-dashboard.json", Unchecked.supplier(() -> Resources
-        .asCharSource(Objects.requireNonNull(PostgresExporter.class.getResource(
-            "/webconsole/grafana-dashboard.json")),
-            StandardCharsets.UTF_8)
-        .read()).get());
+    getDashboards().forEach(dashboardFile -> data.put(
+            dashboardFile, Unchecked.supplier(() -> Resources
+                .asCharSource(Objects.requireNonNull(PostgresExporter.class.getResource(
+                    "/webconsole/grafana-dashboard/" + dashboardFile)),
+                    StandardCharsets.UTF_8)
+                .read()).get()));
 
     return Stream.of(new ConfigMapBuilder()
         .withNewMetadata()
@@ -91,6 +94,17 @@ public class WebConsoleGrafanaIntegartionConfigMap
         .endMetadata()
         .withData(data)
         .build());
+  }
+
+  public static List<String> getDashboards() {
+    return Unchecked.supplier(() -> Resources
+        .asCharSource(Objects.requireNonNull(PostgresExporter.class.getResource(
+            "/webconsole/grafana-dashboard/index.txt")),
+            StandardCharsets.UTF_8)
+        .read()).get()
+        .lines()
+        .filter(Predicate.not(String::isBlank))
+        .toList();
   }
 
 }

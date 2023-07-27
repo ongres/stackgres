@@ -250,7 +250,7 @@ prometheus:
 # Section to configure Grafana integration 
 grafana:
   # -- When set to `true` embed automatically Grafana into the Web Console by creating the
-  #   StackGres dashboard and the read-only role used to read it from the Web Console 
+  #   StackGres dashboards and the read-only role used to read it from the Web Console 
   autoEmbed: false
   # -- The schema to access Grafana. By default http. (used to embed manually and
   #   automatically grafana)
@@ -260,7 +260,7 @@ grafana:
   # The parameter value should point to the grafana service following the 
   #   [DNS reference](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/) `svc_name.namespace`
   webHost:
-  # -- The datasource name used to create the StackGres Dashboard into Grafana
+  # -- The datasource name used to create the StackGres Dashboards into Grafana
   datasourceName: Prometheus
   # -- The username to access Grafana. By default admin. (used to embed automatically
   #   Grafana)
@@ -282,29 +282,29 @@ grafana:
   # -- (string) The key of secret with password used to access Grafana. (used to
   #   embed automatically Grafana, alternative to use `user` and `password`)
   secretPasswordKey:
-  # -- (string) The ConfigMap name with the dashboard JSON in the key `grafana-dashboard.json`
+  # -- (string) The ConfigMap name with the dashboard JSONs
   #   that will be created in Grafana. If not set the default
-  #   StackGres dashboard will be created. (used to embed automatically Grafana)
+  #   StackGres dashboards will be created. (used to embed automatically Grafana)
   dashboardConfigMap:
-  # Manual Steps:
-  # 
-  # Create grafana dashboard for postgres exporter and copy/paste share URL:
-  # - Grafana > Create > Import > Grafana.com Dashboard 9628
-  # Copy/paste grafana dashboard URL for postgres exporter:
-  # - Grafana > Dashboard > Manage > Select postgres exporter dashboard > Copy URL
-
-  # -- (string) The dashboard id that will be create in Grafana
-  #   (see https://grafana.com/grafana/dashboards). By default 9628. (used to embed automatically
-  #   Grafana)
-  dashboardId:
-  # -- (string) The URL of the PostgreSQL dashboard created in Grafana (used to embed manually
-  #   Grafana)
-  url:
-
+  # -- (array) The URLs of the PostgreSQL dashboards created in Grafana (used to embed manually
+  #   Grafana). It must contain an entry for each JSON file under `grafana-dashboards` folder.
+  #   Example:
+  #   ```
+  #   urls:
+  #     archiving.json:
+  #     connection-pooling.json:
+  #     current-activity.json:
+  #     db-info.json:
+  #     db-objects.json:
+  #     db-os.json:
+  #     queries.json:
+  #     replication.json:
+  #   ```
+  urls:
   # Create and copy/paste grafana API token:
   # - Grafana > Configuration > API Keys > Add API key (for viewer) > Copy key value
 
-  # -- (string) The Grafana API token to access the PostgreSQL dashboard created
+  # -- (string) The Grafana API token to access the PostgreSQL dashboards created
   #   in Grafana (used to embed manually Grafana)
   token:
 
