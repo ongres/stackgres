@@ -10,45 +10,45 @@ import java.util.Optional;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 
-public record DeployedResourceValue(
+public record DeployedResource(
     Optional<HasMetadata> required,
     HasMetadata deployed,
     ObjectNode deployedNode,
-    HasMetadata latestDeployed,
-    ObjectNode latestDeployedNode) {
+    HasMetadata foundDeployed,
+    ObjectNode foundDeployedNode) {
 
-  public static DeployedResourceValue create(
+  public static DeployedResource create(
       HasMetadata required,
       HasMetadata deployed,
       ObjectNode deployedNode,
-      HasMetadata latestDeployed,
-      ObjectNode latestDeployedNode) {
-    return new DeployedResourceValue(
+      HasMetadata foundDeployed,
+      ObjectNode foundDeployedNode) {
+    return new DeployedResource(
         Optional.of(required),
         deployed,
         deployedNode,
-        latestDeployed,
-        latestDeployedNode);
+        foundDeployed,
+        foundDeployedNode);
   }
 
-  public static DeployedResourceValue create(
+  public static DeployedResource create(
       HasMetadata deployed,
       ObjectNode deployedNode,
-      HasMetadata latestDeployed,
-      ObjectNode latestDeployedNode) {
-    return new DeployedResourceValue(
+      HasMetadata foundDeployed,
+      ObjectNode foundDeployedNode) {
+    return new DeployedResource(
         Optional.empty(),
         deployed,
         deployedNode,
-        latestDeployed,
-        latestDeployedNode);
+        foundDeployed,
+        foundDeployedNode);
   }
 
-  public static DeployedResourceValue create(
+  public static DeployedResource create(
       HasMetadata required,
       HasMetadata deployed,
       ObjectNode deployedNode) {
-    return new DeployedResourceValue(
+    return new DeployedResource(
         Optional.of(required),
         deployed,
         deployedNode,
@@ -56,10 +56,10 @@ public record DeployedResourceValue(
         deployedNode);
   }
 
-  public static DeployedResourceValue create(
+  public static DeployedResource create(
       HasMetadata deployed,
       ObjectNode deployedNode) {
-    return new DeployedResourceValue(
+    return new DeployedResource(
         Optional.empty(),
         deployed,
         deployedNode,

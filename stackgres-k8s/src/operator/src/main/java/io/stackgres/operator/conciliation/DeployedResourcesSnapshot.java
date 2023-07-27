@@ -23,12 +23,12 @@ public class DeployedResourcesSnapshot {
 
   private final List<HasMetadata> ownedDeployedResources;
   private final List<HasMetadata> deployedResources;
-  private final Map<ResourceKey, DeployedResourceValue> map;
+  private final Map<ResourceKey, DeployedResource> map;
 
   DeployedResourcesSnapshot(
       List<HasMetadata> ownedDeployedResources,
       List<HasMetadata> deployedResources,
-      Map<ResourceKey, DeployedResourceValue> map) {
+      Map<ResourceKey, DeployedResource> map) {
     this.ownedDeployedResources = ownedDeployedResources;
     this.deployedResources = deployedResources;
     this.map = map;
@@ -42,15 +42,15 @@ public class DeployedResourcesSnapshot {
     return deployedResources;
   }
 
-  public Map<ResourceKey, DeployedResourceValue> map() {
+  public Map<ResourceKey, DeployedResource> map() {
     return map;
   }
 
-  public DeployedResourceValue get(HasMetadata requiredResource) {
+  public DeployedResource get(HasMetadata requiredResource) {
     return map.get(ResourceKey.create(requiredResource));
   }
 
-  public Stream<DeployedResourceValue> stream() {
+  public Stream<DeployedResource> stream() {
     return map.values().stream();
   }
 
@@ -61,7 +61,7 @@ public class DeployedResourcesSnapshot {
   public boolean isRequiredChanged(HasMetadata requiredResource) {
     boolean result = Optional
         .ofNullable(map.get(ResourceKey.create(requiredResource)))
-        .map(DeployedResourceValue::required)
+        .map(DeployedResource::required)
         .filter(Optional::isPresent)
         .map(Optional::get)
         .filter(Predicate.not(requiredResource::equals))
@@ -75,28 +75,28 @@ public class DeployedResourcesSnapshot {
     return result;
   }
 
-  public boolean isDeployedChanged(DeployedResourceValue deployedResourceValue) {
+  public boolean isDeployedChanged(DeployedResource deployedResourceValue) {
     boolean result = deployedResourceValue.deployedNode() == null
-        || deployedResourceValue.latestDeployedNode() == null
+        || deployedResourceValue.foundDeployedNode() == null
         || !deployedResourceValue.deployedNode()
-          .equals(deployedResourceValue.latestDeployedNode());
+          .equals(deployedResourceValue.foundDeployedNode());
     if (result && LOGGER.isTraceEnabled()) {
-      HasMetadata latestDeployed = deployedResourceValue.latestDeployed();
+      HasMetadata foundDeployed = deployedResourceValue.foundDeployed();
       LOGGER.trace("Detected change for deployed resource {} {}.{}",
-          latestDeployed.getKind(),
-          latestDeployed.getMetadata().getNamespace(),
-          latestDeployed.getMetadata().getName());
+          foundDeployed.getKind(),
+          foundDeployed.getMetadata().getNamespace(),
+          foundDeployed.getMetadata().getName());
       if (deployedResourceValue.deployedNode() != null
-          && deployedResourceValue.latestDeployedNode() != null) {
+          && deployedResourceValue.foundDeployedNode() != null) {
         try {
           JsonNode diffs = JsonDiff.asJson(
               deployedResourceValue.deployedNode(),
-              deployedResourceValue.latestDeployedNode());
+              deployedResourceValue.foundDeployedNode());
           LOGGER.trace("Diff {}", diffs);
         } catch (Exception ex) {
           LOGGER.warn("Diff failed for {} and {}",
               deployedResourceValue.deployedNode(),
-              deployedResourceValue.latestDeployedNode(),
+              deployedResourceValue.foundDeployedNode(),
               ex);
         }
       }
