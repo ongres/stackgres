@@ -865,9 +865,12 @@ spec:
               grafana:
                 type: object
                 properties:
-                  url:
-                    description: Grafana URL to StackGres dashboards
-                    type: string
+                  urls:
+                    description: Grafana URLs to StackGres dashboards
+                    type: array
+                    items:
+                      type: string
+                      description: Grafana URL to StackGres dashboards preceded by the dashboard name and a semicolon `:`
                   token:
                     description: Grafana Token that allow to access dashboards
                     type: string

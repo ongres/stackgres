@@ -1,9 +1,9 @@
-map $http_host $my_forwarded_port {
-  default $server_port;
-  "~^[^\:]+:(?<p>\d+)$" $p;
+map \$http_host \$my_forwarded_port {
+  default \$server_port;
+  "~^[^\:]+:(?<p>\d+)\$" \$p;
 }
 server {
-  set $grafana_embedded '${GRAFANA_EMBEDDED}';
+  set \$grafana_embedded '${GRAFANA_EMBEDDED}';
 
   server_name  localhost;
 
@@ -17,35 +17,62 @@ server {
   index index.html;
 
   location /admin/ {
-    try_files $uri $uri/index.html /admin/index.html;
+    try_files \$uri \$uri/index.html /admin/index.html;
   }
 
-  location ~ ^(/|/admin|/admin/)$ {
-    return 302 "$scheme://$http_host/admin/index.html";
+  location ~ ^(/|/admin|/admin/)\$ {
+    return 302 "\$scheme://\$http_host/admin/index.html";
   }
 
-  location /grafana {
-    if ($grafana_embedded != true) {
+  location /grafana-list {
+    if (\$grafana_embedded != true) {
       return 404;
     }
     add_header Content-Type text/plain;
-    return 200 "$scheme://$http_host${GRAFANA_URL_PATH}";
+    return 200 "$(printf %s "$GRAFANA_DASHBOARD_LIST" | sed 's/\.json$//')";
   }
 
-  location ~ ^(/|/stackgres|/stackgres/)$ {
-    return 302 "$scheme://$http_host/admin/index.html";
+$(
+  for GRAFANA_DASHBOARD_URL in $GRAFANA_DASHBOARD_URLS
+  do
+    if [ "${GRAFANA_DASHBOARD_URL%%:*}" = "current-activity" ]
+    then
+      cat << EOF
+  location /grafana {
+    if (\$grafana_embedded != true) {
+      return 404;
+    }
+    add_header Content-Type text/plain;
+    return 200 "\$scheme://\$http_host${GRAFANA_DASHBOARD_URL#*:}";
+  }
+EOF
+    fi
+    cat << EOF
+  location /grafana/${GRAFANA_DASHBOARD_URL%%:*} {
+    if (\$grafana_embedded != true) {
+      return 404;
+    }
+    add_header Content-Type text/plain;
+    return 200 "\$scheme://\$http_host${GRAFANA_DASHBOARD_URL#*:}";
+  }
+EOF
+  done
+)
+
+  location ~ ^(/|/stackgres|/stackgres/)\$ {
+    return 302 "\$scheme://\$http_host/admin/index.html";
   }
 
   location ~ ^/stackgres {
     proxy_redirect off;
     proxy_http_version                 1.1;
-    proxy_set_header Host              $host;
-    proxy_set_header X-Real-IP         $remote_addr;
-    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-Forwarded-Host  $host;
-    proxy_set_header X-Forwarded-Port  $my_forwarded_port;
-    proxy_set_header X-Forwarded-Server $host;
+    proxy_set_header Host              \$host;
+    proxy_set_header X-Real-IP         \$remote_addr;
+    proxy_set_header X-Forwarded-For   \$proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto \$scheme;
+    proxy_set_header X-Forwarded-Host  \$host;
+    proxy_set_header X-Forwarded-Port  \$my_forwarded_port;
+    proxy_set_header X-Forwarded-Server \$host;
     proxy_buffers                      4 256k;
     proxy_buffer_size                  128k;
     proxy_busy_buffers_size            256k;
@@ -53,14 +80,14 @@ server {
   }
 
   location / {
-    if ($grafana_embedded != true) {
+    if (\$grafana_embedded != true) {
       return 404;
     }
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-Host $host;
-    proxy_set_header X-Forwarded-Server $host;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-Host \$host;
+    proxy_set_header X-Forwarded-Server \$host;
+    proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
     index index.html index.htm;
     proxy_set_header Authorization "Bearer ${GRAFANA_TOKEN}";
     proxy_hide_header X-Frame-Options;

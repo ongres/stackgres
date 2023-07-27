@@ -32,9 +32,10 @@ public class ConfigGrafanaIntegrationChecker {
         .orElse(false)
         && Optional.ofNullable(config.getStatus())
         .map(StackGresConfigStatus::getGrafana)
-        .filter(grafana -> grafana.getUrl() != null
+        .filter(grafana -> grafana.getUrls() != null
+          && !grafana.getUrls().isEmpty()
           && grafana.getToken() != null)
-        .map(grafana -> WebUtil.checkUnsecureUri(grafana.getUrl(),
+        .map(grafana -> WebUtil.checkUnsecureUri(grafana.getUrls().get(0),
             Map.of("Authorization", "Bearer " + grafana.getToken())))
         .orElse(false);
   }

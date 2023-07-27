@@ -216,6 +216,12 @@ public class WebConsoleGrafanaIntegrationJob
                     OperatorProperty.OPERATOR_NAME.getEnvironmentVariableName())).orElse(null))
                 .build(),
                 new EnvVarBuilder()
+                .withName("GRAFANA_DASHBOARD_LIST")
+                .withValue(WebConsoleGrafanaIntegartionConfigMap.getDashboards()
+                    .stream()
+                    .collect(Collectors.joining("\n")))
+                .build(),
+                new EnvVarBuilder()
                 .withName("GRAFANA_USER")
                 .withValueFrom(new EnvVarSourceBuilder()
                     .withNewSecretKeyRef()
@@ -288,9 +294,8 @@ public class WebConsoleGrafanaIntegrationJob
                 .build(),
                 new VolumeMountBuilder()
                 .withName("grafana-integration")
-                .withMountPath("/etc/grafana/grafana-dashboard.json")
+                .withMountPath("/etc/grafana")
                 .withReadOnly(true)
-                .withSubPath("grafana-dashboard.json")
                 .build())
             .build())
         .withVolumes(
