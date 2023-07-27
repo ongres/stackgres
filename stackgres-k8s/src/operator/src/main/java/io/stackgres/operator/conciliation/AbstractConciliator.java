@@ -55,7 +55,7 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
     SkipDeletion skipDeletion = new SkipDeletion(config, requiredResources);
     List<HasMetadata> deletions = deployedResourcesSnapshot.ownedDeployedResources().stream()
         .map(deployedResourcesSnapshot::get)
-        .map(DeployedResourceValue::latestDeployed)
+        .map(DeployedResource::foundDeployed)
         .filter(Predicate.not(skipDeletion))
         .toList();
 
@@ -69,7 +69,7 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
         .filter(t -> t.v2 != null)
         .filter(forcedChange)
         .filter(Predicate.not(skipUpdate))
-        .map(t -> t.map2(DeployedResourceValue::latestDeployed))
+        .map(t -> t.map2(DeployedResource::foundDeployed))
         .toList();
 
     return new ReconciliationResult(
@@ -92,26 +92,26 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
     }
 
     @Override
-    public boolean test(HasMetadata latestDeployedResource) {
-      boolean result = skipDeletion(latestDeployedResource, config)
-          || !isResourceReconciliationNotPaused(latestDeployedResource);
+    public boolean test(HasMetadata foundDeployedResource) {
+      boolean result = skipDeletion(foundDeployedResource, config)
+          || !isResourceReconciliationNotPaused(foundDeployedResource);
       if (result && LOGGER.isTraceEnabled()) {
         LOGGER.trace("Skip deletion for resource {} {}.{}",
-            latestDeployedResource.getKind(),
-            latestDeployedResource.getMetadata().getNamespace(),
-            latestDeployedResource.getMetadata().getName());
+            foundDeployedResource.getKind(),
+            foundDeployedResource.getMetadata().getNamespace(),
+            foundDeployedResource.getMetadata().getName());
       }
-      return result || !requireDeletion(latestDeployedResource);
+      return result || !requireDeletion(foundDeployedResource);
     }
 
-    private boolean requireDeletion(HasMetadata latestDeployedResource) {
+    private boolean requireDeletion(HasMetadata foundDeployedResource) {
       boolean result = requiredResources.stream()
-          .noneMatch(required -> ResourceKey.same(required, latestDeployedResource));
+          .noneMatch(required -> ResourceKey.same(required, foundDeployedResource));
       if (result && LOGGER.isTraceEnabled()) {
         LOGGER.trace("Detected deletion for resource {} {}.{}",
-            latestDeployedResource.getKind(),
-            latestDeployedResource.getMetadata().getNamespace(),
-            latestDeployedResource.getMetadata().getName());
+            foundDeployedResource.getKind(),
+            foundDeployedResource.getMetadata().getNamespace(),
+            foundDeployedResource.getMetadata().getName());
       }
       return result;
     }
@@ -121,7 +121,7 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
     return false;
   }
 
-  class ForcedChange implements Predicate<Tuple2<HasMetadata, DeployedResourceValue>> {
+  class ForcedChange implements Predicate<Tuple2<HasMetadata, DeployedResource>> {
     final T config;
     final DeployedResourcesSnapshot deployedResourcesSnapshot;
 
@@ -132,7 +132,7 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
 
     @Override
     public boolean test(
-        Tuple2<HasMetadata, DeployedResourceValue> requiredAndDeployedResourceValue) {
+        Tuple2<HasMetadata, DeployedResource> requiredAndDeployedResourceValue) {
       HasMetadata requiredResource = requiredAndDeployedResourceValue.v1;
       boolean result = forceChange(requiredResource, config);
       if (result && LOGGER.isTraceEnabled()) {
@@ -150,17 +150,17 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
     return false;
   }
 
-  class SkipUpdate implements Predicate<Tuple2<HasMetadata, DeployedResourceValue>> {
+  class SkipUpdate implements Predicate<Tuple2<HasMetadata, DeployedResource>> {
     @Override
     public boolean test(
-        Tuple2<HasMetadata, DeployedResourceValue> requiredAndDeployedResourceValue) {
-      HasMetadata latestDeployedResource = requiredAndDeployedResourceValue.v2.latestDeployed();
-      boolean result = !isResourceReconciliationNotPaused(latestDeployedResource);
+        Tuple2<HasMetadata, DeployedResource> requiredAndDeployedResourceValue) {
+      HasMetadata foundDeployedResource = requiredAndDeployedResourceValue.v2.foundDeployed();
+      boolean result = !isResourceReconciliationNotPaused(foundDeployedResource);
       if (result && LOGGER.isTraceEnabled()) {
         LOGGER.trace("Skip update for resource {} {}.{}",
-            latestDeployedResource.getKind(),
-            latestDeployedResource.getMetadata().getNamespace(),
-            latestDeployedResource.getMetadata().getName());
+            foundDeployedResource.getKind(),
+            foundDeployedResource.getMetadata().getNamespace(),
+            foundDeployedResource.getMetadata().getName());
       }
       return result;
     }
