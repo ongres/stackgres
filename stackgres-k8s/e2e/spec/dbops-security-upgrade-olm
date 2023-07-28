@@ -72,10 +72,18 @@ e2e_install_previous_operator() {
       --timeout "${E2E_TIMEOUT}s"
   fi
 
-  PREVIOUS_BUNDLE_IMAGE_NAME="$(wait_until eval \
-    'kubectl exec -n olm "$(kubectl get pod -n olm -l olm.catalogSource=operatorhubio-catalog -o name | grep "^pod/")" \
-    -- cat configs/stackgres/catalog.yaml \
-    | yq -sr ".[]|select(.name == \"stackgres.v$BUNDLE_STACKGRES_PREVIOUS_VERSION\").image" | grep .')"
+  if [ "$E2E_ENV" != "minishift" ] && [ "$E2E_ENV" != "crc" ] && [ "$E2E_ENV" != "microshift" ]
+  then
+    PREVIOUS_BUNDLE_IMAGE_NAME="$(wait_until eval \
+      'kubectl exec -n olm "$(kubectl get pod -n olm -l olm.catalogSource=operatorhubio-catalog -o name | grep "^pod/")" \
+      -- cat configs/stackgres/catalog.yaml \
+      | yq -sr ".[]|select(.name == \"stackgres.v$BUNDLE_STACKGRES_PREVIOUS_VERSION\").image" | grep .')"
+  else
+    PREVIOUS_BUNDLE_IMAGE_NAME="$(wait_until eval \
+      'kubectl exec -n openshift-marketplace "$(kubectl get pod -n openshift-marketplace -l olm.catalogSource=redhat-marketplace -o name | grep "^pod/")" \
+      -- cat /configs/stackgres/catalog.json \
+      | jq -sr ".[]|select(.name == \"stackgres.v$BUNDLE_STACKGRES_PREVIOUS_VERSION\").image" | grep .')"
+  fi
 
   CATALOG_IMAGE_NAME="$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}/stackgres/${HELM_OPERATOR_CATALOG_IMAGE_NAME##*/}"
   mkdir -p "$LOG_PATH/helm-operator-catalog"

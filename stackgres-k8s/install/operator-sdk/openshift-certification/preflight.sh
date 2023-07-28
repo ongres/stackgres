@@ -21,7 +21,7 @@ fi
 AUTH="$(jq -r '.auths|to_entries|.[]|select(.key == "'"$REPOSITORY"'").value.auth' "${OPENSHIFT_CERTIFICATION_PROJECTS_JSON_PATH:-$HOME/.openshift-certification-auths.json}")"
 if [ -z "$AUTH" ]
 then
-  echo "No auth found for repository $REPOSITORY in auths.json"
+  echo "No auth found for repository $REPOSITORY in ${OPENSHIFT_CERTIFICATION_PROJECTS_JSON_PATH:-$HOME/.openshift-certification-auths.json}"
   exit 1
 fi
 

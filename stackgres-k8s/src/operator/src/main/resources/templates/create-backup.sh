@@ -30,7 +30,7 @@ run() {
   then
     kill_with_childs "$PID"
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/failure","value":'"Lock lost:$(printf '\n')$(cat /tmp/try-lock | to_json_string)"'}
+      {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Lock lost:\n'; cat /tmp/try-lock; } | to_json_string)"'}
       ]'
     cat /tmp/try-lock
     echo "Lock lost"
@@ -106,7 +106,7 @@ reconcile_backups() {
   if [ "$?" != 0 ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/failure","value":'"Backup can not be listed after creation $(cat /tmp/backup-list | to_json_string)"'}
+      {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup can not be listed after creation\n'; cat /tmp/backup-list; } | to_json_string)"'}
       ]'
     cat /tmp/backup-list
     echo "Backups can not be listed after creation"
@@ -117,7 +117,7 @@ reconcile_backups() {
   if [ "$BACKUP_CONFIG_RESOURCE_VERSION" != "$(kubectl get "$BACKUP_CONFIG_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_CONFIG" --template='{{ .metadata.resourceVersion }}')" ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/failure","value":"Backup configuration '"$BACKUP_CONFIG"' changed during backup"}
+      {"op":"replace","path":"/status/process/failure","value":'"$(printf 'Backup configuration %s changed during backup' "$BACKUP_CONFIG" | to_json_string)"'}
       ]'
     cat /tmp/backup-list
     echo "Backup configuration '$BACKUP_CONFIG' changed during backup"
@@ -126,7 +126,7 @@ reconcile_backups() {
       --template="{{ if .spec.configurations.backupPath }}{{ .spec.configurations.backupPath }}{{ else }}{{ (index .spec.configurations.backups 0).path }}{{ end }}")" ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/failure","value":"Backup path '"$CLUSTER_BACKUP_PATH"' changed during backup"}
+      {"op":"replace","path":"/status/process/failure","value":'"$(printf 'Backup path %s changed during backup' "$CLUSTER_BACKUP_PATH" | to_json_string)"'}
       ]'
     cat /tmp/backup-list
     echo "Backup path '$CLUSTER_BACKUP_PATH' changed during backup"
@@ -134,7 +134,7 @@ reconcile_backups() {
   elif ! grep -q "^backup_name:${CURRENT_BACKUP_NAME}$" /tmp/current-backup
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/failure","value":"Backup '"$CURRENT_BACKUP_NAME"' was not found after creation"}
+      {"op":"replace","path":"/status/process/failure","value":'"$(printf 'Backup %s was not found after creation' "$CURRENT_BACKUP_NAME" | to_json_string)"'}
       ]'
     cat /tmp/backup-list
     echo "Backup '$CURRENT_BACKUP_NAME' was not found after creation"
@@ -323,7 +323,7 @@ EOF
   if [ "$?" != 0 ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/failure","value":'"Backup failed:$(printf '\n\n')$(cat /tmp/backup-push | to_json_string)"'}
+      {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed:\n'; cat /tmp/backup-push; } | to_json_string)"'}
       ]'
     exit 1
   fi
@@ -335,7 +335,7 @@ EOF
   if [ -z "$CURRENT_BACKUP_NAME" ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/failure","value":'"Backup name not found in backup-push log:$(printf '\n')$(cat /tmp/backup-push | to_json_string)"'}
+      {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup name not found in backup-push log:\n'; cat /tmp/backup-push; } | to_json_string)"'}
       ]'
     cat /tmp/backup-push
     echo "Backup name not found in backup-push log"

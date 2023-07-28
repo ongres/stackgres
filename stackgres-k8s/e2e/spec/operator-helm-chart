@@ -1,5 +1,9 @@
 #!/bin/sh
 
+e2e_exclusive_lock() {
+  true
+}
+
 e2e_test_install() {
   echo "Check Operator Helm Chart properties"
   OPERATOR_HELM_JOB_NAMES="$(helm template -n "$OPERATOR_NAMESPACE" stackgres-operator "$OPERATOR_CHART_PATH" | yq -r 'select(.kind == "Job").metadata.name')"

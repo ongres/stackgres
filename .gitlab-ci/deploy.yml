@@ -150,6 +150,7 @@ deploy helm operator openshift image:
   extends: .deploy image
   variables:
     IMAGE_NAME: "stackgres/helm-operator"
+    IMAGE_TAG_SUFFIX: "-release-openshift"
     IMAGE_PUSH_TAG_SUFFIX: "-openshift"
     TARGET_REGISTRIES: "quay.io"
 
@@ -157,6 +158,7 @@ deploy helm operator openshift bundle image:
   extends: .deploy image
   variables:
     IMAGE_NAME: "stackgres/helm-operator-bundle"
+    IMAGE_TAG_SUFFIX: "-release-openshift"
     IMAGE_PUSH_TAG_SUFFIX: "-openshift"
     TARGET_REGISTRIES: "quay.io"
 
