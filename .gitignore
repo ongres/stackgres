@@ -141,6 +141,7 @@ doc/public
 doc/data/crds
 doc/data/versions.yml
 doc/generated
+doc/content/en/06-crd-reference/*/_index.md
 
 # Node exclusions
 node_modules/

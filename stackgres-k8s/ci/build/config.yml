@@ -1,5 +1,5 @@
 .images:
-  ci_image: &ci_image registry.gitlab.com/ongresinc/stackgres/ci:1.20
+  ci_image: &ci_image registry.gitlab.com/ongresinc/stackgres/ci:1.21
   jdk_build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.5
   jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi8/openjdk-17-runtime:1.16-1.1687182770
   ubi8_micro_image: &ubi8_micro_image registry.access.redhat.com/ubi8-micro:8.8-3
@@ -461,6 +461,7 @@ modules:
       9: stackgres-k8s/install/helm/stackgres-cluster/cluster-restart.sh
       10: stackgres-k8s/install/helm/stackgres-cluster/.helmignore
       11: stackgres-k8s/install/helm/build-helm-templates.sh
+      12: stackgres-k8s/src/common/src/main/resources/crds
     build_image: *ci_image
     build_commands:
       - export HOME=/project
