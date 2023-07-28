@@ -8,6 +8,7 @@ e2e_test_extra_hash() {
   "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
     "$(realpath --relative-to "$PROJECT_PATH" "$PROJECT_PATH/stackgres-k8s/src/admin-ui/cypress")"
   echo "E2E_UI_POSTGRES_VERSION=$E2E_UI_POSTGRES_VERSION"
+  echo "E2E_UI_TEST_BROWSER=${E2E_UI_TEST_BROWSER:-chrome}"
 }
 
 e2e_test_install() {
@@ -134,21 +135,15 @@ e2e_test() {
     return
   fi
 
-  run_test "Cypress chrome tests should pass" cypress_chrome_tests
-
-  run_test "Cypress firefox tests should pass" cypress_firefox_tests
+  run_test "Cypress ${E2E_UI_TEST_BROWSER:-chrome} tests should pass" cypress_tests
 
   run_test "Nginx must return the index page when a resource is not found" check_index_on_not_found_resource
 
   run_test "Nginx must work correctly on HTTP port when HTTP is exposed" check_http_port
 }
 
-cypress_chrome_tests(){
-  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser chrome
-}
-
-cypress_firefox_tests(){
-  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser firefox
+cypress_tests(){
+  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser "${E2E_UI_TEST_BROWSER:-chrome}"
 }
 
 check_index_on_not_found_resource(){
