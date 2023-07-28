@@ -5,7 +5,6 @@
 
 package io.stackgres.distributedlogs.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,7 +24,7 @@ public class DistributedLogsStatusManager
       StackGresDistributedLogsContext context) {
     return Optional.ofNullable(context.getDistributedLogs().getStatus())
         .map(StackGresDistributedLogsStatus::getConditions)
-        .orElseGet(ArrayList::new);
+        .orElse(List.of());
   }
 
   @Override

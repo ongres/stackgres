@@ -33,7 +33,7 @@ public class StackGresClusterPostgres {
 
   @JsonProperty("flavor")
   @ValidEnum(enumClass = StackGresPostgresFlavor.class, allowNulls = true,
-      message = "flavor must be babelfish")
+      message = "flavor must be vanilla or babelfish")
   private String flavor;
 
   @JsonProperty("ssl")

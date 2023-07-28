@@ -1,3 +1,4 @@
+SGConfig.yaml
 SGCluster.yaml
 SGInstanceProfile.yaml
 SGPostgresConfig.yaml

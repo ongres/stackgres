@@ -96,20 +96,20 @@ adminui:
     #   and AKS).
     # * Set to NodePort to expose admin UI from kubernetes nodes.
     type: ClusterIP
-    # -- LoadBalancer will get created with the IP specified in
+    # -- (string) LoadBalancer will get created with the IP specified in
     #   this field. This feature depends on whether the underlying cloud-provider supports specifying
     #   the loadBalancerIP when a load balancer is created. This field will be ignored if the
     #   cloud-provider does not support the feature.
     loadBalancerIP:
-    # -- If specified and supported by the platform,
+    # -- (array) If specified and supported by the platform,
     #   this will restrict traffic through the cloud-provider load-balancer will be restricted to the
     #   specified client IPs. This field will be ignored if the cloud-provider does not support the
     #   feature.
     # More info: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/
     loadBalancerSourceRanges:
-    # -- The HTTPS port used to expose the Service on Kubernetes nodes
+    # -- (integer) The HTTPS port used to expose the Service on Kubernetes nodes
     nodePort:
-    # -- The HTTP port used to expose the Service on Kubernetes nodes
+    # -- (integer) The HTTP port used to expose the Service on Kubernetes nodes
     nodePortHTTP:
 
 # Section to configure Operator Installation Jobs

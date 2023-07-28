@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.conciliation.dbops;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -112,7 +111,7 @@ public class DbOpsStatusManager
   protected List<Condition> getConditions(StackGresDbOps context) {
     return Optional.ofNullable(context.getStatus())
         .map(StackGresDbOpsStatus::getConditions)
-        .orElseGet(ArrayList::new);
+        .orElse(List.of());
   }
 
   @Override

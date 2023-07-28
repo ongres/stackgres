@@ -23,6 +23,7 @@ import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
+import io.stackgres.operator.conciliation.OperatorLockReconciliator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -41,6 +42,7 @@ public class ScriptReconciliator
     @Inject EventEmitter<StackGresScript> eventController;
     @Inject CustomResourceScheduler<StackGresScript> scriptScheduler;
     @Inject ScriptStatusManager statusManager;
+    @Inject OperatorLockReconciliator operatorLockReconciliator;
   }
 
   private final EventEmitter<StackGresScript> eventController;
@@ -52,6 +54,7 @@ public class ScriptReconciliator
     super(parameters.scanner, parameters.finder,
         parameters.conciliator, parameters.deployedResourcesCache,
         parameters.handlerDelegator, parameters.client,
+        parameters.operatorLockReconciliator,
         StackGresScript.KIND);
     this.eventController = parameters.eventController;
     this.scriptScheduler = parameters.scriptScheduler;

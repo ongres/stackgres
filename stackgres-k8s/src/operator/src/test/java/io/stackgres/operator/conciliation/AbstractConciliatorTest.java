@@ -49,6 +49,8 @@ class AbstractConciliatorTest {
   @Mock
   private HandlerDelegator<TestResource> handlerDelegator;
 
+  @Mock OperatorLockReconciliator operatorLockReconciliator;
+
   private TestResource customResource;
 
   private AbstractReconciliator<TestResource> reconciliator;
@@ -62,6 +64,7 @@ class AbstractConciliatorTest {
     customResource.getMetadata().setName("test");
     customResource.getMetadata().setNamespace("test-namespace");
     customResource.getMetadata().setUid("1");
+    when(operatorLockReconciliator.isLeader()).thenReturn(true);
   }
 
   @Test
@@ -337,7 +340,7 @@ class AbstractConciliatorTest {
   private AbstractReconciliator<TestResource> buildConciliator() {
     final AbstractReconciliator<TestResource> reconciliator =
         new TestReconciliator(scanner, finder, conciliator, deployedResourcesCache,
-            handlerDelegator, null);
+            handlerDelegator, null, operatorLockReconciliator);
     return reconciliator;
   }
 
@@ -350,9 +353,10 @@ class AbstractConciliatorTest {
         AbstractConciliator<TestResource> conciliator,
         DeployedResourcesCache deployedResourcesCache,
         HandlerDelegator<TestResource> handlerDelegator,
-        KubernetesClient client) {
+        KubernetesClient client,
+        OperatorLockReconciliator operatorLockReconciliator) {
       super(scanner, finder, conciliator, deployedResourcesCache,
-          handlerDelegator, client, "Test");
+          handlerDelegator, client, operatorLockReconciliator, "Test");
     }
 
     @Override

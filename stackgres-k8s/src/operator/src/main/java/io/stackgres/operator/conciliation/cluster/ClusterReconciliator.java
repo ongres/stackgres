@@ -30,6 +30,7 @@ import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
+import io.stackgres.operator.conciliation.OperatorLockReconciliator;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operator.validation.cluster.PostgresConfigValidator;
@@ -51,6 +52,7 @@ public class ClusterReconciliator
     @Inject EventEmitter<StackGresCluster> eventController;
     @Inject CustomResourceScheduler<StackGresCluster> clusterScheduler;
     @Inject ObjectMapper objectMapper;
+    @Inject OperatorLockReconciliator operatorLockReconciliator;
   }
 
   private final StatusManager<StackGresCluster, Condition> statusManager;
@@ -63,6 +65,7 @@ public class ClusterReconciliator
     super(parameters.scanner, parameters.finder,
         parameters.conciliator, parameters.deployedResourcesCache,
         parameters.handlerDelegator, parameters.client,
+        parameters.operatorLockReconciliator,
         StackGresCluster.KIND);
     this.statusManager = parameters.statusManager;
     this.eventController = parameters.eventController;

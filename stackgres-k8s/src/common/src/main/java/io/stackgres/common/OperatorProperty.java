@@ -14,6 +14,8 @@ public enum OperatorProperty implements StackGresPropertyReader {
   OPERATOR_NAME("stackgres.operatorName"),
   OPERATOR_NAMESPACE("stackgres.operatorNamespace"),
   OPERATOR_IP("stackgres.operatorIP"),
+  OPERATOR_SERVICE_ACCOUNT("stackgres.operatorServiceAccount"),
+  OPERATOR_POD_NAME("stackgres.operatorPodName"),
   PROMETHEUS_AUTOBIND("stackgres.prometheus.allowAutobind"),
   GRAFANA_EMBEDDED("stackgres.prometheus.grafanaEmbedded"),
   AUTHENTICATION_SECRET_NAME("stackgres.authentication.secretName"),

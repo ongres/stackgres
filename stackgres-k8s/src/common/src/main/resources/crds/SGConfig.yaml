@@ -1,0 +1,682 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: sgconfigs.stackgres.io
+spec:
+  group: stackgres.io
+  names:
+    kind: SGConfig
+    listKind: SGConfigList
+    plural: sgconfigs 
+    singular: sgconfig
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: |
+          SGConfig stores the configuration of the StackGres Operator
+
+          *WARNING*: Creating more than one SGConfig is forbidden in order to avoid misbehaviours. The single SGConfig should be created automatically during installation.
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: Spec defines the desired state of SGConfig
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+            properties:
+              containerRegistry:
+                type: string
+                default: quay.io
+                description: The container registry host (and port) where the images will be pulled from.
+              imagePullPolicy:
+                type: string
+                default: "IfNotPresent"
+                description: Image pull policy used for images loaded by the Operator
+              serviceAccount:
+                type: object
+                description: Section to configure Operator Installation ServiceAccount
+                properties:
+                  create:
+                    type: boolean
+                    default: true
+                    description: If `true` the Operator Installation ServiceAccount will be created
+                  repoCredentials:
+                    type: array
+                    description: Repositories credentials Secret names to attach to ServiceAccounts and Pods
+              initClusterRole:
+                type: string
+                default: cluster-admin
+                description: The ClusterRole assigned to the Operation Installation Jobs. By default is `cluster-admin`.
+              operator:
+                type: object
+                description: Section to configure Operator Pod
+                properties:
+                  image:
+                    type: object
+                    description: Section to configure Operator image
+                    properties:
+                      name:
+                        type: string
+                        default: "stackgres/operator"
+                        description: Operator image name
+                      tag:
+                        type: string
+                        default: "main-jvm"
+                        description: Operator image tag
+                      pullPolicy:
+                        type: string
+                        default: "IfNotPresent"
+                        description: Operator image pull policy
+                  annotations:
+                    type: array
+                    description: Operator Pod annotations
+                    items:
+                      type: string
+                  resources:
+                    type: object
+                    description: Operator Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#resourcerequirements-v1-core
+                  nodeSelector:
+                    type: object
+                    description: Operator Pod node selector
+                  tolerations:
+                    type: array
+                    description: Operator Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#toleration-v1-core
+                  affinity:
+                    type: object
+                    description: Operator Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#affinity-v1-core
+                  serviceAccount:
+                    type: object
+                    description: Section to configure Operator ServiceAccount
+                    properties:
+                      annotations:
+                        type: object
+                        description: Section to configure Operator ServiceAccount annotations
+                  service:
+                    type: object
+                    description: Section to configure Operator Service
+                    properties:
+                      annotations:
+                        type: object
+                        description: Section to configure Operator Service annotations
+              restapi:
+                type: object
+                description: Section to configure REST API Pod
+                properties:
+                  name:
+                    type: string
+                    default: stackgres-restapi
+                    description: REST API container name
+                  image:
+                    type: object
+                    description: Section to configure REST API image
+                    properties:
+                      name:
+                        type: string
+                        default: "stackgres/restapi"
+                        description: REST API image name
+                      tag:
+                        type: string
+                        default: "main-jvm"
+                        description: REST API image tag
+                      pullPolicy:
+                        type: string
+                        default: "IfNotPresent"
+                        description: REST API image pull policy
+                annotations:
+                  type: object
+                  description: REST API Pod annotations
+                resources:
+                  type: object
+                  description: REST API Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#resourcerequirements-v1-core
+                nodeSelector:
+                  type: object
+                  description: REST API Pod node selector
+                tolerations:
+                  type: array
+                  description: REST API Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#toleration-v1-core
+                affinity:
+                  type: object
+                  description: REST API Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#affinity-v1-core
+                serviceAccount:
+                  type: object
+                  description: Section to configure REST API ServiceAccount
+                  properties:
+                    annotations:
+                      type: object
+                      description: REST API ServiceAccount annotations
+                service:
+                  type: object
+                  description: Section to configure REST API Service
+                  properties:
+                    annotations:
+                      type: object
+                      description: REST API Service annotations
+              adminui:
+                type: object
+                description: Section to configure Web Console container
+                properties:
+                  name:
+                    type: string
+                    default: stackgres-adminui
+                    description: Web Console container name
+                image:
+                  type: object
+                  description: Section to configure Web Console image
+                  properties:
+                    name:
+                      type: string
+                      default: "stackgres/admin-ui"
+                      description: Web Console image name
+                    tag:
+                      type: string
+                      default: "main"
+                      description: Web Console image tag
+                    pullPolicy:
+                      type: string
+                      default: "IfNotPresent"
+                      description: Web Console image pull policy
+                resources:
+                  type: object
+                  description: Web Console resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#resourcerequirements-v1-core
+                service:
+                  type: object
+                  description: Section to configure Web Console service.
+                  properties:
+                    exposeHTTP:
+                      type: boolean
+                      default: false
+                      description: When set to `true` the HTTP port will be exposed in the Web Console Service
+                    type:
+                      type: string
+                      default: ClusterIP
+                      description: |
+                        The type used for the service of the UI:
+                        * Set to LoadBalancer to create a load balancer (if supported by the kubernetes cluster)
+                          to allow connect from Internet to the UI. Note that enabling this feature will probably incurr in
+                          some fee that depend on the host of the kubernetes cluster (for example this is true for EKS, GKE
+                          and AKS).
+                        * Set to NodePort to expose admin UI from kubernetes nodes.
+                    loadBalancerIP:
+                      type: string
+                      description: |
+                        LoadBalancer will get created with the IP specified in
+                         this field. This feature depends on whether the underlying cloud-provider supports specifying
+                         the loadBalancerIP when a load balancer is created. This field will be ignored if the
+                         cloud-provider does not support the feature.
+                    loadBalancerSourceRanges:
+                      type: array
+                      description: |
+                        If specified and supported by the platform,
+                         this will restrict traffic through the cloud-provider load-balancer will be restricted to the
+                         specified client IPs. This field will be ignored if the cloud-provider does not support the
+                         feature.
+                        More info: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/
+                      items:
+                        type: string
+                    nodePort:
+                      type: integer
+                      description: The HTTPS port used to expose the Service on Kubernetes nodes
+                    nodePortHTTP:
+                      type: integer
+                      description: The HTTP port used to expose the Service on Kubernetes nodes
+              jobs:
+                type: object
+                description: Section to configure Operator Installation Jobs
+                properties:
+                  image:
+                    type: object
+                    description: Section to configure Operator Installation Jobs image
+                  name:
+                    type: string
+                    default: "stackgres/jobs"
+                    description: Operator Installation Jobs image name
+                  tag:
+                    type: string
+                    default: "main-jvm"
+                    description: Operator Installation Jobs image tag
+                  pullPolicy:
+                    type: string
+                    default: "IfNotPresent"
+                    description: Operator Installation Jobs image pull policy
+                annotations:
+                  type: object
+                  description: Operator Installation Jobs annotations
+                resources:
+                  type: object
+                  description: Operator Installation Jobs resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#resourcerequirements-v1-core
+                nodeSelector:
+                  type: object
+                  description: Operator Installation Jobs node selector
+                tolerations:
+                  type: array
+                  description: Operator Installation Jobs tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#toleration-v1-core
+                affinity:
+                  type: object
+                  description: Operator Installation Jobs affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#affinity-v1-core
+              deploy:
+                type: object
+                description: Section to configure deployment aspects.
+                properties:
+                  operator:
+                    type: boolean
+                    default: true
+                    description: When set to `true` the Operator will be deployed.
+                  restapi:
+                    type: boolean
+                    default: true
+                    description: When set to `true` the Web Console / REST API will be deployed.
+              cert:
+                type: object
+                description: Section to configure the Operator, REST API and Web Console certificates and JWT RSA key-pair.
+                properties:
+                  autoapprove:
+                    type: boolean
+                    default: true
+                    description: |
+                      If set to `true` the CertificateSigningRequest used to generate the certificate used by
+                       Webhooks will be approved by the Operator Installation Job.
+                  createForOperator:
+                    type: boolean
+                    default: true
+                    description: When set to `true` the Operator certificate will be created.
+                  createForWebApi:
+                    type: boolean
+                    default: true
+                    description: When set to `true` the Web Console / REST API certificate will be created.
+                  resetCerts:
+                    type: boolean
+                    default: false
+                    description: When set to `true` the Web Console / REST API certificates will be reset.
+                  secretName:
+                    type: string
+                    description: |
+                      The Secret name with the Operator Webhooks certificate issued by the Kubernetes cluster CA
+                       of type kubernetes.io/tls. See https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
+                  webSecretName:
+                    type: string
+                    description: |
+                      The Secret name with the Web Console / REST API certificate
+                       of type kubernetes.io/tls. See https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
+                  key:
+                    type: string
+                    description: |
+                      The private RSA key used to create the Operator Webhooks certificate issued by the
+                        Kubernetes cluster CA.
+                  crt:
+                    type: string
+                    description: The Operator Webhooks certificate issued by Kubernetes cluster CA.
+                  jwtRsaKey:
+                    type: string
+                    description: The private RSA key used to generate JWTs used in REST API authentication.
+                  jwtRsaPub:
+                    type: string
+                    description: The public RSA key used to verify JWTs used in REST API authentication.
+                  webKey:
+                    type: string
+                    description: The private RSA key used to create the Web Console / REST API certificate
+                  webCrt:
+                    type: string
+                    description: The Web Console / REST API certificate
+                  certManager:
+                    type: object
+                    description: Section to configure cert-manager integration to generate Operator certificates
+                    properties:
+                      autoConfigure:
+                        type: boolean
+                        default: false
+                        description: |
+                          When set to `true` then Issuer and Certificate for Operator and Web Console / REST API
+                           Pods will be generated
+                      duration:
+                        type: string
+                        default: "2160h"
+                        description: The requested duration (i.e. lifetime) of the Certificates. See https://cert-manager.io/docs/reference/api-docs/#cert-manager.io%2fv1
+                      renewBefore:
+                        type: string
+                        default: "360h"
+                        description: How long before the currently issued certificate’s expiry cert-manager should renew the certificate. See https://cert-manager.io/docs/reference/api-docs/#cert-manager.io%2fv1
+                      encoding:
+                        type: string
+                        default: PKCS1
+                        description: The private key cryptography standards (PKCS) encoding for this certificate’s private key to be encoded in. See https://cert-manager.io/docs/reference/api-docs/#cert-manager.io/v1.CertificatePrivateKey
+                      size:
+                        type: integer
+                        default: 2048
+                        description: Size is the key bit size of the corresponding private key for this certificate. See https://cert-manager.io/docs/reference/api-docs/#cert-manager.io/v1.CertificatePrivateKey
+              rbac:
+                type: object
+                description: Section to configure RBAC for Web Console admin user
+                properties:
+                  create:
+                    type: boolean
+                    default: true
+                    description: |
+                      When set to `true` the admin user is assigned the `cluster-admin` ClusterRole by creating
+                       ClusterRoleBinding.
+              authentication:
+                type: object
+                description: Section to configure Web Console authentication
+                properties:
+                  type:
+                    type: string
+                    default: jwt
+                    description: |
+                      Specify the authentication mechanism to use. By default is `jwt`, see https://stackgres.io/doc/latest/api/rbac#local-secret-mechanism.
+                       If set to `oidc` then see https://stackgres.io/doc/latest/api/rbac/#openid-connect-provider-mechanism.
+                  user:
+                    type: string
+                    default: admin
+                    description: The admin username that will be required to access the UI
+                  password:
+                    type: string
+                    description: The admin password that will be required to access the UI
+                  resetPassword:
+                    type: boolean
+                    default: false
+                    description: When set to `true` the admin user password will be reset.
+                  secretRef:
+                    type: object
+                    description: |
+                      Allow to specify the secret name that will be used store the credentials to access the UI.
+                        It simply prevent creating the secret automatically.
+                    name:
+                      type: string
+                      description: |
+                        The admin user Secret name to be used.
+                        Allow to specify the secret name that will be used store the credentials to access the UI.
+                         It simply prevent creating the secret automatically.
+                  oidc:
+                    type: object
+                    description: Section to configure Web Console OIDC authentication
+                    properties:
+                      tlsVerification:
+                        type: string
+                        description: Can be one of `required`, `certificate-validation` or `none`
+                      authServerUrl:
+                        type: string
+                      clientId:
+                        type: string
+                      credentialsSecret:
+                        type: string
+                      clientIdSecretRef:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          key:
+                            type: string
+                      credentialsSecretSecretRef:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          key:
+                            type: string
+              prometheus:
+                type: object
+                description: Section to configure Prometheus integration.
+                properties: 
+                  allowAutobind:
+                    type: boolean
+                    default: true
+                    description: |
+                      If set to false disable automatic bind to Prometheus
+                        created using the [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator).
+                      If disabled the cluster will not be binded to Prometheus automatically and will require manual
+                        intervention by the Kubernetes cluster administrator.
+              grafana:
+                type: object
+                description: Section to configure Grafana integration
+                properties:
+                  autoEmbed:
+                    type: boolean
+                    default: false
+                    description: |
+                      When set to `true` embed automatically Grafana into the Web Console by creating the
+                       StackGres dashboard and the read-only role used to read it from the Web Console 
+                  schema:
+                    type: string
+                    default: http
+                    description: |
+                      The schema to access Grafana. By default http. (used to embed manually and
+                       automatically grafana)
+                  webHost:
+                    type: string
+                    description: |
+                      The service host name to access grafana (used to embed manually and
+                       automatically Grafana). 
+                      The parameter value should point to the grafana service following the 
+                       [DNS reference](https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/) `svc_name.namespace`
+                  datasourceName:
+                    type: string
+                    default: Prometheus
+                    description: The datasource name used to create the StackGres Dashboard into Grafana
+                  user:
+                    type: string
+                    default: admin
+                    description: |
+                      The username to access Grafana. By default admin. (used to embed automatically
+                       Grafana)
+                  password:
+                    type: string
+                    default: prom-operator
+                    description: |
+                      The password to access Grafana. By default prom-operator (the default in for
+                       kube-prometheus-stack helm chart). (used to embed automatically Grafana)
+                  secretNamespace:
+                    type: string
+                    description: |
+                      The namespace of secret with credentials to access Grafana. (used to
+                       embed automatically Grafana, alternative to use `user` and `password`)
+                  secretName:
+                    type: string
+                    description: |
+                      The name of secret with credentials to access Grafana. (used to embed
+                       automatically Grafana, alternative to use `user` and `password`)
+                  secretUserKey:
+                    type: string
+                    description: |
+                      The key of secret with username used to access Grafana. (used to embed
+                       automatically Grafana, alternative to use `user` and `password`)
+                  secretPasswordKey:
+                    type: string
+                    description: |
+                      The key of secret with password used to access Grafana. (used to
+                       embed automatically Grafana, alternative to use `user` and `password`)
+                  dashboardConfigMap:
+                    type: string
+                    description: |
+                      The ConfigMap name with the dashboard JSON in the key `grafana-dashboard.json`
+                       that will be created in Grafana. If not set the default
+                  dashboardId:
+                    type: string
+                    description: |
+                      The dashboard id that will be create in Grafana
+                       (see https://grafana.com/grafana/dashboards). By default 9628. (used to embed automatically
+                       Grafana)
+
+                      Manual Steps:
+                       
+                      Create grafana dashboard for postgres exporter and copy/paste share URL:
+                      - Grafana > Create > Import > Grafana.com Dashboard 9628
+                      Copy/paste grafana dashboard URL for postgres exporter:
+                      - Grafana > Dashboard > Manage > Select postgres exporter dashboard > Copy URL
+                  url:
+                    type: string
+                    description: |
+                      The URL of the PostgreSQL dashboard created in Grafana (used to embed manually
+                       Grafana)
+                  token:
+                    type: string
+                    description: |
+                      The Grafana API token to access the PostgreSQL dashboard created
+                       in Grafana (used to embed manually Grafana)
+
+                      Manual Steps:
+                       
+                      Create and copy/paste grafana API token:
+                      - Grafana > Configuration > API Keys > Add API key (for viewer) > Copy key value
+              extensions:
+                type: object
+                description: Section to configure extensions
+                properties:
+                  repositoryUrls:
+                    type: array
+                    default:
+                    - https://extensions.stackgres.io/postgres/repository
+                    description: |
+                      A list of extensions repository URLs used to retrieve extensions
+                      
+                      To set a proxy for extensions repository add parameter proxyUrl to the URL:
+                          `https://extensions.stackgres.io/postgres/repository?proxyUrl=<proxy scheme>%3A%2F%2F<proxy host>[%3A<proxy port>]` (URL encoded)
+                    items:
+                      type: string
+                  cache:
+                    type: object
+                    description: |
+                      Section to configure extensions cache (experimental).
+                      
+                      This feature is in beta and may cause failures, please use with caution and report any
+                       error to https://gitlab.com/ongresinc/stackgres/-/issues/new
+                    properties:
+                      enabled:
+                        type: boolean
+                        default: false
+                        description: |
+                          When set to `true` enable the extensions cache.
+                          
+                          This feature is in beta and may cause failures, please use with caution and report any
+                           error to https://gitlab.com/ongresinc/stackgres/-/issues/new
+                      preloadedExtensions:
+                        type: array
+                        default:
+                        - x86_64/linux/timescaledb-1\.7\.4-pg12
+                        description: |
+                          An array of extensions pattern used to pre-loaded estensions into the extensions cache
+                      persistentVolume:
+                        type: object
+                        description: Section to configure the extensions cache PersistentVolume
+                        properties:
+                          size:
+                            type: string
+                            default: 1Gi
+                            description: |
+                              The PersistentVolume size for the extensions cache
+                              
+                              Only use whole numbers (e.g. not 1e6) and K/Ki/M/Mi/G/Gi as units
+                          storageClass:
+                            type: string
+                            description: |
+                              If defined set storage class
+                              If set to "-" (equivalent to storageClass: "" in a PV spec) disables
+                               dynamic provisioning
+                              If undefined (the default) or set to null, no storageClass spec is
+                               set, choosing the default provisioner.  (gp2 on AWS, standard on
+                               GKE, AWS & OpenStack)
+                      hostPath:
+                        type: string
+                        description: |
+                          If set, will use a host path volume with the specified path for the extensions cache
+                           instead of a PersistentVolume
+              developer:
+                type: object
+                description: |
+                  Section to configure developer options.
+                  
+                  Following options are for developers only, but can also be useful in some cases ;)
+                properties:
+                  logLevel:
+                    type: string
+                    description: Set `quarkus.log.level`. See https://quarkus.io/guides/logging#root-logger-configuration
+                  showStackTraces:
+                    type: boolean
+                    default: false
+                    description: Set `quarkus.log.console.format` to `%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c{4.}] (%t) %s%e%n`. See https://quarkus.io/guides/logging#logging-format
+                  useJvmImages:
+                    type: boolean
+                    default: false
+                    description: |
+                      The operator will use JVM version of the images
+                  enableJvmDebug:
+                    type: boolean
+                    default: false
+                    description: |
+                      Only work with JVM version and allow connect
+                       on port 8000 of operator Pod with jdb or similar
+                  enableJvmDebugSuspend:
+                    type: boolean
+                    default: false
+                    description: |
+                      Only work with JVM version and if `enableJvmDebug` is `true`
+                       suspend the JVM until a debugger session is started
+                  externalOperatorIp:
+                    type: string
+                    description: Set the external Operator IP
+                  externalOperatorPort:
+                    type: integer
+                    description: Set the external Operator port
+                  externalRestApiIp:
+                    type: string
+                    description: Set the external REST API IP
+                  externalRestApiPort:
+                    type: integer
+                    description: Set the external REST API port
+                  allowPullExtensionsFromImageRepository:
+                    type: boolean
+                    default: false
+                    description: |
+                      If set to `true` and `extensions.cache.enabled` is also `true`
+                       it will try to download extensions from images (experimental)
+                  disableArbitraryUser:
+                    type: boolean
+                    default: false
+                    description: |
+                      It set to `true` disable arbitrary user that is set for OpenShift clusters
+          status:
+            type: object
+            description: Status defines the observed state of SGConfig
+            x-kubernetes-preserve-unknown-fields: true
+            properties:
+              conditions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    lastTransitionTime:
+                      description: Last time the condition transitioned from one status to another.
+                      type: string
+                    message:
+                      description: A human readable message indicating details about the transition.
+                      type: string
+                    reason:
+                      description: The reason for the condition's last transition.
+                      type: string
+                    status:
+                      description: Status of the condition, one of True, False, Unknown.
+                      type: string
+                    type:
+                      description: Type of deployment condition.
+                      type: string
+              applied:
+                type: object
+                description: Latest spec of the configuration that has been already applied
+                x-kubernetes-preserve-unknown-fields: true
+              version:
+                type: string
+                description: Latest version of the operator used to check for updates
+        type: object
+    served: true
+    storage: true

@@ -4,7 +4,7 @@
  */
 
 /**
- * Custom Resource for Pgbouncer configuration parameters.
+ * Custom Resource for Connection Pooling configuration parameters.
  */
 
 package io.stackgres.common.crd.sgpooling;

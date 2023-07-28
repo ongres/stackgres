@@ -19,6 +19,7 @@ public interface StackGresContext {
   String CLUSTER_NAMESPACE_KEY = "cluster-namespace";
   String RIGHT_VALUE = Boolean.TRUE.toString();
   String WRONG_VALUE = Boolean.FALSE.toString();
+  String CONFIG_KEY = "config";
   String CLUSTER_KEY = "cluster";
   String BACKUP_KEY = "backup";
   String DB_OPS_KEY = "db-ops";
@@ -44,6 +45,10 @@ public interface StackGresContext {
   String SHARDEDCLUSTER_NAMESPACE_KEY = "shardedcluster-namespace";
   String COORDINATOR_KEY = "coordinator";
   String SHARDS_KEY = "shards";
+  String CONFIG_APP_NAME = "StackGresConfig";
+  String CONFIG_NAME_KEY = "config-name";
+  String CONFIG_UID_KEY = "config-uid";
+  String CONFIG_NAMESPACE_KEY = "config-namespace";
 
   String REST_APIUSER_KEY = "apiUsername";
   String REST_K8SUSER_KEY = "k8sUsername";

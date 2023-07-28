@@ -43,6 +43,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
   private final DeployedResourcesCache deployedResourcesCache;
   private final HandlerDelegator<T> handlerDelegator;
   private final KubernetesClient client;
+  private final OperatorLockReconciliator operatorLockReconciliator;
   private final String reconciliationName;
   private final ExecutorService executorService;
   private final AtomicReference<List<Optional<T>>> atomicReference =
@@ -59,6 +60,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
       DeployedResourcesCache deployedResourcesCache,
       HandlerDelegator<T> handlerDelegator,
       KubernetesClient client,
+      OperatorLockReconciliator operatorLockReconciliator,
       String reconciliationName) {
     this.scanner = scanner;
     this.finder = finder;
@@ -67,6 +69,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     this.handlerDelegator = handlerDelegator;
     this.client = client;
     this.reconciliationName = reconciliationName;
+    this.operatorLockReconciliator = operatorLockReconciliator;
     this.executorService = Executors.newSingleThreadExecutor(
         r -> new Thread(r, reconciliationName + "-ReconciliationLoop"));
   }
@@ -80,10 +83,12 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     this.handlerDelegator = null;
     this.client = null;
     this.reconciliationName = null;
+    this.operatorLockReconciliator = null;
     this.executorService = null;
   }
 
   protected void start() {
+    operatorLockReconciliator.register(this);
     executorService.execute(this::reconciliationLoop);
   }
 
@@ -121,6 +126,10 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     LOGGER.info("{} reconciliation loop started", getReconciliationName());
     while (true) {
       try {
+        if (!operatorLockReconciliator.isLeader()) {
+          Thread.sleep(100);
+          continue;
+        }
         arrayBlockingQueue.take();
         List<Optional<T>> configs = atomicReference.getAndSet(List.of());
         if (close) {

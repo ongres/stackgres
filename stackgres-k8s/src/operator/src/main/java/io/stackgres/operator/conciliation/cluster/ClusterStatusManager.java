@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -157,7 +156,7 @@ public class ClusterStatusManager
       StackGresCluster source) {
     return Optional.ofNullable(source.getStatus())
         .map(StackGresClusterStatus::getConditions)
-        .orElseGet(ArrayList::new);
+        .orElse(List.of());
   }
 
   @Override

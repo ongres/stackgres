@@ -26,13 +26,6 @@ fi
 cp "$(dirname "$0")/../stackgres-k8s/src/api-web/target/swagger-merged.yaml" "$(dirname "$0")/themes/sg-doc/static/sg-swagger.yaml"
 
 mkdir -p "$(dirname "$0")/generated"
-(
-cd "$(dirname "$0")/../stackgres-k8s/install/helm/stackgres-operator"
-helm-docs \
-  -o "generated.md" \
-  -f "values.yaml" \
-  -t "VALUES.md.gotmpl"
-)
 CRD_PATH="$(dirname "$0")/../stackgres-k8s/src/common/src/main/resources/crds"
 cat "$CRD_PATH/index.txt" \
   | {
@@ -48,5 +41,3 @@ cat "$CRD_PATH/index.txt" \
       tail -n +"$((INCLUDE_LINE + 1))" "$TARGET_PATH/_index.template.md" >> "$TARGET_PATH/_index.md"
     done
     }
-mv "$(dirname "$0")/../stackgres-k8s/install/helm/stackgres-operator/generated.md" \
-  "$(dirname "$0")/generated/stackgres-operator.md"

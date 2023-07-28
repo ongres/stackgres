@@ -107,6 +107,16 @@ spec:
           - name: DEBUG_OPERATOR_SUSPEND
             value: "{{ .Values.developer.enableJvmDebugSuspend }}"
           {{- end }}
+          - name: OPERATOR_SERVICE_ACCOUNT
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.serviceAccountName
+          - name: OPERATOR_POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
           - name: OPERATOR_IP
             valueFrom:
               fieldRef:

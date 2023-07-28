@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.conciliation.shardedcluster;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -122,7 +121,7 @@ public class ShardedClusterStatusManager
       StackGresShardedCluster source) {
     return Optional.ofNullable(source.getStatus())
         .map(StackGresShardedClusterStatus::getConditions)
-        .orElseGet(ArrayList::new);
+        .orElse(List.of());
   }
 
   @Override

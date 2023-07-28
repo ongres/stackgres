@@ -12,6 +12,11 @@ then
 fi
 ADMINUI_IMAGE_TAG="${IMAGE_TAG%-jvm}"
 
+mkdir -p stackgres-operator/crds
+for CRD in ../../src/common/src/main/resources/crds/*.yaml
+do
+  cp "$CRD" stackgres-operator/crds/.
+done
 yq -r '.version' stackgres-operator/Chart.yaml | grep -xF "$STACKGRES_VERSION"
 yq -r '.appVersion' stackgres-operator/Chart.yaml | grep -xF "$STACKGRES_VERSION"
 yq -r '.operator.image.tag' stackgres-operator/values.yaml | grep "^$IMAGE_TAG$"
