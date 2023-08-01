@@ -22,8 +22,8 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelMapper;
 import io.stackgres.common.labels.LabelFactoryForCluster;
-import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
-import io.stackgres.operator.conciliation.InitContainerFactoryDiscover;
+import io.stackgres.operator.conciliation.InitContainerFactoryDiscoverer;
+import io.stackgres.operator.conciliation.RunningContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
@@ -52,10 +52,10 @@ class PodTemplateSpecFactoryTest {
   private ClusterLabelMapper labelMapper;
 
   @Mock
-  private ContainerFactoryDiscoverer<ClusterContainerContext> containerFactoryDiscoverer;
+  private RunningContainerFactoryDiscoverer<ClusterContainerContext> containerFactoryDiscoverer;
 
   @Mock
-  private InitContainerFactoryDiscover<ClusterContainerContext>
+  private InitContainerFactoryDiscoverer<ClusterContainerContext>
       initContainerFactoryDiscoverer;
 
   @Mock

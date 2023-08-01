@@ -10,7 +10,6 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -21,8 +20,6 @@ import org.immutables.value.Value;
 @Value.Immutable
 public interface StackGresShardedClusterContext
     extends GenerationContext<StackGresShardedCluster> {
-
-  Optional<VersionInfo> getKubernetesVersion();
 
   @Override
   @Value.Derived

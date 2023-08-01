@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.factory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -68,7 +69,9 @@ public abstract class AnnotationDecorator<T> implements Decorator<T> {
 
     Optional.ofNullable(sts.getSpec())
         .map(StatefulSetSpec::getVolumeClaimTemplates)
-        .ifPresent(cvt -> decorate(context, cvt));
+        .stream()
+        .flatMap(List::stream)
+        .forEach(cvt -> decorate(context, cvt));
 
     decorateResource(resource, getAllResourcesAnnotations(context));
   }
@@ -86,18 +89,17 @@ public abstract class AnnotationDecorator<T> implements Decorator<T> {
     resource.getMetadata().setAnnotations(resourceAnnotations);
   }
 
-  protected void defaultDecorator(@NotNull T context, @NotNull HasMetadata resources) {
-    decorateResource(resources, getAllResourcesAnnotations(context));
+  protected void defaultDecorator(@NotNull T context, @NotNull HasMetadata resource) {
+    decorateResource(resource, getAllResourcesAnnotations(context));
   }
 
   @Override
-  public void decorate(T context, Iterable<? extends HasMetadata> resources) {
+  public HasMetadata decorate(T context, HasMetadata resource) {
     var decoratorMap = getCustomDecorators();
 
-    resources.forEach(resource -> {
-      var decorator = decoratorMap.getOrDefault(resource.getClass(), this::defaultDecorator);
-      decorator.accept(context, resource);
-    });
+    var decorator = decoratorMap.getOrDefault(resource.getClass(), this::defaultDecorator);
+    decorator.accept(context, resource);
+    return resource;
   }
 
 }

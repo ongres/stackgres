@@ -45,8 +45,8 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShards;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
+import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -73,7 +73,7 @@ public class ShardedClusterRequiredResourcesGenerator
 
   private final ResourceFinder<Endpoints> endpointsFinder;
 
-  private final RequiredResourceDecorator<StackGresShardedClusterContext> decorator;
+  private final ResourceGenerationDiscoverer<StackGresShardedClusterContext> discoverer;
 
   @Inject
   public ShardedClusterRequiredResourcesGenerator(
@@ -83,14 +83,14 @@ public class ShardedClusterRequiredResourcesGenerator
       CustomResourceFinder<StackGresProfile> profileFinder,
       ResourceFinder<Secret> secretFinder,
       ResourceFinder<Endpoints> endpointsFinder,
-      RequiredResourceDecorator<StackGresShardedClusterContext> decorator) {
+      ResourceGenerationDiscoverer<StackGresShardedClusterContext> discoverer) {
     this.kubernetesVersionSupplier = kubernetesVersionSupplier;
     this.postgresConfigFinder = postgresConfigFinder;
     this.poolingConfigFinder = poolingConfigFinder;
     this.profileFinder = profileFinder;
     this.secretFinder = secretFinder;
     this.endpointsFinder = endpointsFinder;
-    this.decorator = decorator;
+    this.discoverer = discoverer;
   }
 
   @Override
@@ -152,7 +152,7 @@ public class ShardedClusterRequiredResourcesGenerator
         .postgresSslPrivateKey(postgresSsl.privateKey)
         .build();
 
-    return decorator.decorateResources(context);
+    return discoverer.generateResources(context);
   }
 
   private StackGresClusterContext getCoordinatorContext(

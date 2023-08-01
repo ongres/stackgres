@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.factory.distributedlogs;
 import java.util.List;
 
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.operator.conciliation.GenerationContext;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import org.immutables.value.Value;
@@ -18,5 +19,10 @@ public interface DistributedLogsContainerContext extends ContainerContext {
   StackGresDistributedLogsContext getDistributedLogsContext();
 
   List<StackGresClusterInstalledExtension> getInstalledExtensions();
+
+  @Override
+  default GenerationContext<?> getGenerationContext() {
+    return getDistributedLogsContext();
+  }
 
 }

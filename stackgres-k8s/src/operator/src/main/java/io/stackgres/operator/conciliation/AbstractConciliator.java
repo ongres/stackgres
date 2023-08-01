@@ -8,11 +8,16 @@ package io.stackgres.operator.conciliation;
 import static io.stackgres.operator.conciliation.ReconciliationUtil.isResourceReconciliationNotPaused;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.OwnerReference;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
@@ -43,7 +48,11 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
   }
 
   public ReconciliationResult evalReconciliationState(T config) {
-    List<HasMetadata> requiredResources = requiredResourceGenerator.getRequiredResources(config);
+    OwnerReferenceMapper ownerReferenceMapper = new OwnerReferenceMapper(config);
+    List<HasMetadata> requiredResources = requiredResourceGenerator.getRequiredResources(config)
+        .stream()
+        .map(ownerReferenceMapper)
+        .toList();
 
     DeployedResourcesSnapshot deployedResourcesSnapshot =
         deployedResourceScanner.getDeployedResources(config);
@@ -76,6 +85,31 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
         creations,
         patches,
         deletions);
+  }
+
+  class OwnerReferenceMapper implements Function<HasMetadata, HasMetadata> {
+    final T config;
+    final List<OwnerReference> ownerReferences;
+
+    public OwnerReferenceMapper(T config) {
+      this.config = config;
+      this.ownerReferences = List.of(ResourceUtil.getControllerOwnerReference(config));
+    }
+
+    @Override
+    public HasMetadata apply(HasMetadata resource) {
+      if (Objects.equals(
+          resource.getMetadata().getNamespace(),
+          config.getMetadata().getNamespace())
+          && resource.getMetadata().getOwnerReferences().isEmpty()) {
+        resource.getMetadata().setOwnerReferences(ownerReferences);
+        if (resource instanceof StatefulSet statefulSet) {
+          statefulSet.getSpec().getVolumeClaimTemplates()
+              .forEach(vct -> vct.getMetadata().setOwnerReferences(ownerReferences));
+        }
+      }
+      return resource;
+    }
   }
 
   protected boolean skipDeletion(HasMetadata requiredResource, T config) {

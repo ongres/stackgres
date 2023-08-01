@@ -7,7 +7,10 @@ package io.stackgres.operator.conciliation;
 
 import java.util.List;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
+
 public interface ResourceGenerationDiscoverer<T> {
 
-  List<ResourceGenerator<T>> getResourceGenerators(T context);
+  List<HasMetadata> generateResources(T context);
+
 }

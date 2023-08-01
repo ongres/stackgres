@@ -21,7 +21,6 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.backup.StackGresBackupContext;
 import io.stackgres.operator.conciliation.factory.AbstractContainerProfileDecorator;
 import io.stackgres.operator.conciliation.factory.Decorator;
-import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder
@@ -34,32 +33,33 @@ public class BackupJobContainerProfileDecorator extends AbstractContainerProfile
   }
 
   @Override
-  public void decorate(StackGresBackupContext context, Iterable<? extends HasMetadata> resources) {
+  public HasMetadata decorate(StackGresBackupContext context, HasMetadata resource) {
     if (BackupJob.skipBackupJobCreation(context)
         || Optional.of(context.getCluster().getSpec())
         .map(StackGresClusterSpec::getNonProductionOptions)
         .map(StackGresClusterNonProduction::getDisableClusterResourceRequirements)
         .orElse(false)) {
-      return;
+      return resource;
     }
 
-    Seq.seq(resources)
-        .filter(Job.class::isInstance)
-        .map(Job.class::cast)
-        .forEach(job -> setProfileContainers(context.getProfile(),
-            () -> Optional.of(job)
-            .map(Job::getSpec)
-            .map(JobSpec::getTemplate)
-            .map(PodTemplateSpec::getSpec),
-            Optional.ofNullable(context.getCluster().getSpec().getPod().getResources())
-            .map(StackGresClusterResources::getEnableClusterLimitsRequirements)
-            .orElse(false),
-            Optional.ofNullable(context.getCluster().getSpec().getNonProductionOptions())
-            .map(StackGresClusterNonProduction::getEnableSetClusterCpuRequests)
-            .orElse(false),
-            Optional.ofNullable(context.getCluster().getSpec().getNonProductionOptions())
-            .map(StackGresClusterNonProduction::getEnableSetClusterMemoryRequests)
-            .orElse(false)));
+    if (resource instanceof Job job) {
+      setProfileContainers(context.getProfile(),
+          () -> Optional.of(job)
+          .map(Job::getSpec)
+          .map(JobSpec::getTemplate)
+          .map(PodTemplateSpec::getSpec),
+          Optional.ofNullable(context.getCluster().getSpec().getPod().getResources())
+          .map(StackGresClusterResources::getEnableClusterLimitsRequirements)
+          .orElse(false),
+          Optional.ofNullable(context.getCluster().getSpec().getNonProductionOptions())
+          .map(StackGresClusterNonProduction::getEnableSetClusterCpuRequests)
+          .orElse(false),
+          Optional.ofNullable(context.getCluster().getSpec().getNonProductionOptions())
+          .map(StackGresClusterNonProduction::getEnableSetClusterMemoryRequests)
+          .orElse(false));
+    }
+
+    return resource;
   }
 
 }

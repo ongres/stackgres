@@ -40,15 +40,15 @@ import io.sundr.builder.annotations.BuildableReference;
 @Group(CommonDefinition.GROUP)
 @Version(CommonDefinition.VERSION)
 @Kind(StackGresConfig.KIND)
-@Singular("sgscript")
-@Plural("sgscripts")
+@Singular("sgconfig")
+@Plural("sgconfigs")
 public final class StackGresConfig
     extends CustomResource<StackGresConfigSpec, StackGresConfigStatus>
     implements Namespaced {
 
   private static final long serialVersionUID = 1L;
 
-  public static final String KIND = "SGScript";
+  public static final String KIND = "SGConfig";
 
   @JsonProperty("spec")
   @NotNull(message = "The specification is required")

@@ -72,7 +72,7 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(Map.of(randomAnnotationKey, randomAnnotationValue));
 
-    annotationDecorator.decorate(context, resources);
+    resources.forEach(resource -> annotationDecorator.decorate(context, resource));
 
     resources.forEach(resource -> checkResourceAnnotations(resource,
         Map.of(randomAnnotationKey, randomAnnotationValue)));
@@ -96,7 +96,7 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setServices(Map.of(serviceAnnotationKey, serviceAnnotationValue));
 
-    annotationDecorator.decorate(context, resources);
+    resources.forEach(resource -> annotationDecorator.decorate(context, resource));
 
     Map<String, String> expected = Map.of(allResourceAnnotationKey, allResourceAnnotationValue,
         serviceAnnotationKey, serviceAnnotationValue);
@@ -123,7 +123,7 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setClusterPods(Map.of(podAnnotationKey, podAnnotationValue));
 
-    annotationDecorator.decorate(context, resources);
+    resources.forEach(resource -> annotationDecorator.decorate(context, resource));
 
     resources.stream()
         .filter(r -> r.getKind().equals("Service"))
@@ -152,7 +152,7 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setServices(Map.of(serviceAnnotationKey, serviceAnnotationValue));
 
-    annotationDecorator.decorate(context, resources);
+    resources.forEach(resource -> annotationDecorator.decorate(context, resource));
 
     Map<String, String> expected = Map.of(primaryAnnotationKey, primaryAnnotationValue,
         serviceAnnotationKey, serviceAnnotationValue);
@@ -182,7 +182,7 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setServices(Map.of(serviceAnnotationKey, serviceAnnotationValue));
 
-    annotationDecorator.decorate(context, resources);
+    resources.forEach(resource -> annotationDecorator.decorate(context, resource));
 
     Map<String, String> expected = Map.of(replicaAnnotationKey, replicaAnnotationValue,
         serviceAnnotationKey, serviceAnnotationValue);
@@ -210,7 +210,7 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setClusterPods(Map.of(podAnnotationKey, podAnnotationValue));
 
-    annotationDecorator.decorate(context, resources);
+    resources.forEach(resource -> annotationDecorator.decorate(context, resource));
 
     Map<String, String> expected = Map.of(allResourceAnnotationKey, allResourceAnnotationValue,
         podAnnotationKey, podAnnotationValue);
@@ -237,7 +237,7 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setServices(ImmutableMap.of(serviceAnnotationKey, serviceAnnotationValue));
 
-    annotationDecorator.decorate(context, resources);
+    resources.forEach(resource -> annotationDecorator.decorate(context, resource));
 
     resources.stream()
         .filter(r -> r.getKind().equals("Pod"))
@@ -262,7 +262,7 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setClusterPods(Map.of(podAnnotationKey, podAnnotationValue));
 
-    annotationDecorator.decorate(context, resources);
+    resources.forEach(resource -> annotationDecorator.decorate(context, resource));
 
     Map<String, String> expectedSts = Map.of(allResourceAnnotationKey, allResourceAnnotationValue);
     Map<String, String> expectedPod = Map.of(allResourceAnnotationKey, allResourceAnnotationValue,
@@ -280,7 +280,7 @@ class ClusterAnnotationDecoratorTest {
 
   @Test
   void clusterOperatorVersion_shouldBePresentInStatefulSetPodTemplates() {
-    annotationDecorator.decorate(context, resources);
+    resources.forEach(resource -> annotationDecorator.decorate(context, resource));
 
     Map<String, String> expected = Map.of(StackGresContext.VERSION_KEY, defaultCluster
         .getMetadata().getAnnotations().get(StackGresContext.VERSION_KEY));
@@ -304,7 +304,7 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
 
-    annotationDecorator.decorate(context, resources);
+    resources.forEach(resource -> annotationDecorator.decorate(context, resource));
 
     Map<String, String> expected = Map.of(allResourceAnnotationKey, allResourceAnnotationValue);
 
@@ -329,7 +329,7 @@ class ClusterAnnotationDecoratorTest {
     defaultCluster.getSpec().getMetadata().getAnnotations()
         .setAllResources(ImmutableMap.of(allResourceAnnotationKey, allResourceAnnotationValue));
 
-    annotationDecorator.decorate(context, resources);
+    resources.forEach(resource -> annotationDecorator.decorate(context, resource));
 
     Map<String, String> expected = Map.of(allResourceAnnotationKey, allResourceAnnotationValue);
 

@@ -28,7 +28,6 @@ import io.stackgres.common.labels.LabelFactoryForConfig;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.ReconciliationOperations;
-import io.stackgres.operator.configuration.OperatorPropertyContext;
 
 @ApplicationScoped
 public class ConfigDeployedResourceScanner
@@ -42,8 +41,7 @@ public class ConfigDeployedResourceScanner
   public ConfigDeployedResourceScanner(
       DeployedResourcesCache deployedResourcesCache,
       KubernetesClient client,
-      LabelFactoryForConfig labelFactory,
-      OperatorPropertyContext operatorContext) {
+      LabelFactoryForConfig labelFactory) {
     super(deployedResourcesCache);
     this.client = client;
     this.labelFactory = labelFactory;

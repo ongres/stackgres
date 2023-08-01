@@ -34,8 +34,8 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProd
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPodScheduling;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
-import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
-import io.stackgres.operator.conciliation.InitContainerFactoryDiscover;
+import io.stackgres.operator.conciliation.InitContainerFactoryDiscoverer;
+import io.stackgres.operator.conciliation.RunningContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutablePodTemplateResult;
@@ -53,20 +53,24 @@ public class DistributedLogsPodTemplateSpecFactory
 
   private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
-  private final ContainerFactoryDiscoverer<DistributedLogsContainerContext> containerDiscoverer;
+  private final RunningContainerFactoryDiscoverer<DistributedLogsContainerContext>
+      runningContainerDiscoverer;
 
-  private final InitContainerFactoryDiscover<DistributedLogsContainerContext> initContDiscoverer;
+  private final InitContainerFactoryDiscoverer<DistributedLogsContainerContext>
+      initContainerDiscoverer;
 
   @Inject
   public DistributedLogsPodTemplateSpecFactory(
       ResourceFactory<StackGresDistributedLogsContext, PodSecurityContext> podSecurityContext,
       LabelFactoryForCluster<StackGresDistributedLogs> labelFactory,
-      ContainerFactoryDiscoverer<DistributedLogsContainerContext> containerFactoryDiscoverer,
-      InitContainerFactoryDiscover<DistributedLogsContainerContext> iniContainerFactoryDiscoverer) {
+      RunningContainerFactoryDiscoverer<DistributedLogsContainerContext>
+          runningContainerFactoryDiscoverer,
+      InitContainerFactoryDiscoverer<DistributedLogsContainerContext>
+          initContainerFactoryDiscoverer) {
     this.podSecContext = podSecurityContext;
     this.labelFactory = labelFactory;
-    this.containerDiscoverer = containerFactoryDiscoverer;
-    this.initContDiscoverer = iniContainerFactoryDiscoverer;
+    this.runningContainerDiscoverer = runningContainerFactoryDiscoverer;
+    this.initContainerDiscoverer = initContainerFactoryDiscoverer;
   }
 
   @Override
@@ -76,13 +80,13 @@ public class DistributedLogsPodTemplateSpecFactory
     final Map<String, String> podLabels = labelFactory.statefulSetPodLabels(cluster);
 
     List<ContainerFactory<DistributedLogsContainerContext>> containerFactories =
-        containerDiscoverer.discoverContainers(context);
+        runningContainerDiscoverer.discoverContainers(context);
 
     List<Container> containers = containerFactories.stream()
         .map(f -> f.getContainer(context)).toList();
 
     final List<ContainerFactory<DistributedLogsContainerContext>> initContainerFactories =
-        initContDiscoverer.discoverContainers(context);
+        initContainerDiscoverer.discoverContainers(context);
 
     List<Container> initContainers = initContainerFactories
         .stream().map(f -> f.getContainer(context))

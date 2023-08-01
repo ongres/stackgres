@@ -14,8 +14,8 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
-import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
+import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,14 +28,14 @@ public class ConfigRequiredResourcesGenerator
 
   private final Supplier<VersionInfo> kubernetesVersionSupplier;
 
-  private final RequiredResourceDecorator<StackGresConfigContext> decorator;
+  private final ResourceGenerationDiscoverer<StackGresConfigContext> discoverer;
 
   @Inject
   public ConfigRequiredResourcesGenerator(
       Supplier<VersionInfo> kubernetesVersionSupplier,
-      RequiredResourceDecorator<StackGresConfigContext> decorator) {
+      ResourceGenerationDiscoverer<StackGresConfigContext> discoverer) {
     this.kubernetesVersionSupplier = kubernetesVersionSupplier;
-    this.decorator = decorator;
+    this.discoverer = discoverer;
   }
 
   @Override
@@ -47,7 +47,7 @@ public class ConfigRequiredResourcesGenerator
         .source(config)
         .build();
 
-    return decorator.decorateResources(context);
+    return discoverer.generateResources(context);
   }
 
 }

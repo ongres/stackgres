@@ -8,11 +8,14 @@ package io.stackgres.operator.conciliation.factory;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.Volume;
+import io.stackgres.operator.conciliation.GenerationContext;
 
 public interface ContainerContext {
 
   Map<String, Volume> availableVolumes();
 
   String getDataVolumeName();
+
+  GenerationContext<?> getGenerationContext();
 
 }

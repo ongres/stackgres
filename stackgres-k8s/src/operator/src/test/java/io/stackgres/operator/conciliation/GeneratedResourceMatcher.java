@@ -34,7 +34,7 @@ import org.opentest4j.AssertionFailedError;
 
 public class GeneratedResourceMatcher {
   private final StackGresCluster cluster;
-  private final RequiredResourceDecorator<StackGresClusterContext> resourceGenerator;
+  private final ResourceGenerationDiscoverer<StackGresClusterContext> resourceGenerator;
   private final String clusterName;
   private final String clusterNamespace;
 
@@ -44,7 +44,7 @@ public class GeneratedResourceMatcher {
 
   private GeneratedResourceMatcher(
       StackGresCluster cluster,
-      RequiredResourceDecorator<StackGresClusterContext> resourceGenerator) {
+      ResourceGenerationDiscoverer<StackGresClusterContext> resourceGenerator) {
     this.cluster = cluster;
     this.resourceGenerator = resourceGenerator;
     this.clusterName = cluster.getMetadata().getName();
@@ -53,12 +53,12 @@ public class GeneratedResourceMatcher {
 
   public static GeneratedResourceMatcher givenACluster(
       StackGresCluster cluster,
-      RequiredResourceDecorator<StackGresClusterContext> resourceGenerator) {
+      ResourceGenerationDiscoverer<StackGresClusterContext> resourceGenerator) {
     return new GeneratedResourceMatcher(cluster, resourceGenerator);
   }
 
   protected List<HasMetadata> getResources(StackGresClusterContext context) {
-    return resourceGenerator.decorateResources(context);
+    return resourceGenerator.generateResources(context);
   }
 
   protected List<HasMetadata> getResources() {

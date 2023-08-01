@@ -10,25 +10,24 @@ import javax.enterprise.inject.Any;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import io.stackgres.operator.conciliation.AbstractResourceDiscoverer;
+import io.stackgres.operator.conciliation.AbstractDiscoverer;
 import io.stackgres.operator.conciliation.factory.PodTemplateFactory;
 
 @ApplicationScoped
 public class PodTemplateFactoryDiscovererImpl
-    extends AbstractResourceDiscoverer<PodTemplateFactory<ClusterContainerContext>>
+    extends AbstractDiscoverer<PodTemplateFactory<ClusterContainerContext>>
     implements PodTemplateFactoryDiscoverer<ClusterContainerContext> {
 
   @Inject
   public PodTemplateFactoryDiscovererImpl(
-      @Any
-          Instance<PodTemplateFactory<ClusterContainerContext>> instance) {
-    init(instance);
+      @Any Instance<PodTemplateFactory<ClusterContainerContext>> instance) {
+    super(instance);
   }
 
   @Override
   public PodTemplateFactory<ClusterContainerContext> discoverPodSpecFactory(
       ClusterContainerContext context) {
-    var podTemplateFactories = resourceHub.get(context.getClusterContext().getVersion());
+    var podTemplateFactories = hub.get(context.getClusterContext().getVersion());
 
     if (podTemplateFactories.size() != 1) {
       throw new IllegalStateException(

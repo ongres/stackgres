@@ -14,8 +14,8 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.labels.LabelMapperForCluster;
-import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
-import io.stackgres.operator.conciliation.InitContainerFactoryDiscover;
+import io.stackgres.operator.conciliation.InitContainerFactoryDiscoverer;
+import io.stackgres.operator.conciliation.RunningContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,9 +29,9 @@ public class DistributedLogsPodTemplateSpecFactoryTest {
   @Mock
   LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
   @Mock
-  ContainerFactoryDiscoverer<DistributedLogsContainerContext> containerFactoryDiscoverer;
+  RunningContainerFactoryDiscoverer<DistributedLogsContainerContext> containerFactoryDiscoverer;
   @Mock
-  InitContainerFactoryDiscover<DistributedLogsContainerContext> initContainerFactoryDiscoverer;
+  InitContainerFactoryDiscoverer<DistributedLogsContainerContext> initContainerFactoryDiscoverer;
   @Mock
   private DistributedLogsContainerContext context;
   @Mock

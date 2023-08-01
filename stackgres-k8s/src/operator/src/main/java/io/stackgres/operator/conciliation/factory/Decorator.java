@@ -9,7 +9,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 
 public interface Decorator<T> {
 
-  void decorate(T context,
-                Iterable<? extends HasMetadata> resources);
+  HasMetadata decorate(T context, HasMetadata resource);
 
 }
