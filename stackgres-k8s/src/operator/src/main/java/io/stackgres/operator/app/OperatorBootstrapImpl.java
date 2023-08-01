@@ -16,6 +16,7 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -54,7 +55,8 @@ public class OperatorBootstrapImpl implements OperatorBootstrap {
           || !hasCustomResource(client, StackGresBackup.class)
           || !hasCustomResource(client, StackGresDistributedLogs.class)
           || !hasCustomResource(client, StackGresDbOps.class)
-          || !hasCustomResource(client, StackGresShardedCluster.class)) {
+          || !hasCustomResource(client, StackGresShardedCluster.class)
+          || !hasCustomResource(client, StackGresConfig.class)) {
         throw new RuntimeException("Some required CRDs does not exists");
       }
 

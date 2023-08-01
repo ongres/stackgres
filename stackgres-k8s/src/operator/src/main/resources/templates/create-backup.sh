@@ -9,7 +9,8 @@ RETRY_DELAY="${RETRY_DELAY:-1000}"
 run() {
   set -e
 
-  acquire_lock > /tmp/try-lock 2>&1
+  echo "Acquiring lock..."
+  acquire_lock
   echo "Lock acquired"
   maintain_lock >> /tmp/try-lock 2>&1 &
   TRY_LOCK_PID=$!

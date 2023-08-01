@@ -20,7 +20,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import io.stackgres.common.ErrorType;
-import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
@@ -35,7 +34,6 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShards;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
-import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -66,27 +64,22 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
   private final String errorCrReferencerUri;
   private final String errorPostgresMismatchUri;
   private final String errorForbiddenUpdateUri;
-  private final int timeout;
 
   @Inject
   public PostgresConfigValidator(
-      CustomResourceFinder<StackGresPostgresConfig> configFinder,
-      OperatorPropertyContext operatorPropertyContext) {
-    this(configFinder, ValidationUtil.SUPPORTED_POSTGRES_VERSIONS,
-        operatorPropertyContext);
+      CustomResourceFinder<StackGresPostgresConfig> configFinder) {
+    this(configFinder, ValidationUtil.SUPPORTED_POSTGRES_VERSIONS);
   }
 
   public PostgresConfigValidator(
       CustomResourceFinder<StackGresPostgresConfig> configFinder,
       Map<StackGresComponent, Map<StackGresVersion, List<String>>>
-          orderedSupportedPostgresVersions,
-      OperatorPropertyContext operatorPropertyContext) {
+          orderedSupportedPostgresVersions) {
     this.configFinder = configFinder;
     this.supportedPostgresVersions = orderedSupportedPostgresVersions;
     this.errorCrReferencerUri = ErrorType.getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
     this.errorPostgresMismatchUri = ErrorType.getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
     this.errorForbiddenUpdateUri = ErrorType.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE);
-    this.timeout = operatorPropertyContext.getInt(OperatorProperty.LOCK_TIMEOUT);
   }
 
   @Override
@@ -234,7 +227,7 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
 
         if (!oldPgVersion.equals(givenPgVersion)
             && !(
-                StackGresUtil.isLocked(cluster, timeout)
+                StackGresUtil.isLocked(cluster)
                 && username != null
                 && isServiceAccountUsername(username)
                 && Objects.equals(

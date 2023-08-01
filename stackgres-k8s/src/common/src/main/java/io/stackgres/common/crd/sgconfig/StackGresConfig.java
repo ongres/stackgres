@@ -56,7 +56,6 @@ public final class StackGresConfig
   private StackGresConfigSpec spec;
 
   @JsonProperty("status")
-  @NotNull(message = "The status is required")
   @Valid
   private StackGresConfigStatus status;
 

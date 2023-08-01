@@ -67,7 +67,7 @@
     <stackgres.dbops.serviceAccount>stackgres</stackgres.dbops.serviceAccount>
     <stackgres.dbops.podName>stackgres</stackgres.dbops.podName>
     <stackgres.lockPollInterval>5</stackgres.lockPollInterval>
-    <stackgres.lockTimeout>60</stackgres.lockTimeout>
+    <stackgres.lockDuration>60</stackgres.lockDuration>
     <stackgres.prometheus.allowAutobind>false</stackgres.prometheus.allowAutobind>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

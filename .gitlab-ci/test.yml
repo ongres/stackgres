@@ -1,6 +1,8 @@
 shell unit tests:
   image: $CI_REGISTRY/$CI_PROJECT_PATH/$SG_CI_IMAGE_NAME
   stage: test
+  variables:
+    SHELL_TEST_TIMEOUT: 1200
   tags:
     - stackgres-runner-v2
     - linux-amd64

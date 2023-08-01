@@ -21,7 +21,7 @@ import io.stackgres.jobs.crdupgrade.CrdInstaller;
 import io.stackgres.jobs.crdupgrade.CustomResourceDefinitionFinder;
 import io.stackgres.jobs.crdupgrade.WebhookConfigurator;
 import io.stackgres.jobs.crdupgrade.WebhookConfiguratorImpl;
-import io.stackgres.jobs.dbops.DbOpLauncher;
+import io.stackgres.jobs.dbops.DbOpsLauncher;
 
 @QuarkusMain
 public class Main implements QuarkusApplication {
@@ -41,7 +41,7 @@ public class Main implements QuarkusApplication {
   YamlMapperProvider yamlMapperProvider;
 
   @Inject
-  DbOpLauncher dbOpLauncher;
+  DbOpsLauncher dbOpLauncher;
 
   @Override
   @SuppressWarnings("deprecation")

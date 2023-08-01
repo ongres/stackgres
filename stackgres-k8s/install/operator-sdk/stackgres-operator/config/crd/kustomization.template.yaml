@@ -2,7 +2,6 @@
 # since it depends on service name and namespace that are out of this kustomize package.
 # It should be run by config/default
 resources:
-- bases/SGConfig.yaml
 $(
   sed -i '/^SGBackupConfig\.yaml$/d' config/crd/bases/index.txt
 	yq -y 'del(.spec.versions[1])' config/crd/bases/SGBackup.yaml > config/crd/bases/SGBackup.yaml.tmp

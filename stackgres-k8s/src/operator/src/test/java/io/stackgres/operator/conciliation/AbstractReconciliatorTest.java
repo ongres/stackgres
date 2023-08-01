@@ -50,7 +50,7 @@ class AbstractReconciliatorTest {
   @Mock
   private HandlerDelegator<TestResource> handlerDelegator;
 
-  @Mock OperatorLockReconciliator operatorLockReconciliator;
+  @Mock OperatorLockHolder operatorLockReconciliator;
 
   private TestResource customResource;
 
@@ -355,7 +355,7 @@ class AbstractReconciliatorTest {
         DeployedResourcesCache deployedResourcesCache,
         HandlerDelegator<TestResource> handlerDelegator,
         KubernetesClient client,
-        OperatorLockReconciliator operatorLockReconciliator) {
+        OperatorLockHolder operatorLockReconciliator) {
       super(scanner, finder, conciliator, deployedResourcesCache,
           handlerDelegator, client, operatorLockReconciliator, "Test");
     }

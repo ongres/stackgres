@@ -1,0 +1,57 @@
+{{- if .Values.disableSGConfigJob }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: "{{ .Release.Name }}-configure-sgconfig"
+  labels:
+    app: stackgres-operator-init
+    job: configure-sgconfig
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "65"
+    {{- with .Values.jobs.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  template:
+    metadata:
+      labels:
+        app: stackgres-operator-init
+        job: configure-sgconfig
+    spec:
+      {{- with .Values.jobs.affinity}}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end}}
+      {{- with .Values.jobs.nodeSelector}}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ .Release.Name }}-init
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 0
+      {{- with .Values.jobs.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: "configure-sgconfig"
+        image: {{ template "kubectl.image" . }}
+        imagePullPolicy: "IfNotPresent"
+        command:
+          - "/bin/bash"
+          - "-ecx"
+          - |
+            cat << 'EOF' | kubectl apply -f -
+            ---
+            apiVersion: stackgres.io/v1
+            kind: SGConfig
+            metadata:
+              name: {{ .Release.Name }}
+              namespace: {{ .Release.Namespace }}
+            spec:
+              {{ toYaml .Values | nindent 14 }}
+            EOF
+{{- end }}

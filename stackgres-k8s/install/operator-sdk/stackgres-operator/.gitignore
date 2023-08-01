@@ -4,7 +4,6 @@ config/manifests/bases/stackgres.clusterserviceversion.yaml
 config/manager/kustomization.yaml
 config/crd/kustomization.yaml
 config/crd/bases/*
-!config/crd/bases/SGConfig.yaml
 !config/crd/bases/crd-descriptors.yaml
 !config/crd/bases/*.descriptors.yaml
 openshift-operator-bundle/manifests/stackgres.clusterserviceversion.yaml

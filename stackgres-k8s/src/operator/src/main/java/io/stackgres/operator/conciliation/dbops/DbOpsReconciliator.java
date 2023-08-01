@@ -25,7 +25,7 @@ import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
-import io.stackgres.operator.conciliation.OperatorLockReconciliator;
+import io.stackgres.operator.conciliation.OperatorLockHolder;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -45,7 +45,7 @@ public class DbOpsReconciliator
     @Inject DbOpsStatusManager statusManager;
     @Inject CustomResourceScheduler<StackGresDbOps> dbOpsScheduler;
     @Inject ObjectMapper objectMapper;
-    @Inject OperatorLockReconciliator operatorLockReconciliator;
+    @Inject OperatorLockHolder operatorLockReconciliator;
   }
 
   private final EventEmitter<StackGresDbOps> eventController;

@@ -29,6 +29,10 @@ public class StackGresConfigSpec {
 
   private String initClusterRole;
 
+  private StackGresConfigOperator operator;
+
+  private StackGresConfigRestapi restapi;
+
   private StackGresConfigWebConsole adminui;
 
   private StackGresConfigJobs jobs;
@@ -75,6 +79,22 @@ public class StackGresConfigSpec {
 
   public void setInitClusterRole(String initClusterRole) {
     this.initClusterRole = initClusterRole;
+  }
+
+  public StackGresConfigOperator getOperator() {
+    return operator;
+  }
+
+  public void setOperator(StackGresConfigOperator operator) {
+    this.operator = operator;
+  }
+
+  public StackGresConfigRestapi getRestapi() {
+    return restapi;
+  }
+
+  public void setRestapi(StackGresConfigRestapi restapi) {
+    this.restapi = restapi;
   }
 
   public StackGresConfigWebConsole getAdminui() {
@@ -144,7 +164,8 @@ public class StackGresConfigSpec {
   @Override
   public int hashCode() {
     return Objects.hash(adminui, authentication, containerRegistry, deploy, developer, extensions,
-        grafana, imagePullPolicy, initClusterRole, jobs, prometheus, serviceAccount);
+        grafana, imagePullPolicy, initClusterRole, jobs, operator, prometheus, restapi,
+        serviceAccount);
   }
 
   @Override
@@ -166,7 +187,8 @@ public class StackGresConfigSpec {
         && Objects.equals(imagePullPolicy, other.imagePullPolicy)
         && Objects.equals(initClusterRole, other.initClusterRole)
         && Objects.equals(jobs, other.jobs)
-        && Objects.equals(prometheus, other.prometheus)
+        && Objects.equals(operator, other.operator) && Objects.equals(prometheus, other.prometheus)
+        && Objects.equals(restapi, other.restapi)
         && Objects.equals(serviceAccount, other.serviceAccount);
   }
 

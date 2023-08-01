@@ -13,12 +13,24 @@ spec:
   scope: Namespaced
   versions:
   - name: v1
+    served: true
+    storage: true
+    subresources:
+      status: {}
+    additionalPrinterColumns:
+    - jsonPath: .metadata.annotations.stackgres\.io/lockPod
+      name: operator-pod
+      type: string
+    - jsonPath: .status.version
+      name: operator-version
+      type: string
     schema:
       openAPIV3Schema:
+        type: object
         description: |
           SGConfig stores the configuration of the StackGres Operator
 
-          *WARNING*: Creating more than one SGConfig is forbidden in order to avoid misbehaviours. The single SGConfig should be created automatically during installation.
+          > **WARNING**: Creating more than one SGConfig is forbidden in order to avoid misbehaviours. The single SGConfig should be created automatically during installation.
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -53,9 +65,16 @@ spec:
                     type: boolean
                     default: true
                     description: If `true` the Operator Installation ServiceAccount will be created
+                  annotations:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: Section to configure Installation ServiceAccount annotations
                   repoCredentials:
                     type: array
-                    description: Repositories credentials Secret names to attach to ServiceAccounts and Pods
+                    description: Repositories credentials Secret names
+                    items:
+                      type: string
+                      description: Repository credentials Secret name
               initClusterRole:
                 type: string
                 default: cluster-admin
@@ -74,28 +93,32 @@ spec:
                         description: Operator image name
                       tag:
                         type: string
-                        default: "main-jvm"
                         description: Operator image tag
                       pullPolicy:
                         type: string
                         default: "IfNotPresent"
                         description: Operator image pull policy
                   annotations:
-                    type: array
+                    type: object
                     description: Operator Pod annotations
-                    items:
-                      type: string
+                    x-kubernetes-preserve-unknown-fields: true
                   resources:
                     type: object
                     description: Operator Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#resourcerequirements-v1-core
+                    x-kubernetes-preserve-unknown-fields: true
                   nodeSelector:
                     type: object
+                    x-kubernetes-preserve-unknown-fields: true
                     description: Operator Pod node selector
                   tolerations:
                     type: array
                     description: Operator Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#toleration-v1-core
+                    items:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
                   affinity:
                     type: object
+                    x-kubernetes-preserve-unknown-fields: true
                     description: Operator Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#affinity-v1-core
                   serviceAccount:
                     type: object
@@ -103,13 +126,21 @@ spec:
                     properties:
                       annotations:
                         type: object
+                        x-kubernetes-preserve-unknown-fields: true
                         description: Section to configure Operator ServiceAccount annotations
+                      repoCredentials:
+                        type: array
+                        description: Repositories credentials Secret names
+                        items:
+                          type: string
+                          description: Repository credentials Secret name
                   service:
                     type: object
                     description: Section to configure Operator Service
                     properties:
                       annotations:
                         type: object
+                        x-kubernetes-preserve-unknown-fields: true
                         description: Section to configure Operator Service annotations
               restapi:
                 type: object
@@ -129,109 +160,119 @@ spec:
                         description: REST API image name
                       tag:
                         type: string
-                        default: "main-jvm"
                         description: REST API image tag
                       pullPolicy:
                         type: string
                         default: "IfNotPresent"
                         description: REST API image pull policy
-                annotations:
-                  type: object
-                  description: REST API Pod annotations
-                resources:
-                  type: object
-                  description: REST API Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#resourcerequirements-v1-core
-                nodeSelector:
-                  type: object
-                  description: REST API Pod node selector
-                tolerations:
-                  type: array
-                  description: REST API Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#toleration-v1-core
-                affinity:
-                  type: object
-                  description: REST API Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#affinity-v1-core
-                serviceAccount:
-                  type: object
-                  description: Section to configure REST API ServiceAccount
-                  properties:
-                    annotations:
+                  annotations:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: REST API Pod annotations
+                  resources:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: REST API Pod resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#resourcerequirements-v1-core
+                  nodeSelector:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: REST API Pod node selector
+                  tolerations:
+                    type: array
+                    description: REST API Pod tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#toleration-v1-core
+                    items:
                       type: object
-                      description: REST API ServiceAccount annotations
-                service:
-                  type: object
-                  description: Section to configure REST API Service
-                  properties:
-                    annotations:
-                      type: object
-                      description: REST API Service annotations
+                      x-kubernetes-preserve-unknown-fields: true
+                  affinity:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: REST API Pod affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#affinity-v1-core
+                  serviceAccount:
+                    type: object
+                    description: Section to configure REST API ServiceAccount
+                    properties:
+                      annotations:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                        description: REST API ServiceAccount annotations
+                      repoCredentials:
+                        type: array
+                        description: Repositories credentials Secret names
+                        items:
+                          type: string
+                          description: Repository credentials Secret name
+                  service:
+                    type: object
+                    description: Section to configure REST API Service
+                    properties:
+                      annotations:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                        description: REST API Service annotations
               adminui:
                 type: object
                 description: Section to configure Web Console container
                 properties:
-                  name:
-                    type: string
-                    default: stackgres-adminui
-                    description: Web Console container name
-                image:
-                  type: object
-                  description: Section to configure Web Console image
-                  properties:
-                    name:
-                      type: string
-                      default: "stackgres/admin-ui"
-                      description: Web Console image name
-                    tag:
-                      type: string
-                      default: "main"
-                      description: Web Console image tag
-                    pullPolicy:
-                      type: string
-                      default: "IfNotPresent"
-                      description: Web Console image pull policy
-                resources:
-                  type: object
-                  description: Web Console resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#resourcerequirements-v1-core
-                service:
-                  type: object
-                  description: Section to configure Web Console service.
-                  properties:
-                    exposeHTTP:
-                      type: boolean
-                      default: false
-                      description: When set to `true` the HTTP port will be exposed in the Web Console Service
-                    type:
-                      type: string
-                      default: ClusterIP
-                      description: |
-                        The type used for the service of the UI:
-                        * Set to LoadBalancer to create a load balancer (if supported by the kubernetes cluster)
-                          to allow connect from Internet to the UI. Note that enabling this feature will probably incurr in
-                          some fee that depend on the host of the kubernetes cluster (for example this is true for EKS, GKE
-                          and AKS).
-                        * Set to NodePort to expose admin UI from kubernetes nodes.
-                    loadBalancerIP:
-                      type: string
-                      description: |
-                        LoadBalancer will get created with the IP specified in
-                         this field. This feature depends on whether the underlying cloud-provider supports specifying
-                         the loadBalancerIP when a load balancer is created. This field will be ignored if the
-                         cloud-provider does not support the feature.
-                    loadBalancerSourceRanges:
-                      type: array
-                      description: |
-                        If specified and supported by the platform,
-                         this will restrict traffic through the cloud-provider load-balancer will be restricted to the
-                         specified client IPs. This field will be ignored if the cloud-provider does not support the
-                         feature.
-                        More info: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/
-                      items:
+                  image:
+                    type: object
+                    description: Section to configure Web Console image
+                    properties:
+                      name:
                         type: string
-                    nodePort:
-                      type: integer
-                      description: The HTTPS port used to expose the Service on Kubernetes nodes
-                    nodePortHTTP:
-                      type: integer
-                      description: The HTTP port used to expose the Service on Kubernetes nodes
+                        default: "stackgres/admin-ui"
+                        description: Web Console image name
+                      tag:
+                        type: string
+                        description: Web Console image tag
+                      pullPolicy:
+                        type: string
+                        default: "IfNotPresent"
+                        description: Web Console image pull policy
+                  resources:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: Web Console resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#resourcerequirements-v1-core
+                  service:
+                    type: object
+                    description: Section to configure Web Console service.
+                    properties:
+                      exposeHTTP:
+                        type: boolean
+                        default: false
+                        description: When set to `true` the HTTP port will be exposed in the Web Console Service
+                      type:
+                        type: string
+                        default: ClusterIP
+                        description: |
+                          The type used for the service of the UI:
+                          * Set to LoadBalancer to create a load balancer (if supported by the kubernetes cluster)
+                            to allow connect from Internet to the UI. Note that enabling this feature will probably incurr in
+                            some fee that depend on the host of the kubernetes cluster (for example this is true for EKS, GKE
+                            and AKS).
+                          * Set to NodePort to expose admin UI from kubernetes nodes.
+                      loadBalancerIP:
+                        type: string
+                        description: |
+                          LoadBalancer will get created with the IP specified in
+                          this field. This feature depends on whether the underlying cloud-provider supports specifying
+                          the loadBalancerIP when a load balancer is created. This field will be ignored if the
+                          cloud-provider does not support the feature.
+                      loadBalancerSourceRanges:
+                        type: array
+                        description: |
+                          If specified and supported by the platform,
+                          this will restrict traffic through the cloud-provider load-balancer will be restricted to the
+                          specified client IPs. This field will be ignored if the cloud-provider does not support the
+                          feature.
+                          More info: https://kubernetes.io/docs/tasks/access-application-cluster/configure-cloud-provider-firewall/
+                        items:
+                          type: string
+                      nodePort:
+                        type: integer
+                        description: The HTTPS port used to expose the Service on Kubernetes nodes
+                      nodePortHTTP:
+                        type: integer
+                        description: The HTTP port used to expose the Service on Kubernetes nodes
               jobs:
                 type: object
                 description: Section to configure Operator Installation Jobs
@@ -239,33 +280,40 @@ spec:
                   image:
                     type: object
                     description: Section to configure Operator Installation Jobs image
-                  name:
-                    type: string
-                    default: "stackgres/jobs"
-                    description: Operator Installation Jobs image name
-                  tag:
-                    type: string
-                    default: "main-jvm"
-                    description: Operator Installation Jobs image tag
-                  pullPolicy:
-                    type: string
-                    default: "IfNotPresent"
-                    description: Operator Installation Jobs image pull policy
-                annotations:
-                  type: object
-                  description: Operator Installation Jobs annotations
-                resources:
-                  type: object
-                  description: Operator Installation Jobs resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#resourcerequirements-v1-core
-                nodeSelector:
-                  type: object
-                  description: Operator Installation Jobs node selector
-                tolerations:
-                  type: array
-                  description: Operator Installation Jobs tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#toleration-v1-core
-                affinity:
-                  type: object
-                  description: Operator Installation Jobs affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#affinity-v1-core
+                    properties:
+                      name:
+                        type: string
+                        default: "stackgres/jobs"
+                        description: Operator Installation Jobs image name
+                      tag:
+                        type: string
+                        description: Operator Installation Jobs image tag
+                      pullPolicy:
+                        type: string
+                        default: "IfNotPresent"
+                        description: Operator Installation Jobs image pull policy
+                  annotations:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: Operator Installation Jobs annotations
+                  resources:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: Operator Installation Jobs resources. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#resourcerequirements-v1-core
+                  nodeSelector:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: Operator Installation Jobs node selector
+                  tolerations:
+                    type: array
+                    description: Operator Installation Jobs tolerations. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#toleration-v1-core
+                    items:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                  affinity:
+                    type: object
+                    x-kubernetes-preserve-unknown-fields: true
+                    description: Operator Installation Jobs affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#affinity-v1-core
               deploy:
                 type: object
                 description: Section to configure deployment aspects.
@@ -392,12 +440,13 @@ spec:
                     description: |
                       Allow to specify the secret name that will be used store the credentials to access the UI.
                         It simply prevent creating the secret automatically.
-                    name:
-                      type: string
-                      description: |
-                        The admin user Secret name to be used.
-                        Allow to specify the secret name that will be used store the credentials to access the UI.
-                         It simply prevent creating the secret automatically.
+                    properties:
+                      name:
+                        type: string
+                        description: |
+                          The admin user Secret name to be used.
+                          Allow to specify the secret name that will be used store the credentials to access the UI.
+                          It simply prevent creating the secret automatically.
                   oidc:
                     type: object
                     description: Section to configure Web Console OIDC authentication
@@ -564,8 +613,10 @@ spec:
                         type: array
                         default:
                         - x86_64/linux/timescaledb-1\.7\.4-pg12
-                        description: |
-                          An array of extensions pattern used to pre-loaded estensions into the extensions cache
+                        description: An array of extensions pattern used to pre-loaded estensions into the extensions cache
+                        items:
+                          type: string
+                          description: An extension pattern used to pre-loaded estensions into the extensions cache
                       persistentVolume:
                         type: object
                         description: Section to configure the extensions cache PersistentVolume
@@ -598,6 +649,9 @@ spec:
                   
                   Following options are for developers only, but can also be useful in some cases ;)
                 properties:
+                  version:
+                    type: string
+                    description: Set the operator version (used for testing)
                   logLevel:
                     type: string
                     description: Set `quarkus.log.level`. See https://quarkus.io/guides/logging#root-logger-configuration
@@ -677,6 +731,3 @@ spec:
               version:
                 type: string
                 description: Latest version of the operator used to check for updates
-        type: object
-    served: true
-    storage: true

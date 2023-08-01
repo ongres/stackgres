@@ -61,6 +61,7 @@ run_in_container() {
   local IMAGE_NAME="$(echo "$TEST_IMAGE_NAMES" | tr ' ' '\n' | tail -n +$1 | head -n 1)"
   shift
   docker run --rm \
+    $([ -z "$SHELL_TEST_TIMEOUT" ] || printf '%s %s' --stop-timeout "$SHELL_TEST_TIMEOUT") \
     -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro \
     -v /etc/shadow:/etc/shadow:ro -v /etc/gshadow:/etc/gshadow:ro \
     -u "$(id -u):$(id -g)" \

@@ -30,7 +30,7 @@ import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
-import io.stackgres.operator.conciliation.OperatorLockReconciliator;
+import io.stackgres.operator.conciliation.OperatorLockHolder;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operator.validation.cluster.PostgresConfigValidator;
@@ -52,7 +52,7 @@ public class ClusterReconciliator
     @Inject EventEmitter<StackGresCluster> eventController;
     @Inject CustomResourceScheduler<StackGresCluster> clusterScheduler;
     @Inject ObjectMapper objectMapper;
-    @Inject OperatorLockReconciliator operatorLockReconciliator;
+    @Inject OperatorLockHolder operatorLockReconciliator;
   }
 
   private final StatusManager<StackGresCluster, Condition> statusManager;

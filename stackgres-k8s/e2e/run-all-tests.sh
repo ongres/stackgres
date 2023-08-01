@@ -356,6 +356,7 @@ EOF
     sleep 1
   done
   kill "$(cat "$TARGET_PATH/specs_to_run.tail.pid")"
+  printf %s "$OVERALL_RESULT" > "$TARGET_PATH/overall-result"
   if [ "$OVERALL_RESULT" = false ]
   then
     return 1
@@ -371,20 +372,27 @@ SPEC_EMITTER_PID="$!"
 trap_kill "$SPEC_EMITTER_PID"
 
 set +e
-OVERALL_RESULT=true
 "$SHELL" -c '
   echo $$ > "'"$TARGET_PATH/specs_to_run.tail.pid"'"
   exec tail -n +1 -f "'"$TARGET_PATH/specs_to_run.pipe"'"
   ' | xargs_parallel_shell % "$E2E_PATH/e2e" spec_with_lock %
 set -e
 
-if ! wait "$SPEC_EMITTER_PID"
+OVERALL_RESULT=true
+if wait "$SPEC_EMITTER_PID"
 then
-  if [ "$OVERALL_RESULT" = true ]
+  if [ "$(cat "$TARGET_PATH/overall-result")" != true ]
   then
-    echo "No test failed but overall process failed...this is weird!"
+    echo "Some test failed but overall process didn't...this is weird!"
     OVERALL_RESULT=false
   fi
+else
+  if [ "$(cat "$TARGET_PATH/overall-result")" = true ]
+  then
+    echo "No test failed but overall process did...this is weird!"
+    OVERALL_RESULT=false
+  fi
+  OVERALL_RESULT=false
 fi
 
 cat << EOF > "$TARGET_PATH/e2e-tests-junit-report.xml"

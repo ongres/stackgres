@@ -21,7 +21,9 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresConfigDeveloper {
 
-  private String allowAutobind;
+  private String version;
+
+  private String logLevel;
 
   private Boolean showStackTraces;
 
@@ -35,12 +37,20 @@ public class StackGresConfigDeveloper {
 
   private Boolean disableArbitraryUser;
 
-  public String getAllowAutobind() {
-    return allowAutobind;
+  public String getVersion() {
+    return version;
   }
 
-  public void setAllowAutobind(String allowAutobind) {
-    this.allowAutobind = allowAutobind;
+  public void setVersion(String version) {
+    this.version = version;
+  }
+
+  public String getLogLevel() {
+    return logLevel;
+  }
+
+  public void setLogLevel(String logLevel) {
+    this.logLevel = logLevel;
   }
 
   public Boolean getShowStackTraces() {
@@ -94,8 +104,8 @@ public class StackGresConfigDeveloper {
 
   @Override
   public int hashCode() {
-    return Objects.hash(allowAutobind, allowPullExtensionsFromImageRepository, disableArbitraryUser,
-        enableJvmDebug, enableJvmDebugSuspend, showStackTraces, useJvmImages);
+    return Objects.hash(allowPullExtensionsFromImageRepository, disableArbitraryUser,
+        enableJvmDebug, enableJvmDebugSuspend, logLevel, showStackTraces, useJvmImages, version);
   }
 
   @Override
@@ -107,14 +117,15 @@ public class StackGresConfigDeveloper {
       return false;
     }
     StackGresConfigDeveloper other = (StackGresConfigDeveloper) obj;
-    return Objects.equals(allowAutobind, other.allowAutobind)
-        && Objects.equals(allowPullExtensionsFromImageRepository,
-            other.allowPullExtensionsFromImageRepository)
+    return Objects.equals(allowPullExtensionsFromImageRepository,
+        other.allowPullExtensionsFromImageRepository)
         && Objects.equals(disableArbitraryUser, other.disableArbitraryUser)
         && Objects.equals(enableJvmDebug, other.enableJvmDebug)
         && Objects.equals(enableJvmDebugSuspend, other.enableJvmDebugSuspend)
+        && Objects.equals(logLevel, other.logLevel)
         && Objects.equals(showStackTraces, other.showStackTraces)
-        && Objects.equals(useJvmImages, other.useJvmImages);
+        && Objects.equals(useJvmImages, other.useJvmImages)
+        && Objects.equals(version, other.version);
   }
 
   @Override

@@ -51,4 +51,8 @@ public interface AdmissionReviewFixtures {
     return new ShardedClusterReviewFixture();
   }
 
+  static ConfigReviewFixture config() {
+    return new ConfigReviewFixture();
+  }
+
 }

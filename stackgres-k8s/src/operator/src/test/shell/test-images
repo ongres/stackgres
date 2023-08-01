@@ -1,2 +1,1 @@
-ongres/kubectl:v1.23.5-build-6.13
-ongres/kubectl:v1.24.3-build-6.16
+quay.io/ongres/kubectl:v1.25.9-build-6.22

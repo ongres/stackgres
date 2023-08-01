@@ -179,4 +179,19 @@ webhooks:
         path: '/stackgres/mutation/sgshardedcluster'
       caBundle: {{ .Values.cert.crt }}
     admissionReviewVersions: ["v1"]
+  - name: sgconfigs.{{ .Release.Name }}.{{ .Release.Namespace }}
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgconfigs"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: {{ .Release.Namespace }}
+        name: {{ .Release.Name }}
+        path: '/stackgres/mutation/sgconfig'
+      caBundle: {{ .Values.cert.crt }}
+    admissionReviewVersions: ["v1"]
 {{- end }}

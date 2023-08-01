@@ -43,7 +43,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
   private final DeployedResourcesCache deployedResourcesCache;
   private final HandlerDelegator<T> handlerDelegator;
   private final KubernetesClient client;
-  private final OperatorLockReconciliator operatorLockReconciliator;
+  private final OperatorLockHolder operatorLockReconciliator;
   private final String reconciliationName;
   private final ExecutorService executorService;
   private final AtomicReference<List<Optional<T>>> atomicReference =
@@ -60,7 +60,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
       DeployedResourcesCache deployedResourcesCache,
       HandlerDelegator<T> handlerDelegator,
       KubernetesClient client,
-      OperatorLockReconciliator operatorLockReconciliator,
+      OperatorLockHolder operatorLockReconciliator,
       String reconciliationName) {
     this.scanner = scanner;
     this.finder = finder;
@@ -127,6 +127,9 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     while (true) {
       try {
         if (!operatorLockReconciliator.isLeader()) {
+          if (close) {
+            break;
+          }
           Thread.sleep(100);
           continue;
         }

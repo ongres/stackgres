@@ -42,7 +42,7 @@ import io.stackgres.common.crd.sgdbops.DbOpsRestartStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.event.DbOpsEventEmitter;
 import io.stackgres.common.fixture.Fixtures;
-import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartImpl;
+import io.stackgres.jobs.dbops.clusterrestart.ClusterRestart;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.ImmutableRestartEventForTest;
 import io.stackgres.jobs.dbops.clusterrestart.InvalidClusterException;
@@ -60,7 +60,7 @@ import org.mockito.InOrder;
 public abstract class ClusterStateHandlerTest {
 
   @InjectMock
-  public ClusterRestartImpl clusterRestart;
+  public ClusterRestart clusterRestart;
 
   @Inject
   public PodTestUtil podTestUtil;

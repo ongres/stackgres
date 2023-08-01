@@ -13,6 +13,7 @@ import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.app.ReconciliationClock;
+import io.stackgres.operator.conciliation.OperatorLockHolder;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,10 +23,25 @@ public class StackGresOperatorApp {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(StackGresOperatorApp.class);
 
-  private OperatorPropertyContext operatorPropertyContext;
-  private OperatorWatcherHandler operatorWatchersHandler;
-  private ReconciliationClock reconciliationClock;
-  private OperatorBootstrap operatorBootstrap;
+  private final OperatorPropertyContext operatorPropertyContext;
+  private final OperatorWatcherHandler operatorWatchersHandler;
+  private final ReconciliationClock reconciliationClock;
+  private final OperatorBootstrap operatorBootstrap;
+  private final OperatorLockHolder operatorLockHolder;
+
+  @Inject
+  public StackGresOperatorApp(
+      OperatorPropertyContext operatorPropertyContext,
+      OperatorWatcherHandler operatorWatchersHandler,
+      ReconciliationClock reconciliationClock,
+      OperatorBootstrap operatorBootstrap,
+      OperatorLockHolder operatorLockHolder) {
+    this.operatorPropertyContext = operatorPropertyContext;
+    this.operatorWatchersHandler = operatorWatchersHandler;
+    this.reconciliationClock = reconciliationClock;
+    this.operatorBootstrap = operatorBootstrap;
+    this.operatorLockHolder = operatorLockHolder;
+  }
 
   void onStart(@Observes StartupEvent ev) {
     if (!operatorPropertyContext.getBoolean(OperatorProperty.DISABLE_RECONCILIATION)) {
@@ -33,6 +49,7 @@ public class StackGresOperatorApp {
       operatorBootstrap.bootstrap();
       operatorWatchersHandler.startWatchers();
       reconciliationClock.start();
+      operatorLockHolder.start();
     }
   }
 
@@ -41,26 +58,8 @@ public class StackGresOperatorApp {
       LOGGER.info("The reconciliation is stopping...");
       operatorWatchersHandler.stopWatchers();
       reconciliationClock.stop();
+      operatorLockHolder.stop();
     }
   }
 
-  @Inject
-  public void setOperatorPropertyContext(OperatorPropertyContext operatorPropertyContext) {
-    this.operatorPropertyContext = operatorPropertyContext;
-  }
-
-  @Inject
-  public void setOperatorWatchersHandler(OperatorWatcherHandler operatorWatchersHandler) {
-    this.operatorWatchersHandler = operatorWatchersHandler;
-  }
-
-  @Inject
-  public void setReconciliationClock(ReconciliationClock reconciliationClock) {
-    this.reconciliationClock = reconciliationClock;
-  }
-
-  @Inject
-  public void setOperatorBootstrap(OperatorBootstrap operatorBootstrap) {
-    this.operatorBootstrap = operatorBootstrap;
-  }
 }

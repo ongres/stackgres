@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: SGConfig
-metadata:
-  name: {{ .Release.Name }}
-  namespace: {{ .Release.Namespace }}
-spec:
-  {{ toYaml . | nindent 2 }}

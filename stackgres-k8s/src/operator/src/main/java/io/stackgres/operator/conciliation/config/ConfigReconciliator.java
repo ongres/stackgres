@@ -27,7 +27,7 @@ import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
-import io.stackgres.operator.conciliation.OperatorLockReconciliator;
+import io.stackgres.operator.conciliation.OperatorLockHolder;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
 import org.slf4j.helpers.MessageFormatter;
@@ -48,7 +48,7 @@ public class ConfigReconciliator
     @Inject EventEmitter<StackGresConfig> eventController;
     @Inject CustomResourceScheduler<StackGresConfig> configScheduler;
     @Inject ObjectMapper objectMapper;
-    @Inject OperatorLockReconciliator operatorLockReconciliator;
+    @Inject OperatorLockHolder operatorLockReconciliator;
   }
 
   private final StatusManager<StackGresConfig, Condition> statusManager;
@@ -90,7 +90,7 @@ public class ConfigReconciliator
   protected void onPostReconciliation(StackGresConfig config) {
     statusManager.refreshCondition(config);
 
-    configScheduler.update(config,
+    configScheduler.updateStatus(config,
         (currentConfig) -> {
           if (config.getStatus() != null) {
             currentConfig.setStatus(config.getStatus());

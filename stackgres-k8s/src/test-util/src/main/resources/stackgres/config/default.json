@@ -1,0 +1,130 @@
+{
+  "apiVersion": "stackgres.io/v1",
+  "kind": "SGConfig",
+  "metadata": {
+    "name": "stackgres-operator"
+  },
+  "spec": {
+    "adminui": {
+      "image": {
+        "pullPolicy": "IfNotPresent"
+      },
+      "name": "stackgres-adminui",
+      "resources": {},
+      "service": {
+        "exposeHTTP": false,
+        "type": "ClusterIP"
+      }
+    },
+    "authentication": {
+      "oidc": {},
+      "resetPassword": false,
+      "secretRef": {
+        "name": ""
+      },
+      "type": "jwt",
+      "user": "admin"
+    },
+    "cert": {
+      "autoapprove": true,
+      "certManager": {
+        "autoConfigure": false,
+        "duration": "2160h",
+        "encoding": "PKCS1",
+        "renewBefore": "360h",
+        "size": 2048
+      },
+      "createForOperator": true,
+      "createForWebApi": true,
+      "crt": null,
+      "jwtRsaKey": null,
+      "jwtRsaPub": null,
+      "key": null,
+      "resetCerts": false,
+      "webCrt": null,
+      "webKey": null
+    },
+    "containerRegistry": "quay.io",
+    "deploy": {
+      "operator": true,
+      "restapi": true
+    },
+    "developer": {},
+    "extensions": {
+      "cache": {
+        "enabled": false,
+        "persistentVolume": {
+          "size": "1Gi"
+        },
+        "preloadedExtensions": [
+          "x86_64/linux/timescaledb-1\\.7\\.4-pg12"
+        ]
+      },
+      "repositoryUrls": [
+        "https://extensions.stackgres.io/postgres/repository"
+      ]
+    },
+    "grafana": {
+      "autoEmbed": false,
+      "datasourceName": "Prometheus",
+      "password": "prom-operator",
+      "schema": "http",
+      "user": "admin"
+    },
+    "imagePullPolicy": "IfNotPresent",
+    "initClusterRole": "cluster-admin",
+    "jobs": {
+      "affinity": {},
+      "annotations": {},
+      "image": {
+        "pullPolicy": "IfNotPresent"
+      },
+      "name": "stackgres-jobs",
+      "nodeSelector": {},
+      "resources": {},
+      "tolerations": []
+    },
+    "operator": {
+      "affinity": {},
+      "annotations": {},
+      "image": {
+        "pullPolicy": "IfNotPresent"
+      },
+      "nodeSelector": {},
+      "resources": {},
+      "service": {
+        "annotations": {}
+      },
+      "serviceAccount": {
+        "annotations": {}
+      },
+      "tolerations": []
+    },
+    "prometheus": {
+      "allowAutobind": true
+    },
+    "rbac": {
+      "create": true
+    },
+    "restapi": {
+      "affinity": {},
+      "annotations": {},
+      "image": {
+        "pullPolicy": "IfNotPresent"
+      },
+      "name": "stackgres-restapi",
+      "nodeSelector": {},
+      "resources": {},
+      "service": {
+        "annotations": {}
+      },
+      "serviceAccount": {
+        "annotations": {}
+      },
+      "tolerations": []
+    },
+    "serviceAccount": {
+      "create": true
+    }
+  }
+}

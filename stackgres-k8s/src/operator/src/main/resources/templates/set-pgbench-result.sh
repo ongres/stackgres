@@ -1,9 +1,9 @@
 #!/bin/sh
 
-FORMAT_LOCALE=C.utf8
+FORMAT_LOCALE="$(locale -a | grep -i '^C\.UTF' | head -n 1)"
 
 set_completed() {
-  if ! locale -a | grep -q -x -F "$FORMAT_LOCALE"
+  if ! locale -a | grep -qxF "$FORMAT_LOCALE"
   then
     FAILURE="Required locale $FORMAT_LOCALE is not installed"
     EXIT_CODE=1

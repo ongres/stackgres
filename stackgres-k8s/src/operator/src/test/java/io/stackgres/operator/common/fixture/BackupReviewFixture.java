@@ -19,6 +19,11 @@ public class BackupReviewFixture extends VersionedFixture<BackupReview> {
     return this;
   }
 
+  public BackupReviewFixture loadDelete() {
+    fixture = readFromJson(STACKGRES_BACKUP_ADMISSION_REVIEW_DELETE_JSON);
+    return this;
+  }
+
   public BackupReviewFixture loadUpdate() {
     fixture = readFromJson(STACKGRES_BACKUP_ADMISSION_REVIEW_UPDATE_JSON);
     return this;

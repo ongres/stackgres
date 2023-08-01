@@ -21,7 +21,17 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresConfigWebConsole {
 
+  private StackGresConfigImage image;
+
   private StackGresConfigWebConsoleService service;
+
+  public StackGresConfigImage getImage() {
+    return image;
+  }
+
+  public void setImage(StackGresConfigImage image) {
+    this.image = image;
+  }
 
   public StackGresConfigWebConsoleService getService() {
     return service;
@@ -33,7 +43,7 @@ public class StackGresConfigWebConsole {
 
   @Override
   public int hashCode() {
-    return Objects.hash(service);
+    return Objects.hash(image, service);
   }
 
   @Override
@@ -45,7 +55,7 @@ public class StackGresConfigWebConsole {
       return false;
     }
     StackGresConfigWebConsole other = (StackGresConfigWebConsole) obj;
-    return Objects.equals(service, other.service);
+    return Objects.equals(image, other.image) && Objects.equals(service, other.service);
   }
 
   @Override

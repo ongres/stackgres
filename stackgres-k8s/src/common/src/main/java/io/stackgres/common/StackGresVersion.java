@@ -130,6 +130,10 @@ public enum StackGresVersion {
         .orElse(StackGresVersion.LATEST);
   }
 
+  public static long getStackGresVersionAsNumber(StackGresConfig config) {
+    return getStackGresVersionFromResourceAsNumber(config);
+  }
+
   public static long getStackGresVersionAsNumber(StackGresCluster cluster) {
     return getStackGresVersionFromResourceAsNumber(cluster);
   }

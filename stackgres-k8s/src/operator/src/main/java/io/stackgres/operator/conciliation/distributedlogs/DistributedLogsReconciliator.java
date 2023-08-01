@@ -31,7 +31,7 @@ import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
-import io.stackgres.operator.conciliation.OperatorLockReconciliator;
+import io.stackgres.operator.conciliation.OperatorLockHolder;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
 import org.slf4j.helpers.MessageFormatter;
@@ -51,7 +51,7 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
     @Inject CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
     @Inject StatusManager<StackGresDistributedLogs, Condition> statusManager;
     @Inject EventEmitter<StackGresDistributedLogs> eventController;
-    @Inject OperatorLockReconciliator operatorLockReconciliator;
+    @Inject OperatorLockHolder operatorLockReconciliator;
   }
 
   private final ConnectedClustersScanner connectedClustersScanner;

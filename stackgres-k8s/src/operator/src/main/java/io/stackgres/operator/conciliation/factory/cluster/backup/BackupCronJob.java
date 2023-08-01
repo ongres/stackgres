@@ -34,6 +34,7 @@ import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterStatefulSetPath;
 import io.stackgres.common.JobUtil;
 import io.stackgres.common.KubectlUtil;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
@@ -347,6 +348,26 @@ public class BackupCronJob
                         new EnvVarBuilder()
                             .withName("HOME")
                             .withValue("/tmp")
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("LOCK_DURATION")
+                            .withValue(OperatorProperty.LOCK_DURATION.getString())
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("LOCK_POLL_INTERVAL")
+                            .withValue(OperatorProperty.LOCK_POLL_INTERVAL.getString())
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("LOCK_SERVICE_ACCOUNT_KEY")
+                            .withValue(StackGresContext.LOCK_SERVICE_ACCOUNT_KEY)
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("LOCK_POD_KEY")
+                            .withValue(StackGresContext.LOCK_POD_KEY)
+                            .build(),
+                        new EnvVarBuilder()
+                            .withName("LOCK_TIMEOUT_KEY")
+                            .withValue(StackGresContext.LOCK_TIMEOUT_KEY)
                             .build())
                     .build())
                 .withCommand("/bin/bash", "-e" + (BACKUP_LOGGER.isTraceEnabled() ? "x" : ""),

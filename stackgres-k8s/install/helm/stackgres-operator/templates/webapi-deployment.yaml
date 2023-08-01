@@ -54,7 +54,7 @@ spec:
         {{- end }}
         {{- end }}
       containers:
-      - name: {{ .Values.restapi.name }}
+      - name: stackgres-restapi
         image: "{{ include "restapi-image" . }}"
         imagePullPolicy: {{ .Values.restapi.image.pullPolicy }}
         securityContext:
@@ -196,7 +196,7 @@ spec:
           - name: web-certs
             mountPath: /etc/operator/certs
             readOnly: true
-      - name: {{ .Values.adminui.name }}
+      - name: stackgres-adminui
         image: "{{ include "adminui-image" . }}"
         imagePullPolicy: {{ .Values.adminui.image.pullPolicy }}
         securityContext:

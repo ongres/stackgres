@@ -6,6 +6,8 @@ imagePullPolicy: "IfNotPresent"
 serviceAccount:
   # -- If `true` the Operator Installation ServiceAccount will be created
   create: true
+  # -- Section to configure Operator ServiceAccount annotations
+  annotations: {}
   # -- Repositories credentials Secret names to attach to ServiceAccounts and Pods
   repoCredentials: []
 # -- The ClusterRole assigned to the Operation Installation Jobs. By default is `cluster-admin`.
@@ -35,6 +37,8 @@ operator:
   serviceAccount:
     # -- Section to configure Operator ServiceAccount annotations
     annotations: {}
+    # -- Repositories credentials Secret names to attach to ServiceAccounts and Pods
+    repoCredentials: []
   # Section to configure Operator Service
   service:
     # -- Section to configure Operator Service annotations
@@ -42,7 +46,7 @@ operator:
 
 # Section to configure REST API Pod
 restapi:
-  # -- REST API container name
+  # -- REST API Pod name
   name: stackgres-restapi
   # Section to configure REST API image
   image:
@@ -66,6 +70,8 @@ restapi:
   serviceAccount:
     # -- REST API ServiceAccount annotations
     annotations: {}
+    # -- Repositories credentials Secret names to attach to ServiceAccounts and Pods
+    repoCredentials: []
   # Section to configure REST API Service
   service:
     # -- REST API Service annotations
@@ -73,8 +79,6 @@ restapi:
 
 # Section to configure Web Console container
 adminui:
-  # -- Web Console container name
-  name: stackgres-adminui
   # Section to configure Web Console image
   image:
     # -- Web Console image name
@@ -306,6 +310,12 @@ extensions:
   #
   # To set a proxy for extensions repository add parameter proxyUrl to the URL:
   #   `https://extensions.stackgres.io/postgres/repository?proxyUrl=<proxy scheme>%3A%2F%2F<proxy host>[%3A<proxy port>]` (URL encoded)
+  # 
+  # Other URL parameters are:
+  # 
+  # * `skipHostnameVerification`: set it to `true` in order to use a server or a proxy with a self signed certificate
+  # * `retry`: set it to `<max retriex>[:<sleep before next retry>]` in order to retry a request on failure
+  # * `setHttpScheme`: set it to `true` in order to force using HTTP scheme
   repositoryUrls:
   - https://extensions.stackgres.io/postgres/repository
   # Section to configure extensions cache (experimental).
@@ -342,6 +352,8 @@ extensions:
 
 # Section to configure developer options.
 developer:
+  # -- (string) Set the operator version (used for testing)
+  version:
   # -- (string) Set `quarkus.log.level`. See https://quarkus.io/guides/logging#root-logger-configuration
   logLevel:
   # -- Set `quarkus.log.console.format` to `%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c{4.}] (%t) %s%e%n`. See https://quarkus.io/guides/logging#logging-format

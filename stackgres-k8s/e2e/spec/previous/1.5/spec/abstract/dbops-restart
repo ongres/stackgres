@@ -43,7 +43,7 @@ check_restart_is_running() {
 
 check_restart_prevent_updates_to_cluster() {
   wait_until eval '[ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-    --template "{{ if .metadata.annotations.lockTimestamp }}{{ .metadata.annotations.lockTimestamp }}{{ else }}0{{ end }}")" != 0 ]'
+    --template "{{ if .metadata.annotations }}{{ if (index .metadata.annotations \"stackgres.io/lockTimeout\") }}{{ (index .metadata.annotations \"stackgres.io/lockTimeout\") }}{{ else }}0{{ end }}{{ else }}0{{ end }}")" != 0 ]'
   if kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
     -p '[{"op":"replace","path":"/spec/metadata","value":{"annotations":{"allResources":{"'"$(random_string)"'": "'"$(random_string)"'"}}}}]' \
     >/dev/null 2>&1

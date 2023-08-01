@@ -24,7 +24,7 @@ public enum JobsProperty implements StackGresPropertyReader {
   SERVICE_ACCOUNT("stackgres.dbops.serviceAccount"),
   POD_NAME("stackgres.dbops.podName"),
   DBOPS_LOCK_POLL_INTERVAL("stackgres.dbops.lockPollInterval"),
-  DBOPS_LOCK_TIMEOUT("stackgres.dbops.lockTimeout");
+  DBOPS_LOCK_DURATION("stackgres.dbops.lockDuration");
 
   private static final Properties APPLICATION_PROPERTIES =
       StackGresPropertyReader.readApplicationProperties(JobsProperty.class);

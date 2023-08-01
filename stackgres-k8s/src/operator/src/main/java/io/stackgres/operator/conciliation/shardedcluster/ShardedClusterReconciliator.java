@@ -27,7 +27,7 @@ import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
-import io.stackgres.operator.conciliation.OperatorLockReconciliator;
+import io.stackgres.operator.conciliation.OperatorLockHolder;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operator.validation.cluster.PostgresConfigValidator;
@@ -49,7 +49,7 @@ public class ShardedClusterReconciliator
     @Inject EventEmitter<StackGresShardedCluster> eventController;
     @Inject CustomResourceScheduler<StackGresShardedCluster> clusterScheduler;
     @Inject ObjectMapper objectMapper;
-    @Inject OperatorLockReconciliator operatorLockReconciliator;
+    @Inject OperatorLockHolder operatorLockReconciliator;
   }
 
   private final StatusManager<StackGresShardedCluster, Condition> statusManager;

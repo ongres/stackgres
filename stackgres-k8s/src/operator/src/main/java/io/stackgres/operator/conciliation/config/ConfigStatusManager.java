@@ -10,6 +10,7 @@ import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigStatus;
@@ -23,6 +24,10 @@ public class ConfigStatusManager
 
   @Override
   public StackGresConfig refreshCondition(StackGresConfig source) {
+    if (source.getStatus() == null) {
+      source.setStatus(new StackGresConfigStatus());
+    }
+    source.getStatus().setVersion(StackGresProperty.OPERATOR_VERSION.getString());
     return source;
   }
 

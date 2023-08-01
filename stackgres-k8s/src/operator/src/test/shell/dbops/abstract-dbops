@@ -20,13 +20,13 @@ kubectl_mock() {
   mokked
   case "$*" in
     ("get $CLUSTER_CRD_NAME "*" --template="'
-  LOCK_POD={{ if .metadata.annotations.lockPod }}{{ .metadata.annotations.lockPod }}{{ else }}{{ end }}
-  LOCK_TIMESTAMP={{ if .metadata.annotations.lockTimestamp }}{{ .metadata.annotations.lockTimestamp }}{{ else }}0{{ end }}
+  LOCK_POD='*'
+  LOCK_TIMEOUT='*'
   RESOURCE_VERSION={{ .metadata.resourceVersion }}
   ')
     echo '
       LOCK_POD=test
-      LOCK_TIMESTAMP=$(date +%s)
+      LOCK_TIMEOUT='"$(( $(date +%s) + 1 ))"'
       RESOURCE_VERSION=test
       '
     ;;
