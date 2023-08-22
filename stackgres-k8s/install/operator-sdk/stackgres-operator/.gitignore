@@ -8,4 +8,5 @@ config/crd/bases/*
 !config/crd/bases/*.descriptors.yaml
 openshift-operator-bundle/manifests/stackgres.clusterserviceversion.yaml
 config/manager/manager.yaml
+config/webhook/manifests.yaml
 watches.yaml

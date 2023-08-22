@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: helm-controller-manager
+  name: controller-manager
   namespace: system
 spec:
   template:

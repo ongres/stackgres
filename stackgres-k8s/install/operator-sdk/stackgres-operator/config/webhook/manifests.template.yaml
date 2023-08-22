@@ -1,0 +1,12 @@
+---
+$(
+  helm template -n system stackgres-operator --set cert.key=placeholder --set cert.crt=Cg== \
+    --show-only templates/mutating-webhook-configuration.yaml \
+    "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/
+)
+---
+$(
+  helm template -n system stackgres-operator --set cert.key=placeholder --set cert.crt=Cg== \
+    --show-only templates/validating-webhook-configuration.yaml \
+    "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/
+)

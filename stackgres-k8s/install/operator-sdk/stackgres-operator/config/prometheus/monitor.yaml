@@ -4,7 +4,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   labels:
-    app: stackgres-helm-controller-manager
+    app: stackgres-controller-manager
     app.kubernets.io/name: servicemonitor
     app.kubernetes.io/instance: controller-manager-metrics-monitor
     app.kubernetes.io/component: metrics
@@ -23,4 +23,4 @@ spec:
         insecureSkipVerify: true
   selector:
     matchLabels:
-      app: stackgres-helm-controller-manager
+      app: stackgres-controller-manager
