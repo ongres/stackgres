@@ -319,7 +319,7 @@ public interface StackGresUtil {
   }
 
   static List<ExtensionTuple> getDefaultShardedClusterExtensions(
-      StackGresCluster cluster) {
+      StackGresShardedCluster cluster) {
     String pgVersion = cluster.getSpec().getPostgres().getVersion();
 
     return getDefaultShardedClusterExtensions(
@@ -335,11 +335,9 @@ public interface StackGresUtil {
   }
 
   static List<ExtensionTuple> getDefaultDistributedLogsExtensions(
-      StackGresCluster cluster) {
-    String pgVersion = cluster.getSpec().getPostgres().getVersion();
-
+      StackGresDistributedLogs cluster) {
     return getDefaultDistributedLogsExtensions(
-        pgVersion,
+        StackGresDistributedLogsUtil.POSTGRESQL_VERSION,
         StackGresVersion.getStackGresVersion(cluster));
   }
 

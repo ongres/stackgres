@@ -15,6 +15,7 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.common.StackGresUtil;
@@ -71,10 +72,12 @@ public class ExtensionsMutator
         .flatMap(getPostgresFlavorComponent(resource).get(resource)::findVersion)
         .orElse(null);
 
-    if (postgresVersion != null && supportedPostgresVersions
+    if (postgresVersion != null
+        && supportedPostgresVersions
         .get(getPostgresFlavorComponent(resource))
         .get(StackGresVersion.getStackGresVersion(resource))
-        .contains(postgresVersion)) {
+        .contains(postgresVersion)
+        && extensionsChanged(review)) {
       mutateExtensionChannels(resource);
       return super.mutate(review, resource);
     }
@@ -156,15 +159,8 @@ public class ExtensionsMutator
   }
 
   @Override
-  protected List<StackGresClusterInstalledExtension> getDefaultExtensions(
-      StackGresCluster cluster) {
-    return Seq.seq(StackGresUtil.getDefaultShardedClusterExtensions(cluster))
-        .map(t -> t.extensionVersion()
-            .map(version -> getExtension(cluster, t.extensionName(), version))
-            .orElseGet(() -> getExtension(cluster, t.extensionName())))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .toList();
+  protected List<ExtensionTuple> getDefaultExtensions(StackGresShardedCluster cluster) {
+    return StackGresUtil.getDefaultShardedClusterExtensions(cluster);
   }
 
   @Override

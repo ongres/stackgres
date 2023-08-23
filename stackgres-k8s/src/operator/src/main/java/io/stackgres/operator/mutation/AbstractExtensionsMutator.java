@@ -6,11 +6,13 @@
 package io.stackgres.operator.mutation;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import com.google.common.base.Predicates;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
@@ -28,18 +30,50 @@ public abstract class AbstractExtensionsMutator<R extends CustomResource<?, ?>,
 
   @Override
   public R mutate(T review, R resource) {
-    if (review.getRequest().getOperation() == Operation.CREATE
-        || review.getRequest().getOperation() == Operation.UPDATE) {
+    if ((review.getRequest().getOperation() == Operation.CREATE
+        || review.getRequest().getOperation() == Operation.UPDATE)
+        && extensionsChanged(review)) {
       mutateExtensions(resource);
     }
     return resource;
   }
 
+  protected boolean extensionsChanged(T review) {
+    final R resource = review.getRequest().getObject();
+    final R oldResource = review.getRequest().getOldObject();
+    if (oldResource == null) {
+      return true;
+    }
+    final List<StackGresClusterExtension> extensions = getExtensions(resource);
+    final List<StackGresClusterExtension> oldExtensions = getExtensions(oldResource);
+    if (!Objects.equals(extensions, oldExtensions)) {
+      return true;
+    }
+    final List<ExtensionTuple> missingDefaultExtensions = getDefaultExtensions(resource);
+    final List<ExtensionTuple> oldMissingDefaultExtensions = getDefaultExtensions(oldResource);
+    if (!Objects.equals(missingDefaultExtensions, oldMissingDefaultExtensions)) {
+      return true;
+    }
+    final Optional<List<StackGresClusterInstalledExtension>> toInstallExtensions =
+        getToInstallExtensions(resource);
+    final Optional<List<StackGresClusterInstalledExtension>> oldToInstallExtensions =
+        getToInstallExtensions(oldResource);
+    if (!Objects.equals(toInstallExtensions, oldToInstallExtensions)) {
+      return true;
+    }
+    return false;
+  }
+
   private void mutateExtensions(R resource) {
     final StackGresCluster cluster = getCluster(resource);
     List<StackGresClusterExtension> extensions = getExtensions(resource);
-    List<StackGresClusterInstalledExtension> missingDefaultExtensions = Seq.seq(
-        getDefaultExtensions(cluster))
+    List<StackGresClusterInstalledExtension> missingDefaultExtensions =
+        getDefaultExtensions(resource).stream()
+        .map(t -> t.extensionVersion()
+            .map(version -> getExtension(cluster, t.extensionName(), version))
+            .orElseGet(() -> getExtension(cluster, t.extensionName())))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
         .filter(defaultExtension -> extensions.stream()
             .noneMatch(extension -> extension.getName()
                 .equals(defaultExtension.getName())))
@@ -72,8 +106,7 @@ public abstract class AbstractExtensionsMutator<R extends CustomResource<?, ?>,
 
   protected abstract List<StackGresClusterExtension> getExtensions(R resource);
 
-  protected abstract List<StackGresClusterInstalledExtension> getDefaultExtensions(
-      StackGresCluster cluster);
+  protected abstract List<ExtensionTuple> getDefaultExtensions(R resource);
 
   protected void onExtensionToInstall(
       final StackGresClusterExtension extension,

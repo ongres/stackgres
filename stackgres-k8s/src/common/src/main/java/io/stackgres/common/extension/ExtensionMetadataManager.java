@@ -100,19 +100,6 @@ public abstract class ExtensionMetadataManager {
         .findFirst();
   }
 
-  public List<StackGresExtensionMetadata> requestExtensionsAnyVersion(
-      ExtensionRequest extensionRequest,
-      boolean detectOs) {
-    return Optional
-        .ofNullable(
-            getExtensionsMetadata().indexAnyVersions.get(
-                StackGresExtensionIndexAnyVersion.fromClusterExtension(extensionRequest, detectOs)
-            )
-        )
-        .map(this::extractLatestVersions)
-        .orElse(List.of());
-  }
-
   public List<StackGresExtensionMetadata> getExtensionsAnyVersion(
       StackGresCluster cluster, StackGresClusterExtension extension, boolean detectOs) {
     return Optional
