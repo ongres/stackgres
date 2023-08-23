@@ -19,14 +19,14 @@ import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
+import io.stackgres.operatorframework.admissionwebhook.mutating.AbstractMutationResource;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
-import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 
 @Path(MutationUtil.PROFILE_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class SgProfileMutationResource
-    extends MutationResource<StackGresProfile, SgProfileReview> {
+    extends AbstractMutationResource<StackGresProfile, SgProfileReview> {
 
   @Inject
   public SgProfileMutationResource(

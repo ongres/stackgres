@@ -5,15 +5,19 @@
 
 package io.stackgres.operator.app;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.app.ReconciliationClock;
-import io.stackgres.operator.conciliation.OperatorLockHolder;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +28,8 @@ public class StackGresOperatorApp {
   private static final Logger LOGGER = LoggerFactory.getLogger(StackGresOperatorApp.class);
 
   private final OperatorPropertyContext operatorPropertyContext;
-  private final OperatorWatcherHandler operatorWatchersHandler;
+  private final ExecutorService executorService;
+  private final OperatorWatchersHandler operatorWatchersHandler;
   private final ReconciliationClock reconciliationClock;
   private final OperatorBootstrap operatorBootstrap;
   private final OperatorLockHolder operatorLockHolder;
@@ -32,11 +37,13 @@ public class StackGresOperatorApp {
   @Inject
   public StackGresOperatorApp(
       OperatorPropertyContext operatorPropertyContext,
-      OperatorWatcherHandler operatorWatchersHandler,
+      OperatorWatchersHandler operatorWatchersHandler,
       ReconciliationClock reconciliationClock,
       OperatorBootstrap operatorBootstrap,
       OperatorLockHolder operatorLockHolder) {
     this.operatorPropertyContext = operatorPropertyContext;
+    this.executorService = Executors.newSingleThreadExecutor(
+        r -> new Thread(r, "OperatorStartup"));
     this.operatorWatchersHandler = operatorWatchersHandler;
     this.reconciliationClock = reconciliationClock;
     this.operatorBootstrap = operatorBootstrap;
@@ -45,21 +52,39 @@ public class StackGresOperatorApp {
 
   void onStart(@Observes StartupEvent ev) {
     if (!operatorPropertyContext.getBoolean(OperatorProperty.DISABLE_RECONCILIATION)) {
-      LOGGER.info("The reconciliation is starting...");
-      operatorBootstrap.bootstrap();
-      operatorWatchersHandler.startWatchers();
-      reconciliationClock.start();
-      operatorLockHolder.start();
+      this.executorService.execute(this::startReconciliation);
     }
   }
 
   void onStop(@Observes ShutdownEvent ev) {
     if (!operatorPropertyContext.getBoolean(OperatorProperty.DISABLE_RECONCILIATION)) {
-      LOGGER.info("The reconciliation is stopping...");
-      operatorWatchersHandler.stopWatchers();
-      reconciliationClock.stop();
-      operatorLockHolder.stop();
+      stopReconciliation();
     }
+  }
+
+  private void startReconciliation() {
+    LOGGER.info("The operator is starting...");
+    try {
+      operatorBootstrap.bootstrap();
+      operatorWatchersHandler.startWatchers();
+      reconciliationClock.start();
+    } catch (Exception ex) {
+      Quarkus.asyncExit(1);
+      throw ex;
+    }
+  }
+
+  private void stopReconciliation() {
+    LOGGER.info("The operator is stopping...");
+    this.executorService.shutdown();
+    try {
+      this.executorService.awaitTermination(3, TimeUnit.SECONDS);
+    } catch (Exception ex) {
+      LOGGER.warn("Can not stop bostrap executor", ex);
+    }
+    operatorLockHolder.stop();
+    reconciliationClock.stop();
+    operatorWatchersHandler.stopWatchers();
   }
 
 }

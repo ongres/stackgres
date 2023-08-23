@@ -120,24 +120,26 @@ public class BabelfishCompass extends SgApplication {
             .endSpec()
             .build())
         .create();
+    try {
+      Pod pod = waitForPod(namespace, name);
 
-    Pod pod = waitForPod(namespace, name);
+      writeFiles(pod, files);
 
-    writeFiles(pod, files);
+      podExecutor.setClientFactory(client);
+      List<String> outputExec = podExecutor.exec(pod, "babelfish-compass",
+          "/bin/sh", "-c", "/app/compass " + reportName
+              + " -reportoption xref=all,status=all,detail "
+              + files.stream()
+                  .map(s -> "/sql/" + s.filename())
+                  .collect(Collectors.joining(" ")));
 
-    podExecutor.setClientFactory(client);
-    List<String> outputExec = podExecutor.exec(pod, "babelfish-compass",
-        "/bin/sh", "-c", "/app/compass " + reportName
-            + " -reportoption xref=all,status=all,detail "
-            + files.stream()
-                .map(s -> "/sql/" + s.filename())
-                .collect(Collectors.joining(" ")));
+      Map<String, String> extractFromLogs = extractFromLogs(outputExec);
+      Map<String, String> readFiles = readFiles(pod, extractFromLogs);
 
-    Map<String, String> extractFromLogs = extractFromLogs(outputExec);
-    Map<String, String> readFiles = readFiles(pod, extractFromLogs);
-
-    cleanupKubernetesResources(compassJob);
-    return readFiles;
+      return readFiles;
+    } finally {
+      cleanupKubernetesResources(compassJob);
+    }
   }
 
   private Pod waitForPod(String namespace, String name) {

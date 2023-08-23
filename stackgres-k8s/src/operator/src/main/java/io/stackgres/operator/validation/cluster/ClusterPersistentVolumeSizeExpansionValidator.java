@@ -24,7 +24,6 @@ import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.validation.PersistentVolumeSizeExpansionValidator;
 import io.stackgres.operator.validation.ValidationType;
-import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,11 +62,6 @@ public class ClusterPersistentVolumeSizeExpansionValidator
         .map(StackGresClusterSpec::getPod)
         .map(StackGresClusterPod::getPersistentVolume)
         .map(StackGresPodPersistentVolume::getStorageClass);
-  }
-
-  @Override
-  protected boolean isOperationUpdate(StackGresClusterReview review) {
-    return review.getRequest().getOperation() == Operation.UPDATE;
   }
 
   @Override

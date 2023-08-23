@@ -1,0 +1,78 @@
+{{- if eq "true" (include "stackgres.operator.missingSGConfigCrd" .) }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: "{{ .Release.Name }}-install-crd-and-sgconfig"
+  labels:
+    app: stackgres-operator-init
+    job: install-crd-and-sgconfig
+  annotations:
+    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "10"
+    {{- with .Values.jobs.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: stackgres-operator-init
+        job: install-crd-and-sgconfig
+    spec:
+      serviceAccountName: {{ .Release.Name }}-init
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 0
+      {{- with .Values.jobs.affinity}}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end}}
+      {{- with .Values.jobs.nodeSelector}}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.jobs.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: "install-crd-and-sgconfig"
+        image: {{ template "kubectl.image" . }}
+        imagePullPolicy: "IfNotPresent"
+        {{- with .Values.jobs.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        command:
+          - "/bin/bash"
+          - "-ecx"
+          - |
+            cat << 'EOF' > /tmp/SGConfig.yaml
+            {{ .Files.Get "crds/SGConfig.yaml" | nindent 12 }}
+            EOF
+            kubectl create -f /tmp/SGConfig.yaml || kubectl get -f /tmp/SGConfig.yaml -o name > /dev/null
+            cat << 'EOF' | kubectl apply -f -
+            apiVersion: stackgres.io/v1
+            kind: SGConfig
+            metadata:
+              annotations:
+                meta.helm.sh/release-name: {{ .Release.Name }}
+                meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+              labels:
+                app.kubernetes.io/managed-by: Helm
+              name: {{ .Release.Name }}
+              namespace: {{ .Release.Namespace }}
+            spec:
+              {{ regexReplaceAll "[^ ]+: null" (toYaml .Values | nindent 14) "" }}
+            EOF
+{{- else }}
+apiVersion: stackgres.io/v1
+kind: SGConfig
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  {{ regexReplaceAll "[^ ]+: null" (toYaml .Values | nindent 2) "" }}
+{{- end }}

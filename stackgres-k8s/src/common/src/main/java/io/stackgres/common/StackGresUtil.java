@@ -35,6 +35,7 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceStatus;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -145,12 +146,15 @@ public interface StackGresUtil {
     MessageDigest messageDigest = Unchecked
         .supplier(() -> MessageDigest.getInstance("MD5")).get();
     messageDigest.update(data.entrySet().stream()
+        .filter(entry -> !entry.getKey().equals(MD5SUM_KEY))
         .sorted(Map.Entry.comparingByKey())
         .map(Map.Entry::getValue)
         .collect(Collectors.joining())
         .getBytes(StandardCharsets.UTF_8));
     return ImmutableMap.<String, String>builder()
-        .putAll(data)
+        .putAll(data.entrySet().stream()
+            .filter(entry -> !entry.getKey().equals(MD5SUM_KEY))
+            .toList())
         .put(MD5SUM_KEY, HexFormat.of().withUpperCase().formatHex(messageDigest.digest()))
         .build();
   }
@@ -390,19 +394,24 @@ public interface StackGresUtil {
 
   static void setLock(HasMetadata resource, String lockServiceAccount, String lockPodName,
       long lockDuration, long lockTimestamp) {
-    final Map<String, String> annotations = resource.getMetadata().getAnnotations();
-
-    annotations.put(LOCK_SERVICE_ACCOUNT_KEY, lockServiceAccount);
-    annotations.put(LOCK_POD_KEY, lockPodName);
-    annotations.put(LOCK_TIMEOUT_KEY, Long.toString(lockTimestamp + lockDuration));
+    resource.setMetadata(
+        new ObjectMetaBuilder(resource.getMetadata())
+        .removeFromAnnotations(LOCK_SERVICE_ACCOUNT_KEY)
+        .removeFromAnnotations(LOCK_POD_KEY)
+        .removeFromAnnotations(LOCK_TIMEOUT_KEY)
+        .addToAnnotations(LOCK_SERVICE_ACCOUNT_KEY, lockServiceAccount)
+        .addToAnnotations(LOCK_POD_KEY, lockPodName)
+        .addToAnnotations(LOCK_TIMEOUT_KEY, Long.toString(lockTimestamp + lockDuration))
+        .build());
   }
 
   static void resetLock(HasMetadata resource) {
-    final Map<String, String> annotations = resource.getMetadata().getAnnotations();
-
-    annotations.remove(LOCK_SERVICE_ACCOUNT_KEY);
-    annotations.remove(LOCK_POD_KEY);
-    annotations.remove(LOCK_TIMEOUT_KEY);
+    resource.setMetadata(
+        new ObjectMetaBuilder(resource.getMetadata())
+        .removeFromAnnotations(LOCK_SERVICE_ACCOUNT_KEY)
+        .removeFromAnnotations(LOCK_POD_KEY)
+        .removeFromAnnotations(LOCK_TIMEOUT_KEY)
+        .build());
   }
 
   static String getLockServiceAccount(HasMetadata resource) {

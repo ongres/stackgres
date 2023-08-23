@@ -19,6 +19,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
+import io.stackgres.operator.conciliation.DeployedResource;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 
@@ -46,8 +47,9 @@ public class DistributedLogsConciliator extends AbstractConciliator<StackGresDis
           labelFactory.clusterPrimaryLabelsWithoutUidAndScope(config);
       boolean result = deployedResourcesCache
           .stream()
-          .noneMatch(deployedResource -> deployedResource.deployed() instanceof Pod deployedPod
-              && Optional.of(deployedPod.getMetadata())
+          .map(DeployedResource::foundDeployed)
+          .noneMatch(foundDeployedResource -> foundDeployedResource instanceof Pod foundDeployedPod
+              && Optional.of(foundDeployedPod.getMetadata())
               .map(ObjectMeta::getLabels)
               .filter(labels -> primaryLabels.entrySet().stream()
                   .allMatch(primaryLabel -> labels.entrySet().stream()

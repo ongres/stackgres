@@ -1,0 +1,40 @@
+{{- if .Values.cert.certManager.autoConfigure }}
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: "{{ .Release.Name }}-self-signed-issuer"
+  namespace: "{{ .Release.Namespace }}"
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: "{{ .Release.Name }}-certs"
+  namespace: "{{ .Release.Namespace }}"
+spec:
+  secretName: "{{ include "cert-name" . }}"
+  duration: "{{ .Values.cert.certManager.duration }}"
+  renewBefore: "{{ .Values.cert.certManager.renewBefore }}"
+  subject:
+    organizations:
+      - OnGres
+  isCA: true
+  privateKey:
+    algorithm: RSA
+    encoding: "{{ .Values.cert.certManager.encoding }}"
+    size: {{ .Values.cert.certManager.size }}
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+    - {{ .Release.Name }}
+    - {{ .Release.Name }}.{{ .Release.Namespace }}
+    - {{ .Release.Name }}.{{ .Release.Namespace }}.svc
+    - {{ .Release.Name }}.{{ .Release.Namespace }}.svc.cluster.local
+  issuerRef:
+    name: "{{ .Release.Name }}-self-signed-issuer"
+    kind: Issuer
+    group: cert-manager.io
+{{ end }}

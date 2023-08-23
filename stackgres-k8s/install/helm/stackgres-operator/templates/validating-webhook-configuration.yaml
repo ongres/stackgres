@@ -1,4 +1,8 @@
-{{- if or (and (not .Release.IsInstall) (not .Release.IsUpgrade)) (and .Values.cert.key .Values.cert.crt) }}
+{{- $cert := "Cg==" }}
+{{- $certSecret := lookup "v1" "Secret" .Release.Namespace (include "cert-name" .) }}
+{{- if and $certSecret (index $certSecret.data "tls.crt") }}
+{{- $cert = (index $certSecret.data "tls.crt") }}
+{{- end }}
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
@@ -27,7 +31,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgcluster'
-      caBundle: '{{ .Values.cert.crt }}'
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
   - name: sgpgconfig.validating-webhook.stackgres.io
     sideEffects: None
@@ -42,7 +46,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgpgconfig'
-      caBundle: '{{ .Values.cert.crt }}'
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
   - name: sgpoolconfig.validating-webhook.stackgres.io
     sideEffects: None
@@ -57,7 +61,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgpoolconfig'
-      caBundle: '{{ .Values.cert.crt }}'
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
   - name: sginstanceprofile.validating-webhook.stackgres.io
     sideEffects: None
@@ -72,7 +76,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sginstanceprofile'
-      caBundle: '{{ .Values.cert.crt }}'
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
   - name: sgbackupconfig.validating-webhook.stackgres.io
     sideEffects: None
@@ -87,7 +91,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgbackupconfig'
-      caBundle: '{{ .Values.cert.crt }}'
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
   - name: sgbackup.validating-webhook.stackgres.io
     sideEffects: None
@@ -102,7 +106,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgbackup'
-      caBundle: '{{ .Values.cert.crt }}'
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
   - name: sgdistributedlogs.validating-webhook.stackgres.io
     sideEffects: None
@@ -117,7 +121,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgdistributedlogs'
-      caBundle: '{{ .Values.cert.crt }}'
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
   - name: sgdbops.validating-webhook.stackgres.io
     sideEffects: None
@@ -132,7 +136,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgdbops'
-      caBundle: '{{ .Values.cert.crt }}'
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
   - name: sgobjectstorage.validating-webhook.stackgres.io
     sideEffects: None
@@ -147,7 +151,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgobjectstorage'
-      caBundle: '{{ .Values.cert.crt }}'
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
   - name: sgscripts.validating-webhook.stackgres.io
     sideEffects: None
@@ -162,7 +166,7 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgscript'
-      caBundle: {{ .Values.cert.crt }}
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
   - name: sgshardedclusters.validating-webhook.stackgres.io
     sideEffects: None
@@ -177,21 +181,5 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/validation/sgshardedcluster'
-      caBundle: {{ .Values.cert.crt }}
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
-  - name: sgconfigs.validating-webhook.stackgres.io
-    sideEffects: None
-    rules:
-      - operations: ["CREATE", "UPDATE", "DELETE"]
-        apiGroups: ["stackgres.io"]
-        apiVersions: ["*"]
-        resources: ["sgconfigs"]
-    failurePolicy: Fail
-    clientConfig:
-      service:
-        namespace: {{ .Release.Namespace }}
-        name: {{ .Release.Name }}
-        path: '/stackgres/validation/sgconfig'
-      caBundle: {{ .Values.cert.crt }}
-    admissionReviewVersions: ["v1"]
-{{- end }}

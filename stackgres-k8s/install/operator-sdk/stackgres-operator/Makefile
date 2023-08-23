@@ -113,20 +113,20 @@ bundle: ## Generate bundle manifests and metadata, then validate generated files
 	cp -a "$(PROJECT_PATH)/stackgres-k8s/src/common/src/main/resources/crds/." config/crd/bases/.
 	VERSION="$(VERSION)" IMAGE_TAG="$(IMAGE_TAG)" PROJECT_PATH="$(PROJECT_PATH)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/manifests/bases/stackgres.clusterserviceversion.template.yaml)")" \
 		> config/manifests/bases/stackgres.clusterserviceversion.yaml
-	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat config/operator/kustomization.template.yaml)\nMAKE_EOF")" \
-		> config/operator/kustomization.yaml
-	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat config/crd/kustomization.template.yaml)\nMAKE_EOF")" \
-		> config/crd/kustomization.yaml
 	VERSION="$(VERSION)" OPENSHIFT_BUNDLE="$(OPENSHIFT_BUNDLE)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/operator/operator.template.yaml)")" \
 		> config/operator/operator.yaml
-	VERSION="$(VERSION)" PROJECT_PATH="$(PROJECT_PATH)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/webhook/manifests.template.yaml)")" \
-		> config/webhook/manifests.yaml
+	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat config/operator/kustomization.template.yaml)\nMAKE_EOF")" \
+		> config/operator/kustomization.yaml
 	VERSION="$(VERSION)" PROJECT_PATH="$(PROJECT_PATH)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/rbac/role.template.yaml)")" \
 		> config/rbac/role.yaml
+	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat config/crd/kustomization.template.yaml)\nMAKE_EOF")" \
+		> config/crd/kustomization.yaml
+	VERSION="$(VERSION)" PROJECT_PATH="$(PROJECT_PATH)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/webhook/manifests.template.yaml)")" \
+		> config/webhook/manifests.yaml
 	$(OPERATOR_SDK) generate kustomize manifests -q
 	cd config/operator && $(KUSTOMIZE) edit set image operator=$(IMG)
 	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle $(BUNDLE_GEN_FLAGS)
-	for CRD in bundle/manifests/stackgres.io_*; do cp "config/crd/bases/$$(yq -r .spec.names.kind "$$CRD").yaml" "$$CRD"; done
+	eval "$$(cat fix-crds.sh)"
 	$(OPERATOR_SDK) bundle validate ./bundle
 
 .PHONY: bundle-openshift

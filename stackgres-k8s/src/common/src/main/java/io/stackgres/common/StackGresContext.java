@@ -19,13 +19,14 @@ public interface StackGresContext {
   String CLUSTER_NAMESPACE_KEY = "cluster-namespace";
   String RIGHT_VALUE = Boolean.TRUE.toString();
   String WRONG_VALUE = Boolean.FALSE.toString();
-  String CONFIG_KEY = "config";
+  String RESTAPI_KEY = "restapi";
+  String GRAFANA_INTEGRATION_KEY = "grafana-integration";
   String CLUSTER_KEY = "cluster";
   String BACKUP_KEY = "backup";
   String DB_OPS_KEY = "db-ops";
   String SCHEDULED_BACKUP_KEY = "scheduled-backup";
   String SCHEDULED_BACKUP_JOB_NAME_KEY = "scheduled-backup-job-name";
-  String DISRUPTIBLE_KEY = "disruptible";
+  String DISRUPTABLE_KEY = "disruptible";
   String DISTRIBUTED_LOGS_APP_NAME = "StackGresDistributedLogs";
   String DISTRIBUTED_LOGS_CLUSTER_NAME_KEY = "distributed-logs-name";
   String DISTRIBUTED_LOGS_CLUSTER_NAMESPACE_KEY = "distributed-logs-namespace";

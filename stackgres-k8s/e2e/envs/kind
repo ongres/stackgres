@@ -106,6 +106,17 @@ reset_k8s() {
   check_kind_version
   check_kind_image_exists
 
+  if [ "$E2E_MOUNT_LOCAL_FOLDERS" = true ]
+  then
+    KIND_EXTRA_MOUNTS="$KIND_EXTRA_MOUNTS
+      $(realpath "$PROJECT_PATH"/stackgres-k8s/src/operator/target/quarkus-app)
+      $(realpath "$PROJECT_PATH"/stackgres-k8s/src/api-web/target/quarkus-app)
+      $(realpath "$PROJECT_PATH"/stackgres-k8s/src/admin-ui/target/public)
+      $(realpath "$PROJECT_PATH"/stackgres-k8s/src/jobs/target/quarkus-app)
+      $(realpath "$PROJECT_PATH"/stackgres-k8s/src/cluster-controller/target/quarkus-app)
+      $(realpath "$PROJECT_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app)"
+  fi
+
   echo "Setting up kind environment $KIND_NAME..."
 
   if [ -n "$KIND_CONTAINERD_CACHE_PATH" ]
@@ -215,13 +226,24 @@ INNER_EOF
     protocol: "$(echo "$K8S_EXTRA_PORT" | cut -d : -f 4)"
 INNER_EOF
   fi
-  if [ -n "$KIND_CONTAINERD_CACHE_PATH" ] \
+  if [ -n "$KIND_EXTRA_MOUNTS" ] \
+    || [ -n "$KIND_CONTAINERD_CACHE_PATH" ] \
     || [ "$KIND_LOG" = true ] \
     || [ "$KIND_LOG_RESOURCES" = true ]
   then
     cat << INNER_EOF
   extraMounts:
 INNER_EOF
+  fi
+  if [ -n "$KIND_EXTRA_MOUNTS" ]
+  then
+    for KIND_EXTRA_MOUNT in $KIND_EXTRA_MOUNTS
+    do
+      cat << INNER_EOF
+  - hostPath: $KIND_EXTRA_MOUNT
+    containerPath: $KIND_EXTRA_MOUNT
+INNER_EOF
+    done
   fi
   if [ -n "$KIND_CONTAINERD_CACHE_PATH" ]
   then

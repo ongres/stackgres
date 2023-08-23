@@ -6,8 +6,8 @@
 package io.stackgres.operator.common.mock;
 
 import io.quarkus.test.Mock;
+import io.stackgres.operator.app.OperatorLockHolder;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
-import io.stackgres.operator.conciliation.OperatorLockHolder;
 
 @Mock
 public class OperatorLockHolderMock implements OperatorLockHolder {
@@ -23,6 +23,10 @@ public class OperatorLockHolderMock implements OperatorLockHolder {
 
   @Override
   public void start() {
+  }
+
+  @Override
+  public void startReconciliation() {
   }
 
   @Override

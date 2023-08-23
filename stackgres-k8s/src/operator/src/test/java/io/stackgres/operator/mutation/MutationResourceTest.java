@@ -16,8 +16,8 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
+import io.stackgres.operatorframework.admissionwebhook.mutating.AbstractMutationResource;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
-import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +29,7 @@ public abstract class MutationResourceTest<R extends HasMetadata, T extends Admi
   @Mock
   protected MutationPipeline<R, T> pipeline;
 
-  protected MutationResource<R, T> resource;
+  protected AbstractMutationResource<R, T> resource;
 
   protected T review;
 
@@ -40,7 +40,7 @@ public abstract class MutationResourceTest<R extends HasMetadata, T extends Admi
     review = getReview();
   }
 
-  protected abstract MutationResource<R, T> getResource();
+  protected abstract AbstractMutationResource<R, T> getResource();
 
   protected abstract T getReview();
 

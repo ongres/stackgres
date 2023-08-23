@@ -29,7 +29,6 @@ public class PgBouncerBlocklistValidator implements PoolingValidator {
 
     Operation operation = review.getRequest().getOperation();
     if (operation == Operation.CREATE || operation == Operation.UPDATE) {
-
       var databases = review.getRequest()
           .getObject().getSpec().getPgBouncer().getPgbouncerIni().getDatabases();
 

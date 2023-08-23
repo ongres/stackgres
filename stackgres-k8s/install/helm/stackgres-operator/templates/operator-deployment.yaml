@@ -60,14 +60,6 @@ spec:
         image: "{{ include "operator-image" . }}"
         imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
         env:
-          {{- if eq "true" (include "stackgres.operator.resetCerts" .) }}
-          - name: RESET_CERTS
-            value: "true"
-          {{- end }}
-          {{- if eq "true" (include "stackgres.operator.upgradeCrds" .) }}
-          - name: DISABLE_RECONCILIATION
-            value: "true"
-          {{- end }}
           - name: OPERATOR_NAME
             value: "{{ .Release.Name }}"
           - name: OPERATOR_NAMESPACE
@@ -77,6 +69,14 @@ spec:
                 fieldPath: metadata.namespace
           - name: OPERATOR_IMAGE_VERSION
             value: "{{ .Values.operator.image.tag }}"
+          - name: INSTALL_CRDS
+            value: "true"
+          - name: INSTALL_WEBHOOKS
+            value: "true"
+          {{- if not .Values.cert.certManager.autoConfigure }}
+          - name: INSTALL_CERTS
+            value: "true"
+          {{- end }}
           - name: PROMETHEUS_AUTOBIND
             value: "{{ .Values.prometheus.allowAutobind }}"
           {{- if and (.Capabilities.APIVersions.Has "project.openshift.io/v1") (not .Values.developer.disableArbitraryUser) }}
@@ -125,8 +125,6 @@ spec:
           - name: GRAFANA_EMBEDDED
             value: "true"
           {{ end }}
-          - name: AUTHENTICATION_SECRET_NAME
-            value: "{{ .Values.authentication.secretRef.name | default .Values.restapi.name }}"
           - name: SG_CONTAINER_REGISTRY
             value: "{{ .Values.containerRegistry }}"
           - name: SG_IMAGE_PULL_POLICY
@@ -173,12 +171,15 @@ spec:
           timeoutSeconds: 1
         {{- with .Values.operator.resources }}
         resources:
-        {{- toYaml . | nindent 10 }}
+          {{- toYaml . | nindent 10 }}
         {{- end }}
         volumeMounts:
           - name: operator-certs
             mountPath: /etc/operator/certs
             readOnly: true
+          {{- with .Values.developer.patches.operator.volumeMounts }}
+          {{- toYaml . | nindent 10 }}
+          {{- end }}
       {{- else }}
       - name: {{ .Release.Name }}-nginx
         image: "registry.access.redhat.com/ubi8/nginx-120:1-92"
@@ -214,7 +215,7 @@ spec:
         - name: operator-certs
           secret:
             secretName: {{ include "cert-name" . }}
-            optional: false
+            optional: true
         {{- if and .Values.developer.externalOperatorIp .Values.developer.externalOperatorPort }}
         - name: operator-nginx-conf
           configMap:
@@ -225,6 +226,9 @@ spec:
                 path: stackgres-operator.conf
         - name: operator-nginx
           emptyDir: {}
+        {{- end }}
+        {{- with .Values.developer.patches.operator.volumes }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
       {{- with .Values.operator.tolerations }}
       tolerations:

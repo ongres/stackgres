@@ -5,10 +5,9 @@
 
 package io.stackgres.operator.conciliation.factory;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.PodSecurityContextBuilder;
+import io.stackgres.common.CdiUtil;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 
@@ -17,7 +16,16 @@ public abstract class PodSecurityFactory {
   public static final Long USER = 999L;
   public static final Long GROUP = 999L;
 
-  private OperatorPropertyContext operatorContext;
+  private final OperatorPropertyContext operatorContext;
+
+  protected PodSecurityFactory(OperatorPropertyContext operatorContext) {
+    this.operatorContext = operatorContext;
+  }
+
+  public PodSecurityFactory() {
+    CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.operatorContext = null;
+  }
 
   public PodSecurityContext createPodSecurityContext() {
     PodSecurityContextBuilder podSecurityContextBuilder = new PodSecurityContextBuilder()
@@ -31,8 +39,4 @@ public abstract class PodSecurityFactory {
     return podSecurityContextBuilder.build();
   }
 
-  @Inject
-  public void setOperatorContext(OperatorPropertyContext operatorContext) {
-    this.operatorContext = operatorContext;
-  }
 }

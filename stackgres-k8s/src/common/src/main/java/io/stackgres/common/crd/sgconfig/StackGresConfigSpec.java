@@ -27,17 +27,17 @@ public class StackGresConfigSpec {
 
   private StackGresConfigOptionalServiceAccount serviceAccount;
 
-  private String initClusterRole;
-
   private StackGresConfigOperator operator;
 
   private StackGresConfigRestapi restapi;
 
-  private StackGresConfigWebConsole adminui;
+  private StackGresConfigAdminui adminui;
 
   private StackGresConfigJobs jobs;
 
   private StackGresConfigDeploy deploy;
+
+  private StackGresConfigCert cert;
 
   private StackGresConfigAuthentication authentication;
 
@@ -73,14 +73,6 @@ public class StackGresConfigSpec {
     this.serviceAccount = serviceAccount;
   }
 
-  public String getInitClusterRole() {
-    return initClusterRole;
-  }
-
-  public void setInitClusterRole(String initClusterRole) {
-    this.initClusterRole = initClusterRole;
-  }
-
   public StackGresConfigOperator getOperator() {
     return operator;
   }
@@ -97,11 +89,11 @@ public class StackGresConfigSpec {
     this.restapi = restapi;
   }
 
-  public StackGresConfigWebConsole getAdminui() {
+  public StackGresConfigAdminui getAdminui() {
     return adminui;
   }
 
-  public void setAdminui(StackGresConfigWebConsole adminui) {
+  public void setAdminui(StackGresConfigAdminui adminui) {
     this.adminui = adminui;
   }
 
@@ -119,6 +111,14 @@ public class StackGresConfigSpec {
 
   public void setDeploy(StackGresConfigDeploy deploy) {
     this.deploy = deploy;
+  }
+
+  public StackGresConfigCert getCert() {
+    return cert;
+  }
+
+  public void setCert(StackGresConfigCert cert) {
+    this.cert = cert;
   }
 
   public StackGresConfigAuthentication getAuthentication() {
@@ -163,8 +163,8 @@ public class StackGresConfigSpec {
 
   @Override
   public int hashCode() {
-    return Objects.hash(adminui, authentication, containerRegistry, deploy, developer, extensions,
-        grafana, imagePullPolicy, initClusterRole, jobs, operator, prometheus, restapi,
+    return Objects.hash(adminui, authentication, cert, containerRegistry, deploy, developer,
+        extensions, grafana, imagePullPolicy, jobs, operator, prometheus, restapi,
         serviceAccount);
   }
 
@@ -179,15 +179,16 @@ public class StackGresConfigSpec {
     StackGresConfigSpec other = (StackGresConfigSpec) obj;
     return Objects.equals(adminui, other.adminui)
         && Objects.equals(authentication, other.authentication)
+        && Objects.equals(cert, other.cert)
         && Objects.equals(containerRegistry, other.containerRegistry)
         && Objects.equals(deploy, other.deploy)
         && Objects.equals(developer, other.developer)
         && Objects.equals(extensions, other.extensions)
         && Objects.equals(grafana, other.grafana)
         && Objects.equals(imagePullPolicy, other.imagePullPolicy)
-        && Objects.equals(initClusterRole, other.initClusterRole)
         && Objects.equals(jobs, other.jobs)
-        && Objects.equals(operator, other.operator) && Objects.equals(prometheus, other.prometheus)
+        && Objects.equals(operator, other.operator)
+        && Objects.equals(prometheus, other.prometheus)
         && Objects.equals(restapi, other.restapi)
         && Objects.equals(serviceAccount, other.serviceAccount);
   }

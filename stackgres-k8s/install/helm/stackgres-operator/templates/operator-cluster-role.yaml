@@ -8,7 +8,7 @@ metadata:
 {{- end }}
   name: {{ .Release.Name }}
 rules:
-- apiGroups: ["", "apps", "extensions", "rbac.authorization.k8s.io", "batch"] # "" indicates the core API group
+- apiGroups: ["", "apps", "extensions", "rbac.authorization.k8s.io", "batch"]
   resources:
   - pods
   - pods/exec
@@ -19,6 +19,7 @@ rules:
   - persistentvolumeclaims
   - configmaps
   - secrets
+  - deployments
   - statefulsets
   - serviceaccounts
   - namespaces
@@ -39,13 +40,6 @@ rules:
 - apiGroups: ["storage.k8s.io"]
   resources: ["storageclasses"]
   verbs: ["get", "list"]
-- apiGroups: ["apiextensions.k8s.io"]
-  resources:
-  - customresourcedefinitions
-  verbs:
-  - get
-  - list
-  - watch
 - apiGroups: ["stackgres.io"]
   resources:
   - sgclusters
@@ -75,7 +69,42 @@ rules:
   - sgdistributedlogs/status
   verbs:
   - update
+- apiGroups: ["apiextensions.k8s.io"]
+  resources:
+  - customresourcedefinitions
+  resourceNames:
+  - sgconfigs.stackgres.io
+  - sgclusters.stackgres.io
+  - sginstanceprofiles.stackgres.io
+  - sgpgconfigs.stackgres.io
+  - sgpoolconfigs.stackgres.io
+  - sgbackups.stackgres.io
+  - sgbackupconfigs.stackgres.io
+  - sgobjectstorages.stackgres.io
+  - sgdbops.stackgres.io
+  - sgdistributedlogs.stackgres.io
+  - sgshardedclusters.stackgres.io
+  - sgscripts.stackgres.io
+  verbs:
+  - get
+- apiGroups: ["apiextensions.k8s.io"]
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - list
 {{- if .Values.prometheus.allowAutobind }}
+- apiGroups: ["apiextensions.k8s.io"]
+  resources:
+  - customresourcedefinitions
+  resourceNames:
+  - prometheuses.monitoring.coreos.com
+  verbs:
+  - get
+- apiGroups: ["apiextensions.k8s.io"]
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - list
 - apiGroups: ["monitoring.coreos.com"]
   resources:
   - servicemonitors
@@ -95,5 +124,40 @@ rules:
   verbs:
   - list
   - get
+{{- end }}
+{{- if not .Values.disableCRDcreation }}
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - mutatingwebhookconfigurations
+  - validatingwebhookconfigurations
+  resourceNames:
+  - stackgres-operator
+  verbs:
+  - get
+  - patch
+- apiGroups: ["apiextensions.k8s.io"]
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - create
+- apiGroups: ["apiextensions.k8s.io"]
+  resources:
+  - customresourcedefinitions
+  resourceNames:
+  - sgconfigs.stackgres.io
+  - sgclusters.stackgres.io
+  - sginstanceprofiles.stackgres.io
+  - sgpgconfigs.stackgres.io
+  - sgpoolconfigs.stackgres.io
+  - sgbackups.stackgres.io
+  - sgbackupconfigs.stackgres.io
+  - sgobjectstorages.stackgres.io
+  - sgdbops.stackgres.io
+  - sgdistributedlogs.stackgres.io
+  - sgshardedclusters.stackgres.io
+  - sgscripts.stackgres.io
+  verbs:
+  - patch
 {{- end }}
 {{- end }}

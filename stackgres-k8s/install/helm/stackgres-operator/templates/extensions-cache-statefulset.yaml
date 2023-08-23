@@ -35,7 +35,7 @@ spec:
       restartPolicy: Always
       containers:
       - name: http
-        image: "registry.access.redhat.com/ubi8/nginx-120:1-92"
+        image: "registry.access.redhat.com/ubi8/nginx-120:1-92.1679484498"
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         securityContext:
           {{- if and (or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser) (not .Values.extensions.cache.hostPath) }}
@@ -52,7 +52,9 @@ spec:
           {{- if .Values.developer.showDebug }}
           - '-x'
           {{- end }}
-          - exec nginx -g 'daemon off;'
+          - |
+            mkdir -p /var/lib/nginx/tmp
+            exec nginx -g 'daemon off;'
         ports:
         - containerPort: 8080
           name: "http"
@@ -76,6 +78,10 @@ spec:
           - name: extensions-cache-nginx-var
             subPath: var/run
             mountPath: /var/run
+            readOnly: false
+          - name: extensions-cache-nginx-var
+            subPath: var/lib/nginx
+            mountPath: /var/lib/nginx
             readOnly: false
           - name: extensions-cache-nginx-var
             subPath: var/log/nginx

@@ -6,22 +6,6 @@ then
   set -x
   DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=$([ "$DEBUG_RESTAPI_SUSPEND" = true ] && echo y || echo n)"
 fi
-if [ -n "$RESTAPI_CERT_FILE" ]
-then
-  JAVA_OPTS="$JAVA_OPTS -Dquarkus.http.ssl.certificate.files=$RESTAPI_CERT_FILE"
-fi
-if [ -n "$RESTAPI_KEY_FILE" ]
-then
-  JAVA_OPTS="$JAVA_OPTS -Dquarkus.http.ssl.certificate.key-files=$RESTAPI_KEY_FILE"
-fi
-if [ -n "$RESTAPI_JWT_PUBLIC_RSA_FILE" ]
-then
-  JAVA_OPTS="$JAVA_OPTS -Dmp.jwt.verify.publickey.location=$RESTAPI_JWT_PUBLIC_RSA_FILE"
-fi
-if [ -n "$RESTAPI_JWT_PRIVATE_RSA_FILE" ]
-then
-  JAVA_OPTS="$JAVA_OPTS -Dsmallrye.jwt.sign.key.location=$RESTAPI_JWT_PRIVATE_RSA_FILE"
-fi
 if [ -n "$RESTAPI_LOG_LEVEL" ]
 then
   APP_OPTS="$APP_OPTS -Dquarkus.log.level=$RESTAPI_LOG_LEVEL"
@@ -32,6 +16,28 @@ then
 fi
 if [ "$JAVA_CDS_GENERATION" = true ]
 then
+  cat << 'EOF' > /tmp/ExportPrivateKey.java 
+public class ExportPrivateKey
+{
+  public static void main(String args[]) throws Exception {
+    java.security.KeyStore keystore = java.security.KeyStore.getInstance(args[1]);
+    java.util.Base64.Encoder encoder = java.util.Base64.getEncoder();
+    keystore.load(new java.io.FileInputStream(new java.io.File(args[0])), args[2].toCharArray());
+    java.security.Key key = keystore.getKey(args[3], args[4].toCharArray());
+    String encoded = encoder.encodeToString(key.getEncoded());
+    java.io.FileWriter fw = new java.io.FileWriter(new java.io.File(args[5]));
+    fw.write("-----BEGIN PRIVATE KEY-----\n");
+    fw.write(encoded);
+    fw.write("\n");
+    fw.write("-----END PRIVATE KEY-----");
+    fw.close();
+  }
+}
+EOF
+  keytool -genkey -keystore /tmp/tmp.jks -keyalg RSA -keysize 2048 -validity 10000 -alias app -dname "cn=Unknown, ou=Unknown, o=Unknown, c=Unknown" -storepass changeit -keypass changeit
+  keytool -export -keystore /tmp/tmp.jks -storepass changeit -alias app -rfc -file /tmp/tmp.crt
+  keytool -export -keystore /tmp/tmp.jks -storepass changeit -alias app -file /tmp/tmp.pub
+  java /tmp/ExportPrivateKey.java /tmp/tmp.jks jks changeit app changeit /tmp/tmp.key
   export KUBERNETES_MASTER=240.0.0.1
   java \
     -XX:ArchiveClassesAtExit="$APP_PATH"/quarkus-run.jsa \
@@ -39,10 +45,10 @@ then
     -Djava.net.preferIPv4Stack=true \
     -Djava.awt.headless=true \
     -Djava.util.logging.manager=org.jboss.logmanager.LogManager \
-    -Dquarkus.http.ssl.certificate.files= \
-    -Dquarkus.http.ssl.certificate.key-files= \
-    -Dmp.jwt.verify.publickey.location=classpath:META-INF/jwt/rsa_public.pem \
-    -Dsmallrye.jwt.sign.key.location=classpath:META-INF/jwt/rsa_private.key \
+    -Dquarkus.http.ssl.certificate.files=/tmp/tmp.crt \
+    -Dquarkus.http.ssl.certificate.key-files=/tmp/tmp.key \
+    -Dmp.jwt.verify.publickey.location=/tmp/tmp.pub \
+    -Dsmallrye.jwt.sign.key.location=/tmp/tmp.key \
     $JAVA_OPTS $DEBUG_JAVA_OPTS -jar "$APP_PATH"/quarkus-run.jar \
     -Dquarkus.http.host=0.0.0.0 \
     $APP_OPTS &
@@ -61,6 +67,12 @@ exec java \
   -Djava.net.preferIPv4Stack=true \
   -Djava.awt.headless=true \
   -Djava.util.logging.manager=org.jboss.logmanager.LogManager \
+  $(
+    [ -z "$RESTAPI_CERT_FILE" ] || prinf ' %s' "-Dquarkus.http.ssl.certificate.files=$RESTAPI_CERT_FILE"
+    [ -z "$RESTAPI_KEY_FILE" ] || prinf ' %s' "-Dquarkus.http.ssl.certificate.key-files=$RESTAPI_KEY_FILE"
+    [ -z "$RESTAPI_JWT_PUBLIC_RSA_FILE" ] || prinf ' %s' "-Dmp.jwt.verify.publickey.location=$RESTAPI_JWT_PUBLIC_RSA_FILE"
+    [ -z "$RESTAPI_JWT_PRIVATE_RSA_FILE" ] || prinf ' %s' "-Dsmallrye.jwt.sign.key.location=$RESTAPI_JWT_PRIVATE_RSA_FILE"
+  ) \
   $JAVA_OPTS $DEBUG_JAVA_OPTS -jar "$APP_PATH"/quarkus-run.jar \
   -Dquarkus.http.host=0.0.0.0 \
   $APP_OPTS

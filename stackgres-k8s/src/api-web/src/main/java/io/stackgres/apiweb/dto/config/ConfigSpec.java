@@ -19,17 +19,17 @@ public class ConfigSpec {
 
   private ConfigOptionalServiceAccount serviceAccount;
 
-  private String initClusterRole;
-
   private ConfigOperator operator;
 
   private ConfigRestapi restapi;
 
-  private ConfigWebConsole adminui;
+  private ConfigAdminui adminui;
 
   private ConfigJobs jobs;
 
   private ConfigDeploy deploy;
+
+  private ConfigCert cert;
 
   private ConfigAuthentication authentication;
 
@@ -65,14 +65,6 @@ public class ConfigSpec {
     this.serviceAccount = serviceAccount;
   }
 
-  public String getInitClusterRole() {
-    return initClusterRole;
-  }
-
-  public void setInitClusterRole(String initClusterRole) {
-    this.initClusterRole = initClusterRole;
-  }
-
   public ConfigOperator getOperator() {
     return operator;
   }
@@ -89,11 +81,11 @@ public class ConfigSpec {
     this.restapi = restapi;
   }
 
-  public ConfigWebConsole getAdminui() {
+  public ConfigAdminui getAdminui() {
     return adminui;
   }
 
-  public void setAdminui(ConfigWebConsole adminui) {
+  public void setAdminui(ConfigAdminui adminui) {
     this.adminui = adminui;
   }
 
@@ -111,6 +103,14 @@ public class ConfigSpec {
 
   public void setDeploy(ConfigDeploy deploy) {
     this.deploy = deploy;
+  }
+
+  public ConfigCert getCert() {
+    return cert;
+  }
+
+  public void setCert(ConfigCert cert) {
+    this.cert = cert;
   }
 
   public ConfigAuthentication getAuthentication() {

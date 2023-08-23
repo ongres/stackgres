@@ -37,7 +37,7 @@ spec:
     {{- end }}
     {{- with ((.Values.shardedCluster.configurations).credentials) }}
     credentials:
-    - {{- toYaml . | nindent 6 }}
+      {{- toYaml . | nindent 6 }}
     {{- end }}
   {{- end }}
   coordinator:

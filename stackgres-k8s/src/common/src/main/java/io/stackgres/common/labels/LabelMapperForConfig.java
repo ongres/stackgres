@@ -11,8 +11,12 @@ import io.stackgres.common.crd.sgconfig.StackGresConfig;
 public interface LabelMapperForConfig
     extends LabelMapper<StackGresConfig> {
 
-  default String backupKey(StackGresConfig resource) {
-    return getKeyPrefix(resource) + StackGresContext.CONFIG_KEY;
+  default String restapiKey(StackGresConfig resource) {
+    return getKeyPrefix(resource) + StackGresContext.RESTAPI_KEY;
+  }
+
+  default String grafanaIntegrationKey(StackGresConfig resource) {
+    return getKeyPrefix(resource) + StackGresContext.GRAFANA_INTEGRATION_KEY;
   }
 
 }

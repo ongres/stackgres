@@ -19,14 +19,14 @@ import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.operator.common.ObjectStorageReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
+import io.stackgres.operatorframework.admissionwebhook.mutating.AbstractMutationResource;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
-import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 
 @Path(MutationUtil.OBJECT_STORAGE_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ObjectStorageMutationResource
-    extends MutationResource<StackGresObjectStorage, ObjectStorageReview> {
+    extends AbstractMutationResource<StackGresObjectStorage, ObjectStorageReview> {
 
   @Inject
   public ObjectStorageMutationResource(

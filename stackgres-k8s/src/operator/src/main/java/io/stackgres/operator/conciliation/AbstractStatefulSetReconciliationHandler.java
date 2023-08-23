@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Predicates;
 import io.fabric8.kubernetes.api.model.Endpoints;
@@ -164,11 +165,17 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
 
   private StatefulSet concileSts(T context, HasMetadata resource,
       BiFunction<T, StatefulSet, StatefulSet> writer) {
-    final StatefulSet requiredSts = safeCast(resource);
+    final StatefulSet requiredSts;
+    try {
+      requiredSts = objectMapper.treeToValue(
+          objectMapper.valueToTree(safeCast(resource)), StatefulSet.class);
+    } catch (JsonProcessingException ex) {
+      throw new RuntimeException(ex);
+    }
     final StatefulSetSpec spec = requiredSts.getSpec();
     final Map<String, String> appLabel = labelFactory.appLabel();
 
-    final String namespace = resource.getMetadata().getNamespace();
+    final String namespace = requiredSts.getMetadata().getNamespace();
 
     final int desiredReplicas = spec.getReplicas();
     final int lastReplicaIndex = desiredReplicas - 1;
@@ -189,7 +196,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
                 && latestPrimaryIndexFromPatroni == getPodIndex(pod)))
         .filter(pod -> getPodIndex(pod) > lastReplicaIndex)
         .filter(pod -> !isNonDisruptable(context, pod))
-        .forEach(pod -> makePrimaryNonDisruptable(context, pod));
+        .forEach(pod -> makePrimaryPodNonDisruptable(context, pod));
 
     long nonDisruptablePodsRemaining =
         countNonDisruptablePods(context, pods, lastReplicaIndex);
@@ -278,7 +285,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
         });
   }
 
-  private void makePrimaryNonDisruptable(T context, Pod primaryPod) {
+  private void makePrimaryPodNonDisruptable(T context, Pod primaryPod) {
     if (LOGGER.isDebugEnabled()) {
       final String namespace = primaryPod.getMetadata().getNamespace();
       final String podName = primaryPod.getMetadata().getName();
@@ -287,7 +294,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
           + " since in the last index", namespace, podName, namespace, name);
     }
     final Map<String, String> primaryPodLabels = primaryPod.getMetadata().getLabels();
-    primaryPodLabels.put(labelFactory.labelMapper().disruptibleKey(context),
+    primaryPodLabels.put(labelFactory.labelMapper().disruptableKey(context),
         StackGresContext.WRONG_VALUE);
     handler.patch(context, primaryPod, null);
   }
@@ -297,7 +304,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     return pods.stream()
         .filter(pod -> isNonDisruptable(context, pod))
         .map(this::getPodIndex)
-        .filter(pod -> pod >= lastReplicaIndex)
+        .filter(pod -> pod > lastReplicaIndex)
         .count();
   }
 
@@ -326,7 +333,6 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     return pods.stream()
         .filter(pod -> isNonDisruptable(context, pod))
         .filter(this::hasRoleLabel)
-        .filter(Predicates.not(this::isRolePrimary))
         .filter(pod -> getPodIndex(pod) != latestPrimaryIndexFromPatroni)
         .filter(pod -> getPodIndex(pod) < replicas)
         .map(pod -> fixNonDisruptablePod(context, pod))
@@ -341,7 +347,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
       LOGGER.debug("Fixing non disruptable Pod {}.{} for StatefulSet {}.{} as disruptible"
           + " since current or latest primary", namespace, podName, namespace, name);
     }
-    pod.getMetadata().getLabels().put(labelFactory.labelMapper().disruptibleKey(context),
+    pod.getMetadata().getLabels().put(labelFactory.labelMapper().disruptableKey(context),
         StackGresContext.RIGHT_VALUE);
     return pod;
   }
@@ -432,7 +438,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     final var requiredPodLabels =
         Optional.ofNullable(statefulSet.getSpec().getSelector().getMatchLabels())
         .map(labels -> labels.entrySet().stream()
-            .filter(label -> !labelFactory.labelMapper().disruptibleKey(context)
+            .filter(label -> !labelFactory.labelMapper().disruptableKey(context)
                 .equals(label.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
         .orElse(Map.of());
@@ -623,9 +629,9 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
   }
 
   private boolean isNonDisruptable(T context, Pod pod) {
-    return Objects.equals(
-        pod.getMetadata().getLabels().get(labelFactory.labelMapper().disruptibleKey(context)),
-        StackGresContext.WRONG_VALUE);
+    return !Objects.equals(
+        pod.getMetadata().getLabels().get(labelFactory.labelMapper().disruptableKey(context)),
+        StackGresContext.RIGHT_VALUE);
   }
 
   private int getPodIndex(Pod pod) {

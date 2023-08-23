@@ -40,7 +40,7 @@ public abstract class AbstractReconciliationClock implements ReconciliationClock
     return OperatorProperty.RECONCILIATION_PERIOD
         .get()
         .map(Integer::valueOf)
-        .orElse(10);
+        .orElse(60);
   }
 
   protected TimeUnit getTimeUnit() {

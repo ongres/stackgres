@@ -19,13 +19,14 @@ import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.operator.common.ConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
+import io.stackgres.operatorframework.admissionwebhook.mutating.AbstractMutationResource;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
-import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 
 @Path(MutationUtil.CONFIG_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class ConfigMutationResource extends MutationResource<StackGresConfig, ConfigReview> {
+public class ConfigMutationResource
+    extends AbstractMutationResource<StackGresConfig, ConfigReview> {
 
   @Inject
   public ConfigMutationResource(

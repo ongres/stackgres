@@ -18,6 +18,7 @@ run_curl() {
   local NAMESPACE="${CLUSTER_NAMESPACE:-$OPERATOR_NAMESPACE}"
   local SERVICE_NAMESPACE="$OPERATOR_NAMESPACE"
   local SERVICE=stackgres-restapi
+  local SECRET=stackgres-restapi-admin
   local RESOURCE_PATH="stackgres/sgcluster"
   local EXTRA_PARAMETERS=""
   local CONTENT_TYPE="application/json"
@@ -38,6 +39,8 @@ run_curl() {
       n) NAMESPACE="$OPTARG"
       ;;
       s) SERVICE="$OPTARG"
+      ;;
+      S) SECRET="$OPTARG"
       ;;
       N) SERVICE_NAMESPACE="$OPTARG"
       ;;
@@ -61,7 +64,7 @@ run_curl() {
 
   if [ "$AUTHORIZATION" = auto ]
   then
-    PASSWORD="$(kubectl get secrets --namespace "$SERVICE_NAMESPACE" "$SERVICE" -o jsonpath="{.data.clearPassword}" | base64 -d)"
+    PASSWORD="$(kubectl get secrets --namespace "$SERVICE_NAMESPACE" "$SECRET" -o jsonpath="{.data.clearPassword}" | base64 -d)"
     AUTHORIZATION="{ \"username\": \"admin\", \"password\": \"$PASSWORD\" }"
   fi
 

@@ -9,8 +9,8 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.google.common.base.MoreObjects;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
@@ -42,10 +42,7 @@ public class NamespaceSelector {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("any", any)
-        .add("matchNames", matchNames)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
+
 }

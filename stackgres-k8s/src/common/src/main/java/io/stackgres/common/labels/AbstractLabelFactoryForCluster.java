@@ -71,7 +71,7 @@ public abstract class AbstractLabelFactoryForCluster<T extends CustomResource<?,
   @Override
   public Map<String, String> statefulSetPodLabels(T resource) {
     return ImmutableMap.<String, String>builder().putAll(clusterLabels(resource))
-        .put(labelMapper().disruptibleKey(resource), StackGresContext.RIGHT_VALUE)
+        .put(labelMapper().disruptableKey(resource), StackGresContext.RIGHT_VALUE)
         .build();
   }
 

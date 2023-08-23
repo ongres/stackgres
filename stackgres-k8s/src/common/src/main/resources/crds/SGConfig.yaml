@@ -75,10 +75,6 @@ spec:
                     items:
                       type: string
                       description: Repository credentials Secret name
-              initClusterRole:
-                type: string
-                default: cluster-admin
-                description: The ClusterRole assigned to the Operation Installation Jobs. By default is `cluster-admin`.
               operator:
                 type: object
                 description: Section to configure Operator Pod
@@ -344,20 +340,46 @@ spec:
                     type: boolean
                     default: true
                     description: When set to `true` the Web Console / REST API certificate will be created.
-                  resetCerts:
-                    type: boolean
-                    default: false
-                    description: When set to `true` the Web Console / REST API certificates will be reset.
                   secretName:
                     type: string
                     description: |
                       The Secret name with the Operator Webhooks certificate issued by the Kubernetes cluster CA
                        of type kubernetes.io/tls. See https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
+                  regenerateCert:
+                    type: boolean
+                    description: |
+                      When set to `true` the Operator certificates will be regenerated if `createForOperator` is set to `true`, and the certificate is expired or invalid.
+                    default: true
+                  certDuration:
+                    type: integer
+                    description: |
+                      The duration in days of the generated certificate for the Operator after which it will expire and be regenerated.
+                      If not specified it will be set to 730 (2 years) by default.
                   webSecretName:
                     type: string
                     description: |
                       The Secret name with the Web Console / REST API certificate
                        of type kubernetes.io/tls. See https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
+                  regenerateWebCert:
+                    type: boolean
+                    description: |
+                      When set to `true` the Web Console / REST API certificates will be regenerated if `createForWebApi` is set to `true`, and the certificate is expired or invalid.
+                    default: true
+                  regenerateWebRsa:
+                    type: boolean
+                    description: |
+                      When set to `true` the Web Console / REST API RSA key pair will be regenerated if `createForWebApi` is set to `true`, and the certificate is expired or invalid.
+                    default: true
+                  webCertDuration:
+                    type: integer
+                    description: |
+                      The duration in days of the generated certificate for the Web Console / REST API after which it will expire and be regenerated.
+                      If not specified it will be set to 730 (2 years) by default.
+                  webRsaDuration:
+                    type: integer
+                    description: |
+                      The duration in days of the generated RSA key pair for the Web Console / REST API after which it will expire and be regenerated.
+                      If not specified it will be set to 730 (2 years) by default.
                   key:
                     type: string
                     description: |
@@ -424,29 +446,21 @@ spec:
                     description: |
                       Specify the authentication mechanism to use. By default is `jwt`, see https://stackgres.io/doc/latest/api/rbac#local-secret-mechanism.
                        If set to `oidc` then see https://stackgres.io/doc/latest/api/rbac/#openid-connect-provider-mechanism.
+                  createAdminSecret:
+                    type: boolean
+                    description: |
+                      When `true` will create the secret used to store the admin user credentials to access the UI.
+                    default: true
                   user:
                     type: string
                     default: admin
-                    description: The admin username that will be required to access the UI
+                    description: The admin username that will be created for the Web Console
                   password:
                     type: string
-                    description: The admin password that will be required to access the UI
-                  resetPassword:
-                    type: boolean
-                    default: false
-                    description: When set to `true` the admin user password will be reset.
-                  secretRef:
-                    type: object
                     description: |
-                      Allow to specify the secret name that will be used store the credentials to access the UI.
-                        It simply prevent creating the secret automatically.
-                    properties:
-                      name:
-                        type: string
-                        description: |
-                          The admin user Secret name to be used.
-                          Allow to specify the secret name that will be used store the credentials to access the UI.
-                          It simply prevent creating the secret automatically.
+                      The admin password that will be created for the Web Console.
+                      
+                      If not specified a random password will be generated.
                   oidc:
                     type: object
                     description: Section to configure Web Console OIDC authentication
@@ -591,6 +605,12 @@ spec:
                       
                       To set a proxy for extensions repository add parameter proxyUrl to the URL:
                           `https://extensions.stackgres.io/postgres/repository?proxyUrl=<proxy scheme>%3A%2F%2F<proxy host>[%3A<proxy port>]` (URL encoded)
+                      
+                      Other URL parameters are:
+                      
+                      * `skipHostnameVerification`: set it to `true` in order to use a server or a proxy with a self signed certificate
+                      * `retry`: set it to `<max retriex>[:<sleep before next retry>]` in order to retry a request on failure
+                      * `setHttpScheme`: set it to `true` in order to force using HTTP scheme
                     items:
                       type: string
                   cache:
@@ -644,6 +664,7 @@ spec:
                            instead of a PersistentVolume
               developer:
                 type: object
+                x-kubernetes-preserve-unknown-fields: true
                 description: |
                   Section to configure developer options.
                   
@@ -655,6 +676,10 @@ spec:
                   logLevel:
                     type: string
                     description: Set `quarkus.log.level`. See https://quarkus.io/guides/logging#root-logger-configuration
+                  showDebug:
+                    type: boolean
+                    default: false
+                    description: If set to `true` add extra debug to any script controlled by the reconciliation cycle of the operator configuration
                   showStackTraces:
                     type: boolean
                     default: false
@@ -699,6 +724,113 @@ spec:
                     default: false
                     description: |
                       It set to `true` disable arbitrary user that is set for OpenShift clusters
+                  patches:
+                    type: object
+                    description: |
+                      Section to define patches for some StackGres Pods
+                    properties:
+                      operator:
+                        type: object
+                        description: |
+                          Section to define volumes to be used by the operator container
+                        properties:
+                          volumes:
+                            type: array
+                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                          volumeMounts:
+                            type: array
+                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                      restapi:
+                        type: object
+                        description: |
+                          Section to define volumes to be used by the restapi container
+                        properties:
+                          volumes:
+                            type: array
+                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                          volumeMounts:
+                            type: array
+                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                      adminui:
+                        type: object
+                        description: |
+                          Section to define volumes to be used by the adminui container
+                        properties:
+                          volumes:
+                            type: array
+                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                          volumeMounts:
+                            type: array
+                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                      jobs:
+                        type: object
+                        description: |
+                          Section to define volumes to be used by the jobs container
+                        properties:
+                          volumes:
+                            type: array
+                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                          volumeMounts:
+                            type: array
+                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                      clusterController:
+                        type: object
+                        description: |
+                          Section to define volumes to be used by the cluster controller container
+                        properties:
+                          volumes:
+                            type: array
+                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                          volumeMounts:
+                            type: array
+                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                      distributedlogsController:
+                        type: object
+                        description: |
+                          Section to define volumes to be used by the distributedlogs controller container
+                        properties:
+                          volumes:
+                            type: array
+                            description: Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
+                          volumeMounts:
+                            type: array
+                            description: Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
+                            items:
+                              type: object
+                              x-kubernetes-preserve-unknown-fields: true
           status:
             type: object
             description: Status defines the observed state of SGConfig
@@ -724,10 +856,22 @@ spec:
                     type:
                       description: Type of deployment condition.
                       type: string
-              applied:
-                type: object
-                description: Latest spec of the configuration that has been already applied
-                x-kubernetes-preserve-unknown-fields: true
               version:
                 type: string
                 description: Latest version of the operator used to check for updates
+              removeOldOperatorBundleResources:
+                type: boolean
+                description: Indicate when the old operator bundle resources has been removed
+              grafana:
+                type: object
+                properties:
+                  url:
+                    description: Grafana URL to StackGres dashboards
+                    type: string
+                  token:
+                    description: Grafana Token that allow to access dashboards
+                    type: string
+                  configHash:
+                    description: Grafana configuration hash
+                    type: string
+                

@@ -22,6 +22,8 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigList;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.labels.LabelFactoryForShardedCluster;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
@@ -88,7 +90,9 @@ public class ShardedClusterDeployedResourceScanner
           Map.entry(Endpoints.class, KubernetesClient::endpoints),
           Map.entry(Service.class, KubernetesClient::services),
           Map.entry(StackGresCluster.class, client -> client
-              .resources(StackGresCluster.class, StackGresClusterList.class))
+              .resources(StackGresCluster.class, StackGresClusterList.class)),
+          Map.entry(StackGresPostgresConfig.class, client -> client
+              .resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class))
           );
 
 }

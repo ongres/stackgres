@@ -209,8 +209,11 @@ public class DeployedResourcesCache {
       ObjectNode comparableDeployedMetadata = objectMapper.createObjectNode();
       JsonNode deployedAnnotations = deployedMetadata.get("annotations");
       if (deployedAnnotations instanceof ObjectNode deployedAnnotationsObject) {
+        Map<String, String> requiredResourceAnnotations = Optional
+            .ofNullable(requiredResource.getMetadata().getAnnotations())
+            .orElse(Map.of());
         Seq.seq(deployedAnnotationsObject.fieldNames()).toList().stream()
-            .filter(Predicate.not(requiredResource.getMetadata().getAnnotations()::containsKey))
+            .filter(Predicate.not(requiredResourceAnnotations::containsKey))
             .forEach(deployedAnnotationsObject::remove);
       }
       if (deployedAnnotations == null || deployedAnnotations instanceof NullNode) {
@@ -219,8 +222,11 @@ public class DeployedResourcesCache {
       comparableDeployedMetadata.set("annotations", deployedAnnotations);
       JsonNode deployedLabels = deployedMetadata.get("labels");
       if (deployedLabels instanceof ObjectNode deployedLabelsObject) {
+        Map<String, String> requiredResourceLabels = Optional
+            .ofNullable(requiredResource.getMetadata().getLabels())
+            .orElse(Map.of());
         Seq.seq(deployedLabelsObject.fieldNames()).toList().stream()
-            .filter(Predicate.not(requiredResource.getMetadata().getLabels()::containsKey))
+            .filter(Predicate.not(requiredResourceLabels::containsKey))
             .forEach(deployedLabelsObject::remove);
       }
       if (deployedLabels == null || deployedLabels instanceof NullNode) {

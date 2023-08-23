@@ -146,7 +146,7 @@ build helm packages:
     - |
       sh stackgres-k8s/ci/build/build-gitlab.sh build \
         --extract helm-packages:stackgres-k8s/install/helm/target/packages \
-        helm-packages helm-operator-bundle helm-operator-openshift-bundle
+        helm-packages operator-bundle operator-openshift-bundle
   retry: 2
   artifacts:
     expire_in: 1 week
@@ -184,7 +184,7 @@ build helm release packages:
     - |
       sh stackgres-k8s/ci/build/build-gitlab.sh build \
         --extract helm-packages:stackgres-k8s/install/helm/target/packages \
-        helm-release-packages helm-operator-release-bundle helm-operator-release-openshift-bundle
+        helm-release-packages operator-release-bundle operator-release-openshift-bundle
   retry: 2
   artifacts:
     expire_in: 1 week

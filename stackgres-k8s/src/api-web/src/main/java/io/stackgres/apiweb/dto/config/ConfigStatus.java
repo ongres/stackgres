@@ -22,9 +22,11 @@ public class ConfigStatus {
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private List<Condition> conditions = new ArrayList<>();
 
-  private ConfigSpec applied;
-
   private String version;
+
+  private Boolean removeOldOperatorBundleResource;
+
+  private ConfigStatusGrafana grafana;
 
   public List<Condition> getConditions() {
     return conditions;
@@ -34,20 +36,28 @@ public class ConfigStatus {
     this.conditions = conditions;
   }
 
-  public ConfigSpec getApplied() {
-    return applied;
-  }
-
-  public void setApplied(ConfigSpec applied) {
-    this.applied = applied;
-  }
-
   public String getVersion() {
     return version;
   }
 
   public void setVersion(String version) {
     this.version = version;
+  }
+
+  public Boolean getRemoveOldOperatorBundleResource() {
+    return removeOldOperatorBundleResource;
+  }
+
+  public void setRemoveOldOperatorBundleResource(Boolean removeOldOperatorBundleResource) {
+    this.removeOldOperatorBundleResource = removeOldOperatorBundleResource;
+  }
+
+  public ConfigStatusGrafana getGrafana() {
+    return grafana;
+  }
+
+  public void setGrafana(ConfigStatusGrafana grafana) {
+    this.grafana = grafana;
   }
 
   @Override

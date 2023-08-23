@@ -136,10 +136,6 @@ public class DbOpsSecurityUpgradeJob implements JobFactory {
                     .withValue(Boolean.FALSE.toString())
                     .build(),
                 new EnvVarBuilder()
-                    .withName("DATABASE_OPERATION_JOB")
-                    .withValue(Boolean.TRUE.toString())
-                    .build(),
-                new EnvVarBuilder()
                     .withName("DATABASE_OPERATION_CR_NAME")
                     .withValue(dbOps.getMetadata().getName())
                     .build(),
