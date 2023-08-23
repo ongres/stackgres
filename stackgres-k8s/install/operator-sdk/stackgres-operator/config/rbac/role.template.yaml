@@ -1,0 +1,84 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: operator-role
+rules:
+##
+## Base operator rules
+##
+$(
+  helm template -n system stackgres-operator \
+    --show-only templates/operator-cluster-role.yaml \
+    "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
+    | yq -y '.rules'
+)
+
+- apiGroups:
+  - operators.coreos.com
+  resources:
+  - operators
+  verbs:
+  - list
+  - get
+
+# TODO Remove when stackgres 1.5 get out of support
+- apiGroups:
+  - certificates.k8s.io
+  resources:
+  - certificatesigningrequests
+  verbs:
+  - delete
+  resourceNames:
+  - stackgres
+  - stackgres-operator
+- apiGroups:
+  - "apps"
+  resources:
+  - "deployments"
+  verbs:
+  - list
+  - delete
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - mutatingwebhookconfigurations
+  - validatingwebhookconfigurations
+  resourceNames:
+  - stackgres
+  - stackgres-operator
+  verbs:
+  - delete
+- apiGroups:
+  - "rbac.authorization.k8s.io"
+  resources:
+  - "clusterrolebindings"
+  - "clusterroles"
+  resourceNames:
+  - stackgres
+  - stackgres-operator
+  - stackgres-restapi
+  - stackgres-restapi-admin
+  verbs:
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - configmap
+  - secret
+  resourceNames:
+  - stackgres
+  - stackgres-certs
+  - stackgres-web-certs
+  - stackgres-service-certs
+  - stackgres-restapi
+  - stackgres-restapi-nginx
+  - stackgres-grafana-dashboard
+  - stackgres-operator
+  - stackgres-operator-certs
+  - stackgres-operator-web-certs
+  - stackgres-operator-service-certs
+  - stackgres-operator-grafana-dashboard
+  verbs:
+  - delete
+
+#+kubebuilder:scaffold:rules

@@ -6,6 +6,14 @@ then
   set -x
   DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=$([ "$DEBUG_OPERATOR_SUSPEND" = true ] && echo y || echo n)"
 fi
+if [ -n "$OPERATOR_CERT_FILE" ]
+then
+  JAVA_OPTS="$JAVA_OPTS -Dquarkus.http.ssl.certificate.files=$OPERATOR_CERT_FILE"
+fi
+if [ -n "$OPERATOR_KEY_FILE" ]
+then
+  JAVA_OPTS="$JAVA_OPTS -Dquarkus.http.ssl.certificate.key-files=$OPERATOR_KEY_FILE"
+fi
 if [ -n "$OPERATOR_LOG_LEVEL" ]
 then
   APP_OPTS="$APP_OPTS -Dquarkus.log.level=$OPERATOR_LOG_LEVEL"

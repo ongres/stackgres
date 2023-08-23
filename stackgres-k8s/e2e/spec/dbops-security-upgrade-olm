@@ -19,35 +19,31 @@ e2e_load_images() {
   BUNDLE_STACKGRES_VERSION="$(printf %s "$STACKGRES_VERSION" | tr A-Z a-z)"
   BUNDLE_STACKGRES_PREVIOUS_VERSION="$(printf %s "$STACKGRES_PREVIOUS_VERSION" | tr A-Z a-z)"
 
-  HELM_OPERATOR_IMAGE_TAG_SUFFIX=""
+  OPERATOR_BUNDLE_IMAGE_TAG_SUFFIX=""
   if [ "$E2E_ENV" = "minishift" ] || [ "$E2E_ENV" = "crc" ] || [ "$E2E_ENV" = "microshift" ]
   then
-    HELM_OPERATOR_IMAGE_TAG_SUFFIX="-openshift"
+    OPERATOR_BUNDLE_IMAGE_TAG_SUFFIX="-openshift"
   fi
-  HELM_OPERATOR_IMAGE_TAG="${IMAGE_TAG%-jvm}$HELM_OPERATOR_IMAGE_TAG_SUFFIX"
-  HELM_OPERATOR_IMAGE_TAG="$(printf %s "$HELM_OPERATOR_IMAGE_TAG" | tr A-Z a-z)"
+  OPERATOR_BUNDLE_IMAGE_TAG="${IMAGE_TAG%-jvm}$OPERATOR_BUNDLE_IMAGE_TAG_SUFFIX"
+  OPERATOR_BUNDLE_IMAGE_TAG="$(printf %s "$OPERATOR_BUNDLE_IMAGE_TAG" | tr A-Z a-z)"
 
-  HELM_OPERATOR_PUBLIC_REGISTRY="${HELM_OPERATOR_PUBLIC_REGISTRY:-quay.io}"
-  HELM_OPERATOR_PUBLIC_REGISTRY_PATH="${HELM_OPERATOR_PUBLIC_REGISTRY_PATH:-/stackgres}"
-  HELM_OPERATOR_IMAGE_NAME="${HELM_OPERATOR_PUBLIC_REGISTRY}${HELM_OPERATOR_PUBLIC_REGISTRY_PATH}/helm-operator:$HELM_OPERATOR_IMAGE_TAG"
-  HELM_OPERATOR_BUNDLE_IMAGE_NAME="${HELM_OPERATOR_PUBLIC_REGISTRY}${HELM_OPERATOR_PUBLIC_REGISTRY_PATH}/helm-operator-bundle:$HELM_OPERATOR_IMAGE_TAG"
-  HELM_OPERATOR_CATALOG_IMAGE_NAME="${HELM_OPERATOR_PUBLIC_REGISTRY}${HELM_OPERATOR_PUBLIC_REGISTRY_PATH}/helm-operator-catalog:$HELM_OPERATOR_IMAGE_TAG"
+  OPERATOR_BUNDLE_PUBLIC_REGISTRY="${OPERATOR_BUNDLE_PUBLIC_REGISTRY:-quay.io}"
+  OPERATOR_BUNDLE_PUBLIC_REGISTRY_PATH="${OPERATOR_BUNDLE_PUBLIC_REGISTRY_PATH:-/stackgres}"
+  OPERATOR_BUNDLE_IMAGE_NAME="${OPERATOR_BUNDLE_PUBLIC_REGISTRY}${OPERATOR_BUNDLE_PUBLIC_REGISTRY_PATH}/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG"
+  OPERATOR_BUNDLE_CATALOG_IMAGE_NAME="${OPERATOR_BUNDLE_PUBLIC_REGISTRY}${OPERATOR_BUNDLE_PUBLIC_REGISTRY_PATH}/operator-catalog:$OPERATOR_BUNDLE_IMAGE_TAG"
 
   # The operator-registry check the images from the remote repository
-  BUNDLE_IMAGE_NAME="$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}/stackgres/${HELM_OPERATOR_BUNDLE_IMAGE_NAME##*/}"
+  BUNDLE_IMAGE_NAME="$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}/stackgres/${OPERATOR_BUNDLE_IMAGE_NAME##*/}"
   BUNDLE_OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME%%:*}:$BUNDLE_STACKGRES_VERSION"
 
   if [ "$E2E_FORCE_IMAGE_PULL" != "true" ] \
     && test -f stackgres-k8s/ci/build/target/image-hashes \
-    && docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name helm-operator-image)" >/dev/null 2>&1 \
-    && docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name helm-operator-bundle-image)" >/dev/null 2>&1
+    && docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)" >/dev/null 2>&1
   then
-    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name helm-operator-image)" "$HELM_OPERATOR_IMAGE_NAME"
-    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name helm-operator-bundle-image)" "$HELM_OPERATOR_BUNDLE_IMAGE_NAME"
-    docker tag "$HELM_OPERATOR_BUNDLE_IMAGE_NAME" "$BUNDLE_IMAGE_NAME"
+    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)" "$OPERATOR_BUNDLE_IMAGE_NAME"
+    docker tag "$OPERATOR_BUNDLE_IMAGE_NAME" "$BUNDLE_IMAGE_NAME"
     docker tag "$OPERATOR_IMAGE_NAME" "$BUNDLE_OPERATOR_IMAGE_NAME"
-    load_image_k8s "$HELM_OPERATOR_IMAGE_NAME"
-    load_image_k8s "$HELM_OPERATOR_BUNDLE_IMAGE_NAME"
+    load_image_k8s "$OPERATOR_BUNDLE_IMAGE_NAME"
     load_image_k8s "$BUNDLE_IMAGE_NAME"
     load_image_k8s "$BUNDLE_OPERATOR_IMAGE_NAME"
     BUNDLE_IMAGE_DIGEST="$(docker manifest inspect "$BUNDLE_IMAGE_NAME" 2>/dev/null | jq -r .config.digest 2>/dev/null || true)"
@@ -85,19 +81,19 @@ e2e_install_previous_operator() {
       | jq -sr ".[]|select(.name == \"stackgres.v$BUNDLE_STACKGRES_PREVIOUS_VERSION\").image" | grep .')"
   fi
 
-  CATALOG_IMAGE_NAME="$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}/stackgres/${HELM_OPERATOR_CATALOG_IMAGE_NAME##*/}"
-  mkdir -p "$LOG_PATH/helm-operator-catalog"
-  opm generate dockerfile "$LOG_PATH/helm-operator-catalog"
+  CATALOG_IMAGE_NAME="$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}/stackgres/${OPERATOR_BUNDLE_CATALOG_IMAGE_NAME##*/}"
+  mkdir -p "$LOG_PATH/operator-catalog"
+  opm generate dockerfile "$LOG_PATH/operator-catalog"
   echo > "$LOG_PATH/README.md"
   opm init stackgres \
     --default-channel=stable \
     --description="$LOG_PATH/README.md" \
-    --output yaml > "$LOG_PATH/helm-operator-catalog/operator.yaml"
+    --output yaml > "$LOG_PATH/operator-catalog/operator.yaml"
   opm render "$PREVIOUS_BUNDLE_IMAGE_NAME" \
-    --output=yaml >> "$LOG_PATH/helm-operator-catalog/operator.yaml"
+    --output=yaml >> "$LOG_PATH/operator-catalog/operator.yaml"
   opm render "$BUNDLE_IMAGE_NAME" \
-    --output=yaml >> "$LOG_PATH/helm-operator-catalog/operator.yaml"
-  cat << EOF >> "$LOG_PATH/helm-operator-catalog/operator.yaml"
+    --output=yaml >> "$LOG_PATH/operator-catalog/operator.yaml"
+  cat << EOF >> "$LOG_PATH/operator-catalog/operator.yaml"
 ---
 schema: olm.channel
 package: stackgres
@@ -107,46 +103,46 @@ entries:
   - name: stackgres.v$BUNDLE_STACKGRES_VERSION
     replaces: stackgres.v$BUNDLE_STACKGRES_PREVIOUS_VERSION
 EOF
-  sed -i "s/^name: stackgres.v${BUNDLE_STACKGRES_VERSION%-*}.*$/name: stackgres.v$BUNDLE_STACKGRES_VERSION/" "$LOG_PATH/helm-operator-catalog/operator.yaml"
-  sed -i "s/^    version: ${BUNDLE_STACKGRES_VERSION%-*}.*$/    version: $BUNDLE_STACKGRES_VERSION/" "$LOG_PATH/helm-operator-catalog/operator.yaml"
-  sed -i "s/^- image: \([^:]\+\):${BUNDLE_STACKGRES_VERSION%-*}.*$/- image: \1:$BUNDLE_STACKGRES_VERSION/" "$LOG_PATH/helm-operator-catalog/operator.yaml"
-  opm validate "$LOG_PATH/helm-operator-catalog"
+  sed -i "s/^name: stackgres.v${BUNDLE_STACKGRES_VERSION%-*}.*$/name: stackgres.v$BUNDLE_STACKGRES_VERSION/" "$LOG_PATH/operator-catalog/operator.yaml"
+  sed -i "s/^    version: ${BUNDLE_STACKGRES_VERSION%-*}.*$/    version: $BUNDLE_STACKGRES_VERSION/" "$LOG_PATH/operator-catalog/operator.yaml"
+  sed -i "s/^- image: \([^:]\+\):${BUNDLE_STACKGRES_VERSION%-*}.*$/- image: \1:$BUNDLE_STACKGRES_VERSION/" "$LOG_PATH/operator-catalog/operator.yaml"
+  opm validate "$LOG_PATH/operator-catalog"
   (
   cd "$LOG_PATH"
   docker build . \
-    -f "helm-operator-catalog.Dockerfile" \
+    -f "operator-catalog.Dockerfile" \
     -t "$CATALOG_IMAGE_NAME"
   )
   docker push "$CATALOG_IMAGE_NAME"
 
-  if [ "$E2E_SKIP_LOAD_HELM_OPERATOR" != true ]
+  if [ "$E2E_SKIP_LOAD_OPERATOR_BUNDLE" != true ]
   then
     if [ "$E2E_FORCE_IMAGE_PULL" = "true" ]
     then
-      echo "Loading helm operator images from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
-      e2e_load_helm_operator_images_from "$E2E_OPERATOR_REGISTRY" "$E2E_OPERATOR_REGISTRY_PATH"
+      echo "Loading operator images from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
+      e2e_load_operator_images_from "$E2E_OPERATOR_REGISTRY" "$E2E_OPERATOR_REGISTRY_PATH"
     fi
-    IMAGES="$(e2e_get_helm_operator_images "$STACKGRES_VERSION")"
+    IMAGES="$(e2e_get_operator_images "$STACKGRES_VERSION")"
     for IMAGE in $IMAGES
     do
-      docker_tag "$IMAGE" "${IMAGE%:*}:$(printf %s "$STACKGRES_VERSION$HELM_OPERATOR_IMAGE_TAG_SUFFIX" | tr A-Z a-z)"
+      docker_tag "$IMAGE" "${IMAGE%:*}:$(printf %s "$STACKGRES_VERSION$OPERATOR_BUNDLE_IMAGE_TAG_SUFFIX" | tr A-Z a-z)"
     done
     OPERATOR_IMAGES="$(get_operator_images "$STACKGRES_VERSION")"
     for IMAGE in $OPERATOR_IMAGES
     do
       docker_tag "$IMAGE" "${IMAGE%:*}:$BUNDLE_STACKGRES_VERSION"
     done
-    echo "All helm operator images loaded from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
+    echo "All operator images loaded from $E2E_OPERATOR_REGISTRY$E2E_OPERATOR_REGISTRY_PATH"
   fi
 
   OPERATOR_NAMESPACE="$(generate_operator_namespace)"
   kubectl create namespace "${OPERATOR_NAMESPACE}"
 
-  cat << EOF > "$LOG_PATH/helm-operator-catalog-source.yaml"
+  cat << EOF > "$LOG_PATH/operator-catalog-source.yaml"
 apiVersion: operators.coreos.com/v1alpha1
 kind: CatalogSource
 metadata:
-  name: helm-operator-catalog
+  name: operator-catalog
   namespace: $OPERATOR_NAMESPACE
 spec:
   sourceType: grpc
@@ -157,7 +153,7 @@ spec:
     registryPoll:
       interval: 10m
 EOF
-  kubectl create -f "$LOG_PATH/helm-operator-catalog-source.yaml"
+  kubectl create -f "$LOG_PATH/operator-catalog-source.yaml"
 
   echo "Installing previous version of operator bundle ($STACKGRES_PREVIOUS_VERSION)"
   cat << EOF > "$LOG_PATH/stackgres-operator-group.yaml"
@@ -177,7 +173,7 @@ metadata:
 spec:
   channel: stable
   name: stackgres
-  source: helm-operator-catalog
+  source: operator-catalog
   sourceNamespace: $OPERATOR_NAMESPACE
   installPlanApproval: Manual
   startingCSV: stackgres.v$BUNDLE_STACKGRES_PREVIOUS_VERSION
@@ -191,11 +187,6 @@ EOF
   PREVIOUS_RELEASE_NAME="${PREVIOUS_RELEASE_NAME#*/}"
   kubectl patch -n "$OPERATOR_NAMESPACE" sgconfig "$PREVIOUS_RELEASE_NAME" --type merge \
     -p '{"spec":{"grafana":{"autoEmbed": true, "webHost":"'"prometheus-grafana.$(prometheus_namespace)"'"}}}'
-
-  wait_until eval \
-    'helm list -n "$OPERATOR_NAMESPACE" -o json | jq -r ".[].name" | grep -qxF "$PREVIOUS_RELEASE_NAME"
-    sleep 20
-    helm list -n "$OPERATOR_NAMESPACE" -o json | jq -r ".[].name" | grep -qxF "$PREVIOUS_RELEASE_NAME"'
 
   if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^$PREVIOUS_RELEASE_NAME$"
   then
@@ -213,7 +204,7 @@ EOF
     echo "SUCCESS. The StackGres restapi service was available."
   fi
 
-  if [ "$(helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator -o json | jq .extensions.cache.enabled)" = true ]
+  if [ "$(kubectl get sgconfig -n "$OPERATOR_NAMESPACE" stackgres-operator -o json | jq .spec.extensions.cache.enabled)" = true ]
   then
     if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator-extensions-cache$"
     then
@@ -228,8 +219,8 @@ EOF
 e2e_upgrade_operator() {
   echo "Upgrading operator bundle ($STACKGRES_VERSION)"
   # The operator-sdk does not allow to load a bundle with IfNotPresent so we have to pull it from the remote repository
-  BUNDLE_IMAGE_NAME="$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}/stackgres/${HELM_OPERATOR_BUNDLE_IMAGE_NAME##*/}"
-  kubectl create secret docker-registry -n "$OPERATOR_NAMESPACE" helm-operator-bundle \
+  BUNDLE_IMAGE_NAME="$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}/stackgres/${OPERATOR_BUNDLE_IMAGE_NAME##*/}"
+  kubectl create secret docker-registry -n "$OPERATOR_NAMESPACE" operator-bundle \
     --from-file=.dockerconfigjson="$HOME"/.docker/config.json
 
   INSTALL_PLAN="$(wait_until eval 'kubectl get installplan -n "$OPERATOR_NAMESPACE" \
@@ -269,11 +260,6 @@ EOF
     --template "{{ range .items }}{{ range .spec.containers }}{{ printf \"%s\n\" .image }}{{ end }}{{ end }}" \
     | grep -qF "'"/${EXPECTED_OPERATOR_IMAGE##*/}"'"'
 
-  wait_until eval \
-    'helm list -n "$OPERATOR_NAMESPACE" -o json | jq -r ".[].name" | grep -qxF stackgres-operator
-    sleep 20
-    helm list -n "$OPERATOR_NAMESPACE" -o json | jq -r ".[].name" | grep -qxF stackgres-operator'
-
   if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator$"
   then
     echo "FAILED. The StackGres operator service was not available."
@@ -290,7 +276,7 @@ EOF
     echo "SUCCESS. The StackGres restapi service was available."
   fi
 
-  if [ "$(helm get values -n "$OPERATOR_NAMESPACE" stackgres-operator -o json | jq .extensions.cache.enabled)" = true ]
+  if [ "$(kubectl get sgconfig -n "$OPERATOR_NAMESPACE" stackgres-operator -o json | jq .spec.extensions.cache.enabled)" = true ]
   then
     if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator-extensions-cache$"
     then
@@ -302,18 +288,18 @@ EOF
   fi
 }
 
-e2e_load_helm_operator_images_from() {
-  local REPOSITORY="${1:-$HELM_OPERATOR_PUBLIC_REGISTRY}"
-  local IMAGE_PATH="${2:-$HELM_OPERATOR_PUBLIC_REGISTRY_PATH}"
+e2e_load_operator_images_from() {
+  local REPOSITORY="${1:-$OPERATOR_BUNDLE_PUBLIC_REGISTRY}"
+  local IMAGE_PATH="${2:-$OPERATOR_BUNDLE_PUBLIC_REGISTRY_PATH}"
   local VERSION="${3:-$STACKGRES_VERSION}"
   local IMAGES
-  IMAGES="$(e2e_get_helm_operator_images "$VERSION")"
+  IMAGES="$(e2e_get_operator_images "$VERSION")"
   printf '%s' "$IMAGES" \
     | xargs_parallel_shell % "$E2E_PATH/e2e" \
       pull_image_from "$REPOSITORY" "${IMAGE_PATH%/}/stackgres" "%"
 }
 
-e2e_get_helm_operator_images() {
+e2e_get_operator_images() {
   [ -n "$1" ]
   local VERSION="$1"
   local NATIVE_TAG="$VERSION"
@@ -327,8 +313,7 @@ e2e_get_helm_operator_images() {
   then
     TAG="$NATIVE_TAG"
   fi
-  echo "${HELM_OPERATOR_IMAGE_NAME%:*}:$NATIVE_TAG"
-  echo "${HELM_OPERATOR_BUNDLE_IMAGE_NAME%:*}:$NATIVE_TAG"
+  echo "${OPERATOR_BUNDLE_IMAGE_NAME%:*}:$NATIVE_TAG"
 }
 
 e2e_properly_tag_not_found_import_images() {

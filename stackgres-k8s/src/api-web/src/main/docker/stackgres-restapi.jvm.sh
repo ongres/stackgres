@@ -6,6 +6,22 @@ then
   set -x
   DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=$([ "$DEBUG_RESTAPI_SUSPEND" = true ] && echo y || echo n)"
 fi
+if [ -n "$RESTAPI_CERT_FILE" ]
+then
+  JAVA_OPTS="$JAVA_OPTS -Dquarkus.http.ssl.certificate.files=$RESTAPI_CERT_FILE"
+fi
+if [ -n "$RESTAPI_KEY_FILE" ]
+then
+  JAVA_OPTS="$JAVA_OPTS -Dquarkus.http.ssl.certificate.key-files=$RESTAPI_KEY_FILE"
+fi
+if [ -n "$RESTAPI_JWT_PUBLIC_RSA_FILE" ]
+then
+  JAVA_OPTS="$JAVA_OPTS -Dmp.jwt.verify.publickey.location=$RESTAPI_JWT_PUBLIC_RSA_FILE"
+fi
+if [ -n "$RESTAPI_JWT_PRIVATE_RSA_FILE" ]
+then
+  JAVA_OPTS="$JAVA_OPTS -Dsmallrye.jwt.sign.key.location=$RESTAPI_JWT_PRIVATE_RSA_FILE"
+fi
 if [ -n "$RESTAPI_LOG_LEVEL" ]
 then
   APP_OPTS="$APP_OPTS -Dquarkus.log.level=$RESTAPI_LOG_LEVEL"

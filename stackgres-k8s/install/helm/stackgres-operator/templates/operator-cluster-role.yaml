@@ -1,0 +1,99 @@
+{{- if .Values.serviceAccount.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+{{- with .Values.clusterOwnerRefereces }}
+  ownerReferences:
+    {{- toYaml . | nindent 4 }}
+{{- end }}
+  name: {{ .Release.Name }}
+rules:
+- apiGroups: ["", "apps", "extensions", "rbac.authorization.k8s.io", "batch"] # "" indicates the core API group
+  resources:
+  - pods
+  - pods/exec
+  - pods/log
+  - services
+  - endpoints
+  - endpoints/restricted
+  - persistentvolumeclaims
+  - configmaps
+  - secrets
+  - statefulsets
+  - serviceaccounts
+  - namespaces
+  - roles
+  - rolebindings
+  - events
+  - cronjobs
+  - persistentvolumeclaims
+  - jobs
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - create
+  - delete
+  - patch
+- apiGroups: ["storage.k8s.io"]
+  resources: ["storageclasses"]
+  verbs: ["get", "list"]
+- apiGroups: ["apiextensions.k8s.io"]
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups: ["stackgres.io"]
+  resources:
+  - sgclusters
+  - sgpgconfigs
+  - sginstanceprofiles
+  - sgpoolconfigs
+  - sgbackupconfigs
+  - sgbackups
+  - sgdistributedlogs
+  - sgdbops
+  - sgobjectstorages
+  - sgscripts
+  - sgshardedclusters
+  - sgconfigs
+  - sgconfigs/status
+  verbs:
+  - create
+  - watch
+  - list
+  - get
+  - update
+  - patch
+  - delete
+- apiGroups: ["stackgres.io"]
+  resources:
+  - sgclusters/status
+  - sgdistributedlogs/status
+  verbs:
+  - update
+{{- if .Values.prometheus.allowAutobind }}
+- apiGroups: ["monitoring.coreos.com"]
+  resources:
+  - servicemonitors
+  - podmonitors
+  verbs:
+  - list
+  - get
+  - create
+  - delete
+  - update
+  - patch
+- apiGroups: ["monitoring.coreos.com"]
+  resources:
+  - prometheus
+  - prometheuses
+  - podmonitors
+  verbs:
+  - list
+  - get
+{{- end }}
+{{- end }}

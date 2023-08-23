@@ -4,6 +4,22 @@ if [ "$DEBUG_RESTAPI" = true ]
 then
   set -x
 fi
+if [ -n "$RESTAPI_CERT_FILE" ]
+then
+  APP_OPTS="$APP_OPTS -Dquarkus.http.ssl.certificate.files=$RESTAPI_CERT_FILE"
+fi
+if [ -n "$RESTAPI_KEY_FILE" ]
+then
+  APP_OPTS="$APP_OPTS -Dquarkus.http.ssl.certificate.key-files=$RESTAPI_KEY_FILE"
+fi
+if [ -n "$RESTAPI_JWT_PUBLIC_RSA_FILE" ]
+then
+  APP_OPTS="$APP_OPTS -Dmp.jwt.verify.publickey.location=$RESTAPI_JWT_PUBLIC_RSA_FILE"
+fi
+if [ -n "$RESTAPI_JWT_PRIVATE_RSA_FILE" ]
+then
+  APP_OPTS="$APP_OPTS -Dsmallrye.jwt.sign.key.location=$RESTAPI_JWT_PRIVATE_RSA_FILE"
+fi
 if [ -n "$RESTAPI_LOG_LEVEL" ]
 then
   APP_OPTS="$APP_OPTS -Dquarkus.log.level=$RESTAPI_LOG_LEVEL"

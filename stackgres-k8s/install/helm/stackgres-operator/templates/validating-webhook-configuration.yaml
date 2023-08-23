@@ -14,7 +14,7 @@ metadata:
   labels:
     app.kubernetes.io/managed-by: Helm
 webhooks:
-  - name: sgcluster.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgcluster.validating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -29,7 +29,7 @@ webhooks:
         path: '/stackgres/validation/sgcluster'
       caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1"]
-  - name: sgpgconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgpgconfig.validating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
@@ -44,7 +44,7 @@ webhooks:
         path: '/stackgres/validation/sgpgconfig'
       caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1"]
-  - name: sgpoolconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgpoolconfig.validating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
@@ -59,7 +59,7 @@ webhooks:
         path: '/stackgres/validation/sgpoolconfig'
       caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1"]
-  - name: sginstanceprofile.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sginstanceprofile.validating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
@@ -74,7 +74,7 @@ webhooks:
         path: '/stackgres/validation/sginstanceprofile'
       caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1"]
-  - name: sgbackupconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgbackupconfig.validating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
@@ -89,7 +89,7 @@ webhooks:
         path: '/stackgres/validation/sgbackupconfig'
       caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1"]
-  - name: sgbackup.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgbackup.validating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
@@ -104,7 +104,7 @@ webhooks:
         path: '/stackgres/validation/sgbackup'
       caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1"]
-  - name: sgdistributedlogs.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgdistributedlogs.validating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
@@ -119,7 +119,7 @@ webhooks:
         path: '/stackgres/validation/sgdistributedlogs'
       caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1"]
-  - name: sgdbops.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgdbops.validating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
@@ -134,7 +134,7 @@ webhooks:
         path: '/stackgres/validation/sgdbops'
       caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1"]
-  - name: sgobjectstorage.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgobjectstorage.validating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
@@ -149,7 +149,7 @@ webhooks:
         path: '/stackgres/validation/sgobjectstorage'
       caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1"]
-  - name: sgscripts.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgscripts.validating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
@@ -164,7 +164,7 @@ webhooks:
         path: '/stackgres/validation/sgscript'
       caBundle: {{ .Values.cert.crt }}
     admissionReviewVersions: ["v1"]
-  - name: sgshardedclusters.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgshardedclusters.validating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]
@@ -179,7 +179,7 @@ webhooks:
         path: '/stackgres/validation/sgshardedcluster'
       caBundle: {{ .Values.cert.crt }}
     admissionReviewVersions: ["v1"]
-  - name: sgconfigs.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgconfigs.validating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE", "DELETE"]

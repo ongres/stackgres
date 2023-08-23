@@ -14,7 +14,7 @@ metadata:
   labels:
     app.kubernetes.io/managed-by: Helm
 webhooks:
-  - name: sgcluster.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgcluster.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -29,7 +29,7 @@ webhooks:
         path: '/stackgres/mutation/sgcluster'
       caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1"]
-  - name: sgpgconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgpgconfig.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -44,7 +44,7 @@ webhooks:
         path: '/stackgres/mutation/sgpgconfig'
       caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1"]
-  - name: sgpoolconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgpoolconfig.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -59,7 +59,7 @@ webhooks:
         path: '/stackgres/mutation/sgpoolconfig'
       caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1"]
-  - name: sginstanceprofile.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sginstanceprofile.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -74,7 +74,7 @@ webhooks:
         path: '/stackgres/mutation/sginstanceprofile'
       caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1"]
-  - name: sgbackupconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgbackupconfig.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -89,7 +89,7 @@ webhooks:
         path: '/stackgres/mutation/sgbackupconfig'
       caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1"]
-  - name: sgbackup.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgbackup.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -104,7 +104,7 @@ webhooks:
         path: '/stackgres/mutation/sgbackup'
       caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1"]
-  - name: sgdistributedlogs.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgdistributedlogs.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -119,7 +119,7 @@ webhooks:
         path: '/stackgres/mutation/sgdistributedlogs'
       caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1"]
-  - name: sgdbops.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgdbops.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -134,7 +134,7 @@ webhooks:
         path: '/stackgres/mutation/sgdbops'
       caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1"]
-  - name: sgobjectstorage.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgobjectstorage.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -149,7 +149,7 @@ webhooks:
         path: '/stackgres/mutation/sgobjectstorage'
       caBundle: '{{ .Values.cert.crt }}'
     admissionReviewVersions: ["v1"]
-  - name: sgscripts.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgscripts.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -164,7 +164,7 @@ webhooks:
         path: '/stackgres/mutation/sgscript'
       caBundle: {{ .Values.cert.crt }}
     admissionReviewVersions: ["v1"]
-  - name: sgshardedclusters.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgshardedclusters.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -179,7 +179,7 @@ webhooks:
         path: '/stackgres/mutation/sgshardedcluster'
       caBundle: {{ .Values.cert.crt }}
     admissionReviewVersions: ["v1"]
-  - name: sgconfigs.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgconfigs.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]

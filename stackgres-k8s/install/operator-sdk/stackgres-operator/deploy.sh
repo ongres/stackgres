@@ -36,7 +36,7 @@ mkdir -p target
 UPSTREAM_SUFFIX="$(printf %s "$UPSTREAM_NAME" | tr '[A-Z] ' '[a-z]-' | tr -dc '[a-z0-9]-')"
 UPSTREAM_GIT_PATH=target/"upstream-$UPSTREAM_SUFFIX"
 FORK_GIT_PATH=target/"fork-$UPSTREAM_SUFFIX"
-HELM_OPERATOR_BUNDLE_IMAGE_TAG="${STACKGRES_VERSION}$HELM_OPERATOR_BUNDLE_IMAGE_TAG_SUFFIX"
+OPERATOR_BUNDLE_IMAGE_TAG="${STACKGRES_VERSION}$OPERATOR_BUNDLE_IMAGE_TAG_SUFFIX"
 
 if [ -d "$UPSTREAM_GIT_PATH" ] && git -C "$UPSTREAM_GIT_PATH" remote -v | grep -qF "$UPSTREAM_GIT_URL"
 then
@@ -74,16 +74,16 @@ then
   exit 1
 fi
 
-echo "Copying new files to path operators/$PROJECT_NAME/$STACKGRES_VERSION from quay.io/stackgres/helm-operator-bundle:$HELM_OPERATOR_BUNDLE_IMAGE_TAG"
+echo "Copying new files to path operators/$PROJECT_NAME/$STACKGRES_VERSION from quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG"
 (
 rm -rf "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"
 mkdir -p "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"
 cd "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"
-docker pull quay.io/stackgres/helm-operator-bundle:$HELM_OPERATOR_BUNDLE_IMAGE_TAG
-docker save quay.io/stackgres/helm-operator-bundle:$HELM_OPERATOR_BUNDLE_IMAGE_TAG | tar tv | tr -s ' ' | cut -d ' ' -f 6 | grep -F layer.tar \
+docker pull quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG
+docker save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar tv | tr -s ' ' | cut -d ' ' -f 6 | grep -F layer.tar \
   | while read LAYER
     do
-      docker save quay.io/stackgres/helm-operator-bundle:$HELM_OPERATOR_BUNDLE_IMAGE_TAG | tar xO "$LAYER" | tar xv
+      docker save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar xO "$LAYER" | tar xv
     done
 )
 find "$FORK_GIT_PATH" -name '.wh*' \

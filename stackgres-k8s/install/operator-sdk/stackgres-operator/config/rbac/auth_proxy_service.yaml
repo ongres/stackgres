@@ -2,20 +2,20 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: stackgres-controller-manager
+    app: stackgres-operator
     app.kubernetes.io/name: service
-    app.kubernetes.io/instance: controller-manager-metrics-service
+    app.kubernetes.io/instance: operator-metrics-service
     app.kubernetes.io/component: kube-rbac-proxy
     app.kubernetes.io/created-by: stackgres
     app.kubernetes.io/part-of: stackgres
     app.kubernetes.io/managed-by: kustomize
-  name: controller-manager-metrics-service
+  name: operator-metrics-service
   namespace: system
 spec:
   ports:
   - name: https
-    port: 8443
+    port: 9443
     protocol: TCP
     targetPort: https
   selector:
-    app: stackgres-controller-manager
+    app: stackgres-operator

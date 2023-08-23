@@ -9,4 +9,4 @@ spec:
     - port: 443
       targetPort: 8443
   selector:
-    control-plane: controller-manager
+    app: stackgres-operator

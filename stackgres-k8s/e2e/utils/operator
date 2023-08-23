@@ -66,7 +66,7 @@ build_all() {
   "$SHELL" $SHELL_XTRACE "$PROJECT_PATH"/stackgres-k8s/ci/build/build.sh parent-java operator-framework-java test-util-java common-java \
     operator-java restapi-java jobs-java cluster-controller-java distributedlogs-controller-java admin-ui \
     operator-jvm-image restapi-jvm-image jobs-jvm-image cluster-controller-jvm-image distributedlogs-controller-jvm-image \
-    admin-ui-image helm-packages helm-templates helm-operator-bundle helm-operator-image helm-operator-bundle-image
+    admin-ui-image helm-packages helm-templates operator-bundle operator-bundle-image
   docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)" >/dev/null 2>&1 \
     || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)"
   docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)" >/dev/null 2>&1 \
@@ -79,10 +79,8 @@ build_all() {
     || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name distributedlogs-controller-jvm-image)"
   docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)" >/dev/null 2>&1 \
     || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)"
-  docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name helm-operator-image)" >/dev/null 2>&1 \
-    || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name helm-operator-image)"
-  docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name helm-operator-bundle-image)" >/dev/null 2>&1 \
-    || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name helm-operator-bundle-image)"
+  docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)" >/dev/null 2>&1 \
+    || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)"
   docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)" "$OPERATOR_IMAGE_NAME"
   docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)" "$RESTAPI_IMAGE_NAME"
   docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name jobs-jvm-image)" "$JOBS_IMAGE_NAME"

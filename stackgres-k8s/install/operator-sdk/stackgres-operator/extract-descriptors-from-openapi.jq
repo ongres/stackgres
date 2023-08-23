@@ -49,6 +49,8 @@
             | sub("Sg Script"; "SGScript")
             | sub("Sg Backup"; "SGBackup")
             | sub("Sg Distributed Logs"; "SGDistributedLogs")
+            | sub("Sg Config"; "SGConfig")
+            | sub("Sg Sharded Cluster"; "SGShardedCluster")
             ),
         "x-descriptors": (
             if "boolean" == ($field.type)

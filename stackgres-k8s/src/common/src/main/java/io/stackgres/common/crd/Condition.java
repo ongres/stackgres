@@ -35,7 +35,6 @@ public class Condition implements io.stackgres.operatorframework.resource.Condit
   private String message;
 
   @JsonProperty("reason")
-  @NotBlank(message = "The condition reason is required")
   private String reason;
 
   @JsonProperty("status")

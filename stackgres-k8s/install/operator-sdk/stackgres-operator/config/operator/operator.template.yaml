@@ -2,10 +2,10 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    app: stackgres-controller-manager
+    app: stackgres-operator
     app.kubernetes.io/name: namespace
     app.kubernetes.io/instance: system
-    app.kubernetes.io/component: manager
+    app.kubernetes.io/component: operator
     app.kubernetes.io/created-by: stackgres
     app.kubernetes.io/part-of: stackgres
     app.kubernetes.io/managed-by: kustomize
@@ -14,27 +14,30 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: controller-manager
+  name: operator
   namespace: system
   labels:
-    app: stackgres-controller-manager
+    app: stackgres-operator
+    group: stackgres.io
     app.kubernetes.io/name: deployment
-    app.kubernetes.io/instance: controller-manager
-    app.kubernetes.io/component: manager
+    app.kubernetes.io/instance: operator
+    app.kubernetes.io/component: operator
     app.kubernetes.io/created-by: stackgres
     app.kubernetes.io/part-of: stackgres
     app.kubernetes.io/managed-by: kustomize
 spec:
   selector:
     matchLabels:
-      app: stackgres-controller-manager
+      app: stackgres-operator
+      group: stackgres.io
   replicas: 1
   template:
     metadata:
       annotations:
-        kubectl.kubernetes.io/default-container: manager
+        kubectl.kubernetes.io/default-container: operator
       labels:
-        app: stackgres-controller-manager
+        app: stackgres-operator
+        group: stackgres.io
     spec:
       affinity:
         nodeAffinity:
@@ -60,29 +63,77 @@ spec:
         # seccompProfile:
         #   type: RuntimeDefault
       containers:
-      - args:
-        - --leader-elect
-        - --leader-election-id=stackgres
-        image: controller:latest
+      - name: operator
+        image: operator:latest
         imagePullPolicy: IfNotPresent
-        name: manager
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
             drop:
               - "ALL"
+          runAsNonRoot: true
+$(
+if [ "$OPENSHIFT_BUNDLE" != true ]
+then
+  cat << EOF
+          runAsUser: 1000
+          runAsGroup: 1000
+EOF
+fi
+)
+        env:
+          - name: OPERATOR_CERT_FILE
+            value: /tmp/k8s-webhook-server/serving-certs/tls.crt
+          - name: OPERATOR_KEY_FILE
+            value: /tmp/k8s-webhook-server/serving-certs/tls.key
+          - name: OPERATOR_NAME
+            value: stackgres-operator
+          - name: OPERATOR_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: OPERATOR_IMAGE_VERSION
+            value: "${VERSION}"
+          - name: OPERATOR_SERVICE_ACCOUNT
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.serviceAccountName
+          - name: OPERATOR_POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: OPERATOR_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: OPERATOR_VERSION
+            value: "${VERSION}"
+        ports:
+        - containerPort: 8080
+          name: "http"
+          protocol: "TCP"
+        - containerPort: 8443
+          name: "https"
+          protocol: "TCP"
         livenessProbe:
           httpGet:
-            path: /healthz
-            port: 8081
-          initialDelaySeconds: 15
-          periodSeconds: 20
+            path: "/q/health/live"
+            port: 8080
+            scheme: "HTTP"
+          initialDelaySeconds: 10
+          periodSeconds: 60
+          timeoutSeconds: 10
         readinessProbe:
           httpGet:
-            path: /readyz
-            port: 8081
-          initialDelaySeconds: 5
-          periodSeconds: 10
+            path: "/q/health/ready"
+            port: 8080
+            scheme: "HTTP"
+          initialDelaySeconds: 0
+          periodSeconds: 2
+          timeoutSeconds: 1
         # TODO(user): Configure the resources accordingly based on the project requirements.
         # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
         resources:
@@ -92,10 +143,17 @@ spec:
           requests:
             cpu: 10m
             memory: 128Mi
-      - command:
+      - name: default
+        image: quay.io/ongres/kubectl:v1.25.5-build-6.19
+        imagePullPolicy: IfNotPresent
+        command:
         - sh
         - -exc
         - |
+          # TODO: Remove this as soon as version 1.5 get out of support!
+          kubectl patch sgconfig stackgres-operator --type merge -p '{"metadata": {"finalizers": null}}' 2>/dev/null \
+            || ! kubectl get sgconfig stackgres-operator -o name 2>/dev/null
+        
           # TODO: Remove this as soon as version 1.4 get out of support!
           PREVIOUS_SGCONFIG="\$(kubectl get sgconfig stackgres -o yaml || true)"
           if [ "x" = "x\$SGCONFIG" ] \
@@ -134,6 +192,21 @@ spec:
             fi
           fi
 
+          # TODO: Remove this as soon as version 1.5 get out of support!
+          kubectl delete --ignore-not-found clusterrole stackgres-restapi
+          kubectl delete --ignore-not-found clusterrolebinding stackgres-restapi
+          kubectl delete --ignore-not-found clusterrolebinding stackgres-restapi-admin
+          kubectl delete --ignore-not-found validatingwebhookconfiguration stackgres-operator
+          kubectl delete --ignore-not-found mutatingwebhookconfiguration stackgres-operator
+          kubectl delete --ignore-not-found configmap stackgres-operator
+          kubectl delete --ignore-not-found configmap stackgres-operator-grafana-dashboard
+          kubectl delete --ignore-not-found configmap stackgres-restapi-nginx
+          kubectl delete --ignore-not-found secret stackgres-operator-certs
+          kubectl delete --ignore-not-found secret stackgres-operator-service-certs
+          kubectl delete --ignore-not-found secret stackgres-operator-web-certs
+          kubectl delete --ignore-not-found secret stackgres-restapi
+          kubectl delete --ignore-not-found deployment -l olm.owner=stackgres.v1.5.0
+
           # TODO: Remove this as soon as version 1.4 get out of support!
           kubectl delete --ignore-not-found sgconfig stackgres
           kubectl delete --ignore-not-found clusterrole stackgres
@@ -143,8 +216,13 @@ spec:
           kubectl delete --ignore-not-found clusterrolebinding stackgres-restapi-admin
           kubectl delete --ignore-not-found validatingwebhookconfiguration stackgres
           kubectl delete --ignore-not-found mutatingwebhookconfiguration stackgres
+          kubectl delete --ignore-not-found configmap stackgres
+          kubectl delete --ignore-not-found configmap stackgres-grafana-dashboard
+          kubectl delete --ignore-not-found configmap stackgres-restapi-nginx
           kubectl delete --ignore-not-found secret stackgres-certs
+          kubectl delete --ignore-not-found secret stackgres-service-certs
           kubectl delete --ignore-not-found secret stackgres-web-certs
+          kubectl delete --ignore-not-found secret stackgres-restapi
           kubectl delete --ignore-not-found deployment -l olm.owner=stackgres.v1.4.3
 
           OPERATOR_NAME="\$(kubectl get operators.operators.coreos.com -o name \
@@ -169,9 +247,6 @@ spec:
           EOF
 
           while true; do sleep 3600; done
-        image: quay.io/ongres/kubectl:v1.25.5-build-6.19
-        imagePullPolicy: IfNotPresent
-        name: default
         securityContext:
           runAsNonRoot: true
 $(
@@ -196,5 +271,5 @@ fi
           requests:
             cpu: 10m
             memory: 8Mi
-      serviceAccountName: controller-manager
+      serviceAccountName: operator
       terminationGracePeriodSeconds: 10

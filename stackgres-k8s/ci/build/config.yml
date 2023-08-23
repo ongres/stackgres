@@ -1,5 +1,5 @@
 .images:
-  ci_image: &ci_image registry.gitlab.com/ongresinc/stackgres/ci:1.21
+  ci_image: &ci_image registry.gitlab.com/ongresinc/stackgres/ci:1.22
   jdk_build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.5
   jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi8/openjdk-17-runtime:1.16-1.1687182770
   ubi8_micro_image: &ubi8_micro_image registry.access.redhat.com/ubi8-micro:8.8-3
@@ -467,8 +467,8 @@ modules:
       - sh $SHELL_XTRACE stackgres-k8s/install/helm/build-helm-templates.sh
     artifacts:
       - stackgres-k8s/install/helm/target/templates
-  helm-operator-bundle: &helm-operator-bundle
-    type: helm-operator-bundle
+  operator-bundle: &operator-bundle
+    type: operator-bundle
     target_image: *ubi8_micro_image
     sources:
       - stackgres-k8s/install/operator-sdk/stackgres-operator
@@ -477,21 +477,8 @@ modules:
       - make -C stackgres-k8s/install/operator-sdk/stackgres-operator bundle
     artifacts:
       - stackgres-k8s/install/operator-sdk/stackgres-operator/bundle
-      - stackgres-k8s/install/operator-sdk/stackgres-operator/watches.yaml
-  helm-operator-image: &helm-operator-image
-    type: helm-operator-image
-    platform_dependent: true
-    path: stackgres-k8s/install/operator-sdk/stackgres-operator
-    target_image: *helm_operator_image
-    dockerfile:
-      path: stackgres-k8s/install/operator-sdk/stackgres-operator/Dockerfile
-      args:
-        BASE_IMAGE: $TARGET_IMAGE_NAME
-    artifacts:
-      - stackgres-k8s/install/operator-sdk/stackgres-operator
-      - stackgres-k8s/install/helm/stackgres-operator
-  helm-operator-bundle-image: &helm-operator-bundle-image
-    type: helm-operator-image
+  operator-bundle-image: &operator-bundle-image
+    type: operator-bundle-image
     platform_dependent: true
     path: stackgres-k8s/install/operator-sdk/stackgres-operator
     target_image: scratch
@@ -501,8 +488,8 @@ modules:
         BASE_IMAGE: $TARGET_IMAGE_NAME
     artifacts:
       - stackgres-k8s/install/operator-sdk/stackgres-operator
-  helm-operator-openshift-bundle: &helm-operator-openshift-bundle
-    type: helm-operator-bundle
+  operator-openshift-bundle: &operator-openshift-bundle
+    type: operator-bundle
     target_image: *ubi8_micro_image
     sources:
       - stackgres-k8s/install/operator-sdk/stackgres-operator
@@ -511,21 +498,8 @@ modules:
       - make -C stackgres-k8s/install/operator-sdk/stackgres-operator bundle-openshift
     artifacts:
       - stackgres-k8s/install/operator-sdk/stackgres-operator/bundle
-      - stackgres-k8s/install/operator-sdk/stackgres-operator/watches.yaml
-  helm-operator-openshift-image: &helm-operator-openshift-image
-    type: helm-operator-image
-    platform_dependent: true
-    path: stackgres-k8s/install/operator-sdk/stackgres-operator
-    target_image: *helm_operator_image
-    dockerfile:
-      path: stackgres-k8s/install/operator-sdk/stackgres-operator/Dockerfile
-      args:
-        BASE_IMAGE: $TARGET_IMAGE_NAME
-    artifacts:
-      - stackgres-k8s/install/operator-sdk/stackgres-operator
-      - stackgres-k8s/install/helm/stackgres-operator
-  helm-operator-openshift-bundle-image: &helm-operator-openshift-bundle-image
-    type: helm-operator-image
+  operator-openshift-bundle-image: &operator-openshift-bundle-image
+    type: operator-bundle-image
     platform_dependent: true
     path: stackgres-k8s/install/operator-sdk/stackgres-operator
     target_image: scratch
@@ -644,24 +618,18 @@ modules:
       997: stackgres-k8s/install/helm/stackgres-operator
       998: stackgres-k8s/install/helm/stackgres-cluster
       999: stackgres-k8s/src/pom.xml
-  helm-operator-release-bundle:
-    <<: *helm-operator-bundle
-    type: helm-operator-release-bundle
-  helm-operator-release-image:
-    <<: *helm-operator-image
-    type: helm-operator-release-image
-  helm-operator-release-bundle-image:
-    <<: *helm-operator-bundle-image
-    type: helm-operator-release-image
-  helm-operator-release-openshift-bundle:
-    <<: *helm-operator-openshift-bundle
-    type: helm-operator-release-bundle
-  helm-operator-release-openshift-image:
-    <<: *helm-operator-openshift-image
-    type: helm-operator-release-image
-  helm-operator-release-openshift-bundle-image:
-    <<: *helm-operator-openshift-bundle-image
-    type: helm-operator-release-image
+  operator-release-bundle:
+    <<: *operator-bundle
+    type: operator-release-bundle
+  operator-release-bundle-image:
+    <<: *operator-bundle-image
+    type: operator-release-bundle-image
+  operator-release-openshift-bundle:
+    <<: *operator-openshift-bundle
+    type: operator-release-bundle
+  operator-release-openshift-bundle-image:
+    <<: *operator-openshift-bundle-image
+    type: operator-release-bundle-image
 stages:
   - parent-java: null
   - operator-framework-java: parent-java
@@ -698,12 +666,10 @@ stages:
   - distributedlogs-controller-native-image: distributedlogs-controller-native
   - helm-packages: null
   - helm-templates: null
-  - helm-operator-bundle: helm-packages
-  - helm-operator-image: helm-operator-bundle
-  - helm-operator-bundle-image: helm-operator-bundle
-  - helm-operator-openshift-bundle: helm-packages
-  - helm-operator-openshift-image: helm-operator-openshift-bundle
-  - helm-operator-openshift-bundle-image: helm-operator-openshift-bundle
+  - operator-bundle: helm-packages
+  - operator-bundle-image: operator-bundle
+  - operator-openshift-bundle: helm-packages
+  - operator-openshift-bundle-image: operator-openshift-bundle
   - documentation: restapi-java
   - operator-jvm-release-image: operator-java
   - restapi-jvm-release-image: restapi-java
@@ -718,9 +684,7 @@ stages:
   - distributedlogs-controller-native-release-image: distributedlogs-controller-native
   - helm-release-packages: null
   - helm-release-templates: null
-  - helm-operator-release-bundle: helm-release-packages
-  - helm-operator-release-image: helm-operator-release-bundle
-  - helm-operator-release-bundle-image: helm-operator-release-bundle
-  - helm-operator-release-openshift-bundle: helm-release-packages
-  - helm-operator-release-openshift-image: helm-operator-release-openshift-bundle
-  - helm-operator-release-openshift-bundle-image: helm-operator-release-openshift-bundle
+  - operator-release-bundle: helm-release-packages
+  - operator-release-bundle-image: operator-release-bundle
+  - operator-release-openshift-bundle: helm-release-packages
+  - operator-release-openshift-bundle-image: operator-release-openshift-bundle

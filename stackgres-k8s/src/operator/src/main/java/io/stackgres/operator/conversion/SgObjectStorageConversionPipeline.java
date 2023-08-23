@@ -11,12 +11,10 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 
 @ApplicationScoped
-@Conversion(StackGresCluster.KIND)
+@Conversion(StackGresObjectStorage.KIND)
 public class SgObjectStorageConversionPipeline implements ConversionPipeline {
 
   private final List<Converter> converters;
@@ -24,7 +22,7 @@ public class SgObjectStorageConversionPipeline implements ConversionPipeline {
   @Inject
   public SgObjectStorageConversionPipeline(
       @Conversion(StackGresObjectStorage.KIND) Instance<Converter> converters) {
-    this.converters = converters.stream().collect(ImmutableList.toImmutableList());
+    this.converters = converters.stream().toList();
   }
 
   @Override
