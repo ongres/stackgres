@@ -26,6 +26,12 @@ public class StackGresConfigAuthentication {
       message = "type must be jwt or oidc")
   private String type;
 
+  private Boolean createAdminSecret;
+
+  private String user;
+
+  private String password;
+
   private StackGresConfigAuthenticationOidc oidc;
 
   public String getType() {
@@ -34,6 +40,30 @@ public class StackGresConfigAuthentication {
 
   public void setType(String type) {
     this.type = type;
+  }
+
+  public Boolean getCreateAdminSecret() {
+    return createAdminSecret;
+  }
+
+  public void setCreateAdminSecret(Boolean createAdminSecret) {
+    this.createAdminSecret = createAdminSecret;
+  }
+
+  public String getUser() {
+    return user;
+  }
+
+  public void setUser(String user) {
+    this.user = user;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
   }
 
   public StackGresConfigAuthenticationOidc getOidc() {
@@ -46,7 +76,7 @@ public class StackGresConfigAuthentication {
 
   @Override
   public int hashCode() {
-    return Objects.hash(oidc, type);
+    return Objects.hash(createAdminSecret, oidc, password, type, user);
   }
 
   @Override
@@ -58,7 +88,11 @@ public class StackGresConfigAuthentication {
       return false;
     }
     StackGresConfigAuthentication other = (StackGresConfigAuthentication) obj;
-    return Objects.equals(oidc, other.oidc) && Objects.equals(type, other.type);
+    return Objects.equals(createAdminSecret, other.createAdminSecret)
+        && Objects.equals(oidc, other.oidc)
+        && Objects.equals(password, other.password)
+        && Objects.equals(type, other.type)
+        && Objects.equals(user, other.user);
   }
 
   @Override

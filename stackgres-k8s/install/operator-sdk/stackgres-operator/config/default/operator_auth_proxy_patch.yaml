@@ -22,27 +22,3 @@ spec:
                   operator: In
                   values:
                     - linux
-      containers:
-      - name: kube-rbac-proxy
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - "ALL"
-        image: gcr.io/kubebuilder/kube-rbac-proxy:v0.13.0
-        args:
-        - "--secure-listen-address=0.0.0.0:9443"
-        - "--upstream=http://127.0.0.1:9080/"
-        - "--logtostderr=true"
-        - "--v=0"
-        ports:
-        - containerPort: 9443
-          protocol: TCP
-          name: https
-        resources:
-          limits:
-            cpu: 1
-            memory: 256Mi
-          requests:
-            cpu: 5m
-            memory: 128Mi

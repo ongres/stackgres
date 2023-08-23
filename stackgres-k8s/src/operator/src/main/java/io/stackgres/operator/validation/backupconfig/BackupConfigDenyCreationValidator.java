@@ -23,8 +23,7 @@ public class BackupConfigDenyCreationValidator implements BackupConfigValidator 
 
   @Override
   public void validate(BackupConfigReview review) throws ValidationFailed {
-    Operation operation = review.getRequest().getOperation();
-    if (operation == Operation.CREATE) {
+    if (review.getRequest().getOperation() == Operation.CREATE) {
       fail(StackGresBackupConfig.KIND + " is deprecated, please use a "
           + StackGresObjectStorage.KIND
           + " in the .spec.configurations.backups section of a cluster.");

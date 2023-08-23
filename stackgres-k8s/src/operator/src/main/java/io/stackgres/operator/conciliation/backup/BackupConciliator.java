@@ -8,6 +8,8 @@ package io.stackgres.operator.conciliation.backup;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
@@ -23,6 +25,11 @@ public class BackupConciliator extends AbstractConciliator<StackGresBackup> {
       AbstractDeployedResourcesScanner<StackGresBackup> deployedResourcesScanner,
       DeployedResourcesCache deployedResourcesCache) {
     super(requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
+  }
+
+  @Override
+  protected boolean skipDeletion(HasMetadata requiredResource, StackGresBackup config) {
+    return requiredResource instanceof Job;
   }
 
 }

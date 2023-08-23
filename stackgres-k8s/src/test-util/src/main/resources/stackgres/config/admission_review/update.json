@@ -102,7 +102,6 @@
           "user": "admin"
         },
         "imagePullPolicy": "IfNotPresent",
-        "initClusterRole": "cluster-admin",
         "jobs": {
           "affinity": {},
           "annotations": {},
@@ -232,7 +231,6 @@
           "user": "admin"
         },
         "imagePullPolicy": "IfNotPresent",
-        "initClusterRole": "cluster-admin",
         "jobs": {
           "affinity": {},
           "annotations": {},

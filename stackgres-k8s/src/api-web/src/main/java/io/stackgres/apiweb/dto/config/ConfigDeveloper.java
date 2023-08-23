@@ -17,6 +17,8 @@ public class ConfigDeveloper {
 
   private String logLevel;
 
+  private Boolean showDebug;
+
   private Boolean showStackTraces;
 
   private Boolean useJvmImages;
@@ -28,6 +30,8 @@ public class ConfigDeveloper {
   private Boolean allowPullExtensionsFromImageRepository;
 
   private Boolean disableArbitraryUser;
+
+  private ConfigDeveloperPatches patches;
 
   public String getVersion() {
     return version;
@@ -43,6 +47,14 @@ public class ConfigDeveloper {
 
   public void setLogLevel(String logLevel) {
     this.logLevel = logLevel;
+  }
+
+  public Boolean getShowDebug() {
+    return showDebug;
+  }
+
+  public void setShowDebug(Boolean showDebug) {
+    this.showDebug = showDebug;
   }
 
   public Boolean getShowStackTraces() {
@@ -92,6 +104,14 @@ public class ConfigDeveloper {
 
   public void setDisableArbitraryUser(Boolean disableArbitraryUser) {
     this.disableArbitraryUser = disableArbitraryUser;
+  }
+
+  public ConfigDeveloperPatches getPatches() {
+    return patches;
+  }
+
+  public void setPatches(ConfigDeveloperPatches patches) {
+    this.patches = patches;
   }
 
   @Override

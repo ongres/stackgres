@@ -33,7 +33,6 @@ public class LockValidator implements ClusterValidator {
   @Inject
   public LockValidator(OperatorPropertyContext operatorPropertyContext,
       ObjectMapper objectMapper) {
-    super();
     this.duration = operatorPropertyContext.getInt(OperatorProperty.LOCK_DURATION);
     this.objectMapper = objectMapper;
   }

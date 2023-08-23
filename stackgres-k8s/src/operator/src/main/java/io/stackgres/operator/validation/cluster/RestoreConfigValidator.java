@@ -52,7 +52,8 @@ public class RestoreConfigValidator implements ClusterValidator {
   public void validate(StackGresClusterReview review) throws ValidationFailed {
     StackGresCluster cluster = review.getRequest().getObject();
 
-    Optional<StackGresClusterRestore> restoreOpt = Optional.of(cluster.getSpec())
+    Optional<StackGresClusterRestore> restoreOpt = Optional.ofNullable(cluster)
+        .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getInitData)
         .map(StackGresClusterInitData::getRestore);
 
@@ -64,8 +65,9 @@ public class RestoreConfigValidator implements ClusterValidator {
     }
   }
 
-  private void checkBackup(StackGresClusterReview review,
-                           StackGresClusterRestore restoreConfig) throws ValidationFailed {
+  private void checkBackup(
+      StackGresClusterReview review,
+      StackGresClusterRestore restoreConfig) throws ValidationFailed {
     StackGresCluster cluster = review.getRequest().getObject();
     String backupName = restoreConfig.getFromBackup().getName();
     String namespace = cluster.getMetadata().getNamespace();
@@ -122,11 +124,10 @@ public class RestoreConfigValidator implements ClusterValidator {
     }
   }
 
-  private void checkRestoreConfig(StackGresClusterReview review,
-                                  Optional<StackGresClusterRestore> initRestoreOpt)
-      throws ValidationFailed {
+  private void checkRestoreConfig(
+      StackGresClusterReview review,
+      Optional<StackGresClusterRestore> initRestoreOpt) throws ValidationFailed {
     if (review.getRequest().getOperation() == Operation.UPDATE) {
-
       Optional<StackGresClusterRestore> oldRestoreOpt = Optional
           .ofNullable(review.getRequest().getOldObject().getSpec().getInitData())
           .map(StackGresClusterInitData::getRestore);

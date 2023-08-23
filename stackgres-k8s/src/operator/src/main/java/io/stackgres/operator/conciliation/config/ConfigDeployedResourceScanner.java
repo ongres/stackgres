@@ -15,7 +15,9 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
@@ -88,8 +90,10 @@ public class ConfigDeployedResourceScanner
           Map.entry(Secret.class, KubernetesClient::secrets),
           Map.entry(ConfigMap.class, KubernetesClient::configMaps),
           Map.entry(ServiceAccount.class, KubernetesClient::serviceAccounts),
+          Map.entry(Service.class, KubernetesClient::services),
           Map.entry(Role.class, client -> client.rbac().roles()),
           Map.entry(RoleBinding.class, client -> client.rbac().roleBindings()),
-          Map.entry(Job.class, client -> client.batch().v1().jobs()));
+          Map.entry(Job.class, client -> client.batch().v1().jobs()),
+          Map.entry(Deployment.class, client -> client.apps().deployments()));
 
 }

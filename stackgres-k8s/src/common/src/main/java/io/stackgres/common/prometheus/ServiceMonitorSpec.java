@@ -6,12 +6,13 @@
 package io.stackgres.common.prometheus;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.google.common.base.MoreObjects;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
@@ -51,13 +52,27 @@ public class ServiceMonitorSpec {
   }
 
   @Override
+  public int hashCode() {
+    return Objects.hash(endpoints, namespaceSelector, selector);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof ServiceMonitorSpec)) {
+      return false;
+    }
+    ServiceMonitorSpec other = (ServiceMonitorSpec) obj;
+    return Objects.equals(endpoints, other.endpoints)
+        && Objects.equals(namespaceSelector, other.namespaceSelector)
+        && Objects.equals(selector, other.selector);
+  }
+
+  @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .omitNullValues()
-        .add("namespaceSelector", namespaceSelector)
-        .add("selector", selector)
-        .add("endpoints", endpoints)
-        .toString();
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

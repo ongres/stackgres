@@ -10,8 +10,6 @@ serviceAccount:
   annotations: {}
   # -- Repositories credentials Secret names to attach to ServiceAccounts and Pods
   repoCredentials: []
-# -- The ClusterRole assigned to the Operation Installation Jobs. By default is `cluster-admin`.
-initClusterRole: cluster-admin
 
 # Section to configure Operator Pod
 operator:
@@ -153,14 +151,27 @@ cert:
   createForOperator: true
   # -- When set to `true` the Web Console / REST API certificate will be created.
   createForWebApi: true
-  # -- When set to `true` the Web Console / REST API certificates will be reset.
-  resetCerts: false
   # -- (string) The Secret name with the Operator Webhooks certificate issued by the Kubernetes cluster CA
   #   of type kubernetes.io/tls. See https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
   secretName:
+  # -- When set to `true` the Operator certificates will be regenerated if `createForOperator` is set to `true`, and the certificate is expired or invalid.
+  regenerateCert: true
+  # -- (integer) The duration in days of the generated certificate for the Operator after which it will expire and be regenerated.
+  #   If not specified it will be set to 730 (2 years) by default.
+  certDuration: 730
   # -- (string) The Secret name with the Web Console / REST API certificate
   #   of type kubernetes.io/tls. See https://kubernetes.io/docs/concepts/configuration/secret/#tls-secrets
   webSecretName:
+  # -- When set to `true` the Web Console / REST API certificates will be regenerated if `createForWebApi` is set to `true`, and the certificate is expired or invalid.
+  regenerateWebCert: true
+  # -- When set to `true` the Web Console / REST API RSA key pair will be regenerated if `createForWebApi` is set to `true`, and the certificate is expired or invalid.
+  regenerateWebRsa: true
+  # -- (integer) The duration in days of the generated certificate for the Web Console / REST API after which it will expire and be regenerated.
+  #   If not specified it will be set to 730 (2 years) by default.
+  webCertDuration:
+  # -- (integer) The duration in days of the generated RSA key pair for the Web Console / REST API after which it will expire and be regenerated.
+  #   If not specified it will be set to 730 (2 years) by default.
+  webRsaDuration:
   # -- (string) The private RSA key used to create the Operator Webhooks certificate issued by the
   #   Kubernetes cluster CA.
   key:
@@ -199,41 +210,34 @@ authentication:
   # -- Specify the authentication mechanism to use. By default is `jwt`, see https://stackgres.io/doc/latest/api/rbac#local-secret-mechanism.
   #   If set to `oidc` then see https://stackgres.io/doc/latest/api/rbac/#openid-connect-provider-mechanism.
   type: jwt
+  # -- (boolean) When `true` will create the secret used to store the `admin` user credentials to access the UI.
+  createAdminSecret: true
   # -- The admin username that will be required to access the UI
   user: admin
   # -- (string) The admin password that will be required to access the UI
   password:
-  # -- When set to `true` the admin user password will be reset.
-  resetPassword: false
-  # Allow to specify the secret name that will be used store the credentials to access the UI.
-  #   It simply prevent creating the secret automatically.
-  secretRef:
-    # -- (string) The admin user Secret name to be used.
-    # Allow to specify the secret name that will be used store the credentials to access the UI.
-    #   It simply prevent creating the secret automatically.
-    name:
   # Section to configure Web Console OIDC authentication
   oidc:
-    # -- (string) Can be one of `required`, `certificate-validation` or `none`
-    tlsVerification:
-    # -- (string) 
-    authServerUrl:
-    # -- (string) 
-    clientId:
-    # -- (string) 
-    credentialsSecret:
-    # 
-    clientIdSecretRef:
-      # -- (string) 
-      name:
-      # -- (string) 
-      key: 
-    # 
-    credentialsSecretSecretRef:
-      # -- (string) 
-      name:
-      # -- (string) 
-      key:
+    # tlsVerification -- (string) Can be one of `required`, `certificate-validation` or `none`
+    # tlsVerification:
+    # authServerUrl -- (string) 
+    # authServerUrl:
+    # clientId -- (string) 
+    # clientId:
+    # credentialsSecret -- (string) 
+    # credentialsSecret:
+    # clientIdSecretRef -- (object)
+    # clientIdSecretRef:
+      # name -- (string) 
+      # name:
+      # key -- (string) 
+      # key: 
+    # credentialsSecretSecretRef -- (object)
+    # credentialsSecretSecretRef:
+      # name -- (string) 
+      # name:
+      # key -- (string) 
+      # key:
 
 # Section to configure Prometheus integration. 
 prometheus:
@@ -356,6 +360,8 @@ developer:
   version:
   # -- (string) Set `quarkus.log.level`. See https://quarkus.io/guides/logging#root-logger-configuration
   logLevel:
+  # -- If set to `true` add extra debug to any script controlled by the reconciliation cycle of the operator configuration
+  showDebug: false
   # -- Set `quarkus.log.console.format` to `%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p [%c{4.}] (%t) %s%e%n`. See https://quarkus.io/guides/logging#logging-format
   showStackTraces: false
   # -- Only work with JVM version and allow connect
@@ -377,3 +383,41 @@ developer:
   allowPullExtensionsFromImageRepository: false
   # -- It set to `true` disable arbitrary user that is set for OpenShift clusters
   disableArbitraryUser: false
+  # Section to define patches for some StackGres Pods
+  patches:
+    # Section to define volumes to be used by the operator container
+    operator:
+      # -- Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
+      volumes:
+      # -- Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
+      volumeMounts:
+    # Section to define volumes to be used by the restapi container
+    restapi:
+      # -- Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
+      volumes:
+      # -- Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
+      volumeMounts:
+    # Section to define volumes to be used by the adminui container
+    adminui:
+      # -- Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
+      volumes:
+      # -- Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
+      volumeMounts:
+    # Section to define volumes to be used by the jobs container
+    jobs:
+      # -- Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
+      volumes:
+      # -- Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
+      volumeMounts:
+    # Section to define volumes to be used by the cluster controller container
+    clusterController:
+      # -- Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
+      volumes:
+      # -- Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
+      volumeMounts:
+    # Section to define volumes to be used by the distributedlogs controller container
+    distributedlogsController:
+      # -- Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
+      volumes:
+      # -- Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
+      volumeMounts:

@@ -154,8 +154,8 @@ class ShardedPostgresSslSecretTest {
   private void checkCertificateAndPrivateKey(String certificate, String privateKey)
       throws Exception {
     String strippedPrivateKey = privateKey
-            .replace("-----BEGIN RSA PRIVATE KEY-----\n", "")
-            .replace("\n-----END RSA PRIVATE KEY-----\n", "");
+            .replace("-----BEGIN PRIVATE KEY-----\n", "")
+            .replace("\n-----END PRIVATE KEY-----\n", "");
     byte[] decoded = Base64.getDecoder().decode(strippedPrivateKey);
 
     PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decoded);

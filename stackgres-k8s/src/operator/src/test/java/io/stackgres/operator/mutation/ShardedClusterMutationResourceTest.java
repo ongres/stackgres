@@ -8,7 +8,7 @@ package io.stackgres.operator.mutation;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
+import io.stackgres.operatorframework.admissionwebhook.mutating.AbstractMutationResource;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -18,7 +18,8 @@ class ShardedClusterMutationResourceTest
     extends MutationResourceTest<StackGresShardedCluster, StackGresShardedClusterReview> {
 
   @Override
-  protected MutationResource<StackGresShardedCluster, StackGresShardedClusterReview> getResource() {
+  protected AbstractMutationResource<StackGresShardedCluster,
+        StackGresShardedClusterReview> getResource() {
     return new ShardedClusterMutationResource(JsonUtil.jsonMapper(), pipeline);
   }
 

@@ -25,14 +25,44 @@ traceable_wait_services_available() {
       | sort | uniq | tr '\n[:blank:]' ' -' | wc -w)"
     if [ "$AVAILABLE_SERVICES" -ge "$EXPECTED_AVAILABLE_SERVICES" ]
     then
-      echo "$([ -z "$1" ] && echo "All services available" || echo "All services available in namespace $1")"
+      if [ -z "$1" ]
+      then
+        if [ -z "$3" ]
+        then
+          echo "All services available"
+        else
+          echo "All services available with regexp $EXPECTED_AVAILABLE_SERVICES_EXPRESSION"
+        fi
+      else
+        if [ -z "$3" ]
+        then
+          echo "All services available in namespace $1"
+        else
+          echo "All services available in namespace $1 with regexp $EXPECTED_AVAILABLE_SERVICES_EXPRESSION"
+        fi
+       fi
       return
     fi
     sleep 2
   done
-  echo "$([ -z "$1" ] && echo "Timeout while waiting for all services to become available" \
-    || echo "Timeout while waiting for all services to become available in namespace $1")"
+  if [ -z "$1" ]
+  then
+    if [ -z "$3" ]
+    then
+      echo "Timeout while waiting for all services to become available"
+    else
+      echo "Timeout while waiting for all services to become available with regexp $EXPECTED_AVAILABLE_SERVICES_EXPRESSION"
+    fi
+  else
+  if [ -z "$3" ]
+  then
+      echo "Timeout while waiting for all services to become available in namespace $1"
+    else
+      echo "Timeout while waiting for all services to become available in namespace $1 with regexp $EXPECTED_AVAILABLE_SERVICES_EXPRESSION"
+    fi
+  fi
   echo
-  kubectl describe services "$NAMESPACE_OPT"
+  kubectl describe services "$NAMESPACE_OPT" \
+    | grep "$EXPECTED_AVAILABLE_SERVICES_EXPRESSION"
   return 1
 }

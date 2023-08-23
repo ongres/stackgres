@@ -82,6 +82,10 @@ EOF
 fi
 )
         env:
+          - name: REMOVE_OLD_OPERATOR_BUNDLE_RESOURCES
+            value: "true"
+          - name: INSTALL_CONFIG
+            value: "true"
           - name: OPERATOR_CERT_FILE
             value: /tmp/k8s-webhook-server/serving-certs/tls.crt
           - name: OPERATOR_KEY_FILE
@@ -143,133 +147,5 @@ fi
           requests:
             cpu: 10m
             memory: 128Mi
-      - name: default
-        image: quay.io/ongres/kubectl:v1.25.5-build-6.19
-        imagePullPolicy: IfNotPresent
-        command:
-        - sh
-        - -exc
-        - |
-          # TODO: Remove this as soon as version 1.5 get out of support!
-          kubectl patch sgconfig stackgres-operator --type merge -p '{"metadata": {"finalizers": null}}' 2>/dev/null \
-            || ! kubectl get sgconfig stackgres-operator -o name 2>/dev/null
-        
-          # TODO: Remove this as soon as version 1.4 get out of support!
-          PREVIOUS_SGCONFIG="\$(kubectl get sgconfig stackgres -o yaml || true)"
-          if [ "x" = "x\$SGCONFIG" ] \
-            && [ "x" != "x\$PREVIOUS_SGCONFIG" ]
-          then
-            SGCONFIG="\$PREVIOUS_SGCONFIG"
-          fi
-
-          SGCONFIG_SPEC=""
-          if [ "x" != "x\$SGCONFIG" ]
-          then
-            if ! SGCONFIG="\$(printf %s "\$SGCONFIG" | kubectl create -f - --dry-run=client -o yaml)"
-            then
-              printf "Please set a correct value for SGCONFIG env var in Subscription since the following is invalid:\n\n%s\n" "\$SGCONFIG"
-              exit 1
-            fi
-            if printf %s "\$SGCONFIG" | grep -q '^spec:$'
-            then
-              echo "Found SGConfig spec"
-              SGCONFIG_SPEC_LINE="\$(printf %s "\$SGCONFIG" \
-                | grep -n '^spec:$' | cut -d : -f 1)"
-              SGCONFIG_AFTER_SPEC_LINE="\$(printf %s "\$SGCONFIG" \
-                | tail -n +"\$((SGCONFIG_SPEC_LINE + 1))" \
-                | grep -n '^[^ #].*$' | cut -d : -f 1)"
-              if [ x != "x\$SGCONFIG_AFTER_SPEC_LINE" ]
-              then
-                SGCONFIG_SPEC="\$(printf %s "\$SGCONFIG" \
-                  | head -n "\$((SGCONFIG_SPEC_LINE + SGCONFIG_AFTER_SPEC_LINE - 1))" \
-                  | tail -n +"\$((SGCONFIG_AFTER_SPEC_LINE - 1))")"
-              else
-                SGCONFIG_SPEC="\$(printf %s "\$SGCONFIG" \
-                  | tail -n +"\$((SGCONFIG_SPEC_LINE + 1))")"
-              fi
-            else
-              echo "Found SGConfig without spec, ignoring!"
-            fi
-          fi
-
-          # TODO: Remove this as soon as version 1.5 get out of support!
-          kubectl delete --ignore-not-found clusterrole stackgres-restapi
-          kubectl delete --ignore-not-found clusterrolebinding stackgres-restapi
-          kubectl delete --ignore-not-found clusterrolebinding stackgres-restapi-admin
-          kubectl delete --ignore-not-found validatingwebhookconfiguration stackgres-operator
-          kubectl delete --ignore-not-found mutatingwebhookconfiguration stackgres-operator
-          kubectl delete --ignore-not-found configmap stackgres-operator
-          kubectl delete --ignore-not-found configmap stackgres-operator-grafana-dashboard
-          kubectl delete --ignore-not-found configmap stackgres-restapi-nginx
-          kubectl delete --ignore-not-found secret stackgres-operator-certs
-          kubectl delete --ignore-not-found secret stackgres-operator-service-certs
-          kubectl delete --ignore-not-found secret stackgres-operator-web-certs
-          kubectl delete --ignore-not-found secret stackgres-restapi
-          kubectl delete --ignore-not-found deployment -l olm.owner=stackgres.v1.5.0
-
-          # TODO: Remove this as soon as version 1.4 get out of support!
-          kubectl delete --ignore-not-found sgconfig stackgres
-          kubectl delete --ignore-not-found clusterrole stackgres
-          kubectl delete --ignore-not-found clusterrole stackgres-restapi
-          kubectl delete --ignore-not-found clusterrolebinding stackgres
-          kubectl delete --ignore-not-found clusterrolebinding stackgres-restapi
-          kubectl delete --ignore-not-found clusterrolebinding stackgres-restapi-admin
-          kubectl delete --ignore-not-found validatingwebhookconfiguration stackgres
-          kubectl delete --ignore-not-found mutatingwebhookconfiguration stackgres
-          kubectl delete --ignore-not-found configmap stackgres
-          kubectl delete --ignore-not-found configmap stackgres-grafana-dashboard
-          kubectl delete --ignore-not-found configmap stackgres-restapi-nginx
-          kubectl delete --ignore-not-found secret stackgres-certs
-          kubectl delete --ignore-not-found secret stackgres-service-certs
-          kubectl delete --ignore-not-found secret stackgres-web-certs
-          kubectl delete --ignore-not-found secret stackgres-restapi
-          kubectl delete --ignore-not-found deployment -l olm.owner=stackgres.v1.4.3
-
-          OPERATOR_NAME="\$(kubectl get operators.operators.coreos.com -o name \
-            | grep '^operator.operators.coreos.com/stackgres' \
-            | head -n 1 | cut -d / -f 2)"
-          test -n "\$OPERATOR_NAME"
-          OPERATOR_UID="\$(kubectl get operators.operators.coreos.com "\$OPERATOR_NAME" --template '{{ .metadata.uid }}')"
-          test -n "\$OPERATOR_UID"
-
-          cat << EOF | kubectl apply -f -
-          apiVersion: stackgres.io/v1
-          kind: SGConfig
-          metadata:
-            name: stackgres-operator
-          spec:
-          \$SGCONFIG_SPEC
-            clusterOwnerReferences:
-            - apiVersion: operators.coreos.com/v1
-              kind: Operator
-              name: \$OPERATOR_NAME
-              uid: \$OPERATOR_UID
-          EOF
-
-          while true; do sleep 3600; done
-        securityContext:
-          runAsNonRoot: true
-$(
-if [ "$OPENSHIFT_BUNDLE" != true ]
-then
-  cat << EOF
-          runAsUser: 1000
-          runAsGroup: 1000
-EOF
-fi
-)
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - "ALL"
-        # TODO(user): Configure the resources accordingly based on the project requirements.
-        # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-        resources:
-          limits:
-            cpu: 1
-            memory: 512Mi
-          requests:
-            cpu: 10m
-            memory: 8Mi
       serviceAccountName: operator
       terminationGracePeriodSeconds: 10

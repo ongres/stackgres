@@ -16,76 +16,6 @@ e2e_test() {
   run_test "Check that operator can be installed with affinity properties" check_operator_helm_affinity
   run_test "Check that operator can be installed with nodeSelector properties" check_operator_helm_node_selector
   run_test "Check that operator can be installed with annotations properties" check_operator_helm_annotations
-  run_test "Check that operator can be installed with job toleration properties" check_operator_helm_job_tolerations
-  run_test "Check that operator can be installed with job affinity properties" check_operator_helm_job_affinity
-  run_test "Check that operator can be installed with job nodeSelector properties" check_operator_helm_job_node_selector
-  run_test "Check that operator can be installed with job annotations properties" check_operator_helm_job_annotations
-}
-
-check_operator_helm_job_tolerations() {
-  EFFECT="$(random_string)"
-  KEY="$(random_string)"
-  VALUE="$(random_string)"
-  check_operator_specific_property "--set jobs.tolerations[0].effect=$EFFECT \
-  --set jobs.tolerations[0].key=$KEY \
-  --set jobs.tolerations[0].operator=Equal \
-  --set jobs.tolerations[0].value=$VALUE" "Job" "$OPERATOR_HELM_JOB_NAMES" "spec.template.spec.tolerations" \
-  '[
-  {
-    "effect": "'$EFFECT'",
-    "key": "'$KEY'",
-    "operator": "Equal",
-    "value": "'$VALUE'"
-  }
-]'
-}
-
-check_operator_helm_job_affinity() {
-  KEY="$(random_string)"
-  VALUE_1="$(random_string)"
-  VALUE_2="$(random_string)"
-  
-  check_operator_specific_property "--set jobs.affinity.nodeSelector.key=$KEY \
-  --set jobs.affinity.nodeSelector.operator== \
-  --set jobs.affinity.nodeSelector.values[0]=$VALUE_1 \
-  --set jobs.affinity.nodeSelector.values[1]=$VALUE_2" "Job" "$OPERATOR_HELM_JOB_NAMES" "spec.template.spec.affinity" \
-  '{
-  "nodeSelector": {
-    "key": "'$KEY'",
-    "operator": "=",
-    "values": [
-      "'$VALUE_1'",
-      "'$VALUE_2'"
-    ]
-  }
-}'
-}
-
-check_operator_helm_job_node_selector() {
-  KEY="$(random_string)"
-  VALUE_1="$(random_string)"
-  VALUE_2="$(random_string)"
-  
-  check_operator_specific_property "--set jobs.nodeSelector.key=$KEY \
-  --set jobs.nodeSelector.operator== \
-  --set jobs.nodeSelector.values[0]=$VALUE_1 \
-  --set jobs.nodeSelector.values[1]=$VALUE_2" "Job" "$OPERATOR_HELM_JOB_NAMES" "spec.template.spec.nodeSelector" \
-'{
-  "key": "'$KEY'",
-  "operator": "=",
-  "values": [
-    "'$VALUE_1'",
-    "'$VALUE_2'"
-  ]
-}'
-}
-
-check_operator_helm_job_annotations() {
-  KEY="$(random_string)"
-  VALUE="$(random_string)"
-  
-  check_operator_specific_property "--set jobs.annotations.$KEY=$VALUE \
-  --set jobs.annotations.$KEY=$VALUE" "Job" "$OPERATOR_HELM_JOB_NAMES" "metadata.annotations.$KEY" "$VALUE"
 }
 
 check_operator_helm_tolerations() {
@@ -95,11 +25,7 @@ check_operator_helm_tolerations() {
   check_operator_specific_property "--set operator.tolerations[0].effect=$EFFECT \
   --set operator.tolerations[0].key=$KEY \
   --set operator.tolerations[0].operator=Equal \
-  --set operator.tolerations[0].value=$VALUE \
-  --set restapi.tolerations[0].effect=$EFFECT \
-  --set restapi.tolerations[0].key=$KEY \
-  --set restapi.tolerations[0].operator=Equal \
-  --set restapi.tolerations[0].value=$VALUE" "Deployment" "stackgres-operator stackgres-restapi" "spec.template.spec.tolerations" \
+  --set operator.tolerations[0].value=$VALUE" "Deployment" "stackgres-operator" "spec.template.spec.tolerations" \
   '[
   {
     "effect": "'$EFFECT'",
@@ -118,11 +44,7 @@ check_operator_helm_affinity() {
   check_operator_specific_property "--set operator.affinity.nodeSelector.key=$KEY \
   --set operator.affinity.nodeSelector.operator== \
   --set operator.affinity.nodeSelector.values[0]=$VALUE_1 \
-  --set operator.affinity.nodeSelector.values[1]=$VALUE_2 \
-  --set restapi.affinity.nodeSelector.key=$KEY \
-  --set restapi.affinity.nodeSelector.operator== \
-  --set restapi.affinity.nodeSelector.values[0]=$VALUE_1 \
-  --set restapi.affinity.nodeSelector.values[1]=$VALUE_2" "Deployment" "stackgres-operator stackgres-restapi" "spec.template.spec.affinity" \
+  --set operator.affinity.nodeSelector.values[1]=$VALUE_2" "Deployment" "stackgres-operator" "spec.template.spec.affinity" \
   '{
   "nodeSelector": {
     "key": "'$KEY'",
@@ -143,11 +65,7 @@ check_operator_helm_node_selector() {
   check_operator_specific_property "--set operator.nodeSelector.key=$KEY \
   --set operator.nodeSelector.operator== \
   --set operator.nodeSelector.values[0]=$VALUE_1 \
-  --set operator.nodeSelector.values[1]=$VALUE_2 \
-  --set restapi.nodeSelector.key=$KEY \
-  --set restapi.nodeSelector.operator== \
-  --set restapi.nodeSelector.values[0]=$VALUE_1 \
-  --set restapi.nodeSelector.values[1]=$VALUE_2" "Deployment" "stackgres-operator stackgres-restapi" "spec.template.spec.nodeSelector" \
+  --set operator.nodeSelector.values[1]=$VALUE_2" "Deployment" "stackgres-operator" "spec.template.spec.nodeSelector" \
 '{
   "key": "'$KEY'",
   "operator": "=",
@@ -162,24 +80,21 @@ check_operator_helm_annotations() {
   KEY="$(random_string)"
   VALUE="$(random_string)"
   
-  check_operator_specific_property "--set operator.annotations.$KEY=$VALUE \
-  --set restapi.annotations.$KEY=$VALUE" "Deployment" "stackgres-operator stackgres-restapi" "metadata.annotations.$KEY" "$VALUE"
+  check_operator_specific_property "--set operator.annotations.$KEY=$VALUE" "Deployment" "stackgres-operator" "metadata.annotations.$KEY" "$VALUE"
 }
 
 check_operator_helm_service_account_annotations() {
   KEY="$(random_string)"
   VALUE="$(random_string)"
   
-  check_operator_specific_property "--set operator.serviceAccount.annotations.$KEY=$VALUE \
-  --set restapi.serviceAccount.annotations.$KEY=$VALUE" "ServiceAccount" "stackgres-operator stackgres-restapi" "metadata.annotations.$KEY" "$VALUE"
+  check_operator_specific_property "--set operator.serviceAccount.annotations.$KEY=$VALUE" "ServiceAccount" "stackgres-operator" "metadata.annotations.$KEY" "$VALUE"
 }
 
 check_operator_helm_service_annotations() {
   KEY="$(random_string)"
   VALUE="$(random_string)"
   
-  check_operator_specific_property "--set operator.service.annotations.$KEY=$VALUE \
-  --set restapi.service.annotations.$KEY=$VALUE" "Service" "stackgres-operator stackgres-restapi" "metadata.annotations.$KEY" "$VALUE"
+  check_operator_specific_property "--set operator.service.annotations.$KEY=$VALUE" "Service" "stackgres-operator" "metadata.annotations.$KEY" "$VALUE"
 }
 
 check_operator_specific_property() {

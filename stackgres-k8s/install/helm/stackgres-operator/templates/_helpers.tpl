@@ -34,50 +34,15 @@
 {{- .Values.cert.webSecretName | default (printf "%s-%s" .Release.Name "web-certs") }}
 {{- end }}
 
-{{- define "stackgres.operator.resetCerts" }}
-{{- $upgradeSecrets := false }}
-{{- $operatorSecret := lookup "v1" "Secret" .Release.Namespace (include "cert-name" .) }}
-{{- if $operatorSecret }}
-  {{- if or (not (index $operatorSecret.data "tls.key")) (not (index $operatorSecret.data "tls.crt")) }}
-    {{- $upgradeSecrets = true }}
-  {{- end }}
+{{- define "stackgres.operator.missingSGConfigCrd" }}
+{{- if .Release.IsUpgrade }}
+{{- $missingSGConfigCrd := true }}
+{{- $configCrd := lookup "apiextensions.k8s.io/v1" "CustomResourceDefinition" "" "sgconfigs.stackgres.io" }}
+{{- if $configCrd }}
+  {{- $missingSGConfigCrd = false }}
+{{- end }}
+{{- if $missingSGConfigCrd }}true{{- else }}false{{- end }}
 {{- else }}
-  {{- $upgradeSecrets = true }}
+false
 {{- end }}
-{{- $webSecret := lookup "v1" "Secret" .Release.Namespace (include "web-cert-name" .) }}
-{{- if $webSecret }}
-  {{- if or (not (index $webSecret.data "tls.key")) (not (index $webSecret.data "tls.crt")) }}
-    {{- $upgradeSecrets = true }}
-  {{- end }}
-{{- else }}
-  {{- $upgradeSecrets = true }}
 {{- end }}
-{{- if or $upgradeSecrets .Values.cert.resetCerts }}true{{- else }}false{{- end }}
-{{- end }}
-
-{{- define "stackgres.operator.upgradeCrds" }}
-{{- $upgradeCrds := false }}
-{{- $noStackGresCrdAvailable := true }}
-{{- $chart := .Chart }}
-{{- $crds := lookup "apiextensions.k8s.io/v1" "CustomResourceDefinition" "" "" }}
-{{- if $crds }}
-  {{- range $crd := $crds.items }}
-    {{- if regexMatch "\\.stackgres\\.io$" $crd.metadata.name }}
-      {{- $noStackGresCrdAvailable = false }}
-      {{- $hasSameVersion := false }}
-      {{- if $crd.metadata.annotations }}
-        {{- range $key,$value := $crd.metadata.annotations }}
-          {{- if and (eq $key "stackgres.io/operatorVersion") (eq $value $chart.Version) }}
-            {{- $hasSameVersion = true }}
-          {{- end }}
-        {{- end }}
-      {{- end }}
-      {{- if not $hasSameVersion }}
-        {{- $upgradeCrds = true }}
-      {{- end }}
-    {{- end }}
-  {{- end }}
-{{- end }}
-{{- if or $noStackGresCrdAvailable $upgradeCrds }}true{{- else }}false{{- end }}
-{{- end }}
-

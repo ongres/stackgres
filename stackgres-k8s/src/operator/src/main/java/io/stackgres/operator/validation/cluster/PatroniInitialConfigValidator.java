@@ -30,21 +30,15 @@ public class PatroniInitialConfigValidator implements ClusterValidator {
 
   @Override
   public void validate(StackGresClusterReview review) throws ValidationFailed {
-    StackGresCluster cluster = review.getRequest().getObject();
-
-    Optional<StackGresClusterPatroniInitialConfig> patroniInitialConfig =
-        Optional.of(cluster.getSpec())
-        .map(StackGresClusterSpec::getConfiguration)
-        .map(StackGresClusterConfiguration::getPatroni)
-        .map(StackGresClusterPatroni::getInitialConfig);
-
-    checkPatroniInitialConfig(review, patroniInitialConfig);
-  }
-
-  private void checkPatroniInitialConfig(StackGresClusterReview review,
-      Optional<StackGresClusterPatroniInitialConfig> patroniInitialConfig)
-      throws ValidationFailed {
     if (review.getRequest().getOperation() == Operation.UPDATE) {
+      StackGresCluster cluster = review.getRequest().getObject();
+
+      Optional<StackGresClusterPatroniInitialConfig> patroniInitialConfig =
+          Optional.of(cluster.getSpec())
+          .map(StackGresClusterSpec::getConfiguration)
+          .map(StackGresClusterConfiguration::getPatroni)
+          .map(StackGresClusterPatroni::getInitialConfig);
+
       Optional<StackGresClusterPatroniInitialConfig> oldPatroniInitialConfig = Optional
           .ofNullable(review.getRequest().getOldObject().getSpec().getConfiguration())
           .map(StackGresClusterConfiguration::getPatroni)

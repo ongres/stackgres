@@ -46,7 +46,6 @@ public class ExtensionsValidator
   public ExtensionsValidator(ExtensionMetadataManager extensionMetadataManager,
       CustomResourceScanner<StackGresCluster> clusterScanner,
       LabelFactoryForShardedCluster labelFactory) {
-    super();
     this.extensionMetadataManager = extensionMetadataManager;
     this.clusterScanner = clusterScanner;
     this.labelFactory = labelFactory;

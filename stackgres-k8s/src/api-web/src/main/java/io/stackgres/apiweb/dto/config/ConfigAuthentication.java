@@ -15,6 +15,12 @@ public class ConfigAuthentication {
 
   private String type;
 
+  private Boolean createAdminSecret;
+
+  private String user;
+
+  private String password;
+
   private ConfigAuthenticationOidc oidc;
 
   public String getType() {
@@ -23,6 +29,30 @@ public class ConfigAuthentication {
 
   public void setType(String type) {
     this.type = type;
+  }
+
+  public Boolean getCreateAdminSecret() {
+    return createAdminSecret;
+  }
+
+  public void setCreateAdminSecret(Boolean createAdminSecret) {
+    this.createAdminSecret = createAdminSecret;
+  }
+
+  public String getUser() {
+    return user;
+  }
+
+  public void setUser(String user) {
+    this.user = user;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
   }
 
   public ConfigAuthenticationOidc getOidc() {

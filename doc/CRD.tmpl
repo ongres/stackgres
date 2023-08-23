@@ -96,7 +96,7 @@ Workaround for hugo bug not rendering first table row
         <td>{{if get $requireRestartTypes $fieldKey}}✓{{end}}</td>
         <td>{{.Type}}</td>
         <td>
-          {{.Description}}<br/>
+          {{ regexReplaceAll "\\*\\*Example:\\*\\*.*" (.Description | replace "\n" "\\n") "" | replace "\\n" "\n" }}<br/>
           {{- if or .Schema.XValidations .Schema.Format .Schema.Enum .Schema.Default .Schema.Minimum .Schema.Maximum }}
           <br/>
           {{- end}}

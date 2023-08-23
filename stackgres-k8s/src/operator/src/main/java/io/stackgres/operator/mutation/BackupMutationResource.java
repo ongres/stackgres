@@ -19,13 +19,14 @@ import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
+import io.stackgres.operatorframework.admissionwebhook.mutating.AbstractMutationResource;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
-import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 
 @Path(MutationUtil.BACKUP_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class BackupMutationResource extends MutationResource<StackGresBackup, BackupReview> {
+public class BackupMutationResource
+    extends AbstractMutationResource<StackGresBackup, BackupReview> {
 
   @Inject
   public BackupMutationResource(

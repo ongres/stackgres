@@ -5,6 +5,8 @@
 
 package io.stackgres.common.prometheus;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.fabric8.kubernetes.api.model.Namespaced;
@@ -14,6 +16,7 @@ import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Kind;
 import io.fabric8.kubernetes.model.annotation.Version;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
 
@@ -38,8 +41,9 @@ public final class ServiceMonitor
 
   public static final String KIND = "ServiceMonitor";
 
+  private ServiceMonitorSpec spec;
+
   public ServiceMonitor() {
-    super();
   }
 
   @Override
@@ -52,10 +56,40 @@ public final class ServiceMonitor
     super.setMetadata(metadata);
   }
 
-  // TODO: remove on update to Kubernetes-Client 5.2.0
+  public ServiceMonitorSpec getSpec() {
+    return spec;
+  }
+
+  public void setSpec(ServiceMonitorSpec spec) {
+    this.spec = spec;
+  }
+
   @Override
-  protected Void initStatus() {
-    return null;
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(spec);
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
+      return false;
+    }
+    if (!(obj instanceof ServiceMonitor)) {
+      return false;
+    }
+    ServiceMonitor other = (ServiceMonitor) obj;
+    return Objects.equals(spec, other.spec);
+  }
+
+  @Override
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

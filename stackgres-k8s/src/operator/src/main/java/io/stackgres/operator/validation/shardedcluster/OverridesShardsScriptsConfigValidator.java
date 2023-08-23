@@ -32,9 +32,9 @@ public class OverridesShardsScriptsConfigValidator implements ShardedClusterVali
 
   @Override
   public void validate(StackGresShardedClusterReview review) throws ValidationFailed {
-    StackGresShardedCluster cluster = review.getRequest().getObject();
     if (review.getRequest().getOperation() == Operation.UPDATE
         || review.getRequest().getOperation() == Operation.CREATE) {
+      StackGresShardedCluster cluster = review.getRequest().getObject();
       for (var overrideShard : Optional.of(cluster.getSpec())
           .map(StackGresShardedClusterSpec::getShards)
           .map(StackGresShardedClusterShards::getOverrides)

@@ -476,6 +476,8 @@ cli_init_e2e_variables() {
   E2E_SKIP_LOAD_EXTENSIONS=true
   E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR=true
   E2E_OPERATOR_OPTS="--set-string authentication.password=st4ckgr3s --set-string adminui.service.type=NodePort --set adminui.service.nodePort=30100 --set developer.enableJvmDebug=true"
+  E2E_OPERATOR_BUNDLE_SGCONFIG='{"spec":{"authentication":{"password":"st4ckgr3s"},"adminui":{"service":{"type":"NodePort","nodePort":30100}},"developer":{"enableJvmDebug":true}}}'
+  E2E_OPERATOR_BUNDLE_EXTRA_ENV_JSON='{"name":"DEBUG_OPERATOR","value":"true"},'
   E2E_DISABLE_CACHE=true
   E2E_DISABLE_LOGS=true
   E2E_DISABLE_POD_LOGS=true
@@ -503,6 +505,8 @@ cli_export_e2e_variables() {
     K8S_CACHE_PATH \
     K8S_EXTRA_PORT \
     E2E_OPERATOR_OPTS \
+    E2E_OPERATOR_BUNDLE_SGCONFIG \
+    E2E_OPERATOR_BUNDLE_EXTRA_ENV_JSON \
     E2E_DISABLE_CACHE \
     E2E_DISABLE_LOGS \
     E2E_DISABLE_POD_LOGS \

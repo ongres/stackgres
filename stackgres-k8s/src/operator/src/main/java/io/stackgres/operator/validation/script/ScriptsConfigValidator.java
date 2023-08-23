@@ -48,8 +48,9 @@ public class ScriptsConfigValidator implements ScriptValidator {
   private final ResourceFinder<ConfigMap> configMapFinder;
 
   @Inject
-  public ScriptsConfigValidator(ResourceFinder<Secret> secretFinder,
-                                ResourceFinder<ConfigMap> configMapFinder) {
+  public ScriptsConfigValidator(
+      ResourceFinder<Secret> secretFinder,
+      ResourceFinder<ConfigMap> configMapFinder) {
     this.secretFinder = secretFinder;
     this.configMapFinder = configMapFinder;
   }

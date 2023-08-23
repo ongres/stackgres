@@ -111,7 +111,7 @@ public class PodTestUtil {
     final Map<String, String> labels = labelFactory.clusterPrimaryLabels(cluster);
     return buildPod(cluster, index, ImmutableMap.<String, String>builder()
         .putAll(labels)
-        .put(labelFactory.labelMapper().disruptibleKey(cluster),
+        .put(labelFactory.labelMapper().disruptableKey(cluster),
             StackGresContext.WRONG_VALUE)
         .build());
   }

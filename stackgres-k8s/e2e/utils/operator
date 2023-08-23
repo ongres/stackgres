@@ -357,7 +357,7 @@ push_operator_images() {
 }
 
 push_image_to() {
-  [ -n "$1" -a -n "$2" -a -n "$3" ]
+  [ -n "$1" ] && [ -n "$2" ] && [ -n "$3" ]
   local REPOSITORY="$1"
   local IMAGE_PATH="$2"
   local IMAGE="$3"
@@ -424,7 +424,11 @@ e2e_before_run_test_upgrade_k8s() {
 }
 
 get_installed_operator_version() {
-  helm list -n "$OPERATOR_NAMESPACE" -o json | jq -r '.[] | select(.name == "stackgres-operator").app_version'
+  kubectl get sgconfig -n "$OPERATOR_NAMESPACE" stackgres-operator -o name >/dev/null 2>&1 \
+    && kubectl get sgconfig -n "$OPERATOR_NAMESPACE" stackgres-operator -o json \
+      | jq -r '.status.version | select(. != null)' | grep . \
+    || helm list -n "$OPERATOR_NAMESPACE" -o json \
+      | jq -r '.[] | select(.name == "stackgres-operator").app_version'
 }
 
 install_operator_only() {
@@ -452,22 +456,6 @@ install_operator_only() {
     --set-string adminui.image.name="${ADMINUI_IMAGE_NAME%:*}" --set-string adminui.image.tag="${ADMINUI_IMAGE_NAME#*:}" \
     --set-string "adminui.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string "extensions.repositoryUrls[0]=$EXTENSIONS_REPOSITORY_URL" \
-    --set-string developer.extraEnv.SG_IMAGE_CLUSTER_CONTROLLER="${CLUSTER_CONTROLLER_IMAGE_NAME}" \
-    --set-string developer.extraEnv.SG_IMAGE_DISTRIBUTEDLOGS_CONTROLLER="${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME}" \
-    --set-string developer.extraOpts[0]='-Dquarkus.log.category."io.stackgres".level=DEBUG' \
-    --set-string developer.extraOpts[1]='-Dquarkus.log.category."io.quarkus".level=INFO' \
-    --set-string developer.extraOpts[2]='-Dquarkus.log.category."io.stackgres.dbops".level=TRACE' \
-    --set-string developer.extraOpts[3]='-Dquarkus.log.category."io.stackgres.backup".level=TRACE' \
-    --set-string developer.extraOpts[4]='-Dquarkus.log.category."io.stackgres.wal-g".level=INFO' \
-    --set-string developer.extraOpts[5]='-Dquarkus.log.category."io.stackgres.patroni".level=TRACE' \
-    --set-string developer.extraOpts[6]='-Dquarkus.log.category."io.stackgres.fluent-bit".level=TRACE' \
-    --set-string developer.extraOpts[7]='-Dquarkus.log.category."io.stackgres.fluentd".level=TRACE' \
-    --set-string developer.extraOpts[8]='-Dquarkus.log.category."io.stackgres.prometheus-postgres-exporter".level=TRACE' \
-    --set-string developer.extraOpts[9]='-Dquarkus.log.category."okhttp3.logging.HttpLoggingInterceptor".level='"$(
-      # shellcheck disable=SC2015
-      [ "$E2E_LOG_OPERATOR_HTTP" = true ] && echo TRACE || echo INFO)" \
-    --set-string developer.extraOpts[10]='-Dquarkus.log.category."stackgres-extensions-cache".level=DEBUG' \
-    --set-string developer.extraOpts[11]='-Dquarkus.log.category."io.stackgres.operator.conciliation".level=TRACE' \
     --set extensions.cache.enabled="$(
       # shellcheck disable=SC2015
       [ "$EXTENSIONS_CACHE_ENABLED" = true ] && echo true || echo false)" \
@@ -481,6 +469,7 @@ install_operator_only() {
       [ "$EXTENSIONS_CACHE_ENABLED" = true ] && [ -n "$EXTENSIONS_CACHE_HOST_PATH" ] \
         && printf '%s' "$EXTENSIONS_CACHE_HOST_PATH" \
         || printf null)" \
+    $(set_helm_values_for_developer) \
     $E2E_OPERATOR_OPTS "$@"
   fi
 }
@@ -596,22 +585,6 @@ upgrade_operator() {
     --set-string adminui.image.name="${ADMINUI_IMAGE_NAME%:*}" --set-string adminui.image.tag="${ADMINUI_IMAGE_NAME#*:}" \
     --set-string "adminui.image.pullPolicy=$E2E_OPERATOR_PULL_POLICY" \
     --set-string "extensions.repositoryUrls[0]=$EXTENSIONS_REPOSITORY_URL" \
-    --set-string developer.extraEnv.SG_IMAGE_CLUSTER_CONTROLLER="${CLUSTER_CONTROLLER_IMAGE_NAME}" \
-    --set-string developer.extraEnv.SG_IMAGE_DISTRIBUTEDLOGS_CONTROLLER="${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME}" \
-    --set-string developer.extraOpts[0]='-Dquarkus.log.category."io.stackgres".level=DEBUG' \
-    --set-string developer.extraOpts[1]='-Dquarkus.log.category."io.quarkus".level=INFO' \
-    --set-string developer.extraOpts[2]='-Dquarkus.log.category."io.stackgres.dbops".level=TRACE' \
-    --set-string developer.extraOpts[3]='-Dquarkus.log.category."io.stackgres.backup".level=TRACE' \
-    --set-string developer.extraOpts[4]='-Dquarkus.log.category."io.stackgres.wal-g".level=INFO' \
-    --set-string developer.extraOpts[5]='-Dquarkus.log.category."io.stackgres.patroni".level=TRACE' \
-    --set-string developer.extraOpts[6]='-Dquarkus.log.category."io.stackgres.fluent-bit".level=TRACE' \
-    --set-string developer.extraOpts[7]='-Dquarkus.log.category."io.stackgres.fluentd".level=TRACE' \
-    --set-string developer.extraOpts[8]='-Dquarkus.log.category."io.stackgres.prometheus-postgres-exporter".level=TRACE' \
-    --set-string developer.extraOpts[9]='-Dquarkus.log.category."okhttp3.logging.HttpLoggingInterceptor".level='"$(
-      # shellcheck disable=SC2015
-      [ "$E2E_LOG_OPERATOR_HTTP" = true ] && echo TRACE || echo INFO)" \
-    --set-string developer.extraOpts[10]='-Dquarkus.log.category."stackgres-extensions-cache".level=DEBUG' \
-    --set-string developer.extraOpts[11]='-Dquarkus.log.category."io.stackgres.operator.conciliation".level=TRACE' \
     --set extensions.cache.enabled="$(
       # shellcheck disable=SC2015
       [ "$EXTENSIONS_CACHE_ENABLED" = true ] && echo true || echo false)" \
@@ -626,6 +599,7 @@ upgrade_operator() {
         && printf '%s' "$EXTENSIONS_CACHE_HOST_PATH" \
         || printf null)" \
     --reuse-values \
+    $(set_helm_values_for_developer) \
     $E2E_OPERATOR_OPTS "$@"
 }
 
@@ -744,6 +718,8 @@ before_operator_install_or_upgrade() {
 }
 
 after_operator_install_or_upgrade() {
+  wait_services_available "$OPERATOR_NAMESPACE" 1 '^stackgres-operator$'
+  wait_services_available "$OPERATOR_NAMESPACE" 1 '^stackgres-restapi$'
   set_max_length
   update_ui_clear_password
 }
@@ -754,7 +730,20 @@ update_ui_clear_password() {
     | jq -r '.authentication.password | select(. != null)' | tr -d '\n')"
   if [ -n "$PASSWORD" ]
   then
-    kubectl patch secret -n "$OPERATOR_NAMESPACE" stackgres-restapi -p '{"data":{"clearPassword":"'"$(printf '%s' "$PASSWORD" | base64)"'"}}'
+    local OPERATOR_VERSION
+    OPERATOR_VERSION="$(get_installed_operator_version)"
+    if [ -n "$OPERATOR_VERSION" ] && [ "$OPERATOR_VERSION" != "$STACKGRES_VERSION" ]
+    then
+      local VERSION_AS_NUMBER VERSION_1_6_0_BETA_1_AS_NUMBER
+      VERSION_AS_NUMBER="$(get_version_as_number "$OPERATOR_VERSION")"
+      VERSION_1_6_0_BETA_1_AS_NUMBER="$(get_version_as_number 1.6.0-beta1)"
+      if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_6_0_BETA_1_AS_NUMBER" ]
+      then
+        kubectl patch secret -n "$OPERATOR_NAMESPACE" stackgres-restapi -p '{"data":{"clearPassword":"'"$(printf '%s' "$PASSWORD" | base64)"'"}}'
+        return
+      fi
+    fi
+    kubectl patch secret -n "$OPERATOR_NAMESPACE" stackgres-restapi-admin -p '{"data":{"clearPassword":"'"$(printf '%s' "$PASSWORD" | base64)"'"}}'
   fi
 }
 
@@ -1273,7 +1262,7 @@ get_operator_image_repository() {
   fi
 
   local VERSION_AS_NUMBER VERSION_1_4_3
-  VERSION_AS_NUMBER="$(get_version_as_number 1.4.3)"
+  VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
   VERSION_1_4_3="$(get_version_as_number 1.4.3)"
 
   if [ "$VERSION_AS_NUMBER" -le "$VERSION_1_4_3" ]
@@ -1289,7 +1278,7 @@ get_operator_image_tag() {
   [ -n "$1" ]
   local VERSION="$1"
   local VERSION_AS_NUMBER VERSION_0_9_5 VERSION_1_0_0_ALPHA1 VERSION_1_0_0_ALPHA2
-  VERSION_AS_NUMBER="$(get_version_as_number "$1")"
+  VERSION_AS_NUMBER="$(get_version_as_number "$VERSION")"
   VERSION_0_9_5="$(get_version_as_number 0.9.5)"
   VERSION_1_0_0_ALPHA1="$(get_version_as_number 1.0.0-alpha1)"
   VERSION_1_0_0_ALPHA2="$(get_version_as_number 1.0.0-alpha2)"
@@ -1538,5 +1527,105 @@ set_max_length() {
 	else . end' \
         | kubectl patch crd "$CRD_NAME" --type merge -p "$(cat)"
     done
+  fi
+}
+
+set_helm_values_for_developer() {
+  cat << EOF
+    --set-string developer.extraEnv.SG_IMAGE_CLUSTER_CONTROLLER=${CLUSTER_CONTROLLER_IMAGE_NAME} 
+    --set-string developer.extraEnv.SG_IMAGE_DISTRIBUTEDLOGS_CONTROLLER=${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME} 
+    --set-string developer.extraOpts[0]=-Dquarkus.log.category."io.stackgres".level=DEBUG 
+    --set-string developer.extraOpts[1]=-Dquarkus.log.category."io.quarkus".level=INFO 
+    --set-string developer.extraOpts[2]=-Dquarkus.log.category."io.stackgres.dbops".level=TRACE 
+    --set-string developer.extraOpts[3]=-Dquarkus.log.category."io.stackgres.backup".level=TRACE 
+    --set-string developer.extraOpts[4]=-Dquarkus.log.category."io.stackgres.wal-g".level=INFO 
+    --set-string developer.extraOpts[5]=-Dquarkus.log.category."io.stackgres.patroni".level=TRACE 
+    --set-string developer.extraOpts[6]=-Dquarkus.log.category."io.stackgres.fluent-bit".level=TRACE 
+    --set-string developer.extraOpts[7]=-Dquarkus.log.category."io.stackgres.fluentd".level=TRACE 
+    --set-string developer.extraOpts[8]=-Dquarkus.log.category."io.stackgres.prometheus-postgres-exporter".level=TRACE 
+    --set-string developer.extraOpts[9]=-Dquarkus.log.category."okhttp3.logging.HttpLoggingInterceptor".level=$(
+      # shellcheck disable=SC2015
+      [ "$E2E_LOG_OPERATOR_HTTP" = true ] && echo TRACE || echo INFO) 
+    --set-string developer.extraOpts[10]=-Dquarkus.log.category."stackgres-extensions-cache".level=DEBUG 
+    --set-string developer.extraOpts[11]=-Dquarkus.log.category."io.stackgres.operator.conciliation".level=TRACE 
+EOF
+  if [ "$E2E_MOUNT_LOCAL_FOLDERS" = true ]
+  then
+    cat << EOF
+    --set-string developer.patches.operator.volumes[0].name=app 
+    --set-string developer.patches.operator.volumes[0].hostPath.path=$(realpath "$PROJECT_PATH"/stackgres-k8s/src/operator/target/quarkus-app) 
+    --set-string developer.patches.operator.volumeMounts[0].name=app 
+    --set-string developer.patches.operator.volumeMounts[0].mountPath=/app/app 
+    --set-string developer.patches.operator.volumeMounts[0].subPath=app 
+    --set-string developer.patches.operator.volumeMounts[1].name=app 
+    --set-string developer.patches.operator.volumeMounts[1].mountPath=/app/lib 
+    --set-string developer.patches.operator.volumeMounts[1].subPath=lib 
+    --set-string developer.patches.operator.volumeMounts[2].name=app 
+    --set-string developer.patches.operator.volumeMounts[2].mountPath=/app/quarkus 
+    --set-string developer.patches.operator.volumeMounts[2].subPath=quarkus 
+    --set-string developer.patches.operator.volumeMounts[3].name=app 
+    --set-string developer.patches.operator.volumeMounts[3].mountPath=/app/quarkus-run.jar 
+    --set-string developer.patches.operator.volumeMounts[3].subPath=quarkus-run.jar 
+    --set-string developer.patches.restapi.volumes[0].name=app 
+    --set-string developer.patches.restapi.volumes[0].hostPath.path=$(realpath "$PROJECT_PATH"/stackgres-k8s/src/api-web/target/quarkus-app) 
+    --set-string developer.patches.restapi.volumeMounts[0].name=app 
+    --set-string developer.patches.restapi.volumeMounts[0].mountPath=/app/app 
+    --set-string developer.patches.restapi.volumeMounts[0].subPath=app 
+    --set-string developer.patches.restapi.volumeMounts[1].name=app 
+    --set-string developer.patches.restapi.volumeMounts[1].mountPath=/app/lib 
+    --set-string developer.patches.restapi.volumeMounts[1].subPath=lib 
+    --set-string developer.patches.restapi.volumeMounts[2].name=app 
+    --set-string developer.patches.restapi.volumeMounts[2].mountPath=/app/quarkus 
+    --set-string developer.patches.restapi.volumeMounts[2].subPath=quarkus 
+    --set-string developer.patches.restapi.volumeMounts[3].name=app 
+    --set-string developer.patches.restapi.volumeMounts[3].mountPath=/app/quarkus-run.jar 
+    --set-string developer.patches.restapi.volumeMounts[3].subPath=quarkus-run.jar 
+    --set-string developer.patches.adminui.volumes[0].name=admin 
+    --set-string developer.patches.adminui.volumes[0].hostPath.path=$(realpath "$PROJECT_PATH"/stackgres-k8s/src/admin-ui/target/public) 
+    --set-string developer.patches.adminui.volumeMounts[0].name=admin 
+    --set-string developer.patches.adminui.volumeMounts[0].mountPath=/opt/app-root/src/admin 
+    --set-string developer.patches.jobs.volumes[0].name=app 
+    --set-string developer.patches.jobs.volumes[0].hostPath.path=$(realpath "$PROJECT_PATH"/stackgres-k8s/src/jobs/target/quarkus-app) 
+    --set-string developer.patches.jobs.volumeMounts[0].name=app 
+    --set-string developer.patches.jobs.volumeMounts[0].mountPath=/app/app 
+    --set-string developer.patches.jobs.volumeMounts[0].subPath=app 
+    --set-string developer.patches.jobs.volumeMounts[1].name=app 
+    --set-string developer.patches.jobs.volumeMounts[1].mountPath=/app/lib 
+    --set-string developer.patches.jobs.volumeMounts[1].subPath=lib 
+    --set-string developer.patches.jobs.volumeMounts[2].name=app 
+    --set-string developer.patches.jobs.volumeMounts[2].mountPath=/app/quarkus 
+    --set-string developer.patches.jobs.volumeMounts[2].subPath=quarkus 
+    --set-string developer.patches.jobs.volumeMounts[3].name=app 
+    --set-string developer.patches.jobs.volumeMounts[3].mountPath=/app/quarkus-run.jar 
+    --set-string developer.patches.jobs.volumeMounts[3].subPath=quarkus-run.jar 
+    --set-string developer.patches.clusterController.volumes[0].name=app 
+    --set-string developer.patches.clusterController.volumes[0].hostPath.path=$(realpath "$PROJECT_PATH"/stackgres-k8s/src/cluster-controller/target/quarkus-app) 
+    --set-string developer.patches.clusterController.volumeMounts[0].name=app 
+    --set-string developer.patches.clusterController.volumeMounts[0].mountPath=/app/app 
+    --set-string developer.patches.clusterController.volumeMounts[0].subPath=app 
+    --set-string developer.patches.clusterController.volumeMounts[1].name=app 
+    --set-string developer.patches.clusterController.volumeMounts[1].mountPath=/app/lib 
+    --set-string developer.patches.clusterController.volumeMounts[1].subPath=lib 
+    --set-string developer.patches.clusterController.volumeMounts[2].name=app 
+    --set-string developer.patches.clusterController.volumeMounts[2].mountPath=/app/quarkus 
+    --set-string developer.patches.clusterController.volumeMounts[2].subPath=quarkus 
+    --set-string developer.patches.clusterController.volumeMounts[3].name=app 
+    --set-string developer.patches.clusterController.volumeMounts[3].mountPath=/app/quarkus-run.jar 
+    --set-string developer.patches.clusterController.volumeMounts[3].subPath=quarkus-run.jar 
+    --set-string developer.patches.distributedlogsController.volumes[0].name=app 
+    --set-string developer.patches.distributedlogsController.volumes[0].hostPath.path=$(realpath "$PROJECT_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app) 
+    --set-string developer.patches.distributedlogsController.volumeMounts[0].name=app 
+    --set-string developer.patches.distributedlogsController.volumeMounts[0].mountPath=/app/app 
+    --set-string developer.patches.distributedlogsController.volumeMounts[0].subPath=app 
+    --set-string developer.patches.distributedlogsController.volumeMounts[1].name=app 
+    --set-string developer.patches.distributedlogsController.volumeMounts[1].mountPath=/app/lib 
+    --set-string developer.patches.distributedlogsController.volumeMounts[1].subPath=lib 
+    --set-string developer.patches.distributedlogsController.volumeMounts[2].name=app 
+    --set-string developer.patches.distributedlogsController.volumeMounts[2].mountPath=/app/quarkus 
+    --set-string developer.patches.distributedlogsController.volumeMounts[2].subPath=quarkus 
+    --set-string developer.patches.distributedlogsController.volumeMounts[3].name=app 
+    --set-string developer.patches.distributedlogsController.volumeMounts[3].mountPath=/app/quarkus-run.jar 
+    --set-string developer.patches.distributedlogsController.volumeMounts[3].subPath=quarkus-run.jar 
+EOF
   fi
 }

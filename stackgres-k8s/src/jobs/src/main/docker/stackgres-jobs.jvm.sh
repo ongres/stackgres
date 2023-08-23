@@ -16,6 +16,7 @@ then
 fi
 if [ "$JAVA_CDS_GENERATION" = true ]
 then
+  export JOB_NAME=test JOB_NAMESPACE=test
   export KUBERNETES_MASTER=240.0.0.1
   java \
     -XX:ArchiveClassesAtExit="$APP_PATH"/quarkus-run.jsa \
@@ -27,11 +28,6 @@ then
     -Dquarkus.http.host=0.0.0.0 \
     $APP_OPTS &
   PID=$!
-  until curl -s localhost:8080/q/health/ready
-  do
-    sleep 1
-  done
-  kill "$PID"
   wait "$PID" || true
   exit
 fi

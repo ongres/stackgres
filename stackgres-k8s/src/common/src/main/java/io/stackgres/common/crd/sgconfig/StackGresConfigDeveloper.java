@@ -25,6 +25,8 @@ public class StackGresConfigDeveloper {
 
   private String logLevel;
 
+  private Boolean showDebug;
+
   private Boolean showStackTraces;
 
   private Boolean useJvmImages;
@@ -36,6 +38,8 @@ public class StackGresConfigDeveloper {
   private Boolean allowPullExtensionsFromImageRepository;
 
   private Boolean disableArbitraryUser;
+
+  private StackGresConfigDeveloperPatches patches;
 
   public String getVersion() {
     return version;
@@ -51,6 +55,14 @@ public class StackGresConfigDeveloper {
 
   public void setLogLevel(String logLevel) {
     this.logLevel = logLevel;
+  }
+
+  public Boolean getShowDebug() {
+    return showDebug;
+  }
+
+  public void setShowDebug(Boolean showDebug) {
+    this.showDebug = showDebug;
   }
 
   public Boolean getShowStackTraces() {
@@ -102,10 +114,19 @@ public class StackGresConfigDeveloper {
     this.disableArbitraryUser = disableArbitraryUser;
   }
 
+  public StackGresConfigDeveloperPatches getPatches() {
+    return patches;
+  }
+
+  public void setPatches(StackGresConfigDeveloperPatches patches) {
+    this.patches = patches;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(allowPullExtensionsFromImageRepository, disableArbitraryUser,
-        enableJvmDebug, enableJvmDebugSuspend, logLevel, showStackTraces, useJvmImages, version);
+        enableJvmDebug, enableJvmDebugSuspend, logLevel, patches, showDebug, showStackTraces,
+        useJvmImages, version);
   }
 
   @Override
@@ -123,6 +144,8 @@ public class StackGresConfigDeveloper {
         && Objects.equals(enableJvmDebug, other.enableJvmDebug)
         && Objects.equals(enableJvmDebugSuspend, other.enableJvmDebugSuspend)
         && Objects.equals(logLevel, other.logLevel)
+        && Objects.equals(patches, other.patches)
+        && Objects.equals(showDebug, other.showDebug)
         && Objects.equals(showStackTraces, other.showStackTraces)
         && Objects.equals(useJvmImages, other.useJvmImages)
         && Objects.equals(version, other.version);

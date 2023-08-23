@@ -5,6 +5,13 @@
 
 package io.stackgres.operator.conciliation.config;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
@@ -12,24 +19,29 @@ import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgconfig.ConfigEventReason;
 import io.stackgres.common.crd.sgconfig.ConfigStatusCondition;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
+import io.stackgres.common.crd.sgconfig.StackGresConfigStatus;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.operator.app.OperatorLockHolder;
 import io.stackgres.operator.common.PatchResumer;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.HandlerDelegator;
-import io.stackgres.operator.conciliation.OperatorLockHolder;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.StatusManager;
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.helpers.MessageFormatter;
 
 @ApplicationScoped
@@ -55,6 +67,10 @@ public class ConfigReconciliator
   private final EventEmitter<StackGresConfig> eventController;
   private final CustomResourceScheduler<StackGresConfig> configScheduler;
   private final PatchResumer<StackGresConfig> patchResumer;
+  private final AtomicReference<Tuple2<String, String>> lastCertificateTuple =
+      new AtomicReference<>();
+  private final String operatorCertPath;
+  private final String operatorCertKeyPath;
 
   @Inject
   public ConfigReconciliator(Parameters parameters) {
@@ -67,6 +83,10 @@ public class ConfigReconciliator
     this.eventController = parameters.eventController;
     this.configScheduler = parameters.configScheduler;
     this.patchResumer = new PatchResumer<>(parameters.objectMapper);
+    this.operatorCertPath = ConfigProvider.getConfig().getValue(
+        "quarkus.http.ssl.certificate.files", String.class);
+    this.operatorCertKeyPath = ConfigProvider.getConfig().getValue(
+        "quarkus.http.ssl.certificate.key-files", String.class);
   }
 
   void onStart(@Observes StartupEvent ev) {
@@ -84,6 +104,26 @@ public class ConfigReconciliator
 
   @Override
   protected void onPreReconciliation(StackGresConfig config) {
+    try {
+      Path operatorCertPath = Paths.get(this.operatorCertPath);
+      Path operatorCertKeyPath = Paths.get(this.operatorCertKeyPath);
+      String operatorCert = Files.exists(operatorCertPath)
+          ? Files.readString(operatorCertPath) : "";
+      String operatorCertKey = Files.exists(operatorCertKeyPath)
+          ? Files.readString(operatorCertKeyPath) : "";
+      var certificateTuple = Tuple.tuple(
+          operatorCert,
+          operatorCertKey);
+      var lastCertificateTuple = this.lastCertificateTuple.get();
+      if (lastCertificateTuple != null
+          && !Objects.equals(lastCertificateTuple, certificateTuple)) {
+        LOGGER.warn("Certificates changed! Proceding to restart...");
+        Quarkus.asyncExit(0);
+      }
+      this.lastCertificateTuple.set(certificateTuple);
+    } catch (IOException ex) {
+      throw new RuntimeException(ex);
+    }
   }
 
   @Override
@@ -93,7 +133,11 @@ public class ConfigReconciliator
     configScheduler.updateStatus(config,
         (currentConfig) -> {
           if (config.getStatus() != null) {
-            currentConfig.setStatus(config.getStatus());
+            if (currentConfig.getStatus() == null) {
+              currentConfig.setStatus(new StackGresConfigStatus());
+            }
+            currentConfig.getStatus().setVersion(config.getStatus().getVersion());
+            currentConfig.getStatus().setConditions(config.getStatus().getConditions());
           }
         });
   }

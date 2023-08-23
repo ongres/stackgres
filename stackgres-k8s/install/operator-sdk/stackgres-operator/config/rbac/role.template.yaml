@@ -1,13 +1,15 @@
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: operator-role
+  name: operator
 rules:
 ##
 ## Base operator rules
 ##
 $(
   helm template -n system stackgres-operator \
+    --set disableCRDcreation=true \
     --show-only templates/operator-cluster-role.yaml \
     "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
     | yq -y '.rules'
@@ -32,9 +34,11 @@ $(
   - stackgres
   - stackgres-operator
 - apiGroups:
-  - "apps"
+  - apps
+  - batch
   resources:
-  - "deployments"
+  - deployments
+  - jobs
   verbs:
   - list
   - delete
@@ -80,5 +84,36 @@ $(
   - stackgres-operator-grafana-dashboard
   verbs:
   - delete
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: restapi
+rules:
+##
+## Base restapi rules
+##
+$(
+  helm template -n system stackgres-operator \
+    --show-only templates/webapi-cluster-role.yaml \
+    "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
+    | yq -y '.rules'
+)
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: webconsole-admin
+rules:
+##
+## Base webconsole admin rules
+##
+$(
+  helm template -n system stackgres-operator \
+    --show-only templates/webapi-admin-cluster-role.yaml \
+    "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
+    | yq -y '.rules'
+)
 
 #+kubebuilder:scaffold:rules

@@ -19,14 +19,14 @@ import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
+import io.stackgres.operatorframework.admissionwebhook.mutating.AbstractMutationResource;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
-import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 
 @Path(MutationUtil.CLUSTER_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ClusterMutationResource
-    extends MutationResource<StackGresCluster, StackGresClusterReview> {
+    extends AbstractMutationResource<StackGresCluster, StackGresClusterReview> {
 
   @Inject
   public ClusterMutationResource(

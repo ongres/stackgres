@@ -30,7 +30,6 @@ public class PgConfigUpdateValidator implements PgConfigValidator {
 
   @PostConstruct
   public void init() throws NoSuchFieldException {
-
     String pgVersionJsonField = StackGresPostgresConfigSpec.class
         .getDeclaredField("postgresVersion")
         .getAnnotation(JsonProperty.class).value();
@@ -40,7 +39,6 @@ public class PgConfigUpdateValidator implements PgConfigValidator {
 
   @Override
   public void validate(PgConfigReview review) throws ValidationFailed {
-
     if (review.getRequest().getOperation() == Operation.UPDATE) {
       String oldPgVersion = review.getRequest().getOldObject().getSpec().getPostgresVersion();
       String newPgVersion = review.getRequest().getObject().getSpec().getPostgresVersion();
@@ -63,6 +61,5 @@ public class PgConfigUpdateValidator implements PgConfigValidator {
         throw new ValidationFailed(failedStatus);
       }
     }
-
   }
 }

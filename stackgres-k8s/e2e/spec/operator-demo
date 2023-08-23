@@ -35,12 +35,7 @@ test_yamls() {
   cat "${STACKGRES_YAMLS}/stackgres-operator-demo.yml" \
     | sed "s|name: stackgres$|name: $OPERATOR_NAMESPACE|" \
     | sed "s|namespace: stackgres$|namespace: $OPERATOR_NAMESPACE|" \
-    | sed "s| -n ['\"]\?stackgres['\"]\? | -n '$OPERATOR_NAMESPACE' |" \
-    | sed "s|stackgres-operator\.stackgres|stackgres-operator.$OPERATOR_NAMESPACE|" \
     | sed "s|image: \"\([^/]\+/\)\?stackgres/operator:.*\"$|image: \"$OPERATOR_IMAGE_NAME\"|" \
-    | sed "s|image: \"\([^/]\+/\)\?stackgres/restapi:.*\"$|image: \"$RESTAPI_IMAGE_NAME\"|" \
-    | sed "s|image: \"\([^/]\+/\)\?stackgres/jobs:.*\"$|image: \"$JOBS_IMAGE_NAME\"|" \
-    | sed "s|image: \"\([^/]\+/\)\?stackgres/admin-ui:.*\"$|image: \"$ADMINUI_IMAGE_NAME\"|" \
     | sed "$(printf '/name: OPERATOR_IMAGE_VERSION$/{$!{N;s/name: OPERATOR_IMAGE_VERSION\\n\( *\)value: .*$/name: OPERATOR_IMAGE_VERSION\\n\\1value: '"'%s'"'/;ty;P;D;:y}}' "$IMAGE_TAG")" \
     | sed "s|imagePullPolicy:.*[a-zA-Z].*$|imagePullPolicy: $E2E_OPERATOR_PULL_POLICY|" \
     | sed '/image: \([^/]\+\/\)\?ongres\/.*$/{$!{N;s/image: \([^/]\+\/\)\?\(ongres\/.*\)\n\( *\)imagePullPolicy: .*$/image: \2\n\3imagePullPolicy: IfNotPresent/;ty;P;D;:y}}' \
@@ -57,12 +52,7 @@ test_yamls() {
 
   grep -qF "name: $OPERATOR_NAMESPACE" "${LOG_PATH}/stackgres-operator-demo.yml"
   grep -qF "namespace: $OPERATOR_NAMESPACE" "${LOG_PATH}/stackgres-operator-demo.yml"
-  grep -qF " -n '$OPERATOR_NAMESPACE' " "${LOG_PATH}/stackgres-operator-demo.yml"
-  grep -qF "stackgres-operator.$OPERATOR_NAMESPACE" "${LOG_PATH}/stackgres-operator-demo.yml"
   grep -qF "image: \"$OPERATOR_IMAGE_NAME\"" "${LOG_PATH}/stackgres-operator-demo.yml"
-  grep -qF "image: \"$RESTAPI_IMAGE_NAME\"" "${LOG_PATH}/stackgres-operator-demo.yml"
-  grep -qF "image: \"$JOBS_IMAGE_NAME\"" "${LOG_PATH}/stackgres-operator-demo.yml"
-  grep -qF "image: \"$ADMINUI_IMAGE_NAME\"" "${LOG_PATH}/stackgres-operator-demo.yml"
   grep -qF "value: '$IMAGE_TAG'" "${LOG_PATH}/stackgres-operator-demo.yml"
   grep -qF "imagePullPolicy: $E2E_OPERATOR_PULL_POLICY" "${LOG_PATH}/stackgres-operator-demo.yml"
   if grep -q 'http%3A%2F%2Fstackgres-operator-extensions-cache\.stackgres%3FsetHttpScheme%3Dtrue' "${STACKGRES_YAMLS}/stackgres-operator-demo.yml"
@@ -172,7 +162,7 @@ test_yamls() {
   fi
 
   echo "Deleting demo operator"
-  kubectl delete --namespace "${OPERATOR_NAMESPACE}" -f "${LOG_PATH}/stackgres-operator-demo.yml"
+  kubectl delete --ignore-not-found --namespace "${OPERATOR_NAMESPACE}" -f "${LOG_PATH}/stackgres-operator-demo.yml"
 
   if wait_until is_demo_operator_namespace_removed
   then

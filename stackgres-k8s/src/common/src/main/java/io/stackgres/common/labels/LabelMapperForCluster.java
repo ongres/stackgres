@@ -17,8 +17,8 @@ public interface LabelMapperForCluster<T extends CustomResource<?, ?>>
     return getKeyPrefix(resource) + StackGresContext.CLUSTER_KEY;
   }
 
-  default String disruptibleKey(T resource) {
-    return getKeyPrefix(resource) + StackGresContext.DISRUPTIBLE_KEY;
+  default String disruptableKey(T resource) {
+    return getKeyPrefix(resource) + StackGresContext.DISRUPTABLE_KEY;
   }
 
   default String scheduledBackupKey(T resource) {

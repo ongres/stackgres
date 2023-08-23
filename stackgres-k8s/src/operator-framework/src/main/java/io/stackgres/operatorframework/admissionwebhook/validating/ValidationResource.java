@@ -39,7 +39,7 @@ public abstract class ValidationResource<T extends AdmissionReview<?>> {
     AdmissionRequest<?> request = admissionReview.getRequest();
     UUID requestUid = request.getUid();
 
-    getLogger().info("Validating admission review uid {} of kind {} for resource {}.{}",
+    getLogger().debug("Validating admission review uid {} of kind {} for resource {}.{}",
         requestUid, request.getKind().getKind(), request.getNamespace(), request.getName());
 
     AdmissionResponse response = new AdmissionResponse();

@@ -14,6 +14,7 @@ import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Kind;
 import io.fabric8.kubernetes.model.annotation.Version;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
 
@@ -38,8 +39,9 @@ public final class PodMonitor
 
   public static final String KIND = "PodMonitor";
 
+  private PodMonitorSpec spec;
+
   public PodMonitor() {
-    super();
   }
 
   @Override
@@ -52,10 +54,38 @@ public final class PodMonitor
     super.setMetadata(metadata);
   }
 
-  // TODO: remove on update to Kubernetes-Client 5.2.0
   @Override
-  protected Void initStatus() {
-    return null;
+  public PodMonitorSpec getSpec() {
+    return spec;
+  }
+
+  @Override
+  public void setSpec(PodMonitorSpec spec) {
+    this.spec = spec;
+  }
+
+  @Override
+  public int hashCode() {
+    return super.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
+      return false;
+    }
+    if (!(obj instanceof PodMonitor)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

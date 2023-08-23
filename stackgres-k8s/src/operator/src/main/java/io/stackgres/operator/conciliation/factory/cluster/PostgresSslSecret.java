@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.cluster;
 
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -113,7 +114,8 @@ public class PostgresSslSecret
     var certificate = context.getPostgresSslCertificate();
     var privateKey = context.getPostgresSslPrivateKey();
     if (certificate.isEmpty() || privateKey.isEmpty()) {
-      var certificateAndPrivateKey = CryptoUtil.generateCertificateAndPrivateKey();
+      var certificateAndPrivateKey = CryptoUtil.generateCertificateAndPrivateKey(
+          ZonedDateTime.now().plusYears(7500).toInstant());
       certificate = Optional.of(certificateAndPrivateKey.v1);
       privateKey = Optional.of(certificateAndPrivateKey.v2);
     }

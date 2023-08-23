@@ -11,6 +11,7 @@ paths:
 
         * sgclusters list
         * pod list
+        * services list
         * secrets get
         * configmaps get
       security:
@@ -169,6 +170,7 @@ paths:
 
         * sgclusters get
         * pod list
+        * services list
         * pod/exec create
         * persistentvolume list
       parameters:
@@ -198,6 +200,7 @@ paths:
 
         * sgclusters get
         * pod list
+        * services list
         * secrets get
         * configmaps get
       parameters:

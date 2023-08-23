@@ -35,6 +35,7 @@ e2e_load_images() {
   # The operator-registry check the images from the remote repository
   BUNDLE_IMAGE_NAME="$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}/stackgres/${OPERATOR_BUNDLE_IMAGE_NAME##*/}"
   BUNDLE_OPERATOR_IMAGE_NAME="${OPERATOR_IMAGE_NAME%%:*}:$BUNDLE_STACKGRES_VERSION"
+  EXPECTED_OPERATOR_IMAGE="$BUNDLE_OPERATOR_IMAGE_NAME"
 
   if [ "$E2E_FORCE_IMAGE_PULL" != "true" ] \
     && test -f stackgres-k8s/ci/build/target/image-hashes \
@@ -230,10 +231,6 @@ e2e_upgrade_operator() {
 
   wait_until eval 'kubectl get -n "$OPERATOR_NAMESPACE" deployment -l olm.owner="stackgres.v$BUNDLE_STACKGRES_VERSION" -o name | grep -q .'
 
-  wait_until kubectl rollout status --timeout=1s -n "$OPERATOR_NAMESPACE" deployment -l olm.owner="stackgres.v$BUNDLE_STACKGRES_VERSION"
-
-  wait_until kubectl wait --timeout 0s -n "$OPERATOR_NAMESPACE" sgconfig stackgres-operator --for condition=Deployed
-
   cat << EOF > "$LOG_PATH/sgconfig-patch.yaml"
 apiVersion: stackgres.io/v1
 kind: SGConfig
@@ -252,13 +249,135 @@ spec:
       tag: "$IMAGE_TAG"
   developer:
     version: $STACKGRES_VERSION
+$(
+  if [ "$E2E_MOUNT_LOCAL_FOLDERS" = true ]
+  then
+    cat << INNER_EOF
+    patches:
+      restapi:
+        volumes:
+          - name: app
+            hostPath:
+              path: "$(realpath "$PROJECT_PATH"/stackgres-k8s/src/api-web/target/quarkus-app)"
+        volumeMounts:
+          - name: app
+            mountPath: /app/app
+            subPath: app
+          - name: app
+            mountPath: /app/lib
+            subPath: lib
+          - name: app
+            mountPath: /app/quarkus
+            subPath: quarkus
+          - name: app
+            mountPath: /app/quarkus-run.jar
+            subPath: quarkus-run.jar
+      adminui:
+        volumes:
+          - name: admin
+            hostPath:
+              path: "$(realpath "$PROJECT_PATH"/stackgres-k8s/src/admin-ui/target/public)"
+        volumeMounts:
+          - name: admin
+            mountPath: /opt/app-root/src/admin
+      jobs:
+        volumes:
+          - name: app
+            hostPath:
+              path: "$(realpath "$PROJECT_PATH"/stackgres-k8s/src/jobs/target/quarkus-app)"
+        volumeMounts:
+          - name: app
+            mountPath: /app/app
+            subPath: app
+          - name: app
+            mountPath: /app/lib
+            subPath: lib
+          - name: app
+            mountPath: /app/quarkus
+            subPath: quarkus
+          - name: app
+            mountPath: /app/quarkus-run.jar
+            subPath: quarkus-run.jar
+      clusterController:
+        volumes:
+          - name: app
+            hostPath:
+              path: "$(realpath "$PROJECT_PATH"/stackgres-k8s/src/cluster-controller/target/quarkus-app)"
+        volumeMounts:
+          - name: app
+            mountPath: /app/app
+            subPath: app
+          - name: app
+            mountPath: /app/lib
+            subPath: lib
+          - name: app
+            mountPath: /app/quarkus
+            subPath: quarkus
+          - name: app
+            mountPath: /app/quarkus-run.jar
+            subPath: quarkus-run.jar
+      distributedlogsController:
+        volumes:
+          - name: app
+            hostPath:
+              path: "$(realpath "$PROJECT_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app)"
+        volumeMounts:
+          - name: app
+            mountPath: /app/app
+            subPath: app
+          - name: app
+            mountPath: /app/lib
+            subPath: lib
+          - name: app
+            mountPath: /app/quarkus
+            subPath: quarkus
+          - name: app
+            mountPath: /app/quarkus-run.jar
+            subPath: quarkus-run.jar
+INNER_EOF
+  fi
+)
 EOF
-  kubectl patch -n "$OPERATOR_NAMESPACE" subscription stackgres --type merge \
-    -p '{"spec":{"config":{"env":[{"name":"SGCONFIG","value":'"$(yq '. | tostring' "$LOG_PATH/sgconfig-patch.yaml")"'}]}}}'
+  cat << EOF | kubectl patch -n "$OPERATOR_NAMESPACE" subscription stackgres --type merge -p "$(cat)"
+{
+  "spec": {
+    "config": {
+      "env":[
+        $E2E_OPERATOR_BUNDLE_EXTRA_ENV_JSON
+        {"name":"SGCONFIG","value":$(yq --arg sgconfig "${E2E_OPERATOR_BUNDLE_SGCONFIG:-{\}}" '($sgconfig | fromjson) * . | tostring' "$LOG_PATH/sgconfig-patch.yaml")}]
+$(
+  if [ "$E2E_MOUNT_LOCAL_FOLDERS" = true ]
+  then
+    cat << INNER_EOF
+      ,
+      "volumes":[
+        {"name":"app","hostPath":{"path":"$(realpath "$PROJECT_PATH"/stackgres-k8s/src/operator/target/quarkus-app)"}}],
+      "volumeMounts":[
+        {"name":"app","mountPath":"/app/app","subPath":"app"},
+        {"name":"app","mountPath":"/app/lib","subPath":"lib"},
+        {"name":"app","mountPath":"/app/quarkus","subPath":"quarkus"},
+        {"name":"app","mountPath":"/app/quarkus-run.jar","subPath":"quarkus-run.jar"}]
+INNER_EOF
+  fi
+)
+    }
+  }
+}
+EOF
+
+  wait_until kubectl rollout status --timeout=1s -n "$OPERATOR_NAMESPACE" deployment -l olm.owner="stackgres.v$BUNDLE_STACKGRES_VERSION"
 
   wait_until eval 'kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
     --template "{{ range .items }}{{ range .spec.containers }}{{ printf \"%s\n\" .image }}{{ end }}{{ end }}" \
     | grep -qF "'"/${EXPECTED_OPERATOR_IMAGE##*/}"'"'
+
+  wait_until eval 'kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator -o name | wc -l | grep -xF 1'
+
+  wait_until eval 'kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=StackGresConfig,stackgres.io/restapi=true \
+    --template "{{ range .items }}{{ range .spec.containers }}{{ printf \"%s\n\" .image }}{{ end }}{{ end }}" \
+    | grep -qF "'"/${EXPECTED_RESTAPI_IMAGE##*/}"'"'
+
+  wait_until eval 'kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=StackGresConfig,stackgres.io/restapi=true -o name | wc -l | grep -xF 1'
 
   if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator$"
   then

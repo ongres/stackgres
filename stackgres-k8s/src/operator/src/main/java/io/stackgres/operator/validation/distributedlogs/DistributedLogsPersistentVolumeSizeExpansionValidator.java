@@ -23,7 +23,6 @@ import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.validation.PersistentVolumeSizeExpansionValidator;
 import io.stackgres.operator.validation.ValidationType;
-import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.jetbrains.annotations.NotNull;
 
@@ -61,11 +60,6 @@ public class DistributedLogsPersistentVolumeSizeExpansionValidator
         .map(StackGresDistributedLogs::getSpec)
         .map(StackGresDistributedLogsSpec::getPersistentVolume)
         .map(StackGresDistributedLogsPersistentVolume::getStorageClass);
-  }
-
-  @Override
-  protected boolean isOperationUpdate(StackGresDistributedLogsReview review) {
-    return review.getRequest().getOperation() == Operation.UPDATE;
   }
 
   @Override

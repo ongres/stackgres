@@ -32,7 +32,6 @@ spec:
   # Default values copied from <project_dir>/helm-charts/stackgres-operator/values.yaml
   containerRegistry: quay.io
   imagePullPolicy: IfNotPresent
-  initClusterRole: cluster-admin
   operator:
     image:
       pullPolicy: IfNotPresent
@@ -53,35 +52,8 @@ spec:
       pullPolicy: IfNotPresent
   authentication:
     type: jwt
-    oidc: {}
     user: admin
-    resetPassword: false
-    secretRef:
-      name: ""
-  cert:
-    autoapprove: true
-    certManager:
-      autoConfigure: false
-      duration: 2160h
-      encoding: PKCS1
-      renewBefore: 360h
-      size: 2048
-    createForOperator: true
-    createForWebApi: true
-    crt: null
-    jwtRsaKey: null
-    jwtRsaPub: null
-    key: null
-    resetCerts: false
-    webCrt: null
-    webKey: null
   extensions:
-    cache:
-      enabled: false
-      persistentVolume:
-        size: 1Gi
-      preloadedExtensions:
-      - x86_64/linux/timescaledb-1\.7\.4-pg12
     repositoryUrls:
     - https://extensions.stackgres.io/postgres/repository
   grafana:

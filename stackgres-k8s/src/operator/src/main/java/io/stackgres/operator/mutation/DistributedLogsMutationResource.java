@@ -19,14 +19,14 @@ import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
+import io.stackgres.operatorframework.admissionwebhook.mutating.AbstractMutationResource;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
-import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 
 @Path(MutationUtil.DISTRIBUTED_LOGS_MUTATION_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class DistributedLogsMutationResource
-    extends MutationResource<StackGresDistributedLogs, StackGresDistributedLogsReview> {
+    extends AbstractMutationResource<StackGresDistributedLogs, StackGresDistributedLogsReview> {
 
   @Inject
   public DistributedLogsMutationResource(
