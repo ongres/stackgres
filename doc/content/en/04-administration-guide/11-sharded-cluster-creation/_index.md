@@ -191,7 +191,7 @@ Create the SGShardedCluster resource:
 
 ```yaml
 cat << EOF | kubectl apply -f -
-apiVersion: stackgres.io/v1
+apiVersion: stackgres.io/v1alpha1
 kind: SGShardedCluster
 metadata:
   namespace: my-cluster
