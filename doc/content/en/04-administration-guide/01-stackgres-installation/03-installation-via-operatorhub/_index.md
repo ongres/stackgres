@@ -6,7 +6,7 @@ description: Details about how to install the StackGres operator using OperatorH
 showToc: true
 ---
 
-The StackGres operator can be installed via OperatorHub.
+The StackGres operator can be installed via OperatorHub using the OLM ([Operator Lifecycle Manager](https://olm.operatorframework.io/)) that should already be installed in your Kubernetes cluster.
 On this page, we are going through all the necessary steps to set up a production-grade StackGres environment.
 
 ## Installation via OperatorHub
@@ -19,6 +19,7 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: stackgres
+---
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
@@ -38,7 +39,6 @@ spec:
   name: stackgres 
   source: community-operators 
   sourceNamespace: olm
-  startingCSV: stackgres.v1.4.3
   installPlanApproval: Automatic
 EOF
 ```
@@ -154,7 +154,6 @@ spec:
   name: stackgres 
   source: redhat-marketplace
   sourceNamespace: openshift-marketplace
-  startingCSV: stackgres.v1.4.3
   installPlanApproval: Automatic
 EOF
 ```
