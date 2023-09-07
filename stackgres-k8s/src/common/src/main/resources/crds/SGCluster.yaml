@@ -1164,6 +1164,151 @@ spec:
                   Changing this section is allowed to fix issues or to change the replication source.
                   
                   Removing this section convert the cluster in a normal cluster where the standby leader is converted into the a primary instance.
+
+                  **Example:**
+
+                  From SGCluster instance:
+
+                  ```yaml
+                  apiVersion: stackgres.io/v1
+                  kind: SGCluster
+                  metadata:
+                    name: stackgres
+                  spec:
+                    replicateFrom:
+                      instance:
+                        sgCluster: my-cluster
+                  ```
+                  > **Note:** The above example allow to replicate from another SGCluster instance that in the same namespace and the same K8s cluster.
+                  > 
+                  > This option cannot be combined with external instance, storage and users.
+
+                  From external instance:
+
+                  ```yaml
+                  apiVersion: stackgres.io/v1
+                  kind: SGCluster
+                  metadata:
+                    name: stackgres
+                  spec:
+                    replicateFrom:
+                      instance:
+                        external:
+                          host: ${HOST_IP}
+                          port: 5433
+                      users:
+                        superuser:
+                          username:
+                            name: pg-origin-secret
+                            key: superuser-username
+                          password:
+                            name: pg-origin-secret
+                            key: superuser-password
+                        replication:
+                          username:
+                            name: pg-origin-secret
+                            key: replication-username
+                          password:
+                            name: pg-origin-secret
+                            key: replication-password
+                        authenticator:
+                          username:
+                            name: pg-origin-secret
+                            key: authenticator-username
+                          password:
+                            name: pg-origin-secret
+                            key: authenticator-password
+                  ```
+
+                  > **Note:** Replace the ${HOST_IP} with the actual IP of the external instance.
+
+                  From Storage:
+
+                  ```yaml
+                  apiVersion: stackgres.io/v1
+                  kind: SGCluster
+                  metadata:
+                    name: stackgres
+                  spec:
+                    initialData:
+                      restore:
+                        fromBackup:
+                          name: backup-name
+                    replicateFrom:
+                      storage:
+                        path: ${PG_ORIGIN_BACKUP_PATH}
+                        sgObjectStorage: stackgres-backups
+                      users:
+                        superuser:
+                          username:
+                            name: pg-origin-secret
+                            key: superuser-username
+                          password:
+                            name: pg-origin-secret
+                            key: superuser-password
+                        replication:
+                          username:
+                            name: pg-origin-secret
+                            key: replication-username
+                          password:
+                            name: pg-origin-secret
+                            key: replication-password
+                        authenticator:
+                          username:
+                            name: pg-origin-secret
+                            key: authenticator-username
+                          password:
+                            name: pg-origin-secret
+                            key: authenticator-password
+                  ```
+
+                  > **Note:** Using storage only to replicate from requires to recover from a backup in order to bootstrap the database.
+                  > 
+                  > Replace the ${PG_ORIGIN_BACKUP_PATH} with the actual path in the object storage where the backups are stored.
+
+                  From external instance and storage:
+
+                  ```yaml
+                  apiVersion: stackgres.io/v1
+                  kind: SGCluster
+                  metadata:
+                    name: stackgres
+                  spec:
+                    replicateFrom:
+                      instance:
+                        external:
+                          host: ${HOST_IP}
+                          port: 5433
+                      storage:
+                        path: ${PG_ORIGIN_BACKUP_PATH}
+                        sgObjectStorage: stackgres-backups
+                      users:
+                        superuser:
+                          username:
+                            name: pg-origin-secret
+                            key: superuser-username
+                          password:
+                            name: pg-origin-secret
+                            key: superuser-password
+                        replication:
+                          username:
+                            name: pg-origin-secret
+                            key: replication-username
+                          password:
+                            name: pg-origin-secret
+                            key: replication-password
+                        authenticator:
+                          username:
+                            name: pg-origin-secret
+                            key: authenticator-username
+                          password:
+                            name: pg-origin-secret
+                            key: authenticator-password
+                  ```
+
+                  > **Note**: Replace the ${HOST_IP} with the actual IP of the external instance.
+                  > 
+                  > Replace the ${PG_ORIGIN_BACKUP_PATH} with the actual path in the object storage where the backups are stored.
                 properties:
                   instance:
                     type: object
