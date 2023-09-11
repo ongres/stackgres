@@ -10,7 +10,7 @@ then
     -u node \
     -e PROMPT_COMMAND= \
     -v "$PROJECT_PATH:/admin-ui:rw" -w /admin-ui \
-    "registry.access.redhat.com/ubi8/nodejs-16:1-90" npm "$@"
+    "registry.access.redhat.com/ubi8/nodejs-16:1-118.1692780867" npm "$@"
 else
   env > "/tmp/$CONTAINER_NAME.env"
   docker run "$([ -t 1 ] && echo '-it' || echo '-i')" \
@@ -23,5 +23,5 @@ else
     $(id -G | tr ' ' '\n' | sed 's/^\(.*\)$/--group-add \1/') \
     -v "$HOME":"$HOME":rw -e PROMPT_COMMAND= \
     -v "$PROJECT_PATH:/admin-ui:rw" -w /admin-ui \
-    "registry.access.redhat.com/ubi8/nodejs-16:1-90" npm "$@"
+    "registry.access.redhat.com/ubi8/nodejs-16:1-118.1692780867" npm "$@"
 fi
