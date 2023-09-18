@@ -72,8 +72,8 @@
                 </template>
 
                 <!--Cluster Tabs-->
-                <template v-if="['SGCluster', 'SGShardedCluster'].includes($route.meta.componentName) && !['ClusterOverview', 'EditCluster', 'CreateCluster'].includes($route.name)">
-                    <li>
+                <template v-if="['SGCluster', 'SGShardedCluster'].includes($route.meta.componentName) && !['ClusterOverview', 'EditCluster', 'CreateCluster', 'ShardedClusterOverview', 'EditShardedCluster', 'CreateShardedCluster'].includes($route.name)">
+                    <li class="back">
                         <template v-if="$route.name.includes('Backup') && $route.name != 'ClusterBackups'">
                             <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + ($route.params.hasOwnProperty('name') ? $route.params.name : currentPath.name) + '/sgbackups'" title="Backups">
                                 Backups
@@ -82,10 +82,10 @@
 
                         <template v-else>
                             <span>
-                                <template v-if="$route.name == 'ClusterStatus'">Status</template>
-                                <template v-else-if="$route.name == 'ClusterInfo'">Configuration</template>
+                                <template v-if="$route.name.endsWith('Status')">Status</template>
+                                <template v-else-if="$route.name.endsWith('Info')">Configuration</template>
                                 <template v-else-if="$route.name.includes('Backup')">Backups</template>
-                                <template v-else-if="$route.name == 'ClusterLogs'">Logs</template>
+                                <template v-else-if="$route.name.endsWith('Logs')">Logs</template>
                                 <template v-else-if="$route.name.includes('Monitor')">Monitoring</template>
                                 <template v-else-if="$route.name.includes('Events')">Events</template>
                             </span>

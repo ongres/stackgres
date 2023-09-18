@@ -1969,6 +1969,7 @@
     .summary li {
         margin-bottom: 10px;
         position: relative;
+        list-style: none;
     }
 
     .summary ul li:last-child {
@@ -2052,6 +2053,7 @@
         left: -5px;
         margin-bottom: -6px;
         background: var(--activeBg);
+        z-index: 1;
     }
 
     .crdDetails .summary button.toggleSummary {
