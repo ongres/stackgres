@@ -17,7 +17,7 @@ then
         do
 	  if [ -f "$FILE" ]
           then
-            chmod a+rw "$FILE"
+            chmod a+rw "$FILE" || true
             rm -rfv "$FILE"
 	  fi
         done
@@ -29,12 +29,12 @@ then
   rm -f "$PG_UPGRADE_PATH/.upgrade-from-$SOURCE_VERSION-to-$TARGET_VERSION.done"
   if [ -d "$PG_RELOCATED_BASE_PATH/$TARGET_VERSION" ]
   then
-    chmod -R a+rw "$PG_RELOCATED_BASE_PATH/$TARGET_VERSION"
+    chmod -R a+rw "$PG_RELOCATED_BASE_PATH/$TARGET_VERSION" || true
     rm -rf "$PG_RELOCATED_BASE_PATH/$TARGET_VERSION"
   fi
   if [ -d "$PG_EXTENSIONS_BASE_PATH/${TARGET_VERSION%.*}" ]
   then
-    chmod -R a+rw "$PG_EXTENSIONS_BASE_PATH/${TARGET_VERSION%.*}"
+    chmod -R a+rw "$PG_EXTENSIONS_BASE_PATH/${TARGET_VERSION%.*}" || true
     rm -rf "$PG_EXTENSIONS_BASE_PATH/${TARGET_VERSION%.*}"
   fi
   exit 0
@@ -112,7 +112,7 @@ then
     fi
     
     echo
-    grep . *.txt *.log 2>/dev/null | cat >&2
+    grep . *.{txt,log} */*.{txt,log} */*/*.{txt,log} */*/*/*.{txt,log} */*/*/*/*.{txt,log} 2>/dev/null | cat >&2
     echo
     
     echo "Major version upgrade check performed"
@@ -138,12 +138,12 @@ then
     $("$CLONE" && printf %s "--clone" || true)
   then
     echo
-    grep . *.txt *.log 2>/dev/null | cat >&2
+    grep . *.{txt,log} */*.{txt,log} */*/*.{txt,log} */*/*/*.{txt,log} */*/*/*/*.{txt,log} 2>/dev/null | cat >&2
     echo
     exit 1
   fi
   echo
-  grep . *.txt *.log 2>/dev/null | cat >&2
+  grep . *.{txt,log} */*.{txt,log} */*/*.{txt,log} */*/*/*.{txt,log} */*/*/*/*.{txt,log} 2>/dev/null | cat >&2
   echo
   touch "$PG_UPGRADE_PATH/$TARGET_VERSION/data/.pg_upgrade-from-$SOURCE_VERSION-to-$TARGET_VERSION.done"
   )
@@ -170,7 +170,7 @@ cat "$PG_UPGRADE_PATH/$TARGET_VERSION/copied-missing-lib64" \
     do
       if [ -f "$FILE" ]
       then
-        chmod a+rw "$FILE"
+        chmod a+rw "$FILE" || true
         rm -rfv "$FILE"
      fi
     done

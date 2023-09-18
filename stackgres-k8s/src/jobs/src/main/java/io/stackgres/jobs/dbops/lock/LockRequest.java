@@ -18,7 +18,7 @@ public interface LockRequest {
 
   String getLockResourceName();
 
-  int getTimeout();
+  int getDuration();
 
   int getPollInterval();
 }

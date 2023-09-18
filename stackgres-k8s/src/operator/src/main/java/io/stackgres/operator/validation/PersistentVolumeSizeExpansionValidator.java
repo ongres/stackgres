@@ -27,7 +27,6 @@ public abstract class PersistentVolumeSizeExpansionValidator<T extends Admission
   @Override
   public void validate(T review) throws ValidationFailed {
     if (isOperationUpdate(review) && compareVolumeSizes(review) != 0) {
-
       if (compareVolumeSizes(review) < 0) {
         // At the moment we can't decrease volume sizes
         throwValidationError("Decrease of persistent volume size is not supported");
@@ -168,7 +167,7 @@ public abstract class PersistentVolumeSizeExpansionValidator<T extends Admission
    * @param review the review to check
    * @return <code>if the operation is update</code>, <code>false</code> otherwise
    */
-  protected boolean isOperationUpdate(T review) {
+  private boolean isOperationUpdate(T review) {
     return review.getRequest().getOperation() == Operation.UPDATE;
   }
 

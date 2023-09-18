@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.TolerationBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
@@ -136,10 +137,6 @@ public class DbOpsRestartJob implements JobFactory {
                     .withValue(Boolean.FALSE.toString())
                     .build(),
                 new EnvVarBuilder()
-                    .withName("DATABASE_OPERATION_JOB")
-                    .withValue(Boolean.TRUE.toString())
-                    .build(),
-                new EnvVarBuilder()
                     .withName("DATABASE_OPERATION_CR_NAME")
                     .withValue(dbOps.getMetadata().getName())
                     .build(),
@@ -176,12 +173,24 @@ public class DbOpsRestartJob implements JobFactory {
                     .withValue(System.getenv("DEBUG_OPERATOR_SUSPEND"))
                     .build(),
                 new EnvVarBuilder()
-                    .withName("DBOPS_LOCK_TIMEOUT")
-                    .withValue(OperatorProperty.LOCK_TIMEOUT.getString())
+                    .withName("DBOPS_LOCK_DURATION")
+                    .withValue(OperatorProperty.LOCK_DURATION.getString())
                     .build(),
                 new EnvVarBuilder()
                     .withName("DBOPS_LOCK_POLL_INTERVAL")
                     .withValue(OperatorProperty.LOCK_POLL_INTERVAL.getString())
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("LOCK_SERVICE_ACCOUNT_KEY")
+                    .withValue(StackGresContext.LOCK_SERVICE_ACCOUNT_KEY)
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("LOCK_POD_KEY")
+                    .withValue(StackGresContext.LOCK_POD_KEY)
+                    .build(),
+                new EnvVarBuilder()
+                    .withName("LOCK_TIMEOUT_KEY")
+                    .withValue(StackGresContext.LOCK_TIMEOUT_KEY)
                     .build())
             .build())
         .endSpec()

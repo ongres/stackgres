@@ -5,7 +5,7 @@ UPSTREAM_GIT_URL="https://github.com/redhat-openshift-ecosystem/certified-operat
 FORK_GIT_URL="${FORK_GIT_URL:-$1}"
 PROJECT_NAME="stackgres-certified"
 DO_PIN_IMAGES=true
-HELM_OPERATOR_BUNDLE_IMAGE_TAG_SUFFIX=-openshift
+OPERATOR_BUNDLE_IMAGE_TAG_SUFFIX=-openshift
 
 deploy_extra_steps() {
   yq -y -s '.[0] * .[1]' \

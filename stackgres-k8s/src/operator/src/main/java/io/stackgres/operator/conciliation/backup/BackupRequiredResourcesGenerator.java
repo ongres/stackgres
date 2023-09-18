@@ -35,8 +35,8 @@ import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
-import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
+import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +56,7 @@ public class BackupRequiredResourcesGenerator
   private final CustomResourceScanner<StackGresBackup> backupScanner;
   private final CustomResourceFinder<StackGresObjectStorage> objectStorageFinder;
 
-  private final RequiredResourceDecorator<StackGresBackupContext> decorator;
+  private final ResourceGenerationDiscoverer<StackGresBackupContext> discoverer;
 
   @Inject
   public BackupRequiredResourcesGenerator(
@@ -65,13 +65,13 @@ public class BackupRequiredResourcesGenerator
       CustomResourceFinder<StackGresBackupConfig> backupConfigFinder,
       CustomResourceScanner<StackGresBackup> backupScanner,
       CustomResourceFinder<StackGresObjectStorage> objectStorageFinder,
-      RequiredResourceDecorator<StackGresBackupContext> decorator) {
+      ResourceGenerationDiscoverer<StackGresBackupContext> discoverer) {
     this.clusterFinder = clusterFinder;
     this.profileFinder = profileFinder;
     this.backupConfigFinder = backupConfigFinder;
     this.backupScanner = backupScanner;
     this.objectStorageFinder = objectStorageFinder;
-    this.decorator = decorator;
+    this.discoverer = discoverer;
   }
 
   @Override
@@ -140,7 +140,7 @@ public class BackupRequiredResourcesGenerator
                           + " with a non existent SGBackupConfig " + bcName))));
     }
 
-    return decorator.decorateResources(contextBuilder.build());
+    return discoverer.generateResources(contextBuilder.build());
   }
 
   private boolean isBackupInTheSameSgClusterNamespace(

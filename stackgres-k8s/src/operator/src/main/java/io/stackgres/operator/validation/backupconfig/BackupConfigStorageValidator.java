@@ -36,19 +36,17 @@ public class BackupConfigStorageValidator implements BackupConfigValidator {
   private final DefaultCustomResourceHolder<StackGresBackupConfig> holder;
 
   @Inject
-  public BackupConfigStorageValidator(ResourceFinder<Secret> secretFinder,
-                                      DefaultCustomResourceHolder<StackGresBackupConfig> holder) {
-    super();
+  public BackupConfigStorageValidator(
+      ResourceFinder<Secret> secretFinder,
+      DefaultCustomResourceHolder<StackGresBackupConfig> holder) {
     this.secretFinder = secretFinder;
     this.holder = holder;
   }
 
   @Override
   public void validate(BackupConfigReview review) throws ValidationFailed {
-
     Operation operation = review.getRequest().getOperation();
     if (operation == Operation.CREATE || operation == Operation.UPDATE) {
-
       final StackGresBackupConfig object = review.getRequest().getObject();
       if (holder.isDefaultCustomResource(object)) {
         return;
@@ -102,9 +100,11 @@ public class BackupConfigStorageValidator implements BackupConfigValidator {
     }
   }
 
-  private void checkSecret(String namespace, String storageType, String selectorName,
-                           SecretKeySelector secretKeySelector) throws ValidationFailed {
-
+  private void checkSecret(
+      String namespace,
+      String storageType,
+      String selectorName,
+      SecretKeySelector secretKeySelector) throws ValidationFailed {
     Optional<Secret> secret = secretFinder.findByNameAndNamespace(
         secretKeySelector.getName(), namespace);
     if (!secret.isPresent()) {

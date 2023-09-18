@@ -104,7 +104,7 @@ describe('Create SGShardedCluster', () => {
 
         cy.deleteShardedCluster(namespace, 'babelfish-' + resourceName);
 
-        //cy.deleteShardedCluster(namespace, 'advanced-' + resourceName);
+        cy.deleteShardedCluster(namespace, 'advanced-' + resourceName);
 
         cy.deleteShardedCluster(namespace, 'rep-sgshardedcluster-' + resourceName);
 

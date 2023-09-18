@@ -24,7 +24,7 @@ kubectl_mock_overwrite() {
     LOCK_POD="$(cat "$TEST_TARGET_PATH/lock_pod")"
     echo '
       LOCK_POD='"$LOCK_POD"'
-      LOCK_TIMESTAMP="$(date +%s)"
+      LOCK_TIMEOUT='"$(( $(date +%s) + 1 ))"'
       RESOURCE_VERSION=test
       '
     echo wrong-test > "$TEST_TARGET_PATH/lock_pod"

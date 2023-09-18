@@ -4,7 +4,18 @@ set -e
 
 shopt -s expand_aliases 2> /dev/null || true
 
-TEST_SHELL_PATH="${TEST_SHELL_PATH:-$(dirname "$0")}"
+if [ "${0##*/}" = "shell-unit-tests.sh" ]
+then
+  TEST_PATH="$1"
+  shift
+  if [ -f "$TEST_PATH" ]
+  then
+    TEST_PATH="${TEST_PATH#$(dirname "$0")/}"
+  fi
+  set -- "$TEST_PATH" "$@"
+  cd "$(dirname "$0")"
+fi
+TEST_SHELL_PATH=.
 PROJECT_PATH="$TEST_SHELL_PATH/../../.."
 TARGET_PATH="$PROJECT_PATH/target/shell"
 
@@ -15,6 +26,11 @@ mkdir -p "$TARGET_PATH"
 
 run_test() {
   TEST_PATH="$1"
+  if [ ! -f "$TEST_PATH" ]
+  then
+    echo "Test $TEST_PATH not found!"
+    return 1
+  fi
   TEST_NAME="$(basename "$(dirname "$TEST_PATH")")/$(basename "$TEST_PATH")"
   TEST_TARGET_PATH="$TARGET_PATH/$TEST_NAME"
   rm -rf "$TEST_TARGET_PATH"
@@ -31,12 +47,12 @@ run_test() {
   fi
   "$E_UNSET" || set +e
   (
-    "$SHELL" -l -c $SHELL_XTRACE "$(cat << EOF
+    "$SHELL" -c $SHELL_XTRACE "$(cat << EOF
 TEST_SHELL_PATH="$TEST_SHELL_PATH"
 TEST_PATH="$TEST_PATH"
 TEST_NAME="$TEST_NAME"
 TEST_TARGET_PATH="$TEST_TARGET_PATH"
-. "$TEST_SHELL_PATH/shell-unit-tests.sh"
+. "$TEST_SHELL_PATH/shell-unit-tests.sh" source
 . "$TEST_PATH"
 if command -v shell_unit_test_skip > /dev/null && shell_unit_test_skip
 then
@@ -51,7 +67,7 @@ EOF
       set +x
       while read -r LINE
       do
-        printf '%s\n' "$LINE"
+        printf '[%s] %s\n' "$TEST_NAME" "$LINE"
         printf '%s\n' "$LINE" >> "$TEST_TARGET_PATH/log"
       done
       )
@@ -74,7 +90,7 @@ EOF
 run_all_tests() {
   rm -f "$TARGET_PATH/shell-unit-tests-junit-report.results.xml"
   local START="$(date +%s)"
-  local TEST_PATHS="$(ls -1 "$PROJECT_PATH/src/test/shell"/*/[0-9][0-9]-*)"
+  local TEST_PATHS="$(ls -1 "$TEST_SHELL_PATH"/*/[0-9][0-9]-*)"
   local FAIL=false
   local OK_TESTS=""
   local FAIL_TESTS=""
@@ -188,7 +204,11 @@ not_mokked() {
   echo false > "$MOKKED"
 }
 
-if [ "$1" = "all" ]
+if [ "$1" = source ]
+then
+  shift
+  "$@"
+elif [ "$1" = all ]
 then
   set_trap
 

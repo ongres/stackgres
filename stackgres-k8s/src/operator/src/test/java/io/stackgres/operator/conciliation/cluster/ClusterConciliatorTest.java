@@ -78,7 +78,7 @@ class ClusterConciliatorTest {
 
     final List<HasMetadata> deployedResources = new ArrayList<>(deepCopy(lastRequiredResources));
 
-    final List<HasMetadata> lastDeployedResources = new ArrayList<>(deepCopy(deployedResources));
+    final List<HasMetadata> foundDeployedResources = new ArrayList<>(deepCopy(deployedResources));
 
     requiredResources.removeIf(Predicate.not(this::hasControllerOwnerReference));
 
@@ -90,13 +90,13 @@ class ClusterConciliatorTest {
         .get();
     lastRequiredResources.remove(deletedResource.v2.intValue());
     deployedResources.remove(deletedResource.v2.intValue());
-    lastDeployedResources.remove(deletedResource.v2.intValue());
+    foundDeployedResources.remove(deletedResource.v2.intValue());
 
     ClusterConciliator conciliator = buildConciliator(
         requiredResources,
         lastRequiredResources,
         deployedResources,
-        lastDeployedResources);
+        foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
     assertEquals(1, result.getCreations().size());
@@ -114,9 +114,9 @@ class ClusterConciliatorTest {
 
     final List<HasMetadata> deployedResources = deepCopy(lastRequiredResources);
 
-    final List<HasMetadata> lastDeployedResources = deepCopy(deployedResources);
+    final List<HasMetadata> foundDeployedResources = deepCopy(deployedResources);
 
-    var deletedResource = Seq.seq(lastDeployedResources)
+    var deletedResource = Seq.seq(foundDeployedResources)
         .zipWithIndex()
         .filter(t -> hasControllerOwnerReference(t.v1))
         .sorted(shuffle())
@@ -130,7 +130,7 @@ class ClusterConciliatorTest {
         requiredResources,
         lastRequiredResources,
         deployedResources,
-        lastDeployedResources);
+        foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
     assertEquals(1, result.getDeletions().size());
@@ -148,7 +148,7 @@ class ClusterConciliatorTest {
 
     final List<HasMetadata> deployedResources = deepCopy(lastRequiredResources);
 
-    final List<HasMetadata> lastDeployedResources = deepCopy(deployedResources);
+    final List<HasMetadata> foundDeployedResources = deepCopy(deployedResources);
 
     requiredResources.removeIf(Predicate.not(this::hasControllerOwnerReference));
 
@@ -156,7 +156,7 @@ class ClusterConciliatorTest {
         requiredResources,
         lastRequiredResources,
         deployedResources,
-        lastDeployedResources);
+        foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
     assertEquals(0, result.getDeletions().size());
@@ -175,7 +175,7 @@ class ClusterConciliatorTest {
 
     final List<HasMetadata> deployedResources = deepCopy(requiredResources);
 
-    final List<HasMetadata> lastDeployedResources = deepCopy(deployedResources);
+    final List<HasMetadata> foundDeployedResources = deepCopy(deployedResources);
 
     requiredResources.removeIf(Predicate.not(this::hasControllerOwnerReference));
 
@@ -192,7 +192,7 @@ class ClusterConciliatorTest {
         requiredResources,
         lastRequiredResources,
         deployedResources,
-        lastDeployedResources);
+        foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
     assertEquals(0, result.getDeletions().size());
@@ -211,9 +211,9 @@ class ClusterConciliatorTest {
 
     final List<HasMetadata> deployedResources = deepCopy(requiredResources);
 
-    final List<HasMetadata> lastDeployedResources = deepCopy(deployedResources);
+    final List<HasMetadata> foundDeployedResources = deepCopy(deployedResources);
 
-    var updatedResource = Seq.seq(lastDeployedResources)
+    var updatedResource = Seq.seq(foundDeployedResources)
         .zipWithIndex()
         .filter(t -> hasControllerOwnerReference(t.v1))
         .sorted(shuffle())
@@ -231,7 +231,7 @@ class ClusterConciliatorTest {
         requiredResources,
         lastRequiredResources,
         deployedResources,
-        lastDeployedResources);
+        foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
     assertEquals(0, result.getDeletions().size());
@@ -250,9 +250,9 @@ class ClusterConciliatorTest {
 
     final List<HasMetadata> deployedResources = deepCopy(requiredResources);
 
-    final List<HasMetadata> lastDeployedResources = deepCopy(deployedResources);
+    final List<HasMetadata> foundDeployedResources = deepCopy(deployedResources);
 
-    var updatedResource = Seq.seq(lastDeployedResources)
+    var updatedResource = Seq.seq(foundDeployedResources)
         .zipWithIndex()
         .filter(t -> hasControllerOwnerReference(t.v1))
         .sorted(shuffle())
@@ -270,7 +270,7 @@ class ClusterConciliatorTest {
         requiredResources,
         lastRequiredResources,
         deployedResources,
-        lastDeployedResources);
+        foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
     assertEquals(0, result.getDeletions().size());
@@ -289,11 +289,11 @@ class ClusterConciliatorTest {
 
     final List<HasMetadata> deployedResources = deepCopy(requiredResources);
 
-    final List<HasMetadata> lastDeployedResources = deepCopy(deployedResources);
+    final List<HasMetadata> foundDeployedResources = deepCopy(deployedResources);
 
     requiredResources.removeIf(Predicate.not(this::hasControllerOwnerReference));
 
-    var updatedResource = Seq.seq(lastDeployedResources)
+    var updatedResource = Seq.seq(foundDeployedResources)
         .zipWithIndex()
         .filter(t -> hasControllerOwnerReference(t.v1))
         .sorted(shuffle())
@@ -306,7 +306,7 @@ class ClusterConciliatorTest {
         requiredResources,
         lastRequiredResources,
         deployedResources,
-        lastDeployedResources);
+        foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
     assertEquals(0, result.getDeletions().size());
@@ -325,11 +325,11 @@ class ClusterConciliatorTest {
 
     final List<HasMetadata> deployedResources = deepCopy(requiredResources);
 
-    final List<HasMetadata> lastDeployedResources = deepCopy(deployedResources);
+    final List<HasMetadata> foundDeployedResources = deepCopy(deployedResources);
 
     requiredResources.removeIf(Predicate.not(this::hasControllerOwnerReference));
 
-    StatefulSet updatedResource = lastDeployedResources.stream()
+    StatefulSet updatedResource = foundDeployedResources.stream()
         .filter(StatefulSet.class::isInstance)
         .map(StatefulSet.class::cast)
         .findFirst()
@@ -343,7 +343,7 @@ class ClusterConciliatorTest {
         requiredResources,
         lastRequiredResources,
         deployedResources,
-        lastDeployedResources);
+        foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
     assertEquals(0, result.getDeletions().size());
@@ -362,11 +362,11 @@ class ClusterConciliatorTest {
 
     final List<HasMetadata> deployedResources = deepCopy(requiredResources);
 
-    final List<HasMetadata> lastDeployedResources = deepCopy(deployedResources);
+    final List<HasMetadata> foundDeployedResources = deepCopy(deployedResources);
 
     requiredResources.removeIf(Predicate.not(this::hasControllerOwnerReference));
 
-    Service updatedResource = lastDeployedResources.stream()
+    Service updatedResource = foundDeployedResources.stream()
         .filter(Service.class::isInstance)
         .map(Service.class::cast)
         .findFirst()
@@ -380,7 +380,7 @@ class ClusterConciliatorTest {
         requiredResources,
         lastRequiredResources,
         deployedResources,
-        lastDeployedResources);
+        foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
     assertEquals(0, result.getDeletions().size());
@@ -399,11 +399,11 @@ class ClusterConciliatorTest {
 
     final List<HasMetadata> deployedResources = deepCopy(requiredResources);
 
-    final List<HasMetadata> lastDeployedResources = deepCopy(deployedResources);
+    final List<HasMetadata> foundDeployedResources = deepCopy(deployedResources);
 
     requiredResources.removeIf(Predicate.not(this::hasControllerOwnerReference));
 
-    var updatedResource = Seq.seq(lastDeployedResources)
+    var updatedResource = Seq.seq(foundDeployedResources)
         .zipWithIndex()
         .filter(t -> hasControllerOwnerReference(t.v1))
         .sorted(shuffle())
@@ -416,7 +416,7 @@ class ClusterConciliatorTest {
         requiredResources,
         lastRequiredResources,
         deployedResources,
-        lastDeployedResources);
+        foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
     assertEquals(0, result.getDeletions().size());
@@ -433,11 +433,11 @@ class ClusterConciliatorTest {
 
     final List<HasMetadata> deployedResources = deepCopy(requiredResources);
 
-    final List<HasMetadata> lastDeployedResources = deepCopy(deployedResources);
+    final List<HasMetadata> foundDeployedResources = deepCopy(deployedResources);
 
     requiredResources.removeIf(Predicate.not(this::hasControllerOwnerReference));
 
-    lastDeployedResources.stream()
+    foundDeployedResources.stream()
         .filter(StatefulSet.class::isInstance)
         .map(StatefulSet.class::cast)
         .findFirst()
@@ -450,7 +450,7 @@ class ClusterConciliatorTest {
         requiredResources,
         lastRequiredResources,
         deployedResources,
-        lastDeployedResources);
+        foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
     assertEquals(0, result.getDeletions().size());
@@ -467,11 +467,11 @@ class ClusterConciliatorTest {
 
     final List<HasMetadata> deployedResources = deepCopy(requiredResources);
 
-    final List<HasMetadata> lastDeployedResources = deepCopy(deployedResources);
+    final List<HasMetadata> foundDeployedResources = deepCopy(deployedResources);
 
     requiredResources.removeIf(Predicate.not(this::hasControllerOwnerReference));
 
-    lastDeployedResources.stream()
+    foundDeployedResources.stream()
         .filter(Service.class::isInstance)
         .map(Service.class::cast)
         .findFirst()
@@ -488,7 +488,7 @@ class ClusterConciliatorTest {
         requiredResources,
         lastRequiredResources,
         deployedResources,
-        lastDeployedResources);
+        foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
     assertEquals(0, result.getDeletions().size());
@@ -505,7 +505,7 @@ class ClusterConciliatorTest {
 
     final List<HasMetadata> deployedResources = deepCopy(lastRequiredResources);
 
-    final List<HasMetadata> lastDeployedResources = deepCopy(deployedResources);
+    final List<HasMetadata> foundDeployedResources = deepCopy(deployedResources);
 
     requiredResources.removeIf(Predicate.not(this::hasControllerOwnerReference));
 
@@ -514,7 +514,7 @@ class ClusterConciliatorTest {
         .map(StatefulSet.class::cast)
         .findFirst()
         .get().getSpec().setReplicas(10);
-    StatefulSet updatedResource = lastDeployedResources.stream()
+    StatefulSet updatedResource = foundDeployedResources.stream()
         .filter(StatefulSet.class::isInstance)
         .map(StatefulSet.class::cast)
         .findFirst()
@@ -524,7 +524,7 @@ class ClusterConciliatorTest {
         requiredResources,
         lastRequiredResources,
         deployedResources,
-        lastDeployedResources);
+        foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
 
@@ -544,11 +544,11 @@ class ClusterConciliatorTest {
 
     final List<HasMetadata> deployedResources = deepCopy(lastRequiredResources);
 
-    final List<HasMetadata> lastDeployedResources = deepCopy(deployedResources);
+    final List<HasMetadata> foundDeployedResources = deepCopy(deployedResources);
 
     requiredResources.removeIf(Predicate.not(this::hasControllerOwnerReference));
 
-    lastDeployedResources.stream().forEach(resource -> resource
+    foundDeployedResources.stream().forEach(resource -> resource
         .getMetadata().setAnnotations(Map.of(
             StackGresContext.RECONCILIATION_PAUSE_KEY, Boolean.TRUE.toString())));
 
@@ -556,7 +556,7 @@ class ClusterConciliatorTest {
         requiredResources,
         lastRequiredResources,
         deployedResources,
-        lastDeployedResources);
+        foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
 
@@ -576,11 +576,11 @@ class ClusterConciliatorTest {
 
     final List<HasMetadata> deployedResources = deepCopy(lastRequiredResources);
 
-    final List<HasMetadata> lastDeployedResources = deepCopy(deployedResources);
+    final List<HasMetadata> foundDeployedResources = deepCopy(deployedResources);
 
     requiredResources.removeIf(Predicate.not(this::hasControllerOwnerReference));
 
-    var removedResource = Seq.seq(lastDeployedResources)
+    var removedResource = Seq.seq(foundDeployedResources)
         .zipWithIndex()
         .filter(t -> hasControllerOwnerReference(t.v1))
         .sorted(shuffle())
@@ -592,7 +592,7 @@ class ClusterConciliatorTest {
         StackGresContext.RECONCILIATION_PAUSE_KEY,
         Boolean.TRUE.toString()));
 
-    var changedResource = Seq.seq(lastDeployedResources)
+    var changedResource = Seq.seq(foundDeployedResources)
         .zipWithIndex()
         .filter(t -> hasControllerOwnerReference(t.v1))
         .sorted(shuffle())
@@ -607,7 +607,7 @@ class ClusterConciliatorTest {
         requiredResources,
         lastRequiredResources,
         deployedResources,
-        lastDeployedResources);
+        foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
     assertEquals(0, result.getCreations().size());
@@ -628,9 +628,9 @@ class ClusterConciliatorTest {
 
     final List<HasMetadata> deployedResources = deepCopy(lastRequiredResources);
 
-    final List<HasMetadata> lastDeployedResources = deepCopy(deployedResources);
+    final List<HasMetadata> foundDeployedResources = deepCopy(deployedResources);
 
-    StatefulSet updatedResource = lastDeployedResources.stream()
+    StatefulSet updatedResource = foundDeployedResources.stream()
         .filter(StatefulSet.class::isInstance)
         .map(StatefulSet.class::cast)
         .findFirst()
@@ -640,7 +640,7 @@ class ClusterConciliatorTest {
         requiredResources,
         lastRequiredResources,
         deployedResources,
-        lastDeployedResources);
+        foundDeployedResources);
 
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
 
@@ -659,7 +659,7 @@ class ClusterConciliatorTest {
       List<HasMetadata> required,
       List<HasMetadata> lastRequired,
       List<HasMetadata> deployed,
-      List<HasMetadata> lastDeployed) {
+      List<HasMetadata> foundDeployed) {
     deployedResourcesCache = new DeployedResourcesCache(
         new OperatorPropertyContext(), JsonUtil.jsonMapper());
     deployed.stream()
@@ -670,12 +670,13 @@ class ClusterConciliatorTest {
                 .findFirst()
                 .orElse(resource),
                 resource));
-    List<HasMetadata> ownedLastDeployed = lastDeployed.stream()
+    List<HasMetadata> ownedLastDeployed = foundDeployed.stream()
         .filter(this::hasControllerOwnerReference)
         .toList();
-    lastDeployed.stream().forEach(resource -> resource.getMetadata().setResourceVersion("changed"));
+    foundDeployed.stream()
+        .forEach(resource -> resource.getMetadata().setResourceVersion("changed"));
     DeployedResourcesSnapshot deplyedResourcesSnapshot =
-        deployedResourcesCache.createDeployedResourcesSnapshot(ownedLastDeployed, lastDeployed);
+        deployedResourcesCache.createDeployedResourcesSnapshot(ownedLastDeployed, foundDeployed);
 
     when(requiredResourceGenerator.getRequiredResources(cluster))
         .thenReturn(required);

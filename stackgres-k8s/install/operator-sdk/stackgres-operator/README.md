@@ -1,8 +1,8 @@
 # StackGres Helm Operator Bundle
 
-This module build the bundle and the images to be used with OLM based on the StackGres Operator Helm Chart.
+This module build the bundle and the images to be used with OLM.
 
-See also https://sdk.operatorframework.io/docs/building-operators/helm/
+See also https://sdk.operatorframework.io/docs/overview/
 
 # Build
 
@@ -22,13 +22,7 @@ make bundle-openshift
 
 # Build images
 
-To create the helm operator image
-
-```
-make docker-build
-```
-
-To create the helm operator bundle image
+To create the operator bundle image
 
 ```
 make bundle-build

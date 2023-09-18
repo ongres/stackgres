@@ -28,13 +28,12 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 public class LockValidator implements ClusterValidator {
 
   final ObjectMapper objectMapper;
-  final int timeout;
+  final int duration;
 
   @Inject
   public LockValidator(OperatorPropertyContext operatorPropertyContext,
       ObjectMapper objectMapper) {
-    super();
-    this.timeout = operatorPropertyContext.getInt(OperatorProperty.LOCK_TIMEOUT);
+    this.duration = operatorPropertyContext.getInt(OperatorProperty.LOCK_DURATION);
     this.objectMapper = objectMapper;
   }
 
@@ -49,7 +48,7 @@ public class LockValidator implements ClusterValidator {
           return;
         }
         String username = review.getRequest().getUserInfo().getUsername();
-        if (StackGresUtil.isLocked(cluster, timeout)
+        if (StackGresUtil.isLocked(cluster)
             && (
                 username == null
                 || !isServiceAccountUsername(username)
@@ -60,8 +59,8 @@ public class LockValidator implements ClusterValidator {
             ) {
           fail("Cluster update is forbidden. It is locked by some SGBackup or SGDbOps"
               + " that is currently running. Please, wait for the operation to finish,"
-              + " stop the operation by deleting it or wait for the lock timeout of "
-              + timeout + " milliseconds to expire.");
+              + " stop the operation by deleting it or wait for the lock duration of "
+              + duration + " seconds to expire.");
         }
         break;
       }

@@ -15,5 +15,5 @@ roleRef:
   name: proxy-role
 subjects:
 - kind: ServiceAccount
-  name: helm-controller-manager
+  name: operator
   namespace: system

@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.conciliation.distributedlogs;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -158,7 +157,7 @@ public class DistributedLogsStatusManager
       StackGresDistributedLogs distributedLogs) {
     return Optional.ofNullable(distributedLogs.getStatus())
         .map(StackGresDistributedLogsStatus::getConditions)
-        .orElseGet(ArrayList::new);
+        .orElse(List.of());
   }
 
   @Override

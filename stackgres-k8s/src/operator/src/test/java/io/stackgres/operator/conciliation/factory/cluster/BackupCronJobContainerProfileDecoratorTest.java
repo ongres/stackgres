@@ -117,7 +117,7 @@ class BackupCronJobContainerProfileDecoratorTest extends AbstractProfileDecorato
 
   @Override
   protected void decorate() {
-    profileDecorator.decorate(context, resources);
+    resources.forEach(resource -> profileDecorator.decorate(context, resource));
   }
 
   @Override

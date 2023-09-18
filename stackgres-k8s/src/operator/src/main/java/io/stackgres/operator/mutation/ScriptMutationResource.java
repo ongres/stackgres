@@ -19,8 +19,8 @@ import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.operator.common.StackGresScriptReview;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReviewResponse;
+import io.stackgres.operatorframework.admissionwebhook.mutating.AbstractMutationResource;
 import io.stackgres.operatorframework.admissionwebhook.mutating.MutationPipeline;
-import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ScriptMutationResource
-    extends MutationResource<StackGresScript, StackGresScriptReview> {
+    extends AbstractMutationResource<StackGresScript, StackGresScriptReview> {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(ScriptMutationResource.class);

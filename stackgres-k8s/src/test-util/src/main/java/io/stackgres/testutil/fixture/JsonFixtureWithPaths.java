@@ -147,6 +147,9 @@ public interface JsonFixtureWithPaths {
   String STACKGRES_BACKUP_ADMISSION_REVIEW_CREATE_JSON =
       "stackgres/backup/admission_review/create.json";
 
+  String STACKGRES_BACKUP_ADMISSION_REVIEW_DELETE_JSON =
+      "stackgres/backup/admission_review/delete.json";
+
   String STACKGRES_BACKUP_ADMISSION_REVIEW_UPDATE_JSON =
       "stackgres/backup/admission_review/update.json";
 
@@ -275,6 +278,18 @@ public interface JsonFixtureWithPaths {
 
   String STACKGRES_CLUSTER_WITHOUT_DISTRIBUTED_LOGS_JSON =
       "stackgres/cluster/without_distributed_logs.json";
+
+  String STACKGRES_CONFIG_ADMISSION_REVIEW_CREATE_JSON =
+      "stackgres/config/admission_review/create.json";
+
+  String STACKGRES_CONFIG_ADMISSION_REVIEW_DELETE_JSON =
+      "stackgres/config/admission_review/delete.json";
+
+  String STACKGRES_CONFIG_ADMISSION_REVIEW_UPDATE_JSON =
+      "stackgres/config/admission_review/update.json";
+
+  String STACKGRES_CONFIG_DEFAULT_JSON =
+      "stackgres/config/default.json";
 
   String STACKGRES_DB_OPS_ADMISSION_REVIEW_MAJOR_VERSION_UPGRADE_CREATE_JSON =
       "stackgres/db_ops/admission_review/major_version_upgrade_create.json";

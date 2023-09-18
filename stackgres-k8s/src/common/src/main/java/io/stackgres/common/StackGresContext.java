@@ -19,12 +19,14 @@ public interface StackGresContext {
   String CLUSTER_NAMESPACE_KEY = "cluster-namespace";
   String RIGHT_VALUE = Boolean.TRUE.toString();
   String WRONG_VALUE = Boolean.FALSE.toString();
+  String RESTAPI_KEY = "restapi";
+  String GRAFANA_INTEGRATION_KEY = "grafana-integration";
   String CLUSTER_KEY = "cluster";
   String BACKUP_KEY = "backup";
   String DB_OPS_KEY = "db-ops";
   String SCHEDULED_BACKUP_KEY = "scheduled-backup";
   String SCHEDULED_BACKUP_JOB_NAME_KEY = "scheduled-backup-job-name";
-  String DISRUPTIBLE_KEY = "disruptible";
+  String DISRUPTABLE_KEY = "disruptible";
   String DISTRIBUTED_LOGS_APP_NAME = "StackGresDistributedLogs";
   String DISTRIBUTED_LOGS_CLUSTER_NAME_KEY = "distributed-logs-name";
   String DISTRIBUTED_LOGS_CLUSTER_NAMESPACE_KEY = "distributed-logs-namespace";
@@ -44,6 +46,10 @@ public interface StackGresContext {
   String SHARDEDCLUSTER_NAMESPACE_KEY = "shardedcluster-namespace";
   String COORDINATOR_KEY = "coordinator";
   String SHARDS_KEY = "shards";
+  String CONFIG_APP_NAME = "StackGresConfig";
+  String CONFIG_NAME_KEY = "config-name";
+  String CONFIG_UID_KEY = "config-uid";
+  String CONFIG_NAMESPACE_KEY = "config-namespace";
 
   String REST_APIUSER_KEY = "apiUsername";
   String REST_K8SUSER_KEY = "k8sUsername";
@@ -79,8 +85,8 @@ public interface StackGresContext {
   String AUTH_KEY = "api.stackgres.io/auth";
   String AUTH_USER_VALUE = "user";
 
-  String LOCK_SERVICE_ACCOUNT_KEY = "lockServiceAccount";
-  String LOCK_POD_KEY = "lockPod";
-  String LOCK_TIMESTAMP_KEY = "lockTimestamp";
+  String LOCK_SERVICE_ACCOUNT_KEY = STACKGRES_KEY_PREFIX + "lockServiceAccount";
+  String LOCK_POD_KEY = STACKGRES_KEY_PREFIX + "lockPod";
+  String LOCK_TIMEOUT_KEY = STACKGRES_KEY_PREFIX + "lockTimeout";
 
 }

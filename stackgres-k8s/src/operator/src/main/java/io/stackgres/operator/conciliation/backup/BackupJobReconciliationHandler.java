@@ -19,14 +19,14 @@ import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.labels.LabelFactoryForBackup;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
-import io.stackgres.operator.conciliation.AbstractJobReconciliationHandler;
+import io.stackgres.operator.conciliation.FireAndForgetJobReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 
 @ReconciliationScope(value = StackGresBackup.class, kind = "Job")
 @ApplicationScoped
 public class BackupJobReconciliationHandler
-    extends AbstractJobReconciliationHandler<StackGresBackup> {
+    extends FireAndForgetJobReconciliationHandler<StackGresBackup> {
 
   @Inject
   public BackupJobReconciliationHandler(

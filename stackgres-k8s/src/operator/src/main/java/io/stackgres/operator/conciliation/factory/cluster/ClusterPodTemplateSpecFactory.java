@@ -45,9 +45,9 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
-import io.stackgres.operator.conciliation.ContainerFactoryDiscoverer;
-import io.stackgres.operator.conciliation.InitContainerFactoryDiscover;
+import io.stackgres.operator.conciliation.InitContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.RunningContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ImmutablePodTemplateResult;
@@ -66,22 +66,23 @@ public class ClusterPodTemplateSpecFactory
 
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
-  private final ContainerFactoryDiscoverer<ClusterContainerContext>
-      containerFactoryDiscoverer;
+  private final RunningContainerFactoryDiscoverer<ClusterContainerContext>
+      runningContainerFactoryDiscoverer;
 
-  private final InitContainerFactoryDiscover<ClusterContainerContext>
+  private final InitContainerFactoryDiscoverer<ClusterContainerContext>
       initContainerFactoryDiscoverer;
 
   @Inject
   public ClusterPodTemplateSpecFactory(
       ResourceFactory<StackGresClusterContext, PodSecurityContext> podSecurityContext,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
-      ContainerFactoryDiscoverer<ClusterContainerContext> containerFactoryDiscoverer,
-      InitContainerFactoryDiscover<ClusterContainerContext>
+      RunningContainerFactoryDiscoverer<ClusterContainerContext>
+          runningContainerFactoryDiscoverer,
+      InitContainerFactoryDiscoverer<ClusterContainerContext>
           initContainerFactoryDiscoverer) {
     this.podSecurityContext = podSecurityContext;
     this.labelFactory = labelFactory;
-    this.containerFactoryDiscoverer = containerFactoryDiscoverer;
+    this.runningContainerFactoryDiscoverer = runningContainerFactoryDiscoverer;
     this.initContainerFactoryDiscoverer = initContainerFactoryDiscoverer;
   }
 
@@ -89,7 +90,7 @@ public class ClusterPodTemplateSpecFactory
   public PodTemplateResult getPodTemplateSpec(ClusterContainerContext context) {
 
     final List<ContainerFactory<ClusterContainerContext>> containerFactories =
-        containerFactoryDiscoverer.discoverContainers(context);
+        runningContainerFactoryDiscoverer.discoverContainers(context);
 
     final List<Container> containers = containerFactories.stream()
         .map(f -> f.getContainer(context)).toList();

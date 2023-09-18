@@ -4,7 +4,7 @@
  */
 
 /**
- * Custom Resource for the main StackGres Cluster.
+ * Custom Resource for the StackGres Sharded Cluster.
  */
 
 package io.stackgres.common.crd.sgshardedcluster;

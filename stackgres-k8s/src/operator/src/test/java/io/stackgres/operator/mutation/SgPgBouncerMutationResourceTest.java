@@ -8,7 +8,7 @@ package io.stackgres.operator.mutation;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import io.stackgres.operatorframework.admissionwebhook.mutating.MutationResource;
+import io.stackgres.operatorframework.admissionwebhook.mutating.AbstractMutationResource;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -18,7 +18,7 @@ class SgPgBouncerMutationResourceTest
     extends MutationResourceTest<StackGresPoolingConfig, PoolingReview> {
 
   @Override
-  protected MutationResource<StackGresPoolingConfig, PoolingReview> getResource() {
+  protected AbstractMutationResource<StackGresPoolingConfig, PoolingReview> getResource() {
     return new SgPgBouncerMutationResource(JsonUtil.jsonMapper(), pipeline);
   }
 

@@ -70,7 +70,7 @@ public abstract class AbstractLabelFactoryForCluster<T extends CustomResource<?,
   public Map<String, String> statefulSetPodLabels(T resource) {
     return Map.of(labelMapper().appKey(), labelMapper().appName(),
         labelMapper().clusterKey(resource), StackGresContext.RIGHT_VALUE,
-        labelMapper().disruptibleKey(resource), StackGresContext.RIGHT_VALUE,
+        labelMapper().disruptableKey(resource), StackGresContext.RIGHT_VALUE,
         labelMapper().resourceNameKey(resource), labelValue(resourceName(resource)),
         labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)));
   }

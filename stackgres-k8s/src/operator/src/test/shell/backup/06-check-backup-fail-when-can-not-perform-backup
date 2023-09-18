@@ -3,7 +3,7 @@
 . "$TEST_SHELL_PATH/backup/abstract-backup"
 
 shell_unit_test() {
-  ! shell_unit_test_backup
+  ! (shell_unit_test_backup)
 }
 
 mock kubectl kubectl_mock_overwrite

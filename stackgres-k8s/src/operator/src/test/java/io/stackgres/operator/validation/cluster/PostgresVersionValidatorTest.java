@@ -14,7 +14,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +35,6 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.AbstractCustomResourceFinder;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
-import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.jooq.lambda.Seq;
@@ -144,8 +142,7 @@ class PostgresVersionValidatorTest {
 
   @BeforeEach
   void setUp() {
-    validator = new PostgresConfigValidator(configFinder, ALL_SUPPORTED_POSTGRES_VERSIONS,
-        new OperatorPropertyContext());
+    validator = new PostgresConfigValidator(configFinder, ALL_SUPPORTED_POSTGRES_VERSIONS);
     postgresConfig = Fixtures.postgresConfig().loadDefault().get();
   }
 
@@ -348,7 +345,7 @@ class PostgresVersionValidatorTest {
         .loadMajorPostgresVersionUpdate().get();
     review.getRequest().getObject().getMetadata().setAnnotations(new HashMap<>());
     StackGresUtil.setLock(review.getRequest().getObject(),
-        "test", "test", Instant.now().getEpochSecond());
+        "test", "test", 300);
     review.getRequest().getUserInfo().setUsername("system:serviceaccount:test:test");
 
     review.getRequest().getObject().getSpec().getPostgres().setVersion(FIRST_PG_MAJOR_VERSION);
@@ -382,7 +379,7 @@ class PostgresVersionValidatorTest {
 
     review.getRequest().getObject().getMetadata().setAnnotations(new HashMap<>());
     StackGresUtil.setLock(review.getRequest().getObject(),
-        "test", "test", Instant.now().getEpochSecond());
+        "test", "test", 300);
     review.getRequest().getUserInfo().setUsername("system:serviceaccount:test:test");
 
     review.getRequest().getObject().getSpec().getPostgres().setVersion(FIRST_PG_MINOR_VERSION);

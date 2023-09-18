@@ -41,7 +41,7 @@ class MinorVersionUpgradeJobTest {
 
   @InjectMock
   @StateHandler("minorVersionUpgrade")
-  MinorVersionUpgradeRestartStateHandlerImpl clusterRestart;
+  MinorVersionUpgradeRestartStateHandler clusterRestart;
 
   private StackGresCluster cluster;
   private StackGresDbOps dbOps;

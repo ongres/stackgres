@@ -155,7 +155,7 @@ EOF
    "  > "stackgres-k8s/ci/build/target/$MODULE-build-env"
   # shellcheck disable=SC2046
   docker_run -i $(! test -t 1 || printf %s '-t') --rm \
-    --pull always \
+    $([ "$SKIP_REMOTE_MANIFEST" = true ] || printf %s '--pull always') \
     --volume "/var/run/docker.sock:/var/run/docker.sock" \
     --volume "${PROJECT_PATH:-$(pwd)}:/project" \
     --workdir /project \
@@ -247,7 +247,7 @@ EOF
   # shellcheck disable=SC2086
   # shellcheck disable=SC2046
   docker_build $DOCKER_BUILD_OPTS -t "$IMAGE_NAME" \
-    --pull \
+    $([ "$SKIP_REMOTE_MANIFEST" = true ] || printf %s '--pull') \
     --build-arg "BUILD_UID=${BUILD_UID%:*}" \
     --build-arg "TARGET_IMAGE_NAME=$TARGET_IMAGE_NAME" \
     $(jq -r ".modules[\"$MODULE\"].dockerfile.args
@@ -397,7 +397,7 @@ extract_from_image() {
   local IMAGE_PLATFORM
   IMAGE_PLATFORM="$(get_image_platform "$IMAGE_NAME")"
   docker_run --rm --entrypoint /bin/sh --platform "$IMAGE_PLATFORM" \
-    --pull always \
+    $([ "$SKIP_REMOTE_MANIFEST" = true ] || printf %s '--pull always') \
     --user "$(id -u):$(id -g)" \
     --env HOME=/tmp \
     -v "${PROJECT_PATH:-$(pwd)}:/out" \
@@ -529,11 +529,11 @@ find_image_digest() {
   if retrieve_image_manifest "$IMAGE_NAME" >/dev/null 2>&1
   then
     if ! IMAGE_DIGEST="$(jq -r \
-      '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].RepoDigests | map(split(":")[1]) | sort | unique | join("-")' \
+      '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].RepoDigests | map(split(":")|last) | if length == 0 then halt_error else . end | sort | first' \
       "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
       2>/dev/null)"
     then
-      IMAGE_DIGEST="$(jq -r 'if (.|type) == "array" then . else [.] end | map(.Descriptor.digest) | sort | unique | join("-")' \
+      IMAGE_DIGEST="$(jq -r 'if (.|type) == "array" then . else [.] end | map(.Descriptor.digest) | sort | first' \
         "stackgres-k8s/ci/build/target/manifest.${IMAGE_NAME##*/}")"
     fi
     printf '%s=%s\n' "$IMAGE_NAME" "$IMAGE_DIGEST" \
@@ -545,7 +545,7 @@ get_image_platform() {
   local IMAGE_NAME="$1"
   local IMAGE_MEDIA_TYPE
   local IMAGE_PLATFORM
-  retrieve_image_manifest "$IMAGE_NAME"
+  retrieve_image_manifest "$IMAGE_NAME" > /dev/null
   if IMAGE_PLATFORM="$(jq -r \
     '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].Architecture' \
     "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
@@ -576,7 +576,8 @@ get_image_platform() {
 
 retrieve_image_manifest() {
   local IMAGE_NAME="$1"
-  if ! jq 'if length == 0 then halt_error else halt end' \
+  if ! jq -r \
+    '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].RepoDigests | map(split(":")|last) | if length == 0 then halt_error else . end | sort | first' \
     "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
     >/dev/null 2>&1
   then
@@ -584,11 +585,36 @@ retrieve_image_manifest() {
     then
       docker_inspect "$IMAGE_NAME" \
         > "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}"
+      local EXIT_CODE="$?"
+      if [ "$EXIT_CODE" != 0 ]
+      then
+        return "$EXIT_CODE"
+      fi
+      if ! jq -r \
+        '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].RepoDigests | map(split(":")|last) | if length == 0 then halt_error else . end | sort | first' \
+        "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
+        >/dev/null 2>&1
+      then
+        echo "Using a local image registry to calculate digest for $IMAGE_NAME" >&2
+        REGISTRY_CONTAINER_ID="$(docker_run -d -p 5000 --stop-timeout 300 registry:2)"
+        REGISTRY_PORT="$(docker_inspect "$REGISTRY_CONTAINER_ID" | jq '.[0].NetworkSettings.Ports["5000/tcp"][0].HostPort' -r)"
+        REGISTRY_IMAGE_NAME="localhost:$REGISTRY_PORT/$(printf %s "${IMAGE_NAME%:*}" | tr '/:' '_'):${IMAGE_NAME##*:}"
+        docker_tag "$IMAGE_NAME" "$REGISTRY_IMAGE_NAME"
+        docker_push "$REGISTRY_IMAGE_NAME"
+        docker_inspect "$REGISTRY_IMAGE_NAME" \
+          > "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}"
+        docker_rm -fv "$REGISTRY_CONTAINER_ID"
+        docker_rmi "$REGISTRY_IMAGE_NAME"
+        jq -r \
+          '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].RepoDigests | map(split(":")|last) | if length == 0 then halt_error else . end | sort | first' \
+          "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
+          >/dev/null 2>&1
+      fi
     elif ! docker_inspect "$IMAGE_NAME" \
       > "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
       2>/dev/null \
       || ! jq -r \
-      '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].RepoDigests | map(split(":")[1]) | if length == 0 then halt_error else . end | sort | unique | join("-")' \
+      '. as $manifest | if length == 0 then halt_error else . end | $manifest[0].RepoDigests | map(split(":")|last) | if length == 0 then halt_error else . end | sort | first' \
       "stackgres-k8s/ci/build/target/manifest.local.${IMAGE_NAME##*/}" \
       >/dev/null 2>&1
     then
@@ -637,6 +663,14 @@ docker_build() {
 
 docker_push() {
   docker push "$@"
+}
+
+docker_tag() {
+  docker tag "$@"
+}
+
+docker_rm() {
+  docker rm "$@"
 }
 
 docker_manifest_inspect() {

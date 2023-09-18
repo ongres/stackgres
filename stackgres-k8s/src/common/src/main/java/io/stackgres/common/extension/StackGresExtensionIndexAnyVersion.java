@@ -24,28 +24,6 @@ public class StackGresExtensionIndexAnyVersion {
   private final Optional<String> arch;
   private final Optional<String> os;
 
-  private StackGresExtensionIndexAnyVersion(ExtensionRequest extensionRequest,
-                                            Optional<ExtensionUtil.OsDetector> osDetector) {
-    this.name = extensionRequest.getExtension().getName();
-    this.publisher = extensionRequest.getExtension().getPublisherOrDefault();
-    this.flavor = ExtensionUtil.getFlavorPrefix(extensionRequest.getStackGresComponent());
-    this.postgresVersion = extensionRequest.getStackGresComponent()
-        .getOrThrow(extensionRequest.stackGresVersion())
-        .getMajorVersion(
-            extensionRequest.getPostgresVersion()
-        );
-    this.postgresExactVersion = extensionRequest.getStackGresComponent()
-        .getOrThrow(extensionRequest.stackGresVersion())
-        .getVersion(extensionRequest.getPostgresVersion());
-    this.fromIndex = false;
-    this.build = extensionRequest.getStackGresComponent()
-        .getOrThrow(extensionRequest.stackGresVersion())
-        .getBuildMajorVersion(
-            extensionRequest.getPostgresVersion());
-    this.arch = ExtensionUtil.getClusterArch(extensionRequest, osDetector);
-    this.os = ExtensionUtil.getClusterOs(extensionRequest, osDetector);
-  }
-
   private StackGresExtensionIndexAnyVersion(StackGresCluster cluster,
                                             StackGresClusterExtension extension,
                                             Optional<ExtensionUtil.OsDetector> osDetector) {
@@ -80,12 +58,6 @@ public class StackGresExtensionIndexAnyVersion {
       StackGresCluster cluster,
       StackGresClusterExtension extension, boolean detectOs) {
     return new StackGresExtensionIndexAnyVersion(cluster, extension,
-        Optional.of(ExtensionUtil.OS_DETECTOR).filter(od -> detectOs));
-  }
-
-  public static StackGresExtensionIndexAnyVersion fromClusterExtension(
-      ExtensionRequest extensionRequest, boolean detectOs) {
-    return new StackGresExtensionIndexAnyVersion(extensionRequest,
         Optional.of(ExtensionUtil.OS_DETECTOR).filter(od -> detectOs));
   }
 

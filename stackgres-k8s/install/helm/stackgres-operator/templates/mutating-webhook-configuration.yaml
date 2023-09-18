@@ -1,4 +1,8 @@
-{{- if or (and (not .Release.IsInstall) (not .Release.IsUpgrade)) (and .Values.cert.key .Values.cert.crt) }}
+{{- $cert := "Cg==" }}
+{{- $certSecret := lookup "v1" "Secret" .Release.Namespace (include "cert-name" .) }}
+{{- if and $certSecret (index $certSecret.data "tls.crt") }}
+{{- $cert = (index $certSecret.data "tls.crt") }}
+{{- end }}
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
@@ -14,7 +18,7 @@ metadata:
   labels:
     app.kubernetes.io/managed-by: Helm
 webhooks:
-  - name: sgcluster.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgcluster.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -27,9 +31,9 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgcluster'
-      caBundle: '{{ .Values.cert.crt }}'
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
-  - name: sgpgconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgpgconfig.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -42,9 +46,9 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgpgconfig'
-      caBundle: '{{ .Values.cert.crt }}'
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
-  - name: sgpoolconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgpoolconfig.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -57,9 +61,9 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgpoolconfig'
-      caBundle: '{{ .Values.cert.crt }}'
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
-  - name: sginstanceprofile.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sginstanceprofile.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -72,9 +76,9 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sginstanceprofile'
-      caBundle: '{{ .Values.cert.crt }}'
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
-  - name: sgbackupconfig.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgbackupconfig.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -87,9 +91,9 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgbackupconfig'
-      caBundle: '{{ .Values.cert.crt }}'
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
-  - name: sgbackup.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgbackup.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -102,9 +106,9 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgbackup'
-      caBundle: '{{ .Values.cert.crt }}'
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
-  - name: sgdistributedlogs.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgdistributedlogs.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -117,9 +121,9 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgdistributedlogs'
-      caBundle: '{{ .Values.cert.crt }}'
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
-  - name: sgdbops.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgdbops.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -132,9 +136,9 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgdbops'
-      caBundle: '{{ .Values.cert.crt }}'
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
-  - name: sgobjectstorage.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgobjectstorage.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -147,9 +151,9 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgobjectstorage'
-      caBundle: '{{ .Values.cert.crt }}'
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
-  - name: sgscripts.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgscripts.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -162,9 +166,9 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgscript'
-      caBundle: {{ .Values.cert.crt }}
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
-  - name: sgshardedclusters.{{ .Release.Name }}.{{ .Release.Namespace }}
+  - name: sgshardedclusters.mutating-webhook.stackgres.io
     sideEffects: None
     rules:
       - operations: ["CREATE", "UPDATE"]
@@ -177,6 +181,5 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgshardedcluster'
-      caBundle: {{ .Values.cert.crt }}
+      caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
-{{- end }}

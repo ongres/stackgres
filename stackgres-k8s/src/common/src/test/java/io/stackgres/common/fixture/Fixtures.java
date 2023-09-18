@@ -12,6 +12,7 @@ import io.stackgres.common.fixture.backupconfig.BackupConfigListFixture;
 import io.stackgres.common.fixture.cluster.ClusterFixture;
 import io.stackgres.common.fixture.cluster.ClusterListFixture;
 import io.stackgres.common.fixture.cluster.JsonClusterFixture;
+import io.stackgres.common.fixture.config.ConfigFixture;
 import io.stackgres.common.fixture.dbops.DbOpsFixture;
 import io.stackgres.common.fixture.distributedlogs.DistributedLogsFixture;
 import io.stackgres.common.fixture.distributedlogs.DistributedLogsListFixture;
@@ -105,6 +106,10 @@ public interface Fixtures {
 
   static ShardedClusterListFixture shardedClusterList() {
     return new ShardedClusterListFixture();
+  }
+
+  static ConfigFixture config() {
+    return new ConfigFixture();
   }
 
   static ExtensionMetadataFixture extensionMetadata() {

@@ -22,6 +22,7 @@ import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.operator.app.OperatorLockHolder;
 import io.stackgres.operator.common.PatchResumer;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
@@ -48,6 +49,7 @@ public class ShardedClusterReconciliator
     @Inject EventEmitter<StackGresShardedCluster> eventController;
     @Inject CustomResourceScheduler<StackGresShardedCluster> clusterScheduler;
     @Inject ObjectMapper objectMapper;
+    @Inject OperatorLockHolder operatorLockReconciliator;
   }
 
   private final StatusManager<StackGresShardedCluster, Condition> statusManager;
@@ -60,6 +62,7 @@ public class ShardedClusterReconciliator
     super(parameters.scanner, parameters.finder,
         parameters.conciliator, parameters.deployedResourcesCache,
         parameters.handlerDelegator, parameters.client,
+        parameters.operatorLockReconciliator,
         StackGresShardedCluster.KIND);
     this.statusManager = parameters.statusManager;
     this.eventController = parameters.eventController;

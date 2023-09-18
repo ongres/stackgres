@@ -125,6 +125,12 @@ traceable_k8s_unnamespaced_cleanup() {
   traceable_k8s_webhook_cleanup
   echo "Cleanup of k8s crds"
   kubectl get crd -o name \
+    | grep -v "\.operators\.coreos\.com$" \
+    | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
+  kubectl get crd -o name \
+    | grep "\.operators\.coreos\.com$" \
     | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
@@ -192,6 +198,13 @@ k8s_cleanup_but_operator() {
 traceable_k8s_cleanup_but_operator() {
   echo "Cleanup of k8s excluding operator"
   kubectl get crd -o name \
+    | grep -v "\.operators\.coreos\.com$" \
+    | grep -v '\.stackgres\.io$' \
+    | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
+    | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
+  kubectl get crd -o name \
+    | grep "\.operators\.coreos\.com$" \
     | grep -v '\.stackgres\.io$' \
     | grep -v "^[^/]\+/\($(excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \

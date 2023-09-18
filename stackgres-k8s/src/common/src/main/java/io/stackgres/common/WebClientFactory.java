@@ -11,9 +11,6 @@ import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.HashMap;
@@ -29,10 +26,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.enterprise.context.Dependent;
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.X509TrustManager;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -41,6 +34,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
 import com.google.common.net.HttpHeaders;
+import io.stackgres.common.WebUtil.InsecureHostnameVerifier;
 import org.jboss.resteasy.plugins.interceptors.AcceptEncodingGZIPFilter;
 import org.jboss.resteasy.plugins.interceptors.GZIPDecodingInterceptor;
 import org.jboss.resteasy.plugins.interceptors.GZIPEncodingInterceptor;
@@ -69,12 +63,8 @@ public class WebClientFactory {
         .map(URI::create);
     final Optional<String> optionalRetry = getUriQueryParameter(uri, RETRY_PARAMETER);
     if (skipHostnameVerification) {
-      SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-      sslContext.init(null,
-          new X509TrustManager[] {InsecureX509TrustManager.INSTANCE},
-          new SecureRandom());
       clientBuilder.hostnameVerifier(InsecureHostnameVerifier.INSTANCE)
-          .sslContext(sslContext);
+          .sslContext(WebUtil.createInsecureSslContext());
     }
     final Map<String, String> extraHeaders = new HashMap<>();
     extraHeaders.put(HttpHeaders.USER_AGENT,
@@ -196,32 +186,6 @@ public class WebClientFactory {
     @Override
     public void close() throws Exception {
       client.close();
-    }
-  }
-
-  private static class InsecureX509TrustManager implements X509TrustManager {
-    public static final InsecureX509TrustManager INSTANCE = new InsecureX509TrustManager();
-
-    @Override
-    public void checkClientTrusted(X509Certificate[] chain,
-        String authType) throws CertificateException {}
-
-    @Override
-    public void checkServerTrusted(X509Certificate[] chain,
-        String authType) throws CertificateException {}
-
-    @Override
-    public X509Certificate[] getAcceptedIssuers() {
-      return new X509Certificate[0];
-    }
-  }
-
-  private static class InsecureHostnameVerifier implements HostnameVerifier {
-    private static final InsecureHostnameVerifier INSTANCE = new InsecureHostnameVerifier();
-
-    @Override
-    public boolean verify(final String s, final SSLSession sslSession) {
-      return true;
     }
   }
 

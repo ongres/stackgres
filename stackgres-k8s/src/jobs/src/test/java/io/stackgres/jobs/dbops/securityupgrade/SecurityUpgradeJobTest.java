@@ -49,7 +49,7 @@ class SecurityUpgradeJobTest {
 
   @InjectMock
   @StateHandler("securityUpgrade")
-  SecurityUpgradeStateHandlerImpl clusterRestart;
+  SecurityUpgradeStateHandler clusterRestart;
 
   @InjectMock
   StatefulSetFinder statefulSetReader;

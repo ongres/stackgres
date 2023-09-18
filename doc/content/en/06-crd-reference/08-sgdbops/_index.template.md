@@ -1,6 +1,6 @@
 ---
 title: SGDbOps
-weight: 9
+weight: 8
 url: /reference/crd/sgdbops
 description: Details about SGDbOps
 showToc: true

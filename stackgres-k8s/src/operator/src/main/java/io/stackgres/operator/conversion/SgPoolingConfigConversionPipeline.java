@@ -11,7 +11,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 
 @ApplicationScoped
@@ -23,7 +22,7 @@ public class SgPoolingConfigConversionPipeline implements ConversionPipeline {
   @Inject
   public SgPoolingConfigConversionPipeline(
       @Conversion(StackGresPoolingConfig.KIND) Instance<Converter> converters) {
-    this.converters = converters.stream().collect(ImmutableList.toImmutableList());
+    this.converters = converters.stream().toList();
   }
 
   @Override

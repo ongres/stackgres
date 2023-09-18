@@ -104,7 +104,7 @@ class BackupJobReconciliationHandlerTest {
     assertEquals("Resource must be a Job instance", ex.getMessage());
 
     verify(defaultHandler, never()).create(any(), any(Job.class));
-    verify(defaultHandler, never()).patch(any(), any(Pod.class), any());
+    verify(defaultHandler, never()).replace(any(), any(Pod.class));
   }
 
   @Test
@@ -144,13 +144,13 @@ class BackupJobReconciliationHandlerTest {
         .map(Tuple2::v2)
         .orElseThrow();
 
-    when(defaultHandler.patch(any(), any(Job.class), any())).thenReturn(requiredJob);
+    when(defaultHandler.replace(any(), any(Job.class))).thenReturn(requiredJob);
 
     handler.patch(backup, requiredJob, deployedJob);
 
     ArgumentCaptor<Job> jobArgumentCaptor =
         ArgumentCaptor.forClass(Job.class);
-    verify(defaultHandler, times(1)).patch(any(), jobArgumentCaptor.capture(), any());
+    verify(defaultHandler, times(1)).replace(any(), jobArgumentCaptor.capture());
     jobArgumentCaptor.getAllValues().forEach(job -> {
       assertEquals(Seq.seq(deployedAnnotations)
           .filter(annotation -> !requiredAnnotations.containsKey(annotation.v1))
@@ -181,11 +181,11 @@ class BackupJobReconciliationHandlerTest {
         .map(t -> t.map1(pod -> pod.getMetadata().getName()))
         .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2));
 
-    when(defaultHandler.patch(any(), any(Job.class), any())).thenReturn(requiredJob);
+    when(defaultHandler.replace(any(), any(Job.class))).thenReturn(requiredJob);
 
     handler.patch(backup, requiredJob, deployedJob);
 
-    verify(defaultHandler, times(1)).patch(any(), any(Job.class), any());
+    verify(defaultHandler, times(1)).replace(any(), any(Job.class));
 
     verify(defaultHandler, times(1)).patch(any(), any(Pod.class), any());
     ArgumentCaptor<HasMetadata> podArgumentCaptor = ArgumentCaptor.forClass(HasMetadata.class);
@@ -212,7 +212,7 @@ class BackupJobReconciliationHandlerTest {
         .thenReturn(Optional.of(
             returnRequiredJob ? requiredJob : deployedJob));
     lenient().when(defaultHandler.create(any(), any(Job.class))).thenReturn(requiredJob);
-    lenient().when(defaultHandler.patch(any(), any(Job.class), any())).thenReturn(requiredJob);
+    lenient().when(defaultHandler.replace(any(), any(Job.class))).thenReturn(requiredJob);
   }
 
   @SuppressWarnings("unchecked")

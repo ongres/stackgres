@@ -18,6 +18,7 @@ import io.stackgres.common.component.Component.ImageVersion;
 public interface ValidationUtil {
 
   String VALIDATION_PATH = "/stackgres/validation";
+  String CONFIG_VALIDATION_PATH = VALIDATION_PATH + "/sgconfig";
   String CLUSTER_VALIDATION_PATH = VALIDATION_PATH + "/sgcluster";
   String PGCONFIG_VALIDATION_PATH = VALIDATION_PATH + "/sgpgconfig";
   String CONNPOOLCONFIG_VALIDATION_PATH = VALIDATION_PATH + "/sgpoolconfig";

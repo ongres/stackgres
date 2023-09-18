@@ -1,5 +1,6 @@
 #!/bin/sh
 
+APP_PATH="${APP_PATH:-/app}"
 if [ "$DEBUG_DISTRIBUTEDLOGS_CONTROLLER" = true ]
 then
   set -x
@@ -17,12 +18,12 @@ if [ "$JAVA_CDS_GENERATION" = true ]
 then
   export KUBERNETES_MASTER=240.0.0.1
   java \
-    -XX:ArchiveClassesAtExit=/app/quarkus-run.jsa \
+    -XX:ArchiveClassesAtExit="$APP_PATH"/quarkus-run.jsa \
     -XX:MaxRAMPercentage=75.0 \
     -Djava.net.preferIPv4Stack=true \
     -Djava.awt.headless=true \
     -Djava.util.logging.manager=org.jboss.logmanager.LogManager \
-    $JAVA_OPTS $DEBUG_JAVA_OPTS -jar /app/quarkus-run.jar \
+    $JAVA_OPTS $DEBUG_JAVA_OPTS -jar "$APP_PATH"/quarkus-run.jar \
     -Dquarkus.http.host=0.0.0.0 \
     $APP_OPTS &
   PID=$!
@@ -35,11 +36,11 @@ then
   exit
 fi
 exec java \
-  -XX:SharedArchiveFile=/app/quarkus-run.jsa \
+  -XX:SharedArchiveFile="$APP_PATH"/quarkus-run.jsa \
   -XX:MaxRAMPercentage=75.0 \
   -Djava.net.preferIPv4Stack=true \
   -Djava.awt.headless=true \
   -Djava.util.logging.manager=org.jboss.logmanager.LogManager \
-  $JAVA_OPTS $DEBUG_JAVA_OPTS -jar /app/quarkus-run.jar \
+  $JAVA_OPTS $DEBUG_JAVA_OPTS -jar "$APP_PATH"/quarkus-run.jar \
   -Dquarkus.http.host=0.0.0.0 \
   $APP_OPTS

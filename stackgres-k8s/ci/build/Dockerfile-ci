@@ -147,3 +147,4 @@ FROM registry.access.redhat.com/ubi8-minimal:8.7-1107
   RUN wget https://github.com/norwoodj/helm-docs/releases/download/v1.11.0/helm-docs_1.11.0_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo x86_64).tar.gz -O -|tar xz -C /bin -f - helm-docs
   RUN wget https://github.com/gohugoio/hugo/releases/download/v0.81.0/hugo_0.81.0_Linux-$(uname -m | grep -qxF aarch64 && echo ARM64 || echo 64bit).tar.gz -O -|tar xz -C /bin -f - hugo
   RUN wget https://github.com/fybrik/crdoc/releases/download/v0.6.2/crdoc_0.6.2_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo x86_64).tar.gz -O -|tar xz -C /bin -f - crdoc
+  RUN wget -O - "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v4.5.7/kustomize_v4.5.7_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/').tar.gz" | tar xzf - -C /bin

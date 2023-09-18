@@ -60,8 +60,8 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.common.Prometheus;
-import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
+import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresSslSecret;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
@@ -100,7 +100,7 @@ public class ClusterRequiredResourcesGenerator
 
   private final OperatorPropertyContext operatorContext;
 
-  private final RequiredResourceDecorator<StackGresClusterContext> decorator;
+  private final ResourceGenerationDiscoverer<StackGresClusterContext> discoverer;
 
   @Inject
   public ClusterRequiredResourcesGenerator(
@@ -116,7 +116,7 @@ public class ClusterRequiredResourcesGenerator
       CustomResourceScanner<PrometheusConfig> prometheusScanner,
       CustomResourceScanner<StackGresBackup> backupScanner,
       OperatorPropertyContext operatorContext,
-      RequiredResourceDecorator<StackGresClusterContext> decorator) {
+      ResourceGenerationDiscoverer<StackGresClusterContext> discoverer) {
     this.kubernetesVersionSupplier = kubernetesVersionSupplier;
     this.clusterFinder = clusterFinder;
     this.backupConfigFinder = backupConfigFinder;
@@ -129,7 +129,7 @@ public class ClusterRequiredResourcesGenerator
     this.prometheusScanner = prometheusScanner;
     this.backupScanner = backupScanner;
     this.operatorContext = operatorContext;
-    this.decorator = decorator;
+    this.discoverer = discoverer;
   }
 
   private static PrometheusInstallation toPrometheusInstallation(PrometheusConfig pc) {
@@ -245,7 +245,7 @@ public class ClusterRequiredResourcesGenerator
         .postgresSslPrivateKey(postgresSsl.privateKey)
         .build();
 
-    return decorator.decorateResources(context);
+    return discoverer.generateResources(context);
   }
 
   record Credentials(

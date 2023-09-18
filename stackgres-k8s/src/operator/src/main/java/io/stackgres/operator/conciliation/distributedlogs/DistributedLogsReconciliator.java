@@ -27,6 +27,7 @@ import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.operator.app.OperatorLockHolder;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
@@ -50,6 +51,7 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
     @Inject CustomResourceScheduler<StackGresDistributedLogs> distributedLogsScheduler;
     @Inject StatusManager<StackGresDistributedLogs, Condition> statusManager;
     @Inject EventEmitter<StackGresDistributedLogs> eventController;
+    @Inject OperatorLockHolder operatorLockReconciliator;
   }
 
   private final ConnectedClustersScanner connectedClustersScanner;
@@ -62,6 +64,7 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
     super(parameters.scanner, parameters.finder,
         parameters.conciliator, parameters.deployedResourcesCache,
         parameters.handlerDelegator, parameters.client,
+        parameters.operatorLockReconciliator,
         StackGresDistributedLogs.KIND);
     this.connectedClustersScanner = parameters.connectedClustersScanner;
     this.distributedLogsScheduler = parameters.distributedLogsScheduler;

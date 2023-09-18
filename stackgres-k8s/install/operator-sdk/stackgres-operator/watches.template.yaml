@@ -1,7 +1,0 @@
-# Use the 'create api' subcommand to add watches to this file.
-- group: stackgres.io
-  version: v1
-  kind: SGConfig
-  chart: helm-charts/stackgres-operator
-  watchDependentResources: true
-#+kubebuilder:scaffold:watch

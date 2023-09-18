@@ -136,6 +136,7 @@ pom.xml.tag
 **/helm/*/charts/*.tgz
 **/helm/*/requirements.lock
 **/helm/*/generated.md
+**/helm/stackgres-operator/crds
 
 doc/public
 doc/data/crds

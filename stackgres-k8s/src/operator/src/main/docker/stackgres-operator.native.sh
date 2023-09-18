@@ -4,6 +4,14 @@ if [ "$DEBUG_OPERATOR" = true ]
 then
   set -x
 fi
+if [ -n "$OPERATOR_CERT_FILE" ]
+then
+  APP_OPTS="$APP_OPTS -Dquarkus.http.ssl.certificate.files=$OPERATOR_CERT_FILE"
+fi
+if [ -n "$OPERATOR_KEY_FILE" ]
+then
+  APP_OPTS="$APP_OPTS -Dquarkus.http.ssl.certificate.key-files=$OPERATOR_KEY_FILE"
+fi
 if [ -n "$OPERATOR_LOG_LEVEL" ]
 then
   APP_OPTS="$APP_OPTS -Dquarkus.log.level=$OPERATOR_LOG_LEVEL"

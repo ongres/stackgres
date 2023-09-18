@@ -5,10 +5,47 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
+import java.time.Duration;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
 import io.fabric8.kubernetes.api.model.Pod;
 import io.smallrye.mutiny.Uni;
+import io.stackgres.common.resource.ResourceWriter;
+import io.stackgres.jobs.dbops.MutinyUtil;
 
-public interface PodRestart {
+@ApplicationScoped
+public class PodRestart {
 
-  Uni<Pod> restartPod(String name, Pod pod);
+  private final ResourceWriter<Pod> podWriter;
+
+  private final PodWatcher podWatcher;
+
+  @Inject
+  public PodRestart(ResourceWriter<Pod> podWriter, PodWatcher podWatcher) {
+    this.podWriter = podWriter;
+    this.podWatcher = podWatcher;
+  }
+
+  public Uni<Pod> restartPod(String name, Pod pod) {
+    String podName = pod.getMetadata().getName();
+    String podNamespace = pod.getMetadata().getNamespace();
+
+    return podWatcher.waitUntilIsCreated(podName, podNamespace)
+        .onItem()
+        .invoke(podWriter::delete)
+        .chain(podWatcher::waitUntilIsReplaced)
+        .chain(() -> podWatcher.waitUntilIsReady(name, podName, podNamespace, true))
+        .onFailure(StatefulSetChangedException.class::isInstance)
+        .retry().indefinitely()
+        .onFailure()
+        .transform(ex -> MutinyUtil.logOnFailureToRetry(ex,
+            "restarting pod {}", pod.getMetadata().getName()))
+        .onFailure()
+        .retry()
+        .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
+        .atMost(10);
+  }
+
 }

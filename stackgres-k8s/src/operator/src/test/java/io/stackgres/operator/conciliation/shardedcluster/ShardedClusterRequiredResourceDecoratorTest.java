@@ -22,8 +22,8 @@ import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.Prometheus;
-import io.stackgres.operator.conciliation.AbstractRequiredResourceDecoratorTest;
-import io.stackgres.operator.conciliation.RequiredResourceDecorator;
+import io.stackgres.operator.conciliation.AbstractRequiredResourceGeneratorTest;
+import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import org.jooq.lambda.Seq;
@@ -32,10 +32,10 @@ import org.junit.jupiter.api.BeforeEach;
 @QuarkusTest
 @WithKubernetesTestServer
 class ShardedClusterRequiredResourceDecoratorTest
-    extends AbstractRequiredResourceDecoratorTest<StackGresShardedClusterContext> {
+    extends AbstractRequiredResourceGeneratorTest<StackGresShardedClusterContext> {
 
   @Inject
-  ShardedClusterRequiredResourceDecorator resourceDecorator;
+  ShardedClusterResourceGenerationDiscoverer resourceGenerationDiscoverer;
 
   private StackGresShardedCluster resource;
   private StackGresPostgresConfig pgConfig;
@@ -51,8 +51,9 @@ class ShardedClusterRequiredResourceDecoratorTest
   }
 
   @Override
-  protected RequiredResourceDecorator<StackGresShardedClusterContext> getResourceDecorator() {
-    return this.resourceDecorator;
+  protected ResourceGenerationDiscoverer<StackGresShardedClusterContext>
+      getResourceGenerationDiscoverer() {
+    return this.resourceGenerationDiscoverer;
   }
 
   @Override

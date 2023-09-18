@@ -40,7 +40,7 @@ public class DeployedResourcesCache {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(DeployedResourcesCache.class);
 
-  private final Cache<ResourceKey, DeployedResourceValue> cache;
+  private final Cache<ResourceKey, DeployedResource> cache;
   private final ObjectMapper objectMapper;
 
   @Inject
@@ -70,7 +70,7 @@ public class DeployedResourcesCache {
           deployedResource.getMetadata().getName());
     }
     cache.put(key,
-        DeployedResourceValue.create(
+        DeployedResource.create(
             requiredResource,
             deployedResource,
             toComparableDeployedNode(requiredResource, deployedResource)));
@@ -88,11 +88,11 @@ public class DeployedResourcesCache {
     cache.invalidate(key);
   }
 
-  public DeployedResourceValue get(HasMetadata requiredResource) {
+  public DeployedResource get(HasMetadata requiredResource) {
     return cache.getIfPresent(ResourceKey.create(requiredResource));
   }
 
-  public Stream<DeployedResourceValue> stream() {
+  public Stream<DeployedResource> stream() {
     return cache.asMap().values().stream();
   }
 
@@ -109,60 +109,60 @@ public class DeployedResourcesCache {
   }
 
   private void putOrUpdateLatest(
-      HasMetadata latestDeployedResource,
-      Map<ResourceKey, DeployedResourceValue> deployedResourceMap) {
-    ResourceKey key = ResourceKey.create(latestDeployedResource);
-    DeployedResourceValue deployedResourceValue = deployedResourceMap.get(key);
-    if (deployedResourceValue != null) {
+      HasMetadata foundDeployedResource,
+      Map<ResourceKey, DeployedResource> deployedResourceMap) {
+    ResourceKey key = ResourceKey.create(foundDeployedResource);
+    DeployedResource deployedResource = deployedResourceMap.get(key);
+    if (deployedResource != null) {
       if (Objects.equals(
-          deployedResourceValue.latestDeployed().getMetadata().getResourceVersion(),
-          latestDeployedResource.getMetadata().getResourceVersion())) {
+          deployedResource.foundDeployed().getMetadata().getResourceVersion(),
+          foundDeployedResource.getMetadata().getResourceVersion())) {
         return;
       }
-      if (deployedResourceValue.required().isPresent()) {
+      if (deployedResource.required().isPresent()) {
         if (LOGGER.isTraceEnabled()) {
           LOGGER.trace("Updated previously required resource {} {}.{}",
-              latestDeployedResource.getKind(),
-              latestDeployedResource.getMetadata().getNamespace(),
-              latestDeployedResource.getMetadata().getName());
+              foundDeployedResource.getKind(),
+              foundDeployedResource.getMetadata().getNamespace(),
+              foundDeployedResource.getMetadata().getName());
         }
-        HasMetadata requiredResource = deployedResourceValue.required().get();
+        HasMetadata requiredResource = deployedResource.required().get();
         deployedResourceMap.put(key,
-            DeployedResourceValue.create(
+            DeployedResource.create(
                 requiredResource,
-                deployedResourceValue.deployed(),
-                deployedResourceValue.deployedNode(),
-                latestDeployedResource,
-                toComparableDeployedNode(requiredResource, latestDeployedResource)));
+                deployedResource.deployed(),
+                deployedResource.deployedNode(),
+                foundDeployedResource,
+                toComparableDeployedNode(requiredResource, foundDeployedResource)));
       } else {
         if (LOGGER.isTraceEnabled()) {
           LOGGER.trace("Updated already found resource {} {}.{}",
-              latestDeployedResource.getKind(),
-              latestDeployedResource.getMetadata().getNamespace(),
-              latestDeployedResource.getMetadata().getName());
+              foundDeployedResource.getKind(),
+              foundDeployedResource.getMetadata().getNamespace(),
+              foundDeployedResource.getMetadata().getName());
         }
         deployedResourceMap.put(key,
-            DeployedResourceValue.create(
-                deployedResourceValue.deployed(),
-                deployedResourceValue.deployedNode(),
-                latestDeployedResource,
+            DeployedResource.create(
+                deployedResource.deployed(),
+                deployedResource.deployedNode(),
+                foundDeployedResource,
                 null));
       }
     } else {
       if (LOGGER.isTraceEnabled()) {
         LOGGER.trace("Found resource {} {}.{}",
-            latestDeployedResource.getKind(),
-            latestDeployedResource.getMetadata().getNamespace(),
-            latestDeployedResource.getMetadata().getName());
+            foundDeployedResource.getKind(),
+            foundDeployedResource.getMetadata().getNamespace(),
+            foundDeployedResource.getMetadata().getName());
       }
       deployedResourceMap.put(key,
-          DeployedResourceValue.create(
-              latestDeployedResource,
+          DeployedResource.create(
+              foundDeployedResource,
               null));
     }
   }
 
-  private void putAll(Map<ResourceKey, DeployedResourceValue> deployedResourcesMap) {
+  private void putAll(Map<ResourceKey, DeployedResource> deployedResourcesMap) {
     cache.putAll(deployedResourcesMap);
   }
 
@@ -176,7 +176,7 @@ public class DeployedResourcesCache {
     cache.asMap().entrySet().stream()
         .map(e -> Tuple.tuple(
             e.getKey(),
-            Optional.ofNullable(e.getValue().latestDeployed().getMetadata().getLabels())
+            Optional.ofNullable(e.getValue().foundDeployed().getMetadata().getLabels())
             .orElse(Map.of())))
         .filter(t -> genericLabels.entrySet().stream()
             .allMatch(genericLabel -> t.v2.entrySet().stream().anyMatch(genericLabel::equals)))
@@ -209,8 +209,11 @@ public class DeployedResourcesCache {
       ObjectNode comparableDeployedMetadata = objectMapper.createObjectNode();
       JsonNode deployedAnnotations = deployedMetadata.get("annotations");
       if (deployedAnnotations instanceof ObjectNode deployedAnnotationsObject) {
+        Map<String, String> requiredResourceAnnotations = Optional
+            .ofNullable(requiredResource.getMetadata().getAnnotations())
+            .orElse(Map.of());
         Seq.seq(deployedAnnotationsObject.fieldNames()).toList().stream()
-            .filter(Predicate.not(requiredResource.getMetadata().getAnnotations()::containsKey))
+            .filter(Predicate.not(requiredResourceAnnotations::containsKey))
             .forEach(deployedAnnotationsObject::remove);
       }
       if (deployedAnnotations == null || deployedAnnotations instanceof NullNode) {
@@ -219,8 +222,11 @@ public class DeployedResourcesCache {
       comparableDeployedMetadata.set("annotations", deployedAnnotations);
       JsonNode deployedLabels = deployedMetadata.get("labels");
       if (deployedLabels instanceof ObjectNode deployedLabelsObject) {
+        Map<String, String> requiredResourceLabels = Optional
+            .ofNullable(requiredResource.getMetadata().getLabels())
+            .orElse(Map.of());
         Seq.seq(deployedLabelsObject.fieldNames()).toList().stream()
-            .filter(Predicate.not(requiredResource.getMetadata().getLabels()::containsKey))
+            .filter(Predicate.not(requiredResourceLabels::containsKey))
             .forEach(deployedLabelsObject::remove);
       }
       if (deployedLabels == null || deployedLabels instanceof NullNode) {
@@ -233,6 +239,8 @@ public class DeployedResourcesCache {
     if (deployedNode.has("status")) {
       deployedNode.remove("status");
     }
+    // Native image requires this. It is not clear but seems subsets are not deserialized when
+    // returned after patching
     if (requiredResource instanceof Endpoints requiredEndpoints
         && (requiredEndpoints.getSubsets() == null
         || requiredEndpoints.getSubsets().isEmpty())) {

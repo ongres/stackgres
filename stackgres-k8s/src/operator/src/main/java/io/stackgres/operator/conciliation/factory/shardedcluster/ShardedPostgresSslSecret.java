@@ -9,6 +9,7 @@ import static io.stackgres.common.StackGresShardedClusterForCitusUtil.CERTIFICAT
 import static io.stackgres.common.StackGresShardedClusterForCitusUtil.PRIVATE_KEY_KEY;
 import static io.stackgres.common.StackGresShardedClusterForCitusUtil.postgresSslSecretName;
 
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -77,7 +78,8 @@ public class ShardedPostgresSslSecret
     var certificate = context.getPostgresSslCertificate();
     var privateKey = context.getPostgresSslPrivateKey();
     if (certificate.isEmpty() || privateKey.isEmpty()) {
-      var certificateAndPrivateKey = CryptoUtil.generateCertificateAndPrivateKey();
+      var certificateAndPrivateKey = CryptoUtil.generateCertificateAndPrivateKey(
+          ZonedDateTime.now().plusYears(7500).toInstant());
       certificate = Optional.of(certificateAndPrivateKey.v1);
       privateKey = Optional.of(certificateAndPrivateKey.v2);
     }

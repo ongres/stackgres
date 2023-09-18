@@ -2,11 +2,28 @@
 # since it depends on service name and namespace that are out of this kustomize package.
 # It should be run by config/default
 resources:
-- bases/SGConfig.yaml
 $(
   sed -i '/^SGBackupConfig\.yaml$/d' config/crd/bases/index.txt
 	yq -y 'del(.spec.versions[1])' config/crd/bases/SGBackup.yaml > config/crd/bases/SGBackup.yaml.tmp
 	mv config/crd/bases/SGBackup.yaml.tmp config/crd/bases/SGBackup.yaml
+  for CRD in $(cat config/crd/bases/index.txt)
+  do
+    yq -y '.spec.conversion = {
+      strategy: "Webhook",
+      webhook: {
+        clientConfig: {
+          caBundle: "Cg==",
+          service: {
+            namespace: "system",
+            name: "stackgres-operator",
+            path: ("/stackgres/conversion/" + .spec.names.singular)
+          }
+        },
+        conversionReviewVersions: [ "v1" ]
+      }
+    }' "config/crd/bases/$CRD" > "config/crd/bases/$CRD.tmp"
+    mv "config/crd/bases/$CRD.tmp" "config/crd/bases/$CRD"
+  done
 	sed 's#^#- bases/#' config/crd/bases/index.txt | tr '\n' ';' | sed 's#;#\\n#g'
 )
 #+kubebuilder:scaffold:crdkustomizeresource

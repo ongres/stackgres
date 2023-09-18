@@ -15,14 +15,14 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.labels.LabelFactoryForDbOps;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
-import io.stackgres.operator.conciliation.AbstractJobReconciliationHandler;
+import io.stackgres.operator.conciliation.FireAndForgetJobReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 
 @ReconciliationScope(value = StackGresDbOps.class, kind = "Job")
 @ApplicationScoped
 public class DbOpsJobReconciliationHandler
-    extends AbstractJobReconciliationHandler<StackGresDbOps> {
+    extends FireAndForgetJobReconciliationHandler<StackGresDbOps> {
 
   @Inject
   public DbOpsJobReconciliationHandler(

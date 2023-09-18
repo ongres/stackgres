@@ -11,7 +11,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 
 @ApplicationScoped
@@ -23,7 +22,7 @@ public class SgDbOpsConversionPipeline implements ConversionPipeline {
   @Inject
   public SgDbOpsConversionPipeline(
       @Conversion(StackGresDbOps.KIND) Instance<Converter> converters) {
-    this.converters = converters.stream().collect(ImmutableList.toImmutableList());
+    this.converters = converters.stream().toList();
   }
 
   @Override

@@ -14,16 +14,25 @@ public enum OperatorProperty implements StackGresPropertyReader {
   OPERATOR_NAME("stackgres.operatorName"),
   OPERATOR_NAMESPACE("stackgres.operatorNamespace"),
   OPERATOR_IP("stackgres.operatorIP"),
+  OPERATOR_SERVICE_ACCOUNT("stackgres.operatorServiceAccount"),
+  OPERATOR_POD_NAME("stackgres.operatorPodName"),
   PROMETHEUS_AUTOBIND("stackgres.prometheus.allowAutobind"),
   GRAFANA_EMBEDDED("stackgres.prometheus.grafanaEmbedded"),
-  AUTHENTICATION_SECRET_NAME("stackgres.authentication.secretName"),
   USE_ARBITRARY_USER("stackgres.useArbitraryUser"),
   EXTENSIONS_REPOSITORY_URLS("stackgres.extensionsRepositoryUrls"),
   CONFLICT_SLEEP_SECONDS("stackgres.conflictSleepSeconds"),
   LOCK_POLL_INTERVAL("stackgres.lockPollInterval"),
-  LOCK_TIMEOUT("stackgres.lockTimeout"),
+  LOCK_DURATION("stackgres.lockDuration"),
   RECONCILIATION_CACHE_EXPIRATION("stackgres.reconciliationCacheExpitarion"),
-  RECONCILIATION_CACHE_SIZE("stackgres.reconciliationCacheSize");
+  RECONCILIATION_CACHE_SIZE("stackgres.reconciliationCacheSize"),
+  REMOVE_OLD_OPERATOR_BUNDLE_RESOURCES("stackgres.removeOldOperatorBundleResources"),
+  SGCONFIG("stackgres.sgconfig"),
+  INSTALL_CONFIG("stackgres.installConfig"),
+  INSTALL_CERTS("stackgres.installCerts"),
+  INSTALL_CRDS("stackgres.installCrds"),
+  INSTALL_WEBHOOKS("stackgres.installWebhooks"),
+  CERTIFICATE_TIMEOUT("stackgres.certificateTimeout"),
+  OPERATOR_CERT_SECRET_NAME("stackgres.operatorCertSecretName");
 
   private static final Properties APPLICATION_PROPERTIES =
       StackGresPropertyReader.readApplicationProperties(OperatorProperty.class);

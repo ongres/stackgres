@@ -20,6 +20,7 @@ import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.operator.app.OperatorLockHolder;
 import io.stackgres.operator.common.PatchResumer;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
@@ -44,6 +45,7 @@ public class BackupReconciliator
     @Inject CustomResourceScheduler<StackGresBackup> backupScheduler;
     @Inject BackupStatusManager statusManager;
     @Inject ObjectMapper objectMapper;
+    @Inject OperatorLockHolder operatorLockReconciliator;
   }
 
   private final EventEmitter<StackGresBackup> eventController;
@@ -56,6 +58,7 @@ public class BackupReconciliator
     super(parameters.scanner, parameters.finder,
         parameters.conciliator, parameters.deployedResourcesCache,
         parameters.handlerDelegator, parameters.client,
+        parameters.operatorLockReconciliator,
         StackGresBackup.KIND);
     this.eventController = parameters.eventController;
     this.backupScheduler = parameters.backupScheduler;

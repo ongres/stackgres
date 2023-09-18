@@ -15,24 +15,24 @@ import javax.inject.Inject;
 
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.StackGresVersion;
-import io.stackgres.operator.conciliation.AbstractResourceDiscoverer;
+import io.stackgres.operator.conciliation.AbstractDiscoverer;
 
 @ApplicationScoped
 public class ClusterEnvironmentVariablesFactoryDiscovererImpl
-    extends AbstractResourceDiscoverer<ClusterEnvironmentVariablesFactory<ClusterContext>>
+    extends AbstractDiscoverer<ClusterEnvironmentVariablesFactory<ClusterContext>>
     implements ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext> {
 
   @Inject
   public ClusterEnvironmentVariablesFactoryDiscovererImpl(
       @Any Instance<ClusterEnvironmentVariablesFactory<ClusterContext>> instance) {
-    init(instance);
+    super(instance);
   }
 
   @Override
   public List<ClusterEnvironmentVariablesFactory<ClusterContext>> discoverFactories(
       ClusterContext context) {
     StackGresVersion clusterVersion = StackGresVersion.getStackGresVersion(context.getCluster());
-    return resourceHub.get(clusterVersion).stream()
+    return hub.get(clusterVersion).stream()
         .collect(Collectors.toUnmodifiableList());
   }
 }

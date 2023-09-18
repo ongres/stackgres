@@ -19,8 +19,8 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.CustomResourceFinder;
-import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
+import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,16 +35,16 @@ public class DbOpsRequiredResourcesGenerator
 
   private final CustomResourceFinder<StackGresProfile> profileFinder;
 
-  private final RequiredResourceDecorator<StackGresDbOpsContext> decorator;
+  private final ResourceGenerationDiscoverer<StackGresDbOpsContext> discoverer;
 
   @Inject
   public DbOpsRequiredResourcesGenerator(
       CustomResourceFinder<StackGresCluster> clusterFinder,
       CustomResourceFinder<StackGresProfile> profileFinder,
-      RequiredResourceDecorator<StackGresDbOpsContext> decorator) {
+      ResourceGenerationDiscoverer<StackGresDbOpsContext> discoverer) {
     this.clusterFinder = clusterFinder;
     this.profileFinder = profileFinder;
-    this.decorator = decorator;
+    this.discoverer = discoverer;
   }
 
   @Override
@@ -68,7 +68,7 @@ public class DbOpsRequiredResourcesGenerator
         .foundProfile(profile)
         .build();
 
-    return decorator.decorateResources(context);
+    return discoverer.generateResources(context);
   }
 
 }

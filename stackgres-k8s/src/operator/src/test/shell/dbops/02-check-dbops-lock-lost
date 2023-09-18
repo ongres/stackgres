@@ -22,7 +22,7 @@ kubectl_mock_overwrite() {
     ("get $CLUSTER_CRD_NAME "*)
     echo '
       LOCK_POD='"$(cat "$TEST_TARGET_PATH/lock_pod")"'
-      LOCK_TIMESTAMP="$(date +%s)"
+      LOCK_TIMEOUT="$(date +%s)"
       RESOURCE_VERSION=test
       '
     echo wrong-test > "$TEST_TARGET_PATH/lock_pod"

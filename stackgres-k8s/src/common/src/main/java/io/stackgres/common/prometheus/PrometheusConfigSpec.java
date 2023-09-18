@@ -5,10 +5,13 @@
 
 package io.stackgres.common.prometheus;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
@@ -27,6 +30,28 @@ public class PrometheusConfigSpec {
 
   public void setPodMonitorSelector(LabelSelector podMonitorSelector) {
     this.podMonitorSelector = podMonitorSelector;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(podMonitorSelector);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof PrometheusConfigSpec)) {
+      return false;
+    }
+    PrometheusConfigSpec other = (PrometheusConfigSpec) obj;
+    return Objects.equals(podMonitorSelector, other.podMonitorSelector);
+  }
+
+  @Override
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
   }
 
 }

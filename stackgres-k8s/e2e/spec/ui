@@ -30,17 +30,14 @@ e2e_test_install() {
     --set grafana.autoEmbed=true \
     --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
 
-  wait_pods_terminated "$OPERATOR_NAMESPACE" 3
-
   kubectl create namespace "$CLUSTER_NAMESPACE"
   install_minio
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set-string "cluster.postgres.version=$E2E_UI_POSTGRES_VERSION"
 
-  SERVICE="stackgres-restapi"
   local PASSWORD
-  PASSWORD="$(kubectl get secrets -n "$OPERATOR_NAMESPACE" "$SERVICE" -o jsonpath="{.data.clearPassword}" | base64 -d)"
+  PASSWORD="$(kubectl get secrets -n "$OPERATOR_NAMESPACE" stackgres-restapi-admin -o jsonpath="{.data.clearPassword}" | base64 -d)"
   CYPRESS_POD="cypress"
   
   cat << EOF | kubectl apply -f -
@@ -57,13 +54,13 @@ e2e_test_install() {
       imagePullPolicy: IfNotPresent
       env:
       - name: CYPRESS_BASE_URL
-        value: "https://$SERVICE.$OPERATOR_NAMESPACE/admin"
+        value: "https://stackgres-restapi.$OPERATOR_NAMESPACE/admin"
       - name: CYPRESS_VIDEO
         value: "false" 
       - name: CYPRESS_host
-        value: "https://$SERVICE.$OPERATOR_NAMESPACE/admin"
+        value: "https://stackgres-restapi.$OPERATOR_NAMESPACE/admin"
       - name: CYPRESS_api
-        value: "https://$SERVICE.$OPERATOR_NAMESPACE/stackgres"
+        value: "https://stackgres-restapi.$OPERATOR_NAMESPACE/stackgres"
       - name: CYPRESS_username
         value: "admin"
       - name: CYPRESS_password
@@ -98,14 +95,14 @@ EOF
   wait_until is_backup_phase "$CLUSTER_NAMESPACE" "$BACKUP_NAME" "Completed"
 
   openssl req -x509 -nodes -subj "/CN=localhost" \
-    -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365
-  kubectl -n "$CLUSTER_NAMESPACE" create secret tls cert-cluster --cert=cert.pem --key=key.pem
+    -newkey rsa:4096 -keyout "$LOG_PATH"/key.pem -out "$LOG_PATH"/cert.pem -sha256 -days 365
+  kubectl -n "$CLUSTER_NAMESPACE" create secret tls cert-cluster --cert="$LOG_PATH"/cert.pem --key="$LOG_PATH"/key.pem
 }
 
 e2e_test_uninstall() {
   if [ "$E2E_SKIP_SPEC_UNINSTALL" != true ] && [ "$(uname -m)" = x86_64 ]
   then
-    kubectl cp -n "$CLUSTER_NAMESPACE" cypress:'/cypress/screenshots' "$LOG_PATH/cypress-screenshots"
+    kubectl cp -n "$CLUSTER_NAMESPACE" cypress:'/cypress/screenshots' "$LOG_PATH/cypress-screenshots" || true
   fi
 
   helm_cleanup_chart "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
@@ -116,7 +113,7 @@ e2e_test_uninstall() {
 e2e_test_after_all() {
   if [ "$E2E_SKIP_SPEC_UNINSTALL" = true ] && [ "$(uname -m)" = x86_64 ]
   then
-    kubectl cp -n "$CLUSTER_NAMESPACE" cypress:'/cypress/screenshots' "$LOG_PATH/cypress-screenshots"
+    kubectl cp -n "$CLUSTER_NAMESPACE" cypress:'/cypress/screenshots' "$LOG_PATH/cypress-screenshots" || true
   fi
 }
 
@@ -148,11 +145,11 @@ cypress_tests(){
 
 check_index_on_not_found_resource(){
   RANDOM_RESOURCE="$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)"
-  HTTP_STATUS="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s -k "https://$SERVICE.$OPERATOR_NAMESPACE/admin/$RANDOM_RESOURCE" -X GET -LI -o /dev/null -w '%{http_code}' 2>/dev/null)"
+  HTTP_STATUS="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s -k "https://stackgres-restapi.$OPERATOR_NAMESPACE/admin/$RANDOM_RESOURCE" -X GET -LI -o /dev/null -w '%{http_code}' 2>/dev/null)"
 
   assert_string_equal "200" "$HTTP_STATUS"
 
-  HTTP_RESPONSE="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s -k "https://$SERVICE.$OPERATOR_NAMESPACE/admin/$RANDOM_RESOURCE" -X GET -L 2>/dev/null)"
+  HTTP_RESPONSE="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s -k "https://stackgres-restapi.$OPERATOR_NAMESPACE/admin/$RANDOM_RESOURCE" -X GET -L 2>/dev/null)"
 
   if echo "$HTTP_RESPONSE" | grep -E "<meta.+index" > /dev/null
   then
@@ -165,7 +162,7 @@ check_index_on_not_found_resource(){
 
 check_http_port(){
   RANDOM_RESOURCE="$(cat /dev/urandom | tr -dc 'a-z' | fold -w 8 | head -n 1)"
-  HTTP_STATUS="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s "http://$SERVICE.$OPERATOR_NAMESPACE/admin" -X GET -LI -o /dev/null -w '%{http_code}' 2>/dev/null)"
+  HTTP_STATUS="$(kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- curl -s "http://stackgres-restapi.$OPERATOR_NAMESPACE/admin" -X GET -LI -o /dev/null -w '%{http_code}' 2>/dev/null)"
 
   if [ "$HTTP_STATUS" = "200" ]
   then

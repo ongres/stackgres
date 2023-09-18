@@ -6,10 +6,12 @@
 package io.stackgres.common.prometheus;
 
 import java.util.Map;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
@@ -39,5 +41,29 @@ public class PrometheusInstallation {
   public void setMatchLabels(Map<String, String> matchLabels) {
     this.matchLabels = matchLabels;
   }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(matchLabels, namespace);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof PrometheusInstallation)) {
+      return false;
+    }
+    PrometheusInstallation other = (PrometheusInstallation) obj;
+    return Objects.equals(matchLabels, other.matchLabels)
+        && Objects.equals(namespace, other.namespace);
+  }
+
+  @Override
+  public String toString() {
+    return StackGresUtil.toPrettyYaml(this);
+  }
+
 }
 

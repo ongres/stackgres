@@ -28,7 +28,8 @@ public class ObjectStorageDependenciesValidator
   @Override
   protected void validate(ObjectStorageReview review, StackGresCluster resource)
       throws ValidationFailed {
-    var backupsConfigurationOpt = Optional.of(resource.getSpec())
+    var backupsConfigurationOpt = Optional.ofNullable(resource)
+        .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getConfiguration)
         .map(StackGresClusterConfiguration::getBackups);
 

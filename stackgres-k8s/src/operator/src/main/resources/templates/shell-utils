@@ -1,6 +1,6 @@
 #!/bin/sh
 
-LOCK_TIMEOUT="${LOCK_TIMEOUT:-60}"
+LOCK_DURATION="${LOCK_DURATION:-60}"
 LOCK_SLEEP="${LOCK_SLEEP:-5}"
 QUEUE_NAME=create_event.pipe
 
@@ -38,8 +38,8 @@ try_lock() {
   fi
   local AQUIRE="$1"
   local TEMPLATE='
-  LOCK_POD={{ if .metadata.annotations.lockPod }}{{ .metadata.annotations.lockPod }}{{ else }}{{ end }}
-  LOCK_TIMESTAMP={{ if .metadata.annotations.lockTimestamp }}{{ .metadata.annotations.lockTimestamp }}{{ else }}0{{ end }}
+  LOCK_POD={{ if .metadata.annotations }}{{ if (index .metadata.annotations "'"$LOCK_POD_KEY"'") }}{{ (index .metadata.annotations "'"$LOCK_POD_KEY"'") }}{{ else }}{{ end }}{{ else }}{{ end }}
+  LOCK_TIMEOUT={{ if .metadata.annotations }}{{ if (index .metadata.annotations "'"$LOCK_TIMEOUT_KEY"'") }}{{ (index .metadata.annotations "'"$LOCK_TIMEOUT_KEY"'") }}{{ else }}0{{ end }}{{ else }}0{{ end }}
   RESOURCE_VERSION={{ .metadata.resourceVersion }}
   '
   kubectl get "$LOCK_RESOURCE" -n "$CLUSTER_NAMESPACE" "$LOCK_RESOURCE_NAME" --template="$TEMPLATE" > /tmp/lock-resource
@@ -49,19 +49,19 @@ try_lock() {
   then
     if "$AQUIRE"
     then
-      if [ "$((CURRENT_TIMESTAMP-LOCK_TIMESTAMP))" -lt "$LOCK_TIMEOUT" ]
+      if [ "$CURRENT_TIMESTAMP" -lt "$LOCK_TIMEOUT" ]
       then
-        local WAIT_DURATION="$((LOCK_TIMEOUT + LOCK_SLEEP))"
-        echo "Locked already by $LOCK_POD at $(date -d @"$LOCK_TIMESTAMP" -Iseconds --utc), will retry in $WAIT_DURATION seconds"
+        local WAIT_DURATION="$((LOCK_DURATION + LOCK_SLEEP))"
+        echo "Locked already by $LOCK_POD until $(date -d @"$LOCK_TIMEOUT" -Iseconds --utc), will retry in $WAIT_DURATION seconds"
         sleep "$WAIT_DURATION"
         try_lock true
       fi
     else
-      echo "Locked already by $LOCK_POD at $(date -d @"$LOCK_TIMESTAMP" -Iseconds --utc)"
+      echo "Locked already by $LOCK_POD until $(date -d @"$LOCK_TIMEOUT" -Iseconds --utc)"
       return 1
     fi
   else
-    if ! "$AQUIRE" && [ "$((CURRENT_TIMESTAMP-LOCK_TIMESTAMP))" -gt "$LOCK_TIMEOUT" ]
+    if ! "$AQUIRE" && [ "$CURRENT_TIMESTAMP" -gt "$LOCK_TIMEOUT" ]
     then
       echo "Lock expired!"
       return 1
@@ -69,7 +69,7 @@ try_lock() {
   fi
   if ! kubectl annotate "$LOCK_RESOURCE" -n "$CLUSTER_NAMESPACE" "$LOCK_RESOURCE_NAME" \
     --resource-version "$RESOURCE_VERSION" --overwrite \
-    "lockServiceAccount=$SERVICE_ACCOUNT" "lockPod=$POD_NAME" "lockTimestamp=$CURRENT_TIMESTAMP"
+    "$LOCK_SERVICE_ACCOUNT_KEY=$SERVICE_ACCOUNT" "$LOCK_POD_KEY=$POD_NAME" "$LOCK_TIMEOUT_KEY=$((CURRENT_TIMESTAMP + LOCK_DURATION))"
   then
     kubectl get "$LOCK_RESOURCE" -n "$CLUSTER_NAMESPACE" "$LOCK_RESOURCE_NAME" --template="$TEMPLATE" > /tmp/lock-resource
     . /tmp/lock-resource
@@ -78,7 +78,7 @@ try_lock() {
       try_lock "$AQUIRE"
       return 0
     fi
-    echo "Locked by $LOCK_POD at $(date -d @"$LOCK_TIMESTAMP" -Iseconds --utc)"
+    echo "Locked by $LOCK_POD until $(date -d @"$LOCK_TIMEOUT" -Iseconds --utc)"
     if "$AQUIRE"
     then
       sleep "$((LOCK_SLEEP * 4))"
@@ -97,8 +97,8 @@ release_lock() {
     return 1
   fi
   local TEMPLATE='
-  LOCK_POD={{ if .metadata.annotations.lockPod }}{{ .metadata.annotations.lockPod }}{{ else }}{{ end }}
-  LOCK_TIMESTAMP={{ if .metadata.annotations.lockTimestamp }}{{ .metadata.annotations.lockTimestamp }}{{ else }}0{{ end }}
+  LOCK_POD={{ if and .metadata.annotations (index .metadata.annotations "'"$LOCK_POD_KEY"'") }}{{ (index .metadata.annotations "'"$LOCK_POD_KEY"'") }}{{ else }}{{ end }}
+  LOCK_TIMEOUT={{ if and .metadata.annotations (index .metadata.annotations "'"$LOCK_TIMEOUT_KEY"'") }}{{ (index .metadata.annotations "'"$LOCK_TIMEOUT_KEY"'") }}{{ else }}0{{ end }}
   RESOURCE_VERSION={{ .metadata.resourceVersion }}
   '
   kubectl get "$LOCK_RESOURCE" -n "$CLUSTER_NAMESPACE" "$LOCK_RESOURCE_NAME" --template="$TEMPLATE" > /tmp/lock-resource

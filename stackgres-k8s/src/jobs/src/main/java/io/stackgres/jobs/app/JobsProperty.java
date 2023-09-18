@@ -16,15 +16,11 @@ public enum JobsProperty implements StackGresPropertyReader {
   OPERATOR_CERTIFICATE_SECRET_NAME("stackgres.operatorCertificateSecretName"),
   JOB_NAMESPACE("stackgres.jobNamespace"),
   OPERATOR_VERSION("stackgres.operatorVersion"),
-  CRD_UPGRADE("stackgres.crdUpgrade"),
-  CONVERSION_WEBHOOKS("stackgres.conversionWebhooks"),
-  CR_UPDATER("stackgres.crUpdater"),
-  DATABASE_OPERATION_JOB("stackgres.databaseOperationJob"),
   DATABASE_OPERATION_CR_NAME("stackgres.databaseOperationCrName"),
   SERVICE_ACCOUNT("stackgres.dbops.serviceAccount"),
   POD_NAME("stackgres.dbops.podName"),
   DBOPS_LOCK_POLL_INTERVAL("stackgres.dbops.lockPollInterval"),
-  DBOPS_LOCK_TIMEOUT("stackgres.dbops.lockTimeout");
+  DBOPS_LOCK_DURATION("stackgres.dbops.lockDuration");
 
   private static final Properties APPLICATION_PROPERTIES =
       StackGresPropertyReader.readApplicationProperties(JobsProperty.class);

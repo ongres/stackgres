@@ -27,7 +27,7 @@ import io.stackgres.common.crd.sgcluster.StackGresReplicationRole;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
-import io.stackgres.operator.conciliation.cluster.ClusterRequiredResourceDecorator;
+import io.stackgres.operator.conciliation.cluster.ClusterResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.testutil.StringUtils;
@@ -43,7 +43,7 @@ public abstract class GeneratorTest {
   protected StackGresPostgresConfig stackGresPostgresConfig;
 
   @Inject
-  ClusterRequiredResourceDecorator resourceGenerationDiscoverer;
+  ClusterResourceGenerationDiscoverer resourceGenerationDiscoverer;
 
   public GeneratedResourceMatcher givenAClusterWithVersion(StackGresVersion version) {
     cluster.setMetadata(new ObjectMeta());
@@ -70,7 +70,7 @@ public abstract class GeneratorTest {
   }
 
   protected List<HasMetadata> getResources(StackGresClusterContext context) {
-    return resourceGenerationDiscoverer.decorateResources(context);
+    return resourceGenerationDiscoverer.generateResources(context);
   }
 
   protected List<HasMetadata> getResources() {

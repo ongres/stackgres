@@ -27,7 +27,6 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.AbstractContainerProfileDecorator;
 import io.stackgres.operator.conciliation.factory.Decorator;
-import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder
@@ -40,32 +39,33 @@ public class DistributedLogsStatefulSetContainerProfileDecorator extends
   }
 
   @Override
-  public void decorate(StackGresDistributedLogsContext context,
-      Iterable<? extends HasMetadata> resources) {
+  public HasMetadata decorate(StackGresDistributedLogsContext context,
+      HasMetadata resource) {
     if (Optional.of(context.getSource().getSpec())
         .map(StackGresDistributedLogsSpec::getNonProductionOptions)
         .map(StackGresDistributedLogsNonProduction::getDisableClusterResourceRequirements)
         .orElse(false)) {
-      return;
+      return resource;
     }
 
-    Seq.seq(resources)
-        .filter(StatefulSet.class::isInstance)
-        .map(StatefulSet.class::cast)
-        .forEach(statefulSet -> setProfileContainers(context.getProfile(),
-            () -> Optional.of(statefulSet)
-            .map(StatefulSet::getSpec)
-            .map(StatefulSetSpec::getTemplate)
-            .map(PodTemplateSpec::getSpec),
-            Optional.ofNullable(context.getSource().getSpec().getResources())
-            .map(StackGresDistributedLogsResources::getEnableClusterLimitsRequirements)
-            .orElse(false),
-            Optional.ofNullable(context.getSource().getSpec().getNonProductionOptions())
-            .map(StackGresDistributedLogsNonProduction::getEnableSetClusterCpuRequests)
-            .orElse(false),
-            Optional.ofNullable(context.getSource().getSpec().getNonProductionOptions())
-            .map(StackGresDistributedLogsNonProduction::getEnableSetClusterMemoryRequests)
-            .orElse(false)));
+    if (resource instanceof StatefulSet statefulSet) {
+      setProfileContainers(context.getProfile(),
+          () -> Optional.of(statefulSet)
+          .map(StatefulSet::getSpec)
+          .map(StatefulSetSpec::getTemplate)
+          .map(PodTemplateSpec::getSpec),
+          Optional.ofNullable(context.getSource().getSpec().getResources())
+          .map(StackGresDistributedLogsResources::getEnableClusterLimitsRequirements)
+          .orElse(false),
+          Optional.ofNullable(context.getSource().getSpec().getNonProductionOptions())
+          .map(StackGresDistributedLogsNonProduction::getEnableSetClusterCpuRequests)
+          .orElse(false),
+          Optional.ofNullable(context.getSource().getSpec().getNonProductionOptions())
+          .map(StackGresDistributedLogsNonProduction::getEnableSetClusterMemoryRequests)
+          .orElse(false));
+    }
+
+    return resource;
   }
 
   @Override

@@ -7,7 +7,7 @@ PROJECT_PATH ?= ../../../..
 STACKGRES_VERSION ?= $(shell sh $(PROJECT_PATH)/stackgres-k8s/ci/build/version.sh)
 VERSION = $(shell echo $(STACKGRES_VERSION) | tr A-Z a-z)
 IMAGE_TAG ?= $(VERSION)
-HELM_OPERATOR_BASE_IMAGE ?= quay.io/operator-framework/helm-operator:v1.30.0
+OPERATOR_BASE_IMAGE ?= quay.io/operator-framework/operator:v1.30.0
 BUNDLE_BASE_IMAGE ?= scratch
 
 # CHANNELS define the bundle channels used in the bundle.
@@ -35,8 +35,8 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 # This variable is used to construct full image tags for bundle and catalog images.
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
-# quay.io/stackgres/helm-operator-bundle:$VERSION and quay.io/stackgres/helm-operator-catalog:$VERSION.
-IMAGE_TAG_BASE ?= quay.io/stackgres/helm-operator
+# quay.io/stackgres/operator-bundle:$VERSION and quay.io/stackgres/operator-catalog:$VERSION.
+IMAGE_TAG_BASE ?= quay.io/stackgres/operator
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)
@@ -56,8 +56,11 @@ endif
 # Image URL to use all building/pushing image targets
 IMG ?= $(IMAGE_TAG_BASE):$(IMAGE_TAG)
 
+KUSTOMIZE = kustomize
+OPERATOR_SDK = operator-sdk
+
 .PHONY: all
-all: docker-build
+all: bundle-build
 
 ##@ General
 
@@ -79,107 +82,52 @@ help: ## Display this help.
 ##@ Build
 
 .PHONY: run
-run: helm-operator ## Run against the configured Kubernetes cluster in ~/.kube/config
-	$(HELM_OPERATOR) run
-
-.PHONY: docker-build
-docker-build: ## Build docker image with the manager.
-	docker build -t ${IMG} -f Dockerfile --build-arg BASE_IMAGE=$(HELM_OPERATOR_BASE_IMAGE) $(PROJECT_PATH)
-
-.PHONY: docker-push
-docker-push: ## Push docker image with the manager.
-	docker push ${IMG}
-
-# PLATFORMS defines the target platforms for  the manager image be build to provide support to multiple
-# architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
-# - able to use docker buildx . More info: https://docs.docker.com/build/buildx/
-# - have enable BuildKit, More info: https://docs.docker.com/develop/develop-images/build_enhancements/
-# - be able to push the image for your registry (i.e. if you do not inform a valid value via IMG=<myregistry/image:<tag>> than the export will fail)
-# To properly provided solutions that supports more than one platform you should use this option.
-PLATFORMS ?= linux/arm64,linux/amd64
-.PHONY: docker-buildx
-docker-buildx: test ## Build and push docker image for the manager for cross-platform support
-	# copy existing Dockerfile and insert --platform=${BUILDPLATFORM} into Dockerfile.cross, and preserve the original Dockerfile
-	sed -e '1 s/\(^FROM\)/FROM --platform=\$$\{BUILDPLATFORM\}/; t' -e ' 1,// s//FROM --platform=\$$\{BUILDPLATFORM\}/' Dockerfile > Dockerfile.cross
-	- docker buildx create --name project-v3-builder
-	docker buildx use project-v3-builder
-	- docker buildx build --pull --build-arg BASE_IMAGE=$(HELM_OPERATOR_BASE_IMAGE) --push --platform=$(PLATFORMS) --tag ${IMG} -f Dockerfile.cross .
-	- docker buildx rm project-v3-builder
-	rm Dockerfile.cross
+run: ## Run against the configured Kubernetes cluster in ~/.kube/config
+	$(OPERATOR_SDK) run
 
 ##@ Deployment
 
 .PHONY: install
-install: kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
+install: ## Install CRDs into the K8s cluster specified in ~/.kube/config.
 	$(KUSTOMIZE) build config/crd | kubectl apply -f -
 
 .PHONY: uninstall
-uninstall: kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config.
+uninstall: ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config.
 	$(KUSTOMIZE) build config/crd | kubectl delete -f -
 
 .PHONY: deploy
-deploy: kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+deploy: ## Deploy operator to the K8s cluster specified in ~/.kube/config.
+	cd config/operator && $(KUSTOMIZE) edit set image operator=${IMG}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
 .PHONY: undeploy
-undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config.
+undeploy: ## Undeploy operator from the K8s cluster specified in ~/.kube/config.
 	$(KUSTOMIZE) build config/default | kubectl delete -f -
 
 OS := $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH := $(shell uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
 
-.PHONY: kustomize
-KUSTOMIZE = $(shell pwd)/bin/kustomize
-kustomize: ## Download kustomize locally if necessary.
-	rm -rf bundle
-ifeq (,$(wildcard $(KUSTOMIZE)))
-ifeq (,$(shell which kustomize 2>/dev/null))
-	@{ \
-	set -e ;\
-	mkdir -p $(dir $(KUSTOMIZE)) ;\
-	curl -sSLo - https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v4.5.7/kustomize_v4.5.7_$(OS)_$(ARCH).tar.gz | \
-	tar xzf - -C bin/ ;\
-	}
-else
-KUSTOMIZE = $(shell which kustomize)
-endif
-endif
-
-.PHONY: helm-operator
-HELM_OPERATOR = $(shell pwd)/bin/helm-operator
-helm-operator: ## Download helm-operator locally if necessary, preferring the $(pwd)/bin path over global if both exist.
-ifeq (,$(wildcard $(HELM_OPERATOR)))
-ifeq (,$(shell which helm-operator 2>/dev/null))
-	@{ \
-	set -e ;\
-	mkdir -p $(dir $(HELM_OPERATOR)) ;\
-	curl -sSLo $(HELM_OPERATOR) https://github.com/operator-framework/operator-sdk/releases/download/v1.26.0/helm-operator_$(OS)_$(ARCH) ;\
-	chmod +x $(HELM_OPERATOR) ;\
-	}
-else
-HELM_OPERATOR = $(shell which helm-operator)
-endif
-endif
-
 .PHONY: bundle
-bundle: kustomize ## Generate bundle manifests and metadata, then validate generated files.
+bundle: ## Generate bundle manifests and metadata, then validate generated files.
+	rm -rf bundle
+	cp -a "$(PROJECT_PATH)/stackgres-k8s/src/common/src/main/resources/crds/." config/crd/bases/.
 	VERSION="$(VERSION)" IMAGE_TAG="$(IMAGE_TAG)" PROJECT_PATH="$(PROJECT_PATH)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/manifests/bases/stackgres.clusterserviceversion.template.yaml)")" \
 		> config/manifests/bases/stackgres.clusterserviceversion.yaml
-	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat config/manager/kustomization.template.yaml)\nMAKE_EOF")" \
-		> config/manager/kustomization.yaml
-	cp -a "$(PROJECT_PATH)/stackgres-k8s/src/common/src/main/resources/crds/." config/crd/bases/.
+	VERSION="$(VERSION)" OPENSHIFT_BUNDLE="$(OPENSHIFT_BUNDLE)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/operator/operator.template.yaml)")" \
+		> config/operator/operator.yaml
+	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat config/operator/kustomization.template.yaml)\nMAKE_EOF")" \
+		> config/operator/kustomization.yaml
+	VERSION="$(VERSION)" PROJECT_PATH="$(PROJECT_PATH)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/rbac/role.template.yaml)")" \
+		> config/rbac/role.yaml
 	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat config/crd/kustomization.template.yaml)\nMAKE_EOF")" \
 		> config/crd/kustomization.yaml
-	VERSION="$(VERSION)" OPENSHIFT_BUNDLE="$(OPENSHIFT_BUNDLE)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/manager/manager.template.yaml)")" \
-		> config/manager/manager.yaml
-	VERSION="$(VERSION)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat watches.template.yaml)")" \
-		> watches.yaml
-	operator-sdk generate kustomize manifests -q
-	cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG)
-	$(KUSTOMIZE) build config/manifests | operator-sdk generate bundle $(BUNDLE_GEN_FLAGS)
-	for CRD in bundle/manifests/stackgres.io_*; do cp "config/crd/bases/$$(yq -r .spec.names.kind "$$CRD").yaml" "$$CRD"; done
-	operator-sdk bundle validate ./bundle
+	VERSION="$(VERSION)" PROJECT_PATH="$(PROJECT_PATH)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/webhook/manifests.template.yaml)")" \
+		> config/webhook/manifests.yaml
+	$(OPERATOR_SDK) generate kustomize manifests -q
+	cd config/operator && $(KUSTOMIZE) edit set image operator=$(IMG)
+	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle $(BUNDLE_GEN_FLAGS)
+	eval "$$(cat fix-crds.sh)"
+	$(OPERATOR_SDK) bundle validate ./bundle
 
 .PHONY: bundle-openshift
 bundle-openshift: IMAGE_TAG := $(IMAGE_TAG)-openshift
@@ -197,7 +145,7 @@ bundle-openshift: bundle
 		openshift-operator-bundle/metadata/annotations.yaml \
 		> bundle/metadata/annotations.yaml.new
 	mv bundle/metadata/annotations.yaml.new bundle/metadata/annotations.yaml
-	operator-sdk bundle validate ./bundle
+	$(OPERATOR_SDK) bundle validate ./bundle
 
 .PHONY: bundle-build
 bundle-build: ## Build the bundle image.
@@ -208,19 +156,10 @@ bundle-push: ## Push the bundle image.
 	$(MAKE) docker-push IMG=$(BUNDLE_IMG)
 
 .PHONY: opm
-OPM = ./bin/opm
-opm: ## Download opm locally if necessary.
+OPM = opm
+opm:
 ifeq (,$(wildcard $(OPM)))
-ifeq (,$(shell which opm 2>/dev/null))
-	@{ \
-	set -e ;\
-	mkdir -p $(dir $(OPM)) ;\
-	curl -sSLo $(OPM) https://github.com/operator-framework/operator-registry/releases/download/v1.23.0/$(OS)-$(ARCH)-opm ;\
-	chmod +x $(OPM) ;\
-	}
-else
 OPM = $(shell which opm)
-endif
 endif
 
 # A comma-separated list of bundle images (e.g. make catalog-build BUNDLE_IMGS=example.com/operator-bundle:v0.1.0,example.com/operator-bundle:v0.2.0).
@@ -235,7 +174,7 @@ ifneq ($(origin CATALOG_BASE_IMG), undefined)
 FROM_INDEX_OPT := --from-index $(CATALOG_BASE_IMG)
 endif
 
-# Build a catalog image by adding bundle images to an empty catalog using the operator package manager tool, 'opm'.
+# Build a catalog image by adding bundle images to an empty catalog using the operator package operator tool, 'opm'.
 # This recipe invokes 'opm' in 'semver' bundle add mode. For more information on add modes, see:
 # https://github.com/operator-framework/community-operators/blob/7f1438c/docs/packaging-operator.md#updating-your-existing-operator
 .PHONY: catalog-build

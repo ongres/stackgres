@@ -10,6 +10,7 @@ import static io.stackgres.common.RetryUtil.calculateExponentialBackoffDelay;
 import java.util.function.Supplier;
 
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import org.slf4j.LoggerFactory;
 
 public interface KubernetesClientUtil {
 
@@ -49,6 +50,39 @@ public interface KubernetesClientUtil {
           }
         }
         throw ex;
+      }
+    }
+  }
+
+  /**
+   * Retry on error.
+   */
+  static void retryOnError(Runnable runnable, int maxRetries) {
+    retryOnError((Supplier<Void>) () -> {
+      runnable.run();
+      return null;
+    }, maxRetries);
+  }
+
+  /**
+   * Retry on error.
+   */
+  static <T> T retryOnError(Supplier<T> supplier, int maxRetries) {
+    int retry = 0;
+    while (true) {
+      try {
+        return supplier.get();
+      } catch (KubernetesClientException ex) {
+        try {
+          Thread.sleep(calculateExponentialBackoffDelay(3000, 30000, 1000, retry));
+        } catch (InterruptedException iex) {
+          throw new RuntimeException(iex);
+        }
+        if (retry++ > maxRetries) {
+          throw ex;
+        }
+        LoggerFactory.getLogger(KubernetesClientUtil.class)
+            .warn("Retry {} after error: {}", retry, ex.getMessage());
       }
     }
   }

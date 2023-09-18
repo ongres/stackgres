@@ -26,7 +26,9 @@ check_grafana_secret() {
     --set grafana.secretUserKey="admin-user" \
     --set grafana.secretPasswordKey="admin-password"
 
-  if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "https://stackgres-restapi.$OPERATOR_NAMESPACE/grafana" -o /dev/null --fail
+  local EXIT_CODE RESULT
+  try_function wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- curl -s -k "https://stackgres-restapi.$OPERATOR_NAMESPACE/grafana" -o /dev/null --fail
+  if "$RESULT"
   then
     echo "SUCCESS. Grafana URL can be retrieved"
   else
@@ -121,32 +123,4 @@ check_grafana_embedded() {
     echo "Skipping check since operator environment variable can not be changed when operator is not deployed in kubernetes"
     return
   fi
-
-  echo "Checking that if env variable GRAFANA_EMBEDDED is set to false any cluster shouldn't be marked with grafana embedded"
-
-  kubectl set env -n "$OPERATOR_NAMESPACE" deployment/stackgres-restapi GRAFANA_EMBEDDED=false
-
-  if wait_until eval '[ "$(get_grafana_embedded)" != "true" ]'
-  then
-    echo "SUCCESS. Grafana is not marked as embedded"
-  else
-    echo "FAIL. Grafana is marked as embedded"
-    return 1
-  fi
-
-  echo "Checking that if env variable GRAFANA_EMBEDDED is set to true the cluster should be marked with grafana embedded"
-
-  kubectl set env -n "$OPERATOR_NAMESPACE" deployment/stackgres-restapi GRAFANA_EMBEDDED=true
-
-  if wait_until eval '[ "$(get_grafana_embedded)" = "true" ]'
-  then
-    echo "SUCCESS. Grafana is embedded"
-  else
-    echo "FAIL. Grafana is not embedded"
-    return 1
-  fi
-}
-
-get_grafana_embedded() {
-  run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgclusters/$CLUSTER_NAME" -e "-L" | jq '.grafanaEmbedded' -r
 }

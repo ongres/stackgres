@@ -131,11 +131,6 @@ public class OverridesShardsPersistentVolumeSizeExpansionValidator
     }
 
     @Override
-    protected boolean isOperationUpdate(StackGresShardedClusterReview review) {
-      return review.getRequest().getOperation() == Operation.UPDATE;
-    }
-
-    @Override
     protected void throwValidationError(String message) throws ValidationFailed {
       fail(message);
     }

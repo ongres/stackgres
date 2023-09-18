@@ -8,6 +8,7 @@ package io.stackgres.operator.mutation;
 public interface MutationUtil {
 
   String MUTATION_PATH = "/stackgres/mutation";
+  String CONFIG_MUTATION_PATH = MUTATION_PATH + "/sgconfig";
   String CLUSTER_MUTATION_PATH = MUTATION_PATH + "/sgcluster";
   String PGCONFIG_MUTATION_PATH = MUTATION_PATH + "/sgpgconfig";
   String CONNPOOLCONFIG_MUTATION_PATH =  MUTATION_PATH + "/sgpoolconfig";

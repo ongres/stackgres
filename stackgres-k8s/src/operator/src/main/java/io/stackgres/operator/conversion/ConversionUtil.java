@@ -19,6 +19,9 @@ public interface ConversionUtil {
   String DBOPS_CONVERSION_PATH = CONVERSION_PATH + "/sgdbops";
   String PROFILE_CONVERSION_PATH = CONVERSION_PATH + "/sginstanceprofile";
   String DISTRIBUTED_LOGS_CONVERSION_PATH = CONVERSION_PATH + "/sgdistributedlogs";
+  String CONFIG_CONVERSION_PATH = CONVERSION_PATH + "/sgconfigs";
+  String SHARDED_CLUSTER_CONVERSION_PATH = CONVERSION_PATH + "/sgshardedclusters";
+  String OBJECT_STORAGE_CONVERSION_PATH = CONVERSION_PATH + "/sgobjectstorages";
 
   String API_VERSION_PREFIX = CommonDefinition.GROUP + "/v";
   String API_VERSION_1BETA1 = API_VERSION_PREFIX + "1beta1";

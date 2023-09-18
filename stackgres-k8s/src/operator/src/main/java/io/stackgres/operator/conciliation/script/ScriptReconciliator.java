@@ -19,6 +19,7 @@ import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.operator.app.OperatorLockHolder;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractReconciliator;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
@@ -41,6 +42,7 @@ public class ScriptReconciliator
     @Inject EventEmitter<StackGresScript> eventController;
     @Inject CustomResourceScheduler<StackGresScript> scriptScheduler;
     @Inject ScriptStatusManager statusManager;
+    @Inject OperatorLockHolder operatorLockReconciliator;
   }
 
   private final EventEmitter<StackGresScript> eventController;
@@ -52,6 +54,7 @@ public class ScriptReconciliator
     super(parameters.scanner, parameters.finder,
         parameters.conciliator, parameters.deployedResourcesCache,
         parameters.handlerDelegator, parameters.client,
+        parameters.operatorLockReconciliator,
         StackGresScript.KIND);
     this.eventController = parameters.eventController;
     this.scriptScheduler = parameters.scriptScheduler;

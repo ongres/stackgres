@@ -11,7 +11,7 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
+import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -22,7 +22,6 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.mutation.AbstractExtensionsMutator;
-import org.jooq.lambda.Seq;
 
 @ApplicationScoped
 public class ExtensionsMutator
@@ -57,19 +56,12 @@ public class ExtensionsMutator
   @Override
   protected List<StackGresClusterExtension> getExtensions(
       StackGresDistributedLogs distributedLogs) {
-    return ImmutableList.of();
+    return List.of();
   }
 
   @Override
-  protected ImmutableList<StackGresClusterInstalledExtension> getDefaultExtensions(
-      StackGresCluster cluster) {
-    return Seq.seq(StackGresUtil.getDefaultDistributedLogsExtensions(cluster))
-        .map(t -> t.extensionVersion()
-            .map(version -> getExtension(cluster, t.extensionName(), version))
-            .orElseGet(() -> getExtension(cluster, t.extensionName())))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .collect(ImmutableList.toImmutableList());
+  protected List<ExtensionTuple> getDefaultExtensions(StackGresDistributedLogs cluster) {
+    return StackGresUtil.getDefaultDistributedLogsExtensions(cluster);
   }
 
   @Override

@@ -7,7 +7,7 @@ package io.stackgres.common;
 
 import static io.stackgres.common.StackGresContext.LOCK_POD_KEY;
 import static io.stackgres.common.StackGresContext.LOCK_SERVICE_ACCOUNT_KEY;
-import static io.stackgres.common.StackGresContext.LOCK_TIMESTAMP_KEY;
+import static io.stackgres.common.StackGresContext.LOCK_TIMEOUT_KEY;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,6 +35,7 @@ import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceStatus;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -145,12 +146,15 @@ public interface StackGresUtil {
     MessageDigest messageDigest = Unchecked
         .supplier(() -> MessageDigest.getInstance("MD5")).get();
     messageDigest.update(data.entrySet().stream()
+        .filter(entry -> !entry.getKey().equals(MD5SUM_KEY))
         .sorted(Map.Entry.comparingByKey())
         .map(Map.Entry::getValue)
         .collect(Collectors.joining())
         .getBytes(StandardCharsets.UTF_8));
     return ImmutableMap.<String, String>builder()
-        .putAll(data)
+        .putAll(data.entrySet().stream()
+            .filter(entry -> !entry.getKey().equals(MD5SUM_KEY))
+            .toList())
         .put(MD5SUM_KEY, HexFormat.of().withUpperCase().formatHex(messageDigest.digest()))
         .build();
   }
@@ -319,7 +323,7 @@ public interface StackGresUtil {
   }
 
   static List<ExtensionTuple> getDefaultShardedClusterExtensions(
-      StackGresCluster cluster) {
+      StackGresShardedCluster cluster) {
     String pgVersion = cluster.getSpec().getPostgres().getVersion();
 
     return getDefaultShardedClusterExtensions(
@@ -335,11 +339,9 @@ public interface StackGresUtil {
   }
 
   static List<ExtensionTuple> getDefaultDistributedLogsExtensions(
-      StackGresCluster cluster) {
-    String pgVersion = cluster.getSpec().getPostgres().getVersion();
-
+      StackGresDistributedLogs cluster) {
     return getDefaultDistributedLogsExtensions(
-        pgVersion,
+        StackGresDistributedLogsUtil.POSTGRESQL_VERSION,
         StackGresVersion.getStackGresVersion(cluster));
   }
 
@@ -353,42 +355,63 @@ public interface StackGresUtil {
         .toList();
   }
 
-  static boolean isLocked(HasMetadata resource, int lockTimeoutMillis) {
-    long currentTimeSeconds = System.currentTimeMillis() / 1000;
-    long timedOutLock = currentTimeSeconds - lockTimeoutMillis;
+  static boolean isLocked(HasMetadata resource) {
+    return isLocked(resource, System.currentTimeMillis() / 1000);
+  }
+
+  static boolean isLocked(HasMetadata resource, long checkTimestamp) {
     return Optional.ofNullable(resource.getMetadata())
         .map(ObjectMeta::getAnnotations)
-        .filter(annotation -> annotation.containsKey(LOCK_POD_KEY)
-            && annotation.containsKey(LOCK_TIMESTAMP_KEY))
-        .map(annotations -> Long.parseLong(annotations.get(LOCK_TIMESTAMP_KEY)))
-        .map(lockTimestamp -> lockTimestamp > timedOutLock)
+        .filter(annotations -> annotations.containsKey(LOCK_POD_KEY)
+            && annotations.containsKey(LOCK_TIMEOUT_KEY))
+        .map(annotations -> Long.parseLong(annotations.get(LOCK_TIMEOUT_KEY)))
+        .map(lockTimeout -> checkTimestamp < lockTimeout)
         .orElse(false);
   }
 
-  static boolean isLockedByMe(HasMetadata resource, String lockPodName) {
+  static boolean isLockedBy(HasMetadata resource, String lockPodName) {
+    return isLockedBy(resource, lockPodName,
+        System.currentTimeMillis() / 1000);
+  }
+
+  static boolean isLockedBy(HasMetadata resource, String lockPodName,
+      long checkTimestamp) {
     return Optional.ofNullable(resource.getMetadata())
         .map(ObjectMeta::getAnnotations)
         .filter(annotation -> annotation.containsKey(LOCK_POD_KEY)
-            && annotation.containsKey(LOCK_TIMESTAMP_KEY))
-        .map(annotation -> annotation.get(LOCK_POD_KEY).equals(lockPodName))
+            && annotation.containsKey(LOCK_TIMEOUT_KEY))
+        .filter(annotations -> annotations.get(LOCK_POD_KEY).equals(lockPodName))
+        .map(annotations -> Long.parseLong(annotations.get(LOCK_TIMEOUT_KEY)))
+        .map(lockTimeout -> checkTimestamp < lockTimeout)
         .orElse(false);
+  }
+
+  static void setLock(HasMetadata resource, String lockServiceAccount,
+      String lockPodName, long lockDuration) {
+    setLock(resource, lockServiceAccount, lockPodName, lockDuration,
+        System.currentTimeMillis() / 1000);
   }
 
   static void setLock(HasMetadata resource, String lockServiceAccount, String lockPodName,
-      long lockTimestamp) {
-    final Map<String, String> annotations = resource.getMetadata().getAnnotations();
-
-    annotations.put(LOCK_SERVICE_ACCOUNT_KEY, lockServiceAccount);
-    annotations.put(LOCK_POD_KEY, lockPodName);
-    annotations.put(LOCK_TIMESTAMP_KEY, Long.toString(lockTimestamp));
+      long lockDuration, long lockTimestamp) {
+    resource.setMetadata(
+        new ObjectMetaBuilder(resource.getMetadata())
+        .removeFromAnnotations(LOCK_SERVICE_ACCOUNT_KEY)
+        .removeFromAnnotations(LOCK_POD_KEY)
+        .removeFromAnnotations(LOCK_TIMEOUT_KEY)
+        .addToAnnotations(LOCK_SERVICE_ACCOUNT_KEY, lockServiceAccount)
+        .addToAnnotations(LOCK_POD_KEY, lockPodName)
+        .addToAnnotations(LOCK_TIMEOUT_KEY, Long.toString(lockTimestamp + lockDuration))
+        .build());
   }
 
   static void resetLock(HasMetadata resource) {
-    final Map<String, String> annotations = resource.getMetadata().getAnnotations();
-
-    annotations.remove(LOCK_SERVICE_ACCOUNT_KEY);
-    annotations.remove(LOCK_POD_KEY);
-    annotations.remove(LOCK_TIMESTAMP_KEY);
+    resource.setMetadata(
+        new ObjectMetaBuilder(resource.getMetadata())
+        .removeFromAnnotations(LOCK_SERVICE_ACCOUNT_KEY)
+        .removeFromAnnotations(LOCK_POD_KEY)
+        .removeFromAnnotations(LOCK_TIMEOUT_KEY)
+        .build());
   }
 
   static String getLockServiceAccount(HasMetadata resource) {

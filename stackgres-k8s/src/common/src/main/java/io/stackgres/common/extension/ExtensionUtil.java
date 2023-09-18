@@ -264,18 +264,6 @@ public interface ExtensionUtil {
         .or(() -> osDetector.map(OsDetector::getArch));
   }
 
-  static Optional<String> getClusterArch(ExtensionRequest extensionRequest,
-                                         Optional<OsDetector> osDetector) {
-    return extensionRequest.getArch()
-        .or(() -> osDetector.map(OsDetector::getArch));
-  }
-
-  static Optional<String> getClusterOs(ExtensionRequest extensionRequest,
-                                       Optional<OsDetector> osDetector) {
-    return extensionRequest.getOs()
-        .or(() -> osDetector.map(OsDetector::getOs));
-  }
-
   static String getClusterOs(@Nullable StackGresCluster cluster) {
     return Optional.ofNullable(cluster).map(StackGresCluster::getStatus)
         .map(StackGresClusterStatus::getOs)

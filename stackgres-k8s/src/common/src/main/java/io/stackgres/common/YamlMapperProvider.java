@@ -11,6 +11,7 @@ import javax.inject.Singleton;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator.Feature;
@@ -32,7 +33,9 @@ public class YamlMapperProvider implements Supplier<YAMLMapper> {
       .build();
 
   static {
-    YAML_MAPPER.registerModules(Serialization.UNMATCHED_FIELD_TYPE_MODULE);
+    YAML_MAPPER
+        .registerModules(Serialization.UNMATCHED_FIELD_TYPE_MODULE)
+        .configOverride(ArrayNode.class).setMergeable(false);
   }
 
   @Override

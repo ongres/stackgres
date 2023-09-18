@@ -14,7 +14,7 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
+import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
@@ -29,7 +29,6 @@ import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.mutation.AbstractExtensionsMutator;
 import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
-import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 
 @ApplicationScoped
@@ -66,10 +65,12 @@ public class ExtensionsMutator
         .map(StackGresClusterPostgres::getVersion)
         .flatMap(getPostgresFlavorComponent(resource).get(resource)::findVersion)
         .orElse(null);
-    if (postgresVersion != null && supportedPostgresVersions
+    if (postgresVersion != null
+        && supportedPostgresVersions
         .get(getPostgresFlavorComponent(resource))
         .get(StackGresVersion.getStackGresVersion(resource))
-        .contains(postgresVersion)) {
+        .contains(postgresVersion)
+        && extensionsChanged(review)) {
       mutateExtensionChannels(resource);
       return super.mutate(review, resource);
     }
@@ -149,15 +150,9 @@ public class ExtensionsMutator
   }
 
   @Override
-  protected ImmutableList<StackGresClusterInstalledExtension> getDefaultExtensions(
+  protected List<ExtensionTuple> getDefaultExtensions(
       StackGresCluster cluster) {
-    return Seq.seq(StackGresUtil.getDefaultClusterExtensions(cluster))
-        .map(t -> t.extensionVersion()
-        .map(version -> getExtension(cluster, t.extensionName(), version))
-            .orElseGet(() -> getExtension(cluster, t.extensionName())))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .collect(ImmutableList.toImmutableList());
+    return StackGresUtil.getDefaultClusterExtensions(cluster);
   }
 
   @Override

@@ -20,8 +20,8 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.operator.conciliation.RequiredResourceDecorator;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
+import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 
 @ApplicationScoped
 public class DistributedLogsRequiredResourcesGenerator
@@ -33,7 +33,7 @@ public class DistributedLogsRequiredResourcesGenerator
 
   private final ConnectedClustersScanner connectedClustersScanner;
 
-  private final RequiredResourceDecorator<StackGresDistributedLogsContext> decorator;
+  private final ResourceGenerationDiscoverer<StackGresDistributedLogsContext> discoverer;
 
   private final ResourceFinder<Secret> secretFinder;
 
@@ -41,12 +41,12 @@ public class DistributedLogsRequiredResourcesGenerator
   public DistributedLogsRequiredResourcesGenerator(
       CustomResourceFinder<StackGresProfile> profileFinder,
       CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder,
-      RequiredResourceDecorator<StackGresDistributedLogsContext> decorator,
+      ResourceGenerationDiscoverer<StackGresDistributedLogsContext> discoverer,
       ConnectedClustersScanner connectedClustersScanner,
       ResourceFinder<Secret> secretFinder) {
     this.profileFinder = profileFinder;
     this.postgresConfigFinder = postgresConfigFinder;
-    this.decorator = decorator;
+    this.discoverer = discoverer;
     this.connectedClustersScanner = connectedClustersScanner;
     this.secretFinder = secretFinder;
   }
@@ -81,7 +81,7 @@ public class DistributedLogsRequiredResourcesGenerator
         .databaseCredentials(secretFinder.findByNameAndNamespace(distributedLogsName, namespace))
         .build();
 
-    return decorator.decorateResources(context);
+    return discoverer.generateResources(context);
   }
 
   private List<StackGresCluster> getConnectedClusters(

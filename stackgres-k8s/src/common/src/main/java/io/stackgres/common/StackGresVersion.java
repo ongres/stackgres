@@ -12,6 +12,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgscript.StackGresScript;
@@ -92,6 +93,10 @@ public enum StackGresVersion {
             "Invalid version " + version));
   }
 
+  public static StackGresVersion getStackGresVersion(StackGresConfig config) {
+    return getStackGresVersionFromResource(config);
+  }
+
   public static StackGresVersion getStackGresVersion(StackGresShardedCluster cluster) {
     return getStackGresVersionFromResource(cluster);
   }
@@ -123,6 +128,10 @@ public enum StackGresVersion {
         .map(annotations -> annotations.get(StackGresContext.VERSION_KEY))
         .map(StackGresVersion::ofVersion)
         .orElse(StackGresVersion.LATEST);
+  }
+
+  public static long getStackGresVersionAsNumber(StackGresConfig config) {
+    return getStackGresVersionFromResourceAsNumber(config);
   }
 
   public static long getStackGresVersionAsNumber(StackGresCluster cluster) {

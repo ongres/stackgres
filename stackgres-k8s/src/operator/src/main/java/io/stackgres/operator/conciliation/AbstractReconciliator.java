@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -23,6 +24,7 @@ import io.stackgres.common.CdiUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.operator.app.OperatorLockHolder;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
@@ -43,6 +45,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
   private final DeployedResourcesCache deployedResourcesCache;
   private final HandlerDelegator<T> handlerDelegator;
   private final KubernetesClient client;
+  private final OperatorLockHolder operatorLockReconciliator;
   private final String reconciliationName;
   private final ExecutorService executorService;
   private final AtomicReference<List<Optional<T>>> atomicReference =
@@ -59,6 +62,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
       DeployedResourcesCache deployedResourcesCache,
       HandlerDelegator<T> handlerDelegator,
       KubernetesClient client,
+      OperatorLockHolder operatorLockReconciliator,
       String reconciliationName) {
     this.scanner = scanner;
     this.finder = finder;
@@ -67,6 +71,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     this.handlerDelegator = handlerDelegator;
     this.client = client;
     this.reconciliationName = reconciliationName;
+    this.operatorLockReconciliator = operatorLockReconciliator;
     this.executorService = Executors.newSingleThreadExecutor(
         r -> new Thread(r, reconciliationName + "-ReconciliationLoop"));
   }
@@ -80,10 +85,12 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     this.handlerDelegator = null;
     this.client = null;
     this.reconciliationName = null;
+    this.operatorLockReconciliator = null;
     this.executorService = null;
   }
 
   protected void start() {
+    operatorLockReconciliator.register(this);
     executorService.execute(this::reconciliationLoop);
   }
 
@@ -121,6 +128,13 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     LOGGER.info("{} reconciliation loop started", getReconciliationName());
     while (true) {
       try {
+        if (!operatorLockReconciliator.isLeader()) {
+          if (close) {
+            break;
+          }
+          Thread.sleep(100);
+          continue;
+        }
         arrayBlockingQueue.take();
         List<Optional<T>> configs = atomicReference.getAndSet(List.of());
         if (close) {
@@ -175,8 +189,9 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
   protected void reconciliationCycle(T configKey, boolean load) {
     final ObjectMeta metadata = configKey.getMetadata();
     final String configId = configKey.getKind()
-        + " " + metadata.getNamespace() + "/" + metadata.getName();
+        + " " + metadata.getNamespace() + "." + metadata.getName();
 
+    List<Exception> exceptions = new ArrayList<>();
     try {
       final T config;
       if (load) {
@@ -186,7 +201,7 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
         config = configKey;
       }
       onPreReconciliation(config);
-      LOGGER.info("Checking reconciliation status of {}", configId);
+      LOGGER.debug("Checking reconciliation status of {}", configId);
       ReconciliationResult result = conciliator.evalReconciliationState(config);
       if (!result.isUpToDate()) {
         LOGGER.info("{} it's not up to date. Reconciling", configId);
@@ -195,12 +210,16 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
             .stream()
             .sorted(ReconciliationOperations.RESOURCES_COMPARATOR)
             .forEach(resource -> {
-              LOGGER.info("Creating resource {}.{} of kind: {}",
-                  resource.getMetadata().getNamespace(),
-                  resource.getMetadata().getName(),
-                  resource.getKind());
-              var created = handlerDelegator.create(config, resource);
-              deployedResourcesCache.put(resource, created);
+              try {
+                LOGGER.info("Creating {} {}.{}",
+                    resource.getKind(),
+                    resource.getMetadata().getNamespace(),
+                    resource.getMetadata().getName());
+                var created = handlerDelegator.create(config, resource);
+                deployedResourcesCache.put(resource, created);
+              } catch (Exception ex) {
+                exceptions.add(ex);
+              }
             });
 
         result.getPatches()
@@ -208,12 +227,16 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
             .sorted(Comparator.comparing(
                 Tuple2::v1, ReconciliationOperations.RESOURCES_COMPARATOR))
             .forEach(resource -> {
-              LOGGER.info("Patching resource {}.{} of kind: {}",
-                  resource.v2.getMetadata().getNamespace(),
-                  resource.v2.getMetadata().getName(),
-                  resource.v2.getKind());
-              var patched = handlerDelegator.patch(config, resource.v1, resource.v2);
-              deployedResourcesCache.put(resource.v1, patched);
+              try {
+                LOGGER.info("Patching {} {}.{}",
+                    resource.v2.getKind(),
+                    resource.v2.getMetadata().getNamespace(),
+                    resource.v2.getMetadata().getName());
+                var patched = handlerDelegator.patch(config, resource.v1, resource.v2);
+                deployedResourcesCache.put(resource.v1, patched);
+              } catch (Exception ex) {
+                exceptions.add(ex);
+              }
             });
 
         result.getDeletions()
@@ -226,9 +249,10 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
                   resource.getMetadata().getName(),
                   resource.getKind());
               try {
-                handlerDelegator.delete(config, resource);
-              } finally {
                 deployedResourcesCache.remove(resource);
+                handlerDelegator.delete(config, resource);
+              } catch (Exception ex) {
+                exceptions.add(ex);
               }
             });
         if (result.getDeletions().isEmpty() && result.getPatches().isEmpty()) {
@@ -237,15 +261,20 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
           onConfigUpdated(config, result);
         }
       } else {
-        LOGGER.info("{} it's up to date", configId);
+        LOGGER.debug("{} it's up to date", configId);
       }
 
       onPostReconciliation(config);
-
-    } catch (Exception e) {
-      LOGGER.error("Reconciliation of {} failed", configId, e);
+    } catch (Exception ex) {
+      exceptions.add(ex);
+    }
+    if (!exceptions.isEmpty()) {
+      var iterator = exceptions.listIterator();
+      Exception ex = iterator.next();
+      iterator.forEachRemaining(otherEx -> ex.addSuppressed(otherEx));
+      LOGGER.error("Reconciliation of {} failed", configId, ex);
       try {
-        onError(e, configKey);
+        onError(ex, configKey);
       } catch (Exception onErrorEx) {
         LOGGER.error("Failed executing on error event of {}", configId, onErrorEx);
       }

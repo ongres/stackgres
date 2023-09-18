@@ -41,7 +41,7 @@ class RestartJobTest {
 
   @InjectMock
   @StateHandler("restart")
-  ClusterRestartStateHandlerImpl clusterRestart;
+  ClusterRestartStateHandler clusterRestart;
 
   private StackGresCluster cluster;
   private StackGresDbOps dbOps;

@@ -14,11 +14,6 @@ mkdir -p "$PG_EXTENSIONS_EXTENSION_PATH"
 
 mkdir -p "$PG_EXTENSIONS_LIB64_PATH"
 
-if [ -d "$PG_RELOCATED_PATH" ]
-then
-  chmod -R u+rw "$PG_RELOCATED_PATH"
-  rm -fr "$PG_RELOCATED_PATH"
-fi
 mkdir -p "$PG_RELOCATED_PATH"
 
 if [ ! -f "$PG_RELOCATED_PATH/.done" ]

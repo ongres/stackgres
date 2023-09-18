@@ -15,7 +15,7 @@ kubectl_mock_overwrite() {
     ("get cronjob.batch "*)
     echo '
       LOCK_POD=test
-      LOCK_TIMESTAMP='"$(cat "$TEST_TARGET_PATH/lock_timestamp")"'
+      LOCK_TIMEOUT='"$(cat "$TEST_TARGET_PATH/lock_timestamp")"'
       RESOURCE_VERSION=test
       '
     echo 0 > "$TEST_TARGET_PATH/lock_timestamp"
