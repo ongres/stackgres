@@ -7,6 +7,8 @@ package io.stackgres.operator.app;
 
 public interface OperatorBootstrap {
 
+  void syncBootstrap();
+
   void bootstrap();
 
 }

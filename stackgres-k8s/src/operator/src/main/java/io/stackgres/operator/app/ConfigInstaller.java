@@ -115,9 +115,11 @@ public class ConfigInstaller {
         configWriter.create(config);
       } else {
         LOGGER.info("Updating SGConfig");
-        configWriter.update(config);
+        configWriter.update(config, foundConfig -> foundConfig.setSpec(config.getSpec()));
       }
     }
+    LOGGER.info("Updating SGConfig status");
+    configWriter.updateStatus(config, foundConfig -> foundConfig.setStatus(config.getStatus()));
   }
 
   private void removeOldOperatorBundleResourcesForv1_4_3() {
