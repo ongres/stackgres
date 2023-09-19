@@ -11,6 +11,7 @@ e2e_test_install() {
   BACKUP_ENDPOINT="http://restore-backup-minio.$BACKUP_CLUSTER_NAMESPACE:9000"
   create_or_replace_cluster_only "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE" 1 \
     -f "$SPEC_FILE.backup.values.yaml" \
+    --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION" \
     --set-string "configurations.objectstorage.s3Compatible.endpoint=$BACKUP_ENDPOINT"
 
   wait_pods_running "$BACKUP_CLUSTER_NAMESPACE" 2
@@ -104,7 +105,8 @@ check_backup_can_be_restored() {
   create_more_mock_data
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
-    --set cluster.initialData.restore.fromBackup.name="$BACKUP_NAME"
+    --set cluster.initialData.restore.fromBackup.name="$BACKUP_NAME" \
+    --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION"
 
   wait_pods_running "$CLUSTER_NAMESPACE" 2
   wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
@@ -209,6 +211,7 @@ check_backup_pg_version() {
 check_restore_using_pitr() {
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION" \
     --set-string cluster.initialData.restore.fromBackup.name="$BACKUP_NAME" \
     --set-string cluster.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp="$BACKUP_PITR_DATE"
 

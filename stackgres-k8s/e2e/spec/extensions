@@ -12,7 +12,7 @@ e2e_test_install() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --set-string 'cluster.postgres.version=15.2' \
     --set-string 'cluster.postgres.extensions[0].name=timescaledb' \
-    --set-string 'cluster.postgres.extensions[0].version=2.9.3' \
+    --set-string 'cluster.postgres.extensions[0].version=2.11.2' \
     --set-string configurations.postgresconfig.postgresql\\.conf.shared_preload_libraries=timescaledb
 
   wait_pods_running "$CLUSTER_NAMESPACE" "2"

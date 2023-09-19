@@ -139,7 +139,7 @@ class DefaultStorageMigrationMutatorTest {
 
     final StackGresCluster cluster = review.getRequest().getObject();
 
-    cluster.getSpec().getPostgres().setVersion("13.4");
+    cluster.getSpec().getPostgres().setVersion("13.12");
     cluster.getMetadata().setAnnotations(new HashMap<>());
     cluster.getMetadata().getAnnotations().put(
         StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());

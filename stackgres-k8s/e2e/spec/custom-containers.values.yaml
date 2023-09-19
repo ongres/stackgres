@@ -6,7 +6,7 @@ configurations:
     create: false
 cluster:
   postgres:
-    version: "13.5"
+    version: "13.12"
   postgresServices:
     primary:
       customPorts:
@@ -96,7 +96,7 @@ cluster:
         readOnly: true
     customInitContainers:
     - name: pg-controldata
-      image: postgres:13.5
+      image: postgres:13.12
       command:
       - sh
       - -ecx

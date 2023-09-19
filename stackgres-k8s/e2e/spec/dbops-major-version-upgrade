@@ -164,7 +164,7 @@ EOF
 
 check_major_version_upgrade_fail_on_missing_extension_version() {
   local E2E_MAJOR_SOURCE_POSTGRES_VERSION=14
-  local E2E_MAJOR_TARGET_POSTGRES_VERSION=15.3
+  local E2E_MAJOR_TARGET_POSTGRES_VERSION=15.2
   reset_cluster_only_pg_repack
 
   cat << EOF | kubectl create -f -

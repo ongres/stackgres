@@ -10,6 +10,7 @@ e2e_test_extra_hash() {
 e2e_test_install() {
   PRIMARY_CLUSTER_NAME="$(get_sgcluster_name "primary-$SPEC_NAME")"
   create_or_replace_cluster "$PRIMARY_CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1"
+  wait_cluster "$PRIMARY_CLUSTER_NAME" "$CLUSTER_NAMESPACE"
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --set configurations.create=false \
     --set instanceProfiles=null \
@@ -140,6 +141,7 @@ check_standby_can_be_converted_to_primary() {
   run_query -p 5432 -h "$CLUSTER_NAME" -i 0 -q "INSERT INTO fibonacci(num) VALUES (1);" -d test2
   run_query -p 5432 -h "$CLUSTER_NAME" -i 0 -q "INSERT INTO fibonacci(num) VALUES (2);" -d test2
   run_query -p 5432 -h "$CLUSTER_NAME" -i 0 -q "INSERT INTO fibonacci(num) VALUES (3);" -d test2
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 0 -q "CHECKPOINT;" -d test2
 
   PRIMARY_RESPONSE="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test2")"
 
