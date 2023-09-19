@@ -34,9 +34,9 @@ public class DefaultOperatorBootstrap implements OperatorBootstrap {
   private static final Logger LOGGER = LoggerFactory.getLogger(OperatorBootstrap.class);
 
   private final KubernetesClient client;
-  private final OperatorLockHolder operatorLockHolder;
   private final ConfigInstaller configInstaller;
   private final CertificateInstaller certInstaller;
+  private final OperatorLockHolder operatorLockHolder;
   private final CrdInstaller crdInstaller;
   private final CrdWebhookConfigurator crdWebhookConfigurator;
   private final CrUpdater crUpdater;
@@ -60,16 +60,26 @@ public class DefaultOperatorBootstrap implements OperatorBootstrap {
   }
 
   @Override
+  public void syncBootstrap() {
+    if (OperatorProperty.INSTALL_CONFIG.getBoolean()) {
+      LOGGER.info("Installing SGConfig");
+      configInstaller.installOrUpdateConfig();
+    }
+    if (OperatorProperty.INSTALL_CERTS.getBoolean()) {
+      LOGGER.info("Installing Certificate");
+      certInstaller.installOrUpdateCertificate();
+    }
+    LOGGER.info("Wait for certificate");
+    certInstaller.waitForCertificate();
+  }
+
+  @Override
   public void bootstrap() {
     try {
       if (client.getKubernetesVersion() != null) {
         LOGGER.info("Kubernetes version: {}", client.getKubernetesVersion().getGitVersion());
       }
       LOGGER.info("URL of this Kubernetes cluster: {}", client.getMasterUrl());
-      if (OperatorProperty.INSTALL_CONFIG.getBoolean()) {
-        LOGGER.info("Installing SGConfig");
-        configInstaller.installOrUpdateConfig();
-      }
       operatorLockHolder.start();
       try {
         while (!operatorLockHolder.isLeader()) {
@@ -79,12 +89,6 @@ public class DefaultOperatorBootstrap implements OperatorBootstrap {
             throw new RuntimeException(ex);
           }
         }
-        if (OperatorProperty.INSTALL_CERTS.getBoolean()) {
-          LOGGER.info("Installing Certificate");
-          certInstaller.installOrUpdateCertificate();
-        }
-        LOGGER.info("Wait for certificate");
-        certInstaller.waitForCertificate();
         if (OperatorProperty.INSTALL_CRDS.getBoolean()) {
           LOGGER.info("Installing CRDs");
           crdInstaller.installCustomResourceDefinitions();

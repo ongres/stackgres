@@ -52,6 +52,7 @@ public class StackGresOperatorApp {
 
   void onStart(@Observes StartupEvent ev) {
     if (!operatorPropertyContext.getBoolean(OperatorProperty.DISABLE_RECONCILIATION)) {
+      this.operatorBootstrap.syncBootstrap();
       this.executorService.execute(this::startReconciliation);
     }
   }

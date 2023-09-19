@@ -13,8 +13,12 @@ import io.quarkus.test.Mock;
 @ApplicationScoped
 public class MockOperatorBootstrap implements OperatorBootstrap {
   @Override
-  public void bootstrap() {
+  public void syncBootstrap() {
     //For integration testing purposes we don't need bootstrap
   }
 
+  @Override
+  public void bootstrap() {
+    //For integration testing purposes we don't need bootstrap
+  }
 }
