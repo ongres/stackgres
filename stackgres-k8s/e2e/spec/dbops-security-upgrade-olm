@@ -365,13 +365,13 @@ INNER_EOF
 }
 EOF
 
-  wait_until kubectl rollout status --timeout=1s -n "$OPERATOR_NAMESPACE" deployment -l olm.owner="stackgres.v$BUNDLE_STACKGRES_VERSION"
-
   wait_until eval 'kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
     --template "{{ range .items }}{{ range .spec.containers }}{{ printf \"%s\n\" .image }}{{ end }}{{ end }}" \
     | grep -qF "'"/${EXPECTED_OPERATOR_IMAGE##*/}"'"'
 
   wait_until eval 'kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator -o name | wc -l | grep -xF 1'
+
+  wait_until kubectl rollout status --timeout=1s -n "$OPERATOR_NAMESPACE" deployment -l olm.owner="stackgres.v$BUNDLE_STACKGRES_VERSION"
 
   wait_until eval 'kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=StackGresConfig,stackgres.io/restapi=true \
     --template "{{ range .items }}{{ range .spec.containers }}{{ printf \"%s\n\" .image }}{{ end }}{{ end }}" \
