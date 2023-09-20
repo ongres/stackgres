@@ -134,30 +134,16 @@ deploy admin-ui image:
     IMAGE_NAME: "stackgres/admin-ui"
     TARGET_REGISTRIES: "quay.io"
 
-deploy helm operator image:
+deploy operator bundle image:
   extends: .deploy image
   variables:
-    IMAGE_NAME: "stackgres/helm-operator"
+    IMAGE_NAME: "stackgres/operator-bundle"
     TARGET_REGISTRIES: "quay.io"
 
-deploy helm operator bundle image:
+deploy operator openshift bundle image:
   extends: .deploy image
   variables:
-    IMAGE_NAME: "stackgres/helm-operator-bundle"
-    TARGET_REGISTRIES: "quay.io"
-
-deploy helm operator openshift image:
-  extends: .deploy image
-  variables:
-    IMAGE_NAME: "stackgres/helm-operator"
-    IMAGE_TAG_SUFFIX: "-release-openshift"
-    IMAGE_PUSH_TAG_SUFFIX: "-openshift"
-    TARGET_REGISTRIES: "quay.io"
-
-deploy helm operator openshift bundle image:
-  extends: .deploy image
-  variables:
-    IMAGE_NAME: "stackgres/helm-operator-bundle"
+    IMAGE_NAME: "stackgres/operator-bundle"
     IMAGE_TAG_SUFFIX: "-release-openshift"
     IMAGE_PUSH_TAG_SUFFIX: "-openshift"
     TARGET_REGISTRIES: "quay.io"
