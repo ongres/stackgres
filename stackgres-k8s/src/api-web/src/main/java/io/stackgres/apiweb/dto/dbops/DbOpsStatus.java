@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -17,29 +16,21 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class DbOpsStatus {
 
-  @JsonProperty("conditions")
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private List<DbOpsCondition> conditions = new ArrayList<>();
 
-  @JsonProperty("opRetries")
   private Integer opRetries;
 
-  @JsonProperty("opStarted")
   private String opStarted;
 
-  @JsonProperty("benchmark")
   private DbOpsBenchmarkStatus benchmark;
 
-  @JsonProperty("majorVersionUpgrade")
   private DbOpsMajorVersionUpgradeStatus majorVersionUpgrade;
 
-  @JsonProperty("restart")
   private DbOpsRestartStatus restart;
 
-  @JsonProperty("minorVersionUpgrade")
   private DbOpsMinorVersionUpgradeStatus minorVersionUpgrade;
 
-  @JsonProperty("securityUpgrade")
   private DbOpsSecurityUpgradeStatus securityUpgrade;
 
   public List<DbOpsCondition> getConditions() {

@@ -5,9 +5,9 @@
 
 package io.stackgres.common.fixture;
 
-import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPodBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPodsBuilder;
 
 public class StackGresClusterPodFixture {
 
@@ -18,14 +18,14 @@ public class StackGresClusterPodFixture {
     return this;
   }
 
-  public StackGresClusterPod build() {
-    StackGresClusterPod pod = new StackGresClusterPod();
+  public StackGresClusterPods build() {
+    StackGresClusterPods pod = new StackGresClusterPods();
     pod.setScheduling(scheduling);
     return pod;
   }
 
-  public StackGresClusterPodBuilder getBuilder() {
-    return new StackGresClusterPodBuilder(build());
+  public StackGresClusterPodsBuilder getBuilder() {
+    return new StackGresClusterPodsBuilder(build());
   }
 
 }

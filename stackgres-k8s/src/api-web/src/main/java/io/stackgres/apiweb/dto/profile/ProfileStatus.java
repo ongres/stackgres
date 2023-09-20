@@ -8,7 +8,6 @@ package io.stackgres.apiweb.dto.profile;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -16,7 +15,6 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ProfileStatus {
 
-  @JsonProperty("clusters")
   private List<String> clusters;
 
   public List<String> getClusters() {

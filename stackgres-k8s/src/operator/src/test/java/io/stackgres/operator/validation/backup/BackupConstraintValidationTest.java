@@ -9,8 +9,8 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
 import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
+import io.stackgres.operator.validation.AbstractConstraintValidator;
 import io.stackgres.operator.validation.ConstraintValidationTest;
-import io.stackgres.operator.validation.ConstraintValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -19,7 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class BackupConstraintValidationTest extends ConstraintValidationTest<BackupReview> {
 
   @Override
-  protected ConstraintValidator<BackupReview> buildValidator() {
+  protected AbstractConstraintValidator<BackupReview> buildValidator() {
     return new BackupConstraintValidation();
   }
 

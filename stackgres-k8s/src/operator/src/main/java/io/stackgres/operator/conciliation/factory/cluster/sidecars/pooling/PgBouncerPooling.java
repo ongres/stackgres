@@ -32,7 +32,7 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncer;
@@ -94,8 +94,8 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
         .map(ClusterContainerContext::getClusterContext)
         .map(StackGresClusterContext::getSource)
         .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getPod)
-        .map(StackGresClusterPod::getDisableConnectionPooling)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableConnectionPooling)
         .map(disable -> !disable)
         .orElse(Boolean.TRUE);
   }
@@ -210,7 +210,7 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
         .map(StackGresPoolingConfig::getSpec)
         .map(StackGresPoolingConfigSpec::getPgBouncer)
         .map(StackGresPoolingConfigPgBouncer::getPgbouncerIni)
-        .map(StackGresPoolingConfigPgBouncerPgbouncerIni::getParameters)
+        .map(StackGresPoolingConfigPgBouncerPgbouncerIni::getPgbouncer)
         .orElseGet(HashMap::new);
 
     // Blocklist removal

@@ -30,9 +30,9 @@ public class DbOpsTransformer
   }
 
   @Override
-  public StackGresDbOps toCustomResource(DbOpsDto source,
-                                         StackGresDbOps original) {
-
+  public StackGresDbOps toCustomResource(
+      DbOpsDto source,
+      StackGresDbOps original) {
     StackGresDbOps transformation = Optional.ofNullable(original)
         .map(crd -> mapper.convertValue(crd, StackGresDbOps.class))
         .orElseGet(StackGresDbOps::new);
@@ -51,9 +51,6 @@ public class DbOpsTransformer
   }
 
   private StackGresDbOpsSpec getCustomResourceSpec(DbOpsSpec source) {
-    if (source == null) {
-      return null;
-    }
     return mapper.convertValue(source, StackGresDbOpsSpec.class);
   }
 

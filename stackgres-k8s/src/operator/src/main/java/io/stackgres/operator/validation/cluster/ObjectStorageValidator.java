@@ -48,11 +48,11 @@ public class ObjectStorageValidator implements ClusterValidator {
     StackGresCluster cluster = review.getRequest().getObject();
     String namespace = cluster.getMetadata().getNamespace();
     List<StackGresClusterBackupConfiguration> backupsConfigs =
-        cluster.getSpec().getConfiguration().getBackups();
+        cluster.getSpec().getConfigurations().getBackups();
 
     if (backupsConfigs != null) {
       for (StackGresClusterBackupConfiguration backup : backupsConfigs) {
-        String objectStorage = backup.getObjectStorage();
+        String objectStorage = backup.getSgObjectStorage();
         if (objectStorage != null) {
           Optional<StackGresObjectStorage> backupConfigOpt = objectStorageFinder
               .findByNameAndNamespace(objectStorage, namespace);

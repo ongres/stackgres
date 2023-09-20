@@ -5,10 +5,13 @@
 
 package io.stackgres.apiweb.dto.cluster;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
+@SuppressFBWarnings(value = "NM_CONFUSING",
+      justification = "Not an issue")
 public class ClusterLogEntryDto {
 
   private String logTime;

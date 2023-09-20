@@ -8,7 +8,6 @@ package io.stackgres.apiweb.dto.cluster;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -16,22 +15,16 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ClusterManagedScriptEntryStatus {
 
-  @JsonProperty("id")
   private Integer id;
 
-  @JsonProperty("startedAt")
   private String startedAt;
 
-  @JsonProperty("updatedAt")
   private String updatedAt;
 
-  @JsonProperty("failedAt")
   private String failedAt;
 
-  @JsonProperty("completedAt")
   private String completedAt;
 
-  @JsonProperty("scripts")
   private List<ClusterManagedScriptEntryScriptsStatus> scripts;
 
   public Integer getId() {

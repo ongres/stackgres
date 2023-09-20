@@ -57,9 +57,9 @@ class DistributedLogsReferenceValidatorTest {
     review.getRequest().getObject().getSpec()
         .setDistributedLogs(new StackGresClusterDistributedLogs());
     review.getRequest().getObject().getSpec().getDistributedLogs()
-        .setDistributedLogs("test");
+        .setSgDistributedLogs("test");
     String distributedLogsName =
-        review.getRequest().getObject().getSpec().getDistributedLogs().getDistributedLogs();
+        review.getRequest().getObject().getSpec().getDistributedLogs().getSgDistributedLogs();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(distributedLogsFinder.findByNameAndNamespace(distributedLogsName, namespace))
@@ -78,9 +78,9 @@ class DistributedLogsReferenceValidatorTest {
     review.getRequest().getObject().getSpec()
         .setDistributedLogs(new StackGresClusterDistributedLogs());
     review.getRequest().getObject().getSpec().getDistributedLogs()
-        .setDistributedLogs("test");
+        .setSgDistributedLogs("test");
     String distributedLogsName =
-        review.getRequest().getObject().getSpec().getDistributedLogs().getDistributedLogs();
+        review.getRequest().getObject().getSpec().getDistributedLogs().getSgDistributedLogs();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(distributedLogsFinder.findByNameAndNamespace(distributedLogsName, namespace))
@@ -104,7 +104,7 @@ class DistributedLogsReferenceValidatorTest {
         .loadDistributedLogsUpdate().get();
 
     String distributedLogsName =
-        review.getRequest().getObject().getSpec().getDistributedLogs().getDistributedLogs();
+        review.getRequest().getObject().getSpec().getDistributedLogs().getSgDistributedLogs();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(distributedLogsFinder.findByNameAndNamespace(distributedLogsName, namespace))
@@ -129,7 +129,7 @@ class DistributedLogsReferenceValidatorTest {
         .loadDistributedLogsUpdate().get();
 
     String distributedLogsName =
-        review.getRequest().getObject().getSpec().getDistributedLogs().getDistributedLogs();
+        review.getRequest().getObject().getSpec().getDistributedLogs().getSgDistributedLogs();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     StackGresDistributedLogs distributedLogs = Fixtures.distributedLogs().loadDefault().get();

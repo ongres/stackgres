@@ -8,31 +8,27 @@ package io.stackgres.apiweb.dto.cluster;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.apiweb.dto.ResourceClassForDto;
 import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@ResourceClassForDto(StackGresCluster.class)
 public class ClusterDto extends ResourceDto {
 
-  @JsonProperty("spec")
   private ClusterSpec spec;
 
-  @JsonProperty("status")
   private ClusterStatus status;
 
-  @JsonProperty("pods")
   private List<KubernetesPod> pods;
 
-  @JsonProperty("podsReady")
   private Integer podsReady;
 
-  @JsonProperty("grafanaEmbedded")
   private boolean grafanaEmbedded;
 
-  @JsonProperty("info")
   private ClusterInfo info;
 
   public ClusterSpec getSpec() {

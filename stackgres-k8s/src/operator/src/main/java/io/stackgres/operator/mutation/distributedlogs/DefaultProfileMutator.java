@@ -37,12 +37,12 @@ public class DefaultProfileMutator
 
   @Override
   protected String getTargetPropertyValue(StackGresDistributedLogs resource) {
-    return resource.getSpec().getResourceProfile();
+    return resource.getSpec().getSgInstanceProfile();
   }
 
   @Override
   protected void setTargetProperty(StackGresDistributedLogs resource, String value) {
-    resource.getSpec().setResourceProfile(value);
+    resource.getSpec().setSgInstanceProfile(value);
   }
 
 }

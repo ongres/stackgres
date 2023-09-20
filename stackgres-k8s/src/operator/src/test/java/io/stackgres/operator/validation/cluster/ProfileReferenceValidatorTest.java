@@ -54,7 +54,7 @@ class ProfileReferenceValidatorTest {
 
     final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
-    String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
+    String resourceProfile = review.getRequest().getObject().getSpec().getSgInstanceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
@@ -71,7 +71,7 @@ class ProfileReferenceValidatorTest {
 
     final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
-    String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
+    String resourceProfile = review.getRequest().getObject().getSpec().getSgInstanceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
@@ -94,7 +94,7 @@ class ProfileReferenceValidatorTest {
     final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
         .loadProfileConfigUpdate().get();
 
-    String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
+    String resourceProfile = review.getRequest().getObject().getSpec().getSgInstanceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
@@ -119,7 +119,7 @@ class ProfileReferenceValidatorTest {
     final StackGresClusterReview review = AdmissionReviewFixtures.cluster()
         .loadProfileConfigUpdate().get();
 
-    String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
+    String resourceProfile = review.getRequest().getObject().getSpec().getSgInstanceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     StackGresProfile profileSizeS = Fixtures.instanceProfile().loadSizeS().get();

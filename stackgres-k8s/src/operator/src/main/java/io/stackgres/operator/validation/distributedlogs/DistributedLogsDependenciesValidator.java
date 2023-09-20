@@ -30,7 +30,7 @@ public class DistributedLogsDependenciesValidator
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getDistributedLogs)
         .map(distributedLogs -> review.getRequest().getName().equals(
-            distributedLogs.getDistributedLogs()))
+            distributedLogs.getSgDistributedLogs()))
         .orElse(false)) {
       fail(review, resource);
     }

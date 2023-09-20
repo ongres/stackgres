@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -17,14 +16,21 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ClusterStatus {
 
-  @JsonProperty("conditions")
   private List<ClusterCondition> conditions = new ArrayList<>();
 
-  @JsonProperty("dbOps")
+  private List<ClusterPodStatus> podStatuses;
+
   private ClusterDbOpsStatus dbOps;
 
-  @JsonProperty("managedSql")
   private ClusterManagedSqlStatus managedSql;
+
+  private String arch;
+
+  private String os;
+
+  private String labelPrefix;
+
+  private ClusterServiceBindingStatus binding;
 
   public List<ClusterCondition> getConditions() {
     return conditions;
@@ -32,6 +38,14 @@ public class ClusterStatus {
 
   public void setConditions(List<ClusterCondition> conditions) {
     this.conditions = conditions;
+  }
+
+  public List<ClusterPodStatus> getPodStatuses() {
+    return podStatuses;
+  }
+
+  public void setPodStatuses(List<ClusterPodStatus> podStatuses) {
+    this.podStatuses = podStatuses;
   }
 
   public ClusterDbOpsStatus getDbOps() {
@@ -48,6 +62,38 @@ public class ClusterStatus {
 
   public void setManagedSql(ClusterManagedSqlStatus managedSql) {
     this.managedSql = managedSql;
+  }
+
+  public String getArch() {
+    return arch;
+  }
+
+  public void setArch(String arch) {
+    this.arch = arch;
+  }
+
+  public String getOs() {
+    return os;
+  }
+
+  public void setOs(String os) {
+    this.os = os;
+  }
+
+  public String getLabelPrefix() {
+    return labelPrefix;
+  }
+
+  public void setLabelPrefix(String labelPrefix) {
+    this.labelPrefix = labelPrefix;
+  }
+
+  public ClusterServiceBindingStatus getBinding() {
+    return binding;
+  }
+
+  public void setBinding(ClusterServiceBindingStatus binding) {
+    this.binding = binding;
   }
 
   @Override

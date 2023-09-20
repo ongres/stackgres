@@ -78,7 +78,7 @@ public class ClusterValidator implements BackupValidator {
       String onError) throws ValidationFailed {
 
     var backupConfig = ofNullable(
-        clusterOpt.get().getSpec().getConfiguration().getBackups());
+        clusterOpt.get().getSpec().getConfigurations().getBackups());
 
     if (backupConfig.isEmpty() || backupConfig.get().isEmpty()) {
       fail(onError);
@@ -89,7 +89,7 @@ public class ClusterValidator implements BackupValidator {
   private boolean hasStatusBackupConfig(StackGresBackup backup) {
     return Optional.of(backup)
         .map(StackGresBackup::getStatus)
-        .map(StackGresBackupStatus::getBackupConfig)
+        .map(StackGresBackupStatus::getSgBackupConfig)
         .isPresent();
   }
 

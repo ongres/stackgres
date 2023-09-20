@@ -41,9 +41,9 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodSchedulingBackup;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.KubernetesVersionBinder;
@@ -147,15 +147,15 @@ public class BackupCronJobV1Beta1
             .withServiceAccountName(BackupCronRole.roleName(context))
             .withNodeSelector(Optional.ofNullable(cluster)
                 .map(StackGresCluster::getSpec)
-                .map(StackGresClusterSpec::getPod)
-                .map(StackGresClusterPod::getScheduling)
+                .map(StackGresClusterSpec::getPods)
+                .map(StackGresClusterPods::getScheduling)
                 .map(StackGresClusterPodScheduling::getBackup)
                 .map(StackGresClusterPodSchedulingBackup::getNodeSelector)
                 .orElse(null))
             .withTolerations(Optional.ofNullable(cluster)
                 .map(StackGresCluster::getSpec)
-                .map(StackGresClusterSpec::getPod)
-                .map(StackGresClusterPod::getScheduling)
+                .map(StackGresClusterSpec::getPods)
+                .map(StackGresClusterPods::getScheduling)
                 .map(StackGresClusterPodScheduling::getBackup)
                 .map(StackGresClusterPodSchedulingBackup::getTolerations)
                 .map(tolerations -> Seq.seq(tolerations)
@@ -166,22 +166,22 @@ public class BackupCronJobV1Beta1
             .withAffinity(new AffinityBuilder()
                 .withNodeAffinity(Optional.of(cluster)
                     .map(StackGresCluster::getSpec)
-                    .map(StackGresClusterSpec::getPod)
-                    .map(StackGresClusterPod::getScheduling)
+                    .map(StackGresClusterSpec::getPods)
+                    .map(StackGresClusterPods::getScheduling)
                     .map(StackGresClusterPodScheduling::getBackup)
                     .map(StackGresClusterPodSchedulingBackup::getNodeAffinity)
                     .orElse(null))
                 .withPodAffinity(Optional.of(cluster)
                     .map(StackGresCluster::getSpec)
-                    .map(StackGresClusterSpec::getPod)
-                    .map(StackGresClusterPod::getScheduling)
+                    .map(StackGresClusterSpec::getPods)
+                    .map(StackGresClusterPods::getScheduling)
                     .map(StackGresClusterPodScheduling::getBackup)
                     .map(StackGresClusterPodSchedulingBackup::getPodAffinity)
                     .orElse(null))
                 .withPodAntiAffinity(Optional.of(cluster)
                     .map(StackGresCluster::getSpec)
-                    .map(StackGresClusterSpec::getPod)
-                    .map(StackGresClusterPod::getScheduling)
+                    .map(StackGresClusterSpec::getPods)
+                    .map(StackGresClusterPods::getScheduling)
                     .map(StackGresClusterPodScheduling::getBackup)
                     .map(StackGresClusterPodSchedulingBackup::getPodAntiAffinity)
                     .orElse(null))

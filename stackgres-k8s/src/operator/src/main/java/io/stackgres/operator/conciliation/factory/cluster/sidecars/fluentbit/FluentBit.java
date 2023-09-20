@@ -151,7 +151,7 @@ public class FluentBit implements
     }
     final String namespace = cluster.getMetadata().getNamespace();
     final String fluentdRelativeId = cluster.getSpec()
-        .getDistributedLogs().getDistributedLogs();
+        .getDistributedLogs().getSgDistributedLogs();
     final String fluentdNamespace =
         StackGresUtil.getNamespaceFromRelativeId(fluentdRelativeId, namespace);
     final String fluentdServiceName = FluentdUtil.serviceName(

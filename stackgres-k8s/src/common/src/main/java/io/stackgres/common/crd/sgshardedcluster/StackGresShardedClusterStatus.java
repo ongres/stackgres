@@ -18,6 +18,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterServiceBindingStatus;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
@@ -33,13 +34,14 @@ public class StackGresShardedClusterStatus {
   @Valid
   private List<Condition> conditions = new ArrayList<>();
 
-  @JsonProperty("clusterStatuses")
   @Valid
   private List<StackGresShardedClusterClusterStatus> clusterStatuses;
 
-  @JsonProperty("toInstallPostgresExtensions")
   @Valid
   private List<StackGresClusterInstalledExtension> toInstallPostgresExtensions;
+
+  @Valid
+  private StackGresClusterServiceBindingStatus binding;
 
   public List<Condition> getConditions() {
     return conditions;
@@ -66,9 +68,17 @@ public class StackGresShardedClusterStatus {
     this.toInstallPostgresExtensions = toInstallPostgresExtensions;
   }
 
+  public StackGresClusterServiceBindingStatus getBinding() {
+    return binding;
+  }
+
+  public void setBinding(StackGresClusterServiceBindingStatus binding) {
+    this.binding = binding;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(clusterStatuses, conditions, toInstallPostgresExtensions);
+    return Objects.hash(binding, clusterStatuses, conditions, toInstallPostgresExtensions);
   }
 
   @Override
@@ -80,7 +90,8 @@ public class StackGresShardedClusterStatus {
       return false;
     }
     StackGresShardedClusterStatus other = (StackGresShardedClusterStatus) obj;
-    return Objects.equals(clusterStatuses, other.clusterStatuses)
+    return Objects.equals(binding, other.binding)
+        && Objects.equals(clusterStatuses, other.clusterStatuses)
         && Objects.equals(conditions, other.conditions)
         && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);
   }

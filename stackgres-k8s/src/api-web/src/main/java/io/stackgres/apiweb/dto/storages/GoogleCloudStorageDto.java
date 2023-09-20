@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.storages;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -14,14 +13,11 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class GoogleCloudStorageDto {
 
-  @JsonProperty("bucket")
   private String bucket;
 
-  @JsonProperty("path")
   private String path;
 
-  @JsonProperty("gcpCredentials")
-  private GoogleCloudCredentialsDto credentials;
+  private GoogleCloudCredentialsDto gcpCredentials;
 
   public String getBucket() {
     return bucket;
@@ -39,12 +35,12 @@ public class GoogleCloudStorageDto {
     this.path = path;
   }
 
-  public GoogleCloudCredentialsDto getCredentials() {
-    return credentials;
+  public GoogleCloudCredentialsDto getGcpCredentials() {
+    return gcpCredentials;
   }
 
-  public void setCredentials(GoogleCloudCredentialsDto credentials) {
-    this.credentials = credentials;
+  public void setGcpCredentials(GoogleCloudCredentialsDto gcpCredentials) {
+    this.gcpCredentials = gcpCredentials;
   }
 
   @Override

@@ -31,7 +31,7 @@ public class PostgresConfigResource extends
   public boolean belongsToCluster(StackGresPostgresConfig resource, StackGresCluster cluster) {
     return cluster.getMetadata().getNamespace().equals(
         resource.getMetadata().getNamespace())
-        && Objects.equals(cluster.getSpec().getConfiguration().getPostgresConfig(),
+        && Objects.equals(cluster.getSpec().getConfigurations().getSgPostgresConfig(),
         resource.getMetadata().getName());
   }
 

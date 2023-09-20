@@ -34,13 +34,13 @@ public class DefaultRestoreMutator implements ClusterMutator {
   @Override
   public StackGresCluster mutate(StackGresClusterReview review, StackGresCluster resource) {
     if (review.getRequest().getOperation() == Operation.CREATE
-        && resource.getSpec().getInitData() != null
-        && resource.getSpec().getInitData().getRestore() != null) {
+        && resource.getSpec().getInitialData() != null
+        && resource.getSpec().getInitialData().getRestore() != null) {
       try {
-        resource.getSpec().getInitData().setRestore(
+        resource.getSpec().getInitialData().setRestore(
             jsonMapper.readerForUpdating(defaultRestoreFactory.buildResource()).readValue(
                 jsonMapper.valueToTree(
-                    resource.getSpec().getInitData().getRestore()).toString()));
+                    resource.getSpec().getInitialData().getRestore()).toString()));
       } catch (JsonProcessingException ex) {
         throw new RuntimeException(ex);
       }

@@ -32,10 +32,9 @@ import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurationServiceBinding;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCredentials;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitalData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniCredentials;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
@@ -45,6 +44,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUserSecret
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUsers;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
+import io.stackgres.common.crd.sgcluster.StackGresClusterServiceBinding;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.crd.sgcluster.StackGresClusterUserSecretKeyRef;
@@ -154,20 +154,20 @@ public class ClusterRequiredResourcesGenerator
     VersionInfo kubernetesVersion = kubernetesVersionSupplier.get();
 
     final StackGresClusterSpec spec = config.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = spec.getConfiguration();
+    final StackGresClusterConfigurations clusterConfiguration = spec.getConfigurations();
     final StackGresPostgresConfig pgConfig = postgresConfigFinder
-        .findByNameAndNamespace(clusterConfiguration.getPostgresConfig(), clusterNamespace)
+        .findByNameAndNamespace(clusterConfiguration.getSgPostgresConfig(), clusterNamespace)
         .orElseThrow(() -> new IllegalArgumentException(
             "SGCluster " + clusterNamespace + "." + clusterName
                 + " have a non existent SGPostgresConfig postgresconf"));
 
     final StackGresProfile profile = profileFinder
-        .findByNameAndNamespace(spec.getResourceProfile(), clusterNamespace)
+        .findByNameAndNamespace(spec.getSgInstanceProfile(), clusterNamespace)
         .orElseThrow(() -> new IllegalArgumentException(
             "SGCluster " + clusterNamespace + "." + clusterName + " have a non existent "
-                + StackGresProfile.KIND + " " + spec.getResourceProfile()));
+                + StackGresProfile.KIND + " " + spec.getSgInstanceProfile()));
     final Optional<StackGresBackupConfig> backupConfig = Optional
-        .ofNullable(clusterConfiguration.getBackupConfig())
+        .ofNullable(clusterConfiguration.getSgBackupConfig())
         .flatMap(backupConfigName -> backupConfigFinder
             .findByNameAndNamespace(backupConfigName, clusterNamespace));
 
@@ -175,12 +175,12 @@ public class ClusterRequiredResourcesGenerator
         .ofNullable(clusterConfiguration.getBackups())
         .map(Collection::stream)
         .flatMap(Stream::findFirst)
-        .map(StackGresClusterBackupConfiguration::getObjectStorage)
+        .map(StackGresClusterBackupConfiguration::getSgObjectStorage)
         .flatMap(objectStorageName -> objectStorageFinder
             .findByNameAndNamespace(objectStorageName, clusterNamespace));
 
     final Optional<StackGresPoolingConfig> pooling = Optional
-        .ofNullable(clusterConfiguration.getConnectionPoolingConfig())
+        .ofNullable(clusterConfiguration.getSgPoolingConfig())
         .flatMap(poolingConfigName -> poolingConfigFinder
             .findByNameAndNamespace(poolingConfigName, clusterNamespace));
 
@@ -204,12 +204,12 @@ public class ClusterRequiredResourcesGenerator
         replicateCluster
         .flatMap(replicateFromCluster -> Optional.of(replicateFromCluster)
             .map(StackGresCluster::getSpec)
-            .map(StackGresClusterSpec::getConfiguration)
-            .map(StackGresClusterConfiguration::getBackups)
+            .map(StackGresClusterSpec::getConfigurations)
+            .map(StackGresClusterConfigurations::getBackups)
             .stream()
             .flatMap(List::stream)
             .findFirst()
-            .map(StackGresClusterBackupConfiguration::getObjectStorage))
+            .map(StackGresClusterBackupConfiguration::getSgObjectStorage))
         .or(() -> Optional.of(spec)
           .map(StackGresClusterSpec::getReplicateFrom)
           .map(StackGresClusterReplicateFrom::getStorage)
@@ -221,6 +221,7 @@ public class ClusterRequiredResourcesGenerator
 
     final var userPasswordForBinding = getUserPasswordServiceBindingFromSecret(clusterNamespace,
         spec);
+
     final PostgresSsl postgresSsl = getPostgresSsl(clusterNamespace, config);
 
     StackGresClusterContext context = ImmutableStackGresClusterContext.builder()
@@ -244,9 +245,9 @@ public class ClusterRequiredResourcesGenerator
         .authenticatorUsername(credentials.authenticatorUsername)
         .authenticatorPassword(credentials.authenticatorPassword)
         .patroniRestApiPassword(credentials.patroniRestApiPassword)
+        .userPasswordForBinding(userPasswordForBinding)
         .postgresSslCertificate(postgresSsl.certificate)
         .postgresSslPrivateKey(postgresSsl.privateKey)
-        .userPasswordForBinding(userPasswordForBinding)
         .build();
 
     return discoverer.generateResources(context);
@@ -406,13 +407,13 @@ public class ClusterRequiredResourcesGenerator
       final StackGresClusterSpec spec) {
     final var users =
         Optional.ofNullable(spec)
-        .map(StackGresClusterSpec::getConfiguration)
-        .map(StackGresClusterConfiguration::getCredentials)
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getCredentials)
         .map(StackGresClusterCredentials::getUsers);
     final var patroni =
         Optional.ofNullable(spec)
-        .map(StackGresClusterSpec::getConfiguration)
-        .map(StackGresClusterConfiguration::getCredentials)
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getCredentials)
         .map(StackGresClusterCredentials::getPatroni);
 
     final var superuserUsername = getSecretAndKeyOrThrow(clusterNamespace, users,
@@ -479,15 +480,15 @@ public class ClusterRequiredResourcesGenerator
   private Optional<String> getUserPasswordServiceBindingFromSecret(final String clusterNamespace,
       final StackGresClusterSpec spec) {
     final var serviceBindingConfig = Optional.ofNullable(spec)
-        .map(StackGresClusterSpec::getConfiguration)
-        .map(StackGresClusterConfiguration::getBinding);
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getBinding);
     return getSecretAndKeyOrThrow(clusterNamespace,
       serviceBindingConfig,
-      StackGresClusterConfigurationServiceBinding::getPassword,
+      StackGresClusterServiceBinding::getPassword,
       secretKeySelector -> "Service Binding password key " + secretKeySelector.getKey()
-      + " was not found in secret " + secretKeySelector.getName(),
+          + " was not found in secret " + secretKeySelector.getName(),
       secretKeySelector -> "Service Binding password secret " + secretKeySelector.getName()
-      + " was not found");
+          + " was not found");
   }
 
   record PostgresSsl(
@@ -616,8 +617,8 @@ public class ClusterRequiredResourcesGenerator
   private Optional<StackGresBackup> findRestoreBackup(StackGresCluster config,
       final String clusterNamespace) {
     return Optional
-        .ofNullable(config.getSpec().getInitData())
-        .map(StackGresClusterInitData::getRestore)
+        .ofNullable(config.getSpec().getInitialData())
+        .map(StackGresClusterInitalData::getRestore)
         .map(StackGresClusterRestore::getFromBackup)
         .map(StackGresClusterRestoreFromBackup::getName)
         .flatMap(backupName -> backupFinder.findByNameAndNamespace(backupName, clusterNamespace));

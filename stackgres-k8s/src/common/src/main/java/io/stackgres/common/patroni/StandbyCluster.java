@@ -21,10 +21,8 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StandbyCluster {
 
-  @JsonProperty("host")
   private String host;
 
-  @JsonProperty("port")
   private String port;
 
   @JsonProperty("primary_slot_name")

@@ -8,7 +8,6 @@ package io.stackgres.apiweb.dto.distributedlogs;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.cluster.ClusterInstalledExtension;
 import io.stackgres.common.StackGresUtil;
@@ -17,31 +16,22 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class DistributedLogsSpec {
 
-  @JsonProperty("persistentVolume")
   private DistributedLogsPersistentVolume persistentVolume;
 
-  @JsonProperty("postgresServices")
   private DistributedLogsPostgresServices postgresServices;
 
-  @JsonProperty("nonProductionOptions")
-  private DistributedLogsNonProduction nonProduction;
+  private DistributedLogsNonProductionOptions nonProductionOptions;
 
-  @JsonProperty("resources")
   private DistributedLogsResources resources;
 
-  @JsonProperty("scheduling")
   private DistributedLogsPodScheduling scheduling;
 
-  @JsonProperty("sgInstanceProfile")
   private String sgInstanceProfile;
 
-  @JsonProperty("configurations")
-  private DistributedLogsConfiguration configuration;
+  private DistributedLogsConfigurations configurations;
 
-  @JsonProperty("metadata")
   private DistributedLogsSpecMetadata metadata;
 
-  @JsonProperty("toInstallPostgresExtensions")
   private List<ClusterInstalledExtension> toInstallPostgresExtensions;
 
   public DistributedLogsPersistentVolume getPersistentVolume() {
@@ -53,12 +43,12 @@ public class DistributedLogsSpec {
     this.persistentVolume = persistentVolume;
   }
 
-  public DistributedLogsNonProduction getNonProduction() {
-    return nonProduction;
+  public DistributedLogsNonProductionOptions getNonProductionOptions() {
+    return nonProductionOptions;
   }
 
-  public void setNonProduction(DistributedLogsNonProduction nonProduction) {
-    this.nonProduction = nonProduction;
+  public void setNonProductionOptions(DistributedLogsNonProductionOptions nonProductionOptions) {
+    this.nonProductionOptions = nonProductionOptions;
   }
 
   public DistributedLogsResources getResources() {
@@ -85,12 +75,12 @@ public class DistributedLogsSpec {
     this.sgInstanceProfile = sgInstanceProfile;
   }
 
-  public DistributedLogsConfiguration getConfiguration() {
-    return configuration;
+  public DistributedLogsConfigurations getConfigurations() {
+    return configurations;
   }
 
-  public void setConfiguration(DistributedLogsConfiguration configuration) {
-    this.configuration = configuration;
+  public void setConfigurations(DistributedLogsConfigurations configurations) {
+    this.configurations = configurations;
   }
 
   public DistributedLogsSpecMetadata getMetadata() {

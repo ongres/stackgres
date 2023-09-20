@@ -49,6 +49,6 @@ class ObjectStorageDependenciesValidatorTest
 
   @Override
   protected void makeClusterNotDependant(StackGresCluster cluster) {
-    cluster.getSpec().getConfiguration().setBackups(null);
+    cluster.getSpec().getConfigurations().setBackups(null);
   }
 }

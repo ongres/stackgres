@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.storages;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.SecretKeySelector;
@@ -15,18 +14,16 @@ import io.stackgres.common.crd.SecretKeySelector;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class AzureBlobSecretKeySelectorDto {
 
-  @JsonProperty("storageAccount")
-  private SecretKeySelector account;
+  private SecretKeySelector storageAccount;
 
-  @JsonProperty("accessKey")
   private SecretKeySelector accessKey;
 
-  public SecretKeySelector getAccount() {
-    return account;
+  public SecretKeySelector getStorageAccount() {
+    return storageAccount;
   }
 
-  public void setAccount(SecretKeySelector account) {
-    this.account = account;
+  public void setStorageAccount(SecretKeySelector storageAccount) {
+    this.storageAccount = storageAccount;
   }
 
   public SecretKeySelector getAccessKey() {

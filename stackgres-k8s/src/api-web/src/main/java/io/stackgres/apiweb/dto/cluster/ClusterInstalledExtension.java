@@ -8,7 +8,6 @@ package io.stackgres.apiweb.dto.cluster;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -16,25 +15,18 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ClusterInstalledExtension {
 
-  @JsonProperty("name")
   private String name;
 
-  @JsonProperty("publisher")
   private String publisher;
 
-  @JsonProperty("version")
   private String version;
 
-  @JsonProperty("repository")
   private String repository;
 
-  @JsonProperty("postgresVersion")
   private String postgresVersion;
 
-  @JsonProperty("build")
   private String build;
 
-  @JsonProperty("extraMounts")
   private List<String> extraMounts;
 
   public String getName() {

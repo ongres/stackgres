@@ -12,7 +12,7 @@ import javax.inject.Singleton;
 
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.ObjectStorageReview;
 import io.stackgres.operator.validation.DependenciesValidator;
@@ -30,15 +30,15 @@ public class ObjectStorageDependenciesValidator
       throws ValidationFailed {
     var backupsConfigurationOpt = Optional.ofNullable(resource)
         .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getConfiguration)
-        .map(StackGresClusterConfiguration::getBackups);
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getBackups);
 
     if (backupsConfigurationOpt.isPresent()) {
       var backupsConfiguration = backupsConfigurationOpt.orElseThrow();
       var storageObjectName = review.getRequest().getName();
 
       boolean isObjectStorageReferenced = backupsConfiguration.stream()
-          .anyMatch(bc -> Objects.equals(bc.getObjectStorage(), storageObjectName));
+          .anyMatch(bc -> Objects.equals(bc.getSgObjectStorage(), storageObjectName));
 
       if (isObjectStorageReferenced) {
         fail(review, resource);

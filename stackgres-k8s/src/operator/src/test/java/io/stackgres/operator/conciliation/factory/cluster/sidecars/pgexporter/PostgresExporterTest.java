@@ -57,14 +57,14 @@ class PostgresExporterTest {
   @Test
   void ifDisableMetricsExporterIsFalse_shouldBeActivated() {
     ClusterContainerContext context = getClusterContainerContext();
-    context.getClusterContext().getSource().getSpec().getPod().setDisableMetricsExporter(false);
+    context.getClusterContext().getSource().getSpec().getPods().setDisableMetricsExporter(false);
     assertTrue(postgresExporter.isActivated(context));
   }
 
   @Test
   void ifDisableMetricsExporterIsTrue_shouldNotBeActivated() {
     ClusterContainerContext context = getClusterContainerContext();
-    context.getClusterContext().getSource().getSpec().getPod().setDisableMetricsExporter(true);
+    context.getClusterContext().getSource().getSpec().getPods().setDisableMetricsExporter(true);
     assertFalse(postgresExporter.isActivated(context));
   }
 

@@ -35,110 +35,110 @@ class BackupPerformanceMutatorTest {
 
   @Test
   void clusterWithNonDeprecatedValues_shouldSetNothing() {
-    review.getRequest().getObject().getStatus().getBackupConfig().getBaseBackups()
+    review.getRequest().getObject().getStatus().getSgBackupConfig().getBaseBackups()
         .setPerformance(new StackGresBaseBackupPerformance());
-    review.getRequest().getObject().getStatus().getBackupConfig().getBaseBackups()
+    review.getRequest().getObject().getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().setMaxDiskBandwidth(1L);
-    review.getRequest().getObject().getStatus().getBackupConfig().getBaseBackups()
+    review.getRequest().getObject().getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().setMaxNetworkBandwidth(2L);
 
     StackGresBackup actualBackupConfig = mutate(review);
 
-    assertEquals(1L, actualBackupConfig.getStatus().getBackupConfig().getBaseBackups()
+    assertEquals(1L, actualBackupConfig.getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().getMaxDiskBandwidth());
-    assertEquals(2L, actualBackupConfig.getStatus().getBackupConfig().getBaseBackups()
+    assertEquals(2L, actualBackupConfig.getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().getMaxNetworkBandwidth());
-    assertNull(actualBackupConfig.getStatus().getBackupConfig().getBaseBackups()
+    assertNull(actualBackupConfig.getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().getMaxDiskBandwitdh());
-    assertNull(actualBackupConfig.getStatus().getBackupConfig().getBaseBackups()
+    assertNull(actualBackupConfig.getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().getMaxNetworkBandwitdh());
   }
 
   @Test
   void clusterWithNullAndDeprecatedMaxDiskBandwidthValue_shouldMoveValueToTheOtherField() {
-    review.getRequest().getObject().getStatus().getBackupConfig().getBaseBackups()
+    review.getRequest().getObject().getStatus().getSgBackupConfig().getBaseBackups()
         .setPerformance(new StackGresBaseBackupPerformance());
-    review.getRequest().getObject().getStatus().getBackupConfig().getBaseBackups()
+    review.getRequest().getObject().getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().setMaxDiskBandwitdh(1L);
-    review.getRequest().getObject().getStatus().getBackupConfig().getBaseBackups()
+    review.getRequest().getObject().getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().setMaxNetworkBandwidth(2L);
 
     StackGresBackup actualBackupConfig = mutate(review);
 
-    assertEquals(1L, actualBackupConfig.getStatus().getBackupConfig().getBaseBackups()
+    assertEquals(1L, actualBackupConfig.getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().getMaxDiskBandwidth());
-    assertEquals(2L, actualBackupConfig.getStatus().getBackupConfig().getBaseBackups()
+    assertEquals(2L, actualBackupConfig.getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().getMaxNetworkBandwidth());
-    assertNull(actualBackupConfig.getStatus().getBackupConfig().getBaseBackups()
+    assertNull(actualBackupConfig.getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().getMaxDiskBandwitdh());
-    assertNull(actualBackupConfig.getStatus().getBackupConfig().getBaseBackups()
+    assertNull(actualBackupConfig.getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().getMaxNetworkBandwitdh());
   }
 
   @Test
   void clusterWithNullAndDeprecatedMaxNetworkBandwidthValue_shouldMoveValueToTheOtherField() {
-    review.getRequest().getObject().getStatus().getBackupConfig().getBaseBackups()
+    review.getRequest().getObject().getStatus().getSgBackupConfig().getBaseBackups()
         .setPerformance(new StackGresBaseBackupPerformance());
-    review.getRequest().getObject().getStatus().getBackupConfig().getBaseBackups()
+    review.getRequest().getObject().getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().setMaxDiskBandwidth(1L);
-    review.getRequest().getObject().getStatus().getBackupConfig().getBaseBackups()
+    review.getRequest().getObject().getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().setMaxNetworkBandwitdh(2L);
 
     StackGresBackup actualBackupConfig = mutate(review);
 
-    assertEquals(1L, actualBackupConfig.getStatus().getBackupConfig().getBaseBackups()
+    assertEquals(1L, actualBackupConfig.getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().getMaxDiskBandwidth());
-    assertEquals(2L, actualBackupConfig.getStatus().getBackupConfig().getBaseBackups()
+    assertEquals(2L, actualBackupConfig.getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().getMaxNetworkBandwidth());
-    assertNull(actualBackupConfig.getStatus().getBackupConfig().getBaseBackups()
+    assertNull(actualBackupConfig.getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().getMaxDiskBandwitdh());
-    assertNull(actualBackupConfig.getStatus().getBackupConfig().getBaseBackups()
+    assertNull(actualBackupConfig.getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().getMaxNetworkBandwitdh());
   }
 
   @Test
   void clusterWithDeprecatedMaxDiskBandwidthValue_shouldSetValueToNull() {
-    review.getRequest().getObject().getStatus().getBackupConfig().getBaseBackups()
+    review.getRequest().getObject().getStatus().getSgBackupConfig().getBaseBackups()
         .setPerformance(new StackGresBaseBackupPerformance());
-    review.getRequest().getObject().getStatus().getBackupConfig().getBaseBackups()
+    review.getRequest().getObject().getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().setMaxDiskBandwidth(1L);
-    review.getRequest().getObject().getStatus().getBackupConfig().getBaseBackups()
+    review.getRequest().getObject().getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().setMaxDiskBandwitdh(3L);
-    review.getRequest().getObject().getStatus().getBackupConfig().getBaseBackups()
+    review.getRequest().getObject().getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().setMaxNetworkBandwidth(2L);
 
     StackGresBackup actualBackupConfig = mutate(review);
 
-    assertEquals(1L, actualBackupConfig.getStatus().getBackupConfig().getBaseBackups()
+    assertEquals(1L, actualBackupConfig.getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().getMaxDiskBandwidth());
-    assertEquals(2L, actualBackupConfig.getStatus().getBackupConfig().getBaseBackups()
+    assertEquals(2L, actualBackupConfig.getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().getMaxNetworkBandwidth());
-    assertNull(actualBackupConfig.getStatus().getBackupConfig().getBaseBackups()
+    assertNull(actualBackupConfig.getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().getMaxDiskBandwitdh());
-    assertNull(actualBackupConfig.getStatus().getBackupConfig().getBaseBackups()
+    assertNull(actualBackupConfig.getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().getMaxNetworkBandwitdh());
   }
 
   @Test
   void clusterWithDeprecatedMaxNetworkBandwidthValue_shouldSetValueToNull() {
-    review.getRequest().getObject().getStatus().getBackupConfig().getBaseBackups()
+    review.getRequest().getObject().getStatus().getSgBackupConfig().getBaseBackups()
         .setPerformance(new StackGresBaseBackupPerformance());
-    review.getRequest().getObject().getStatus().getBackupConfig().getBaseBackups()
+    review.getRequest().getObject().getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().setMaxDiskBandwidth(1L);
-    review.getRequest().getObject().getStatus().getBackupConfig().getBaseBackups()
+    review.getRequest().getObject().getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().setMaxNetworkBandwidth(2L);
-    review.getRequest().getObject().getStatus().getBackupConfig().getBaseBackups()
+    review.getRequest().getObject().getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().setMaxNetworkBandwitdh(4L);
 
     StackGresBackup actualBackupConfig = mutate(review);
 
-    assertEquals(1L, actualBackupConfig.getStatus().getBackupConfig().getBaseBackups()
+    assertEquals(1L, actualBackupConfig.getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().getMaxDiskBandwidth());
-    assertEquals(2L, actualBackupConfig.getStatus().getBackupConfig().getBaseBackups()
+    assertEquals(2L, actualBackupConfig.getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().getMaxNetworkBandwidth());
-    assertNull(actualBackupConfig.getStatus().getBackupConfig().getBaseBackups()
+    assertNull(actualBackupConfig.getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().getMaxDiskBandwitdh());
-    assertNull(actualBackupConfig.getStatus().getBackupConfig().getBaseBackups()
+    assertNull(actualBackupConfig.getStatus().getSgBackupConfig().getBaseBackups()
         .getPerformance().getMaxNetworkBandwitdh());
   }
 

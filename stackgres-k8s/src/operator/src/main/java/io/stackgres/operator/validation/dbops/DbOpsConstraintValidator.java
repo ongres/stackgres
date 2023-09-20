@@ -9,11 +9,11 @@ import javax.inject.Singleton;
 
 import io.stackgres.common.ErrorType;
 import io.stackgres.operator.common.DbOpsReview;
-import io.stackgres.operator.validation.ConstraintValidator;
+import io.stackgres.operator.validation.AbstractConstraintValidator;
 import io.stackgres.operator.validation.ValidationType;
 
 @Singleton
 @ValidationType(ErrorType.CONSTRAINT_VIOLATION)
-public class DbOpsConstraintValidator extends ConstraintValidator<DbOpsReview>
+public class DbOpsConstraintValidator extends AbstractConstraintValidator<DbOpsReview>
     implements DbOpsValidator {
 }

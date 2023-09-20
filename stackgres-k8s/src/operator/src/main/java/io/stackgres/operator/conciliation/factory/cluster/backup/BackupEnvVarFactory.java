@@ -78,13 +78,13 @@ public class BackupEnvVarFactory {
                 .map(AwsCredentials::getSecretKeySelectors)
                 .map(AwsSecretKeySelector::getCaCertificate),
             Optional.ofNullable(storage.getGcs())
-                .map(GoogleCloudStorage::getCredentials)
+                .map(GoogleCloudStorage::getGcpCredentials)
                 .map(GoogleCloudCredentials::getSecretKeySelectors)
                 .map(GoogleCloudSecretKeySelector::getServiceAccountJsonKey),
             Optional.ofNullable(storage.getAzureBlob())
                 .map(AzureBlobStorage::getAzureCredentials)
                 .map(AzureBlobStorageCredentials::getSecretKeySelectors)
-                .map(AzureBlobSecretKeySelector::getAccount),
+                .map(AzureBlobSecretKeySelector::getStorageAccount),
             Optional.ofNullable(storage.getAzureBlob())
                 .map(AzureBlobStorage::getAzureCredentials)
                 .map(AzureBlobStorageCredentials::getSecretKeySelectors)
@@ -154,7 +154,7 @@ public class BackupEnvVarFactory {
                             secretKeySelector, secrets)))),
             Optional.of(storage)
                 .map(BackupStorage::getGcs)
-                .map(GoogleCloudStorage::getCredentials)
+                .map(GoogleCloudStorage::getGcpCredentials)
                 .map(GoogleCloudCredentials::getSecretKeySelectors)
                 .map(gcsConfigSecretKeySelectors -> Seq.of(
                     getSecretEntry(
@@ -166,7 +166,7 @@ public class BackupEnvVarFactory {
                 .map(azureConfig -> Seq.of(
                     getSecretEntry("AZURE_STORAGE_ACCOUNT",
                         azureConfig.getAzureCredentials()
-                            .getSecretKeySelectors().getAccount(), secrets),
+                            .getSecretKeySelectors().getStorageAccount(), secrets),
                     getSecretEntry("AZURE_STORAGE_ACCESS_KEY",
                         azureConfig.getAzureCredentials()
                             .getSecretKeySelectors().getAccessKey(), secrets))))

@@ -55,7 +55,7 @@ class ProfileReferenceValidatorTest {
     final StackGresDistributedLogsReview review =
         AdmissionReviewFixtures.distributedLogs().loadCreate().get();
 
-    String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
+    String resourceProfile = review.getRequest().getObject().getSpec().getSgInstanceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
@@ -73,7 +73,7 @@ class ProfileReferenceValidatorTest {
     final StackGresDistributedLogsReview review =
         AdmissionReviewFixtures.distributedLogs().loadCreate().get();
 
-    String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
+    String resourceProfile = review.getRequest().getObject().getSpec().getSgInstanceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
@@ -96,7 +96,7 @@ class ProfileReferenceValidatorTest {
     final StackGresDistributedLogsReview review =
         AdmissionReviewFixtures.distributedLogs().loadProfileConfigUpdate().get();
 
-    String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
+    String resourceProfile = review.getRequest().getObject().getSpec().getSgInstanceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
@@ -121,7 +121,7 @@ class ProfileReferenceValidatorTest {
     final StackGresDistributedLogsReview review =
         AdmissionReviewFixtures.distributedLogs().loadProfileConfigUpdate().get();
 
-    String resourceProfile = review.getRequest().getObject().getSpec().getResourceProfile();
+    String resourceProfile = review.getRequest().getObject().getSpec().getSgInstanceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     StackGresProfile profileSizeS = Fixtures.instanceProfile().loadSizeS().get();

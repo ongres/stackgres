@@ -6,7 +6,7 @@
 package io.stackgres.common.fixture.shardedcluster;
 
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinator;
@@ -44,8 +44,8 @@ public class ShardedClusterFixture extends VersionedFixture<StackGresShardedClus
 
   public ShardedClusterFixture withCoordinatorPods() {
     withSpec();
-    if (fixture.getSpec().getCoordinator().getPod() == null) {
-      fixture.getSpec().getCoordinator().setPod(new StackGresClusterPod());
+    if (fixture.getSpec().getCoordinator().getPods() == null) {
+      fixture.getSpec().getCoordinator().setPods(new StackGresClusterPods());
     }
     return this;
   }

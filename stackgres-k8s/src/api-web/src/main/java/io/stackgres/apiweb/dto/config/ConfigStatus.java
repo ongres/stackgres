@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.Condition;
@@ -18,7 +17,6 @@ import io.stackgres.common.crd.Condition;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ConfigStatus {
 
-  @JsonProperty("conditions")
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private List<Condition> conditions = new ArrayList<>();
 

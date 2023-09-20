@@ -10,7 +10,6 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
@@ -23,16 +22,12 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresDbOpsPgbenchStatus {
 
-  @JsonProperty("scaleFactor")
   private BigDecimal scaleFactor;
 
-  @JsonProperty("transactionsProcessed")
   private Integer transactionsProcessed;
 
-  @JsonProperty("latency")
   private StackGresDbOpsPgbenchStatusLatency latency;
 
-  @JsonProperty("transactionsPerSecond")
   private StackGresDbOpsPgbenchStatusTransactionsPerSecond transactionsPerSecond;
 
   public BigDecimal getScaleFactor() {

@@ -9,7 +9,7 @@ import javax.inject.Singleton;
 
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.validation.ValidationType;
@@ -25,8 +25,8 @@ public class BackupConfigValidator implements ClusterValidator {
     Operation operation = review.getRequest().getOperation();
     if (operation == Operation.CREATE || operation == Operation.UPDATE) {
       StackGresCluster cluster = review.getRequest().getObject();
-      StackGresClusterConfiguration configuration = cluster.getSpec().getConfiguration();
-      if (configuration.getBackupConfig() != null || configuration.getBackupPath() != null) {
+      StackGresClusterConfigurations configuration = cluster.getSpec().getConfigurations();
+      if (configuration.getSgBackupConfig() != null || configuration.getBackupPath() != null) {
         fail("spec.configuration.sgBackupConfig and spec.configuration.backupPath are deprecated,"
             + " please use the new spec.configuration.backups section and define a "
             + StackGresObjectStorage.KIND);

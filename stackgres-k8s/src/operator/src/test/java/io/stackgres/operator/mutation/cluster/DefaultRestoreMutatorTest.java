@@ -66,7 +66,7 @@ class DefaultRestoreMutatorTest {
 
   @Test
   void clusterWithNoRestore_shouldNotDoAnything() {
-    review.getRequest().getObject().getSpec().getInitData().setRestore(null);
+    review.getRequest().getObject().getSpec().getInitialData().setRestore(null);
 
     StackGresCluster result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
@@ -82,7 +82,7 @@ class DefaultRestoreMutatorTest {
     restore.setFromBackup(new StackGresClusterRestoreFromBackup());
     restore.getFromBackup().setUid(UUID.randomUUID().toString());
 
-    review.getRequest().getObject().getSpec().getInitData().setRestore(restore);
+    review.getRequest().getObject().getSpec().getInitialData().setRestore(restore);
 
     StackGresCluster result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
@@ -91,7 +91,7 @@ class DefaultRestoreMutatorTest {
         .parseInt(defaultRestoreValues.getProperty("downloadDiskConcurrency"));
 
     assertEquals(defaultDownloadDisConcurrency,
-        result.getSpec().getInitData().getRestore().getDownloadDiskConcurrency());
+        result.getSpec().getInitialData().getRestore().getDownloadDiskConcurrency());
   }
 
 }

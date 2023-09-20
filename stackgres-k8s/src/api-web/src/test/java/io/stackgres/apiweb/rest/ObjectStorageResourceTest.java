@@ -71,8 +71,8 @@ class ObjectStorageResourceTest implements AuthenticatedResourceTest {
           cluster.getMetadata().setName(clusterName);
           cluster.getMetadata().setNamespace(namespace);
           var backupConfiguration = new StackGresClusterBackupConfiguration();
-          backupConfiguration.setObjectStorage(storageName);
-          cluster.getSpec().getConfiguration()
+          backupConfiguration.setSgObjectStorage(storageName);
+          cluster.getSpec().getConfigurations()
               .setBackups(List.of(backupConfiguration));
           return cluster;
         }).collect(Collectors.toList());
@@ -108,11 +108,11 @@ class ObjectStorageResourceTest implements AuthenticatedResourceTest {
             (Answer<StackGresObjectStorage>) invocationOnMock -> invocationOnMock
                 .getArgument(0, StackGresObjectStorage.class)
         );
-    objectStorageTuple.target().getSpec().getS3().getCredentials()
-        .setAccessKey(StringUtils.getRandomString());
-    objectStorageTuple.target().getSpec().getS3().getCredentials()
-        .setSecretKey(StringUtils.getRandomString());
-    objectStorageTuple.target().getSpec().getS3().getCredentials().setSecretKeySelectors(null);
+    objectStorageTuple.target().getSpec().getS3().getAwsCredentials()
+        .setAccessKeyId(StringUtils.getRandomString());
+    objectStorageTuple.target().getSpec().getS3().getAwsCredentials()
+        .setSecretAccessKey(StringUtils.getRandomString());
+    objectStorageTuple.target().getSpec().getS3().getAwsCredentials().setSecretKeySelectors(null);
     objectStorageTuple.target().getSpec().getS3().setStorageClass(null);
     objectStorageTuple.target().setStatus(null);
 

@@ -17,7 +17,6 @@ import javax.validation.constraints.AssertTrue;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.Condition;
@@ -33,30 +32,22 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresDbOpsStatus {
 
-  @JsonProperty("conditions")
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @Valid
   private List<Condition> conditions = new ArrayList<>();
 
-  @JsonProperty("opRetries")
   private Integer opRetries;
 
-  @JsonProperty("opStarted")
   private String opStarted;
 
-  @JsonProperty("benchmark")
   private StackGresDbOpsBenchmarkStatus benchmark;
 
-  @JsonProperty("majorVersionUpgrade")
   private StackGresDbOpsMajorVersionUpgradeStatus majorVersionUpgrade;
 
-  @JsonProperty("restart")
   private StackGresDbOpsRestartStatus restart;
 
-  @JsonProperty("minorVersionUpgrade")
   private StackGresDbOpsMinorVersionUpgradeStatus minorVersionUpgrade;
 
-  @JsonProperty("securityUpgrade")
   private StackGresDbOpsSecurityUpgradeStatus securityUpgrade;
 
   @ReferencedField("opStarted")

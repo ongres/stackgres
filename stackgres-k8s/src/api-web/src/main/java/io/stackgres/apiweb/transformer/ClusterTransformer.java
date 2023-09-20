@@ -12,20 +12,13 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.apiweb.config.WebApiProperty;
-import io.stackgres.apiweb.dto.cluster.ClusterCondition;
-import io.stackgres.apiweb.dto.cluster.ClusterDbOpsStatus;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
-import io.stackgres.apiweb.dto.cluster.ClusterManagedSqlStatus;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterStatus;
 import io.stackgres.common.StackGresPropertyContext;
-import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
-import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSqlStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import org.jetbrains.annotations.NotNull;
@@ -41,28 +34,30 @@ public class ClusterTransformer
   private final ObjectMapper mapper;
 
   @Inject
-  public ClusterTransformer(StackGresPropertyContext<WebApiProperty> context,
-                            ClusterPodTransformer clusterPodTransformer,
-                            ObjectMapper mapper) {
-    super();
+  public ClusterTransformer(
+      StackGresPropertyContext<WebApiProperty> context,
+      ClusterPodTransformer clusterPodTransformer,
+      ObjectMapper mapper) {
     this.context = context;
     this.clusterPodTransformer = clusterPodTransformer;
     this.mapper = mapper;
   }
 
   @Override
-  public StackGresCluster toCustomResource(@NotNull ClusterDto source,
-                                           @Nullable StackGresCluster original) {
+  public StackGresCluster toCustomResource(
+      @NotNull ClusterDto source,
+      @Nullable StackGresCluster original) {
     StackGresCluster transformation = Optional.ofNullable(original)
         .map(o -> mapper.convertValue(original, StackGresCluster.class))
         .orElseGet(StackGresCluster::new);
 
     transformation.setMetadata(getCustomResourceMetadata(source, original));
     transformation.setSpec(getCustomResourceSpec(source.getSpec()));
-    if (original != null && original.getSpec() != null) {
-      transformation.getSpec().setToInstallPostgresExtensions(
-          original.getSpec().getToInstallPostgresExtensions()
-      );
+    if (original != null) {
+      if (original.getSpec() != null) {
+        transformation.getSpec().setToInstallPostgresExtensions(
+            original.getSpec().getToInstallPostgresExtensions());
+      }
     }
 
     return transformation;
@@ -106,35 +101,7 @@ public class ClusterTransformer
   }
 
   private ClusterStatus getResourceStatus(StackGresClusterStatus source) {
-    if (source == null) {
-      return null;
-    }
-    ClusterStatus transformation = new ClusterStatus();
-
-    final List<Condition> sourceClusterConditions = source.getConditions();
-
-    if (sourceClusterConditions != null) {
-      transformation.setConditions(sourceClusterConditions.stream()
-          .map(this::getResourceCondition)
-          .collect(ImmutableList.toImmutableList()));
-    }
-
-    transformation.setDbOps(getDbOpsStatus(source.getDbOps()));
-    transformation.setManagedSql(getManagedSqlStatus(source.getManagedSql()));
-
-    return transformation;
-  }
-
-  private ClusterCondition getResourceCondition(Condition source) {
-    return mapper.convertValue(source, ClusterCondition.class);
-  }
-
-  private ClusterDbOpsStatus getDbOpsStatus(StackGresClusterDbOpsStatus source) {
-    return mapper.convertValue(source, ClusterDbOpsStatus.class);
-  }
-
-  private ClusterManagedSqlStatus getManagedSqlStatus(StackGresClusterManagedSqlStatus source) {
-    return mapper.convertValue(source, ClusterManagedSqlStatus.class);
+    return mapper.convertValue(source, ClusterStatus.class);
   }
 
 }

@@ -34,13 +34,13 @@ public class ProfileReferenceValidator implements ClusterValidator {
     switch (review.getRequest().getOperation()) {
       case CREATE: {
         StackGresCluster cluster = review.getRequest().getObject();
-        String resourceProfile = cluster.getSpec().getResourceProfile();
+        String resourceProfile = cluster.getSpec().getSgInstanceProfile();
         checkIfProfileExists(review, "Invalid profile " + resourceProfile);
         break;
       }
       case UPDATE: {
         StackGresCluster cluster = review.getRequest().getObject();
-        String resourceProfile = cluster.getSpec().getResourceProfile();
+        String resourceProfile = cluster.getSpec().getSgInstanceProfile();
         checkIfProfileExists(review, "Cannot update to profile "
             + resourceProfile + " because it doesn't exists");
         break;
@@ -53,7 +53,7 @@ public class ProfileReferenceValidator implements ClusterValidator {
   private void checkIfProfileExists(StackGresClusterReview review, String onError)
       throws ValidationFailed {
     StackGresCluster cluster = review.getRequest().getObject();
-    String resourceProfile = cluster.getSpec().getResourceProfile();
+    String resourceProfile = cluster.getSpec().getSgInstanceProfile();
     String namespace = cluster.getMetadata().getNamespace();
 
     Optional<StackGresProfile> profileOpt = profileFinder

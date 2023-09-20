@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.dbops;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -14,7 +13,6 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class DbOpsBenchmarkStatus {
 
-  @JsonProperty("pgbench")
   private DbOpsPgbenchStatus pgbench;
 
   public DbOpsPgbenchStatus getPgbench() {

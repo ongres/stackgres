@@ -22,7 +22,7 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -89,8 +89,8 @@ public class PostgresConfigValidator implements ClusterValidator {
         .map(StackGresClusterPostgres::getVersion)
         .orElse(null);
     String pgConfig = Optional.of(cluster.getSpec())
-        .map(StackGresClusterSpec::getConfiguration)
-        .map(StackGresClusterConfiguration::getPostgresConfig)
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getSgPostgresConfig)
         .orElse(null);
 
     checkIfProvided(givenPgVersion, "postgres version");
@@ -127,7 +127,7 @@ public class PostgresConfigValidator implements ClusterValidator {
               "postgres flavor can not be changed");
         }
 
-        String oldPgConfig = oldCluster.getSpec().getConfiguration().getPostgresConfig();
+        String oldPgConfig = oldCluster.getSpec().getConfigurations().getSgPostgresConfig();
         if (!oldPgConfig.equals(pgConfig)) {
           validateAgainstConfiguration(givenMajorVersion, pgConfig, namespace);
         }

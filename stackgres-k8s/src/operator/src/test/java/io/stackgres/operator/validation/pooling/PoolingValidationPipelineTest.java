@@ -30,7 +30,7 @@ public class PoolingValidationPipelineTest
     PoolingReview review = getValidReview();
 
     review.getRequest().getObject().getSpec().getPgBouncer().getPgbouncerIni()
-        .setParameters(Map.of());
+        .setPgbouncer(Map.of());
 
     return review;
   }

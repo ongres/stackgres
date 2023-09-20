@@ -26,7 +26,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -82,10 +82,10 @@ class BackupRequiredResourcesGeneratorTest {
   void testValidClusterBackupConfigConfiguration() {
     final String backupNamespace = backup.getMetadata().getNamespace();
     final String clusterName = backup.getSpec().getSgCluster();
-    final String profileName = cluster.getSpec().getResourceProfile();
+    final String profileName = cluster.getSpec().getSgInstanceProfile();
     final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
+    final StackGresClusterConfigurations clusterConfiguration = clusterSpec.getConfigurations();
+    final String backupConfigName = clusterConfiguration.getSgBackupConfig();
 
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
@@ -110,10 +110,10 @@ class BackupRequiredResourcesGeneratorTest {
   void givenValidClusterWithBackupCopy_getRequiredResourcesShouldNotFail() {
     final String backupNamespace = backup.getMetadata().getNamespace();
     final String clusterName = "test." + backup.getSpec().getSgCluster();
-    final String profileName = cluster.getSpec().getResourceProfile();
+    final String profileName = cluster.getSpec().getSgInstanceProfile();
     final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
+    final StackGresClusterConfigurations clusterConfiguration = clusterSpec.getConfigurations();
+    final String backupConfigName = clusterConfiguration.getSgBackupConfig();
 
     backup.getSpec().setSgCluster(clusterName);
 
@@ -144,12 +144,12 @@ class BackupRequiredResourcesGeneratorTest {
     final String backupNamespace = backup.getMetadata().getNamespace();
     final String clusterName = backup.getSpec().getSgCluster();
     final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    clusterConfiguration.setBackupConfig(null);
+    final StackGresClusterConfigurations clusterConfiguration = clusterSpec.getConfigurations();
+    clusterConfiguration.setSgBackupConfig(null);
     var backupConfiguration = new StackGresClusterBackupConfiguration();
     clusterConfiguration.setBackups(
         List.of(backupConfiguration));
-    backupConfiguration.setObjectStorage(objectStorage.getMetadata().getName());
+    backupConfiguration.setSgObjectStorage(objectStorage.getMetadata().getName());
 
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
@@ -189,10 +189,10 @@ class BackupRequiredResourcesGeneratorTest {
     final String backupNamespace = backup.getMetadata().getNamespace();
     final String backupName = backup.getMetadata().getName();
     final String clusterName = backup.getSpec().getSgCluster();
-    final String profileName = cluster.getSpec().getResourceProfile();
+    final String profileName = cluster.getSpec().getSgInstanceProfile();
     final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    final String backupConfigName = clusterConfiguration.getBackupConfig();
+    final StackGresClusterConfigurations clusterConfiguration = clusterSpec.getConfigurations();
+    final String backupConfigName = clusterConfiguration.getSgBackupConfig();
 
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
@@ -221,14 +221,14 @@ class BackupRequiredResourcesGeneratorTest {
     final String backupNamespace = backup.getMetadata().getNamespace();
     final String backupName = backup.getMetadata().getName();
     final String clusterName = backup.getSpec().getSgCluster();
-    final String profileName = cluster.getSpec().getResourceProfile();
+    final String profileName = cluster.getSpec().getSgInstanceProfile();
     final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    clusterConfiguration.setBackupConfig(null);
+    final StackGresClusterConfigurations clusterConfiguration = clusterSpec.getConfigurations();
+    clusterConfiguration.setSgBackupConfig(null);
     var backupConfiguration = new StackGresClusterBackupConfiguration();
     clusterConfiguration.setBackups(
         List.of(backupConfiguration));
-    backupConfiguration.setObjectStorage(objectStorage.getMetadata().getName());
+    backupConfiguration.setSgObjectStorage(objectStorage.getMetadata().getName());
 
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
@@ -258,10 +258,10 @@ class BackupRequiredResourcesGeneratorTest {
     final String backupNamespace = backup.getMetadata().getNamespace();
     final String backupName = backup.getMetadata().getName();
     final String clusterName = backup.getSpec().getSgCluster();
-    final String profileName = cluster.getSpec().getResourceProfile();
+    final String profileName = cluster.getSpec().getSgInstanceProfile();
     final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfiguration clusterConfiguration = clusterSpec.getConfiguration();
-    clusterConfiguration.setBackupConfig(null);
+    final StackGresClusterConfigurations clusterConfiguration = clusterSpec.getConfigurations();
+    clusterConfiguration.setSgBackupConfig(null);
 
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
@@ -286,8 +286,8 @@ class BackupRequiredResourcesGeneratorTest {
     final String backupNamespace = backup.getMetadata().getNamespace();
     final String backupName = backup.getMetadata().getName();
     final String clusterName = backup.getSpec().getSgCluster();
-    final String profileName = cluster.getSpec().getResourceProfile();
-    final String backupConfigName = cluster.getSpec().getConfiguration().getBackupConfig();
+    final String profileName = cluster.getSpec().getSgInstanceProfile();
+    final String backupConfigName = cluster.getSpec().getConfigurations().getSgBackupConfig();
 
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));

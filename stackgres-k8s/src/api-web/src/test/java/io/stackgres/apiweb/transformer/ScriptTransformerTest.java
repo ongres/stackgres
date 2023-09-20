@@ -42,15 +42,15 @@ class ScriptTransformerTest {
     var status = createStatus();
     source.setStatus(status.source());
 
-    target.setStatus(new ScriptStatus());
+    target.setStatus(status.target());
     target.getStatus().setClusters(List.of(StringUtils.getRandomClusterName()));
 
     return new TransformerTuple<>(target, source);
   }
 
-  private static TransformerTuple<StackGresScriptStatus, StackGresScriptStatus> createStatus() {
+  private static TransformerTuple<ScriptStatus, StackGresScriptStatus> createStatus() {
     var statusTuple = TransformerTestUtil
-        .fillTupleWithRandomData(StackGresScriptStatus.class, StackGresScriptStatus.class);
+        .fillTupleWithRandomData(ScriptStatus.class, StackGresScriptStatus.class);
 
     return statusTuple;
   }

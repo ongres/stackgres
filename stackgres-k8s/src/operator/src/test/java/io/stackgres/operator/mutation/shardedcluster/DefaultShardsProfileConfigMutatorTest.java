@@ -48,7 +48,7 @@ class DefaultShardsProfileConfigMutatorTest
   @Override
   protected void checkConfigurationIsSet(StackGresShardedCluster newResource) {
     assertNotNull(newResource.getSpec().getShards());
-    assertNotNull(newResource.getSpec().getShards().getResourceProfile());
+    assertNotNull(newResource.getSpec().getShards().getSgInstanceProfile());
   }
 
   @Override
@@ -60,7 +60,7 @@ class DefaultShardsProfileConfigMutatorTest
   protected void setUpMissingConfiguration() {
     review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
     review.getRequest().getObject().getSpec().getShards()
-        .setResourceProfile(null);
+        .setSgInstanceProfile(null);
   }
 
   @Override

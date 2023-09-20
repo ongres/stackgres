@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.cluster;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.SecretKeySelector;
@@ -15,13 +14,10 @@ import io.stackgres.common.crd.SecretKeySelector;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ClusterSsl {
 
-  @JsonProperty("enabled")
   private Boolean enabled;
 
-  @JsonProperty("certificateSecretKeySelector")
   private SecretKeySelector certificateSecretKeySelector;
 
-  @JsonProperty("privateKeySecretKeySelector")
   private SecretKeySelector privateKeySecretKeySelector;
 
   public Boolean getEnabled() {

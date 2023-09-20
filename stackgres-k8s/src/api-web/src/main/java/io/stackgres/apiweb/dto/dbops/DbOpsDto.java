@@ -7,11 +7,14 @@ package io.stackgres.apiweb.dto.dbops;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.apiweb.dto.ResourceClassForDto;
 import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@ResourceClassForDto(StackGresDbOps.class)
 public class DbOpsDto extends ResourceDto {
 
   private DbOpsSpec spec;

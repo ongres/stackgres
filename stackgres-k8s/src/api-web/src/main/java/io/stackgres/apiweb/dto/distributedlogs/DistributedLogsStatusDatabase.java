@@ -3,25 +3,21 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common.crd.sgcluster;
+package io.stackgres.apiweb.dto.distributedlogs;
 
 import java.util.Objects;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
-import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
-    lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
-    builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresClusterStatusServiceBinding {
+public class DistributedLogsStatusDatabase {
 
   private String name;
+
+  private String retention;
 
   public String getName() {
     return name;
@@ -31,9 +27,17 @@ public class StackGresClusterStatusServiceBinding {
     this.name = name;
   }
 
+  public String getRetention() {
+    return retention;
+  }
+
+  public void setRetention(String retention) {
+    this.retention = retention;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(name);
+    return Objects.hash(name, retention);
   }
 
   @Override
@@ -41,15 +45,17 @@ public class StackGresClusterStatusServiceBinding {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresClusterStatusServiceBinding)) {
+    if (!(obj instanceof DistributedLogsStatusDatabase)) {
       return false;
     }
-    StackGresClusterStatusServiceBinding other = (StackGresClusterStatusServiceBinding) obj;
-    return Objects.equals(name, other.name);
+    DistributedLogsStatusDatabase other = (DistributedLogsStatusDatabase) obj;
+    return Objects.equals(name, other.name)
+        && Objects.equals(retention, other.retention);
   }
 
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
   }
+
 }

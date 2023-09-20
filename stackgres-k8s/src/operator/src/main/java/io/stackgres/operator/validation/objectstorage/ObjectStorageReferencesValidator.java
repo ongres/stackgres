@@ -91,14 +91,14 @@ public class ObjectStorageReferencesValidator implements ObjectStorageValidator 
                 azureSelectors.getAccessKey(),
                 "accessKey", "azureblob");
             checkSecret(namespace,
-                azureSelectors.getAccount(),
+                azureSelectors.getStorageAccount(),
                 "account", "azureblob");
           }
         }
         case "gcs" -> {
           if (spec.getGcs() != null
-              && spec.getGcs().getCredentials().getSecretKeySelectors() != null) {
-            final var gcsSelector = spec.getGcs().getCredentials().getSecretKeySelectors();
+              && spec.getGcs().getGcpCredentials().getSecretKeySelectors() != null) {
+            final var gcsSelector = spec.getGcs().getGcpCredentials().getSecretKeySelectors();
             checkSecret(namespace,
                 gcsSelector.getServiceAccountJsonKey(),
                 "serviceAccountJsonKey",

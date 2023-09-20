@@ -12,7 +12,6 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.SecretKeySelector;
@@ -26,21 +25,19 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class AzureBlobSecretKeySelector {
 
-  @JsonProperty("storageAccount")
   @NotNull(message = "The account is required")
-  private SecretKeySelector account;
+  private SecretKeySelector storageAccount;
 
-  @JsonProperty("accessKey")
   @NotNull(message = "The accessKey is required")
   @Valid
   private SecretKeySelector accessKey;
 
-  public SecretKeySelector getAccount() {
-    return account;
+  public SecretKeySelector getStorageAccount() {
+    return storageAccount;
   }
 
-  public void setAccount(SecretKeySelector account) {
-    this.account = account;
+  public void setStorageAccount(SecretKeySelector storageAccount) {
+    this.storageAccount = storageAccount;
   }
 
   public SecretKeySelector getAccessKey() {
@@ -53,7 +50,7 @@ public class AzureBlobSecretKeySelector {
 
   @Override
   public int hashCode() {
-    return Objects.hash(account, accessKey);
+    return Objects.hash(storageAccount, accessKey);
   }
 
   @Override
@@ -65,7 +62,7 @@ public class AzureBlobSecretKeySelector {
       return false;
     }
     AzureBlobSecretKeySelector that = (AzureBlobSecretKeySelector) o;
-    return Objects.equals(account, that.account)
+    return Objects.equals(storageAccount, that.storageAccount)
         && Objects.equals(accessKey, that.accessKey);
   }
 

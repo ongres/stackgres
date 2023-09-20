@@ -11,21 +11,20 @@ import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ClusterInitData {
+public class ClusterServiceBindingStatus {
 
-  private ClusterRestore restore;
+  private String name;
 
-  public ClusterRestore getRestore() {
-    return restore;
+  public String getName() {
+    return name;
   }
 
-  public void setRestore(ClusterRestore restore) {
-    this.restore = restore;
+  public void setName(String name) {
+    this.name = name;
   }
 
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
   }
-
 }

@@ -3,15 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common.crd.sgdistributedlogs;
+package io.stackgres.common.crd.sgcluster;
 
 import java.util.Objects;
 
-import javax.validation.constraints.NotBlank;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
@@ -22,23 +19,21 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresDistributedLogsConfiguration {
+public class StackGresClusterServiceBindingStatus {
 
-  @JsonProperty("sgPostgresConfig")
-  @NotBlank(message = "You need to associate a Postgres configuration to this distributed logs")
-  private String postgresConfig;
+  private String name;
 
-  public String getPostgresConfig() {
-    return postgresConfig;
+  public String getName() {
+    return name;
   }
 
-  public void setPostgresConfig(String postgresConfig) {
-    this.postgresConfig = postgresConfig;
+  public void setName(String name) {
+    this.name = name;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(postgresConfig);
+    return Objects.hash(name);
   }
 
   @Override
@@ -46,16 +41,15 @@ public class StackGresDistributedLogsConfiguration {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresDistributedLogsConfiguration)) {
+    if (!(obj instanceof StackGresClusterServiceBindingStatus)) {
       return false;
     }
-    StackGresDistributedLogsConfiguration other = (StackGresDistributedLogsConfiguration) obj;
-    return Objects.equals(postgresConfig, other.postgresConfig);
+    StackGresClusterServiceBindingStatus other = (StackGresClusterServiceBindingStatus) obj;
+    return Objects.equals(name, other.name);
   }
 
   @Override
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
   }
-
 }

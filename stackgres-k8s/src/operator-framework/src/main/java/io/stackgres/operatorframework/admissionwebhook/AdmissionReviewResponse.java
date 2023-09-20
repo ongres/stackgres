@@ -6,20 +6,16 @@
 package io.stackgres.operatorframework.admissionwebhook;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @RegisterForReflection
 public class AdmissionReviewResponse {
 
-  @JsonProperty("apiVersion")
   private String apiVersion = "admission.k8s.io/v1";
 
-  @JsonProperty("kind")
   private String kind = "AdmissionReview";
 
-  @JsonProperty("response")
   private AdmissionResponse response;
 
   public String getApiVersion() {

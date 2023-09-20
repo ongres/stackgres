@@ -8,19 +8,16 @@ package io.stackgres.apiweb.dto.shardedcluster;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.cluster.ClusterCredentials;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ShardedClusterConfiguration {
+public class ShardedClusterConfigurations {
 
-  @JsonProperty("backups")
   private List<ShardedClusterBackupConfiguration> backups;
 
-  @JsonProperty("credentials")
   private ClusterCredentials credentials;
 
   public List<ShardedClusterBackupConfiguration> getBackups() {

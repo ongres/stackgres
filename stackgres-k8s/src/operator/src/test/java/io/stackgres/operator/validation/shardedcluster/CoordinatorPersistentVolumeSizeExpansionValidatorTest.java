@@ -54,18 +54,18 @@ class CoordinatorPersistentVolumeSizeExpansionValidatorTest extends
 
   @Override
   protected void setVolumeSize(StackGresShardedCluster cluster, String size) {
-    cluster.getSpec().getCoordinator().getPod().getPersistentVolume().setSize(size);
+    cluster.getSpec().getCoordinator().getPods().getPersistentVolume().setSize(size);
   }
 
   @Override
   protected void setStorageClassName(StackGresShardedCluster cluster, String storageClassName) {
     cluster.getSpec().getCoordinator()
-        .getPod().getPersistentVolume().setStorageClass(storageClassName);
+        .getPods().getPersistentVolume().setStorageClass(storageClassName);
   }
 
   @Override
   protected String getStorageClassName(StackGresShardedCluster cluster) {
-    return cluster.getSpec().getCoordinator().getPod().getPersistentVolume().getStorageClass();
+    return cluster.getSpec().getCoordinator().getPods().getPersistentVolume().getStorageClass();
   }
 
   @Override

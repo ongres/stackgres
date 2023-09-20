@@ -87,10 +87,10 @@ public class PgBouncerAuthFileReconciliator {
 
   private Collection<String> getPoolingConfigUserNames(ClusterContext context) {
     StackGresPoolingConfig poolingConfig = poolingConfigFinder.findByNameAndNamespace(
-        context.getCluster().getSpec().getConfiguration().getConnectionPoolingConfig(),
+        context.getCluster().getSpec().getConfigurations().getSgPoolingConfig(),
         context.getCluster().getMetadata().getNamespace())
         .orElseThrow(() -> new RuntimeException("Can not find pool config "
-            + context.getCluster().getSpec().getConfiguration().getConnectionPoolingConfig()));
+            + context.getCluster().getSpec().getConfigurations().getSgPoolingConfig()));
     return Optional.of(poolingConfig)
         .map(StackGresPoolingConfig::getSpec)
         .map(StackGresPoolingConfigSpec::getPgBouncer)

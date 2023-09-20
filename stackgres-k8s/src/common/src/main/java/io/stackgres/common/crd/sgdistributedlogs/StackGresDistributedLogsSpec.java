@@ -13,7 +13,6 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
@@ -27,40 +26,31 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresDistributedLogsSpec {
 
-  @JsonProperty("persistentVolume")
   @NotNull(message = "Persistent volume must be specified")
   @Valid
   private StackGresDistributedLogsPersistentVolume persistentVolume;
 
-  @JsonProperty("postgresServices")
   @Valid
   private StackGresDistributedLogsPostgresServices postgresServices;
 
-  @JsonProperty("nonProductionOptions")
   @Valid
   private StackGresDistributedLogsNonProduction nonProductionOptions;
 
-  @JsonProperty("resources")
   private StackGresDistributedLogsResources resources;
 
-  @JsonProperty("scheduling")
   @Valid
   private StackGresDistributedLogsPodScheduling scheduling;
 
-  @JsonProperty("sgInstanceProfile")
   @NotNull(message = "resource profile is required")
-  private String resourceProfile;
+  private String sgInstanceProfile;
 
-  @JsonProperty("configurations")
   @NotNull(message = "configurations is required")
   @Valid
-  private StackGresDistributedLogsConfiguration configuration;
+  private StackGresDistributedLogsConfigurations configurations;
 
-  @JsonProperty("metadata")
   @Valid
   private StackGresDistributedLogsSpecMetadata metadata;
 
-  @JsonProperty("toInstallPostgresExtensions")
   @Valid
   private List<StackGresClusterInstalledExtension> toInstallPostgresExtensions;
 
@@ -97,20 +87,20 @@ public class StackGresDistributedLogsSpec {
     this.scheduling = scheduling;
   }
 
-  public String getResourceProfile() {
-    return resourceProfile;
+  public String getSgInstanceProfile() {
+    return sgInstanceProfile;
   }
 
-  public void setResourceProfile(String resourceProfile) {
-    this.resourceProfile = resourceProfile;
+  public void setSgInstanceProfile(String sgInstanceProfile) {
+    this.sgInstanceProfile = sgInstanceProfile;
   }
 
-  public StackGresDistributedLogsConfiguration getConfiguration() {
-    return configuration;
+  public StackGresDistributedLogsConfigurations getConfigurations() {
+    return configurations;
   }
 
-  public void setConfiguration(StackGresDistributedLogsConfiguration configuration) {
-    this.configuration = configuration;
+  public void setConfigurations(StackGresDistributedLogsConfigurations configurations) {
+    this.configurations = configurations;
   }
 
   public StackGresDistributedLogsSpecMetadata getMetadata() {
@@ -140,8 +130,8 @@ public class StackGresDistributedLogsSpec {
 
   @Override
   public int hashCode() {
-    return Objects.hash(configuration, metadata, nonProductionOptions, persistentVolume,
-        postgresServices, resourceProfile, scheduling, toInstallPostgresExtensions);
+    return Objects.hash(configurations, metadata, nonProductionOptions, persistentVolume,
+        postgresServices, sgInstanceProfile, scheduling, toInstallPostgresExtensions);
   }
 
   @Override
@@ -153,12 +143,12 @@ public class StackGresDistributedLogsSpec {
       return false;
     }
     StackGresDistributedLogsSpec other = (StackGresDistributedLogsSpec) obj;
-    return Objects.equals(configuration, other.configuration)
+    return Objects.equals(configurations, other.configurations)
         && Objects.equals(metadata, other.metadata)
         && Objects.equals(nonProductionOptions, other.nonProductionOptions)
         && Objects.equals(persistentVolume, other.persistentVolume)
         && Objects.equals(postgresServices, other.postgresServices)
-        && Objects.equals(resourceProfile, other.resourceProfile)
+        && Objects.equals(sgInstanceProfile, other.sgInstanceProfile)
         && Objects.equals(scheduling, other.scheduling)
         && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);
   }

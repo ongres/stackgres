@@ -67,8 +67,8 @@ class PatroniConfigMapTest {
     when(context.getSource()).thenReturn(cluster);
     cluster.getMetadata().getAnnotations()
         .put(StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
-    cluster.getSpec().getConfiguration().setPatroni(new StackGresClusterPatroni());
-    cluster.getSpec().getConfiguration().getPatroni()
+    cluster.getSpec().getConfigurations().setPatroni(new StackGresClusterPatroni());
+    cluster.getSpec().getConfigurations().getPatroni()
         .setInitialConfig(new StackGresClusterPatroniInitialConfig());
   }
 
@@ -101,9 +101,9 @@ class PatroniConfigMapTest {
   @Test
   void getConfigMapWithScope_shouldReturnExpectedEnvVars() throws Exception {
     when(context.getCluster()).thenReturn(cluster);
-    cluster.getSpec().getConfiguration().getPatroni()
+    cluster.getSpec().getConfigurations().getPatroni()
         .getInitialConfig().put("scope", "test");
-    cluster.getSpec().getConfiguration().getPatroni()
+    cluster.getSpec().getConfigurations().getPatroni()
         .getInitialConfig().put("test", true);
     ConfigMap configMap = generator.buildSource(context);
 
@@ -118,17 +118,17 @@ class PatroniConfigMapTest {
   @Test
   void verifyExclusionBlockListConfigKeys() {
     when(context.getCluster()).thenReturn(cluster);
-    cluster.getSpec().getConfiguration().getPatroni()
+    cluster.getSpec().getConfigurations().getPatroni()
         .getInitialConfig().put("validKey1", true);
-    cluster.getSpec().getConfiguration().getPatroni()
+    cluster.getSpec().getConfigurations().getPatroni()
         .getInitialConfig().put("validKey2", 1);
-    cluster.getSpec().getConfiguration().getPatroni()
+    cluster.getSpec().getConfigurations().getPatroni()
         .getInitialConfig().put("validKey3", "stringValue");
     cluster.getSpec().getPostgres().setVersion(
         StackGresComponent.BABELFISH.getLatest().streamOrderedVersions().findFirst().get());
     cluster.getSpec().getPostgres().setFlavor(StackGresPostgresFlavor.BABELFISH.toString());
     PatroniUtil.PATRONI_BLOCKLIST_CONFIG_KEYS.forEach(
-        key ->  cluster.getSpec().getConfiguration().getPatroni()
+        key ->  cluster.getSpec().getConfigurations().getPatroni()
         .getInitialConfig().put(key, ModelTestUtil.createWithRandomData(String.class)));
     ConfigMap configMap = generator.buildSource(context);
 
@@ -168,7 +168,7 @@ class PatroniConfigMapTest {
   @Test
   void getConfigMapWhenDistributedLogsSpecIsNotPresent_shouldNotContainLogInformationEnvVars() {
     when(context.getCluster()).thenReturn(cluster);
-    cluster.getSpec().getDistributedLogs().setDistributedLogs(null);
+    cluster.getSpec().getDistributedLogs().setSgDistributedLogs(null);
     ConfigMap configMap = generator.buildSource(context);
     assertNull(configMap.getData().get("PATRONI_LOG_DIR"));
     assertNull(configMap.getData().get("PATRONI_LOG_FILE_NUM"));
@@ -223,7 +223,7 @@ class PatroniConfigMapTest {
     CustomContainer customContainer = ModelTestUtil.createWithRandomData(CustomContainer.class);
     customContainer.setPorts(List.of(containerPort));
 
-    context.getCluster().getSpec().getPod().setCustomContainers(List.of(customContainer));
+    context.getCluster().getSpec().getPods().setCustomContainers(List.of(customContainer));
     CustomServicePort csPort = ModelTestUtil.createWithRandomData(CustomServicePort.class);
     csPort.setTargetPort(new IntOrString(customContainerPortName));
     cluster.getSpec().getPostgresServices().getPrimary().setCustomPorts(List.of(csPort));

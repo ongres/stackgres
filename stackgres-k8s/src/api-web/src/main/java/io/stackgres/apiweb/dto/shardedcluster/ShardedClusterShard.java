@@ -18,23 +18,21 @@ import io.stackgres.apiweb.dto.cluster.ClusterSpec;
     "prometheusAutobind", "nonProductionOptions" })
 public class ShardedClusterShard extends ClusterSpec {
 
-  @JsonProperty("index")
-  private int index;
+  private Integer index;
 
-  @JsonProperty("instancesPerCluster")
   private Integer instancesPerCluster;
 
   @JsonProperty("replication")
   private ShardedClusterReplication replicationForShards;
 
   @JsonProperty("configurations")
-  private ShardedClusterInnerConfiguration configurationForShards;
+  private ShardedClusterInnerConfigurations configurationsForShards;
 
-  public int getIndex() {
+  public Integer getIndex() {
     return index;
   }
 
-  public void setIndex(int index) {
+  public void setIndex(Integer index) {
     this.index = index;
   }
 
@@ -54,12 +52,13 @@ public class ShardedClusterShard extends ClusterSpec {
     this.replicationForShards = replicationForShards;
   }
 
-  public ShardedClusterInnerConfiguration getConfigurationForShards() {
-    return configurationForShards;
+  public ShardedClusterInnerConfigurations getConfigurationsForShards() {
+    return configurationsForShards;
   }
 
-  public void setConfigurationForShards(ShardedClusterInnerConfiguration configurationForShards) {
-    this.configurationForShards = configurationForShards;
+  public void setConfigurationsForShards(
+      ShardedClusterInnerConfigurations configurationsForShards) {
+    this.configurationsForShards = configurationsForShards;
   }
 
 }

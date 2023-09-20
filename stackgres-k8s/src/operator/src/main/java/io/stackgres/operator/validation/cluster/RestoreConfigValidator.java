@@ -17,7 +17,7 @@ import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitalData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -54,8 +54,8 @@ public class RestoreConfigValidator implements ClusterValidator {
 
     Optional<StackGresClusterRestore> restoreOpt = Optional.ofNullable(cluster)
         .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getInitData)
-        .map(StackGresClusterInitData::getRestore);
+        .map(StackGresClusterSpec::getInitialData)
+        .map(StackGresClusterInitalData::getRestore);
 
     checkRestoreConfig(review, restoreOpt);
 
@@ -113,7 +113,7 @@ public class RestoreConfigValidator implements ClusterValidator {
         break;
       case UPDATE:
         StackGresClusterRestore oldRestoreConfig = review.getRequest()
-            .getOldObject().getSpec().getInitData().getRestore();
+            .getOldObject().getSpec().getInitialData().getRestore();
 
         final String message = "Cannot update cluster's restore configuration";
         if (!Objects.equals(restoreConfig, oldRestoreConfig)) {
@@ -129,8 +129,8 @@ public class RestoreConfigValidator implements ClusterValidator {
       Optional<StackGresClusterRestore> initRestoreOpt) throws ValidationFailed {
     if (review.getRequest().getOperation() == Operation.UPDATE) {
       Optional<StackGresClusterRestore> oldRestoreOpt = Optional
-          .ofNullable(review.getRequest().getOldObject().getSpec().getInitData())
-          .map(StackGresClusterInitData::getRestore);
+          .ofNullable(review.getRequest().getOldObject().getSpec().getInitialData())
+          .map(StackGresClusterInitalData::getRestore);
 
       if (!initRestoreOpt.isPresent() && oldRestoreOpt.isPresent()) {
         fail(errorCrReferencerUri, "Cannot update cluster's restore configuration");

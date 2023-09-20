@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.storages;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -14,14 +13,11 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class AzureBlobStorageDto {
 
-  @JsonProperty("bucket")
   private String bucket;
 
-  @JsonProperty("path")
   private String path;
 
-  @JsonProperty("azureCredentials")
-  private AzureBlobStorageCredentialsDto credentials;
+  private AzureBlobStorageCredentialsDto azureCredentials;
 
   public String getBucket() {
     return bucket;
@@ -39,12 +35,12 @@ public class AzureBlobStorageDto {
     this.path = path;
   }
 
-  public AzureBlobStorageCredentialsDto getCredentials() {
-    return credentials;
+  public AzureBlobStorageCredentialsDto getAzureCredentials() {
+    return azureCredentials;
   }
 
-  public void setCredentials(AzureBlobStorageCredentialsDto credentials) {
-    this.credentials = credentials;
+  public void setAzureCredentials(AzureBlobStorageCredentialsDto azureCredentials) {
+    this.azureCredentials = azureCredentials;
   }
 
   @Override

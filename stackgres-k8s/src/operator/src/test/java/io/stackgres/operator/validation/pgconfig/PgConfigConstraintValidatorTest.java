@@ -11,8 +11,8 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
+import io.stackgres.operator.validation.AbstractConstraintValidator;
 import io.stackgres.operator.validation.ConstraintValidationTest;
-import io.stackgres.operator.validation.ConstraintValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,7 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PgConfigConstraintValidatorTest extends ConstraintValidationTest<PgConfigReview> {
 
   @Override
-  protected ConstraintValidator<PgConfigReview> buildValidator() {
+  protected AbstractConstraintValidator<PgConfigReview> buildValidator() {
     return new PgConfigConstraintValidator();
   }
 

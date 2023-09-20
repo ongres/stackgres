@@ -13,7 +13,6 @@ import javax.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.Condition;
@@ -28,33 +27,25 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresDistributedLogsStatus {
 
-  @JsonProperty("conditions")
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @Valid
   private List<Condition> conditions = new ArrayList<>();
 
-  @JsonProperty("podStatuses")
   @Valid
   private List<StackGresClusterPodStatus> podStatuses;
 
-  @JsonProperty("databases")
   @Valid
   private List<StackGresDistributedLogsStatusDatabase> databases = new ArrayList<>();
 
-  @JsonProperty("connectedClusters")
   @Valid
   private List<StackGresDistributedLogsStatusCluster> connectedClusters = new ArrayList<>();
 
-  @JsonProperty("fluentdConfigHash")
   private String fluentdConfigHash;
 
-  @JsonProperty("arch")
   private String arch;
 
-  @JsonProperty("os")
   private String os;
 
-  @JsonProperty("labelPrefix")
   private String labelPrefix;
 
   public List<Condition> getConditions() {

@@ -60,7 +60,7 @@ class DbOpsRequiredResourcesGeneratorTest {
   void givenValidCluster_getRequiredResourcesShouldNotFail() {
     final String dbOpsNamespace = dbOps.getMetadata().getNamespace();
     final String clusterName = dbOps.getSpec().getSgCluster();
-    final String profileName = cluster.getSpec().getResourceProfile();
+    final String profileName = cluster.getSpec().getSgInstanceProfile();
 
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
@@ -98,7 +98,7 @@ class DbOpsRequiredResourcesGeneratorTest {
     final String dbOpsNamespace = dbOps.getMetadata().getNamespace();
     final String dbOpsName = dbOps.getMetadata().getName();
     final String clusterName = dbOps.getSpec().getSgCluster();
-    final String profileName = cluster.getSpec().getResourceProfile();
+    final String profileName = cluster.getSpec().getSgInstanceProfile();
 
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));

@@ -29,7 +29,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -88,7 +88,7 @@ public class BackupRequiredResourcesGenerator
         .findByNameAndNamespace(clusterName, clusterNamespace);
     final Optional<StackGresProfile> profile = cluster
         .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getResourceProfile)
+        .map(StackGresClusterSpec::getSgInstanceProfile)
         .flatMap(profileName -> profileFinder
             .findByNameAndNamespace(profileName, clusterNamespace));
 
@@ -105,16 +105,16 @@ public class BackupRequiredResourcesGenerator
         && !isBackupFinished(config)) {
       final var specConfiguration = cluster
           .map(StackGresCluster::getSpec)
-          .map(StackGresClusterSpec::getConfiguration);
+          .map(StackGresClusterSpec::getConfigurations);
 
       final Optional<String> sgBackupConfigurationName = specConfiguration
-          .map(StackGresClusterConfiguration::getBackupConfig);
+          .map(StackGresClusterConfigurations::getSgBackupConfig);
 
       final Optional<String> sgObjectStorageName = specConfiguration
-          .map(StackGresClusterConfiguration::getBackups)
+          .map(StackGresClusterConfigurations::getBackups)
           .map(Collection::stream)
           .flatMap(Stream::findFirst)
-          .map(StackGresClusterBackupConfiguration::getObjectStorage);
+          .map(StackGresClusterBackupConfiguration::getSgObjectStorage);
 
       if (sgObjectStorageName.isEmpty() && sgBackupConfigurationName.isEmpty()) {
         throw new IllegalArgumentException(

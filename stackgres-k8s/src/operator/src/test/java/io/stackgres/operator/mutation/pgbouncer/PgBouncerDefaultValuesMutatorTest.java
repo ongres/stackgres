@@ -32,7 +32,7 @@ class PgBouncerDefaultValuesMutatorTest
   protected PoolingReview getEmptyReview() {
     PoolingReview review = AdmissionReviewFixtures.poolingConfig().loadCreate().get();
     review.getRequest().getObject().getSpec().getPgBouncer().getPgbouncerIni()
-        .setParameters(Map.of());
+        .setPgbouncer(Map.of());
     return review;
   }
 

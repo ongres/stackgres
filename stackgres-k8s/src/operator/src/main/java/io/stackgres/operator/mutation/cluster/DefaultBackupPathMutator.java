@@ -13,7 +13,7 @@ import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import org.jooq.lambda.Seq;
@@ -27,8 +27,8 @@ public class DefaultBackupPathMutator implements ClusterMutator {
         && review.getRequest().getOperation() != Operation.UPDATE) {
       return resource;
     }
-    Optional.ofNullable(resource.getSpec().getConfiguration())
-        .map(StackGresClusterConfiguration::getBackups)
+    Optional.ofNullable(resource.getSpec().getConfigurations())
+        .map(StackGresClusterConfigurations::getBackups)
         .map(Seq::seq)
         .orElse(Seq.of())
         .forEach(backup -> {

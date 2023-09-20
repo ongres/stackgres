@@ -6,33 +6,25 @@
 package io.stackgres.apiweb.dto.distributedlogs;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class DistributedLogsNonProduction {
+public class DistributedLogsNonProductionOptions {
 
-  @JsonProperty("disableClusterPodAntiAffinity")
   public Boolean disableClusterPodAntiAffinity;
 
-  @JsonProperty("disablePatroniResourceRequirements")
   public Boolean disablePatroniResourceRequirements;
 
-  @JsonProperty("disableClusterResourceRequirements")
   public Boolean disableClusterResourceRequirements;
 
-  @JsonProperty("enableSetPatroniCpuRequests")
   public Boolean enableSetPatroniCpuRequests;
 
-  @JsonProperty("enableSetClusterCpuRequests")
   public Boolean enableSetClusterCpuRequests;
 
-  @JsonProperty("enableSetPatroniMemoryRequests")
   public Boolean enableSetPatroniMemoryRequests;
 
-  @JsonProperty("enableSetClusterMemoryRequests")
   public Boolean enableSetClusterMemoryRequests;
 
   public Boolean getDisableClusterPodAntiAffinity() {

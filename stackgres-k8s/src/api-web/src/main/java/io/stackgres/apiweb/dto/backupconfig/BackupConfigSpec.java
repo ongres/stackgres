@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.backupconfig;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.storages.BackupStorageDto;
 import io.stackgres.common.StackGresUtil;
@@ -15,10 +14,8 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class BackupConfigSpec {
 
-  @JsonProperty("storage")
   private BackupStorageDto storage;
 
-  @JsonProperty("baseBackups")
   private BaseBackupConfig baseBackups;
 
   public BackupStorageDto getStorage() {

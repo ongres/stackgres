@@ -18,7 +18,6 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.FieldReference;
@@ -34,38 +33,28 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresScriptEntry {
 
-  @JsonProperty("name")
   private String name;
 
-  @JsonProperty("id")
   @NotNull(message = "id cannot be null")
   private Integer id;
 
-  @JsonProperty("version")
   @NotNull(message = "version cannot be null")
   private Integer version;
 
-  @JsonProperty("database")
   private String database;
 
-  @JsonProperty("wrapInTransaction")
   @ValidEnum(enumClass = StackGresScriptTransactionIsolationLevel.class, allowNulls = true,
       message = "wrapInTransaction must be read-committed, repeatable-read or serializable")
   private String wrapInTransaction;
 
-  @JsonProperty("storeStatusInDatabase")
   private Boolean storeStatusInDatabase;
 
-  @JsonProperty("retryOnError")
   private Boolean retryOnError;
 
-  @JsonProperty("user")
   private String user;
 
-  @JsonProperty("script")
   private String script;
 
-  @JsonProperty("scriptFrom")
   @Valid
   private StackGresScriptFrom scriptFrom;
 

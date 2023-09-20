@@ -9,7 +9,6 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CustomContainer;
@@ -20,36 +19,26 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 //TODO remove once the UI has fixes the sending metadata in this object
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ClusterPod {
+public class ClusterPods {
 
-  @JsonProperty("persistentVolume")
   private ClusterPodPersistentVolume persistentVolume;
 
-  @JsonProperty("disableConnectionPooling")
   private Boolean disableConnectionPooling;
 
-  @JsonProperty("disableMetricsExporter")
   private Boolean disableMetricsExporter;
 
-  @JsonProperty("disablePostgresUtil")
   private Boolean disablePostgresUtil;
 
-  @JsonProperty("managementPolicy")
   private String managementPolicy;
 
-  @JsonProperty("resources")
   private StackGresClusterResources resources;
 
-  @JsonProperty("scheduling")
   private ClusterPodScheduling scheduling;
 
-  @JsonProperty("customVolumes")
   private List<CustomVolume> customVolumes;
 
-  @JsonProperty("customContainers")
   private List<CustomContainer> customContainers;
 
-  @JsonProperty("customInitContainers")
   private List<CustomContainer> customInitContainers;
 
   public ClusterPodPersistentVolume getPersistentVolume() {

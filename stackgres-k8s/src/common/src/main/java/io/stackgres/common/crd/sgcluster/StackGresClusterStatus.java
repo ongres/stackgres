@@ -13,7 +13,6 @@ import javax.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.Condition;
@@ -27,34 +26,27 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterStatus {
 
-  @JsonProperty("conditions")
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @Valid
   private List<Condition> conditions = new ArrayList<>();
 
-  @JsonProperty("podStatuses")
   @Valid
   private List<StackGresClusterPodStatus> podStatuses;
 
-  @JsonProperty("dbOps")
   @Valid
   private StackGresClusterDbOpsStatus dbOps;
 
-  @JsonProperty("managedSql")
   @Valid
   private StackGresClusterManagedSqlStatus managedSql;
 
-  @JsonProperty("arch")
   private String arch;
 
-  @JsonProperty("os")
   private String os;
 
-  @JsonProperty("labelPrefix")
   private String labelPrefix;
 
-  @JsonProperty("binding")
-  private StackGresClusterStatusServiceBinding binding;
+  @Valid
+  private StackGresClusterServiceBindingStatus binding;
 
   public List<Condition> getConditions() {
     return conditions;
@@ -112,11 +104,11 @@ public class StackGresClusterStatus {
     this.labelPrefix = labelPrefix;
   }
 
-  public StackGresClusterStatusServiceBinding getBinding() {
+  public StackGresClusterServiceBindingStatus getBinding() {
     return binding;
   }
 
-  public void setBinding(StackGresClusterStatusServiceBinding binding) {
+  public void setBinding(StackGresClusterServiceBindingStatus binding) {
     this.binding = binding;
   }
 

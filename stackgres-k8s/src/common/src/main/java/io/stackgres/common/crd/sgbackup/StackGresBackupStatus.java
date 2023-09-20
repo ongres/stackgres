@@ -11,7 +11,6 @@ import javax.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
@@ -25,25 +24,19 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresBackupStatus {
 
-  @JsonProperty("sgBackupConfig")
   @Valid
-  private StackGresBackupConfigSpec backupConfig;
+  private StackGresBackupConfigSpec sgBackupConfig;
 
-  @JsonProperty("internalName")
   private String internalName;
 
-  @JsonProperty("backupPath")
   private String backupPath;
 
-  @JsonProperty("process")
   @Valid
   private StackGresBackupProcess process;
 
-  @JsonProperty("backupInformation")
   @Valid
   private StackGresBackupInformation backupInformation;
 
-  @JsonProperty("tested")
   private Boolean tested;
 
   public String getInternalName() {
@@ -62,12 +55,12 @@ public class StackGresBackupStatus {
     this.backupPath = backupPath;
   }
 
-  public StackGresBackupConfigSpec getBackupConfig() {
-    return backupConfig;
+  public StackGresBackupConfigSpec getSgBackupConfig() {
+    return sgBackupConfig;
   }
 
-  public void setBackupConfig(StackGresBackupConfigSpec backupConfig) {
-    this.backupConfig = backupConfig;
+  public void setSgBackupConfig(StackGresBackupConfigSpec sgBackupConfig) {
+    this.sgBackupConfig = sgBackupConfig;
   }
 
   public Boolean getTested() {
@@ -96,7 +89,8 @@ public class StackGresBackupStatus {
 
   @Override
   public int hashCode() {
-    return Objects.hash(backupConfig, backupInformation, backupPath, internalName, process, tested);
+    return Objects.hash(sgBackupConfig, backupInformation, backupPath, internalName, process,
+        tested);
   }
 
   @Override
@@ -108,7 +102,7 @@ public class StackGresBackupStatus {
       return false;
     }
     StackGresBackupStatus other = (StackGresBackupStatus) obj;
-    return Objects.equals(backupConfig, other.backupConfig)
+    return Objects.equals(sgBackupConfig, other.sgBackupConfig)
         && Objects.equals(backupInformation, other.backupInformation)
         && Objects.equals(backupPath, other.backupPath)
         && Objects.equals(internalName, other.internalName)

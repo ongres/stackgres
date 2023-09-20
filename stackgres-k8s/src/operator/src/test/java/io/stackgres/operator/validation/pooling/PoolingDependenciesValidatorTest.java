@@ -53,6 +53,6 @@ class PoolingDependenciesValidatorTest
 
   @Override
   protected void makeClusterNotDependant(StackGresCluster cluster) {
-    cluster.getSpec().getConfiguration().setConnectionPoolingConfig(null);
+    cluster.getSpec().getConfigurations().setSgPoolingConfig(null);
   }
 }

@@ -33,19 +33,16 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresShardedClusterShards extends StackGresClusterSpec {
 
-  @JsonProperty("clusters")
   @Positive(message = "You need at least 1 cluster in the shards")
-  private int clusters;
+  private Integer clusters;
 
-  @JsonProperty("instancesPerCluster")
   @Positive(message = "You need at least 1 instance in each cluster")
-  private int instancesPerCluster;
+  private Integer instancesPerCluster;
 
   @JsonProperty("replication")
   @Valid
   private StackGresShardedClusterReplication replicationForShards;
 
-  @JsonProperty("overrides")
   @Valid
   private List<StackGresShardedClusterShard> overrides;
 
@@ -93,19 +90,19 @@ public class StackGresShardedClusterShards extends StackGresClusterSpec {
         || getInstancesPerCluster() > replicationForShards.getSyncInstances();
   }
 
-  public int getClusters() {
+  public Integer getClusters() {
     return clusters;
   }
 
-  public void setClusters(int clusters) {
+  public void setClusters(Integer clusters) {
     this.clusters = clusters;
   }
 
-  public int getInstancesPerCluster() {
+  public Integer getInstancesPerCluster() {
     return instancesPerCluster;
   }
 
-  public void setInstancesPerCluster(int instancesPerCluster) {
+  public void setInstancesPerCluster(Integer instancesPerCluster) {
     this.instancesPerCluster = instancesPerCluster;
   }
 
@@ -129,8 +126,8 @@ public class StackGresShardedClusterShards extends StackGresClusterSpec {
   public int hashCode() {
     final int prime = 31;
     int result = super.hashCode();
-    result = prime * result + Objects.hash(clusters, instancesPerCluster,
-        overrides, replicationForShards);
+    result = prime * result + Objects.hash(clusters, instancesPerCluster, overrides,
+        replicationForShards);
     return result;
   }
 
@@ -146,7 +143,8 @@ public class StackGresShardedClusterShards extends StackGresClusterSpec {
       return false;
     }
     StackGresShardedClusterShards other = (StackGresShardedClusterShards) obj;
-    return clusters == other.clusters && instancesPerCluster == other.instancesPerCluster
+    return Objects.equals(clusters, other.clusters)
+        && Objects.equals(instancesPerCluster, other.instancesPerCluster)
         && Objects.equals(overrides, other.overrides)
         && Objects.equals(replicationForShards, other.replicationForShards);
   }

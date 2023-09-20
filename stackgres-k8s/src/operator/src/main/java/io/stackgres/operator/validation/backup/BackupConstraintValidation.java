@@ -9,12 +9,12 @@ import javax.inject.Singleton;
 
 import io.stackgres.common.ErrorType;
 import io.stackgres.operator.common.BackupReview;
-import io.stackgres.operator.validation.ConstraintValidator;
+import io.stackgres.operator.validation.AbstractConstraintValidator;
 import io.stackgres.operator.validation.ValidationType;
 
 @Singleton
 @ValidationType(ErrorType.CONSTRAINT_VIOLATION)
-public class BackupConstraintValidation extends ConstraintValidator<BackupReview>
+public class BackupConstraintValidation extends AbstractConstraintValidator<BackupReview>
     implements BackupValidator {
 
 }

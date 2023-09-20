@@ -57,7 +57,7 @@ class ProfileReferenceValidatorTest {
         AdmissionReviewFixtures.shardedCluster().loadCreate().get();
 
     String resourceProfile = review.getRequest().getObject().getSpec().getCoordinator()
-        .getResourceProfile();
+        .getSgInstanceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
@@ -74,7 +74,7 @@ class ProfileReferenceValidatorTest {
         AdmissionReviewFixtures.shardedCluster().loadCreate().get();
 
     String resourceProfile = review.getRequest().getObject().getSpec().getShards()
-        .getResourceProfile();
+        .getSgInstanceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
@@ -92,10 +92,11 @@ class ProfileReferenceValidatorTest {
         AdmissionReviewFixtures.shardedCluster().loadCreate().get();
 
     String resourceProfile = review.getRequest().getObject().getSpec().getShards()
-        .getResourceProfile();
+        .getSgInstanceProfile();
     review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
         new StackGresShardedClusterShardBuilder()
-        .withResourceProfile(resourceProfile)
+        .withIndex(0)
+        .withSgInstanceProfile(resourceProfile)
         .build()));
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
@@ -113,7 +114,7 @@ class ProfileReferenceValidatorTest {
         AdmissionReviewFixtures.shardedCluster().loadCreate().get();
 
     String resourceProfile = review.getRequest().getObject().getSpec().getCoordinator()
-        .getResourceProfile();
+        .getSgInstanceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
@@ -136,13 +137,13 @@ class ProfileReferenceValidatorTest {
         AdmissionReviewFixtures.shardedCluster().loadCreate().get();
 
     review.getRequest().getObject().getSpec().getShards()
-        .setResourceProfile("test");
+        .setSgInstanceProfile("test");
     String resourceProfile = review.getRequest().getObject().getSpec().getShards()
-        .getResourceProfile();
+        .getSgInstanceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(profileFinder.findByNameAndNamespace(review.getRequest().getObject().getSpec()
-        .getCoordinator().getResourceProfile(), namespace))
+        .getCoordinator().getSgInstanceProfile(), namespace))
         .thenReturn(Optional.of(profileSizeXs));
     when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
         .thenReturn(Optional.empty());
@@ -165,17 +166,18 @@ class ProfileReferenceValidatorTest {
 
     review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
         new StackGresShardedClusterShardBuilder()
-        .withResourceProfile("test")
+        .withIndex(0)
+        .withSgInstanceProfile("test")
         .build()));
     String ovverideResourceProfile = review.getRequest().getObject().getSpec().getShards()
-        .getOverrides().get(0).getResourceProfile();
+        .getOverrides().get(0).getSgInstanceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(profileFinder.findByNameAndNamespace(review.getRequest().getObject().getSpec()
-        .getCoordinator().getResourceProfile(), namespace))
+        .getCoordinator().getSgInstanceProfile(), namespace))
         .thenReturn(Optional.of(profileSizeXs));
     when(profileFinder.findByNameAndNamespace(review.getRequest().getObject().getSpec()
-        .getShards().getResourceProfile(), namespace))
+        .getShards().getSgInstanceProfile(), namespace))
         .thenReturn(Optional.of(profileSizeXs));
     when(profileFinder.findByNameAndNamespace(ovverideResourceProfile, namespace))
         .thenReturn(Optional.empty());
@@ -197,9 +199,9 @@ class ProfileReferenceValidatorTest {
         AdmissionReviewFixtures.shardedCluster().loadProfileConfigUpdate().get();
 
     review.getRequest().getObject().getSpec().getCoordinator()
-        .setResourceProfile("test");
+        .setSgInstanceProfile("test");
     String resourceProfile = review.getRequest().getObject().getSpec().getCoordinator()
-        .getResourceProfile();
+        .getSgInstanceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
@@ -223,9 +225,9 @@ class ProfileReferenceValidatorTest {
         AdmissionReviewFixtures.shardedCluster().loadProfileConfigUpdate().get();
 
     review.getRequest().getObject().getSpec().getShards()
-        .setResourceProfile("test");
+        .setSgInstanceProfile("test");
     String resourceProfile = review.getRequest().getObject().getSpec().getShards()
-        .getResourceProfile();
+        .getSgInstanceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
@@ -250,10 +252,11 @@ class ProfileReferenceValidatorTest {
 
     review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
         new StackGresShardedClusterShardBuilder()
-        .withResourceProfile("test")
+        .withIndex(0)
+        .withSgInstanceProfile("test")
         .build()));
     String ovverideResourceProfile = review.getRequest().getObject().getSpec().getShards()
-        .getOverrides().get(0).getResourceProfile();
+        .getOverrides().get(0).getSgInstanceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(profileFinder.findByNameAndNamespace(ovverideResourceProfile, namespace))
@@ -288,10 +291,11 @@ class ProfileReferenceValidatorTest {
         AdmissionReviewFixtures.shardedCluster().loadProfileConfigUpdate().get();
 
     String resourceProfile = review.getRequest().getObject().getSpec().getShards()
-        .getResourceProfile();
+        .getSgInstanceProfile();
     review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
         new StackGresShardedClusterShardBuilder()
-        .withResourceProfile(resourceProfile)
+        .withIndex(0)
+        .withSgInstanceProfile(resourceProfile)
         .build()));
 
     validator.validate(review);

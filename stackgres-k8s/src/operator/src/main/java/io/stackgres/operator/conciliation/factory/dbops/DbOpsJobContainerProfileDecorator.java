@@ -49,7 +49,7 @@ public class DbOpsJobContainerProfileDecorator extends AbstractContainerProfileD
           .map(Job::getSpec)
           .map(JobSpec::getTemplate)
           .map(PodTemplateSpec::getSpec),
-          Optional.ofNullable(context.getCluster().getSpec().getPod().getResources())
+          Optional.ofNullable(context.getCluster().getSpec().getPods().getResources())
           .map(StackGresClusterResources::getEnableClusterLimitsRequirements)
           .orElse(false),
           Optional.ofNullable(context.getCluster().getSpec().getNonProductionOptions())

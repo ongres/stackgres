@@ -9,6 +9,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.stackgres.apiweb.dto.fixture.DtoFixtures;
@@ -39,7 +40,8 @@ class PostgresConfigResourceTest extends AbstractDependencyCustomResourceTest
   @Override
   protected AbstractDependencyResourceTransformer<PostgresConfigDto, StackGresPostgresConfig>
       getTransformer() {
-    return new PostgresConfigTransformer();
+    var mapper = JsonMapper.builder().build();
+    return new PostgresConfigTransformer(mapper);
   }
 
   @Override

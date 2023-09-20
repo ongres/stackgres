@@ -15,7 +15,7 @@ import javax.enterprise.context.ApplicationScoped;
 import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
-import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfiguration;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import org.jooq.lambda.Seq;
@@ -30,8 +30,8 @@ public class DefaultBackupPathsMutator implements ShardedClusterMutator {
         && review.getRequest().getOperation() != Operation.UPDATE) {
       return resource;
     }
-    Optional.ofNullable(resource.getSpec().getConfiguration())
-        .map(StackGresShardedClusterConfiguration::getBackups)
+    Optional.ofNullable(resource.getSpec().getConfigurations())
+        .map(StackGresShardedClusterConfigurations::getBackups)
         .map(Seq::seq)
         .orElse(Seq.of())
         .forEach(backup -> {

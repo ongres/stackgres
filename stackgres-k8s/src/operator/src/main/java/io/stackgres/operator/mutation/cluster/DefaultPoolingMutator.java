@@ -9,7 +9,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -33,19 +33,19 @@ public class DefaultPoolingMutator
 
   @Override
   protected void setValueSection(StackGresCluster resource) {
-    if (resource.getSpec().getConfiguration() == null) {
-      resource.getSpec().setConfiguration(new StackGresClusterConfiguration());
+    if (resource.getSpec().getConfigurations() == null) {
+      resource.getSpec().setConfigurations(new StackGresClusterConfigurations());
     }
   }
 
   @Override
   protected String getTargetPropertyValue(StackGresCluster resource) {
-    return resource.getSpec().getConfiguration().getConnectionPoolingConfig();
+    return resource.getSpec().getConfigurations().getSgPoolingConfig();
   }
 
   @Override
   protected void setTargetProperty(StackGresCluster resource, String defaultResourceName) {
-    resource.getSpec().getConfiguration().setConnectionPoolingConfig(defaultResourceName);
+    resource.getSpec().getConfigurations().setSgPoolingConfig(defaultResourceName);
   }
 
 }

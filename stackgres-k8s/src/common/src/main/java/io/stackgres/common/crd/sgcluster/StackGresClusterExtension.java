@@ -13,7 +13,6 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.extension.ExtensionUtil;
@@ -27,17 +26,13 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterExtension {
 
-  @JsonProperty("name")
   @NotNull(message = "name cannot be null")
   private String name;
 
-  @JsonProperty("publisher")
   private String publisher;
 
-  @JsonProperty("version")
   private String version;
 
-  @JsonProperty("repository")
   private String repository;
 
   public String getName() {

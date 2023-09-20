@@ -9,6 +9,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
@@ -39,7 +40,8 @@ class PgbouncerConfigResourceTest extends AbstractDependencyCustomResourceTest
   @Override
   protected AbstractDependencyResourceTransformer<PoolingConfigDto, StackGresPoolingConfig>
       getTransformer() {
-    return new PoolingConfigTransformer();
+    var mapper = JsonMapper.builder().build();
+    return new PoolingConfigTransformer(mapper);
   }
 
   @Override
@@ -90,18 +92,18 @@ class PgbouncerConfigResourceTest extends AbstractDependencyCustomResourceTest
     assertEquals(2, resource.getStatus().getClusters().size());
     assertEquals("stackgres", resource.getStatus().getClusters().get(0));
     assertNotNull(resource.getStatus().getPgBouncer());
-    assertNotNull(resource.getStatus().getPgBouncer().getParameters());
-    assertEquals(3, resource.getStatus().getPgBouncer().getParameters().size());
+    assertNotNull(resource.getStatus().getPgBouncer().getPgbouncerIni());
+    assertEquals(3, resource.getStatus().getPgBouncer().getPgbouncerIni().size());
     assertEquals("default_pool_size",
-        resource.getStatus().getPgBouncer().getParameters().get(0).getParameter());
-    assertEquals("200", resource.getStatus().getPgBouncer().getParameters().get(0).getValue());
+        resource.getStatus().getPgBouncer().getPgbouncerIni().get(0).getParameter());
+    assertEquals("200", resource.getStatus().getPgBouncer().getPgbouncerIni().get(0).getValue());
     assertEquals("max_client_conn",
-        resource.getStatus().getPgBouncer().getParameters().get(1).getParameter());
-    assertEquals("100", resource.getStatus().getPgBouncer().getParameters().get(1).getValue());
+        resource.getStatus().getPgBouncer().getPgbouncerIni().get(1).getParameter());
+    assertEquals("100", resource.getStatus().getPgBouncer().getPgbouncerIni().get(1).getValue());
     assertEquals("pool_mode",
-        resource.getStatus().getPgBouncer().getParameters().get(2).getParameter());
+        resource.getStatus().getPgBouncer().getPgbouncerIni().get(2).getParameter());
     assertEquals("'transaction'",
-        resource.getStatus().getPgBouncer().getParameters().get(2).getValue());
+        resource.getStatus().getPgBouncer().getPgbouncerIni().get(2).getValue());
     assertNotNull(resource.getStatus().getPgBouncer().getDefaultParameters());
     assertIterableEquals(ImmutableSet.of(
         "default_pool_size",
@@ -121,7 +123,7 @@ class PgbouncerConfigResourceTest extends AbstractDependencyCustomResourceTest
         "default_pool_size", "200",
         "max_client_conn", "100",
         "pool_mode", "'transaction'"),
-        resource.getSpec().getPgBouncer().getPgbouncerIni().getParameters());
+        resource.getSpec().getPgBouncer().getPgbouncerIni().getPgbouncer());
   }
 
 }

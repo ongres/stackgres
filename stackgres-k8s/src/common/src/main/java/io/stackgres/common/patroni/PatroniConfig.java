@@ -25,7 +25,6 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class PatroniConfig {
 
-  @JsonProperty("ttl")
   private Integer ttl;
 
   @JsonProperty("loop_wait")
@@ -52,7 +51,6 @@ public class PatroniConfig {
   @JsonProperty("synchronous_node_count")
   private Integer synchronousNodeCount;
 
-  @JsonProperty("postgresql")
   private PostgreSql postgresql;
 
   @JsonProperty("standby_cluster")

@@ -129,33 +129,33 @@ abstract class AbstractClusterRequiredResourcesGeneratorTest {
 
   protected void mockProfile() {
     when(profileConfigFinder.findByNameAndNamespace(
-        cluster.getSpec().getResourceProfile(),
+        cluster.getSpec().getSgInstanceProfile(),
         cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.of(instanceProfile));
   }
 
   void mockPoolingConfig() {
     when(poolingConfigFinder.findByNameAndNamespace(
-        cluster.getSpec().getConfiguration().getConnectionPoolingConfig(),
+        cluster.getSpec().getConfigurations().getSgPoolingConfig(),
         cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.of(poolingConfig));
   }
 
   void mockPgConfig() {
     when(postgresConfigFinder.findByNameAndNamespace(
-        cluster.getSpec().getConfiguration().getPostgresConfig(),
+        cluster.getSpec().getConfigurations().getSgPostgresConfig(),
         cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.of(this.postgresConfig));
   }
 
   void unmockBackupConfig() {
-    cluster.getSpec().getConfiguration().setBackups(null);
-    cluster.getSpec().getConfiguration().setBackupConfig(null);
+    cluster.getSpec().getConfigurations().setBackups(null);
+    cluster.getSpec().getConfigurations().setSgBackupConfig(null);
   }
 
   void mockBackupConfig() {
     when(backupConfigFinder.findByNameAndNamespace(
-        cluster.getSpec().getConfiguration().getBackupConfig(),
+        cluster.getSpec().getConfigurations().getSgBackupConfig(),
         cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.of(this.backupConfig));
   }

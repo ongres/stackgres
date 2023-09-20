@@ -12,7 +12,6 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
@@ -25,17 +24,14 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterReplicateFromUsers {
 
-  @JsonProperty("superuser")
   @NotNull(message = "superuser is required")
   @Valid
   private StackGresClusterReplicateFromUserSecretKeyRef superuser;
 
-  @JsonProperty("replication")
   @NotNull(message = "replication is required")
   @Valid
   private StackGresClusterReplicateFromUserSecretKeyRef replication;
 
-  @JsonProperty("authenticator")
   @NotNull(message = "authenticator is required")
   @Valid
   private StackGresClusterReplicateFromUserSecretKeyRef authenticator;

@@ -6,6 +6,7 @@
 package io.stackgres.operator.validation.shardedcluster;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -37,20 +38,21 @@ public class ProfileReferenceValidator implements ShardedClusterValidator {
     switch (review.getRequest().getOperation()) {
       case CREATE: {
         StackGresShardedCluster cluster = review.getRequest().getObject();
-        String coordinatorResourceProfile = cluster.getSpec().getCoordinator().getResourceProfile();
+        String coordinatorResourceProfile = cluster.getSpec().getCoordinator()
+            .getSgInstanceProfile();
         checkIfProfileExists(review, coordinatorResourceProfile,
             "Invalid profile " + coordinatorResourceProfile + " for coordinator");
-        String shardsResourceProfile = cluster.getSpec().getShards().getResourceProfile();
+        String shardsResourceProfile = cluster.getSpec().getShards().getSgInstanceProfile();
         checkIfProfileExists(review, shardsResourceProfile,
             "Invalid profile " + shardsResourceProfile + " for shards");
         for (var overrideShard : Optional.of(cluster.getSpec().getShards())
             .map(StackGresShardedClusterShards::getOverrides)
             .orElse(List.of())) {
-          if (overrideShard.getResourceProfile() == null) {
+          if (overrideShard.getSgInstanceProfile() == null) {
             continue;
           }
           String overrideshardsResourceProfile = overrideShard
-              .getResourceProfile();
+              .getSgInstanceProfile();
           checkIfProfileExists(review, overrideshardsResourceProfile,
               "Invalid profile " + overrideshardsResourceProfile + " for shard "
                   + overrideShard.getIndex());
@@ -60,16 +62,17 @@ public class ProfileReferenceValidator implements ShardedClusterValidator {
       case UPDATE: {
         StackGresShardedCluster cluster = review.getRequest().getObject();
         StackGresShardedCluster oldCluster = review.getRequest().getOldObject();
-        String coordinatorResourceProfile = cluster.getSpec().getCoordinator().getResourceProfile();
+        String coordinatorResourceProfile = cluster.getSpec().getCoordinator()
+            .getSgInstanceProfile();
         String oldCoordinatorResourceProfile =
-            oldCluster.getSpec().getCoordinator().getResourceProfile();
+            oldCluster.getSpec().getCoordinator().getSgInstanceProfile();
         if (!coordinatorResourceProfile.equals(oldCoordinatorResourceProfile)) {
           checkIfProfileExists(review, coordinatorResourceProfile,
               "Cannot update coordinator to profile "
                   + coordinatorResourceProfile + " because it doesn't exists");
         }
-        String shardsResourceProfile = cluster.getSpec().getShards().getResourceProfile();
-        String oldShardsResourceProfile = oldCluster.getSpec().getShards().getResourceProfile();
+        String shardsResourceProfile = cluster.getSpec().getShards().getSgInstanceProfile();
+        String oldShardsResourceProfile = oldCluster.getSpec().getShards().getSgInstanceProfile();
         if (!shardsResourceProfile.equals(oldShardsResourceProfile)) {
           checkIfProfileExists(review, shardsResourceProfile,
               "Cannot update shards to profile "
@@ -78,18 +81,20 @@ public class ProfileReferenceValidator implements ShardedClusterValidator {
         for (var overrideShard : Optional.of(cluster.getSpec().getShards())
             .map(StackGresShardedClusterShards::getOverrides)
             .orElse(List.of())) {
-          if (overrideShard.getResourceProfile() == null) {
+          if (overrideShard.getSgInstanceProfile() == null) {
             continue;
           }
           String overrideshardsResourceProfile = overrideShard
-              .getResourceProfile();
+              .getSgInstanceProfile();
           String oldOverrideshardsResourceProfile = Optional.of(oldCluster.getSpec().getShards())
               .map(StackGresShardedClusterShards::getOverrides)
               .stream()
               .flatMap(List::stream)
-              .filter(oldOverrideShard -> oldOverrideShard.getIndex() == overrideShard.getIndex())
+              .filter(oldOverrideShard -> Objects.equals(
+                  oldOverrideShard.getIndex(),
+                  overrideShard.getIndex()))
               .findFirst()
-              .map(StackGresShardedClusterShard::getResourceProfile)
+              .map(StackGresShardedClusterShard::getSgInstanceProfile)
               .orElse(oldShardsResourceProfile);
           if (!overrideshardsResourceProfile.equals(oldOverrideshardsResourceProfile)) {
             checkIfProfileExists(review, overrideshardsResourceProfile,

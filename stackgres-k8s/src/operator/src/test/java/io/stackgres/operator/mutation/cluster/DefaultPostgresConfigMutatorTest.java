@@ -47,8 +47,8 @@ class DefaultPostgresConfigMutatorTest
 
   @Override
   protected void checkConfigurationIsSet(StackGresCluster newResource) {
-    assertNotNull(newResource.getSpec().getConfiguration());
-    assertNotNull(newResource.getSpec().getConfiguration().getPostgresConfig());
+    assertNotNull(newResource.getSpec().getConfigurations());
+    assertNotNull(newResource.getSpec().getConfigurations().getSgPostgresConfig());
   }
 
   @Override
@@ -59,14 +59,14 @@ class DefaultPostgresConfigMutatorTest
   @Override
   protected void setUpMissingConfiguration() {
     review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
-    review.getRequest().getObject().getSpec().getConfiguration()
-        .setPostgresConfig(null);
+    review.getRequest().getObject().getSpec().getConfigurations()
+        .setSgPostgresConfig(null);
   }
 
   @Override
   protected void setUpMissingConfigurationSection() {
     review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
-    review.getRequest().getObject().getSpec().setConfiguration(null);
+    review.getRequest().getObject().getSpec().setConfigurations(null);
   }
 
 }

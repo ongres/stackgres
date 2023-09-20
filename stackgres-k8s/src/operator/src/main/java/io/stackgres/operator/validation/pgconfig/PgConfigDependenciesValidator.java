@@ -25,7 +25,7 @@ public class PgConfigDependenciesValidator
   @Override
   public void validate(PgConfigReview review, StackGresCluster resource)
       throws ValidationFailed {
-    if (Objects.equals(resource.getSpec().getConfiguration().getPostgresConfig(),
+    if (Objects.equals(resource.getSpec().getConfigurations().getSgPostgresConfig(),
         review.getRequest().getName())) {
       fail(review, resource);
     }

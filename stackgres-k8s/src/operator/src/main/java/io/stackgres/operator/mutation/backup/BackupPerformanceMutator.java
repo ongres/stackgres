@@ -27,7 +27,7 @@ public class BackupPerformanceMutator implements BackupMutator {
     }
     Optional.of(resource)
         .map(StackGresBackup::getStatus)
-        .map(StackGresBackupStatus::getBackupConfig)
+        .map(StackGresBackupStatus::getSgBackupConfig)
         .map(StackGresBackupConfigSpec::getBaseBackups)
         .map(StackGresBaseBackupConfig::getPerformance)
         .ifPresent(performance -> {

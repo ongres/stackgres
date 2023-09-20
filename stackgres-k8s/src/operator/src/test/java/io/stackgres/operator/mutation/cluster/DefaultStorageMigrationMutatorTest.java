@@ -65,13 +65,13 @@ class DefaultStorageMigrationMutatorTest {
 
   @Test
   void clusterWithBackupPath_shouldRemoveDeprecatedBackupConfig() {
-    review.getRequest().getObject().getSpec().getConfiguration().setBackups(null);
+    review.getRequest().getObject().getSpec().getConfigurations().setBackups(null);
 
     StackGresCluster actualCluster = mutate(review);
 
     StackGresCluster expected = review.getRequest().getObject();
-    expected.getSpec().getConfiguration().setBackupConfig(null);
-    expected.getSpec().getConfiguration().setBackupPath(null);
+    expected.getSpec().getConfigurations().setSgBackupConfig(null);
+    expected.getSpec().getConfigurations().setBackupPath(null);
 
     assertEquals(expected, actualCluster);
   }
@@ -80,30 +80,31 @@ class DefaultStorageMigrationMutatorTest {
   void clusterWithBackupPath_shouldCopyIt() {
     when(backupConfigFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backupConfig));
-    review.getRequest().getObject().getSpec().getConfiguration().setBackupPath("demo/path/14");
+    review.getRequest().getObject().getSpec().getConfigurations().setBackupPath("demo/path/14");
     final StackGresCluster actualCluster = mutate(review);
     assertEquals("demo/path/14",
-        actualCluster.getSpec().getConfiguration().getBackups().get(0).getPath());
+        actualCluster.getSpec().getConfigurations().getBackups().get(0).getPath());
   }
 
   @Test
   void clusterWithBackupConfig_shouldCopyIt() {
     when(backupConfigFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backupConfig));
-    review.getRequest().getObject().getSpec().getConfiguration().setBackupConfig("respaldosConfig");
+    review.getRequest().getObject().getSpec().getConfigurations()
+        .setSgBackupConfig("respaldosConfig");
     final StackGresCluster actualCluster = mutate(review);
     assertEquals("respaldosConfig",
-        actualCluster.getSpec().getConfiguration().getBackups().get(0).getObjectStorage());
+        actualCluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage());
   }
 
   @Test
   void clusterWithBackupsPath_shouldSetNothing() {
-    review.getRequest().getObject().getSpec().getConfiguration().setBackupConfig(null);
-    review.getRequest().getObject().getSpec().getConfiguration().setBackupPath(null);
-    review.getRequest().getObject().getSpec().getConfiguration().setBackups(new ArrayList<>());
-    review.getRequest().getObject().getSpec().getConfiguration().getBackups()
+    review.getRequest().getObject().getSpec().getConfigurations().setSgBackupConfig(null);
+    review.getRequest().getObject().getSpec().getConfigurations().setBackupPath(null);
+    review.getRequest().getObject().getSpec().getConfigurations().setBackups(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getConfigurations().getBackups()
         .add(new StackGresClusterBackupConfiguration());
-    review.getRequest().getObject().getSpec().getConfiguration().getBackups()
+    review.getRequest().getObject().getSpec().getConfigurations().getBackups()
         .get(0).setPath("test");
     StackGresCluster actualCluster = mutate(review);
 
@@ -114,8 +115,8 @@ class DefaultStorageMigrationMutatorTest {
   void clusterWithoutBackupsPath_shouldSetIt() {
     when(backupConfigFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backupConfig));
-    review.getRequest().getObject().getSpec().getConfiguration().setBackupPath(null);
-    review.getRequest().getObject().getSpec().getConfiguration().setBackups(null);
+    review.getRequest().getObject().getSpec().getConfigurations().setBackupPath(null);
+    review.getRequest().getObject().getSpec().getConfigurations().setBackups(null);
     final StackGresCluster actualCluster = mutate(review);
 
     final StackGresCluster cluster = review.getRequest().getObject();
@@ -128,7 +129,7 @@ class DefaultStorageMigrationMutatorTest {
             cluster.getMetadata().getNamespace(),
             cluster.getMetadata().getName(),
             postgresMajorVersion),
-        actualCluster.getSpec().getConfiguration().getBackups().get(0).getPath());
+        actualCluster.getSpec().getConfigurations().getBackups().get(0).getPath());
   }
 
   @Test
@@ -142,13 +143,13 @@ class DefaultStorageMigrationMutatorTest {
     cluster.getMetadata().setAnnotations(new HashMap<>());
     cluster.getMetadata().getAnnotations().put(
         StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
-    cluster.getSpec().getConfiguration().setBackupPath(null);
+    cluster.getSpec().getConfigurations().setBackupPath(null);
     final StackGresCluster actualCluster = mutate(review);
 
     assertEquals(
         BackupStorageUtil.getPath(cluster.getMetadata().getNamespace(),
             cluster.getMetadata().getName(), "13"),
-        actualCluster.getSpec().getConfiguration().getBackups().get(0).getPath());
+        actualCluster.getSpec().getConfigurations().getBackups().get(0).getPath());
   }
 
   private StackGresCluster mutate(StackGresClusterReview review) {

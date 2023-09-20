@@ -15,8 +15,6 @@ import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.stackgres.apiweb.dto.backup.BackupDto;
 import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
-import io.stackgres.apiweb.transformer.BackupConfigTransformer;
-import io.stackgres.apiweb.transformer.BackupStorageTransformer;
 import io.stackgres.apiweb.transformer.BackupTransformer;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.fixture.Fixtures;
@@ -40,12 +38,7 @@ class BackupResourceTest extends AbstractCustomResourceTest
   @Override
   protected AbstractResourceTransformer<BackupDto, StackGresBackup> getTransformer() {
     final JsonMapper mapper = JsonMapper.builder().build();
-    return new BackupTransformer(
-        new BackupConfigTransformer(
-            new BackupStorageTransformer(mapper),
-            mapper),
-        mapper
-    );
+    return new BackupTransformer(mapper);
   }
 
   @Override
@@ -76,38 +69,40 @@ class BackupResourceTest extends AbstractCustomResourceTest
     assertEquals("test", dto.getMetadata().getName());
     assertEquals("bfb53778-f59a-11e9-b1b5-0242ac110002", dto.getMetadata().getUid());
     assertNotNull(dto.getSpec());
-    assertEquals("stackgres", dto.getSpec().getCluster());
+    assertEquals("stackgres", dto.getSpec().getSgCluster());
     assertEquals(false, dto.getSpec().getManagedLifecycle());
     assertNotNull(dto.getStatus());
-    assertNotNull(dto.getStatus().getBackupConfig());
-    assertEquals("lz4", dto.getStatus().getBackupConfig().getBaseBackups().getCompressionMethod());
-    assertNull(
-        dto.getStatus().getBackupConfig().getBaseBackups().getPerformance().getMaxDiskBandwidth());
-    assertNull(dto.getStatus().getBackupConfig().getBaseBackups().getPerformance()
+    assertNotNull(dto.getStatus().getSgBackupConfig());
+    assertEquals("lz4", dto.getStatus().getSgBackupConfig().getBaseBackups().getCompression());
+    assertNull(dto.getStatus().getSgBackupConfig().getBaseBackups().getPerformance()
+        .getMaxDiskBandwidth());
+    assertNull(dto.getStatus().getSgBackupConfig().getBaseBackups().getPerformance()
         .getMaxNetworkBandwidth());
-    assertEquals(1, dto.getStatus().getBackupConfig().getBaseBackups().getPerformance()
+    assertEquals(1, dto.getStatus().getSgBackupConfig().getBaseBackups().getPerformance()
         .getUploadDiskConcurrency());
-    assertNull(dto.getStatus().getBackupConfig().getBaseBackups().getCronSchedule());
-    assertNull(dto.getStatus().getBackupConfig().getBaseBackups().getRetention());
-    assertNotNull(dto.getStatus().getBackupConfig().getStorage());
-    assertNull(dto.getStatus().getBackupConfig().getStorage().getAzureBlob());
-    assertNull(dto.getStatus().getBackupConfig().getStorage().getGcs());
-    assertEquals("s3Compatible", dto.getStatus().getBackupConfig().getStorage().getType());
-    assertNull(dto.getStatus().getBackupConfig().getStorage().getAzureBlob());
-    assertNull(dto.getStatus().getBackupConfig().getStorage().getGcs());
-    assertNull(dto.getStatus().getBackupConfig().getStorage().getS3());
-    assertNotNull(dto.getStatus().getBackupConfig().getStorage().getS3Compatible());
+    assertNull(dto.getStatus().getSgBackupConfig().getBaseBackups().getCronSchedule());
+    assertNull(dto.getStatus().getSgBackupConfig().getBaseBackups().getRetention());
+    assertNotNull(dto.getStatus().getSgBackupConfig().getStorage());
+    assertNull(dto.getStatus().getSgBackupConfig().getStorage().getAzureBlob());
+    assertNull(dto.getStatus().getSgBackupConfig().getStorage().getGcs());
+    assertEquals("s3Compatible", dto.getStatus().getSgBackupConfig().getStorage().getType());
+    assertNull(dto.getStatus().getSgBackupConfig().getStorage().getAzureBlob());
+    assertNull(dto.getStatus().getSgBackupConfig().getStorage().getGcs());
+    assertNull(dto.getStatus().getSgBackupConfig().getStorage().getS3());
+    assertNotNull(dto.getStatus().getSgBackupConfig().getStorage().getS3Compatible());
     assertNotNull(
-        dto.getStatus().getBackupConfig().getStorage().getS3Compatible().getCredentials());
+        dto.getStatus().getSgBackupConfig().getStorage().getS3Compatible().getAwsCredentials());
     assertEquals("http://minio.stackgres:9000",
-        dto.getStatus().getBackupConfig().getStorage().getS3Compatible().getEndpoint());
+        dto.getStatus().getSgBackupConfig().getStorage().getS3Compatible().getEndpoint());
     assertEquals("stackgres",
-        dto.getStatus().getBackupConfig().getStorage().getS3Compatible().getBucket());
-    assertNull(dto.getStatus().getBackupConfig().getStorage().getS3Compatible().getPath());
+        dto.getStatus().getSgBackupConfig().getStorage().getS3Compatible().getBucket());
+    assertNull(dto.getStatus().getSgBackupConfig().getStorage().getS3Compatible().getPath());
     assertEquals("k8s",
-        dto.getStatus().getBackupConfig().getStorage().getS3Compatible().getRegion());
-    assertNull(dto.getStatus().getBackupConfig().getStorage().getS3Compatible().getStorageClass());
-    assertTrue(dto.getStatus().getBackupConfig().getStorage().getS3Compatible().isForcePathStyle());
+        dto.getStatus().getSgBackupConfig().getStorage().getS3Compatible().getRegion());
+    assertNull(dto.getStatus().getSgBackupConfig().getStorage().getS3Compatible()
+        .getStorageClass());
+    assertTrue(dto.getStatus().getSgBackupConfig().getStorage().getS3Compatible()
+        .isEnablePathStyleAddressing());
     assertEquals(6686407, dto.getStatus().getBackupInformation().getSize().getCompressed());
     assertNull(dto.getStatus().getBackupInformation().getControlData());
     assertEquals("/var/lib/postgresql/data", dto.getStatus().getBackupInformation().getPgData());
@@ -148,38 +143,40 @@ class BackupResourceTest extends AbstractCustomResourceTest
     switch (operation) {
       case UPDATE:
         assertNotNull(resource.getStatus());
-        assertNotNull(resource.getStatus().getBackupConfig());
+        assertNotNull(resource.getStatus().getSgBackupConfig());
         assertEquals("lz4",
-            resource.getStatus().getBackupConfig().getBaseBackups().getCompression());
-        assertNull(resource.getStatus().getBackupConfig().getBaseBackups().getPerformance()
+            resource.getStatus().getSgBackupConfig().getBaseBackups().getCompression());
+        assertNull(resource.getStatus().getSgBackupConfig().getBaseBackups().getPerformance()
             .getMaxDiskBandwidth());
-        assertNull(resource.getStatus().getBackupConfig().getBaseBackups().getPerformance()
+        assertNull(resource.getStatus().getSgBackupConfig().getBaseBackups().getPerformance()
             .getMaxNetworkBandwidth());
-        assertEquals(1, resource.getStatus().getBackupConfig().getBaseBackups().getPerformance()
+        assertEquals(1, resource.getStatus().getSgBackupConfig().getBaseBackups().getPerformance()
             .getUploadDiskConcurrency());
-        assertNull(resource.getStatus().getBackupConfig().getBaseBackups().getCronSchedule());
-        assertNull(resource.getStatus().getBackupConfig().getBaseBackups().getRetention());
-        assertNotNull(resource.getStatus().getBackupConfig().getStorage());
-        assertNull(resource.getStatus().getBackupConfig().getStorage().getAzureBlob());
-        assertNull(resource.getStatus().getBackupConfig().getStorage().getGcs());
-        assertEquals("s3Compatible", resource.getStatus().getBackupConfig().getStorage().getType());
-        assertNull(resource.getStatus().getBackupConfig().getStorage().getAzureBlob());
-        assertNull(resource.getStatus().getBackupConfig().getStorage().getGcs());
-        assertNull(resource.getStatus().getBackupConfig().getStorage().getS3());
-        assertNotNull(resource.getStatus().getBackupConfig().getStorage().getS3Compatible());
-        assertNotNull(resource.getStatus().getBackupConfig().getStorage().getS3Compatible()
+        assertNull(resource.getStatus().getSgBackupConfig().getBaseBackups().getCronSchedule());
+        assertNull(resource.getStatus().getSgBackupConfig().getBaseBackups().getRetention());
+        assertNotNull(resource.getStatus().getSgBackupConfig().getStorage());
+        assertNull(resource.getStatus().getSgBackupConfig().getStorage().getAzureBlob());
+        assertNull(resource.getStatus().getSgBackupConfig().getStorage().getGcs());
+        assertEquals("s3Compatible", resource.getStatus().getSgBackupConfig()
+            .getStorage().getType());
+        assertNull(resource.getStatus().getSgBackupConfig().getStorage().getAzureBlob());
+        assertNull(resource.getStatus().getSgBackupConfig().getStorage().getGcs());
+        assertNull(resource.getStatus().getSgBackupConfig().getStorage().getS3());
+        assertNotNull(resource.getStatus().getSgBackupConfig().getStorage().getS3Compatible());
+        assertNotNull(resource.getStatus().getSgBackupConfig().getStorage().getS3Compatible()
             .getAwsCredentials());
         assertEquals("http://minio.stackgres:9000",
-            resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getEndpoint());
+            resource.getStatus().getSgBackupConfig().getStorage().getS3Compatible().getEndpoint());
         assertEquals("stackgres",
-            resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getBucket());
-        assertNull(resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getPath());
+            resource.getStatus().getSgBackupConfig().getStorage().getS3Compatible().getBucket());
+        assertNull(resource.getStatus().getSgBackupConfig()
+            .getStorage().getS3Compatible().getPath());
         assertEquals("k8s",
-            resource.getStatus().getBackupConfig().getStorage().getS3Compatible().getRegion());
-        assertNull(resource.getStatus().getBackupConfig().getStorage().getS3Compatible()
+            resource.getStatus().getSgBackupConfig().getStorage().getS3Compatible().getRegion());
+        assertNull(resource.getStatus().getSgBackupConfig().getStorage().getS3Compatible()
             .getStorageClass());
-        assertTrue(resource.getStatus().getBackupConfig().getStorage().getS3Compatible()
-            .isForcePathStyle());
+        assertTrue(resource.getStatus().getSgBackupConfig().getStorage().getS3Compatible()
+            .isEnablePathStyleAddressing());
         assertEquals(6686407,
             resource.getStatus().getBackupInformation().getSize().getCompressed());
         assertNull(resource.getStatus().getBackupInformation().getControlData());

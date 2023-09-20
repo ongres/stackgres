@@ -16,8 +16,8 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplication;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -60,9 +60,9 @@ public abstract class GeneratorTest {
     cluster.getSpec().setReplication(new StackGresClusterReplication());
     cluster.getSpec().getReplication().setMode(StackGresReplicationMode.ASYNC.toString());
     cluster.getSpec().getReplication().setRole(StackGresReplicationRole.HA_READ.toString());
-    cluster.getSpec().setPod(new StackGresClusterPod());
-    cluster.getSpec().getPod().setPersistentVolume(new StackGresPodPersistentVolume());
-    cluster.getSpec().getPod().getPersistentVolume().setSize("500Mi");
+    cluster.getSpec().setPods(new StackGresClusterPods());
+    cluster.getSpec().getPods().setPersistentVolume(new StackGresPodPersistentVolume());
+    cluster.getSpec().getPods().getPersistentVolume().setSize("500Mi");
 
     return GeneratedResourceMatcher.givenACluster(cluster, resourceGenerationDiscoverer)
         .andInstanceProfile(stackGresProfile)
@@ -98,10 +98,10 @@ public abstract class GeneratorTest {
     cluster.getMetadata().setName(CLUSTER_NAME);
     cluster.getMetadata().setNamespace(CLUSTER_NAMESPACE);
     cluster.setSpec(new StackGresClusterSpec());
-    cluster.getSpec().setConfiguration(new StackGresClusterConfiguration());
-    cluster.getSpec().getConfiguration().setPostgresConfig(stackGresPostgresConfig.getMetadata()
+    cluster.getSpec().setConfigurations(new StackGresClusterConfigurations());
+    cluster.getSpec().getConfigurations().setSgPostgresConfig(stackGresPostgresConfig.getMetadata()
         .getName());
-    cluster.getSpec().setResourceProfile(stackGresProfile.getMetadata().getName());
+    cluster.getSpec().setSgInstanceProfile(stackGresProfile.getMetadata().getName());
   }
 
 }

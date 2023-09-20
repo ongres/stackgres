@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.cluster;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -14,19 +13,14 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ClusterManagedScriptEntryScriptsStatus {
 
-  @JsonProperty("id")
   private Integer id;
 
-  @JsonProperty("version")
   private Integer version;
 
-  @JsonProperty("intents")
   private Integer intents;
 
-  @JsonProperty("failureCode")
   private String failureCode;
 
-  @JsonProperty("failure")
   private String failure;
 
   public Integer getId() {

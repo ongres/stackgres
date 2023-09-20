@@ -12,7 +12,6 @@ import javax.validation.constraints.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
@@ -25,13 +24,11 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresDistributedLogsPersistentVolume {
 
-  @JsonProperty("size")
   @NotNull(message = "Volume size must be specified")
   @Pattern(regexp = "^[0-9]+(\\.[0-9]+)?(Mi|Gi|Ti)$",
       message = "Volume size must be specified in Mi, Gi or Ti")
   private String size;
 
-  @JsonProperty("storageClass")
   private String storageClass;
 
   public String getSize() {

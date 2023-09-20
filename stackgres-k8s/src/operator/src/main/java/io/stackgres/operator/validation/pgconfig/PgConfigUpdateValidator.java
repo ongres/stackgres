@@ -8,7 +8,6 @@ package io.stackgres.operator.validation.pgconfig;
 import javax.annotation.PostConstruct;
 import javax.inject.Singleton;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
@@ -30,11 +29,9 @@ public class PgConfigUpdateValidator implements PgConfigValidator {
 
   @PostConstruct
   public void init() throws NoSuchFieldException {
-    String pgVersionJsonField = StackGresPostgresConfigSpec.class
-        .getDeclaredField("postgresVersion")
-        .getAnnotation(JsonProperty.class).value();
-
-    this.pgVersionPath = "spec." + pgVersionJsonField;
+    this.pgVersionPath = getFieldPath(
+        StackGresPostgresConfig.class, "spec",
+        StackGresPostgresConfigSpec.class, "postgresVersion");
   }
 
   @Override

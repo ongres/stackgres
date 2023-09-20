@@ -5,21 +5,21 @@
 
 package io.stackgres.common.fixture;
 
-import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecBuilder;
 
 public class StackGresClusterSpecFixture {
 
-  private StackGresClusterPod pod;
+  private StackGresClusterPods pod;
 
   public StackGresClusterSpec build() {
     StackGresClusterSpec spec = new StackGresClusterSpec();
-    spec.setPod(this.pod);
+    spec.setPods(this.pod);
     return spec;
   }
 
-  public StackGresClusterSpecFixture withPod(StackGresClusterPod pod) {
+  public StackGresClusterSpecFixture withPod(StackGresClusterPods pod) {
     this.pod = pod;
     return this;
   }

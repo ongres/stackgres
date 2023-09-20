@@ -13,7 +13,6 @@ import javax.validation.constraints.Positive;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupPerformance;
@@ -27,25 +26,19 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterBackupConfiguration {
 
-  @JsonProperty("retention")
   @Positive(message = "retention should be greater than zero")
   private Integer retention;
 
-  @JsonProperty("cronSchedule")
   private String cronSchedule;
 
-  @JsonProperty("compression")
   private String compression;
 
-  @JsonProperty("performance")
   @Valid
   private StackGresBaseBackupPerformance performance;
 
-  @JsonProperty("sgObjectStorage")
   @NotNull
-  private String objectStorage;
+  private String sgObjectStorage;
 
-  @JsonProperty("path")
   @NotNull
   private String path;
 
@@ -81,12 +74,12 @@ public class StackGresClusterBackupConfiguration {
     this.performance = performance;
   }
 
-  public String getObjectStorage() {
-    return objectStorage;
+  public String getSgObjectStorage() {
+    return sgObjectStorage;
   }
 
-  public void setObjectStorage(String objectStorage) {
-    this.objectStorage = objectStorage;
+  public void setSgObjectStorage(String sgObjectStorage) {
+    this.sgObjectStorage = sgObjectStorage;
   }
 
   public String getPath() {
@@ -109,14 +102,14 @@ public class StackGresClusterBackupConfiguration {
     return Objects.equals(path, other.path)
         && Objects.equals(compression, other.compression)
         && Objects.equals(cronSchedule, other.cronSchedule)
-        && Objects.equals(objectStorage, other.objectStorage)
+        && Objects.equals(sgObjectStorage, other.sgObjectStorage)
         && Objects.equals(performance, other.performance)
         && Objects.equals(retention, other.retention);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(path, compression, cronSchedule, objectStorage, performance,
+    return Objects.hash(path, compression, cronSchedule, sgObjectStorage, performance,
         retention);
   }
 

@@ -50,15 +50,15 @@ import io.stackgres.apiweb.distributedlogs.DistributedLogsFetcher;
 import io.stackgres.apiweb.distributedlogs.DistributedLogsQueryParameters;
 import io.stackgres.apiweb.distributedlogs.FullTextSearchQuery;
 import io.stackgres.apiweb.dto.Metadata;
-import io.stackgres.apiweb.dto.cluster.ClusterConfiguration;
+import io.stackgres.apiweb.dto.cluster.ClusterConfigurations;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
-import io.stackgres.apiweb.dto.cluster.ClusterInitData;
+import io.stackgres.apiweb.dto.cluster.ClusterInitialData;
 import io.stackgres.apiweb.dto.cluster.ClusterLogEntryDto;
 import io.stackgres.apiweb.dto.cluster.ClusterManagedScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterManagedSql;
-import io.stackgres.apiweb.dto.cluster.ClusterPod;
 import io.stackgres.apiweb.dto.cluster.ClusterPodPersistentVolume;
 import io.stackgres.apiweb.dto.cluster.ClusterPodScheduling;
+import io.stackgres.apiweb.dto.cluster.ClusterPods;
 import io.stackgres.apiweb.dto.cluster.ClusterRestore;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecLabels;
@@ -81,12 +81,12 @@ import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitalData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
@@ -873,28 +873,28 @@ class ClusterResourceMockedTest extends
       assertEquals(dtoSpec.getPrometheusAutobind(), resourceSpec.getPrometheusAutobind());
       assertEquals(dtoSpec.getInstances(), resourceSpec.getInstances());
       assertEquals(dtoSpec.getPostgres().getVersion(), resourceSpec.getPostgres().getVersion());
-      assertEquals(dtoSpec.getSgInstanceProfile(), resourceSpec.getResourceProfile());
+      assertEquals(dtoSpec.getSgInstanceProfile(), resourceSpec.getSgInstanceProfile());
 
-      final ClusterConfiguration dtoSpecConfigurations = dtoSpec.getConfiguration();
+      final ClusterConfigurations dtoSpecConfigurations = dtoSpec.getConfigurations();
 
-      final StackGresClusterConfiguration resourceSpecConfiguration = resourceSpec
-          .getConfiguration();
+      final StackGresClusterConfigurations resourceSpecConfiguration = resourceSpec
+          .getConfigurations();
 
       if (dtoSpecConfigurations != null) {
         assertNotNull(resourceSpecConfiguration);
         assertEquals(dtoSpecConfigurations.getSgBackupConfig(),
-            resourceSpecConfiguration.getBackupConfig());
+            resourceSpecConfiguration.getSgBackupConfig());
         assertEquals(dtoSpecConfigurations.getSgPoolingConfig(),
-            resourceSpecConfiguration.getConnectionPoolingConfig());
+            resourceSpecConfiguration.getSgPoolingConfig());
         assertEquals(dtoSpecConfigurations.getSgPostgresConfig(),
-            resourceSpecConfiguration.getPostgresConfig());
+            resourceSpecConfiguration.getSgPostgresConfig());
       } else {
         assertNull(resourceSpecConfiguration);
       }
 
-      final ClusterPod dtoSpecPods = dtoSpec.getPods();
+      final ClusterPods dtoSpecPods = dtoSpec.getPods();
       if (dtoSpecPods != null) {
-        final StackGresClusterPod resourceSpecPod = resourceSpec.getPod();
+        final StackGresClusterPods resourceSpecPod = resourceSpec.getPods();
         assertNotNull(resourceSpecPod);
         assertEquals(dtoSpecPods.getDisableConnectionPooling(),
             resourceSpecPod.getDisableConnectionPooling());
@@ -940,8 +940,8 @@ class ClusterResourceMockedTest extends
 
       }
 
-      final ClusterInitData dtoInitData = dtoSpec.getInitData();
-      final StackGresClusterInitData resourceInitData = resourceSpec.getInitData();
+      final ClusterInitialData dtoInitData = dtoSpec.getInitialData();
+      final StackGresClusterInitalData resourceInitData = resourceSpec.getInitialData();
       if (dtoInitData != null) {
         assertNotNull(resourceInitData);
         final ClusterRestore dtoRestore = dtoInitData.getRestore();
@@ -978,8 +978,8 @@ class ClusterResourceMockedTest extends
 
       if (dtoSpec.getDistributedLogs() != null) {
         assertNotNull(resourceSpec.getDistributedLogs());
-        assertEquals(dtoSpec.getDistributedLogs().getDistributedLogs(),
-            resourceSpec.getDistributedLogs().getDistributedLogs());
+        assertEquals(dtoSpec.getDistributedLogs().getSgDistributedLogs(),
+            resourceSpec.getDistributedLogs().getSgDistributedLogs());
       } else {
         assertNull(resourceSpec.getDistributedLogs());
       }

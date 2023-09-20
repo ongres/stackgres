@@ -9,24 +9,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.cluster.ClusterCondition;
 import io.stackgres.apiweb.dto.cluster.ClusterInstalledExtension;
+import io.stackgres.apiweb.dto.cluster.ClusterServiceBindingStatus;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ShardedClusterStatus {
 
-  @JsonProperty("conditions")
   private List<ClusterCondition> conditions = new ArrayList<>();
 
-  @JsonProperty("toInstallPostgresExtensions")
+  private List<ShardedClusterClusterStatus> clusterStatuses;
+
   private List<ClusterInstalledExtension> toInstallPostgresExtensions;
 
-  @JsonProperty("clusters")
   private List<String> clusters;
+
+  private ClusterServiceBindingStatus binding;
 
   public List<ClusterCondition> getConditions() {
     return conditions;
@@ -34,6 +35,14 @@ public class ShardedClusterStatus {
 
   public void setConditions(List<ClusterCondition> conditions) {
     this.conditions = conditions;
+  }
+
+  public List<ShardedClusterClusterStatus> getClusterStatuses() {
+    return clusterStatuses;
+  }
+
+  public void setClusterStatuses(List<ShardedClusterClusterStatus> clusterStatuses) {
+    this.clusterStatuses = clusterStatuses;
   }
 
   public List<ClusterInstalledExtension> getToInstallPostgresExtensions() {
@@ -51,6 +60,14 @@ public class ShardedClusterStatus {
 
   public void setClusters(List<String> clusters) {
     this.clusters = clusters;
+  }
+
+  public ClusterServiceBindingStatus getBinding() {
+    return binding;
+  }
+
+  public void setBinding(ClusterServiceBindingStatus binding) {
+    this.binding = binding;
   }
 
   @Override

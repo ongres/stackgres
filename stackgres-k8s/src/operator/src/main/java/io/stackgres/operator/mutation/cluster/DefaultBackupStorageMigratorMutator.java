@@ -19,7 +19,7 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -51,7 +51,7 @@ public class DefaultBackupStorageMigratorMutator implements ClusterMutator {
         && review.getRequest().getOperation() != Operation.UPDATE) {
       return resource;
     }
-    final StackGresClusterConfiguration configuration = resource.getSpec().getConfiguration();
+    final StackGresClusterConfigurations configuration = resource.getSpec().getConfigurations();
     if (configuration == null) {
       return resource;
     }
@@ -60,7 +60,7 @@ public class DefaultBackupStorageMigratorMutator implements ClusterMutator {
     if (objStorage != null) {
       StackGresBaseBackupConfig copyBaseBackup = copyBaseBackup(resource);
       StackGresClusterBackupConfiguration cbc = new StackGresClusterBackupConfiguration();
-      cbc.setObjectStorage(objStorage);
+      cbc.setSgObjectStorage(objStorage);
       cbc.setCompression(copyBaseBackup.getCompression());
       cbc.setCronSchedule(copyBaseBackup.getCronSchedule());
       cbc.setPerformance(copyBaseBackup.getPerformance());
@@ -73,8 +73,8 @@ public class DefaultBackupStorageMigratorMutator implements ClusterMutator {
       }
       configuration.setBackups(List.of(cbc));
     }
-    if (configuration.getBackupConfig() != null) {
-      configuration.setBackupConfig(null);
+    if (configuration.getSgBackupConfig() != null) {
+      configuration.setSgBackupConfig(null);
     }
     if (configuration.getBackupPath() != null) {
       configuration.setBackupPath(null);
@@ -83,7 +83,7 @@ public class DefaultBackupStorageMigratorMutator implements ClusterMutator {
   }
 
   private StackGresBaseBackupConfig copyBaseBackup(final StackGresCluster cluster) {
-    String backupConfig = cluster.getSpec().getConfiguration().getBackupConfig();
+    String backupConfig = cluster.getSpec().getConfigurations().getSgBackupConfig();
     String namespace = cluster.getMetadata().getNamespace();
     return backupConfigFinder.findByNameAndNamespace(backupConfig, namespace)
         .map(StackGresBackupConfig::getSpec)
@@ -92,7 +92,7 @@ public class DefaultBackupStorageMigratorMutator implements ClusterMutator {
   }
 
   private String createObjectStorage(final StackGresCluster cluster) {
-    String backupConfigName = cluster.getSpec().getConfiguration().getBackupConfig();
+    String backupConfigName = cluster.getSpec().getConfigurations().getSgBackupConfig();
     String namespace = cluster.getMetadata().getNamespace();
     if (backupConfigName != null
         && objectStorageFinder.findByNameAndNamespace(backupConfigName, namespace).isEmpty()) {

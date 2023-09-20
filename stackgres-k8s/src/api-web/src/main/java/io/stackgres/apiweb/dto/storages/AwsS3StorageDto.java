@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.storages;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -14,19 +13,14 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class AwsS3StorageDto {
 
-  @JsonProperty("bucket")
   private String bucket;
 
-  @JsonProperty("path")
   private String path;
 
-  @JsonProperty("awsCredentials")
-  private AwsCredentialsDto credentials;
+  private AwsCredentialsDto awsCredentials;
 
-  @JsonProperty("region")
   private String region;
 
-  @JsonProperty("storageClass")
   private String storageClass;
 
   public String getBucket() {
@@ -45,12 +39,12 @@ public class AwsS3StorageDto {
     this.path = path;
   }
 
-  public AwsCredentialsDto getCredentials() {
-    return credentials;
+  public AwsCredentialsDto getAwsCredentials() {
+    return awsCredentials;
   }
 
-  public void setCredentials(AwsCredentialsDto credentials) {
-    this.credentials = credentials;
+  public void setAwsCredentials(AwsCredentialsDto awsCredentials) {
+    this.awsCredentials = awsCredentials;
   }
 
   public String getRegion() {

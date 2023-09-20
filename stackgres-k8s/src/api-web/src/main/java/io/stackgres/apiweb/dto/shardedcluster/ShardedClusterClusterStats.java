@@ -8,7 +8,6 @@ package io.stackgres.apiweb.dto.shardedcluster;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.cluster.ClusterStats;
 import io.stackgres.apiweb.dto.cluster.KubernetesPod;
@@ -18,106 +17,72 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ShardedClusterClusterStats implements ClusterStats {
 
-  @JsonProperty("cpuRequested")
   private String cpuRequested;
 
-  @JsonProperty("cpuFound")
   private String cpuFound;
 
-  @JsonProperty("cpuPsiAvg10")
   private String cpuPsiAvg10;
 
-  @JsonProperty("cpuPsiAvg60")
   private String cpuPsiAvg60;
 
-  @JsonProperty("cpuPsiAvg300")
   private String cpuPsiAvg300;
 
-  @JsonProperty("cpuPsiTotal")
   private String cpuPsiTotal;
 
-  @JsonProperty("memoryRequested")
   private String memoryRequested;
 
-  @JsonProperty("memoryFound")
   private String memoryFound;
 
-  @JsonProperty("memoryUsed")
   private String memoryUsed;
 
-  @JsonProperty("memoryPsiAvg10")
   private String memoryPsiAvg10;
 
-  @JsonProperty("memoryPsiAvg60")
   private String memoryPsiAvg60;
 
-  @JsonProperty("memoryPsiAvg300")
   private String memoryPsiAvg300;
 
-  @JsonProperty("memoryPsiTotal")
   private String memoryPsiTotal;
 
-  @JsonProperty("memoryPsiFullAvg10")
   private String memoryPsiFullAvg10;
 
-  @JsonProperty("memoryPsiFullAvg60")
   private String memoryPsiFullAvg60;
 
-  @JsonProperty("memoryPsiFullAvg300")
   private String memoryPsiFullAvg300;
 
-  @JsonProperty("memoryPsiFullTotal")
   private String memoryPsiFullTotal;
 
-  @JsonProperty("diskRequested")
   private String diskRequested;
 
-  @JsonProperty("diskFound")
   private String diskFound;
 
-  @JsonProperty("diskUsed")
   private String diskUsed;
 
-  @JsonProperty("diskPsiAvg10")
   private String diskPsiAvg10;
 
-  @JsonProperty("diskPsiAvg60")
   private String diskPsiAvg60;
 
-  @JsonProperty("diskPsiAvg300")
   private String diskPsiAvg300;
 
-  @JsonProperty("diskPsiTotal")
   private String diskPsiTotal;
 
-  @JsonProperty("diskPsiFullAvg10")
   private String diskPsiFullAvg10;
 
-  @JsonProperty("diskPsiFullAvg60")
   private String diskPsiFullAvg60;
 
-  @JsonProperty("diskPsiFullAvg300")
   private String diskPsiFullAvg300;
 
-  @JsonProperty("diskPsiFullTotal")
   private String diskPsiFullTotal;
 
-  @JsonProperty("averageLoad1m")
   private String averageLoad1m;
 
-  @JsonProperty("averageLoad5m")
   private String averageLoad5m;
 
-  @JsonProperty("averageLoad10m")
   private String averageLoad10m;
 
-  @JsonProperty("connections")
   private String connections;
 
-  @JsonProperty("pods")
   private List<KubernetesPod> pods;
 
-  @JsonProperty("podsReady")
   private Integer podsReady;
 
   public String getCpuRequested() {

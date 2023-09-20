@@ -14,7 +14,6 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class PostgresConfigSpec {
 
-  @JsonProperty("postgresVersion")
   private String postgresVersion;
 
   @JsonProperty("postgresql.conf")

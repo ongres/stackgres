@@ -7,7 +7,7 @@ package io.stackgres.common.crd.sgshardedcluster;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
@@ -15,10 +15,10 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresShardedClusterShardConfiguration extends StackGresClusterConfiguration {
+public class StackGresShardedClusterShardPods extends StackGresClusterPods {
 
   @Override
-  public boolean isSgPostgresConfigPresent() {
+  public boolean isPersistentVolumeSectionPresent() {
     return true;
   }
 

@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.script;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -24,13 +23,10 @@ public class ScriptEntry {
 
   private String user;
 
-  @JsonProperty("wrapInTransaction")
   private String wrapInTransaction;
 
-  @JsonProperty("storeStatusInDatabase")
   private Boolean storeStatusInDatabase;
 
-  @JsonProperty("retryOnError")
   private Boolean retryOnError;
 
   private String script;

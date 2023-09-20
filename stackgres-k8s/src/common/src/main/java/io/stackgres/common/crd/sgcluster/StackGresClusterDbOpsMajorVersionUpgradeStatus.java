@@ -11,7 +11,6 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
@@ -24,46 +23,35 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterDbOpsMajorVersionUpgradeStatus extends ClusterDbOpsRestartStatus {
 
-  @JsonProperty("sourcePostgresVersion")
   @NotNull
   private String sourcePostgresVersion;
 
-  @JsonProperty("sourceSgPostgresConfig")
   @NotNull
   private String sourceSgPostgresConfig;
 
-  @JsonProperty("sourceBackupPath")
   private String sourceBackupPath;
 
-  @JsonProperty("targetPostgresVersion")
   @NotNull
   private String targetPostgresVersion;
 
-  @JsonProperty("locale")
   @NotNull
   private String locale;
 
-  @JsonProperty("encoding")
   @NotNull
   private String encoding;
 
-  @JsonProperty("dataChecksum")
   @NotNull
   private Boolean dataChecksum;
 
-  @JsonProperty("link")
   @NotNull
   private Boolean link;
 
-  @JsonProperty("clone")
   @NotNull
   private Boolean clone;
 
-  @JsonProperty("check")
   @NotNull
   private Boolean check;
 
-  @JsonProperty("rollback")
   private Boolean rollback;
 
   public String getSourcePostgresVersion() {

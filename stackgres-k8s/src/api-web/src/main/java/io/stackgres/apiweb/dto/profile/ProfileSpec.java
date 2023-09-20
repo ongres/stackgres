@@ -8,7 +8,6 @@ package io.stackgres.apiweb.dto.profile;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -16,22 +15,16 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ProfileSpec {
 
-  @JsonProperty("cpu")
   private String cpu;
 
-  @JsonProperty("memory")
   private String memory;
 
-  @JsonProperty("hugePages")
   private ProfileHugePages hugePages;
 
-  @JsonProperty("containers")
   private Map<String, ProfileContainer> containers;
 
-  @JsonProperty("initContainers")
   private Map<String, ProfileContainer> initContainers;
 
-  @JsonProperty("requests")
   private ProfileRequests requests;
 
   public String getCpu() {

@@ -8,7 +8,6 @@ package io.stackgres.apiweb.dto.cluster;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -16,34 +15,24 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ClusterDbOpsMajorVersionUpgradeStatus {
 
-  @JsonProperty("initialInstances")
   private List<String> initialInstances;
 
-  @JsonProperty("primaryInstance")
   private String primaryInstance;
 
-  @JsonProperty("sourcePostgresVersion")
   private String sourcePostgresVersion;
 
-  @JsonProperty("targetPostgresVersion")
   private String targetPostgresVersion;
 
-  @JsonProperty("locale")
   private String locale;
 
-  @JsonProperty("encoding")
   private String encoding;
 
-  @JsonProperty("dataChecksum")
   private Boolean dataChecksum;
 
-  @JsonProperty("link")
   private Boolean link;
 
-  @JsonProperty("clone")
   private Boolean clone;
 
-  @JsonProperty("check")
   private Boolean check;
 
   public List<String> getInitialInstances() {

@@ -40,8 +40,9 @@ public class ExtensionsTransformer {
     this.mapper = mapper;
   }
 
-  public ExtensionsDto toDto(Collection<StackGresExtensionMetadata> extensionMetadataList,
-                             StackGresCluster cluster) {
+  public ExtensionsDto toDto(
+      Collection<StackGresExtensionMetadata> extensionMetadataList,
+      StackGresCluster cluster) {
     ExtensionsDto transformation = new ExtensionsDto();
     transformation.setExtensions(Seq.seq(extensionMetadataList)
         .grouped(StackGresExtensionMetadata::getExtension)

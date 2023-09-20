@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.backup;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.backupconfig.BackupConfigSpec;
 import io.stackgres.common.StackGresUtil;
@@ -15,8 +14,7 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class BackupStatus {
 
-  @JsonProperty("sgBackupConfig")
-  private BackupConfigSpec backupConfig;
+  private BackupConfigSpec sgBackupConfig;
 
   private String internalName;
 
@@ -28,12 +26,12 @@ public class BackupStatus {
 
   private Boolean tested;
 
-  public BackupConfigSpec getBackupConfig() {
-    return backupConfig;
+  public BackupConfigSpec getSgBackupConfig() {
+    return sgBackupConfig;
   }
 
-  public void setBackupConfig(BackupConfigSpec backupConfig) {
-    this.backupConfig = backupConfig;
+  public void setSgBackupConfig(BackupConfigSpec sgBackupConfig) {
+    this.sgBackupConfig = sgBackupConfig;
   }
 
   public String getInternalName() {

@@ -53,7 +53,7 @@ public class ClusterStatefulSetContainerProfileDecorator extends AbstractContain
           .map(StatefulSet::getSpec)
           .map(StatefulSetSpec::getTemplate)
           .map(PodTemplateSpec::getSpec),
-          Optional.ofNullable(context.getSource().getSpec().getPod().getResources())
+          Optional.ofNullable(context.getSource().getSpec().getPods().getResources())
           .map(StackGresClusterResources::getEnableClusterLimitsRequirements)
           .orElse(false),
           Optional.ofNullable(context.getSource().getSpec().getNonProductionOptions())

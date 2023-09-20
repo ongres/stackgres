@@ -5,6 +5,7 @@
 
 package io.stackgres.common;
 
+import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -22,19 +23,24 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
+import com.google.common.io.Closer;
+
 public interface WebUtil {
 
   static boolean checkUri(String uri, Map<String, Object> headers) {
     try {
       ClientBuilder clientBuilder = ClientBuilder.newBuilder();
-      Client client = clientBuilder
-          .build();
-      var response = client.target(uri).request()
-          .headers(new MultivaluedHashMap<>(headers))
-          .buildGet()
-          .invoke();
-      return response.getStatus() == Response.Status.OK.getStatusCode();
-    } catch (IllegalArgumentException | ProcessingException ex) {
+      try (Closer closer = Closer.create()) {
+        Client client = clientBuilder
+            .build();
+        closer.register(client::close);
+        var response = client.target(uri).request()
+            .headers(new MultivaluedHashMap<>(headers))
+            .buildGet()
+            .invoke();
+        return response.getStatus() == Response.Status.OK.getStatusCode();
+      }
+    } catch (IOException | IllegalArgumentException | ProcessingException ex) {
       return false;
     }
   }
@@ -42,17 +48,19 @@ public interface WebUtil {
   static boolean checkUnsecureUri(String uri, Map<String, Object> headers) {
     try {
       ClientBuilder clientBuilder = ClientBuilder.newBuilder();
-      Client client = clientBuilder
-          .hostnameVerifier(InsecureHostnameVerifier.INSTANCE)
-          .sslContext(createInsecureSslContext())
-          .build();
-      try (var response = client.target(uri).request()
-          .headers(new MultivaluedHashMap<>(headers))
-          .buildGet()
-          .invoke()) {
+      try (Closer closer = Closer.create()) {
+        Client client = clientBuilder
+            .hostnameVerifier(InsecureHostnameVerifier.INSTANCE)
+            .sslContext(createInsecureSslContext())
+            .build();
+        closer.register(client::close);
+        var response = client.target(uri).request()
+            .headers(new MultivaluedHashMap<>(headers))
+            .buildGet()
+            .invoke();
         return response.getStatus() == Response.Status.OK.getStatusCode();
       }
-    } catch (IllegalArgumentException | ProcessingException
+    } catch (IOException | IllegalArgumentException | ProcessingException
         | KeyManagementException | NoSuchAlgorithmException ex) {
       return false;
     }

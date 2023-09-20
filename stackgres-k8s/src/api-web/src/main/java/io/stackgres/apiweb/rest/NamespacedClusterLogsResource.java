@@ -99,7 +99,7 @@ public class NamespacedClusterLogsResource {
 
     if (!Optional.ofNullable(cluster.getSpec())
         .map(ClusterSpec::getDistributedLogs)
-        .map(ClusterDistributedLogs::getDistributedLogs)
+        .map(ClusterDistributedLogs::getSgDistributedLogs)
         .isPresent()) {
       throw new BadRequestException(
           "Distributed logs are not configured for specified cluster");

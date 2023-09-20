@@ -38,7 +38,7 @@ public class NamespacedBackupConfigResource
   public boolean belongsToCluster(StackGresBackupConfig resource, StackGresCluster cluster) {
     return cluster.getMetadata().getNamespace().equals(
         resource.getMetadata().getNamespace())
-        && Objects.equals(cluster.getSpec().getConfiguration().getBackupConfig(),
+        && Objects.equals(cluster.getSpec().getConfigurations().getSgBackupConfig(),
             resource.getMetadata().getName());
   }
 

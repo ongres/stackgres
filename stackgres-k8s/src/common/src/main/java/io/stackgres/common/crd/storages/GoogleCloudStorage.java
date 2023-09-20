@@ -12,7 +12,6 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
@@ -25,18 +24,15 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class GoogleCloudStorage implements PrefixedStorage {
 
-  @JsonProperty("bucket")
   @NotNull(message = "The bucket is required")
   private String bucket;
 
-  @JsonProperty("path")
   @Deprecated(forRemoval = true)
   private String path;
 
-  @JsonProperty("gcpCredentials")
   @NotNull(message = "The credentials is required")
   @Valid
-  private GoogleCloudCredentials credentials;
+  private GoogleCloudCredentials gcpCredentials;
 
   @Override
   public String getSchema() {
@@ -65,17 +61,17 @@ public class GoogleCloudStorage implements PrefixedStorage {
     this.path = path;
   }
 
-  public GoogleCloudCredentials getCredentials() {
-    return credentials;
+  public GoogleCloudCredentials getGcpCredentials() {
+    return gcpCredentials;
   }
 
-  public void setCredentials(GoogleCloudCredentials credentials) {
-    this.credentials = credentials;
+  public void setGcpCredentials(GoogleCloudCredentials gcpCredentials) {
+    this.gcpCredentials = gcpCredentials;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(bucket, credentials, path);
+    return Objects.hash(bucket, gcpCredentials, path);
   }
 
   @Override
@@ -87,7 +83,8 @@ public class GoogleCloudStorage implements PrefixedStorage {
       return false;
     }
     GoogleCloudStorage other = (GoogleCloudStorage) obj;
-    return Objects.equals(bucket, other.bucket) && Objects.equals(credentials, other.credentials)
+    return Objects.equals(bucket, other.bucket)
+        && Objects.equals(gcpCredentials, other.gcpCredentials)
         && Objects.equals(path, other.path);
   }
 

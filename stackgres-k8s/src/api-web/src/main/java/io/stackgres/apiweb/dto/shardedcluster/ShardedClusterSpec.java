@@ -6,10 +6,9 @@
 package io.stackgres.apiweb.dto.shardedcluster;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
-import io.stackgres.apiweb.dto.cluster.ClusterNonProduction;
+import io.stackgres.apiweb.dto.cluster.ClusterNonProductionOptions;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgres;
 import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
 import io.stackgres.common.StackGresUtil;
@@ -18,41 +17,29 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ShardedClusterSpec {
 
-  @JsonProperty("type")
   private String type;
 
-  @JsonProperty("database")
   private String database;
 
-  @JsonProperty("postgres")
   private ClusterPostgres postgres;
 
-  @JsonProperty("replication")
   private ShardedClusterReplication replication;
 
-  @JsonProperty("configurations")
-  private ShardedClusterConfiguration configuration;
+  private ShardedClusterConfigurations configurations;
 
-  @JsonProperty("metadata")
   private ClusterSpecMetadata metadata;
 
-  @JsonProperty("distributedLogs")
   private ClusterDistributedLogs distributedLogs;
 
-  @JsonProperty("postgresServices")
   private ShardedClusterPostgresServices postgresServices;
 
-  @JsonProperty("coordinator")
   private ShardedClusterCoordinator coordinator;
 
-  @JsonProperty("shards")
   private ShardedClusterShards shards;
 
-  @JsonProperty("prometheusAutobind")
   private Boolean prometheusAutobind;
 
-  @JsonProperty("nonProductionOptions")
-  private ClusterNonProduction nonProductionOptions;
+  private ClusterNonProductionOptions nonProductionOptions;
 
   public String getType() {
     return type;
@@ -102,12 +89,12 @@ public class ShardedClusterSpec {
     this.replication = replication;
   }
 
-  public ShardedClusterConfiguration getConfiguration() {
-    return configuration;
+  public ShardedClusterConfigurations getConfigurations() {
+    return configurations;
   }
 
-  public void setConfiguration(ShardedClusterConfiguration configuration) {
-    this.configuration = configuration;
+  public void setConfigurations(ShardedClusterConfigurations configurations) {
+    this.configurations = configurations;
   }
 
   public Boolean getPrometheusAutobind() {
@@ -118,11 +105,11 @@ public class ShardedClusterSpec {
     this.prometheusAutobind = prometheusAutobind;
   }
 
-  public ClusterNonProduction getNonProductionOptions() {
+  public ClusterNonProductionOptions getNonProductionOptions() {
     return nonProductionOptions;
   }
 
-  public void setNonProductionOptions(ClusterNonProduction nonProductionOptions) {
+  public void setNonProductionOptions(ClusterNonProductionOptions nonProductionOptions) {
     this.nonProductionOptions = nonProductionOptions;
   }
 

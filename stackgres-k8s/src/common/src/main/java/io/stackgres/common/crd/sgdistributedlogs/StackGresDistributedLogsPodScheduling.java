@@ -13,7 +13,6 @@ import javax.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.NodeAffinity;
@@ -30,25 +29,19 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresDistributedLogsPodScheduling {
 
-  @JsonProperty("nodeSelector")
   private Map<String, String> nodeSelector;
 
-  @JsonProperty("tolerations")
   @Valid
   private List<Toleration> tolerations;
 
-  @JsonProperty("nodeAffinity")
   @Valid
   private NodeAffinity nodeAffinity;
 
-  @JsonProperty("podAffinity")
   @Valid
   private PodAffinity podAffinity;
 
-  @JsonProperty("priorityClassName")
   private String priorityClassName;
 
-  @JsonProperty("podAntiAffinity")
   @Valid
   private PodAntiAffinity podAntiAffinity;
 

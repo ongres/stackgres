@@ -30,7 +30,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitalData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
@@ -101,11 +101,11 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
                 .map(StackGresBackup::getStatus)
                 .map(StackGresBackupStatus::getBackupPath)
                 .orElseThrow(),
-            backup.getStatus().getBackupConfig()));
+            backup.getStatus().getSgBackupConfig()));
 
         Optional.ofNullable(cluster.getSpec())
-            .map(StackGresClusterSpec::getInitData)
-            .map(StackGresClusterInitData::getRestore)
+            .map(StackGresClusterSpec::getInitialData)
+            .map(StackGresClusterInitalData::getRestore)
             .map(StackGresClusterRestore::getDownloadDiskConcurrency)
             .ifPresent(downloadDiskConcurrency -> data.put(
                 "WALG_DOWNLOAD_CONCURRENCY",

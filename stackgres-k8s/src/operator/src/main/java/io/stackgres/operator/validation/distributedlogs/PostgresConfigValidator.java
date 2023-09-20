@@ -16,7 +16,7 @@ import javax.inject.Singleton;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsConfiguration;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsConfigurations;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
@@ -49,7 +49,7 @@ public class PostgresConfigValidator implements DistributedLogsValidator {
     }
 
     String givenPgVersion = StackGresDistributedLogsUtil.getPostgresVersion(distributedLogs);
-    String pgConfig = distributedLogs.getSpec().getConfiguration().getPostgresConfig();
+    String pgConfig = distributedLogs.getSpec().getConfigurations().getSgPostgresConfig();
 
     checkIfProvided(pgConfig, "sgPostgresConfig");
 
@@ -64,8 +64,8 @@ public class PostgresConfigValidator implements DistributedLogsValidator {
       case UPDATE:
         StackGresDistributedLogs oldDistributedLogs = review.getRequest().getOldObject();
 
-        String oldPgConfig = Optional.ofNullable(oldDistributedLogs.getSpec().getConfiguration())
-            .map(StackGresDistributedLogsConfiguration::getPostgresConfig).orElse(null);
+        String oldPgConfig = Optional.ofNullable(oldDistributedLogs.getSpec().getConfigurations())
+            .map(StackGresDistributedLogsConfigurations::getSgPostgresConfig).orElse(null);
         if (!Objects.equals(oldPgConfig, pgConfig)) {
           validateAgainstConfiguration(givenMajorVersion, pgConfig, namespace);
         }

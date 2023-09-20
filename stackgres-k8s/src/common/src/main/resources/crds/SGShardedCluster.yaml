@@ -657,6 +657,33 @@ spec:
                                     type: string
                                     description: The key of the secret to select from. Must be a valid secret key.
                                 required: ["name", "key"]
+                  binding:
+                    type: object
+                    description: |
+                      This section allows to specify the properties of [Service Binding spec for provisioned service](https://servicebinding.io/spec/core/1.0.0/#provisioned-service).
+                       If not specified, then some default will be used.
+                      
+                      For more information see https://servicebinding.io/spec/core/1.0.0/
+                    properties:
+                      provider:
+                        type: string
+                        description: It's the reference of custom provider name. If not specified, then the default value will be `stackgres`
+                      database:
+                        type: string
+                        description: Allow to specify the database name. If not specified, then the default value is `postgres`
+                      username:
+                        type: string
+                        description: Allow to specify the username. If not specified, then the superuser username will be used.
+                      password:
+                        type: object
+                        description: Allow to reference Secret that contains the user's password. If not specified, then the superuser password will be used.
+                        properties:
+                          name:
+                            type: string
+                            description: The name of the Secret
+                          key:
+                            type: string
+                            description: The key of the Secret
               metadata:
                 type: object
                 description: Metadata information from any cluster created resources.
@@ -1678,4 +1705,14 @@ spec:
                         type: string
                         description: The extra mount of the installed extension.
                   required: ["name", "publisher", "version", "repository", "postgresVersion"]
+              binding:
+                type: object
+                description: |
+                  This section follow the schema specified in [Service Binding spec for provisioned service](https://servicebinding.io/spec/core/1.0.0/#provisioned-service).
+                  
+                  For more information see https://servicebinding.io/spec/core/1.0.0/
+                properties:
+                  name:
+                    type: string
+                    description: The name of the Secret as specified in [Service Binding spec for provisioned service](https://servicebinding.io/spec/core/1.0.0/#provisioned-service).
 

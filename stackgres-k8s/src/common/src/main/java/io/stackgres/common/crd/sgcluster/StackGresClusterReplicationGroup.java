@@ -12,7 +12,6 @@ import javax.validation.constraints.Positive;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.ValidEnum;
@@ -26,16 +25,13 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterReplicationGroup {
 
-  @JsonProperty("name")
   @NotNull
   private String name;
 
-  @JsonProperty("role")
   @ValidEnum(enumClass = StackGresReplicationRole.class, allowNulls = false,
       message = "role must be ha, ha-read, readonly or none")
   private String role;
 
-  @JsonProperty("instances")
   @Positive(message = "You need at least 1 instance in the replication group")
   private int instances;
 

@@ -13,7 +13,7 @@ import javax.inject.Inject;
 
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.labels.v14.ClusterLabelFactoryV14;
 import org.jetbrains.annotations.NotNull;
@@ -104,8 +104,8 @@ public class ClusterLabelFactory extends AbstractLabelFactoryForCluster<StackGre
   public String resourceScope(@NotNull StackGresCluster resource) {
     return Optional.of(resource)
         .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getConfiguration)
-        .map(StackGresClusterConfiguration::getPatroni)
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getPatroni)
         .map(patroni -> patroni.getInitialConfig())
         .map(patroniConfig -> patroniConfig.getScope())
         .orElse(resourceName(resource));

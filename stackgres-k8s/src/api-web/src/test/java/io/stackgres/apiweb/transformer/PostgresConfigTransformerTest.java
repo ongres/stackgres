@@ -8,6 +8,7 @@ package io.stackgres.apiweb.transformer;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -30,7 +31,8 @@ class PostgresConfigTransformerTest {
 
   @BeforeEach
   void setup() {
-    transformer = new PostgresConfigTransformer();
+    var mapper = JsonMapper.builder().build();
+    transformer = new PostgresConfigTransformer(mapper);
   }
 
   @Test

@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -32,6 +31,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.apiweb.dto.Metadata;
 import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.testutil.JsonUtil;
+import io.stackgres.testutil.ModelTestUtil;
 import io.stackgres.testutil.StringUtils;
 
 public class TransformerTestUtil {
@@ -269,36 +269,47 @@ public class TransformerTestUtil {
       sourceField.setAccessible(true);
       targetField.setAccessible(true);
 
-      if (sourceField.getType() == targetField.getType()) {
-        if (List.class.isAssignableFrom(sourceField.getType())) {
-          var sourceParameterType = getCollectionGenericType(sourceField);
-          var targetParameterType = getCollectionGenericType(targetField);
-          var listTuple = generateRandomListTuple(
-              targetParameterType,
-              sourceParameterType
-          );
-          sourceField.set(source, listTuple.source());
-          targetField.set(target, listTuple.target());
-        } else if (Map.class.isAssignableFrom(sourceField.getType())) {
-          var targetKeyType = getCollectionGenericType(targetField);
-          var targetValueType = getMapValueType(targetField);
-          var sourceKeyType = getCollectionGenericType(sourceField);
-          var sourceValueType = getMapValueType(sourceField);
+      if (List.class.isAssignableFrom(sourceField.getType())
+          && List.class.isAssignableFrom(targetField.getType())) {
+        var sourceParameterType = ModelTestUtil.getParameterFromGenericType(
+            sourceField.getType(), sourceField.getGenericType(), 0);
+        var targetParameterType = ModelTestUtil.getParameterFromGenericType(
+            targetField.getType(), targetField.getGenericType(), 0);
+        var listTuple = generateRandomListTuple(
+            targetParameterType,
+            sourceParameterType
+        );
+        sourceField.set(source,
+            sourceField.getType() != List.class
+            ? sourceField.getType().getDeclaredConstructor(List.class)
+                .newInstance(listTuple.source()) : listTuple.source());
+        targetField.set(target,
+            targetField.getType() != List.class
+            ? targetField.getType().getDeclaredConstructor(List.class)
+                .newInstance(listTuple.target()) : listTuple.target());
+      } else if (Map.class.isAssignableFrom(sourceField.getType())
+          && Map.class.isAssignableFrom(targetField.getType())) {
+        var targetKeyType = ModelTestUtil.getParameterFromGenericType(
+            targetField.getType(), targetField.getGenericType(), 0);
+        var targetValueType = ModelTestUtil.getParameterFromGenericType(
+            targetField.getType(), targetField.getGenericType(), 1);
+        var sourceKeyType = ModelTestUtil.getParameterFromGenericType(
+            sourceField.getType(), sourceField.getGenericType(), 0);
+        var sourceValueType = ModelTestUtil.getParameterFromGenericType(
+            sourceField.getType(), sourceField.getGenericType(), 1);
 
-          var mapTuple = generateRandomMapTuple(
-              targetKeyType, targetValueType,
-              sourceKeyType, sourceValueType
-          );
-          sourceField.set(source, mapTuple.source());
-          targetField.set(target, mapTuple.target());
-        } else {
-          var valueTuple = fillTupleWithRandomData(
-              targetField.getType(),
-              sourceField.getType()
-          );
-          sourceField.set(source, valueTuple.source());
-          targetField.set(target, valueTuple.target());
-        }
+        var mapTuple = generateRandomMapTuple(
+            targetKeyType, targetValueType,
+            sourceKeyType, sourceValueType
+        );
+        sourceField.set(source,
+            sourceField.getType() != Map.class
+            ? sourceField.getType().getDeclaredConstructor(Map.class)
+                .newInstance(mapTuple.source()) : mapTuple.source());
+        targetField.set(target,
+            targetField.getType() != Map.class
+            ? targetField.getType().getDeclaredConstructor(Map.class)
+                .newInstance(mapTuple.target()) : mapTuple.target());
       } else {
         var valueTuple = fillTupleWithRandomData(
             targetField.getType(),
@@ -396,13 +407,4 @@ public class TransformerTestUtil {
         || Object.class == type;
   }
 
-  private static Class<?> getCollectionGenericType(Field collectionField) {
-    ParameterizedType listType = (ParameterizedType) collectionField.getGenericType();
-    return (Class<?>) listType.getActualTypeArguments()[0];
-  }
-
-  private static Class<?> getMapValueType(Field mapField) {
-    ParameterizedType listType = (ParameterizedType) mapField.getGenericType();
-    return (Class<?>) listType.getActualTypeArguments()[1];
-  }
 }

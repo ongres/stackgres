@@ -14,14 +14,14 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsPgbench;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.operator.common.DbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
+import io.stackgres.operator.validation.AbstractConstraintValidator;
 import io.stackgres.operator.validation.ConstraintValidationTest;
-import io.stackgres.operator.validation.ConstraintValidator;
 import org.junit.jupiter.api.Test;
 
 class DbOpsPgbenchConstraintValidatorTest extends ConstraintValidationTest<DbOpsReview> {
 
   @Override
-  protected ConstraintValidator<DbOpsReview> buildValidator() {
+  protected AbstractConstraintValidator<DbOpsReview> buildValidator() {
     return new DbOpsConstraintValidator();
   }
 

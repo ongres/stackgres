@@ -34,7 +34,8 @@ import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class ConstraintValidator<T extends AdmissionReview<?>> implements Validator<T> {
+public abstract class AbstractConstraintValidator<T extends AdmissionReview<?>>
+    implements Validator<T> {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -137,7 +138,7 @@ public abstract class ConstraintValidator<T extends AdmissionReview<?>> implemen
         .map(clazzField -> clazzField.getAnnotation(JsonProperty.class))
         .map(JsonProperty::value)
         .map(this::escapeFieldName)
-        .orElse(field);
+        .orElse(fieldName);
     return tuple
         .map1(builder -> builder.isEmpty()
             ? builder.append(jsonFieldName + fieldSuffix)

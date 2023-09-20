@@ -32,12 +32,12 @@ public class DefaultProfileMutator
 
   @Override
   protected String getTargetPropertyValue(StackGresCluster resource) {
-    return resource.getSpec().getResourceProfile();
+    return resource.getSpec().getSgInstanceProfile();
   }
 
   @Override
   protected void setTargetProperty(StackGresCluster resource, String defaultResourceName) {
-    resource.getSpec().setResourceProfile(defaultResourceName);
+    resource.getSpec().setSgInstanceProfile(defaultResourceName);
   }
 
 }

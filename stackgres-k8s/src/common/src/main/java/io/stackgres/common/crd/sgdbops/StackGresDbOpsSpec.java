@@ -19,7 +19,6 @@ import javax.validation.constraints.NotEmpty;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.FieldReference;
@@ -35,55 +34,42 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresDbOpsSpec {
 
-  @JsonProperty("sgCluster")
   @NotEmpty(message = "sgCluster must be provided")
   private String sgCluster;
 
-  @JsonProperty("scheduling")
   private StackGresDbOpsSpecScheduling scheduling;
 
-  @JsonProperty("op")
   @ValidEnum(enumClass = DbOpsOperation.class, allowNulls = false,
       message = "op must be one of benchmark, vacuum, repack, restart, "
           + "majorVersionUpgrade, minorVersionUpgrade or securityUpgrade")
   private String op;
 
-  @JsonProperty("runAt")
   private String runAt;
 
-  @JsonProperty("timeout")
   private String timeout;
 
-  @JsonProperty("maxRetries")
   @Min(value = 0, message = "maxRetries must be greather or equals to 0.")
   @Max(value = 10, message = "maxRetries must be less or equals to 10.")
   private Integer maxRetries;
 
-  @JsonProperty("benchmark")
   @Valid
   private StackGresDbOpsBenchmark benchmark;
 
-  @JsonProperty("vacuum")
   @Valid
   private StackGresDbOpsVacuum vacuum;
 
-  @JsonProperty("repack")
   @Valid
   private StackGresDbOpsRepack repack;
 
-  @JsonProperty("majorVersionUpgrade")
   @Valid
   private StackGresDbOpsMajorVersionUpgrade majorVersionUpgrade;
 
-  @JsonProperty("restart")
   @Valid
   private StackGresDbOpsRestart restart;
 
-  @JsonProperty("minorVersionUpgrade")
   @Valid
   private StackGresDbOpsMinorVersionUpgrade minorVersionUpgrade;
 
-  @JsonProperty("securityUpgrade")
   @Valid
   private StackGresDbOpsSecurityUpgrade securityUpgrade;
 

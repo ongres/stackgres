@@ -472,7 +472,7 @@ class ObjectStorageReferencesValidatorTest {
 
     var accessKeySelector = secretKeySelectors
         .getAccessKey();
-    var accountSelector = secretKeySelectors.getAccount();
+    var accountSelector = secretKeySelectors.getStorageAccount();
 
     mockSecretFind(accessKeySelector, namespace);
     mockSecretFind(accountSelector, namespace);
@@ -502,7 +502,7 @@ class ObjectStorageReferencesValidatorTest {
 
     var accessKeySelector = secretKeySelectors
         .getAccessKey();
-    var accountSelector = secretKeySelectors.getAccount();
+    var accountSelector = secretKeySelectors.getStorageAccount();
 
     when(secretFinder.findByNameAndNamespace(accessKeySelector.getName(), namespace))
         .thenReturn(Optional.empty());
@@ -537,7 +537,7 @@ class ObjectStorageReferencesValidatorTest {
 
     var accessKeySelector = secretKeySelectors
         .getAccessKey();
-    var accountSelector = secretKeySelectors.getAccount();
+    var accountSelector = secretKeySelectors.getStorageAccount();
 
     mockSecretFind(accountSelector, namespace);
     when(secretFinder.findByNameAndNamespace(accessKeySelector.getName(), namespace))
@@ -569,7 +569,7 @@ class ObjectStorageReferencesValidatorTest {
 
     var accessKeySelector = secretKeySelectors
         .getAccessKey();
-    var accountSelector = secretKeySelectors.getAccount();
+    var accountSelector = secretKeySelectors.getStorageAccount();
 
     mockSecretFind(accountSelector, namespace);
     when(secretFinder.findByNameAndNamespace(accessKeySelector.getName(), namespace))
@@ -602,7 +602,7 @@ class ObjectStorageReferencesValidatorTest {
 
     var accessKeySelector = secretKeySelectors
         .getAccessKey();
-    var accountSelector = secretKeySelectors.getAccount();
+    var accountSelector = secretKeySelectors.getStorageAccount();
 
     mockSecretFind(accessKeySelector, namespace);
     when(secretFinder.findByNameAndNamespace(accountSelector.getName(), namespace))
@@ -630,7 +630,7 @@ class ObjectStorageReferencesValidatorTest {
     String namespace = target.getMetadata().getNamespace();
 
     final var secretKeySelectors = target.getSpec().getGcs()
-        .getCredentials()
+        .getGcpCredentials()
         .getSecretKeySelectors();
 
     var serviceAccountSelector = secretKeySelectors
@@ -656,7 +656,7 @@ class ObjectStorageReferencesValidatorTest {
     String namespace = target.getMetadata().getNamespace();
 
     final var secretKeySelectors = target.getSpec().getGcs()
-        .getCredentials()
+        .getGcpCredentials()
         .getSecretKeySelectors();
 
     var serviceAccountSelector = secretKeySelectors
@@ -687,7 +687,7 @@ class ObjectStorageReferencesValidatorTest {
     String namespace = target.getMetadata().getNamespace();
 
     final var secretKeySelectors = target.getSpec().getGcs()
-        .getCredentials()
+        .getGcpCredentials()
         .getSecretKeySelectors();
 
     var serviceAccountSelector = secretKeySelectors

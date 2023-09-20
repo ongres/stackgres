@@ -31,7 +31,7 @@ public class ConnectionPoolingConfigResource extends
   public boolean belongsToCluster(StackGresPoolingConfig resource, StackGresCluster cluster) {
     return cluster.getMetadata().getNamespace().equals(
         resource.getMetadata().getNamespace())
-        && Objects.equals(cluster.getSpec().getConfiguration().getConnectionPoolingConfig(),
+        && Objects.equals(cluster.getSpec().getConfigurations().getSgPoolingConfig(),
             resource.getMetadata().getName());
   }
 

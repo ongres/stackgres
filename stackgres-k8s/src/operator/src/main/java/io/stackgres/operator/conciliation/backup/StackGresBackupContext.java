@@ -19,7 +19,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -56,7 +56,7 @@ public interface StackGresBackupContext extends GenerationContext<StackGresBacku
                 + " with a non existent SGInstanceProfile "
                 + getFoundCluster()
                     .map(StackGresCluster::getSpec)
-                    .map(StackGresClusterSpec::getResourceProfile)
+                    .map(StackGresClusterSpec::getSgInstanceProfile)
                     .orElse("<unknown>")));
   }
 
@@ -94,8 +94,8 @@ public interface StackGresBackupContext extends GenerationContext<StackGresBacku
     if (getObjectStorage().isPresent()) {
       return Optional.of(getCluster())
           .map(StackGresCluster::getSpec)
-          .map(StackGresClusterSpec::getConfiguration)
-          .map(StackGresClusterConfiguration::getBackups)
+          .map(StackGresClusterSpec::getConfigurations)
+          .map(StackGresClusterConfigurations::getBackups)
           .map(Collection::stream)
           .flatMap(Stream::findFirst)
           .map(bc -> new BackupConfiguration(

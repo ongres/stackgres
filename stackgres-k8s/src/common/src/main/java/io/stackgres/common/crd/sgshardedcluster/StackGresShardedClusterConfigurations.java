@@ -12,10 +12,10 @@ import javax.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCredentials;
+import io.stackgres.common.crd.sgcluster.StackGresClusterServiceBinding;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
@@ -24,15 +24,16 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresShardedClusterConfiguration {
+public class StackGresShardedClusterConfigurations {
 
-  @JsonProperty("backups")
   @Valid
   private List<StackGresShardedClusterBackupConfiguration> backups;
 
-  @JsonProperty("credentials")
   @Valid
   private StackGresClusterCredentials credentials;
+
+  @Valid
+  private StackGresClusterServiceBinding binding;
 
   public List<StackGresShardedClusterBackupConfiguration> getBackups() {
     return backups;
@@ -50,9 +51,17 @@ public class StackGresShardedClusterConfiguration {
     this.credentials = credentials;
   }
 
+  public StackGresClusterServiceBinding getBinding() {
+    return binding;
+  }
+
+  public void setBinding(StackGresClusterServiceBinding binding) {
+    this.binding = binding;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(backups, credentials);
+    return Objects.hash(backups, binding, credentials);
   }
 
   @Override
@@ -60,11 +69,13 @@ public class StackGresShardedClusterConfiguration {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresShardedClusterConfiguration)) {
+    if (!(obj instanceof StackGresShardedClusterConfigurations)) {
       return false;
     }
-    StackGresShardedClusterConfiguration other = (StackGresShardedClusterConfiguration) obj;
-    return Objects.equals(backups, other.backups) && Objects.equals(credentials, other.credentials);
+    StackGresShardedClusterConfigurations other = (StackGresShardedClusterConfigurations) obj;
+    return Objects.equals(backups, other.backups)
+        && Objects.equals(binding, other.binding)
+        && Objects.equals(credentials, other.credentials);
   }
 
   @Override

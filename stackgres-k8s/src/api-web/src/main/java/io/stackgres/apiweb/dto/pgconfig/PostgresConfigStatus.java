@@ -17,13 +17,11 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class PostgresConfigStatus {
 
-  @JsonProperty("clusters")
   private List<String> clusters;
 
   @JsonProperty("postgresql.conf")
   private List<PostgresqlConfParameter> postgresqlConf;
 
-  @JsonProperty("defaultParameters")
   private Map<String, String> defaultParameters;
 
   public List<String> getClusters() {

@@ -10,15 +10,15 @@ import javax.validation.constraints.AssertTrue;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsRepack;
 import io.stackgres.operator.common.DbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
+import io.stackgres.operator.validation.AbstractConstraintValidator;
 import io.stackgres.operator.validation.ConstraintValidationTest;
-import io.stackgres.operator.validation.ConstraintValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.Test;
 
 class DbOpsRepackConstraintValidatorTest extends ConstraintValidationTest<DbOpsReview> {
 
   @Override
-  protected ConstraintValidator<DbOpsReview> buildValidator() {
+  protected AbstractConstraintValidator<DbOpsReview> buildValidator() {
     return new DbOpsConstraintValidator();
   }
 
@@ -37,7 +37,6 @@ class DbOpsRepackConstraintValidatorTest extends ConstraintValidationTest<DbOpsR
 
   @Test
   void nullVacuum_shouldPass() throws ValidationFailed {
-
     DbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().setBenchmark(null);
 
@@ -46,7 +45,6 @@ class DbOpsRepackConstraintValidatorTest extends ConstraintValidationTest<DbOpsR
 
   @Test
   void wrongWaitTimeout_shouldFail() {
-
     DbOpsReview review = getValidReview();
     review.getRequest().getObject().getSpec().getRepack().setWaitTimeout("10s");
 

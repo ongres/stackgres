@@ -41,12 +41,12 @@ public class DefaultCoordinatorProfileMutator
 
   @Override
   protected String getTargetPropertyValue(StackGresShardedCluster resource) {
-    return resource.getSpec().getCoordinator().getResourceProfile();
+    return resource.getSpec().getCoordinator().getSgInstanceProfile();
   }
 
   @Override
   protected void setTargetProperty(StackGresShardedCluster resource, String defaultResourceName) {
-    resource.getSpec().getCoordinator().setResourceProfile(defaultResourceName);
+    resource.getSpec().getCoordinator().setSgInstanceProfile(defaultResourceName);
   }
 
 }

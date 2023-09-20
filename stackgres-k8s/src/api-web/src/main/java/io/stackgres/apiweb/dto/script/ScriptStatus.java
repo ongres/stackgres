@@ -5,10 +5,10 @@
 
 package io.stackgres.apiweb.dto.script;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -16,8 +16,17 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ScriptStatus {
 
-  @JsonProperty("clusters")
+  private List<ScriptEntryStatus> scripts = new ArrayList<>();
+
   private List<String> clusters;
+
+  public List<ScriptEntryStatus> getScripts() {
+    return scripts;
+  }
+
+  public void setScripts(List<ScriptEntryStatus> scripts) {
+    this.scripts = scripts;
+  }
 
   public List<String> getClusters() {
     return clusters;

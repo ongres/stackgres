@@ -35,14 +35,14 @@ public class PoolingConfigValidator implements ClusterValidator {
     switch (review.getRequest().getOperation()) {
       case CREATE: {
         StackGresCluster cluster = review.getRequest().getObject();
-        String poolingConfig = cluster.getSpec().getConfiguration().getConnectionPoolingConfig();
+        String poolingConfig = cluster.getSpec().getConfigurations().getSgPoolingConfig();
         checkIfPoolingConfigExists(review, "Pooling config " + poolingConfig
             + " not found");
         break;
       }
       case UPDATE: {
         StackGresCluster cluster = review.getRequest().getObject();
-        String poolingConfig = cluster.getSpec().getConfiguration().getConnectionPoolingConfig();
+        String poolingConfig = cluster.getSpec().getConfigurations().getSgPoolingConfig();
         checkIfPoolingConfigExists(review, "Cannot update to pooling config "
             + poolingConfig + " because it doesn't exists");
         break;
@@ -56,10 +56,10 @@ public class PoolingConfigValidator implements ClusterValidator {
                                           String onError) throws ValidationFailed {
 
     StackGresCluster cluster = review.getRequest().getObject();
-    String poolingConfig = cluster.getSpec().getConfiguration().getConnectionPoolingConfig();
+    String poolingConfig = cluster.getSpec().getConfigurations().getSgPoolingConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
-    if (Boolean.FALSE.equals(cluster.getSpec().getPod().getDisableConnectionPooling())) {
+    if (Boolean.FALSE.equals(cluster.getSpec().getPods().getDisableConnectionPooling())) {
       checkIfProvided(poolingConfig, "sgPoolingConfig");
       Optional<StackGresPoolingConfig> poolingConfigOpt = configFinder
           .findByNameAndNamespace(poolingConfig, namespace);

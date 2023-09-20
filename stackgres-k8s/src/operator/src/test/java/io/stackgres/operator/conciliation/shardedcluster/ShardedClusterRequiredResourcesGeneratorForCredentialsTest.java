@@ -20,7 +20,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterCredentials;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniCredentials;
 import io.stackgres.common.crd.sgcluster.StackGresClusterUserSecretKeyRef;
 import io.stackgres.common.crd.sgcluster.StackGresClusterUsersCredentials;
-import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfiguration;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.junit.jupiter.api.Test;
@@ -293,32 +293,32 @@ class ShardedClusterRequiredResourcesGeneratorForCredentialsTest
   }
 
   private void mockUsersCredentials() {
-    cluster.getSpec().setConfiguration(new StackGresShardedClusterConfiguration());
-    cluster.getSpec().getConfiguration().setCredentials(new StackGresClusterCredentials());
-    cluster.getSpec().getConfiguration().getCredentials()
+    cluster.getSpec().setConfigurations(new StackGresShardedClusterConfigurations());
+    cluster.getSpec().getConfigurations().setCredentials(new StackGresClusterCredentials());
+    cluster.getSpec().getConfigurations().getCredentials()
         .setUsers(new StackGresClusterUsersCredentials());
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .setSuperuser(new StackGresClusterUserSecretKeyRef());
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .getSuperuser().setUsername(new SecretKeySelector(
             StackGresPasswordKeys.SUPERUSER_USERNAME_ENV, "test-secret"));
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .getSuperuser().setPassword(new SecretKeySelector(
             StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV, "test-secret"));
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .setReplication(new StackGresClusterUserSecretKeyRef());
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .getReplication().setUsername(new SecretKeySelector(
             StackGresPasswordKeys.REPLICATION_USERNAME_ENV, "test-secret"));
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .getReplication().setPassword(new SecretKeySelector(
             StackGresPasswordKeys.REPLICATION_PASSWORD_ENV, "test-secret"));
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .setAuthenticator(new StackGresClusterUserSecretKeyRef());
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .getAuthenticator().setUsername(new SecretKeySelector(
             StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV, "test-secret"));
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .getAuthenticator().setPassword(new SecretKeySelector(
             StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV, "test-secret"));
     when(secretFinder.findByNameAndNamespace(
@@ -348,42 +348,42 @@ class ShardedClusterRequiredResourcesGeneratorForCredentialsTest
   }
 
   private void mockUsersCredentialsWithoutSecret(String key) {
-    cluster.getSpec().setConfiguration(new StackGresShardedClusterConfiguration());
-    cluster.getSpec().getConfiguration().setCredentials(new StackGresClusterCredentials());
-    cluster.getSpec().getConfiguration().getCredentials()
+    cluster.getSpec().setConfigurations(new StackGresShardedClusterConfigurations());
+    cluster.getSpec().getConfigurations().setCredentials(new StackGresClusterCredentials());
+    cluster.getSpec().getConfigurations().getCredentials()
         .setUsers(new StackGresClusterUsersCredentials());
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .setSuperuser(new StackGresClusterUserSecretKeyRef());
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .getSuperuser().setUsername(new SecretKeySelector(
             StackGresPasswordKeys.SUPERUSER_USERNAME_ENV,
             key.equals(StackGresPasswordKeys.SUPERUSER_USERNAME_ENV)
             ? "missing-test-secret" : "test-secret"));
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .getSuperuser().setPassword(new SecretKeySelector(
             StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV,
             key.equals(StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV)
             ? "missing-test-secret" : "test-secret"));
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .setReplication(new StackGresClusterUserSecretKeyRef());
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .getReplication().setUsername(new SecretKeySelector(
             StackGresPasswordKeys.REPLICATION_USERNAME_ENV,
             key.equals(StackGresPasswordKeys.REPLICATION_USERNAME_ENV)
             ? "missing-test-secret" : "test-secret"));
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .getReplication().setPassword(new SecretKeySelector(
             StackGresPasswordKeys.REPLICATION_PASSWORD_ENV,
             key.equals(StackGresPasswordKeys.REPLICATION_PASSWORD_ENV)
             ? "missing-test-secret" : "test-secret"));
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .setAuthenticator(new StackGresClusterUserSecretKeyRef());
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .getAuthenticator().setUsername(new SecretKeySelector(
             StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV,
             key.equals(StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV)
             ? "missing-test-secret" : "test-secret"));
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .getAuthenticator().setPassword(new SecretKeySelector(
             StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV,
             key.equals(StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV)
@@ -415,32 +415,32 @@ class ShardedClusterRequiredResourcesGeneratorForCredentialsTest
   }
 
   private void mockUsersCredentialsWithoutKey(String key) {
-    cluster.getSpec().setConfiguration(new StackGresShardedClusterConfiguration());
-    cluster.getSpec().getConfiguration().setCredentials(new StackGresClusterCredentials());
-    cluster.getSpec().getConfiguration().getCredentials()
+    cluster.getSpec().setConfigurations(new StackGresShardedClusterConfigurations());
+    cluster.getSpec().getConfigurations().setCredentials(new StackGresClusterCredentials());
+    cluster.getSpec().getConfigurations().getCredentials()
         .setUsers(new StackGresClusterUsersCredentials());
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .setSuperuser(new StackGresClusterUserSecretKeyRef());
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .getSuperuser().setUsername(new SecretKeySelector(
             StackGresPasswordKeys.SUPERUSER_USERNAME_ENV, "test-secret"));
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .getSuperuser().setPassword(new SecretKeySelector(
             StackGresPasswordKeys.SUPERUSER_PASSWORD_ENV, "test-secret"));
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .setReplication(new StackGresClusterUserSecretKeyRef());
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .getReplication().setUsername(new SecretKeySelector(
             StackGresPasswordKeys.REPLICATION_USERNAME_ENV, "test-secret"));
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .getReplication().setPassword(new SecretKeySelector(
             StackGresPasswordKeys.REPLICATION_PASSWORD_ENV, "test-secret"));
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .setAuthenticator(new StackGresClusterUserSecretKeyRef());
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .getAuthenticator().setUsername(new SecretKeySelector(
             StackGresPasswordKeys.AUTHENTICATOR_USERNAME_ENV, "test-secret"));
-    cluster.getSpec().getConfiguration().getCredentials().getUsers()
+    cluster.getSpec().getConfigurations().getCredentials().getUsers()
         .getAuthenticator().setPassword(new SecretKeySelector(
             StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV, "test-secret"));
     when(secretFinder.findByNameAndNamespace(
@@ -476,11 +476,11 @@ class ShardedClusterRequiredResourcesGeneratorForCredentialsTest
   }
 
   private void mockPatroniCredentials() {
-    cluster.getSpec().setConfiguration(new StackGresShardedClusterConfiguration());
-    cluster.getSpec().getConfiguration().setCredentials(new StackGresClusterCredentials());
-    cluster.getSpec().getConfiguration().getCredentials()
+    cluster.getSpec().setConfigurations(new StackGresShardedClusterConfigurations());
+    cluster.getSpec().getConfigurations().setCredentials(new StackGresClusterCredentials());
+    cluster.getSpec().getConfigurations().getCredentials()
         .setPatroni(new StackGresClusterPatroniCredentials());
-    cluster.getSpec().getConfiguration().getCredentials().getPatroni()
+    cluster.getSpec().getConfigurations().getCredentials().getPatroni()
         .setRestApiPassword(new SecretKeySelector(
             StackGresPasswordKeys.RESTAPI_PASSWORD_ENV, "test-secret"));
     when(secretFinder.findByNameAndNamespace(
@@ -495,11 +495,11 @@ class ShardedClusterRequiredResourcesGeneratorForCredentialsTest
   }
 
   private void mockPatroniCredentialsWithoutSecret(String key) {
-    cluster.getSpec().setConfiguration(new StackGresShardedClusterConfiguration());
-    cluster.getSpec().getConfiguration().setCredentials(new StackGresClusterCredentials());
-    cluster.getSpec().getConfiguration().getCredentials()
+    cluster.getSpec().setConfigurations(new StackGresShardedClusterConfigurations());
+    cluster.getSpec().getConfigurations().setCredentials(new StackGresClusterCredentials());
+    cluster.getSpec().getConfigurations().getCredentials()
         .setPatroni(new StackGresClusterPatroniCredentials());
-    cluster.getSpec().getConfiguration().getCredentials().getPatroni()
+    cluster.getSpec().getConfigurations().getCredentials().getPatroni()
         .setRestApiPassword(new SecretKeySelector(
             StackGresPasswordKeys.RESTAPI_PASSWORD_ENV,
             key.equals(StackGresPasswordKeys.RESTAPI_PASSWORD_ENV)
@@ -516,11 +516,11 @@ class ShardedClusterRequiredResourcesGeneratorForCredentialsTest
   }
 
   private void mockPatroniCredentialsWithoutKey(String key) {
-    cluster.getSpec().setConfiguration(new StackGresShardedClusterConfiguration());
-    cluster.getSpec().getConfiguration().setCredentials(new StackGresClusterCredentials());
-    cluster.getSpec().getConfiguration().getCredentials()
+    cluster.getSpec().setConfigurations(new StackGresShardedClusterConfigurations());
+    cluster.getSpec().getConfigurations().setCredentials(new StackGresClusterCredentials());
+    cluster.getSpec().getConfigurations().getCredentials()
         .setPatroni(new StackGresClusterPatroniCredentials());
-    cluster.getSpec().getConfiguration().getCredentials().getPatroni()
+    cluster.getSpec().getConfigurations().getCredentials().getPatroni()
         .setRestApiPassword(new SecretKeySelector(
             StackGresPasswordKeys.RESTAPI_PASSWORD_ENV, "test-secret"));
     when(secretFinder.findByNameAndNamespace(

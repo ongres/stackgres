@@ -36,7 +36,7 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitalData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -142,8 +142,8 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
             .withReadOnly(true)
             .build());
 
-    Optional.ofNullable(cluster.getSpec().getInitData())
-        .map(StackGresClusterInitData::getRestore)
+    Optional.ofNullable(cluster.getSpec().getInitialData())
+        .map(StackGresClusterInitalData::getRestore)
         .map(StackGresClusterRestore::getFromBackup)
         .map(StackGresClusterRestoreFromBackup::getName).ifPresent(ignore ->
             volumeMounts.addAll(restoreMounts.getVolumeMounts(context))

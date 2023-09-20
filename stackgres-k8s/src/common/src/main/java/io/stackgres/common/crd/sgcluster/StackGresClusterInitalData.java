@@ -13,7 +13,6 @@ import javax.validation.constraints.Null;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
@@ -24,13 +23,11 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresClusterInitData {
+public class StackGresClusterInitalData {
 
-  @JsonProperty("restore")
   @Valid
   private StackGresClusterRestore restore;
 
-  @JsonProperty("scripts")
   @Null(message = "scripts section is deprecated,"
       + " please use .spec.managedSql.scripts section instead.")
   private List<StackGresClusterScriptEntry> scripts;
@@ -61,10 +58,10 @@ public class StackGresClusterInitData {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresClusterInitData)) {
+    if (!(obj instanceof StackGresClusterInitalData)) {
       return false;
     }
-    StackGresClusterInitData other = (StackGresClusterInitData) obj;
+    StackGresClusterInitalData other = (StackGresClusterInitalData) obj;
     return Objects.equals(restore, other.restore) && Objects.equals(scripts, other.scripts);
   }
 

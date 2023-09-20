@@ -14,7 +14,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsConfiguration;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsConfigurations;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -56,22 +56,22 @@ public class DistributedLogsRequiredResourcesGenerator
     final String distributedLogsName = config.getMetadata().getName();
     final String namespace = config.getMetadata().getNamespace();
     final StackGresDistributedLogsSpec spec = config.getSpec();
-    final StackGresDistributedLogsConfiguration distributedLogsConfiguration =
-        spec.getConfiguration();
+    final StackGresDistributedLogsConfigurations distributedLogsConfiguration =
+        spec.getConfigurations();
 
     final StackGresPostgresConfig pgConfig = postgresConfigFinder
         .findByNameAndNamespace(
-            distributedLogsConfiguration.getPostgresConfig(), namespace)
+            distributedLogsConfiguration.getSgPostgresConfig(), namespace)
         .orElseThrow(() -> new IllegalArgumentException(
             "SGDistributedLogs " + namespace + "." + distributedLogsName
                 + " have a non existent SGPostgresConfig "
-                + distributedLogsConfiguration.getPostgresConfig()));
+                + distributedLogsConfiguration.getSgPostgresConfig()));
 
     final StackGresProfile profile = profileFinder
-        .findByNameAndNamespace(spec.getResourceProfile(), namespace)
+        .findByNameAndNamespace(spec.getSgInstanceProfile(), namespace)
         .orElseThrow(() -> new IllegalArgumentException(
             "SGDistributedLogs " + namespace + "." + distributedLogsName + " have a non existent "
-                + StackGresProfile.KIND + " " + spec.getResourceProfile()));
+                + StackGresProfile.KIND + " " + spec.getSgInstanceProfile()));
 
     StackGresDistributedLogsContext context = ImmutableStackGresDistributedLogsContext.builder()
         .source(config)

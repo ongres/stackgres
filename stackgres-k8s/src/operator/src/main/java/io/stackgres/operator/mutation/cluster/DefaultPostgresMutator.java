@@ -6,7 +6,7 @@
 package io.stackgres.operator.mutation.cluster;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -27,19 +27,19 @@ public class DefaultPostgresMutator
 
   @Override
   protected void setValueSection(StackGresCluster resource) {
-    if (resource.getSpec().getConfiguration() == null) {
-      resource.getSpec().setConfiguration(new StackGresClusterConfiguration());
+    if (resource.getSpec().getConfigurations() == null) {
+      resource.getSpec().setConfigurations(new StackGresClusterConfigurations());
     }
   }
 
   @Override
   protected String getTargetPropertyValue(StackGresCluster resource) {
-    return resource.getSpec().getConfiguration().getPostgresConfig();
+    return resource.getSpec().getConfigurations().getSgPostgresConfig();
   }
 
   @Override
   protected void setTargetProperty(StackGresCluster resource, String defaultResourceName) {
-    resource.getSpec().getConfiguration().setPostgresConfig(defaultResourceName);
+    resource.getSpec().getConfigurations().setSgPostgresConfig(defaultResourceName);
   }
 
 }

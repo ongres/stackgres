@@ -9,7 +9,6 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
@@ -22,18 +21,16 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterDistributedLogs {
 
-  @JsonProperty("sgDistributedLogs")
-  private String distributedLogs;
+  private String sgDistributedLogs;
 
-  @JsonProperty("retention")
   private String retention;
 
-  public String getDistributedLogs() {
-    return distributedLogs;
+  public String getSgDistributedLogs() {
+    return sgDistributedLogs;
   }
 
-  public void setDistributedLogs(String distributedLogs) {
-    this.distributedLogs = distributedLogs;
+  public void setSgDistributedLogs(String sgDistributedLogs) {
+    this.sgDistributedLogs = sgDistributedLogs;
   }
 
   public String getRetention() {
@@ -46,7 +43,7 @@ public class StackGresClusterDistributedLogs {
 
   @Override
   public int hashCode() {
-    return Objects.hash(distributedLogs, retention);
+    return Objects.hash(sgDistributedLogs, retention);
   }
 
   @Override
@@ -58,7 +55,7 @@ public class StackGresClusterDistributedLogs {
       return false;
     }
     StackGresClusterDistributedLogs other = (StackGresClusterDistributedLogs) obj;
-    return Objects.equals(distributedLogs, other.distributedLogs)
+    return Objects.equals(sgDistributedLogs, other.sgDistributedLogs)
         && Objects.equals(retention, other.retention);
   }
 

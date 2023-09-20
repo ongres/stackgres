@@ -10,7 +10,6 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.ValidEnum;
@@ -24,15 +23,12 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresDbOpsRestart {
 
-  @JsonProperty("method")
   @ValidEnum(enumClass = DbOpsMethodType.class, allowNulls = true,
       message = "method must be InPlace or ReducedImpact")
   private String method;
 
-  @JsonProperty("restartPrimaryFirst")
   private Boolean restartPrimaryFirst;
 
-  @JsonProperty("onlyPendingRestart")
   private Boolean onlyPendingRestart;
 
   @JsonIgnore
