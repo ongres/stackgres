@@ -77,6 +77,7 @@ public class CertificateInstaller {
   }
 
   public void installOrUpdateCertificate() {
+    LOGGER.info("Installing Certificate");
     var config = configFinder.findByNameAndNamespace(operatorName, operatorNamespace)
         .orElseThrow(() -> new IllegalArgumentException(
             "SGConfig " + operatorNamespace + "." + operatorName + " was not found"));
@@ -119,10 +120,13 @@ public class CertificateInstaller {
       }
       LOGGER.warn("Recreating the operator Pod with the created certificate");
       throw new RuntimeException("Sutting down operator in order to release the lock");
+    } else {
+      LOGGER.info("Certificate already installed");
     }
   }
 
   public void waitForCertificate() {
+    LOGGER.info("Waiting for certificate");
     var config = configFinder.findByNameAndNamespace(operatorName, operatorNamespace)
         .orElseThrow(() -> new IllegalArgumentException(
             "SGConfig " + operatorNamespace + "." + operatorName + " was not found"));
@@ -172,6 +176,7 @@ public class CertificateInstaller {
             && Files.readString(Paths.get(this.operatorCertPath)).equals(certValue)
             && Files.exists(Paths.get(this.operatorCertKeyPath))
             && Files.readString(Paths.get(this.operatorCertKeyPath)).equals(certKeyValue)) {
+          LOGGER.info("Certificate available");
           return;
         }
       } catch (IOException ex) {

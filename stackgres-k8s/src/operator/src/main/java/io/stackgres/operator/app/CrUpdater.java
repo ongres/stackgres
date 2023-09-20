@@ -36,6 +36,7 @@ public class CrUpdater {
   }
 
   public void updateExistingCustomResources() {
+    LOGGER.info("Updating existing custom resources");
     crdLoader.scanCrds()
         .stream()
         .forEach(installedCrd -> {

@@ -65,12 +65,12 @@ class WebhookConfiguratorTest {
   @Mock
   private Supplier<String> operatorCertSupplier;
 
-  private CrdWebhookConfigurator crdWebhookConfigurator;
+  private CrdWebhookInstaller crdWebhookConfigurator;
 
   @BeforeEach
   void setUp() {
     crdWebhookConfigurator =
-        new CrdWebhookConfigurator(
+        new CrdWebhookInstaller(
             crdFinder, crdWriter,
             validatingWebhookConfigurationFinder, validatingWebhookConfigurationWriter,
             mutatingWebhookConfigurationFinder, mutatingWebhookConfigurationWriter,
@@ -117,7 +117,7 @@ class WebhookConfiguratorTest {
           .thenReturn(Optional.of(crdLoader.getCrd(definition.getSpec().getNames().getKind())));
       when(crdWriter.update(crdCaptor.capture())).thenReturn(definition);
 
-      crdWebhookConfigurator.configureWebhook(definition.getMetadata().getName(),
+      crdWebhookConfigurator.installConversionWebhook(definition.getMetadata().getName(),
           certificate);
 
       CustomResourceDefinition crd = crdCaptor.getValue();

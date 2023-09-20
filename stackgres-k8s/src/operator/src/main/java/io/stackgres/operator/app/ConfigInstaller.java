@@ -15,10 +15,13 @@ import javax.inject.Inject;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.dsl.base.PatchType;
+import io.stackgres.common.CrdLoader;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.YamlMapperProvider;
@@ -27,6 +30,8 @@ import io.stackgres.common.crd.sgconfig.StackGresConfigBuilder;
 import io.stackgres.common.crd.sgconfig.StackGresConfigStatus;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.common.resource.ResourceWriter;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,24 +50,44 @@ public class ConfigInstaller {
   boolean removeOldOperatorBundleResources =
       OperatorProperty.REMOVE_OLD_OPERATOR_BUNDLE_RESOURCES.getBoolean();
 
-  private final KubernetesClient client;
+  private final YAMLMapper yamlMapper;
+  private final CrdLoader crdLoader;
+  private final ResourceFinder<CustomResourceDefinition> crdResourceFinder;
+  private final ResourceWriter<CustomResourceDefinition> crdResourceWriter;
   private final CustomResourceFinder<StackGresConfig> configFinder;
   private final CustomResourceScheduler<StackGresConfig> configWriter;
-  private final YAMLMapper yamlMapper;
+  private final KubernetesClient client;
 
   @Inject
   public ConfigInstaller(
-      KubernetesClient client,
+      YamlMapperProvider yamlMapperProvider,
+      ResourceFinder<CustomResourceDefinition> crdResourceFinder,
+      ResourceWriter<CustomResourceDefinition> crdResourceWriter,
       CustomResourceFinder<StackGresConfig> configFinder,
       CustomResourceScheduler<StackGresConfig> configWriter,
-      YamlMapperProvider yamlMapperProvider) {
-    this.client = client;
+      KubernetesClient client) {
+    this.yamlMapper = yamlMapperProvider.get();
+    this.crdLoader = new CrdLoader(yamlMapper);
+    this.crdResourceFinder = crdResourceFinder;
+    this.crdResourceWriter = crdResourceWriter;
     this.configFinder = configFinder;
     this.configWriter = configWriter;
-    this.yamlMapper = yamlMapperProvider.get();
+    this.client = client;
   }
 
   public void installOrUpdateConfig() {
+    LOGGER.info("Installing SGConfig");
+    var configCrd = crdLoader.getCrd(HasMetadata.getKind(StackGresConfig.class));
+    String configCrdName = configCrd.getMetadata().getName();
+    var configCrdFound = crdResourceFinder.findByName(configCrdName);
+    if (configCrdFound.isEmpty()) {
+      if (OperatorProperty.INSTALL_CRDS.getBoolean()) {
+        LOGGER.info("CRD {} is not present, installing it", configCrdName);
+        crdResourceWriter.create(configCrd);
+      } else {
+        throw new RuntimeException("CRD " + configCrdName + " is not present, aborting!");
+      }
+    }
     var configFound = configFinder.findByNameAndNamespace(operatorName, operatorNamespace);
     final StackGresConfig config = configFound
         .map(Unchecked.function(configValue -> yamlMapper.treeToValue(
@@ -96,7 +121,7 @@ public class ConfigInstaller {
     //TODO: Remove this as soon as version 1.5 get out of support!
     if (removeOldOperatorBundleResources
         && !Optional.of(config.getStatus())
-        .map(StackGresConfigStatus::getRemoveOldOperatorBundleResources)
+        .map(StackGresConfigStatus::getOldOperatorBundleResourcesRemoved)
         .orElse(false)) {
       LOGGER.info("Cleanup old operator bundle resources");
 
@@ -105,7 +130,7 @@ public class ConfigInstaller {
 
       removeOldOperatorBundleResourcesForv1_5_0();
 
-      config.getStatus().setRemoveOldOperatorBundleResources(true);
+      config.getStatus().setOldOperatorBundleResourcesRemoved(true);
     }
 
     if (configFound.isEmpty()
@@ -117,9 +142,11 @@ public class ConfigInstaller {
         LOGGER.info("Updating SGConfig");
         configWriter.update(config, foundConfig -> foundConfig.setSpec(config.getSpec()));
       }
+      LOGGER.info("Updating SGConfig status");
+      configWriter.updateStatus(config, foundConfig -> foundConfig.setStatus(config.getStatus()));
+    } else {
+      LOGGER.info("SGConfig already installed");
     }
-    LOGGER.info("Updating SGConfig status");
-    configWriter.updateStatus(config, foundConfig -> foundConfig.setStatus(config.getStatus()));
   }
 
   private void removeOldOperatorBundleResourcesForv1_4_3() {

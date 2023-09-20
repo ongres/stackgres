@@ -38,7 +38,7 @@ public class DefaultOperatorBootstrap implements OperatorBootstrap {
   private final CertificateInstaller certInstaller;
   private final OperatorLockHolder operatorLockHolder;
   private final CrdInstaller crdInstaller;
-  private final CrdWebhookConfigurator crdWebhookConfigurator;
+  private final CrdWebhookInstaller crdWebhookInstaller;
   private final CrUpdater crUpdater;
 
   @Inject
@@ -48,28 +48,25 @@ public class DefaultOperatorBootstrap implements OperatorBootstrap {
       ConfigInstaller configInstaller,
       CertificateInstaller certInstaller,
       CrdInstaller crdInstaller,
-      CrdWebhookConfigurator crdWebhookConfigurator,
+      CrdWebhookInstaller crdWebhookInstaller,
       CrUpdater crUpdater) {
     this.client = client;
     this.operatorLockHolder = operatorLockHolder;
     this.configInstaller = configInstaller;
     this.certInstaller = certInstaller;
     this.crdInstaller = crdInstaller;
-    this.crdWebhookConfigurator = crdWebhookConfigurator;
+    this.crdWebhookInstaller = crdWebhookInstaller;
     this.crUpdater = crUpdater;
   }
 
   @Override
   public void syncBootstrap() {
     if (OperatorProperty.INSTALL_CONFIG.getBoolean()) {
-      LOGGER.info("Installing SGConfig");
       configInstaller.installOrUpdateConfig();
     }
     if (OperatorProperty.INSTALL_CERTS.getBoolean()) {
-      LOGGER.info("Installing Certificate");
       certInstaller.installOrUpdateCertificate();
     }
-    LOGGER.info("Wait for certificate");
     certInstaller.waitForCertificate();
   }
 
@@ -90,12 +87,10 @@ public class DefaultOperatorBootstrap implements OperatorBootstrap {
           }
         }
         if (OperatorProperty.INSTALL_CRDS.getBoolean()) {
-          LOGGER.info("Installing CRDs");
           crdInstaller.installCustomResourceDefinitions();
         }
         if (OperatorProperty.INSTALL_WEBHOOKS.getBoolean()) {
-          LOGGER.info("Installing Webhooks");
-          crdWebhookConfigurator.configureWebhooks();
+          crdWebhookInstaller.installWebhooks();
         }
         if (!hasCustomResource(client, StackGresCluster.class)
             || !hasCustomResource(client, StackGresProfile.class)
