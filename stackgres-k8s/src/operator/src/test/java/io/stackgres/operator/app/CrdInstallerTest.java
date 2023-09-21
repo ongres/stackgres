@@ -51,8 +51,7 @@ class CrdInstallerTest {
     when(customResourceDefinitionWriter.create(any(CustomResourceDefinition.class)))
         .thenReturn(definition);
 
-    crdInstaller.installCrd(definition.getMetadata().getName(),
-        definition.getSpec().getNames().getKind());
+    crdInstaller.installCrd(definition);
 
     verify(customResourceDefinitionFinder).findByName(definition.getMetadata().getName());
     verify(customResourceDefinitionWriter).create(any(CustomResourceDefinition.class));
@@ -68,8 +67,7 @@ class CrdInstallerTest {
     when(customResourceDefinitionWriter.update(any(CustomResourceDefinition.class)))
         .thenReturn(definition);
 
-    crdInstaller.installCrd(definition.getMetadata().getName(),
-        definition.getSpec().getNames().getKind());
+    crdInstaller.installCrd(definition);
 
     verify(customResourceDefinitionFinder).findByName(definition.getMetadata().getName());
     verify(customResourceDefinitionWriter).update(any(CustomResourceDefinition.class));

@@ -40,22 +40,17 @@ import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operator.conversion.ConversionUtil;
 import io.stackgres.operator.mutation.MutationUtil;
 import io.stackgres.operator.validation.ValidationUtil;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-public class CrdWebhookConfigurator {
+public class CrdWebhookInstaller {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(CrdWebhookConfigurator.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(CrdWebhookInstaller.class);
 
-  String operatorName = OperatorProperty.OPERATOR_NAME.getString();
-
-  String operatorNamespace = OperatorProperty.OPERATOR_NAMESPACE.getString();
-
-  @ConfigProperty(name = "quarkus.http.ssl.certificate.files")
-  String operatorCertPath;
-
+  private final String operatorName = OperatorProperty.OPERATOR_NAME.getString();
+  private final String operatorNamespace = OperatorProperty.OPERATOR_NAMESPACE.getString();
   private final ResourceFinder<CustomResourceDefinition> crdFinder;
   private final ResourceWriter<CustomResourceDefinition> crdWriter;
   private final ResourceFinder<ValidatingWebhookConfiguration> validatingWebhookConfigurationFinder;
@@ -68,7 +63,7 @@ public class CrdWebhookConfigurator {
   @Inject
   @SuppressFBWarnings(value = "MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR",
         justification = "False positive")
-  public CrdWebhookConfigurator(
+  public CrdWebhookInstaller(
       ResourceFinder<CustomResourceDefinition> crdFinder,
       ResourceWriter<CustomResourceDefinition> crdWriter,
       ResourceFinder<ValidatingWebhookConfiguration> validatingWebhookConfigurationFinder,
@@ -76,17 +71,18 @@ public class CrdWebhookConfigurator {
       ResourceFinder<MutatingWebhookConfiguration> mutatingWebhookConfigurationFinder,
       ResourceWriter<MutatingWebhookConfiguration> mutatingWebhookConfigurationWriter,
       YamlMapperProvider yamlMapperProvider) {
-    this.crdFinder = crdFinder;
-    this.crdWriter = crdWriter;
-    this.validatingWebhookConfigurationFinder = validatingWebhookConfigurationFinder;
-    this.validatingWebhookConfigurationWriter = validatingWebhookConfigurationWriter;
-    this.mutatingWebhookConfigurationFinder = mutatingWebhookConfigurationFinder;
-    this.mutatingWebhookConfigurationWriter = mutatingWebhookConfigurationWriter;
-    this.crdLoader = new CrdLoader(yamlMapperProvider.get());
-    this.operatorCertSupplier = this::readOperatorCertFromPath;
+    this(
+        crdFinder,
+        crdWriter,
+        validatingWebhookConfigurationFinder,
+        validatingWebhookConfigurationWriter,
+        mutatingWebhookConfigurationFinder,
+        mutatingWebhookConfigurationWriter,
+        yamlMapperProvider,
+        CrdWebhookInstaller::readOperatorCert);
   }
 
-  CrdWebhookConfigurator(
+  CrdWebhookInstaller(
       ResourceFinder<CustomResourceDefinition> crdFinder,
       ResourceWriter<CustomResourceDefinition> crdWriter,
       ResourceFinder<ValidatingWebhookConfiguration> validatingWebhookConfigurationFinder,
@@ -105,43 +101,28 @@ public class CrdWebhookConfigurator {
     this.operatorCertSupplier = operatorCertPathSupplier;
   }
 
-  public void configureWebhooks() {
+  public void installWebhooks() {
     String webhookCaCert = getWebhookCaCert()
         .orElseThrow(() -> new RuntimeException("Operator certificates secret not found"));
 
     var crds = crdLoader.scanCrds();
 
-    crds.forEach(crd -> configureWebhook(crd.getMetadata().getName(), webhookCaCert));
+    LOGGER.info("Installing Conversion Webhooks");
+    installConversionWebhooks(webhookCaCert, crds);
 
-    configureValidatingWebhooks(webhookCaCert, crds);
+    LOGGER.info("Installing Mutating Webhooks");
+    installMutatingWebhooks(webhookCaCert, crds);
 
-    configureMutatingWebhooks(webhookCaCert, crds);
+    LOGGER.info("Installing Validating Webhooks");
+    installValidatingWebhooks(webhookCaCert, crds);
   }
 
-  protected void configureValidatingWebhooks(
+  private void installConversionWebhooks(
       String webhookCaCert, List<CustomResourceDefinition> crds) {
-    var validatingWebhookFound = validatingWebhookConfigurationFinder.findByName(operatorName);
-    var validatingWebhook = validatingWebhookFound
-        .orElseGet(() -> new ValidatingWebhookConfigurationBuilder()
-            .withNewMetadata()
-            .withName(operatorName)
-            .endMetadata()
-            .build());
-    validatingWebhook.setWebhooks(List.of());
-    crds.stream()
-        .filter(crd -> !Objects.equals(
-            crd.getSpec().getNames().getKind(),
-            StackGresConfig.KIND))
-        .forEach(crd -> configureValidatingWebhookConfiguration(
-            crd, validatingWebhook, webhookCaCert));
-    if (validatingWebhookFound.isEmpty()) {
-      validatingWebhookConfigurationWriter.create(validatingWebhook);
-    } else {
-      validatingWebhookConfigurationWriter.update(validatingWebhook);
-    }
+    crds.forEach(crd -> installConversionWebhook(crd.getMetadata().getName(), webhookCaCert));
   }
 
-  protected void configureMutatingWebhooks(
+  protected void installMutatingWebhooks(
       String webhookCaCert, List<CustomResourceDefinition> crds) {
     var mutatingWebhookFound = mutatingWebhookConfigurationFinder.findByName(operatorName);
     var mutatingWebhook = mutatingWebhookFound
@@ -155,7 +136,7 @@ public class CrdWebhookConfigurator {
         .filter(crd -> !Objects.equals(
             crd.getSpec().getNames().getKind(),
             StackGresConfig.KIND))
-        .forEach(crd -> configureMutatingWebhookConfiguration(
+        .forEach(crd -> installMutatingWebhookConfiguration(
             crd, mutatingWebhook, webhookCaCert));
     if (mutatingWebhookFound.isEmpty()) {
       mutatingWebhookConfigurationWriter.create(mutatingWebhook);
@@ -164,7 +145,7 @@ public class CrdWebhookConfigurator {
     }
   }
 
-  protected void configureWebhook(String name, String webhookCaCert) {
+  protected void installConversionWebhook(String name, String webhookCaCert) {
     CustomResourceDefinition customResourceDefinition = crdFinder.findByName(name)
         .orElseThrow(() -> new RuntimeException("Custom Resource Definition "
             + name + " not found"));
@@ -189,38 +170,7 @@ public class CrdWebhookConfigurator {
     crdWriter.update(customResourceDefinition);
   }
 
-  protected void configureValidatingWebhookConfiguration(
-      CustomResourceDefinition customResourceDefinition,
-      ValidatingWebhookConfiguration validatingWebhook,
-      String webhookCaCert) {
-    validatingWebhook.setWebhooks(Stream.concat(
-        validatingWebhook.getWebhooks().stream(),
-        Stream.of(new ValidatingWebhookBuilder()
-            .withName(customResourceDefinition.getSpec().getNames().getSingular()
-                + ".validating-webhook." + customResourceDefinition.getSpec().getGroup())
-            .withSideEffects("None")
-            .withRules(List.of(new RuleWithOperationsBuilder()
-                .withOperations("CREATE", "UPDATE", "DELETE")
-                .withApiGroups(customResourceDefinition.getSpec().getGroup())
-                .withApiVersions("*")
-                .withResources(customResourceDefinition.getSpec().getNames().getPlural())
-                .build()))
-            .withFailurePolicy("Fail")
-            .withNewClientConfig()
-            .withNewService()
-            .withNamespace(operatorNamespace)
-            .withName(operatorName)
-            .withPath(ValidationUtil.VALIDATION_PATH
-                + "/" + customResourceDefinition.getSpec().getNames().getSingular())
-            .endService()
-            .withCaBundle(webhookCaCert)
-            .endClientConfig()
-            .withAdmissionReviewVersions("v1")
-            .build()))
-        .toList());
-  }
-
-  protected void configureMutatingWebhookConfiguration(
+  protected void installMutatingWebhookConfiguration(
       CustomResourceDefinition customResourceDefinition,
       MutatingWebhookConfiguration mutatingWebhook,
       String webhookCaCert) {
@@ -251,15 +201,71 @@ public class CrdWebhookConfigurator {
         .toList());
   }
 
+  protected void installValidatingWebhooks(
+      String webhookCaCert, List<CustomResourceDefinition> crds) {
+    var validatingWebhookFound = validatingWebhookConfigurationFinder.findByName(operatorName);
+    var validatingWebhook = validatingWebhookFound
+        .orElseGet(() -> new ValidatingWebhookConfigurationBuilder()
+            .withNewMetadata()
+            .withName(operatorName)
+            .endMetadata()
+            .build());
+    validatingWebhook.setWebhooks(List.of());
+    crds.stream()
+        .filter(crd -> !Objects.equals(
+            crd.getSpec().getNames().getKind(),
+            StackGresConfig.KIND))
+        .forEach(crd -> installValidatingWebhookConfiguration(
+            crd, validatingWebhook, webhookCaCert));
+    if (validatingWebhookFound.isEmpty()) {
+      validatingWebhookConfigurationWriter.create(validatingWebhook);
+    } else {
+      validatingWebhookConfigurationWriter.update(validatingWebhook);
+    }
+  }
+
+  protected void installValidatingWebhookConfiguration(
+      CustomResourceDefinition customResourceDefinition,
+      ValidatingWebhookConfiguration validatingWebhook,
+      String webhookCaCert) {
+    validatingWebhook.setWebhooks(Stream.concat(
+        validatingWebhook.getWebhooks().stream(),
+        Stream.of(new ValidatingWebhookBuilder()
+            .withName(customResourceDefinition.getSpec().getNames().getSingular()
+                + ".validating-webhook." + customResourceDefinition.getSpec().getGroup())
+            .withSideEffects("None")
+            .withRules(List.of(new RuleWithOperationsBuilder()
+                .withOperations("CREATE", "UPDATE", "DELETE")
+                .withApiGroups(customResourceDefinition.getSpec().getGroup())
+                .withApiVersions("*")
+                .withResources(customResourceDefinition.getSpec().getNames().getPlural())
+                .build()))
+            .withFailurePolicy("Fail")
+            .withNewClientConfig()
+            .withNewService()
+            .withNamespace(operatorNamespace)
+            .withName(operatorName)
+            .withPath(ValidationUtil.VALIDATION_PATH
+                + "/" + customResourceDefinition.getSpec().getNames().getSingular())
+            .endService()
+            .withCaBundle(webhookCaCert)
+            .endClientConfig()
+            .withAdmissionReviewVersions("v1")
+            .build()))
+        .toList());
+  }
+
   protected Optional<String> getWebhookCaCert() {
     return Optional.ofNullable(operatorCertSupplier.get())
         .map(cert -> cert.getBytes(StandardCharsets.UTF_8))
         .map(Base64.getEncoder()::encodeToString);
   }
 
-  protected String readOperatorCertFromPath() {
+  private static String readOperatorCert() {
+    final String operatorCertPath = ConfigProvider.getConfig().getValue(
+        "quarkus.http.ssl.certificate.files", String.class);
     try {
-      return Files.readString(Paths.get(this.operatorCertPath));
+      return Files.readString(Paths.get(operatorCertPath));
     } catch (Exception ex) {
       LOGGER.warn("Can not read operator certificate {}", operatorCertPath, ex);
       return null;

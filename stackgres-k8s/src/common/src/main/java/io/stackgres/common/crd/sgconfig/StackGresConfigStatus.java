@@ -34,7 +34,7 @@ public class StackGresConfigStatus {
 
   private String version;
 
-  private Boolean removeOldOperatorBundleResources;
+  private Boolean oldOperatorBundleResourcesRemoved;
 
   private StackGresConfigStatusGrafana grafana;
 
@@ -54,12 +54,12 @@ public class StackGresConfigStatus {
     this.version = version;
   }
 
-  public Boolean getRemoveOldOperatorBundleResources() {
-    return removeOldOperatorBundleResources;
+  public Boolean getOldOperatorBundleResourcesRemoved() {
+    return oldOperatorBundleResourcesRemoved;
   }
 
-  public void setRemoveOldOperatorBundleResources(Boolean removeOldOperatorBundleResources) {
-    this.removeOldOperatorBundleResources = removeOldOperatorBundleResources;
+  public void setOldOperatorBundleResourcesRemoved(Boolean oldOperatorBundleResourcesRemoved) {
+    this.oldOperatorBundleResourcesRemoved = oldOperatorBundleResourcesRemoved;
   }
 
   public StackGresConfigStatusGrafana getGrafana() {
@@ -72,7 +72,7 @@ public class StackGresConfigStatus {
 
   @Override
   public int hashCode() {
-    return Objects.hash(conditions, grafana, removeOldOperatorBundleResources, version);
+    return Objects.hash(conditions, grafana, oldOperatorBundleResourcesRemoved, version);
   }
 
   @Override
@@ -85,7 +85,8 @@ public class StackGresConfigStatus {
     }
     StackGresConfigStatus other = (StackGresConfigStatus) obj;
     return Objects.equals(conditions, other.conditions) && Objects.equals(grafana, other.grafana)
-        && Objects.equals(removeOldOperatorBundleResources, other.removeOldOperatorBundleResources)
+        && Objects.equals(
+            oldOperatorBundleResourcesRemoved, other.oldOperatorBundleResourcesRemoved)
         && Objects.equals(version, other.version);
   }
 
