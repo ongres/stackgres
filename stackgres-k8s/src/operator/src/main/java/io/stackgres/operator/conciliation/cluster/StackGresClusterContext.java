@@ -5,12 +5,13 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
+import static io.stackgres.operator.common.CryptoUtil.generatePassword;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -25,7 +26,7 @@ import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromStorage;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -139,14 +140,14 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
   Optional<String> getPostgresSslPrivateKey();
 
   default Optional<String> getBackupPath() {
-    Optional<@NotNull StackGresClusterConfiguration> config = Optional.of(getCluster())
+    Optional<@NotNull StackGresClusterConfigurations> config = Optional.of(getCluster())
         .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getConfiguration);
+        .map(StackGresClusterSpec::getConfigurations);
 
     return config
-        .map(StackGresClusterConfiguration::getBackupPath)
+        .map(StackGresClusterConfigurations::getBackupPath)
         .or(() -> config
-            .map(StackGresClusterConfiguration::getBackups)
+            .map(StackGresClusterConfigurations::getBackups)
             .map(Collection::stream)
             .flatMap(Stream::findFirst)
             .map(StackGresClusterBackupConfiguration::getPath));
@@ -156,8 +157,8 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
     if (getObjectStorageConfig().isPresent()) {
       return Optional.of(getCluster())
           .map(StackGresCluster::getSpec)
-          .map(StackGresClusterSpec::getConfiguration)
-          .map(StackGresClusterConfiguration::getBackups)
+          .map(StackGresClusterSpec::getConfigurations)
+          .map(StackGresClusterConfigurations::getBackups)
           .map(Collection::stream)
           .flatMap(Stream::findFirst)
           .map(bc -> new BackupConfiguration(
@@ -183,8 +184,8 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
               bc.getCompression(),
               Optional.of(getCluster())
                   .map(StackGresCluster::getSpec)
-                  .map(StackGresClusterSpec::getConfiguration)
-                  .map(StackGresClusterConfiguration::getBackupPath)
+                  .map(StackGresClusterSpec::getConfigurations)
+                  .map(StackGresClusterConfigurations::getBackupPath)
                   .orElse(null),
               Optional.ofNullable(bc.getPerformance())
                   .map(bp -> new BackupPerformance(
@@ -230,8 +231,8 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
   default Optional<String> getReplicatePath() {
     return getReplicateCluster()
         .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getConfiguration)
-        .map(StackGresClusterConfiguration::getBackups)
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getBackups)
         .stream()
         .flatMap(List::stream)
         .findFirst()
@@ -286,7 +287,4 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
         .orElse(Map.of());
   }
 
-  default String generatePassword() {
-    return UUID.randomUUID().toString().substring(4, 22);
-  }
 }

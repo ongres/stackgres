@@ -41,6 +41,7 @@ class OverridesShardsScriptsConfigValidatorTest {
 
     review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
         new StackGresShardedClusterShardBuilder()
+        .withIndex(0)
         .withManagedSql(review.getRequest().getObject().getSpec().getShards()
             .getManagedSql())
         .build()));

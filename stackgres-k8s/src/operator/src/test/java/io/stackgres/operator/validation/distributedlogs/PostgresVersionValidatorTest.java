@@ -72,7 +72,7 @@ class PostgresVersionValidatorTest {
         AdmissionReviewFixtures.distributedLogs().loadCreate().get();
 
     StackGresDistributedLogsSpec spec = review.getRequest().getObject().getSpec();
-    String postgresConfigName = spec.getConfiguration().getPostgresConfig();
+    String postgresConfigName = spec.getConfigurations().getSgPostgresConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
@@ -94,7 +94,7 @@ class PostgresVersionValidatorTest {
     postgresConfig.getSpec().setPostgresVersion("10");
 
     StackGresDistributedLogsSpec spec = review.getRequest().getObject().getSpec();
-    String postgresConfigName = spec.getConfiguration().getPostgresConfig();
+    String postgresConfigName = spec.getConfigurations().getSgPostgresConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(eq(postgresConfigName), eq(namespace)))
@@ -127,7 +127,7 @@ class PostgresVersionValidatorTest {
     final StackGresDistributedLogsReview review =
         AdmissionReviewFixtures.distributedLogs().loadCreate().get();
     StackGresDistributedLogsSpec spec = review.getRequest().getObject().getSpec();
-    String postgresConfigName = spec.getConfiguration().getPostgresConfig();
+    String postgresConfigName = spec.getConfigurations().getSgPostgresConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(eq(postgresConfigName), eq(namespace)))
@@ -150,7 +150,7 @@ class PostgresVersionValidatorTest {
         AdmissionReviewFixtures.distributedLogs().loadCreate().get();
 
     StackGresDistributedLogsSpec spec = review.getRequest().getObject().getSpec();
-    spec.getConfiguration().setPostgresConfig("");
+    spec.getConfigurations().setSgPostgresConfig("");
 
     ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
@@ -169,7 +169,7 @@ class PostgresVersionValidatorTest {
         AdmissionReviewFixtures.distributedLogs().loadCreate().get();
 
     StackGresDistributedLogsSpec spec = review.getRequest().getObject().getSpec();
-    spec.getConfiguration().setPostgresConfig(null);
+    spec.getConfigurations().setSgPostgresConfig(null);
 
     ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
@@ -188,8 +188,8 @@ class PostgresVersionValidatorTest {
         AdmissionReviewFixtures.distributedLogs().loadUpdate().get();
 
     StackGresDistributedLogsSpec spec = review.getRequest().getObject().getSpec();
-    spec.getConfiguration().setPostgresConfig("test");
-    String postgresConfigName = spec.getConfiguration().getPostgresConfig();
+    spec.getConfigurations().setSgPostgresConfig("test");
+    String postgresConfigName = spec.getConfigurations().getSgPostgresConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(eq(postgresConfigName), eq(namespace)))

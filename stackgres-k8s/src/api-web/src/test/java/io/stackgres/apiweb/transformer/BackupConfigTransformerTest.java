@@ -228,7 +228,7 @@ class BackupConfigTransformerTest {
     azureBlobStorage.setPath(path);
 
     final var azureCredentials = createAzureCredentials();
-    azureBlobStorageDto.setCredentials(azureCredentials.target());
+    azureBlobStorageDto.setAzureCredentials(azureCredentials.target());
     azureBlobStorage.setAzureCredentials(azureCredentials.source());
 
     return new TransformerTuple<>(azureBlobStorageDto, azureBlobStorage);
@@ -252,7 +252,7 @@ class BackupConfigTransformerTest {
 
     var credentialsTuple = generateAwsCredentials();
     crdS3Storage.setAwsCredentials(credentialsTuple.source());
-    dtoS3Storage.setCredentials(credentialsTuple.target());
+    dtoS3Storage.setAwsCredentials(credentialsTuple.target());
 
     return new TransformerTuple<>(dtoS3Storage, crdS3Storage);
   }
@@ -282,13 +282,13 @@ class BackupConfigTransformerTest {
     target.setEndpoint(endpoint);
     source.setEndpoint(endpoint);
 
-    boolean forcePathStyle = new Random().nextBoolean();
-    target.setForcePathStyle(forcePathStyle);
-    source.setForcePathStyle(forcePathStyle);
+    boolean enablePathStyleAddressing = new Random().nextBoolean();
+    target.setEnablePathStyleAddressing(enablePathStyleAddressing);
+    source.setEnablePathStyleAddressing(enablePathStyleAddressing);
 
     final var credentialTuple = generateAwsCredentials();
 
-    target.setCredentials(credentialTuple.target());
+    target.setAwsCredentials(credentialTuple.target());
     source.setAwsCredentials(credentialTuple.source());
 
     return new TransformerTuple<>(target, source);
@@ -307,8 +307,8 @@ class BackupConfigTransformerTest {
     dtoS3Storage.setBucket(bucket);
 
     var credentialsTuple = generateGcsCredentials();
-    crdS3Storage.setCredentials(credentialsTuple.source());
-    dtoS3Storage.setCredentials(credentialsTuple.target());
+    crdS3Storage.setGcpCredentials(credentialsTuple.source());
+    dtoS3Storage.setGcpCredentials(credentialsTuple.target());
 
     return new TransformerTuple<>(dtoS3Storage, crdS3Storage);
   }
@@ -361,8 +361,8 @@ class BackupConfigTransformerTest {
     secretKeySelectorDto.setAccessKey(accessKey);
 
     final var account = generateSecretKeySelector();
-    secretKeySelector.setAccount(account);
-    secretKeySelectorDto.setAccount(account);
+    secretKeySelector.setStorageAccount(account);
+    secretKeySelectorDto.setStorageAccount(account);
 
     AzureBlobStorageCredentialsDto target = new AzureBlobStorageCredentialsDto();
     AzureBlobStorageCredentials source = new AzureBlobStorageCredentials();

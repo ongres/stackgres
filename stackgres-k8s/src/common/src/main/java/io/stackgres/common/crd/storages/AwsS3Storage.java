@@ -12,7 +12,6 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.ValidEnum;
@@ -26,23 +25,18 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class AwsS3Storage implements PrefixedStorage {
 
-  @JsonProperty("bucket")
   @NotNull(message = "The bucket is required")
   private String bucket;
 
-  @JsonProperty("path")
   @Deprecated(forRemoval = true)
   private String path;
 
-  @JsonProperty("awsCredentials")
   @NotNull(message = "The credentials is required")
   @Valid
   private AwsCredentials awsCredentials;
 
-  @JsonProperty("region")
   private String region;
 
-  @JsonProperty("storageClass")
   @ValidEnum(enumClass = StorageClassS3.class, allowNulls = true,
       message = "storageClass must be one of STANDARD, STANDARD_IA or REDUCED_REDUNDANCY.")
   private String storageClass;

@@ -11,7 +11,6 @@ import javax.validation.constraints.Null;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
@@ -24,29 +23,22 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresBaseBackupPerformance {
 
-  @JsonProperty("maxNetworkBandwitdh")
   @Null
   @Deprecated(forRemoval = true)
   private Long maxNetworkBandwitdh;
 
-  @JsonProperty("maxDiskBandwitdh")
   @Null
   @Deprecated(forRemoval = true)
   private Long maxDiskBandwitdh;
 
-  @JsonProperty("maxNetworkBandwidth")
   private Long maxNetworkBandwidth;
 
-  @JsonProperty("maxDiskBandwidth")
   private Long maxDiskBandwidth;
 
-  @JsonProperty("uploadDiskConcurrency")
   private Integer uploadDiskConcurrency;
 
-  @JsonProperty("uploadConcurrency")
   private Integer uploadConcurrency;
 
-  @JsonProperty("downloadConcurrency")
   private Integer downloadConcurrency;
 
   @Deprecated(forRemoval = true)

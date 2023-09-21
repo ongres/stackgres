@@ -49,7 +49,7 @@ public class DefaultPoolingFactory
         .withNewSpec()
         .withNewPgBouncer()
         .withNewPgbouncerIni()
-        .withParameters(defaultValues.entrySet()
+        .withPgbouncer(defaultValues.entrySet()
             .stream()
             .filter(e -> !blockedValues.contains(e.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))

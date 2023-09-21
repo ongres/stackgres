@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.dbops;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -14,10 +13,8 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class DbOpsMinorVersionUpgrade {
 
-  @JsonProperty("postgresVersion")
   private String postgresVersion;
 
-  @JsonProperty("method")
   private String method;
 
   public String getPostgresVersion() {

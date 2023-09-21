@@ -8,7 +8,6 @@ package io.stackgres.apiweb.dto.cluster;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -16,49 +15,34 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ClusterSpec {
 
-  @JsonProperty("postgres")
   private ClusterPostgres postgres;
 
-  @JsonProperty("instances")
-  private int instances;
+  private Integer instances;
 
-  @JsonProperty("replication")
   private ClusterReplication replication;
 
-  @JsonProperty("configurations")
-  private ClusterConfiguration configuration;
+  private ClusterConfigurations configurations;
 
-  @JsonProperty("sgInstanceProfile")
   private String sgInstanceProfile;
 
-  @JsonProperty("initialData")
-  private ClusterInitData initData;
+  private ClusterInitialData initialData;
 
-  @JsonProperty("replicateFrom")
   private ClusterReplicateFrom replicateFrom;
 
-  @JsonProperty("managedSql")
   private ClusterManagedSql managedSql;
 
-  @JsonProperty("distributedLogs")
   private ClusterDistributedLogs distributedLogs;
 
-  @JsonProperty("toInstallPostgresExtensions")
   private List<ClusterInstalledExtension> toInstallPostgresExtensions;
 
-  @JsonProperty("pods")
-  private ClusterPod pods;
+  private ClusterPods pods;
 
-  @JsonProperty("prometheusAutobind")
   private Boolean prometheusAutobind;
 
-  @JsonProperty("nonProductionOptions")
-  private ClusterNonProduction nonProductionOptions;
+  private ClusterNonProductionOptions nonProductionOptions;
 
-  @JsonProperty("postgresServices")
   private ClusterPostgresServices postgresServices;
 
-  @JsonProperty("metadata")
   private ClusterSpecMetadata metadata;
 
   public ClusterPostgres getPostgres() {
@@ -69,11 +53,11 @@ public class ClusterSpec {
     this.postgres = postgres;
   }
 
-  public int getInstances() {
+  public Integer getInstances() {
     return instances;
   }
 
-  public void setInstances(int instances) {
+  public void setInstances(Integer instances) {
     this.instances = instances;
   }
 
@@ -85,12 +69,12 @@ public class ClusterSpec {
     this.replication = replication;
   }
 
-  public ClusterConfiguration getConfiguration() {
-    return configuration;
+  public ClusterConfigurations getConfigurations() {
+    return configurations;
   }
 
-  public void setConfiguration(ClusterConfiguration configurations) {
-    this.configuration = configurations;
+  public void setConfigurations(ClusterConfigurations configurations) {
+    this.configurations = configurations;
   }
 
   public String getSgInstanceProfile() {
@@ -109,28 +93,28 @@ public class ClusterSpec {
     this.prometheusAutobind = prometheusAutobind;
   }
 
-  public ClusterNonProduction getNonProductionOptions() {
+  public ClusterNonProductionOptions getNonProductionOptions() {
     return nonProductionOptions;
   }
 
-  public void setNonProductionOptions(ClusterNonProduction nonProductionOptions) {
+  public void setNonProductionOptions(ClusterNonProductionOptions nonProductionOptions) {
     this.nonProductionOptions = nonProductionOptions;
   }
 
-  public ClusterPod getPods() {
+  public ClusterPods getPods() {
     return pods;
   }
 
-  public void setPods(ClusterPod pods) {
+  public void setPods(ClusterPods pods) {
     this.pods = pods;
   }
 
-  public ClusterInitData getInitData() {
-    return initData;
+  public ClusterInitialData getInitialData() {
+    return initialData;
   }
 
-  public void setInitData(ClusterInitData initData) {
-    this.initData = initData;
+  public void setInitialData(ClusterInitialData initialData) {
+    this.initialData = initialData;
   }
 
   public ClusterReplicateFrom getReplicateFrom() {

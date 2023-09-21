@@ -43,10 +43,11 @@ class OldOverridesShardsPersistentVolumeSizeExpansionValidatorTest extends
     review = AdmissionReviewFixtures.shardedCluster().loadUpdate().get();
     review.getRequest().getOldObject().getSpec().getShards().setOverrides(List.of(
         new StackGresShardedClusterShardBuilder()
-        .withNewPodForShards()
+        .withIndex(0)
+        .withNewPodsForShards()
         .withNewPersistentVolume()
         .endPersistentVolume()
-        .endPodForShards()
+        .endPodsForShards()
         .build()));
     return review;
   }
@@ -66,32 +67,32 @@ class OldOverridesShardsPersistentVolumeSizeExpansionValidatorTest extends
   protected void setVolumeSize(StackGresShardedCluster cluster, String size) {
     if (cluster == review.getRequest().getObject()) {
       cluster.getSpec().getShards()
-          .getPod().getPersistentVolume().setSize(size);
+          .getPods().getPersistentVolume().setSize(size);
       return;
     }
     cluster.getSpec().getShards().getOverrides().get(0)
-        .getPodForShards().getPersistentVolume().setSize(size);
+        .getPodsForShards().getPersistentVolume().setSize(size);
   }
 
   @Override
   protected void setStorageClassName(StackGresShardedCluster cluster, String storageClassName) {
     if (cluster == review.getRequest().getObject()) {
       cluster.getSpec().getShards()
-          .getPod().getPersistentVolume().setStorageClass(storageClassName);
+          .getPods().getPersistentVolume().setStorageClass(storageClassName);
       return;
     }
     cluster.getSpec().getShards().getOverrides().get(0)
-        .getPodForShards().getPersistentVolume().setStorageClass(storageClassName);
+        .getPodsForShards().getPersistentVolume().setStorageClass(storageClassName);
   }
 
   @Override
   protected String getStorageClassName(StackGresShardedCluster cluster) {
     if (cluster == review.getRequest().getObject()) {
       return cluster.getSpec().getShards()
-          .getPod().getPersistentVolume().getStorageClass();
+          .getPods().getPersistentVolume().getStorageClass();
     }
     return cluster.getSpec().getShards().getOverrides().get(0)
-        .getPodForShards().getPersistentVolume().getStorageClass();
+        .getPodsForShards().getPersistentVolume().getStorageClass();
   }
 
   @Override

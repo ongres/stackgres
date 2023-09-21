@@ -8,12 +8,12 @@ package io.stackgres.apiweb.dto.shardedcluster;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.apiweb.dto.cluster.ClusterConfiguration;
+import io.stackgres.apiweb.dto.cluster.ClusterConfigurations;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(value = { "sgBackupConfig", "backupPath",
     "backups", "patroni", "credentials" })
-public class ShardedClusterInnerConfiguration extends ClusterConfiguration {
+public class ShardedClusterInnerConfigurations extends ClusterConfigurations {
 
 }

@@ -58,7 +58,7 @@ public class DbOpsRequiredResourcesGenerator
 
     final Optional<StackGresProfile> profile = cluster
         .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getResourceProfile)
+        .map(StackGresClusterSpec::getSgInstanceProfile)
         .flatMap(profileName -> profileFinder
             .findByNameAndNamespace(profileName, dbOpsNamespace));
 

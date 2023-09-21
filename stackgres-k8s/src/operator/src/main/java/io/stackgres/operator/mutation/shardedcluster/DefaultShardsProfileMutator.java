@@ -41,12 +41,12 @@ public class DefaultShardsProfileMutator
 
   @Override
   protected String getTargetPropertyValue(StackGresShardedCluster resource) {
-    return resource.getSpec().getShards().getResourceProfile();
+    return resource.getSpec().getShards().getSgInstanceProfile();
   }
 
   @Override
   protected void setTargetProperty(StackGresShardedCluster resource, String defaultResourceName) {
-    resource.getSpec().getShards().setResourceProfile(defaultResourceName);
+    resource.getSpec().getShards().setSgInstanceProfile(defaultResourceName);
   }
 
 }

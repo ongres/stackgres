@@ -48,8 +48,8 @@ class DefaultCoordinatorPostgresConfigMutatorTest
   @Override
   protected void checkConfigurationIsSet(StackGresShardedCluster newResource) {
     assertNotNull(newResource.getSpec().getCoordinator());
-    assertNotNull(newResource.getSpec().getCoordinator().getConfiguration());
-    assertNotNull(newResource.getSpec().getCoordinator().getConfiguration().getPostgresConfig());
+    assertNotNull(newResource.getSpec().getCoordinator().getConfigurations());
+    assertNotNull(newResource.getSpec().getCoordinator().getConfigurations().getSgPostgresConfig());
   }
 
   @Override
@@ -60,8 +60,8 @@ class DefaultCoordinatorPostgresConfigMutatorTest
   @Override
   protected void setUpMissingConfiguration() {
     review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
-    review.getRequest().getObject().getSpec().getCoordinator().getConfiguration()
-        .setPostgresConfig(null);
+    review.getRequest().getObject().getSpec().getCoordinator().getConfigurations()
+        .setSgPostgresConfig(null);
   }
 
   @Override

@@ -28,9 +28,11 @@ import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
+import io.stackgres.common.crd.sgcluster.StackGresClusterServiceBindingStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.StatusManager;
+import io.stackgres.operator.conciliation.factory.cluster.ServiceBindingSecret;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +61,11 @@ public class ClusterStatusManager
 
   @Override
   public StackGresCluster refreshCondition(StackGresCluster source) {
+    if (source.getStatus() == null) {
+      source.setStatus(new StackGresClusterStatus());
+    }
+    source.getStatus().setBinding(new StackGresClusterServiceBindingStatus());
+    source.getStatus().getBinding().setName(ServiceBindingSecret.name(source));
     if (isPendingRestart(source)) {
       updateCondition(getPodRequiresRestart(), source);
     } else {

@@ -109,7 +109,7 @@ public class ValidationUtils {
     Seq.of(fields).forEach(field -> {
       StatusCause cause = details.getCauses().stream()
           .filter(statusCause -> statusCause.getField().equals(field))
-          .findFirst().orElseThrow(() -> new AssertionFailedError("Not cause with the field "
+          .findFirst().orElseThrow(() -> new AssertionFailedError("No cause with field "
               + field + " was found"));
       assertEquals(message, cause.getMessage());
       assertEquals(reason, cause.getReason());

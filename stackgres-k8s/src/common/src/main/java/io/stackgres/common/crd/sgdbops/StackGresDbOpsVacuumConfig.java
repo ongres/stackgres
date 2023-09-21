@@ -7,20 +7,14 @@ package io.stackgres.common.crd.sgdbops;
 
 import java.util.Objects;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 public abstract class StackGresDbOpsVacuumConfig {
 
-  @JsonProperty("full")
   protected Boolean full;
 
-  @JsonProperty("freeze")
   protected Boolean freeze;
 
-  @JsonProperty("analyze")
   protected Boolean analyze;
 
-  @JsonProperty("disablePageSkipping")
   protected Boolean disablePageSkipping;
 
   public Boolean getFull() {

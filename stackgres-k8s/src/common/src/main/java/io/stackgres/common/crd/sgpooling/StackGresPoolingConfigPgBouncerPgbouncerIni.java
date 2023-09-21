@@ -13,7 +13,6 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
@@ -26,24 +25,21 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresPoolingConfigPgBouncerPgbouncerIni {
 
-  @JsonProperty("pgbouncer")
   @NotNull(message = "pgbouncer should not be null")
-  private Map<String, String> parameters;
+  private Map<String, String> pgbouncer;
 
-  @JsonProperty("databases")
   @Valid
   private Map<String, Map<String, String>> databases;
 
-  @JsonProperty("users")
   @Valid
   private Map<String, Map<String, String>> users;
 
-  public Map<String, String> getParameters() {
-    return parameters;
+  public Map<String, String> getPgbouncer() {
+    return pgbouncer;
   }
 
-  public void setParameters(Map<String, String> parameters) {
-    this.parameters = parameters;
+  public void setPgbouncer(Map<String, String> pgbouncer) {
+    this.pgbouncer = pgbouncer;
   }
 
   public Map<String, Map<String, String>> getDatabases() {
@@ -64,7 +60,7 @@ public class StackGresPoolingConfigPgBouncerPgbouncerIni {
 
   @Override
   public int hashCode() {
-    return Objects.hash(databases, parameters, users);
+    return Objects.hash(databases, pgbouncer, users);
   }
 
   @Override
@@ -78,7 +74,7 @@ public class StackGresPoolingConfigPgBouncerPgbouncerIni {
     StackGresPoolingConfigPgBouncerPgbouncerIni other =
         (StackGresPoolingConfigPgBouncerPgbouncerIni) obj;
     return Objects.equals(databases, other.databases)
-        && Objects.equals(parameters, other.parameters)
+        && Objects.equals(pgbouncer, other.pgbouncer)
         && Objects.equals(users, other.users);
   }
 

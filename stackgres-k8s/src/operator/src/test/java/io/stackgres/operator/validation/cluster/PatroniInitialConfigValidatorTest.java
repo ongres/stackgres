@@ -36,11 +36,11 @@ class PatroniInitialConfigValidatorTest {
   @Test
   void givenAValidCreationWithPatroniInitialConfig_shouldPass() throws ValidationFailed {
     final StackGresClusterReview review = getCreationReview();
-    review.getRequest().getObject().getSpec().getConfiguration()
+    review.getRequest().getObject().getSpec().getConfigurations()
         .setPatroni(new StackGresClusterPatroni());
-    review.getRequest().getObject().getSpec().getConfiguration()
+    review.getRequest().getObject().getSpec().getConfigurations()
         .getPatroni().setInitialConfig(new StackGresClusterPatroniInitialConfig());
-    review.getRequest().getObject().getSpec().getConfiguration()
+    review.getRequest().getObject().getSpec().getConfigurations()
         .getPatroni().getInitialConfig().put("scope", "test");
 
     validator.validate(review);
@@ -56,9 +56,9 @@ class PatroniInitialConfigValidatorTest {
   @Test
   void givenAValidUpdateWithoutPatroniConfig_shouldPass() throws ValidationFailed {
     final StackGresClusterReview review = getUpdateReview();
-    review.getRequest().getObject().getSpec().getConfiguration()
+    review.getRequest().getObject().getSpec().getConfigurations()
         .setPatroni(null);
-    review.getRequest().getOldObject().getSpec().getConfiguration()
+    review.getRequest().getOldObject().getSpec().getConfigurations()
         .setPatroni(null);
 
     validator.validate(review);
@@ -67,9 +67,9 @@ class PatroniInitialConfigValidatorTest {
   @Test
   void givenAValidUpdateWithoutPatroniInitialConfig_shouldPass() throws ValidationFailed {
     final StackGresClusterReview review = getUpdateReview();
-    review.getRequest().getObject().getSpec().getConfiguration()
+    review.getRequest().getObject().getSpec().getConfigurations()
         .getPatroni().setInitialConfig(null);
-    review.getRequest().getOldObject().getSpec().getConfiguration()
+    review.getRequest().getOldObject().getSpec().getConfigurations()
         .getPatroni().setInitialConfig(null);
 
     validator.validate(review);
@@ -78,7 +78,7 @@ class PatroniInitialConfigValidatorTest {
   @Test
   void givenAnUpdate_shouldFail() {
     final StackGresClusterReview review = getUpdateReview();
-    review.getRequest().getObject().getSpec().getConfiguration()
+    review.getRequest().getObject().getSpec().getConfigurations()
         .getPatroni().getInitialConfig().put("test", true);
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),

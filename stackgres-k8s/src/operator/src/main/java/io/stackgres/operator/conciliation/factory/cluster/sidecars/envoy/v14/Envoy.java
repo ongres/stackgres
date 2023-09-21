@@ -39,7 +39,7 @@ import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
@@ -318,8 +318,8 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
       final ObjectNode envoyConfig) {
     boolean disablePgBouncer = Optional
         .ofNullable(stackGresCluster.getSpec())
-        .map(StackGresClusterSpec::getPod)
-        .map(StackGresClusterPod::getDisableConnectionPooling)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableConnectionPooling)
         .orElse(false);
     final String postgresEntryClusterName;
     if (disablePgBouncer) {

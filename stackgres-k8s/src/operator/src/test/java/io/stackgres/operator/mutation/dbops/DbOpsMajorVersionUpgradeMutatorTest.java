@@ -64,8 +64,8 @@ class DbOpsMajorVersionUpgradeMutatorTest {
 
   @Test
   void majorVersionUpgradeWithoutBackupPath_shouldSetNothing() {
-    cluster.getSpec().getConfiguration().setBackupConfig(null);
-    cluster.getSpec().getConfiguration().setBackupPath(null);
+    cluster.getSpec().getConfigurations().setSgBackupConfig(null);
+    cluster.getSpec().getConfigurations().setBackupPath(null);
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
 
@@ -101,14 +101,14 @@ class DbOpsMajorVersionUpgradeMutatorTest {
 
   @Test
   void majorVersionUpgradeWithBackupsButWithoutBackupPath_shouldSetIt() {
-    cluster.getSpec().getConfiguration().setBackupConfig(null);
-    cluster.getSpec().getConfiguration().setBackupPath(null);
-    cluster.getSpec().getConfiguration().setBackups(new ArrayList<>());
-    cluster.getSpec().getConfiguration().getBackups()
+    cluster.getSpec().getConfigurations().setSgBackupConfig(null);
+    cluster.getSpec().getConfigurations().setBackupPath(null);
+    cluster.getSpec().getConfigurations().setBackups(new ArrayList<>());
+    cluster.getSpec().getConfigurations().getBackups()
         .add(new StackGresClusterBackupConfiguration());
-    cluster.getSpec().getConfiguration().getBackups()
-        .get(0).setObjectStorage("test");
-    cluster.getSpec().getConfiguration().getBackups()
+    cluster.getSpec().getConfigurations().getBackups()
+        .get(0).setSgObjectStorage("test");
+    cluster.getSpec().getConfigurations().getBackups()
         .get(0).setPath("test");
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));

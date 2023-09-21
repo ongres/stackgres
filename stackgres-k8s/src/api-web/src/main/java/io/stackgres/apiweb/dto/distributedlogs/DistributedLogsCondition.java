@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.distributedlogs;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -14,19 +13,14 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class DistributedLogsCondition {
 
-  @JsonProperty("lastTransitionTime")
   private String lastTransitionTime;
 
-  @JsonProperty("message")
   private String message;
 
-  @JsonProperty("reason")
   private String reason;
 
-  @JsonProperty("status")
   private String status;
 
-  @JsonProperty("type")
   private String type;
 
   /**

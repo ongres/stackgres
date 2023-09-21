@@ -12,7 +12,6 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -50,12 +49,10 @@ public final class StackGresScript
 
   public static final String KIND = "SGScript";
 
-  @JsonProperty("spec")
   @NotNull(message = "The specification is required")
   @Valid
   private StackGresScriptSpec spec;
 
-  @JsonProperty("status")
   @NotNull(message = "The status is required")
   @Valid
   private StackGresScriptStatus status;

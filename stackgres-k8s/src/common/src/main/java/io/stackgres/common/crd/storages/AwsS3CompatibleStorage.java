@@ -12,7 +12,6 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.ValidEnum;
@@ -27,31 +26,24 @@ import org.hibernate.validator.constraints.URL;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class AwsS3CompatibleStorage implements PrefixedStorage {
 
-  @JsonProperty("bucket")
   @NotNull(message = "The bucket is required")
   private String bucket;
 
-  @JsonProperty("path")
   @Deprecated(forRemoval = true)
   private String path;
 
-  @JsonProperty("awsCredentials")
   @NotNull(message = "The credentials is required")
   @Valid
   private AwsCredentials awsCredentials;
 
-  @JsonProperty("region")
   private String region;
 
-  @JsonProperty("endpoint")
   @URL(message = "s3Compatible.endpoint must be a valid URL",
       regexp = "^(http:|https:).*")
   private String endpoint;
 
-  @JsonProperty("enablePathStyleAddressing")
-  private Boolean forcePathStyle;
+  private Boolean enablePathStyleAddressing;
 
-  @JsonProperty("storageClass")
   @ValidEnum(enumClass = StorageClassS3.class, allowNulls = true,
       message = "storageClass must be one of STANDARD, STANDARD_IA or REDUCED_REDUNDANCY.")
   private String storageClass;
@@ -107,12 +99,12 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
     this.endpoint = endpoint;
   }
 
-  public Boolean isForcePathStyle() {
-    return forcePathStyle;
+  public Boolean isEnablePathStyleAddressing() {
+    return enablePathStyleAddressing;
   }
 
-  public void setForcePathStyle(Boolean forcePathStyle) {
-    this.forcePathStyle = forcePathStyle;
+  public void setEnablePathStyleAddressing(Boolean enablePathStyleAddressing) {
+    this.enablePathStyleAddressing = enablePathStyleAddressing;
   }
 
   public String getStorageClass() {
@@ -125,7 +117,7 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
 
   @Override
   public int hashCode() {
-    return Objects.hash(awsCredentials, bucket, forcePathStyle, endpoint, path, region,
+    return Objects.hash(awsCredentials, bucket, enablePathStyleAddressing, endpoint, path, region,
         storageClass);
   }
 
@@ -140,7 +132,7 @@ public class AwsS3CompatibleStorage implements PrefixedStorage {
     AwsS3CompatibleStorage other = (AwsS3CompatibleStorage) obj;
     return Objects.equals(awsCredentials, other.awsCredentials)
         && Objects.equals(bucket, other.bucket)
-        && Objects.equals(forcePathStyle, other.forcePathStyle)
+        && Objects.equals(enablePathStyleAddressing, other.enablePathStyleAddressing)
         && Objects.equals(endpoint, other.endpoint)
         && Objects.equals(path, other.path)
         && Objects.equals(region, other.region)

@@ -20,34 +20,31 @@ import io.stackgres.apiweb.dto.cluster.ClusterSpec;
     "prometheusAutobind", "nonProductionOptions" })
 public class ShardedClusterShards extends ClusterSpec {
 
-  @JsonProperty("clusters")
-  private int clusters;
+  private Integer clusters;
 
-  @JsonProperty("instancesPerCluster")
-  private int instancesPerCluster;
+  private Integer instancesPerCluster;
 
   @JsonProperty("replication")
   private ShardedClusterReplication replicationForShards;
 
-  @JsonProperty("overrides")
   private List<ShardedClusterShard> overrides;
 
   @JsonProperty("configurations")
-  private ShardedClusterInnerConfiguration configurationForShards;
+  private ShardedClusterInnerConfigurations configurationsForShards;
 
-  public int getClusters() {
+  public Integer getClusters() {
     return clusters;
   }
 
-  public void setClusters(int clusters) {
+  public void setClusters(Integer clusters) {
     this.clusters = clusters;
   }
 
-  public int getInstancesPerCluster() {
+  public Integer getInstancesPerCluster() {
     return instancesPerCluster;
   }
 
-  public void setInstancesPerCluster(int instancesPerCluster) {
+  public void setInstancesPerCluster(Integer instancesPerCluster) {
     this.instancesPerCluster = instancesPerCluster;
   }
 
@@ -67,12 +64,13 @@ public class ShardedClusterShards extends ClusterSpec {
     this.overrides = overrides;
   }
 
-  public ShardedClusterInnerConfiguration getConfigurationForShards() {
-    return configurationForShards;
+  public ShardedClusterInnerConfigurations getConfigurationsForShards() {
+    return configurationsForShards;
   }
 
-  public void setConfigurationForShards(ShardedClusterInnerConfiguration configurationForShards) {
-    this.configurationForShards = configurationForShards;
+  public void setConfigurationsForShards(
+      ShardedClusterInnerConfigurations configurationsForShards) {
+    this.configurationsForShards = configurationsForShards;
   }
 
 }

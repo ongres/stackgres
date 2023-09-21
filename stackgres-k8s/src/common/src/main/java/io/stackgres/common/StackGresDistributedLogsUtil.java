@@ -12,11 +12,11 @@ import java.util.Optional;
 import com.google.common.io.Resources;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitalData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServiceBuilder;
@@ -72,46 +72,46 @@ public interface StackGresDistributedLogsUtil {
     distributedLogsCluster.getSpec().getPostgres().setVersion(
         getPostgresVersion(distributedLogs));
     distributedLogsCluster.getSpec().setInstances(1);
-    distributedLogsCluster.getSpec().setResourceProfile(
-        distributedLogs.getSpec().getResourceProfile());
-    if (distributedLogs.getSpec().getConfiguration() != null) {
-      distributedLogsCluster.getSpec().setConfiguration(new StackGresClusterConfiguration());
-      distributedLogsCluster.getSpec().getConfiguration().setPostgresConfig(
-          distributedLogs.getSpec().getConfiguration().getPostgresConfig());
+    distributedLogsCluster.getSpec().setSgInstanceProfile(
+        distributedLogs.getSpec().getSgInstanceProfile());
+    if (distributedLogs.getSpec().getConfigurations() != null) {
+      distributedLogsCluster.getSpec().setConfigurations(new StackGresClusterConfigurations());
+      distributedLogsCluster.getSpec().getConfigurations().setSgPostgresConfig(
+          distributedLogs.getSpec().getConfigurations().getSgPostgresConfig());
     }
-    distributedLogsCluster.getSpec().setPod(new StackGresClusterPod());
-    distributedLogsCluster.getSpec().getPod().setPersistentVolume(
+    distributedLogsCluster.getSpec().setPods(new StackGresClusterPods());
+    distributedLogsCluster.getSpec().getPods().setPersistentVolume(
         new StackGresPodPersistentVolume());
-    distributedLogsCluster.getSpec().getPod().getPersistentVolume().setSize(
+    distributedLogsCluster.getSpec().getPods().getPersistentVolume().setSize(
         distributedLogs.getSpec().getPersistentVolume().getSize());
-    distributedLogsCluster.getSpec().getPod().getPersistentVolume().setStorageClass(
+    distributedLogsCluster.getSpec().getPods().getPersistentVolume().setStorageClass(
         distributedLogs.getSpec().getPersistentVolume().getStorageClass());
     distributedLogsCluster.getSpec().setPostgresServices(
         buildClusterPostgresServices(distributedLogs.getSpec()));
-    distributedLogsCluster.getSpec().getPod().setScheduling(new StackGresClusterPodScheduling());
+    distributedLogsCluster.getSpec().getPods().setScheduling(new StackGresClusterPodScheduling());
     Optional.of(distributedLogs)
         .map(StackGresDistributedLogs::getSpec)
         .map(StackGresDistributedLogsSpec::getScheduling)
         .ifPresent(distributedLogsScheduling -> {
-          distributedLogsCluster.getSpec().getPod().getScheduling().setNodeSelector(
+          distributedLogsCluster.getSpec().getPods().getScheduling().setNodeSelector(
               distributedLogsScheduling.getNodeSelector());
-          distributedLogsCluster.getSpec().getPod().getScheduling().setTolerations(
+          distributedLogsCluster.getSpec().getPods().getScheduling().setTolerations(
               distributedLogsScheduling.getTolerations());
-          distributedLogsCluster.getSpec().getPod().getScheduling().setNodeAffinity(
+          distributedLogsCluster.getSpec().getPods().getScheduling().setNodeAffinity(
               distributedLogsScheduling.getNodeAffinity());
-          distributedLogsCluster.getSpec().getPod().getScheduling().setPodAffinity(
+          distributedLogsCluster.getSpec().getPods().getScheduling().setPodAffinity(
               distributedLogsScheduling.getPodAffinity());
-          distributedLogsCluster.getSpec().getPod().getScheduling().setPodAntiAffinity(
+          distributedLogsCluster.getSpec().getPods().getScheduling().setPodAntiAffinity(
               distributedLogsScheduling.getPodAntiAffinity());
         });
-    distributedLogsCluster.getSpec().setInitData(new StackGresClusterInitData());
-    distributedLogsCluster.getSpec().getInitData().setScripts(
+    distributedLogsCluster.getSpec().setInitialData(new StackGresClusterInitalData());
+    distributedLogsCluster.getSpec().getInitialData().setScripts(
         List.of(new StackGresClusterScriptEntry()));
-    distributedLogsCluster.getSpec().getInitData().getScripts().get(0).setName(
+    distributedLogsCluster.getSpec().getInitialData().getScripts().get(0).setName(
         "distributed-logs-template");
-    distributedLogsCluster.getSpec().getInitData().getScripts().get(0).setDatabase(
+    distributedLogsCluster.getSpec().getInitialData().getScripts().get(0).setDatabase(
         "template1");
-    distributedLogsCluster.getSpec().getInitData().getScripts().get(0).setScript(
+    distributedLogsCluster.getSpec().getInitialData().getScripts().get(0).setScript(
         Unchecked.supplier(() -> Resources
             .asCharSource(StackGresDistributedLogsUtil.class.getResource(
                 "/distributed-logs-template.sql"),

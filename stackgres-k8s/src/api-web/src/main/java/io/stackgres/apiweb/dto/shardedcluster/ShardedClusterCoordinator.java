@@ -23,7 +23,7 @@ public class ShardedClusterCoordinator extends ClusterSpec {
   private StackGresShardedClusterReplication replicationForCoordinator;
 
   @JsonProperty("configurations")
-  private ShardedClusterInnerConfiguration configurationForCoordinator;
+  private ShardedClusterInnerConfigurations configurationsForCoordinator;
 
   public StackGresShardedClusterReplication getReplicationForCoordinator() {
     return replicationForCoordinator;
@@ -34,13 +34,13 @@ public class ShardedClusterCoordinator extends ClusterSpec {
     this.replicationForCoordinator = replicationForCoordinator;
   }
 
-  public ShardedClusterInnerConfiguration getConfigurationForCoordinator() {
-    return configurationForCoordinator;
+  public ShardedClusterInnerConfigurations getConfigurationsForCoordinator() {
+    return configurationsForCoordinator;
   }
 
-  public void setConfigurationForCoordinator(
-      ShardedClusterInnerConfiguration configurationForCoordinator) {
-    this.configurationForCoordinator = configurationForCoordinator;
+  public void setConfigurationsForCoordinator(
+      ShardedClusterInnerConfigurations configurationsForCoordinator) {
+    this.configurationsForCoordinator = configurationsForCoordinator;
   }
 
 }

@@ -13,7 +13,6 @@ import javax.validation.constraints.AssertTrue;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.FieldReference;
@@ -28,16 +27,12 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterScriptEntry {
 
-  @JsonProperty("name")
   private String name;
 
-  @JsonProperty("database")
   private String database;
 
-  @JsonProperty("script")
   private String script;
 
-  @JsonProperty("scriptFrom")
   @Valid
   private StackGresClusterScriptFrom scriptFrom;
 

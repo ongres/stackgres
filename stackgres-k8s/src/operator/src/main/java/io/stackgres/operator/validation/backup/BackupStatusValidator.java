@@ -50,12 +50,12 @@ public class BackupStatusValidator implements BackupValidator {
       StackGresBackupConfigSpec backupConfig = Optional
           .ofNullable(review.getRequest().getObject())
           .map(StackGresBackup::getStatus)
-          .map(StackGresBackupStatus::getBackupConfig)
+          .map(StackGresBackupStatus::getSgBackupConfig)
           .orElse(null);
       StackGresBackupConfigSpec oldBackupConfig = Optional
           .ofNullable(review.getRequest().getOldObject())
           .map(StackGresBackup::getStatus)
-          .map(StackGresBackupStatus::getBackupConfig)
+          .map(StackGresBackupStatus::getSgBackupConfig)
           .orElse(null);
       if (oldBackupConfig != null && !Objects.equals(backupConfig, oldBackupConfig)) {
         final String message = "Update of backups config is forbidden";

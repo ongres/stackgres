@@ -21,7 +21,7 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniInitialConfig;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -83,7 +83,7 @@ public interface PatroniUtil {
 
   static String clusterScope(StackGresCluster cluster) {
     return Optional
-        .ofNullable(cluster.getSpec().getConfiguration().getPatroni())
+        .ofNullable(cluster.getSpec().getConfigurations().getPatroni())
         .map(StackGresClusterPatroni::getInitialConfig)
         .map(patroniConfig -> patroniConfig.getScope())
         .orElse(cluster.getMetadata().getName());
@@ -168,14 +168,14 @@ public interface PatroniUtil {
   private static String baseName(StackGresCluster cluster) {
     return Optional.of(cluster)
         .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getConfiguration)
-        .map(StackGresClusterConfiguration::getPatroni)
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getPatroni)
         .map(StackGresClusterPatroni::getInitialConfig)
         .map(StackGresClusterPatroniInitialConfig::getScope)
         .map(scope -> Optional.of(cluster)
             .map(StackGresCluster::getSpec)
-            .map(StackGresClusterSpec::getConfiguration)
-            .map(StackGresClusterConfiguration::getPatroni)
+            .map(StackGresClusterSpec::getConfigurations)
+            .map(StackGresClusterConfigurations::getPatroni)
             .map(StackGresClusterPatroni::getInitialConfig)
             .flatMap(StackGresClusterPatroniInitialConfig::getCitusGroup)
             .map(group -> scope + "-" + group)

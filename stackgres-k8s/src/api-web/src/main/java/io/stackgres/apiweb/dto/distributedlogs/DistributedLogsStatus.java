@@ -9,19 +9,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.apiweb.dto.cluster.ClusterPodStatus;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class DistributedLogsStatus {
 
-  @JsonProperty("conditions")
   private List<DistributedLogsCondition> conditions = new ArrayList<>();
 
-  @JsonProperty("clusters")
+  private List<ClusterPodStatus> podStatuses;
+
+  private List<DistributedLogsStatusDatabase> databases = new ArrayList<>();
+
+  private List<DistributedLogsStatusCluster> connectedClusters = new ArrayList<>();
+
   private List<String> clusters;
+
+  private String fluentdConfigHash;
+
+  private String arch;
+
+  private String os;
+
+  private String labelPrefix;
 
   public List<DistributedLogsCondition> getConditions() {
     return conditions;
@@ -31,12 +43,68 @@ public class DistributedLogsStatus {
     this.conditions = conditions;
   }
 
+  public List<ClusterPodStatus> getPodStatuses() {
+    return podStatuses;
+  }
+
+  public void setPodStatuses(List<ClusterPodStatus> podStatuses) {
+    this.podStatuses = podStatuses;
+  }
+
+  public List<DistributedLogsStatusDatabase> getDatabases() {
+    return databases;
+  }
+
+  public void setDatabases(List<DistributedLogsStatusDatabase> databases) {
+    this.databases = databases;
+  }
+
+  public List<DistributedLogsStatusCluster> getConnectedClusters() {
+    return connectedClusters;
+  }
+
+  public void setConnectedClusters(List<DistributedLogsStatusCluster> connectedClusters) {
+    this.connectedClusters = connectedClusters;
+  }
+
   public List<String> getClusters() {
     return clusters;
   }
 
   public void setClusters(List<String> clusters) {
     this.clusters = clusters;
+  }
+
+  public String getFluentdConfigHash() {
+    return fluentdConfigHash;
+  }
+
+  public void setFluentdConfigHash(String fluentdConfigHash) {
+    this.fluentdConfigHash = fluentdConfigHash;
+  }
+
+  public String getArch() {
+    return arch;
+  }
+
+  public void setArch(String arch) {
+    this.arch = arch;
+  }
+
+  public String getOs() {
+    return os;
+  }
+
+  public void setOs(String os) {
+    this.os = os;
+  }
+
+  public String getLabelPrefix() {
+    return labelPrefix;
+  }
+
+  public void setLabelPrefix(String labelPrefix) {
+    this.labelPrefix = labelPrefix;
   }
 
   @Override

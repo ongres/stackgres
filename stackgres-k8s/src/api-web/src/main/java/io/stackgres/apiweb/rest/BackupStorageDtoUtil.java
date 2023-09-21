@@ -52,10 +52,10 @@ public interface BackupStorageDtoUtil {
 
     return Seq.of(
             Tuple.tuple(S3_ACCESS_KEY, backupStorageOpt.map(BackupStorageDto::getS3)
-                .map(AwsS3StorageDto::getCredentials)
+                .map(AwsS3StorageDto::getAwsCredentials)
                 .map(secretSelectorGetterAndSetter(
-                    AwsCredentialsDto::getAccessKey,
-                    AwsCredentialsDto::setAccessKey,
+                    AwsCredentialsDto::getAccessKeyId,
+                    AwsCredentialsDto::setAccessKeyId,
                     (c) -> Optional.ofNullable(c.getSecretKeySelectors())
                         .map(AwsSecretKeySelector::getAccessKeyId)
                         .orElse(null),
@@ -64,10 +64,10 @@ public interface BackupStorageDtoUtil {
                         .peek(c::setSecretKeySelectors)
                         .forEach(ss -> ss.setAccessKeyId(s))))),
             Tuple.tuple(S3_SECRET_KEY, backupStorageOpt.map(BackupStorageDto::getS3)
-                .map(AwsS3StorageDto::getCredentials)
+                .map(AwsS3StorageDto::getAwsCredentials)
                 .map(secretSelectorGetterAndSetter(
-                    AwsCredentialsDto::getSecretKey,
-                    AwsCredentialsDto::setSecretKey,
+                    AwsCredentialsDto::getSecretAccessKey,
+                    AwsCredentialsDto::setSecretAccessKey,
                     (c) -> Optional.ofNullable(c.getSecretKeySelectors())
                         .map(AwsSecretKeySelector::getSecretAccessKey)
                         .orElse(null),
@@ -77,10 +77,10 @@ public interface BackupStorageDtoUtil {
                         .forEach(ss -> ss.setSecretAccessKey(s))))),
             Tuple.tuple(S3COMPATIBLE_ACCESS_KEY, backupStorageOpt
                 .map(BackupStorageDto::getS3Compatible)
-                .map(AwsS3CompatibleStorageDto::getCredentials)
+                .map(AwsS3CompatibleStorageDto::getAwsCredentials)
                 .map(secretSelectorGetterAndSetter(
-                    AwsCredentialsDto::getAccessKey,
-                    AwsCredentialsDto::setAccessKey,
+                    AwsCredentialsDto::getAccessKeyId,
+                    AwsCredentialsDto::setAccessKeyId,
                     (c) -> Optional.ofNullable(c.getSecretKeySelectors())
                         .map(AwsSecretKeySelector::getAccessKeyId)
                         .orElse(null),
@@ -90,10 +90,10 @@ public interface BackupStorageDtoUtil {
                         .forEach(ss -> ss.setAccessKeyId(s))))),
             Tuple.tuple(S3COMPATIBLE_SECRET_KEY, backupStorageOpt
                 .map(BackupStorageDto::getS3Compatible)
-                .map(AwsS3CompatibleStorageDto::getCredentials)
+                .map(AwsS3CompatibleStorageDto::getAwsCredentials)
                 .map(secretSelectorGetterAndSetter(
-                    AwsCredentialsDto::getSecretKey,
-                    AwsCredentialsDto::setSecretKey,
+                    AwsCredentialsDto::getSecretAccessKey,
+                    AwsCredentialsDto::setSecretAccessKey,
                     (c) -> Optional.ofNullable(c.getSecretKeySelectors())
                         .map(AwsSecretKeySelector::getSecretAccessKey)
                         .orElse(null),
@@ -103,7 +103,7 @@ public interface BackupStorageDtoUtil {
                         .forEach(ss -> ss.setSecretAccessKey(s))))),
             Tuple.tuple(GCS_SERVICE_ACCOUNT_JSON_KEY,
                 backupStorageOpt.map(BackupStorageDto::getGcs)
-                    .map(GoogleCloudStorageDto::getCredentials)
+                    .map(GoogleCloudStorageDto::getGcpCredentials)
                     .map(secretSelectorGetterAndSetter(
                         GoogleCloudCredentialsDto::getServiceAccountJsonKey,
                         GoogleCloudCredentialsDto::setServiceAccountJsonKey,
@@ -115,19 +115,19 @@ public interface BackupStorageDtoUtil {
                             .peek(c::setSecretKeySelectors)
                             .forEach(ss -> ss.setServiceAccountJsonKey(s))))),
             Tuple.tuple(AZURE_ACCOUNT, backupStorageOpt.map(BackupStorageDto::getAzureBlob)
-                .map(AzureBlobStorageDto::getCredentials)
+                .map(AzureBlobStorageDto::getAzureCredentials)
                 .map(secretSelectorGetterAndSetter(
-                    AzureBlobStorageCredentialsDto::getAccount,
-                    AzureBlobStorageCredentialsDto::setAccount,
+                    AzureBlobStorageCredentialsDto::getStorageAccount,
+                    AzureBlobStorageCredentialsDto::setStorageAccount,
                     (c) -> Optional.ofNullable(c.getSecretKeySelectors())
-                        .map(AzureBlobSecretKeySelectorDto::getAccount)
+                        .map(AzureBlobSecretKeySelectorDto::getStorageAccount)
                         .orElse(null),
                     (c, s) -> Seq.of(Optional.ofNullable(c.getSecretKeySelectors())
                             .orElseGet(AzureBlobSecretKeySelectorDto::new))
                         .peek(c::setSecretKeySelectors)
-                        .forEach(ss -> ss.setAccount(s))))),
+                        .forEach(ss -> ss.setStorageAccount(s))))),
             Tuple.tuple(AZURE_ACCESS_KEY, backupStorageOpt.map(BackupStorageDto::getAzureBlob)
-                .map(AzureBlobStorageDto::getCredentials)
+                .map(AzureBlobStorageDto::getAzureCredentials)
                 .map(secretSelectorGetterAndSetter(
                     AzureBlobStorageCredentialsDto::getAccessKey,
                     AzureBlobStorageCredentialsDto::setAccessKey,

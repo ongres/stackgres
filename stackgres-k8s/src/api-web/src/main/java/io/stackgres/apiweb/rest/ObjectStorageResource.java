@@ -22,7 +22,7 @@ import io.stackgres.apiweb.dto.objectstorage.ObjectStorageDto;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.resource.ResourceFinder;
@@ -107,10 +107,10 @@ public class ObjectStorageResource extends AbstractRestServiceDependency<ObjectS
     String storageName = resource.getMetadata().getName();
     return Optional.of(cluster)
         .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getConfiguration)
-        .map(StackGresClusterConfiguration::getBackups)
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getBackups)
         .map(backupConfigurations -> backupConfigurations.stream()
-            .map(StackGresClusterBackupConfiguration::getObjectStorage)
+            .map(StackGresClusterBackupConfiguration::getSgObjectStorage)
             .anyMatch(ref -> Objects.equals(ref, storageName))
         )
         .orElse(false);

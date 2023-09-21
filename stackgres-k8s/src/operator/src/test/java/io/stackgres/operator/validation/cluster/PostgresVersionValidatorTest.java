@@ -151,7 +151,7 @@ class PostgresVersionValidatorTest {
     final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
-    String postgresProfile = spec.getConfiguration().getPostgresConfig();
+    String postgresProfile = spec.getConfigurations().getSgPostgresConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
@@ -173,7 +173,7 @@ class PostgresVersionValidatorTest {
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     spec.getPostgres().setVersion(getMajorPostgresVersion(getRandomPostgresVersion()));
-    String postgresProfile = spec.getConfiguration().getPostgresConfig();
+    String postgresProfile = spec.getConfigurations().getSgPostgresConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
@@ -195,7 +195,7 @@ class PostgresVersionValidatorTest {
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
     spec.getPostgres().setVersion(StackGresComponent.LATEST);
-    String postgresProfile = spec.getConfiguration().getPostgresConfig();
+    String postgresProfile = spec.getConfigurations().getSgPostgresConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
@@ -236,7 +236,7 @@ class PostgresVersionValidatorTest {
     postgresConfig.getSpec().setPostgresVersion(FIRST_PG_MAJOR_VERSION);
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
-    String postgresProfile = spec.getConfiguration().getPostgresConfig();
+    String postgresProfile = spec.getConfigurations().getSgPostgresConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(eq(postgresProfile), eq(namespace)))
@@ -393,7 +393,7 @@ class PostgresVersionValidatorTest {
     review.getRequest().getObject().getSpec().getPostgres().setVersion(FIRST_PG_MAJOR_VERSION);
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
-    String postgresProfile = spec.getConfiguration().getPostgresConfig();
+    String postgresProfile = spec.getConfigurations().getSgPostgresConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(eq(postgresProfile), eq(namespace)))
@@ -415,7 +415,7 @@ class PostgresVersionValidatorTest {
     final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
-    spec.getConfiguration().setPostgresConfig("");
+    spec.getConfigurations().setSgPostgresConfig("");
 
     ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
@@ -433,7 +433,7 @@ class PostgresVersionValidatorTest {
     final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
-    spec.getConfiguration().setPostgresConfig(null);
+    spec.getConfigurations().setSgPostgresConfig(null);
 
     ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
@@ -452,7 +452,7 @@ class PostgresVersionValidatorTest {
         .loadPostgresConfigUpdate().get();
 
     StackGresClusterSpec spec = review.getRequest().getObject().getSpec();
-    String postgresProfile = spec.getConfiguration().getPostgresConfig();
+    String postgresProfile = spec.getConfigurations().getSgPostgresConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
     review.getRequest().getObject().getSpec().getPostgres().setVersion(getRandomPostgresVersion());
 

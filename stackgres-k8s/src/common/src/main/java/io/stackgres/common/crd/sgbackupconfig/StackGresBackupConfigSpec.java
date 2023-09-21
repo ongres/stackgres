@@ -12,7 +12,6 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.storages.BackupStorage;
@@ -26,12 +25,10 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresBackupConfigSpec {
 
-  @JsonProperty("storage")
   @NotNull(message = "The storage is required")
   @Valid
   private BackupStorage storage;
 
-  @JsonProperty("baseBackups")
   @NotNull(message = "Base backup configuration is required")
   @Valid
   private StackGresBaseBackupConfig baseBackups;

@@ -34,13 +34,13 @@ public class ProfileReferenceValidator implements DistributedLogsValidator {
     switch (review.getRequest().getOperation()) {
       case CREATE: {
         StackGresDistributedLogs distributedLogs = review.getRequest().getObject();
-        String resourceProfile = distributedLogs.getSpec().getResourceProfile();
+        String resourceProfile = distributedLogs.getSpec().getSgInstanceProfile();
         checkIfProfileExists(review, "Invalid profile " + resourceProfile);
         break;
       }
       case UPDATE: {
         StackGresDistributedLogs distributedLogs = review.getRequest().getObject();
-        String resourceProfile = distributedLogs.getSpec().getResourceProfile();
+        String resourceProfile = distributedLogs.getSpec().getSgInstanceProfile();
         checkIfProfileExists(review, "Cannot update to profile "
             + resourceProfile + " because it doesn't exists");
         break;
@@ -53,7 +53,7 @@ public class ProfileReferenceValidator implements DistributedLogsValidator {
   private void checkIfProfileExists(StackGresDistributedLogsReview review, String onError)
       throws ValidationFailed {
     StackGresDistributedLogs distributedLogs = review.getRequest().getObject();
-    String resourceProfile = distributedLogs.getSpec().getResourceProfile();
+    String resourceProfile = distributedLogs.getSpec().getSgInstanceProfile();
     String namespace = distributedLogs.getMetadata().getNamespace();
 
     Optional<StackGresProfile> profileOpt = profileFinder

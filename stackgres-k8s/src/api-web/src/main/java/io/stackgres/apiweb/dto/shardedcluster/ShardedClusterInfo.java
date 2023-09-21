@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.shardedcluster;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -14,25 +13,18 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public final class ShardedClusterInfo {
 
-  @JsonProperty("primaryDns")
   private String primaryDns;
 
-  @JsonProperty("readsDns")
   private String readsDns;
 
-  @JsonProperty("primariesDns")
   private String primariesDns;
 
-  @JsonProperty("superuserUsername")
   private String superuserUsername;
 
-  @JsonProperty("superuserSecretName")
   private String superuserSecretName;
 
-  @JsonProperty("superuserUsernameKey")
   private String superuserUsernameKey;
 
-  @JsonProperty("superuserPasswordKey")
   private String superuserPasswordKey;
 
   public String getPrimaryDns() {

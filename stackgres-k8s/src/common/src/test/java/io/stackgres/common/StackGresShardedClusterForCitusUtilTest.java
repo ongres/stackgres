@@ -15,9 +15,9 @@ import java.util.Optional;
 
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServiceBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplication;
@@ -203,12 +203,12 @@ class StackGresShardedClusterForCitusUtilTest {
         .withNewPostgres()
         .endPostgres()
         .withNewCoordinator()
-        .withNewConfiguration()
-        .endConfiguration()
+        .withNewConfigurations()
+        .endConfigurations()
         .endCoordinator()
         .withNewShards()
-        .withNewConfiguration()
-        .endConfiguration()
+        .withNewConfigurations()
+        .endConfigurations()
         .endShards()
         .endSpec()
         .build();
@@ -221,7 +221,7 @@ class StackGresShardedClusterForCitusUtilTest {
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
     shardedCluster.getSpec().getReplication().setGroups(null);
-    shardedCluster.getSpec().getConfiguration().getBackups().get(0)
+    shardedCluster.getSpec().getConfigurations().getBackups().get(0)
         .setPaths(List.of(
             createWithRandomData(String.class),
             createWithRandomData(String.class)));
@@ -255,7 +255,7 @@ class StackGresShardedClusterForCitusUtilTest {
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
     shardedCluster.getSpec().getReplication().setGroups(null);
-    shardedCluster.getSpec().getConfiguration().getBackups().get(0)
+    shardedCluster.getSpec().getConfigurations().getBackups().get(0)
         .setPaths(List.of(
             createWithRandomData(String.class),
             createWithRandomData(String.class)));
@@ -289,7 +289,7 @@ class StackGresShardedClusterForCitusUtilTest {
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
     shardedCluster.getSpec().getReplication().setGroups(null);
-    shardedCluster.getSpec().getConfiguration().getBackups().get(0)
+    shardedCluster.getSpec().getConfigurations().getBackups().get(0)
         .setPaths(List.of(
             createWithRandomData(String.class),
             createWithRandomData(String.class)));
@@ -301,8 +301,8 @@ class StackGresShardedClusterForCitusUtilTest {
         shardedCluster,
         shardedCluster.getSpec().getCoordinator(),
         shardedCluster.getSpec().getCoordinator().getReplicationForCoordinator(),
-        shardedCluster.getSpec().getCoordinator().getConfiguration(),
-        shardedCluster.getSpec().getCoordinator().getPod(),
+        shardedCluster.getSpec().getCoordinator().getConfigurations(),
+        shardedCluster.getSpec().getCoordinator().getPods(),
         cluster,
         0);
   }
@@ -314,7 +314,7 @@ class StackGresShardedClusterForCitusUtilTest {
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
     shardedCluster.getSpec().getReplication().setGroups(null);
-    shardedCluster.getSpec().getConfiguration().getBackups().get(0)
+    shardedCluster.getSpec().getConfigurations().getBackups().get(0)
         .setPaths(List.of(
             createWithRandomData(String.class),
             createWithRandomData(String.class)));
@@ -327,8 +327,8 @@ class StackGresShardedClusterForCitusUtilTest {
         shardedCluster,
         shardedCluster.getSpec().getShards(),
         shardedCluster.getSpec().getShards().getReplicationForShards(),
-        shardedCluster.getSpec().getShards().getConfiguration(),
-        shardedCluster.getSpec().getShards().getPod(),
+        shardedCluster.getSpec().getShards().getConfigurations(),
+        shardedCluster.getSpec().getShards().getPods(),
         cluster,
         1);
   }
@@ -340,7 +340,7 @@ class StackGresShardedClusterForCitusUtilTest {
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
     shardedCluster.getSpec().getReplication().setGroups(null);
-    shardedCluster.getSpec().getConfiguration().getBackups().get(0)
+    shardedCluster.getSpec().getConfigurations().getBackups().get(0)
         .setPaths(List.of(
             createWithRandomData(String.class),
             createWithRandomData(String.class)));
@@ -359,9 +359,9 @@ class StackGresShardedClusterForCitusUtilTest {
         shardedCluster.getSpec().getShards().getOverrides().get(0)
             .getReplicationForShards(),
         shardedCluster.getSpec().getShards().getOverrides().get(0)
-            .getConfigurationForShards(),
+            .getConfigurationsForShards(),
         shardedCluster.getSpec().getShards().getOverrides().get(0)
-            .getPodForShards(),
+            .getPodsForShards(),
         cluster,
         1);
   }
@@ -369,13 +369,14 @@ class StackGresShardedClusterForCitusUtilTest {
   private void setMinimalCoordinatorAndShards(StackGresShardedCluster shardedCluster) {
     shardedCluster.getSpec().setCoordinator(new StackGresShardedClusterCoordinator());
     shardedCluster.getSpec().getCoordinator().setInstances(1);
-    shardedCluster.getSpec().getCoordinator().setConfiguration(new StackGresClusterConfiguration());
-    shardedCluster.getSpec().getCoordinator().setPod(new StackGresClusterPod());
+    shardedCluster.getSpec().getCoordinator()
+        .setConfigurations(new StackGresClusterConfigurations());
+    shardedCluster.getSpec().getCoordinator().setPods(new StackGresClusterPods());
     shardedCluster.getSpec().setShards(new StackGresShardedClusterShards());
     shardedCluster.getSpec().getShards().setClusters(1);
     shardedCluster.getSpec().getShards().setInstancesPerCluster(1);
-    shardedCluster.getSpec().getShards().setConfiguration(new StackGresClusterConfiguration());
-    shardedCluster.getSpec().getShards().setPod(new StackGresClusterPod());
+    shardedCluster.getSpec().getShards().setConfigurations(new StackGresClusterConfigurations());
+    shardedCluster.getSpec().getShards().setPods(new StackGresClusterPods());
   }
 
   private void checkCoordinatorWithGlobalSettings(
@@ -383,8 +384,8 @@ class StackGresShardedClusterForCitusUtilTest {
       StackGresClusterSpec clusterSpec,
       StackGresCluster cluster,
       int index) {
-    clusterSpec.getConfiguration()
-        .setPostgresConfig(coordinatorConfigName(shardedCluster));
+    clusterSpec.getConfigurations()
+        .setSgPostgresConfig(coordinatorConfigName(shardedCluster));
     checkClusterWithGlobalSettings(
         shardedCluster,
         clusterSpec,
@@ -421,19 +422,19 @@ class StackGresShardedClusterForCitusUtilTest {
         shardedCluster.getSpec().getReplication(),
         cluster.getSpec().getReplication());
     checkClusterSettings(
-        clusterSpec, clusterSpec.getConfiguration(), clusterSpec.getPod(), cluster);
+        clusterSpec, clusterSpec.getConfigurations(), clusterSpec.getPods(), cluster);
   }
 
   private void checkCoordinatorWithSettings(
       StackGresShardedCluster shardedCluster,
       StackGresClusterSpec clusterSpec,
       StackGresClusterReplication replication,
-      StackGresClusterConfiguration configuration,
-      StackGresClusterPod pod,
+      StackGresClusterConfigurations configuration,
+      StackGresClusterPods pod,
       StackGresCluster cluster,
       int index) {
-    clusterSpec.getConfiguration()
-        .setPostgresConfig(coordinatorConfigName(shardedCluster));
+    clusterSpec.getConfigurations()
+        .setSgPostgresConfig(coordinatorConfigName(shardedCluster));
     checkClusterWithSettings(
         shardedCluster,
         clusterSpec,
@@ -448,8 +449,8 @@ class StackGresShardedClusterForCitusUtilTest {
       StackGresShardedCluster shardedCluster,
       StackGresClusterSpec clusterSpec,
       StackGresClusterReplication replication,
-      StackGresClusterConfiguration configuration,
-      StackGresClusterPod pod,
+      StackGresClusterConfigurations configuration,
+      StackGresClusterPods pod,
       StackGresCluster cluster,
       int index) {
     checkClusterGlobalSettingsOnly(shardedCluster, cluster, index);
@@ -479,37 +480,37 @@ class StackGresShardedClusterForCitusUtilTest {
     Assertions.assertEquals(
         shardedCluster.getSpec().getPrometheusAutobind(),
         cluster.getSpec().getPrometheusAutobind());
-    if (shardedCluster.getSpec().getConfiguration() != null
-        && shardedCluster.getSpec().getConfiguration().getBackups() != null) {
+    if (shardedCluster.getSpec().getConfigurations() != null
+        && shardedCluster.getSpec().getConfigurations().getBackups() != null) {
       Assertions.assertEquals(
-          shardedCluster.getSpec().getConfiguration().getBackups().get(0)
+          shardedCluster.getSpec().getConfigurations().getBackups().get(0)
           .getRetention(),
-          cluster.getSpec().getConfiguration().getBackups().get(0)
+          cluster.getSpec().getConfigurations().getBackups().get(0)
           .getRetention());
       Assertions.assertEquals(
-          shardedCluster.getSpec().getConfiguration().getBackups().get(0)
+          shardedCluster.getSpec().getConfigurations().getBackups().get(0)
           .getCompression(),
-          cluster.getSpec().getConfiguration().getBackups().get(0)
+          cluster.getSpec().getConfigurations().getBackups().get(0)
           .getCompression());
       Assertions.assertEquals(
-          shardedCluster.getSpec().getConfiguration().getBackups().get(0)
+          shardedCluster.getSpec().getConfigurations().getBackups().get(0)
           .getCronSchedule(),
-          cluster.getSpec().getConfiguration().getBackups().get(0)
+          cluster.getSpec().getConfigurations().getBackups().get(0)
           .getCronSchedule());
       Assertions.assertEquals(
-          shardedCluster.getSpec().getConfiguration().getBackups().get(0)
-          .getObjectStorage(),
-          cluster.getSpec().getConfiguration().getBackups().get(0)
-          .getObjectStorage());
+          shardedCluster.getSpec().getConfigurations().getBackups().get(0)
+          .getSgObjectStorage(),
+          cluster.getSpec().getConfigurations().getBackups().get(0)
+          .getSgObjectStorage());
       Assertions.assertEquals(
-          shardedCluster.getSpec().getConfiguration().getBackups().get(0)
+          shardedCluster.getSpec().getConfigurations().getBackups().get(0)
           .getPerformance(),
-          cluster.getSpec().getConfiguration().getBackups().get(0)
+          cluster.getSpec().getConfigurations().getBackups().get(0)
           .getPerformance());
       Assertions.assertEquals(
-          shardedCluster.getSpec().getConfiguration().getBackups().get(0)
+          shardedCluster.getSpec().getConfigurations().getBackups().get(0)
           .getPaths().get(index),
-          cluster.getSpec().getConfiguration().getBackups().get(0)
+          cluster.getSpec().getConfigurations().getBackups().get(0)
           .getPath());
     }
     Assertions.assertEquals(
@@ -554,46 +555,46 @@ class StackGresShardedClusterForCitusUtilTest {
 
   private void checkClusterSettings(
       StackGresClusterSpec clusterSpec,
-      StackGresClusterConfiguration configuration,
-      StackGresClusterPod pod,
+      StackGresClusterConfigurations configuration,
+      StackGresClusterPods pod,
       StackGresCluster cluster) {
     Assertions.assertEquals(
-        clusterSpec.getResourceProfile(),
-        cluster.getSpec().getResourceProfile());
+        clusterSpec.getSgInstanceProfile(),
+        cluster.getSpec().getSgInstanceProfile());
     Assertions.assertEquals(
-        configuration.getPostgresConfig(),
-        cluster.getSpec().getConfiguration().getPostgresConfig());
+        configuration.getSgPostgresConfig(),
+        cluster.getSpec().getConfigurations().getSgPostgresConfig());
     Assertions.assertEquals(
-        configuration.getConnectionPoolingConfig(),
-        cluster.getSpec().getConfiguration().getConnectionPoolingConfig());
-    if (cluster.getSpec().getPod() != null) {
+        configuration.getSgPoolingConfig(),
+        cluster.getSpec().getConfigurations().getSgPoolingConfig());
+    if (cluster.getSpec().getPods() != null) {
       Assertions.assertEquals(
           pod.getDisableConnectionPooling(),
-          cluster.getSpec().getPod().getDisableConnectionPooling());
+          cluster.getSpec().getPods().getDisableConnectionPooling());
       Assertions.assertEquals(
           pod.getDisableMetricsExporter(),
-          cluster.getSpec().getPod().getDisableMetricsExporter());
+          cluster.getSpec().getPods().getDisableMetricsExporter());
       Assertions.assertEquals(
           pod.getDisablePostgresUtil(),
-          cluster.getSpec().getPod().getDisablePostgresUtil());
+          cluster.getSpec().getPods().getDisablePostgresUtil());
       Assertions.assertEquals(
           pod.getManagementPolicy(),
-          cluster.getSpec().getPod().getManagementPolicy());
+          cluster.getSpec().getPods().getManagementPolicy());
       Assertions.assertEquals(
           pod.getCustomVolumes(),
-          cluster.getSpec().getPod().getCustomVolumes());
+          cluster.getSpec().getPods().getCustomVolumes());
       Assertions.assertEquals(
           pod.getCustomContainers(),
-          cluster.getSpec().getPod().getCustomContainers());
+          cluster.getSpec().getPods().getCustomContainers());
       Assertions.assertEquals(
           pod.getCustomInitContainers(),
-          cluster.getSpec().getPod().getCustomInitContainers());
+          cluster.getSpec().getPods().getCustomInitContainers());
       Assertions.assertEquals(
           pod.getResources(),
-          cluster.getSpec().getPod().getResources());
+          cluster.getSpec().getPods().getResources());
       Assertions.assertEquals(
           pod.getPersistentVolume(),
-          cluster.getSpec().getPod().getPersistentVolume());
+          cluster.getSpec().getPods().getPersistentVolume());
     }
   }
 

@@ -39,7 +39,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.stackgres.apiweb.config.WebApiProperty;
 import io.stackgres.apiweb.dto.Metadata;
-import io.stackgres.apiweb.dto.cluster.ClusterConfiguration;
+import io.stackgres.apiweb.dto.cluster.ClusterConfigurations;
 import io.stackgres.apiweb.dto.cluster.ClusterManagedScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterManagedSql;
 import io.stackgres.apiweb.dto.fixture.DtoFixtures;
@@ -60,7 +60,7 @@ import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
 import io.stackgres.common.crd.sgscript.StackGresScript;
@@ -783,22 +783,22 @@ class ShardedClusterResourceMockedTest extends
           resourceSpec.getCoordinator().getInstances());
       assertEquals(dtoSpec.getPostgres().getVersion(), resourceSpec.getPostgres().getVersion());
       assertEquals(dtoSpec.getCoordinator().getSgInstanceProfile(),
-          resourceSpec.getCoordinator().getResourceProfile());
+          resourceSpec.getCoordinator().getSgInstanceProfile());
 
-      final ClusterConfiguration dtoSpecConfigurations =
-          dtoSpec.getCoordinator().getConfigurationForCoordinator();
+      final ClusterConfigurations dtoSpecConfigurations =
+          dtoSpec.getCoordinator().getConfigurationsForCoordinator();
 
-      final StackGresClusterConfiguration resourceSpecConfiguration = resourceSpec
-          .getCoordinator().getConfiguration();
+      final StackGresClusterConfigurations resourceSpecConfiguration = resourceSpec
+          .getCoordinator().getConfigurations();
 
       if (dtoSpecConfigurations != null) {
         assertNotNull(resourceSpecConfiguration);
         assertEquals(dtoSpecConfigurations.getSgBackupConfig(),
-            resourceSpecConfiguration.getBackupConfig());
+            resourceSpecConfiguration.getSgBackupConfig());
         assertEquals(dtoSpecConfigurations.getSgPoolingConfig(),
-            resourceSpecConfiguration.getConnectionPoolingConfig());
+            resourceSpecConfiguration.getSgPoolingConfig());
         assertEquals(dtoSpecConfigurations.getSgPostgresConfig(),
-            resourceSpecConfiguration.getPostgresConfig());
+            resourceSpecConfiguration.getSgPostgresConfig());
       } else {
         assertNull(resourceSpecConfiguration);
       }
@@ -825,8 +825,8 @@ class ShardedClusterResourceMockedTest extends
 
       if (dtoSpec.getDistributedLogs() != null) {
         assertNotNull(resourceSpec.getDistributedLogs());
-        assertEquals(dtoSpec.getDistributedLogs().getDistributedLogs(),
-            resourceSpec.getDistributedLogs().getDistributedLogs());
+        assertEquals(dtoSpec.getDistributedLogs().getSgDistributedLogs(),
+            resourceSpec.getDistributedLogs().getSgDistributedLogs());
       } else {
         assertNull(resourceSpec.getDistributedLogs());
       }

@@ -17,7 +17,6 @@ import javax.validation.constraints.NotNull;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
@@ -37,55 +36,43 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresShardedClusterSpec {
 
-  @JsonProperty("type")
   @ValidEnum(enumClass = StackGresShardingType.class, allowNulls = false,
       message = "only supported type is citus")
   private String type;
 
-  @JsonProperty("database")
   @NotEmpty(message = "database name can not be empty")
   private String database;
 
-  @JsonProperty("postgres")
   @NotNull(message = "postgres is required")
   @Valid
   private StackGresClusterPostgres postgres;
 
-  @JsonProperty("postgresServices")
   @NotNull(message = "postgresServices is required")
   @Valid
   private StackGresShardedClusterPostgresServices postgresServices;
 
-  @JsonProperty("replication")
   @Valid
   private StackGresShardedClusterReplication replication;
 
-  @JsonProperty("configurations")
   @Valid
-  private StackGresShardedClusterConfiguration configuration;
+  private StackGresShardedClusterConfigurations configurations;
 
-  @JsonProperty("metadata")
   @Valid
   private StackGresClusterSpecMetadata metadata;
 
-  @JsonProperty("distributedLogs")
   @Valid
   private StackGresClusterDistributedLogs distributedLogs;
 
-  @JsonProperty("coordinator")
   @NotNull(message = "coordinator is required")
   @Valid
   private StackGresShardedClusterCoordinator coordinator;
 
-  @JsonProperty("shards")
   @NotNull(message = "shards is required")
   @Valid
   private StackGresShardedClusterShards shards;
 
-  @JsonProperty("prometheusAutobind")
   private Boolean prometheusAutobind;
 
-  @JsonProperty("nonProductionOptions")
   @Valid
   private StackGresClusterNonProduction nonProductionOptions;
 
@@ -196,12 +183,12 @@ public class StackGresShardedClusterSpec {
     this.replication = replication;
   }
 
-  public StackGresShardedClusterConfiguration getConfiguration() {
-    return configuration;
+  public StackGresShardedClusterConfigurations getConfigurations() {
+    return configurations;
   }
 
-  public void setConfiguration(StackGresShardedClusterConfiguration configuration) {
-    this.configuration = configuration;
+  public void setConfigurations(StackGresShardedClusterConfigurations configurations) {
+    this.configurations = configurations;
   }
 
   public StackGresClusterDistributedLogs getDistributedLogs() {
@@ -254,7 +241,7 @@ public class StackGresShardedClusterSpec {
 
   @Override
   public int hashCode() {
-    return Objects.hash(configuration, coordinator, database, distributedLogs, metadata,
+    return Objects.hash(configurations, coordinator, database, distributedLogs, metadata,
         nonProductionOptions, postgres, postgresServices, prometheusAutobind, replication,
         type, shards);
   }
@@ -268,7 +255,7 @@ public class StackGresShardedClusterSpec {
       return false;
     }
     StackGresShardedClusterSpec other = (StackGresShardedClusterSpec) obj;
-    return Objects.equals(configuration, other.configuration)
+    return Objects.equals(configurations, other.configurations)
         && Objects.equals(coordinator, other.coordinator)
         && Objects.equals(database, other.database)
         && Objects.equals(distributedLogs, other.distributedLogs)

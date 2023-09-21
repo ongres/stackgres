@@ -20,7 +20,7 @@ import io.quarkus.test.junit.mockito.InjectMock;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -66,21 +66,21 @@ class ClusterMutatorPipelineTest {
   void givenBackups_setDefaultPath() {
     String backupName = StringUtils.getRandomClusterName();
     final StackGresCluster cluster = review.getRequest().getObject();
-    cluster.getSpec().getConfiguration().setBackupConfig(null);
+    cluster.getSpec().getConfigurations().setSgBackupConfig(null);
 
     StackGresClusterBackupConfiguration bckConf = new StackGresClusterBackupConfiguration();
-    bckConf.setObjectStorage(backupName);
-    cluster.getSpec().getConfiguration().setBackups(List.of(bckConf));
+    bckConf.setSgObjectStorage(backupName);
+    cluster.getSpec().getConfigurations().setBackups(List.of(bckConf));
 
     StackGresCluster mutateCluster = mutate(review);
 
-    StackGresClusterConfiguration configuration = mutateCluster.getSpec().getConfiguration();
+    StackGresClusterConfigurations configuration = mutateCluster.getSpec().getConfigurations();
     StackGresClusterBackupConfiguration backupConfiguration = configuration.getBackups().get(0);
     assertThat(configuration).isNotNull();
-    assertThat(configuration.getBackupConfig()).isNull();
+    assertThat(configuration.getSgBackupConfig()).isNull();
     assertThat(configuration.getBackupPath()).isNull();
     assertThat(backupConfiguration).isNotNull();
-    assertThat(backupConfiguration.getObjectStorage()).isEqualTo(backupName);
+    assertThat(backupConfiguration.getSgObjectStorage()).isEqualTo(backupName);
     assertThat(backupConfiguration.getPath()).isNotEmpty();
   }
 
@@ -88,16 +88,16 @@ class ClusterMutatorPipelineTest {
   void givenNoBackupConfig_NoBackupSectionsShouldBeCreated() {
     String backupName = StringUtils.getRandomClusterName();
     final StackGresCluster cluster = review.getRequest().getObject();
-    cluster.getSpec().getConfiguration().setBackupConfig(null);
-    cluster.getSpec().getConfiguration().setBackups(null);
+    cluster.getSpec().getConfigurations().setSgBackupConfig(null);
+    cluster.getSpec().getConfigurations().setBackups(null);
 
     StackGresCluster mutateCluster = mutate(review);
 
     String namespace = cluster.getMetadata().getNamespace();
-    StackGresClusterConfiguration configuration = mutateCluster.getSpec().getConfiguration();
+    StackGresClusterConfigurations configuration = mutateCluster.getSpec().getConfigurations();
     assertThat(configuration).isNotNull();
     assertThat(configuration.getBackups()).isNull();
-    assertThat(configuration.getBackupConfig()).isNull();
+    assertThat(configuration.getSgBackupConfig()).isNull();
     assertThat(configuration.getBackupPath()).isNull();
 
     Optional<StackGresObjectStorage> objectStorageCreated = objectStorageFinder

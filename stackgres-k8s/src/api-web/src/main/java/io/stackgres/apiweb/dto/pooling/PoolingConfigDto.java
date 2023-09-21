@@ -7,11 +7,14 @@ package io.stackgres.apiweb.dto.pooling;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.apiweb.dto.ResourceClassForDto;
 import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
+@ResourceClassForDto(StackGresPoolingConfig.class)
 public class PoolingConfigDto extends ResourceDto {
 
   private PoolingConfigSpec spec;

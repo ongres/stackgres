@@ -27,7 +27,7 @@ import io.restassured.http.ContentType;
 import io.stackgres.apiweb.dto.Metadata;
 import io.stackgres.apiweb.dto.backupconfig.BaseBackupPerformance;
 import io.stackgres.apiweb.dto.cluster.ClusterBackupsConfiguration;
-import io.stackgres.apiweb.dto.cluster.ClusterConfiguration;
+import io.stackgres.apiweb.dto.cluster.ClusterConfigurations;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
 import io.stackgres.apiweb.dto.fixture.DtoFixtures;
@@ -39,7 +39,7 @@ import io.stackgres.common.StackGresKubernetesMockServerSetup;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.StringUtils;
@@ -66,7 +66,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
     clusterDto.getMetadata().setNamespace("test");
     cluster.getMetadata().setNamespace("test");
     cluster.getMetadata().setName(StringUtils.getRandomClusterName());
-    cluster.getSpec().setConfiguration(new StackGresClusterConfiguration());
+    cluster.getSpec().setConfigurations(new StackGresClusterConfigurations());
     mockServer.getClient().resources(
         StackGresCluster.class,
         StackGresClusterList.class)
@@ -323,22 +323,22 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
   void givenACreationWithBackups_shouldNotFail() {
     clusterDto.getMetadata().setName(StringUtils.getRandomClusterName());
     ClusterSpec spec = clusterDto.getSpec();
-    spec.setInitData(null);
-    spec.setConfiguration(new ClusterConfiguration());
-    spec.getConfiguration().setBackups(new ArrayList<>());
+    spec.setInitialData(null);
+    spec.setConfigurations(new ClusterConfigurations());
+    spec.getConfigurations().setBackups(new ArrayList<>());
 
     ClusterBackupsConfiguration clusterBackupsConfiguration = new ClusterBackupsConfiguration();
-    clusterBackupsConfiguration.setCompressionMethod("brotli");
+    clusterBackupsConfiguration.setCompression("brotli");
     clusterBackupsConfiguration.setCronSchedule("100 8 10 10 10");
     clusterBackupsConfiguration.setRetention(10);
-    clusterBackupsConfiguration.setObjectStorage("backupconf");
+    clusterBackupsConfiguration.setSgObjectStorage("backupconf");
     clusterBackupsConfiguration.setPerformance(new BaseBackupPerformance());
     clusterBackupsConfiguration.getPerformance().setMaxDiskBandwidth(10L);
     clusterBackupsConfiguration.getPerformance().setMaxNetworkBandwidth(10L);
     clusterBackupsConfiguration.getPerformance().setUploadDiskConcurrency(10);
     clusterBackupsConfiguration.getPerformance().setUploadConcurrency(10);
 
-    spec.getConfiguration().getBackups().add(clusterBackupsConfiguration);
+    spec.getConfigurations().getBackups().add(clusterBackupsConfiguration);
 
     given()
         .header(AUTHENTICATION_HEADER)

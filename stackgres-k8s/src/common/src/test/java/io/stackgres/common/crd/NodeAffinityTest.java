@@ -23,7 +23,7 @@ class NodeAffinityTest {
         .build();
     StackGresCluster cluster = Fixtures.cluster().withNodeAffinity(nodeAffinity).get();
     io.fabric8.kubernetes.api.model.NodeAffinity k8sPodNodeAffinity =
-        cluster.getSpec().getPod().getScheduling().getNodeAffinity();
+        cluster.getSpec().getPods().getScheduling().getNodeAffinity();
     assertEquals(2,
         k8sPodNodeAffinity
             .getRequiredDuringSchedulingIgnoredDuringExecution()
@@ -40,7 +40,7 @@ class NodeAffinityTest {
         .withNodeAffinity(nodeAffinity)
         .get();
     io.fabric8.kubernetes.api.model.NodeAffinity k8sPodNodeAffinity =
-        cluster.getSpec().getPod().getScheduling().getNodeAffinity();
+        cluster.getSpec().getPods().getScheduling().getNodeAffinity();
     k8sPodNodeAffinity.getRequiredDuringSchedulingIgnoredDuringExecution().getNodeSelectorTerms()
         .forEach(term -> {
           term.getMatchExpressions().forEach(math -> {
@@ -56,7 +56,7 @@ class NodeAffinityTest {
         .build();
     StackGresCluster cluster = Fixtures.cluster().withNodeAffinity(nodeAffinity).get();
     io.fabric8.kubernetes.api.model.NodeAffinity k8sPodNodeAffinity =
-        cluster.getSpec().getPod().getScheduling().getNodeAffinity();
+        cluster.getSpec().getPods().getScheduling().getNodeAffinity();
     assertEquals(nodeAffinity.getPreferredDuringSchedulingIgnoredDuringExecution().size(),
         k8sPodNodeAffinity.getPreferredDuringSchedulingIgnoredDuringExecution().size());
   }
@@ -68,7 +68,7 @@ class NodeAffinityTest {
         .build();
     StackGresCluster cluster = Fixtures.cluster().withNodeAffinity(nodeAffinity).get();
     io.fabric8.kubernetes.api.model.NodeAffinity k8sPodNodeAffinity =
-        cluster.getSpec().getPod().getScheduling().getNodeAffinity();
+        cluster.getSpec().getPods().getScheduling().getNodeAffinity();
     k8sPodNodeAffinity.getPreferredDuringSchedulingIgnoredDuringExecution().forEach(preference -> {
       preference.getPreference().getMatchExpressions().forEach(math -> {
         assertEquals(PREFERRED_TOPOLOGY_KEY, math.getKey());

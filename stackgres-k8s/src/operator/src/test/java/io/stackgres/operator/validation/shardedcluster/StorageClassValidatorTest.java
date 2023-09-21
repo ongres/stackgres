@@ -55,15 +55,15 @@ class StorageClassValidatorTest {
         .loadCreate().get();
 
     review.getRequest().getObject().getSpec().getCoordinator()
-        .getPod().getPersistentVolume().setStorageClass("coordinator");
+        .getPods().getPersistentVolume().setStorageClass("coordinator");
     review.getRequest().getObject().getSpec().getShards()
-        .getPod().getPersistentVolume().setStorageClass("shards");
+        .getPods().getPersistentVolume().setStorageClass("shards");
     String coordinatorStorageClass =
         review.getRequest().getObject().getSpec().getCoordinator()
-        .getPod().getPersistentVolume().getStorageClass();
+        .getPods().getPersistentVolume().getStorageClass();
     String shardsStorageClass =
         review.getRequest().getObject().getSpec().getShards()
-        .getPod().getPersistentVolume().getStorageClass();
+        .getPods().getPersistentVolume().getStorageClass();
     when(storageClassFinder.findByName(coordinatorStorageClass))
         .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
     when(storageClassFinder.findByName(shardsStorageClass))
@@ -81,26 +81,27 @@ class StorageClassValidatorTest {
         .loadCreate().get();
 
     review.getRequest().getObject().getSpec().getCoordinator()
-        .getPod().getPersistentVolume().setStorageClass("coordinator");
+        .getPods().getPersistentVolume().setStorageClass("coordinator");
     review.getRequest().getObject().getSpec().getShards()
-        .getPod().getPersistentVolume().setStorageClass("shards");
+        .getPods().getPersistentVolume().setStorageClass("shards");
     review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
         new StackGresShardedClusterShardBuilder()
-        .withNewPodForShards()
+        .withIndex(0)
+        .withNewPodsForShards()
         .withNewPersistentVolume()
         .withStorageClass("overrideShards")
         .endPersistentVolume()
-        .endPodForShards()
+        .endPodsForShards()
         .build()));
     String coordinatorStorageClass =
         review.getRequest().getObject().getSpec().getCoordinator()
-        .getPod().getPersistentVolume().getStorageClass();
+        .getPods().getPersistentVolume().getStorageClass();
     String shardsStorageClass =
         review.getRequest().getObject().getSpec().getShards()
-        .getPod().getPersistentVolume().getStorageClass();
+        .getPods().getPersistentVolume().getStorageClass();
     String overrideShardsStorageClass =
         review.getRequest().getObject().getSpec().getShards().getOverrides().get(0)
-        .getPodForShards().getPersistentVolume().getStorageClass();
+        .getPodsForShards().getPersistentVolume().getStorageClass();
     when(storageClassFinder.findByName(coordinatorStorageClass))
         .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
     when(storageClassFinder.findByName(shardsStorageClass))
@@ -122,7 +123,7 @@ class StorageClassValidatorTest {
 
     String storageClass =
         review.getRequest().getObject().getSpec().getCoordinator()
-        .getPod().getPersistentVolume().getStorageClass();
+        .getPods().getPersistentVolume().getStorageClass();
 
     when(storageClassFinder.findByName(storageClass))
         .thenReturn(Optional.empty());
@@ -142,13 +143,13 @@ class StorageClassValidatorTest {
         .loadCreate().get();
 
     review.getRequest().getObject().getSpec().getShards()
-        .getPod().getPersistentVolume().setStorageClass("test");
+        .getPods().getPersistentVolume().setStorageClass("test");
     String storageClass =
         review.getRequest().getObject().getSpec().getShards()
-        .getPod().getPersistentVolume().getStorageClass();
+        .getPods().getPersistentVolume().getStorageClass();
 
     when(storageClassFinder.findByName(review.getRequest().getObject().getSpec().getCoordinator()
-        .getPod().getPersistentVolume().getStorageClass()))
+        .getPods().getPersistentVolume().getStorageClass()))
         .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
     when(storageClassFinder.findByName(storageClass))
         .thenReturn(Optional.empty());
@@ -168,25 +169,26 @@ class StorageClassValidatorTest {
         .loadCreate().get();
 
     review.getRequest().getObject().getSpec().getShards()
-        .getPod().getPersistentVolume().setStorageClass("test");
+        .getPods().getPersistentVolume().setStorageClass("test");
     review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
         new StackGresShardedClusterShardBuilder()
-        .withNewPodForShards()
+        .withIndex(0)
+        .withNewPodsForShards()
         .withNewPersistentVolume()
         .withStorageClass("overrideTest")
         .endPersistentVolume()
-        .endPodForShards()
+        .endPodsForShards()
         .build()));
     String storageClass =
         review.getRequest().getObject().getSpec().getShards()
-        .getPod().getPersistentVolume().getStorageClass();
+        .getPods().getPersistentVolume().getStorageClass();
     String overrideStorageClass =
         review.getRequest().getObject().getSpec().getShards()
         .getOverrides().get(0)
-        .getPodForShards().getPersistentVolume().getStorageClass();
+        .getPodsForShards().getPersistentVolume().getStorageClass();
 
     when(storageClassFinder.findByName(review.getRequest().getObject().getSpec().getCoordinator()
-        .getPod().getPersistentVolume().getStorageClass()))
+        .getPods().getPersistentVolume().getStorageClass()))
         .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
     when(storageClassFinder.findByName(storageClass))
         .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
@@ -209,7 +211,7 @@ class StorageClassValidatorTest {
 
     String storageClass =
         review.getRequest().getObject().getSpec().getCoordinator()
-        .getPod().getPersistentVolume().getStorageClass();
+        .getPods().getPersistentVolume().getStorageClass();
 
     when(storageClassFinder.findByName(storageClass))
         .thenReturn(Optional.empty());
@@ -232,13 +234,13 @@ class StorageClassValidatorTest {
         .loadUpdate().get();
 
     review.getRequest().getObject().getSpec().getShards()
-        .getPod().getPersistentVolume().setStorageClass("test");
+        .getPods().getPersistentVolume().setStorageClass("test");
     String storageClass =
         review.getRequest().getObject().getSpec().getShards()
-        .getPod().getPersistentVolume().getStorageClass();
+        .getPods().getPersistentVolume().getStorageClass();
 
     when(storageClassFinder.findByName(review.getRequest().getObject().getSpec().getCoordinator()
-        .getPod().getPersistentVolume().getStorageClass()))
+        .getPods().getPersistentVolume().getStorageClass()))
         .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
     when(storageClassFinder.findByName(storageClass))
         .thenReturn(Optional.empty());
@@ -261,25 +263,26 @@ class StorageClassValidatorTest {
         .loadUpdate().get();
 
     review.getRequest().getObject().getSpec().getShards()
-        .getPod().getPersistentVolume().setStorageClass("test");
+        .getPods().getPersistentVolume().setStorageClass("test");
     review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
         new StackGresShardedClusterShardBuilder()
-        .withNewPodForShards()
+        .withIndex(0)
+        .withNewPodsForShards()
         .withNewPersistentVolume()
         .withStorageClass("overrideTest")
         .endPersistentVolume()
-        .endPodForShards()
+        .endPodsForShards()
         .build()));
     String storageClass =
         review.getRequest().getObject().getSpec().getShards()
-        .getPod().getPersistentVolume().getStorageClass();
+        .getPods().getPersistentVolume().getStorageClass();
     String overrideStorageClass =
         review.getRequest().getObject().getSpec().getShards()
         .getOverrides().get(0)
-        .getPodForShards().getPersistentVolume().getStorageClass();
+        .getPodsForShards().getPersistentVolume().getStorageClass();
 
     when(storageClassFinder.findByName(review.getRequest().getObject().getSpec().getCoordinator()
-        .getPod().getPersistentVolume().getStorageClass()))
+        .getPods().getPersistentVolume().getStorageClass()))
         .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
     when(storageClassFinder.findByName(storageClass))
         .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
@@ -305,13 +308,13 @@ class StorageClassValidatorTest {
         .loadStorageClassConfigUpdate().get();
 
     review.getRequest().getObject().getSpec().getCoordinator()
-        .getPod().getPersistentVolume().setStorageClass("test");
+        .getPods().getPersistentVolume().setStorageClass("test");
     String coordinatorStorageClass =
         review.getRequest().getObject().getSpec().getCoordinator()
-        .getPod().getPersistentVolume().getStorageClass();
+        .getPods().getPersistentVolume().getStorageClass();
     String shardsStorageClass =
         review.getRequest().getObject().getSpec().getShards()
-        .getPod().getPersistentVolume().getStorageClass();
+        .getPods().getPersistentVolume().getStorageClass();
 
     when(storageClassFinder.findByName(coordinatorStorageClass))
         .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
@@ -332,12 +335,12 @@ class StorageClassValidatorTest {
 
     String coordinatorStorageClass =
         review.getRequest().getObject().getSpec().getShards()
-        .getPod().getPersistentVolume().getStorageClass();
+        .getPods().getPersistentVolume().getStorageClass();
     review.getRequest().getObject().getSpec().getShards()
-        .getPod().getPersistentVolume().setStorageClass("test");
+        .getPods().getPersistentVolume().setStorageClass("test");
     String shardsStorageClass =
         review.getRequest().getObject().getSpec().getShards()
-        .getPod().getPersistentVolume().getStorageClass();
+        .getPods().getPersistentVolume().getStorageClass();
 
     when(storageClassFinder.findByName(coordinatorStorageClass))
         .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));
@@ -358,24 +361,25 @@ class StorageClassValidatorTest {
 
     String coordinatorStorageClass =
         review.getRequest().getObject().getSpec().getShards()
-        .getPod().getPersistentVolume().getStorageClass();
+        .getPods().getPersistentVolume().getStorageClass();
     review.getRequest().getObject().getSpec().getShards()
-        .getPod().getPersistentVolume().setStorageClass("test");
+        .getPods().getPersistentVolume().setStorageClass("test");
     review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
         new StackGresShardedClusterShardBuilder()
-        .withNewPodForShards()
+        .withIndex(0)
+        .withNewPodsForShards()
         .withNewPersistentVolume()
         .withStorageClass("overrideTest")
         .endPersistentVolume()
-        .endPodForShards()
+        .endPodsForShards()
         .build()));
     String shardsStorageClass =
         review.getRequest().getObject().getSpec().getShards()
-        .getPod().getPersistentVolume().getStorageClass();
+        .getPods().getPersistentVolume().getStorageClass();
     String overrideShardsStorageClass =
         review.getRequest().getObject().getSpec().getShards()
         .getOverrides().get(0)
-        .getPodForShards().getPersistentVolume().getStorageClass();
+        .getPodsForShards().getPersistentVolume().getStorageClass();
 
     when(storageClassFinder.findByName(coordinatorStorageClass))
         .thenReturn(Optional.of(DEFAULT_STORAGE_CLASS));

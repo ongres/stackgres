@@ -78,7 +78,7 @@ public class ClusterStatefulSet
     final String namespace = metadata.getNamespace();
 
     final StackGresPodPersistentVolume persistentVolume = cluster
-        .getSpec().getPod().getPersistentVolume();
+        .getSpec().getPods().getPersistentVolume();
 
     StorageConfig dataStorageConfig = ImmutableStorageConfig.builder()
         .size(persistentVolume.getSize())
@@ -129,7 +129,7 @@ public class ClusterStatefulSet
         .endMetadata()
         .withNewSpec()
         .withPodManagementPolicy(Optional
-            .ofNullable(cluster.getSpec().getPod().getManagementPolicy())
+            .ofNullable(cluster.getSpec().getPods().getManagementPolicy())
             .orElse("OrderedReady"))
         .withReplicas(cluster.getSpec().getInstances())
         .withSelector(new LabelSelectorBuilder()

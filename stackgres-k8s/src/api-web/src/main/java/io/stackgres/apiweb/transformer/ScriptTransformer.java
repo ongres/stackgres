@@ -12,16 +12,14 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
 import io.stackgres.apiweb.dto.script.ScriptDto;
 import io.stackgres.apiweb.dto.script.ScriptEntry;
-import io.stackgres.apiweb.dto.script.ScriptFrom;
 import io.stackgres.apiweb.dto.script.ScriptSpec;
 import io.stackgres.apiweb.dto.script.ScriptStatus;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
-import io.stackgres.common.crd.sgscript.StackGresScriptFrom;
 import io.stackgres.common.crd.sgscript.StackGresScriptSpec;
+import io.stackgres.common.crd.sgscript.StackGresScriptStatus;
 
 @ApplicationScoped
 public class ScriptTransformer
@@ -31,7 +29,6 @@ public class ScriptTransformer
 
   @Inject
   public ScriptTransformer(ObjectMapper mapper) {
-    super();
     this.mapper = mapper;
   }
 
@@ -51,105 +48,27 @@ public class ScriptTransformer
     ScriptDto transformation = new ScriptDto();
     transformation.setMetadata(getResourceMetadata(source));
     transformation.setSpec(getResourceSpec(source.getSpec()));
-    transformation.setStatus(getResourceStatus(clusters));
+    transformation.setStatus(getResourceStatus(source.getStatus()));
+    if (transformation.getStatus() == null) {
+      transformation.setStatus(new ScriptStatus());
+    }
+    transformation.getStatus().setClusters(clusters);
     return transformation;
   }
 
   private StackGresScriptSpec getCustomResourceSpec(ScriptSpec source) {
-    if (source == null) {
-      return null;
-    }
-    StackGresScriptSpec transformation = new StackGresScriptSpec();
-    transformation.setManagedVersions(source.isManagedVersions());
-    transformation.setContinueOnError(source.isContinueOnError());
-    if (source.getScripts() != null) {
-      transformation.setScripts(source.getScripts().stream()
-          .map(this::getCustomResourceScriptEntry)
-          .collect(ImmutableList.toImmutableList()));
-    }
-    return transformation;
-  }
-
-  public StackGresScriptEntry getCustomResourceScriptEntry(
-      ScriptEntry source) {
-    if (source == null) {
-      return null;
-    }
-    StackGresScriptEntry transformation =
-        new StackGresScriptEntry();
-    transformation.setName(source.getName());
-    transformation.setId(source.getId());
-    transformation.setVersion(source.getVersion());
-    transformation.setDatabase(source.getDatabase());
-    transformation.setUser(source.getUser());
-    transformation.setRetryOnError(source.getRetryOnError());
-    transformation.setStoreStatusInDatabase(source.getStoreStatusInDatabase());
-    transformation.setWrapInTransaction(source.getWrapInTransaction());
-    transformation.setScript(source.getScript());
-    transformation.setScriptFrom(getCustomResourceScriptFrom(source.getScriptFrom()));
-    return transformation;
-  }
-
-  private StackGresScriptFrom getCustomResourceScriptFrom(
-      ScriptFrom source) {
-    if (source == null) {
-      return null;
-    }
-    StackGresScriptFrom transformation =
-        new StackGresScriptFrom();
-    transformation.setConfigMapKeyRef(source.getConfigMapKeyRef());
-    transformation.setSecretKeyRef(source.getSecretKeyRef());
-    return transformation;
+    return mapper.convertValue(source, StackGresScriptSpec.class);
   }
 
   private ScriptSpec getResourceSpec(StackGresScriptSpec source) {
-    ScriptSpec transformation = new ScriptSpec();
-    transformation.setManagedVersions(source.isManagedVersions());
-    transformation.setContinueOnError(source.isContinueOnError());
-    if (source.getScripts() != null) {
-      transformation.setScripts(source.getScripts().stream()
-          .map(this::getResourceScriptEntry)
-          .collect(ImmutableList.toImmutableList()));
-    }
-    return transformation;
+    return mapper.convertValue(source, ScriptSpec.class);
   }
 
-  private ScriptEntry getResourceScriptEntry(
-      StackGresScriptEntry source) {
-    if (source == null) {
-      return null;
-    }
-    ScriptEntry transformation =
-        new ScriptEntry();
-    transformation.setName(source.getName());
-    transformation.setId(source.getId());
-    transformation.setVersion(source.getVersion());
-    transformation.setDatabase(source.getDatabase());
-    transformation.setUser(source.getUser());
-    transformation.setRetryOnError(source.getRetryOnError());
-    transformation.setStoreStatusInDatabase(source.getStoreStatusInDatabase());
-    transformation.setWrapInTransaction(source.getWrapInTransaction());
-    transformation.setScript(source.getScript());
-    transformation.setScriptFrom(getResourceScriptFrom(source.getScriptFrom()));
-    return transformation;
+  private ScriptStatus getResourceStatus(StackGresScriptStatus source) {
+    return mapper.convertValue(source, ScriptStatus.class);
   }
 
-  private ScriptFrom getResourceScriptFrom(
-      StackGresScriptFrom source) {
-    if (source == null) {
-      return null;
-    }
-    ScriptFrom transformation =
-        new ScriptFrom();
-    transformation.setConfigMapKeyRef(source.getConfigMapKeyRef());
-    transformation.setSecretKeyRef(source.getSecretKeyRef());
-    return transformation;
+  public StackGresScriptEntry getCustomResourceScriptEntry(ScriptEntry source) {
+    return mapper.convertValue(source, StackGresScriptEntry.class);
   }
-
-  private ScriptStatus getResourceStatus(List<String> clusters) {
-    ScriptStatus transformation = new ScriptStatus();
-    transformation.setClusters(clusters);
-    return transformation;
-  }
-
 }

@@ -25,7 +25,7 @@ public class SgProfileLogsDependenciesValidator
   @Override
   protected void validate(SgProfileReview review, StackGresDistributedLogs resource)
       throws ValidationFailed {
-    if (Objects.equals(resource.getSpec().getResourceProfile(), review.getRequest().getName())) {
+    if (Objects.equals(resource.getSpec().getSgInstanceProfile(), review.getRequest().getName())) {
       fail(review, resource);
     }
   }

@@ -28,7 +28,6 @@ public class StackGresClusterManagedSql {
   @JsonProperty("continueOnSGScriptError")
   private Boolean continueOnScriptError;
 
-  @JsonProperty("scripts")
   @Valid
   private List<StackGresClusterManagedScriptEntry> scripts;
 

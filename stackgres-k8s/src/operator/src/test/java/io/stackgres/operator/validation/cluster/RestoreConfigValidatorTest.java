@@ -84,7 +84,7 @@ class RestoreConfigValidatorTest {
     final StackGresClusterReview review = getCreationReview();
 
     StackGresCluster cluster = review.getRequest().getObject();
-    StackGresClusterRestore restoreConfig = cluster.getSpec().getInitData().getRestore();
+    StackGresClusterRestore restoreConfig = cluster.getSpec().getInitialData().getRestore();
     String backupName = restoreConfig.getFromBackup().getName();
 
     when(finder.findByNameAndNamespace(anyString(), anyString())).thenReturn(Optional.empty());
@@ -102,7 +102,7 @@ class RestoreConfigValidatorTest {
     final StackGresClusterReview review = getCreationReview();
     review.getRequest().getObject().getSpec().getPostgres().setVersion(secondPgMajorVersion);
     final String backupName = backupList.getItems().get(0).getMetadata().getName();
-    review.getRequest().getObject().getSpec().getInitData().getRestore().getFromBackup()
+    review.getRequest().getObject().getSpec().getInitialData().getRestore().getFromBackup()
         .setName(backupName);
 
     backupList.getItems().get(0).getStatus().getBackupInformation()
@@ -122,9 +122,9 @@ class RestoreConfigValidatorTest {
   @Test
   void givenACreationWithBackupFromAndUid_shouldFail() {
     final StackGresClusterReview review = getCreationReview();
-    review.getRequest().getObject().getSpec().getInitData().getRestore()
+    review.getRequest().getObject().getSpec().getInitialData().getRestore()
         .getFromBackup().setName(null);
-    review.getRequest().getObject().getSpec().getInitData().getRestore()
+    review.getRequest().getObject().getSpec().getInitialData().getRestore()
         .getFromBackup().setUid("23442867-377d-11ea-b04b-0242ac110004");
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
@@ -137,7 +137,7 @@ class RestoreConfigValidatorTest {
   void givenACreationWithNoRestoreConfig_shouldDoNothing() throws ValidationFailed {
 
     final StackGresClusterReview review = getCreationReview();
-    review.getRequest().getObject().getSpec().getInitData().setRestore(null);
+    review.getRequest().getObject().getSpec().getInitialData().setRestore(null);
 
     validator.validate(review);
 
@@ -148,8 +148,8 @@ class RestoreConfigValidatorTest {
   @Test
   void givenAnUpdateWithSameRestoreConfig_shouldPass() throws ValidationFailed {
     final StackGresClusterReview review = getUpdateReview();
-    review.getRequest().getObject().getSpec().getInitData().getRestore().getFromBackup()
-        .setName(review.getRequest().getOldObject().getSpec().getInitData().getRestore()
+    review.getRequest().getObject().getSpec().getInitialData().getRestore().getFromBackup()
+        .setName(review.getRequest().getOldObject().getSpec().getInitialData().getRestore()
             .getFromBackup().getName());
 
     validator.validate(review);
@@ -160,8 +160,8 @@ class RestoreConfigValidatorTest {
   @Test
   void givenAnUpdateWithoutInitialData_shouldPass() throws ValidationFailed {
     final StackGresClusterReview review = getUpdateReview();
-    review.getRequest().getObject().getSpec().setInitData(null);
-    review.getRequest().getOldObject().getSpec().setInitData(null);
+    review.getRequest().getObject().getSpec().setInitialData(null);
+    review.getRequest().getOldObject().getSpec().setInitialData(null);
 
     validator.validate(review);
 
@@ -171,8 +171,8 @@ class RestoreConfigValidatorTest {
   @Test
   void givenAnUpdateWithoutRestoreConfig_shouldPass() throws ValidationFailed {
     final StackGresClusterReview review = getUpdateReview();
-    review.getRequest().getObject().getSpec().getInitData().setRestore(null);
-    review.getRequest().getOldObject().getSpec().getInitData().setRestore(null);
+    review.getRequest().getObject().getSpec().getInitialData().setRestore(null);
+    review.getRequest().getOldObject().getSpec().getInitialData().setRestore(null);
 
     validator.validate(review);
 

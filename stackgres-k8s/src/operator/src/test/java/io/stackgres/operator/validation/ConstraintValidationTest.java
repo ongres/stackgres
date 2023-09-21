@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 
 public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
 
-  protected ConstraintValidator<T> validator;
+  protected AbstractConstraintValidator<T> validator;
 
   private String errorTypeDocumentationUri;
 
@@ -75,7 +75,7 @@ public abstract class ConstraintValidationTest<T extends AdmissionReview<?>> {
     assertEquals(errorTypeDocumentationUri, status.getReason());
   }
 
-  protected abstract ConstraintValidator<T> buildValidator();
+  protected abstract AbstractConstraintValidator<T> buildValidator();
 
   protected abstract T getValidReview();
 

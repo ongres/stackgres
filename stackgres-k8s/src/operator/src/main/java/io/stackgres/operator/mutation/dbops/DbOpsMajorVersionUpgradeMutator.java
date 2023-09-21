@@ -16,7 +16,7 @@ import javax.inject.Inject;
 import com.google.common.base.Predicates;
 import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -60,9 +60,9 @@ public class DbOpsMajorVersionUpgradeMutator implements DbOpsMutator {
   private boolean clusterHasBackups(StackGresCluster cluster) {
     var configurations = Optional.of(cluster)
         .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getConfiguration);
-    return configurations.map(StackGresClusterConfiguration::getBackupConfig).isPresent()
-        || configurations.map(StackGresClusterConfiguration::getBackups)
+        .map(StackGresClusterSpec::getConfigurations);
+    return configurations.map(StackGresClusterConfigurations::getSgBackupConfig).isPresent()
+        || configurations.map(StackGresClusterConfigurations::getBackups)
         .filter(Predicates.not(List::isEmpty))
         .isPresent();
   }

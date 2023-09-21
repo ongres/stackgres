@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.cluster;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
@@ -16,10 +15,8 @@ import io.stackgres.common.StackGresUtil;
 @RegisterForReflection
 public class ClusterCredentials {
 
-  @JsonProperty("patroni")
   private ClusterPatroniCredentials patroni;
 
-  @JsonProperty("users")
   private ClusterUsersCredentials users;
 
   public ClusterPatroniCredentials getPatroni() {

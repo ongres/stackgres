@@ -24,7 +24,7 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurationServiceBinding;
+import io.stackgres.common.crd.sgcluster.StackGresClusterServiceBinding;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -60,14 +60,14 @@ public class ServiceBindingSecretTest {
 
   @Test
   void generateResourseWhenServiceBindingConfigurationIsPresent() {
-    StackGresClusterConfigurationServiceBinding sgClusterConfigServiceBinding =
-        new StackGresClusterConfigurationServiceBinding();
+    StackGresClusterServiceBinding sgClusterConfigServiceBinding =
+        new StackGresClusterServiceBinding();
     sgClusterConfigServiceBinding.setProvider("stackgres");
     sgClusterConfigServiceBinding.setDatabase("postgresdb");
     sgClusterConfigServiceBinding.setUsername("superuserdb");
     sgClusterConfigServiceBinding.setPassword(
       new SecretKeySelector(SUPERUSER_PASSWORD_KEY, SUPERUSER_USERNAME_ENV));
-    context.getCluster().getSpec().getConfiguration().setBinding(sgClusterConfigServiceBinding);
+    context.getCluster().getSpec().getConfigurations().setBinding(sgClusterConfigServiceBinding);
     when(context.getUserPasswordForBinding())
         .thenReturn(Optional.of(decodedExistentSecretData.get(SUPERUSER_USERNAME_ENV)));
 
@@ -80,26 +80,27 @@ public class ServiceBindingSecretTest {
     assertEquals(serviceBindingSecret.getType(), "servicebinding.io/postgresql");
 
     Map<String, String> data = serviceBindingSecret.getStringData();
-    assertEquals(data.get("type"), "postgresql");
-    assertEquals(data.get("provider"), "stackgres");
-    assertEquals(data.get("host"), "stackgres.stackgres");
-    assertEquals(data.get("port"), "5432");
-    assertEquals(data.get("username"), "superuserdb");
-    assertEquals(data.get("password"), decodedExistentSecretData.get(SUPERUSER_USERNAME_ENV));
-    assertEquals(data.get("uri"),
-        String.format("postgresql://superuserdb:%s@stackgres.stackgres:5432/postgresdb",
-          decodedExistentSecretData.get(SUPERUSER_USERNAME_ENV)));
+    assertEquals("postgresql", data.get("type"));
+    assertEquals("stackgres", data.get("provider"));
+    assertEquals("stackgres.stackgres", data.get("host"));
+    assertEquals("5432", data.get("port"));
+    assertEquals("superuserdb", data.get("username"));
+    assertEquals(decodedExistentSecretData.get(SUPERUSER_USERNAME_ENV),
+        data.get("password"));
+    assertEquals(String.format("postgresql://superuserdb:%s@stackgres.stackgres:5432/postgresdb",
+          decodedExistentSecretData.get(SUPERUSER_USERNAME_ENV)),
+        data.get("uri"));
   }
 
   @Test
   void generateResourseWhenServiceBindingConfigurationIsPresentAndWhenDbNameIsAbsent() {
-    StackGresClusterConfigurationServiceBinding sgClusterConfigServiceBinding =
-        new StackGresClusterConfigurationServiceBinding();
+    StackGresClusterServiceBinding sgClusterConfigServiceBinding =
+        new StackGresClusterServiceBinding();
     sgClusterConfigServiceBinding.setProvider("stackgres");
     sgClusterConfigServiceBinding.setUsername("superuserdb");
     sgClusterConfigServiceBinding.setPassword(
       new SecretKeySelector(SUPERUSER_PASSWORD_KEY, SUPERUSER_USERNAME_ENV));
-    context.getCluster().getSpec().getConfiguration().setBinding(sgClusterConfigServiceBinding);
+    context.getCluster().getSpec().getConfigurations().setBinding(sgClusterConfigServiceBinding);
     when(context.getUserPasswordForBinding())
         .thenReturn(Optional.of(decodedExistentSecretData.get(SUPERUSER_USERNAME_ENV)));
 
@@ -110,7 +111,7 @@ public class ServiceBindingSecretTest {
 
   @Test
   void generateResourseWhenServiceBindingConfigurationIsNotPresentAndGetCredentialsFromContext() {
-    context.getCluster().getSpec().getConfiguration().setBinding(null);
+    context.getCluster().getSpec().getConfigurations().setBinding(null);
     when(context.getSuperuserPassword())
         .thenReturn(Optional.of("dummy-superuser-password"));
     Stream<HasMetadata> hasMetadataStream = serviceBindingSecret.generateResource(context);
@@ -120,7 +121,7 @@ public class ServiceBindingSecretTest {
 
   @Test
   void generateResourseWhenServiceBindingConfigurationIsNotPresentAndGetCredentialsFromDbSecret() {
-    context.getCluster().getSpec().getConfiguration().setBinding(null);
+    context.getCluster().getSpec().getConfigurations().setBinding(null);
     when(context.getSuperuserUsername())
         .thenReturn(Optional.empty());
     when(context.getSuperuserPassword())
@@ -135,7 +136,7 @@ public class ServiceBindingSecretTest {
 
   @Test
   void generateResourseWhenServiceBindingConfigurationIsNotPresentWithAutoGeneratedPassword() {
-    context.getCluster().getSpec().getConfiguration().setBinding(null);
+    context.getCluster().getSpec().getConfigurations().setBinding(null);
     when(context.getSuperuserUsername())
         .thenReturn(Optional.empty());
     when(context.getSuperuserPassword())

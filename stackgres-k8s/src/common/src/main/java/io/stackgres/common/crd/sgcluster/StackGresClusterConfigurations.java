@@ -14,7 +14,6 @@ import javax.validation.constraints.AssertTrue;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.FieldReference;
@@ -27,35 +26,29 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresClusterConfiguration {
+public class StackGresClusterConfigurations {
 
-  @JsonProperty("sgPostgresConfig")
-  private String postgresConfig;
+  private String sgPostgresConfig;
 
-  @JsonProperty("sgPoolingConfig")
-  private String connectionPoolingConfig;
+  private String sgPoolingConfig;
 
-  @JsonProperty("sgBackupConfig")
   @Deprecated(since = "1.3.0", forRemoval = true)
-  private String backupConfig;
+  private String sgBackupConfig;
 
-  @JsonProperty("backupPath")
   @Deprecated(since = "1.3.0", forRemoval = true)
   private String backupPath;
 
-  @JsonProperty("backups")
   @Valid
   private List<StackGresClusterBackupConfiguration> backups;
 
-  @JsonProperty("patroni")
   @Valid
   private StackGresClusterPatroni patroni;
 
-  @JsonProperty("credentials")
   @Valid
   private StackGresClusterCredentials credentials;
 
-  private StackGresClusterConfigurationServiceBinding binding;
+  @Valid
+  private StackGresClusterServiceBinding binding;
 
   @ReferencedField("sgPostgresConfig")
   interface SgPostgresConfig extends FieldReference {
@@ -69,38 +62,38 @@ public class StackGresClusterConfiguration {
   @AssertTrue(message = "sgPostgresConfig is required",
       payload = { SgPostgresConfig.class })
   public boolean isSgPostgresConfigPresent() {
-    return postgresConfig != null;
+    return sgPostgresConfig != null;
   }
 
   @JsonIgnore
   @AssertTrue(message = "backupPath can not be null when sgBackupConfig is set.",
       payload = { BackupPath.class })
   public boolean isBackupPathSetWhenSgBackupConfigIsSet() {
-    return backupConfig == null || backupPath != null;
+    return sgBackupConfig == null || backupPath != null;
   }
 
-  public String getPostgresConfig() {
-    return postgresConfig;
+  public String getSgPostgresConfig() {
+    return sgPostgresConfig;
   }
 
-  public void setPostgresConfig(String postgresConfig) {
-    this.postgresConfig = postgresConfig;
+  public void setSgPostgresConfig(String sgPostgresConfig) {
+    this.sgPostgresConfig = sgPostgresConfig;
   }
 
-  public String getConnectionPoolingConfig() {
-    return connectionPoolingConfig;
+  public String getSgPoolingConfig() {
+    return sgPoolingConfig;
   }
 
-  public void setConnectionPoolingConfig(String connectionPoolingConfig) {
-    this.connectionPoolingConfig = connectionPoolingConfig;
+  public void setSgPoolingConfig(String sgPoolingConfig) {
+    this.sgPoolingConfig = sgPoolingConfig;
   }
 
-  public String getBackupConfig() {
-    return backupConfig;
+  public String getSgBackupConfig() {
+    return sgBackupConfig;
   }
 
-  public void setBackupConfig(String backupConfig) {
-    this.backupConfig = backupConfig;
+  public void setSgBackupConfig(String sgBackupConfig) {
+    this.sgBackupConfig = sgBackupConfig;
   }
 
   public String getBackupPath() {
@@ -135,19 +128,19 @@ public class StackGresClusterConfiguration {
     this.credentials = credentials;
   }
 
-  public StackGresClusterConfigurationServiceBinding getBinding() {
+  public StackGresClusterServiceBinding getBinding() {
     return binding;
   }
 
   public void setBinding(
-      StackGresClusterConfigurationServiceBinding binding) {
+      StackGresClusterServiceBinding binding) {
     this.binding = binding;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(backupConfig, backupPath, backups, connectionPoolingConfig, credentials,
-        patroni, postgresConfig, binding);
+    return Objects.hash(backupPath, backups, binding, credentials, patroni, sgBackupConfig,
+        sgPoolingConfig, sgPostgresConfig);
   }
 
   @Override
@@ -155,17 +148,18 @@ public class StackGresClusterConfiguration {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresClusterConfiguration)) {
+    if (!(obj instanceof StackGresClusterConfigurations)) {
       return false;
     }
-    StackGresClusterConfiguration other = (StackGresClusterConfiguration) obj;
-    return Objects.equals(backupConfig, other.backupConfig)
-        && Objects.equals(backupPath, other.backupPath)
+    StackGresClusterConfigurations other = (StackGresClusterConfigurations) obj;
+    return Objects.equals(backupPath, other.backupPath)
         && Objects.equals(backups, other.backups)
-        && Objects.equals(connectionPoolingConfig, other.connectionPoolingConfig)
-        && Objects.equals(credentials, other.credentials) && Objects.equals(patroni, other.patroni)
-        && Objects.equals(postgresConfig, other.postgresConfig)
-        && Objects.equals(binding, other.binding);
+        && Objects.equals(binding, other.binding)
+        && Objects.equals(credentials, other.credentials)
+        && Objects.equals(patroni, other.patroni)
+        && Objects.equals(sgBackupConfig, other.sgBackupConfig)
+        && Objects.equals(sgPoolingConfig, other.sgPoolingConfig)
+        && Objects.equals(sgPostgresConfig, other.sgPostgresConfig);
   }
 
   @Override

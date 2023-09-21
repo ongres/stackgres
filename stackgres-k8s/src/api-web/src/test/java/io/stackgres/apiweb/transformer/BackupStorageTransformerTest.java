@@ -35,9 +35,19 @@ import org.junit.jupiter.api.Test;
 
 class BackupStorageTransformerTest {
 
-  Transformer<BackupStorageDto, BackupStorage> storageTransformer = new BackupStorageTransformer(
-      JsonMapper.builder().build()
-  );
+  JsonMapper mapper = JsonMapper.builder().build();
+  Transformer<BackupStorageDto, BackupStorage> storageTransformer =
+      new Transformer<BackupStorageDto, BackupStorage>() {
+        @Override
+        public BackupStorage toSource(BackupStorageDto target) {
+          return mapper.convertValue(target, BackupStorage.class);
+        }
+
+        @Override
+        public BackupStorageDto toTarget(BackupStorage source) {
+          return mapper.convertValue(source, BackupStorageDto.class);
+        }
+      };
 
   public static TransformerTuple<BackupStorageDto, BackupStorage> createS3BackupStorage() {
     BackupStorage crdBackupStorage = new BackupStorage();
@@ -113,7 +123,7 @@ class BackupStorageTransformerTest {
     azureBlobStorage.setPath(path);
 
     final var azureCredentials = createAzureCredentials();
-    azureBlobStorageDto.setCredentials(azureCredentials.target());
+    azureBlobStorageDto.setAzureCredentials(azureCredentials.target());
     azureBlobStorage.setAzureCredentials(azureCredentials.source());
 
     return new TransformerTuple<>(azureBlobStorageDto, azureBlobStorage);
@@ -137,7 +147,7 @@ class BackupStorageTransformerTest {
 
     var credentialsTuple = generateAwsCredentials();
     crdS3Storage.setAwsCredentials(credentialsTuple.source());
-    dtoS3Storage.setCredentials(credentialsTuple.target());
+    dtoS3Storage.setAwsCredentials(credentialsTuple.target());
 
     return new TransformerTuple<>(dtoS3Storage, crdS3Storage);
   }
@@ -167,13 +177,13 @@ class BackupStorageTransformerTest {
     target.setEndpoint(endpoint);
     source.setEndpoint(endpoint);
 
-    boolean forcePathStyle = new Random().nextBoolean();
-    target.setForcePathStyle(forcePathStyle);
-    source.setForcePathStyle(forcePathStyle);
+    boolean enablePathStyleAddressing = new Random().nextBoolean();
+    target.setEnablePathStyleAddressing(enablePathStyleAddressing);
+    source.setEnablePathStyleAddressing(enablePathStyleAddressing);
 
     final var credentialTuple = generateAwsCredentials();
 
-    target.setCredentials(credentialTuple.target());
+    target.setAwsCredentials(credentialTuple.target());
     source.setAwsCredentials(credentialTuple.source());
 
     return new TransformerTuple<>(target, source);
@@ -192,8 +202,8 @@ class BackupStorageTransformerTest {
     dtoS3Storage.setBucket(bucket);
 
     var credentialsTuple = generateGcsCredentials();
-    crdS3Storage.setCredentials(credentialsTuple.source());
-    dtoS3Storage.setCredentials(credentialsTuple.target());
+    crdS3Storage.setGcpCredentials(credentialsTuple.source());
+    dtoS3Storage.setGcpCredentials(credentialsTuple.target());
 
     return new TransformerTuple<>(dtoS3Storage, crdS3Storage);
   }
@@ -245,8 +255,8 @@ class BackupStorageTransformerTest {
     secretKeySelectorDto.setAccessKey(accessKey);
 
     final var account = generateSecretKeySelector();
-    secretKeySelector.setAccount(account);
-    secretKeySelectorDto.setAccount(account);
+    secretKeySelector.setStorageAccount(account);
+    secretKeySelectorDto.setStorageAccount(account);
 
     AzureBlobStorageCredentialsDto target = new AzureBlobStorageCredentialsDto();
     AzureBlobStorageCredentials source = new AzureBlobStorageCredentials();

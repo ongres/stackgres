@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.cluster;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.backupconfig.BaseBackupPerformance;
 import io.stackgres.common.StackGresUtil;
@@ -15,22 +14,16 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ClusterBackupsConfiguration {
 
-  @JsonProperty("retention")
   private Integer retention;
 
-  @JsonProperty("cronSchedule")
   private String cronSchedule;
 
-  @JsonProperty("compression")
-  private String compressionMethod;
+  private String compression;
 
-  @JsonProperty("performance")
   private BaseBackupPerformance performance;
 
-  @JsonProperty("sgObjectStorage")
-  private String objectStorage;
+  private String sgObjectStorage;
 
-  @JsonProperty("path")
   private String path;
 
   public Integer getRetention() {
@@ -49,12 +42,12 @@ public class ClusterBackupsConfiguration {
     this.cronSchedule = cronSchedule;
   }
 
-  public String getCompressionMethod() {
-    return compressionMethod;
+  public String getCompression() {
+    return compression;
   }
 
-  public void setCompressionMethod(String compressionMethod) {
-    this.compressionMethod = compressionMethod;
+  public void setCompression(String compression) {
+    this.compression = compression;
   }
 
   public BaseBackupPerformance getPerformance() {
@@ -65,12 +58,12 @@ public class ClusterBackupsConfiguration {
     this.performance = performance;
   }
 
-  public String getObjectStorage() {
-    return objectStorage;
+  public String getSgObjectStorage() {
+    return sgObjectStorage;
   }
 
-  public void setObjectStorage(String objectStorage) {
-    this.objectStorage = objectStorage;
+  public void setSgObjectStorage(String sgObjectStorage) {
+    this.sgObjectStorage = sgObjectStorage;
   }
 
   public String getPath() {

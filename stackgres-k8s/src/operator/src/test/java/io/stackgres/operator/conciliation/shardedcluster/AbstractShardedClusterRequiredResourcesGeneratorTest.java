@@ -102,21 +102,21 @@ abstract class AbstractShardedClusterRequiredResourcesGeneratorTest {
 
   void mockProfile() {
     when(profileConfigFinder.findByNameAndNamespace(
-        cluster.getSpec().getCoordinator().getResourceProfile(),
+        cluster.getSpec().getCoordinator().getSgInstanceProfile(),
         cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.of(instanceProfile));
   }
 
   void mockPoolingConfig() {
     when(poolingConfigFinder.findByNameAndNamespace(
-        cluster.getSpec().getCoordinator().getConfiguration().getConnectionPoolingConfig(),
+        cluster.getSpec().getCoordinator().getConfigurations().getSgPoolingConfig(),
         cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.of(poolingConfig));
   }
 
   void mockPgConfig() {
     when(postgresConfigFinder.findByNameAndNamespace(
-        cluster.getSpec().getCoordinator().getConfiguration().getPostgresConfig(),
+        cluster.getSpec().getCoordinator().getConfigurations().getSgPostgresConfig(),
         cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.of(this.postgresConfig));
   }

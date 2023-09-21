@@ -19,7 +19,6 @@ import io.stackgres.apiweb.dto.backupconfig.BackupConfigDto;
 import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.dto.objectstorage.ObjectStorageDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
-import io.stackgres.apiweb.transformer.BackupStorageTransformer;
 import io.stackgres.apiweb.transformer.ObjectStorageTransformer;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigList;
@@ -95,11 +94,8 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
   protected AbstractDependencyResourceTransformer<
       ObjectStorageDto,
       StackGresObjectStorage> getTransformer() {
-    final JsonMapper build = JsonMapper.builder().build();
-    return new ObjectStorageTransformer(
-        new BackupStorageTransformer(build),
-        build
-    );
+    final JsonMapper mapper = JsonMapper.builder().build();
+    return new ObjectStorageTransformer(mapper);
   }
 
   @Override
@@ -169,18 +165,18 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
     assertNull(resource.getSpec().getGcs());
     assertNull(resource.getSpec().getS3());
     assertNotNull(resource.getSpec().getS3Compatible());
-    assertNotNull(resource.getSpec().getS3Compatible().getCredentials());
-    assertNotNull(resource.getSpec().getS3Compatible().getCredentials()
+    assertNotNull(resource.getSpec().getS3Compatible().getAwsCredentials());
+    assertNotNull(resource.getSpec().getS3Compatible().getAwsCredentials()
         .getSecretKeySelectors().getAccessKeyId());
-    assertEquals("minio", resource.getSpec().getS3Compatible().getCredentials()
+    assertEquals("minio", resource.getSpec().getS3Compatible().getAwsCredentials()
         .getSecretKeySelectors().getAccessKeyId().getName());
-    assertEquals("accesskey", resource.getSpec().getS3Compatible().getCredentials()
+    assertEquals("accesskey", resource.getSpec().getS3Compatible().getAwsCredentials()
         .getSecretKeySelectors().getAccessKeyId().getKey());
-    assertNotNull(resource.getSpec().getS3Compatible().getCredentials()
+    assertNotNull(resource.getSpec().getS3Compatible().getAwsCredentials()
         .getSecretKeySelectors().getSecretAccessKey());
-    assertEquals("minio", resource.getSpec().getS3Compatible().getCredentials()
+    assertEquals("minio", resource.getSpec().getS3Compatible().getAwsCredentials()
         .getSecretKeySelectors().getSecretAccessKey().getName());
-    assertEquals("secretkey", resource.getSpec().getS3Compatible().getCredentials()
+    assertEquals("secretkey", resource.getSpec().getS3Compatible().getAwsCredentials()
         .getSecretKeySelectors().getSecretAccessKey().getKey());
     assertEquals("http://minio.stackgres:9000",
         resource.getSpec().getS3Compatible().getEndpoint());
@@ -188,7 +184,7 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
     assertNull(resource.getSpec().getS3Compatible().getPath());
     assertEquals("k8s", resource.getSpec().getS3Compatible().getRegion());
     assertNull(resource.getSpec().getS3Compatible().getStorageClass());
-    assertTrue(resource.getSpec().getS3Compatible().isForcePathStyle());
+    assertTrue(resource.getSpec().getS3Compatible().isEnablePathStyleAddressing());
     assertNotNull(resource.getStatus());
     assertNotNull(resource.getStatus().getClusters());
     assertEquals(1, resource.getStatus().getClusters().size());
@@ -231,7 +227,7 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
     assertEquals("s3://stackgres", resource.getSpec().getS3Compatible().getPrefix());
     assertEquals("k8s", resource.getSpec().getS3Compatible().getRegion());
     assertNull(resource.getSpec().getS3Compatible().getStorageClass());
-    assertTrue(resource.getSpec().getS3Compatible().isForcePathStyle());
+    assertTrue(resource.getSpec().getS3Compatible().isEnablePathStyleAddressing());
   }
 
 }

@@ -8,36 +8,27 @@ package io.stackgres.apiweb.dto.cluster;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ClusterNonProduction {
+public class ClusterNonProductionOptions {
 
-  @JsonProperty("disableClusterPodAntiAffinity")
   public Boolean disableClusterPodAntiAffinity;
 
-  @JsonProperty("disablePatroniResourceRequirements")
   public Boolean disablePatroniResourceRequirements;
 
-  @JsonProperty("disableClusterResourceRequirements")
   public Boolean disableClusterResourceRequirements;
 
-  @JsonProperty("enableSetPatroniCpuRequests")
   public Boolean enableSetPatroniCpuRequests;
 
-  @JsonProperty("enableSetClusterCpuRequests")
   public Boolean enableSetClusterCpuRequests;
 
-  @JsonProperty("enableSetPatroniMemoryRequests")
   public Boolean enableSetPatroniMemoryRequests;
 
-  @JsonProperty("enableSetClusterMemoryRequests")
   public Boolean enableSetClusterMemoryRequests;
 
-  @JsonProperty("enabledFeatureGates")
   public List<String> enabledFeatureGates;
 
   public Boolean getDisableClusterPodAntiAffinity() {

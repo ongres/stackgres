@@ -68,10 +68,10 @@ class ClusterValidationQuarkusTest {
     spec.setToInstallPostgresExtensions(
         getInstalledExtension("dblink", "pg_stat_statements", "plpgsql", "plpython3u"));
     spec.setDistributedLogs(null);
-    spec.setInitData(null);
+    spec.setInitialData(null);
     spec.getPostgres().setVersion("12.8");
-    spec.getConfiguration().setBackupConfig(null);
-    spec.getConfiguration().setBackupPath(null);
+    spec.getConfigurations().setSgBackupConfig(null);
+    spec.getConfigurations().setBackupPath(null);
 
     return review;
   }

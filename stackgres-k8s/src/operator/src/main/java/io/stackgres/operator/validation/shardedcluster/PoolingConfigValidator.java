@@ -6,6 +6,7 @@
 package io.stackgres.operator.validation.shardedcluster;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -15,7 +16,7 @@ import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShard;
-import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardConfiguration;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardConfigurations;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShards;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
@@ -40,24 +41,24 @@ public class PoolingConfigValidator implements ShardedClusterValidator {
       case CREATE: {
         StackGresShardedCluster cluster = review.getRequest().getObject();
         String coordinatorPoolingConfig = cluster.getSpec().getCoordinator()
-            .getConfiguration().getConnectionPoolingConfig();
+            .getConfigurations().getSgPoolingConfig();
         checkIfPoolingConfigExists(review, coordinatorPoolingConfig,
             "Pooling config " + coordinatorPoolingConfig
                 + " not found for coordinator");
         String shardsPoolingConfig = cluster.getSpec().getShards()
-            .getConfiguration().getConnectionPoolingConfig();
+            .getConfigurations().getSgPoolingConfig();
         checkIfPoolingConfigExists(review, shardsPoolingConfig,
             "Pooling config " + shardsPoolingConfig
                 + " not found for shards");
         for (var overrideShard : Optional.of(cluster.getSpec().getShards())
             .map(StackGresShardedClusterShards::getOverrides)
             .orElse(List.of())) {
-          if (overrideShard.getConfigurationForShards() == null
-              || overrideShard.getConfigurationForShards().getConnectionPoolingConfig() == null) {
+          if (overrideShard.getConfigurationsForShards() == null
+              || overrideShard.getConfigurationsForShards().getSgPoolingConfig() == null) {
             continue;
           }
           String overrideShardsPoolingConfig = overrideShard
-              .getConfigurationForShards().getConnectionPoolingConfig();
+              .getConfigurationsForShards().getSgPoolingConfig();
           checkIfPoolingConfigExists(review, overrideShardsPoolingConfig,
               "Pooling config " + overrideShardsPoolingConfig
                   + " not found for shard " + overrideShard.getIndex());
@@ -68,18 +69,18 @@ public class PoolingConfigValidator implements ShardedClusterValidator {
         StackGresShardedCluster cluster = review.getRequest().getObject();
         StackGresShardedCluster oldCluster = review.getRequest().getOldObject();
         String coordinatorPoolingConfig = cluster.getSpec().getCoordinator()
-            .getConfiguration().getConnectionPoolingConfig();
+            .getConfigurations().getSgPoolingConfig();
         String oldCoordinatorPoolingConfig = oldCluster.getSpec().getCoordinator()
-            .getConfiguration().getConnectionPoolingConfig();
+            .getConfigurations().getSgPoolingConfig();
         if (!coordinatorPoolingConfig.equals(oldCoordinatorPoolingConfig)) {
           checkIfPoolingConfigExists(review, coordinatorPoolingConfig,
               "Cannot update coordinator to pooling config "
                   + coordinatorPoolingConfig + " because it doesn't exists");
         }
         String shardsPoolingConfig = cluster.getSpec().getShards()
-            .getConfiguration().getConnectionPoolingConfig();
+            .getConfigurations().getSgPoolingConfig();
         String oldShardsPoolingConfig = oldCluster.getSpec().getShards()
-            .getConfiguration().getConnectionPoolingConfig();
+            .getConfigurations().getSgPoolingConfig();
         if (!shardsPoolingConfig.equals(oldShardsPoolingConfig)) {
           checkIfPoolingConfigExists(review, shardsPoolingConfig,
               "Cannot update shards to pooling config "
@@ -88,20 +89,22 @@ public class PoolingConfigValidator implements ShardedClusterValidator {
         for (var overrideShard : Optional.of(cluster.getSpec().getShards())
             .map(StackGresShardedClusterShards::getOverrides)
             .orElse(List.of())) {
-          if (overrideShard.getConfigurationForShards() == null
-              || overrideShard.getConfigurationForShards().getConnectionPoolingConfig() == null) {
+          if (overrideShard.getConfigurationsForShards() == null
+              || overrideShard.getConfigurationsForShards().getSgPoolingConfig() == null) {
             continue;
           }
           String overrideShardsPoolingConfig = overrideShard
-              .getConfigurationForShards().getConnectionPoolingConfig();
+              .getConfigurationsForShards().getSgPoolingConfig();
           String oldOverrideShardsPoolingConfig = Optional.of(oldCluster.getSpec().getShards())
               .map(StackGresShardedClusterShards::getOverrides)
               .stream()
               .flatMap(List::stream)
-              .filter(oldOverrideShard -> oldOverrideShard.getIndex() == overrideShard.getIndex())
+              .filter(oldOverrideShard -> Objects.equals(
+                  oldOverrideShard.getIndex(),
+                  overrideShard.getIndex()))
               .findFirst()
-              .map(StackGresShardedClusterShard::getConfigurationForShards)
-              .map(StackGresShardedClusterShardConfiguration::getConnectionPoolingConfig)
+              .map(StackGresShardedClusterShard::getConfigurationsForShards)
+              .map(StackGresShardedClusterShardConfigurations::getSgPoolingConfig)
               .orElse(oldShardsPoolingConfig);
           if (!overrideShardsPoolingConfig.equals(oldOverrideShardsPoolingConfig)) {
             checkIfPoolingConfigExists(review, overrideShardsPoolingConfig,

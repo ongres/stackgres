@@ -140,7 +140,7 @@ public abstract class AbstractBackupConfigMap {
             storageForS3Compatible, AwsS3CompatibleStorage::getEndpoint,
             StackGresUtil::getPortFromUrl),
         "AWS_S3_FORCE_PATH_STYLE", BackupStorageUtil.getFromS3Compatible(
-            storageForS3Compatible, AwsS3CompatibleStorage::isForcePathStyle),
+            storageForS3Compatible, AwsS3CompatibleStorage::isEnablePathStyleAddressing),
         "WALG_S3_STORAGE_CLASS", BackupStorageUtil.getFromS3Compatible(
             storageForS3Compatible, AwsS3CompatibleStorage::getStorageClass)));
     if (Optional.of(storageForS3Compatible)
@@ -167,7 +167,7 @@ public abstract class AbstractBackupConfigMap {
     backupEnvVars.put("WALG_GS_PREFIX", BackupStorageUtil.getPrefixForGcs(
         path, storageForGcs));
     if (!Optional.of(storageForGcs)
-        .map(GoogleCloudStorage::getCredentials)
+        .map(GoogleCloudStorage::getGcpCredentials)
         .map(GoogleCloudCredentials::isFetchCredentialsFromMetadataService)
         .orElse(false)) {
       backupEnvVars.put("GOOGLE_APPLICATION_CREDENTIALS", getGcsCredentialsFilePath(context));

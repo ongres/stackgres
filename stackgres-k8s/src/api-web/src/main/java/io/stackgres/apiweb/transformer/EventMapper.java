@@ -12,6 +12,7 @@ import io.fabric8.kubernetes.api.model.EventSeries;
 import io.fabric8.kubernetes.api.model.EventSource;
 import io.fabric8.kubernetes.api.model.MicroTime;
 import io.stackgres.apiweb.dto.event.EventDto;
+import io.stackgres.apiweb.transformer.util.TransformerUtil;
 import org.apache.commons.lang3.StringUtils;
 
 public class EventMapper {
@@ -23,7 +24,7 @@ public class EventMapper {
       return eventDto;
     }
 
-    eventDto.setMetadata(MetadataMapper.map(event.getMetadata()));
+    eventDto.setMetadata(TransformerUtil.fromResource(event.getMetadata()));
     eventDto.setType(event.getType());
     eventDto.setAction(event.getAction());
     eventDto.setReason(event.getReason());

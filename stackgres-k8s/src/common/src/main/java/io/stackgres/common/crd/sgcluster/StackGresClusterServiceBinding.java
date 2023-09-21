@@ -26,13 +26,12 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresClusterConfigurationServiceBinding {
+public class StackGresClusterServiceBinding {
 
   private String provider;
 
   private String database;
 
-  @Valid
   private String username;
 
   @Valid
@@ -95,11 +94,11 @@ public class StackGresClusterConfigurationServiceBinding {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresClusterConfigurationServiceBinding)) {
+    if (!(obj instanceof StackGresClusterServiceBinding)) {
       return false;
     }
-    StackGresClusterConfigurationServiceBinding other =
-        (StackGresClusterConfigurationServiceBinding) obj;
+    StackGresClusterServiceBinding other =
+        (StackGresClusterServiceBinding) obj;
     return Objects.equals(provider, other.provider)
       && Objects.equals(database, other.database) && Objects.equals(username, other.username)
       && Objects.equals(password, other.password);

@@ -13,7 +13,6 @@ import javax.validation.constraints.AssertTrue;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
@@ -30,11 +29,9 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterScriptFrom {
 
-  @JsonProperty("secretKeyRef")
   @Valid
   private SecretKeySelector secretKeyRef;
 
-  @JsonProperty("configMapKeyRef")
   @Valid
   private ConfigMapKeySelector configMapKeyRef;
 

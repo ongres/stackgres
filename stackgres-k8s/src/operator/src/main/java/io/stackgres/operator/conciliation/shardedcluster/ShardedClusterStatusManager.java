@@ -20,12 +20,14 @@ import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.ClusterStatusCondition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterServiceBindingStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgshardedcluster.ShardedClusterStatusCondition;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import io.stackgres.common.labels.LabelFactoryForShardedCluster;
 import io.stackgres.operator.conciliation.StatusManager;
+import io.stackgres.operator.conciliation.factory.shardedcluster.ServiceBindingSecret;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +56,11 @@ public class ShardedClusterStatusManager
 
   @Override
   public StackGresShardedCluster refreshCondition(StackGresShardedCluster source) {
+    if (source.getStatus() == null) {
+      source.setStatus(new StackGresShardedClusterStatus());
+    }
+    source.getStatus().setBinding(new StackGresClusterServiceBindingStatus());
+    source.getStatus().getBinding().setName(ServiceBindingSecret.name(source));
     if (isPendingRestart(source)) {
       updateCondition(getClusterRequiresRestart(), source);
     } else {

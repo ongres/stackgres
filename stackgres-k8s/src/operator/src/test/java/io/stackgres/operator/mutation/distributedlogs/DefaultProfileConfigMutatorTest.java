@@ -45,7 +45,7 @@ class DefaultProfileConfigMutatorTest
 
   @Override
   protected void checkConfigurationIsSet(StackGresDistributedLogs newResource) {
-    assertNotNull(newResource.getSpec().getResourceProfile());
+    assertNotNull(newResource.getSpec().getSgInstanceProfile());
   }
 
   @Override
@@ -55,7 +55,7 @@ class DefaultProfileConfigMutatorTest
 
   @Override
   protected void setUpMissingConfiguration() {
-    review.getRequest().getObject().getSpec().setResourceProfile(null);
+    review.getRequest().getObject().getSpec().setSgInstanceProfile(null);
   }
 
   @Override

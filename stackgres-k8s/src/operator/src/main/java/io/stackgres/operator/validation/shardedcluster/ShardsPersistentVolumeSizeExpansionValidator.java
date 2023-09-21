@@ -15,7 +15,7 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -64,7 +64,7 @@ public class ShardsPersistentVolumeSizeExpansionValidator
 
   @Override
   public @NotNull String getVolumeSize(StackGresShardedCluster cluster) {
-    return cluster.getSpec().getShards().getPod().getPersistentVolume().getSize();
+    return cluster.getSpec().getShards().getPods().getPersistentVolume().getSize();
   }
 
   @Override
@@ -72,8 +72,8 @@ public class ShardsPersistentVolumeSizeExpansionValidator
     return Optional.of(cluster)
         .map(StackGresShardedCluster::getSpec)
         .map(StackGresShardedClusterSpec::getShards)
-        .map(StackGresClusterSpec::getPod)
-        .map(StackGresClusterPod::getPersistentVolume)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getPersistentVolume)
         .map(StackGresPodPersistentVolume::getStorageClass);
   }
 

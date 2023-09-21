@@ -8,8 +8,8 @@ package io.stackgres.operator.validation.config;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.operator.common.ConfigReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
+import io.stackgres.operator.validation.AbstractConstraintValidator;
 import io.stackgres.operator.validation.ConstraintValidationTest;
-import io.stackgres.operator.validation.ConstraintValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -18,7 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ConfigConstraintValidationTest extends ConstraintValidationTest<ConfigReview> {
 
   @Override
-  protected ConstraintValidator<ConfigReview> buildValidator() {
+  protected AbstractConstraintValidator<ConfigReview> buildValidator() {
     return new ConfigConstraintValidation();
   }
 

@@ -14,7 +14,6 @@ import javax.validation.constraints.Positive;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupPerformance;
@@ -28,25 +27,19 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresShardedClusterBackupConfiguration {
 
-  @JsonProperty("retention")
   @Positive(message = "retention should be greater than zero")
   private Integer retention;
 
-  @JsonProperty("cronSchedule")
   private String cronSchedule;
 
-  @JsonProperty("compression")
   private String compression;
 
-  @JsonProperty("performance")
   @Valid
   private StackGresBaseBackupPerformance performance;
 
-  @JsonProperty("sgObjectStorage")
   @NotNull
-  private String objectStorage;
+  private String sgObjectStorage;
 
-  @JsonProperty("paths")
   @NotNull
   private List<String> paths;
 
@@ -82,12 +75,12 @@ public class StackGresShardedClusterBackupConfiguration {
     this.performance = performance;
   }
 
-  public String getObjectStorage() {
-    return objectStorage;
+  public String getSgObjectStorage() {
+    return sgObjectStorage;
   }
 
-  public void setObjectStorage(String objectStorage) {
-    this.objectStorage = objectStorage;
+  public void setSgObjectStorage(String sgObjectStorage) {
+    this.sgObjectStorage = sgObjectStorage;
   }
 
   public List<String> getPaths() {
@@ -100,7 +93,7 @@ public class StackGresShardedClusterBackupConfiguration {
 
   @Override
   public int hashCode() {
-    return Objects.hash(compression, cronSchedule, objectStorage, paths, performance, retention);
+    return Objects.hash(compression, cronSchedule, sgObjectStorage, paths, performance, retention);
   }
 
   @Override
@@ -115,7 +108,8 @@ public class StackGresShardedClusterBackupConfiguration {
         (StackGresShardedClusterBackupConfiguration) obj;
     return Objects.equals(compression, other.compression)
         && Objects.equals(cronSchedule, other.cronSchedule)
-        && Objects.equals(objectStorage, other.objectStorage) && Objects.equals(paths, other.paths)
+        && Objects.equals(sgObjectStorage, other.sgObjectStorage)
+        && Objects.equals(paths, other.paths)
         && Objects.equals(performance, other.performance)
         && Objects.equals(retention, other.retention);
   }

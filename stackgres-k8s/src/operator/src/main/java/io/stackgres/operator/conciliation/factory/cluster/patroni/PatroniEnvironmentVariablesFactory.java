@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitalData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
@@ -49,8 +49,8 @@ public class PatroniEnvironmentVariablesFactory
         .andThen(value -> Boolean.TRUE.toString()));
 
     var fromBackup = Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getInitData)
-        .map(StackGresClusterInitData::getRestore)
+        .map(StackGresClusterSpec::getInitialData)
+        .map(StackGresClusterInitalData::getRestore)
         .map(StackGresClusterRestore::getFromBackup);
     appendEnvVarIfPresent("RECOVERY_FROM_BACKUP",
         fromBackup, additionalEnvVars,

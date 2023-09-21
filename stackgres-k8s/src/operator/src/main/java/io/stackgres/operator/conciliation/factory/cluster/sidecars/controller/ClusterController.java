@@ -25,7 +25,7 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresController;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -99,8 +99,8 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
                     .getEnvironmentVariableName())
                 .withValue(Optional.of(context.getClusterContext().getCluster())
                     .map(StackGresCluster::getSpec)
-                    .map(StackGresClusterSpec::getPod)
-                    .map(StackGresClusterPod::getDisableConnectionPooling)
+                    .map(StackGresClusterSpec::getPods)
+                    .map(StackGresClusterPods::getDisableConnectionPooling)
                     .map(getDisableConnectionPooling -> !getDisableConnectionPooling)
                     .orElse(Boolean.TRUE)
                     .toString())

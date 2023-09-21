@@ -14,7 +14,6 @@ import javax.validation.constraints.AssertTrue;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CustomContainer;
@@ -30,43 +29,33 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresClusterPod {
+public class StackGresClusterPods {
 
-  @JsonProperty("persistentVolume")
   @Valid
   private StackGresPodPersistentVolume persistentVolume;
 
-  @JsonProperty("disableConnectionPooling")
   private Boolean disableConnectionPooling;
 
-  @JsonProperty("disableMetricsExporter")
   private Boolean disableMetricsExporter;
 
-  @JsonProperty("disablePostgresUtil")
   private Boolean disablePostgresUtil;
 
-  @JsonProperty("managementPolicy")
   @ValidEnum(enumClass = StackGresPodManagementPolicy.class, allowNulls = true,
       message = "managementPolicy must be OrderedReady or Parallel")
   private String managementPolicy;
 
-  @JsonProperty("resources")
   @Valid
   private StackGresClusterResources resources;
 
-  @JsonProperty("scheduling")
   @Valid
   private StackGresClusterPodScheduling scheduling;
 
-  @JsonProperty("customVolumes")
   @Valid
   private List<CustomVolume> customVolumes;
 
-  @JsonProperty("customContainers")
   @Valid
   private List<CustomContainer> customContainers;
 
-  @JsonProperty("customInitContainers")
   @Valid
   private List<CustomContainer> customInitContainers;
 
@@ -173,10 +162,10 @@ public class StackGresClusterPod {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresClusterPod)) {
+    if (!(obj instanceof StackGresClusterPods)) {
       return false;
     }
-    StackGresClusterPod other = (StackGresClusterPod) obj;
+    StackGresClusterPods other = (StackGresClusterPods) obj;
     return Objects.equals(customContainers, other.customContainers)
         && Objects.equals(customInitContainers, other.customInitContainers)
         && Objects.equals(customVolumes, other.customVolumes)

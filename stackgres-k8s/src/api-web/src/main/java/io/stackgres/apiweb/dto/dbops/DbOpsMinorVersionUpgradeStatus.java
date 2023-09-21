@@ -8,7 +8,6 @@ package io.stackgres.apiweb.dto.dbops;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -16,31 +15,22 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class DbOpsMinorVersionUpgradeStatus {
 
-  @JsonProperty("sourcePostgresVersion")
   private String sourcePostgresVersion;
 
-  @JsonProperty("targetPostgresVersion")
   private String targetPostgresVersion;
 
-  @JsonProperty("primaryInstance")
   private String primaryInstance;
 
-  @JsonProperty("initialInstances")
   private List<String> initialInstances;
 
-  @JsonProperty("pendingToRestartInstances")
   private List<String> pendingToRestartInstances;
 
-  @JsonProperty("restartedInstances")
   private List<String> restartedInstances;
 
-  @JsonProperty("switchoverInitiated")
   private String switchoverInitiated;
 
-  @JsonProperty("switchoverFinalized")
   private String switchoverFinalized;
 
-  @JsonProperty("failure")
   private String failure;
 
   public String getSourcePostgresVersion() {

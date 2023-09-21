@@ -8,7 +8,6 @@ package io.stackgres.apiweb.dto.pooling;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -16,10 +15,8 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class PoolingConfigStatus {
 
-  @JsonProperty("clusters")
   private List<String> clusters;
 
-  @JsonProperty("pgBouncer")
   private PoolingConfigPgBouncerStatus pgBouncer;
 
   public List<String> getClusters() {

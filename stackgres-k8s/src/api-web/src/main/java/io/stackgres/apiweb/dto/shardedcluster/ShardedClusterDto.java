@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.shardedcluster;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.common.StackGresUtil;
@@ -15,16 +14,12 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ShardedClusterDto extends ResourceDto {
 
-  @JsonProperty("spec")
   private ShardedClusterSpec spec;
 
-  @JsonProperty("status")
   private ShardedClusterStatus status;
 
-  @JsonProperty("grafanaEmbedded")
   private boolean grafanaEmbedded;
 
-  @JsonProperty("info")
   private ShardedClusterInfo info;
 
   public ShardedClusterSpec getSpec() {

@@ -9,6 +9,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.apiweb.dto.Metadata;
 import io.stackgres.apiweb.dto.ResourceDto;
+import io.stackgres.apiweb.transformer.util.TransformerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,23 +17,13 @@ public abstract class AbstractDependencyResourceTransformer<T extends ResourceDt
     R extends CustomResource<?, ?>> implements DependencyResourceTransformer<T, R> {
 
   protected ObjectMeta getCustomResourceMetadata(@NotNull T source, @Nullable R original) {
-    ObjectMeta metadata = original != null ? original.getMetadata() : new ObjectMeta();
-    if (source.getMetadata() != null) {
-      metadata.setNamespace(source.getMetadata().getNamespace());
-      metadata.setName(source.getMetadata().getName());
-      metadata.setUid(source.getMetadata().getUid());
-    }
-    return metadata;
+    return TransformerUtil.fromDto(
+        source.getMetadata(),
+        original != null ? original.getMetadata() : null);
   }
 
   protected Metadata getResourceMetadata(@NotNull R source) {
-    Metadata metadata = new Metadata();
-    if (source.getMetadata() != null) {
-      metadata.setNamespace(source.getMetadata().getNamespace());
-      metadata.setName(source.getMetadata().getName());
-      metadata.setUid(source.getMetadata().getUid());
-    }
-    return metadata;
+    return TransformerUtil.fromResource(source.getMetadata());
   }
 
 }

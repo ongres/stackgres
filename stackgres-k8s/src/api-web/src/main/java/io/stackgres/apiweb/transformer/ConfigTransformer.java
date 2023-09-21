@@ -28,13 +28,13 @@ public class ConfigTransformer
 
   @Inject
   public ConfigTransformer(ObjectMapper mapper) {
-    super();
     this.mapper = mapper;
   }
 
   @Override
-  public StackGresConfig toCustomResource(@NotNull ConfigDto source,
-                                           @Nullable StackGresConfig original) {
+  public StackGresConfig toCustomResource(
+      @NotNull ConfigDto source,
+      @Nullable StackGresConfig original) {
     StackGresConfig transformation = Optional.ofNullable(original)
         .map(o -> mapper.convertValue(original, StackGresConfig.class))
         .orElseGet(StackGresConfig::new);

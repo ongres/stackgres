@@ -33,7 +33,7 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.common.Sidecar;
@@ -91,8 +91,8 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
   public boolean isActivated(ClusterContainerContext context) {
     return Optional.of(context.getClusterContext().getCluster())
         .map(StackGresCluster::getSpec)
-        .map(StackGresClusterSpec::getPod)
-        .map(StackGresClusterPod::getDisableMetricsExporter)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableMetricsExporter)
         .map(disabled -> !disabled)
         .orElse(true);
   }

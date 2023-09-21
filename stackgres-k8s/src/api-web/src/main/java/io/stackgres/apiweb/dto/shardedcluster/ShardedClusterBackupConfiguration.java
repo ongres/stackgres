@@ -8,7 +8,6 @@ package io.stackgres.apiweb.dto.shardedcluster;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.backupconfig.BaseBackupPerformance;
 import io.stackgres.common.StackGresUtil;
@@ -17,22 +16,16 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ShardedClusterBackupConfiguration {
 
-  @JsonProperty("retention")
   private Integer retention;
 
-  @JsonProperty("cronSchedule")
   private String cronSchedule;
 
-  @JsonProperty("compression")
   private String compression;
 
-  @JsonProperty("performance")
   private BaseBackupPerformance performance;
 
-  @JsonProperty("sgObjectStorage")
-  private String objectStorage;
+  private String sgObjectStorage;
 
-  @JsonProperty("paths")
   private List<String> paths;
 
   public Integer getRetention() {
@@ -67,12 +60,12 @@ public class ShardedClusterBackupConfiguration {
     this.performance = performance;
   }
 
-  public String getObjectStorage() {
-    return objectStorage;
+  public String getSgObjectStorage() {
+    return sgObjectStorage;
   }
 
-  public void setObjectStorage(String objectStorage) {
-    this.objectStorage = objectStorage;
+  public void setSgObjectStorage(String sgObjectStorage) {
+    this.sgObjectStorage = sgObjectStorage;
   }
 
   public List<String> getPaths() {

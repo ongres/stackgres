@@ -9,11 +9,12 @@ import javax.inject.Singleton;
 
 import io.stackgres.common.ErrorType;
 import io.stackgres.operator.common.ObjectStorageReview;
-import io.stackgres.operator.validation.ConstraintValidator;
+import io.stackgres.operator.validation.AbstractConstraintValidator;
 import io.stackgres.operator.validation.ValidationType;
 
 @Singleton
 @ValidationType(ErrorType.CONSTRAINT_VIOLATION)
-public class ObjectStorageConstraintValidator extends ConstraintValidator<ObjectStorageReview>
+public class ObjectStorageConstraintValidator
+    extends AbstractConstraintValidator<ObjectStorageReview>
     implements ObjectStorageValidator {
 }

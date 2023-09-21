@@ -48,7 +48,7 @@ class BackupStatusValidatorTest {
   @Test
   void updateBackupConfigStatusToNull_shouldFail() {
     BackupReview backupReview = AdmissionReviewFixtures.backup().loadUpdate().get();
-    backupReview.getRequest().getObject().getStatus().setBackupConfig(null);
+    backupReview.getRequest().getObject().getStatus().setSgBackupConfig(null);
 
     ValidationFailed ex = assertThrows(ValidationFailed.class,
         () -> validator.validate(backupReview));

@@ -92,7 +92,7 @@ class PatroniEnvVarFactoryTest {
   @Test
   void patroniRecoveryFromBackupEnvVar_shouldNotBeReturned() {
     cluster.setSpec(new StackGresClusterSpecBuilder(cluster.getSpec())
-        .withInitData(null)
+        .withInitialData(null)
         .build());
     assertNotPresent("RECOVERY_FROM_BACKUP");
   }
@@ -155,13 +155,13 @@ class PatroniEnvVarFactoryTest {
   @Test
   void patroniRecoveryTargetEnvVar_shouldBeReturned() {
     cluster.setSpec(new StackGresClusterSpecBuilder(cluster.getSpec())
-        .withNewInitData()
+        .withNewInitialData()
         .withNewRestore()
         .withNewFromBackup()
         .withTarget("test")
         .endFromBackup()
         .endRestore()
-        .endInitData()
+        .endInitialData()
         .build());
     EnvVar envVar = getEnvVar("RECOVERY_TARGET");
     assertValue(envVar, "test");
@@ -170,13 +170,13 @@ class PatroniEnvVarFactoryTest {
   @Test
   void patroniRecoveryTargetTimelineEnvVar_shouldBeReturned() {
     cluster.setSpec(new StackGresClusterSpecBuilder(cluster.getSpec())
-        .withNewInitData()
+        .withNewInitialData()
         .withNewRestore()
         .withNewFromBackup()
         .withTargetTimeline("test")
         .endFromBackup()
         .endRestore()
-        .endInitData()
+        .endInitialData()
         .build());
     EnvVar envVar = getEnvVar("RECOVERY_TARGET_TIMELINE");
     assertValue(envVar, "test");
@@ -185,13 +185,13 @@ class PatroniEnvVarFactoryTest {
   @Test
   void patroniRecoveryTargetInclusiveEnvVar_shouldBeReturned() {
     cluster.setSpec(new StackGresClusterSpecBuilder(cluster.getSpec())
-        .withNewInitData()
+        .withNewInitialData()
         .withNewRestore()
         .withNewFromBackup()
         .withTargetInclusive(true)
         .endFromBackup()
         .endRestore()
-        .endInitData()
+        .endInitialData()
         .build());
     EnvVar envVar = getEnvVar("RECOVERY_TARGET_INCLUSIVE");
     assertValue(envVar, "on");
@@ -200,13 +200,13 @@ class PatroniEnvVarFactoryTest {
   @Test
   void patroniRecoveryTargetNameEnvVar_shouldBeReturned() {
     cluster.setSpec(new StackGresClusterSpecBuilder(cluster.getSpec())
-        .withNewInitData()
+        .withNewInitialData()
         .withNewRestore()
         .withNewFromBackup()
         .withTargetName("test")
         .endFromBackup()
         .endRestore()
-        .endInitData()
+        .endInitialData()
         .build());
     EnvVar envVar = getEnvVar("RECOVERY_TARGET_NAME");
     assertValue(envVar, "test");
@@ -215,13 +215,13 @@ class PatroniEnvVarFactoryTest {
   @Test
   void patroniRecoveryTargetXidEnvVar_shouldBeReturned() {
     cluster.setSpec(new StackGresClusterSpecBuilder(cluster.getSpec())
-        .withNewInitData()
+        .withNewInitialData()
         .withNewRestore()
         .withNewFromBackup()
         .withTargetXid("test")
         .endFromBackup()
         .endRestore()
-        .endInitData()
+        .endInitialData()
         .build());
     EnvVar envVar = getEnvVar("RECOVERY_TARGET_XID");
     assertValue(envVar, "test");
@@ -230,13 +230,13 @@ class PatroniEnvVarFactoryTest {
   @Test
   void patroniRecoveryTargetLsnEnvVar_shouldBeReturned() {
     cluster.setSpec(new StackGresClusterSpecBuilder(cluster.getSpec())
-        .withNewInitData()
+        .withNewInitialData()
         .withNewRestore()
         .withNewFromBackup()
         .withTargetLsn("test")
         .endFromBackup()
         .endRestore()
-        .endInitData()
+        .endInitialData()
         .build());
     EnvVar envVar = getEnvVar("RECOVERY_TARGET_LSN");
     assertValue(envVar, "test");
@@ -247,7 +247,7 @@ class PatroniEnvVarFactoryTest {
     String testTime = "2022-08-25T12:52:00Z";
     String expectedEnvVarValue = "2022-08-25 12:52:00";
     cluster.setSpec(new StackGresClusterSpecBuilder(cluster.getSpec())
-        .withNewInitData()
+        .withNewInitialData()
         .withNewRestore()
         .withNewFromBackup()
         .withNewPointInTimeRecovery()
@@ -255,7 +255,7 @@ class PatroniEnvVarFactoryTest {
         .endPointInTimeRecovery()
         .endFromBackup()
         .endRestore()
-        .endInitData()
+        .endInitialData()
         .build());
     EnvVar envVar = getEnvVar("RECOVERY_TARGET_TIME");
     assertValue(envVar, expectedEnvVarValue);

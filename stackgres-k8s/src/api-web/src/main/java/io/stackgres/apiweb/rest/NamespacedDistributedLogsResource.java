@@ -32,7 +32,7 @@ public class NamespacedDistributedLogsResource
     return cluster.getMetadata().getNamespace().equals(
         resource.getMetadata().getNamespace())
         && Objects.equals(Optional.ofNullable(cluster.getSpec().getDistributedLogs())
-            .map(StackGresClusterDistributedLogs::getDistributedLogs),
+            .map(StackGresClusterDistributedLogs::getSgDistributedLogs),
             Optional.of(resource.getMetadata().getName()));
   }
 

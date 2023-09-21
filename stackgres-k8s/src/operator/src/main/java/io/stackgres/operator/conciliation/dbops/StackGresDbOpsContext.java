@@ -44,7 +44,7 @@ public interface StackGresDbOpsContext extends GenerationContext<StackGresDbOps>
                 + " with a non existent SGInstanceProfile "
                 + getFoundCluster()
                     .map(StackGresCluster::getSpec)
-                    .map(StackGresClusterSpec::getResourceProfile)
+                    .map(StackGresClusterSpec::getSgInstanceProfile)
                     .orElse("<unknown>")));
   }
 

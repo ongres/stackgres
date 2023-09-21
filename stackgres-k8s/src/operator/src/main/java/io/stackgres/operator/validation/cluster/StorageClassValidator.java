@@ -32,14 +32,14 @@ public class StorageClassValidator implements ClusterValidator {
     switch (review.getRequest().getOperation()) {
       case CREATE: {
         StackGresCluster cluster = review.getRequest().getObject();
-        String storageClass = cluster.getSpec().getPod().getPersistentVolume().getStorageClass();
+        String storageClass = cluster.getSpec().getPods().getPersistentVolume().getStorageClass();
         checkIfStorageClassExist(storageClass, "Storage class "
             + storageClass + " not found");
         break;
       }
       case UPDATE: {
         StackGresCluster cluster = review.getRequest().getObject();
-        String storageClass = cluster.getSpec().getPod().getPersistentVolume().getStorageClass();
+        String storageClass = cluster.getSpec().getPods().getPersistentVolume().getStorageClass();
         checkIfStorageClassExist(storageClass, "Cannot update to storage class "
             + storageClass + " because it doesn't exists");
         break;

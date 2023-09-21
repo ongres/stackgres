@@ -25,7 +25,7 @@ public class BackupConfigDependenciesValidator
   @Override
   public void validate(BackupConfigReview review, StackGresCluster resource)
       throws ValidationFailed {
-    if (Objects.equals(resource.getSpec().getConfiguration().getBackupConfig(),
+    if (Objects.equals(resource.getSpec().getConfigurations().getSgBackupConfig(),
         review.getRequest().getName())) {
       fail(review, resource);
     }

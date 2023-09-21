@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.storages;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -14,25 +13,18 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class AwsS3CompatibleStorageDto {
 
-  @JsonProperty("bucket")
   private String bucket;
 
-  @JsonProperty("path")
   private String path;
 
-  @JsonProperty("awsCredentials")
-  private AwsCredentialsDto credentials;
+  private AwsCredentialsDto awsCredentials;
 
-  @JsonProperty("region")
   private String region;
 
-  @JsonProperty("endpoint")
   private String endpoint;
 
-  @JsonProperty("enablePathStyleAddressing")
-  private Boolean forcePathStyle;
+  private Boolean enablePathStyleAddressing;
 
-  @JsonProperty("storageClass")
   private String storageClass;
 
   public String getBucket() {
@@ -51,12 +43,12 @@ public class AwsS3CompatibleStorageDto {
     this.path = path;
   }
 
-  public AwsCredentialsDto getCredentials() {
-    return credentials;
+  public AwsCredentialsDto getAwsCredentials() {
+    return awsCredentials;
   }
 
-  public void setCredentials(AwsCredentialsDto credentials) {
-    this.credentials = credentials;
+  public void setAwsCredentials(AwsCredentialsDto awsCredentials) {
+    this.awsCredentials = awsCredentials;
   }
 
   public String getRegion() {
@@ -75,12 +67,12 @@ public class AwsS3CompatibleStorageDto {
     this.endpoint = endpoint;
   }
 
-  public Boolean isForcePathStyle() {
-    return forcePathStyle;
+  public Boolean isEnablePathStyleAddressing() {
+    return enablePathStyleAddressing;
   }
 
-  public void setForcePathStyle(Boolean enablePathStyleAddressing) {
-    this.forcePathStyle = enablePathStyleAddressing;
+  public void setEnablePathStyleAddressing(Boolean enablePathStyleAddressing) {
+    this.enablePathStyleAddressing = enablePathStyleAddressing;
   }
 
   public String getStorageClass() {

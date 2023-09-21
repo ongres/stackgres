@@ -87,7 +87,7 @@ public class RestoreSecret
         data.put("BACKUP_RESOURCE_VERSION",
             backup.getMetadata().getResourceVersion());
         String backupNamespace = backup.getMetadata().getNamespace();
-        StackGresBackupConfigSpec backupConfig = backup.getStatus().getBackupConfig();
+        StackGresBackupConfigSpec backupConfig = backup.getStatus().getSgBackupConfig();
         data.putAll(envVarFactory.getSecretEnvVar(backupNamespace, backupConfig));
       }
     } else {

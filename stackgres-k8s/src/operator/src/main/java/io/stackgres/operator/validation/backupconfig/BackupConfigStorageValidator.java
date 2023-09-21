@@ -82,17 +82,17 @@ public class BackupConfigStorageValidator implements BackupConfigValidator {
         AzureBlobStorageCredentials credentials = object.getSpec()
             .getStorage().getAzureBlob().getAzureCredentials();
         checkSecret(namespace, storageType,
-            "account", credentials.getSecretKeySelectors().getAccount());
+            "account", credentials.getSecretKeySelectors().getStorageAccount());
         checkSecret(namespace, storageType,
             "accessKey", credentials.getSecretKeySelectors().getAccessKey());
       }
 
       if (storageType.equals("gcs")
           && object.getSpec().getStorage().getGcs() != null
-          && object.getSpec().getStorage().getGcs().getCredentials()
+          && object.getSpec().getStorage().getGcs().getGcpCredentials()
           .getSecretKeySelectors() != null) {
         GoogleCloudCredentials credentials = object.getSpec()
-            .getStorage().getGcs().getCredentials();
+            .getStorage().getGcs().getGcpCredentials();
         checkSecret(namespace, storageType,
             "serviceAccountJsonKey",
             credentials.getSecretKeySelectors().getServiceAccountJsonKey());

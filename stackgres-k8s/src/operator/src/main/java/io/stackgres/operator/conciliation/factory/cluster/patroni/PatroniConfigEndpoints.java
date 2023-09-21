@@ -30,7 +30,7 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitalData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
@@ -120,8 +120,8 @@ public class PatroniConfigEndpoints
               .append(Seq.of("replicate")
                   .filter(createReplicaMethod -> Optional
                       .ofNullable(cluster.getSpec())
-                      .map(StackGresClusterSpec::getInitData)
-                      .map(StackGresClusterInitData::getRestore)
+                      .map(StackGresClusterSpec::getInitialData)
+                      .map(StackGresClusterInitalData::getRestore)
                       .map(StackGresClusterRestore::getFromBackup)
                       .isPresent()))
               .append("basebackup")
@@ -164,8 +164,8 @@ public class PatroniConfigEndpoints
               .append(Seq.of("replicate")
                   .filter(createReplicaMethod -> Optional
                       .ofNullable(cluster.getSpec())
-                      .map(StackGresClusterSpec::getInitData)
-                      .map(StackGresClusterInitData::getRestore)
+                      .map(StackGresClusterSpec::getInitialData)
+                      .map(StackGresClusterInitalData::getRestore)
                       .map(StackGresClusterRestore::getFromBackup)
                       .isPresent()))
               .append(Seq.of("basebackup")
@@ -236,7 +236,7 @@ public class PatroniConfigEndpoints
     if (Optional.ofNullable(context.getSource())
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getDistributedLogs)
-        .map(StackGresClusterDistributedLogs::getDistributedLogs).isPresent()) {
+        .map(StackGresClusterDistributedLogs::getSgDistributedLogs).isPresent()) {
       params.put("logging_collector", "on");
       params.put("log_destination", "csvlog");
       params.put("log_directory", ClusterStatefulSetPath.PG_LOG_PATH.path());

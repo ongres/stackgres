@@ -18,10 +18,7 @@ import org.junit.jupiter.api.Test;
 public class ObjectStorageTransformerTest {
 
   private final JsonMapper mapper = JsonMapper.builder().build();
-  ObjectStorageTransformer transformer = new ObjectStorageTransformer(
-      new BackupStorageTransformer(JsonMapper.builder().build()),
-      mapper
-  );
+  ObjectStorageTransformer transformer = new ObjectStorageTransformer(mapper);
 
   public static TransformerTuple<ObjectStorageDto, StackGresObjectStorage> createObjectStorage() {
     var metadataTuple = TransformerTestUtil.createMetadataTuple();
@@ -54,7 +51,6 @@ public class ObjectStorageTransformerTest {
         transformer,
         s3ObjectStorageTuple,
         clusters);
-
   }
 
 }

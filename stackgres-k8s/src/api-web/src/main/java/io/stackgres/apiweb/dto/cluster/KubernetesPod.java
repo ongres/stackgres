@@ -8,7 +8,6 @@ package io.stackgres.apiweb.dto.cluster;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -16,184 +15,124 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class KubernetesPod {
 
-  @JsonProperty("namespace")
   private String namespace;
 
-  @JsonProperty("name")
   private String name;
 
-  @JsonProperty("role")
   private String role;
 
-  @JsonProperty("ip")
   private String ip;
 
-  @JsonProperty("status")
   private String status;
 
-  @JsonProperty("containers")
   private Integer containers;
 
-  @JsonProperty("containersReady")
   private Integer containersReady;
 
-  @JsonProperty("cpuRequested")
   private String cpuRequested;
 
-  @JsonProperty("cpuFound")
   private String cpuFound;
 
-  @JsonProperty("cpuPsiAvg10")
   private String cpuPsiAvg10;
 
-  @JsonProperty("cpuPsiAvg60")
   private String cpuPsiAvg60;
 
-  @JsonProperty("cpuPsiAvg300")
   private String cpuPsiAvg300;
 
-  @JsonProperty("cpuPsiTotal")
   private String cpuPsiTotal;
 
-  @JsonProperty("cpuPsiCgroupAvg10")
   private String cpuPsiCgroupAvg10;
 
-  @JsonProperty("cpuPsiCgroupAvg60")
   private String cpuPsiCgroupAvg60;
 
-  @JsonProperty("cpuPsiCgroupAvg300")
   private String cpuPsiCgroupAvg300;
 
-  @JsonProperty("cpuPsiCgroupTotal")
   private String cpuPsiCgroupTotal;
 
-  @JsonProperty("memoryRequested")
   private String memoryRequested;
 
-  @JsonProperty("memoryFound")
   private String memoryFound;
 
-  @JsonProperty("memoryUsed")
   private String memoryUsed;
 
-  @JsonProperty("memoryPsiAvg10")
   private String memoryPsiAvg10;
 
-  @JsonProperty("memoryPsiAvg60")
   private String memoryPsiAvg60;
 
-  @JsonProperty("memoryPsiAvg300")
   private String memoryPsiAvg300;
 
-  @JsonProperty("memoryPsiTotal")
   private String memoryPsiTotal;
 
-  @JsonProperty("memoryPsiCgroupAvg10")
   private String memoryPsiCgroupAvg10;
 
-  @JsonProperty("memoryPsiCgroupAvg60")
   private String memoryPsiCgroupAvg60;
 
-  @JsonProperty("memoryPsiCgroupAvg300")
   private String memoryPsiCgroupAvg300;
 
-  @JsonProperty("memoryPsiCgroupTotal")
   private String memoryPsiCgroupTotal;
 
-  @JsonProperty("memoryPsiFullAvg10")
   private String memoryPsiFullAvg10;
 
-  @JsonProperty("memoryPsiFullAvg60")
   private String memoryPsiFullAvg60;
 
-  @JsonProperty("memoryPsiFullAvg300")
   private String memoryPsiFullAvg300;
 
-  @JsonProperty("memoryPsiFullTotal")
   private String memoryPsiFullTotal;
 
-  @JsonProperty("memoryPsiFullCgroupAvg10")
   private String memoryPsiFullCgroupAvg10;
 
-  @JsonProperty("memoryPsiFullCgroupAvg60")
   private String memoryPsiFullCgroupAvg60;
 
-  @JsonProperty("memoryPsiFullCgroupAvg300")
   private String memoryPsiFullCgroupAvg300;
 
-  @JsonProperty("memoryPsiFullCgroupTotal")
   private String memoryPsiFullCgroupTotal;
 
-  @JsonProperty("diskRequested")
   private String diskRequested;
 
-  @JsonProperty("diskFound")
   private String diskFound;
 
-  @JsonProperty("diskUsed")
   private String diskUsed;
 
-  @JsonProperty("diskPsiAvg10")
   private String diskPsiAvg10;
 
-  @JsonProperty("diskPsiAvg60")
   private String diskPsiAvg60;
 
-  @JsonProperty("diskPsiAvg300")
   private String diskPsiAvg300;
 
-  @JsonProperty("diskPsiTotal")
   private String diskPsiTotal;
 
-  @JsonProperty("diskPsiCgroupAvg10")
   private String diskPsiCgroupAvg10;
 
-  @JsonProperty("diskPsiCgroupAvg60")
   private String diskPsiCgroupAvg60;
 
-  @JsonProperty("diskPsiCgroupAvg300")
   private String diskPsiCgroupAvg300;
 
-  @JsonProperty("diskPsiCgroupTotal")
   private String diskPsiCgroupTotal;
 
-  @JsonProperty("diskPsiFullAvg10")
   private String diskPsiFullAvg10;
 
-  @JsonProperty("diskPsiFullAvg60")
   private String diskPsiFullAvg60;
 
-  @JsonProperty("diskPsiFullAvg300")
   private String diskPsiFullAvg300;
 
-  @JsonProperty("diskPsiFullTotal")
   private String diskPsiFullTotal;
 
-  @JsonProperty("diskPsiFullCgroupAvg10")
   private String diskPsiFullCgroupAvg10;
 
-  @JsonProperty("diskPsiFullCgroupAvg60")
   private String diskPsiFullCgroupAvg60;
 
-  @JsonProperty("diskPsiFullCgroupAvg300")
   private String diskPsiFullCgroupAvg300;
 
-  @JsonProperty("diskPsiFullCgroupTotal")
   private String diskPsiFullCgroupTotal;
 
-  @JsonProperty("averageLoad1m")
   private String averageLoad1m;
 
-  @JsonProperty("averageLoad5m")
   private String averageLoad5m;
 
-  @JsonProperty("averageLoad10m")
   private String averageLoad10m;
 
-  @JsonProperty("connections")
   private String connections;
 
-  @JsonProperty("componentVersions")
   private Map<String, String> componentVersions;
 
   public String getNamespace() {

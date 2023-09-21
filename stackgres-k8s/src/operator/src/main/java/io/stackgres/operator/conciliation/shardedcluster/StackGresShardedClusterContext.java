@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.shardedcluster;
 
+import static io.stackgres.operator.common.CryptoUtil.generatePassword;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -43,15 +45,52 @@ public interface StackGresShardedClusterContext
 
   Optional<String> getSuperuserPassword();
 
+  @Value.Derived
+  default String getGeneratedSuperuserPassword() {
+    return generatePassword();
+  }
+
   Optional<String> getReplicationUsername();
 
   Optional<String> getReplicationPassword();
+
+  @Value.Derived
+  default String getGeneratedReplicationPassword() {
+    return generatePassword();
+  }
 
   Optional<String> getAuthenticatorUsername();
 
   Optional<String> getAuthenticatorPassword();
 
+  Optional<String> getUserPasswordForBinding();
+
+  @Value.Derived
+  default String getGeneratedAuthenticatorPassword() {
+    return generatePassword();
+  }
+
   Optional<String> getPatroniRestApiPassword();
+
+  @Value.Derived
+  default String getGeneratedPatroniRestApiPassword() {
+    return generatePassword();
+  }
+
+  @Value.Derived
+  default String getGeneratedBabelfishPassword() {
+    return generatePassword();
+  }
+
+  @Value.Derived
+  default String getGeneratedPgBouncerAdminPassword() {
+    return generatePassword();
+  }
+
+  @Value.Derived
+  default String getGeneratedPgBouncerStatsPassword() {
+    return generatePassword();
+  }
 
   Optional<String> getPostgresSslCertificate();
 

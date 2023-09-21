@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.cluster;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -14,18 +13,16 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ClusterDistributedLogs {
 
-  @JsonProperty("sgDistributedLogs")
-  private String distributedLogs;
+  private String sgDistributedLogs;
 
-  @JsonProperty("retention")
   private String retention;
 
-  public String getDistributedLogs() {
-    return distributedLogs;
+  public String getSgDistributedLogs() {
+    return sgDistributedLogs;
   }
 
-  public void setDistributedLogs(String distributedLogs) {
-    this.distributedLogs = distributedLogs;
+  public void setSgDistributedLogs(String sgDistributedLogs) {
+    this.sgDistributedLogs = sgDistributedLogs;
   }
 
   public String getRetention() {

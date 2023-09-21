@@ -110,7 +110,7 @@ public class DistributedLogsFetcherImpl implements DistributedLogsFetcher {
   private Connection getConnection(ClusterDto cluster) throws SQLException {
     final String distributedLogs = Optional.ofNullable(cluster.getSpec())
         .map(ClusterSpec::getDistributedLogs)
-        .map(ClusterDistributedLogs::getDistributedLogs)
+        .map(ClusterDistributedLogs::getSgDistributedLogs)
         .orElseThrow(() -> new IllegalArgumentException(
             "Distributed logs are not configured for this cluster"));
     String namespace = StackGresUtil.getNamespaceFromRelativeId(

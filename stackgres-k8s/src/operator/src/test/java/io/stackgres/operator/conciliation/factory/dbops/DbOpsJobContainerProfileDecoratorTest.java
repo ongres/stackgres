@@ -140,8 +140,8 @@ class DbOpsJobContainerProfileDecoratorTest extends AbstractProfileDecoratorTest
 
   @Override
   protected void enableLimits() {
-    cluster.getSpec().getPod().setResources(new StackGresClusterResources());
-    cluster.getSpec().getPod().getResources().setEnableClusterLimitsRequirements(true);
+    cluster.getSpec().getPods().setResources(new StackGresClusterResources());
+    cluster.getSpec().getPods().getResources().setEnableClusterLimitsRequirements(true);
   }
 
 }

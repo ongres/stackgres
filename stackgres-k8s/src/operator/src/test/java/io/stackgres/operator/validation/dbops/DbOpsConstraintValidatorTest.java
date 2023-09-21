@@ -35,8 +35,8 @@ import io.stackgres.common.validation.ValidEnum;
 import io.stackgres.operator.common.DbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.utils.ValidationUtils;
+import io.stackgres.operator.validation.AbstractConstraintValidator;
 import io.stackgres.operator.validation.ConstraintValidationTest;
-import io.stackgres.operator.validation.ConstraintValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -46,7 +46,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 class DbOpsConstraintValidatorTest extends ConstraintValidationTest<DbOpsReview> {
 
   @Override
-  protected ConstraintValidator<DbOpsReview> buildValidator() {
+  protected AbstractConstraintValidator<DbOpsReview> buildValidator() {
     return new DbOpsConstraintValidator();
   }
 

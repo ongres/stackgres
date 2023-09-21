@@ -95,7 +95,7 @@ public class BackupConfigStorageTypeValidator implements BackupConfigValidator {
 
       if (storageType.equals("gcs")
           && review.getRequest().getObject().getSpec()
-          .getStorage().getGcs().getCredentials() == null) {
+          .getStorage().getGcs().getGcpCredentials() == null) {
         final String message = "Invalid backup configuration,"
             + " source gcs credentials must be set when source type is gcs";
         fail(message);

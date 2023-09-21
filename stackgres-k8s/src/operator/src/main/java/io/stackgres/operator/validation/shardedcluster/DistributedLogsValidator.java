@@ -38,7 +38,7 @@ public class DistributedLogsValidator implements ShardedClusterValidator {
       case CREATE: {
         StackGresShardedCluster cluster = review.getRequest().getObject();
         String distributedLogs = Optional.ofNullable(cluster.getSpec().getDistributedLogs())
-            .map(StackGresClusterDistributedLogs::getDistributedLogs)
+            .map(StackGresClusterDistributedLogs::getSgDistributedLogs)
             .orElse(null);
         checkIfDistributedLogsExists(cluster, distributedLogs,
             "Distributed logs " + distributedLogs + " not found");
@@ -47,7 +47,7 @@ public class DistributedLogsValidator implements ShardedClusterValidator {
       case UPDATE: {
         StackGresShardedCluster cluster = review.getRequest().getObject();
         String distributedLogs = Optional.ofNullable(cluster.getSpec().getDistributedLogs())
-            .map(StackGresClusterDistributedLogs::getDistributedLogs)
+            .map(StackGresClusterDistributedLogs::getSgDistributedLogs)
             .orElse(null);
         checkIfDistributedLogsExists(cluster, distributedLogs,
             "Cannot update to distributed logs " + distributedLogs

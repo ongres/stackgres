@@ -12,7 +12,6 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -48,12 +47,10 @@ public final class StackGresShardedCluster
 
   public static final String VERSION = "v1alpha1";
 
-  @JsonProperty("spec")
   @NotNull(message = "The specification is required")
   @Valid
   private StackGresShardedClusterSpec spec;
 
-  @JsonProperty("status")
   @Valid
   private StackGresShardedClusterStatus status;
 

@@ -19,8 +19,8 @@ import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfigurationBuilder;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurationBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurationsBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCredentials;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
@@ -40,7 +40,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterUsersCredentials;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
-import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfiguration;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresCoordinatorServices;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresServices;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresShardsServices;
@@ -107,11 +107,11 @@ public interface StackGresShardedClusterForCitusUtil {
     } else {
       spec.setReplication(cluster.getSpec().getReplication());
     }
-    if (spec.getConfiguration() != null) {
-      spec.setConfiguration(
-          new StackGresClusterConfigurationBuilder(spec.getConfiguration())
+    if (spec.getConfigurations() != null) {
+      spec.setConfigurations(
+          new StackGresClusterConfigurationsBuilder(spec.getConfigurations())
           .build());
-      spec.getConfiguration().setPostgresConfig(coordinatorConfigName(cluster));
+      spec.getConfigurations().setSgPostgresConfig(coordinatorConfigName(cluster));
     }
     StackGresCluster coordinatorCluster = new StackGresCluster();
     coordinatorCluster.setMetadata(new ObjectMeta());
@@ -155,7 +155,9 @@ public interface StackGresShardedClusterForCitusUtil {
         .map(StackGresShardedClusterShards::getOverrides)
         .stream()
         .flatMap(List::stream)
-        .filter(specOverride -> specOverride.getIndex() == index)
+        .filter(specOverride -> Objects.equals(
+            specOverride.getIndex(),
+            index))
         .findFirst()
         .ifPresent(specOverride -> setClusterSpecFromShardOverrides(
             specOverride, spec, index + 1));
@@ -249,18 +251,18 @@ public interface StackGresShardedClusterForCitusUtil {
   private static void setConfigurationsBackups(
       StackGresShardedCluster cluster, final StackGresClusterSpec spec, int index) {
     Optional.ofNullable(cluster.getSpec())
-        .map(StackGresShardedClusterSpec::getConfiguration)
-        .map(StackGresShardedClusterConfiguration::getBackups)
+        .map(StackGresShardedClusterSpec::getConfigurations)
+        .map(StackGresShardedClusterConfigurations::getBackups)
         .filter(Predicate.not(List::isEmpty))
         .map(backups -> backups.get(0))
         .filter(backup -> backup.getPaths() != null)
         .ifPresent(backup -> {
-          if (spec.getConfiguration() == null) {
-            spec.setConfiguration(new StackGresClusterConfiguration());
+          if (spec.getConfigurations() == null) {
+            spec.setConfigurations(new StackGresClusterConfigurations());
           }
-          spec.getConfiguration().setBackups(List.of(
+          spec.getConfigurations().setBackups(List.of(
               new StackGresClusterBackupConfigurationBuilder()
-              .withObjectStorage(backup.getObjectStorage())
+              .withSgObjectStorage(backup.getSgObjectStorage())
               .withPath(backup.getPaths().get(index))
               .withCronSchedule(backup.getCronSchedule())
               .withRetention(backup.getRetention())
@@ -272,33 +274,33 @@ public interface StackGresShardedClusterForCitusUtil {
 
   private static void setConfigurationsCredentials(
       StackGresShardedCluster cluster, final StackGresClusterSpec spec) {
-    if (spec.getConfiguration() == null) {
-      spec.setConfiguration(new StackGresClusterConfiguration());
+    if (spec.getConfigurations() == null) {
+      spec.setConfigurations(new StackGresClusterConfigurations());
     }
-    spec.getConfiguration().setCredentials(new StackGresClusterCredentials());
-    spec.getConfiguration().getCredentials()
+    spec.getConfigurations().setCredentials(new StackGresClusterCredentials());
+    spec.getConfigurations().getCredentials()
         .setPatroni(new StackGresClusterPatroniCredentials());
-    spec.getConfiguration().getCredentials().getPatroni()
+    spec.getConfigurations().getCredentials().getPatroni()
         .setRestApiPassword(new SecretKeySelector(
             StackGresPasswordKeys.RESTAPI_PASSWORD_KEY,
             cluster.getMetadata().getName()));
-    spec.getConfiguration().getCredentials()
+    spec.getConfigurations().getCredentials()
         .setUsers(new StackGresClusterUsersCredentials());
-    spec.getConfiguration().getCredentials().getUsers()
+    spec.getConfigurations().getCredentials().getUsers()
         .setSuperuser(new StackGresClusterUserSecretKeyRef());
-    spec.getConfiguration().getCredentials().getUsers().getSuperuser()
+    spec.getConfigurations().getCredentials().getUsers().getSuperuser()
         .setPassword(new SecretKeySelector(
             StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY,
             cluster.getMetadata().getName()));
-    spec.getConfiguration().getCredentials().getUsers()
+    spec.getConfigurations().getCredentials().getUsers()
         .setReplication(new StackGresClusterUserSecretKeyRef());
-    spec.getConfiguration().getCredentials().getUsers().getReplication()
+    spec.getConfigurations().getCredentials().getUsers().getReplication()
         .setPassword(new SecretKeySelector(
             StackGresPasswordKeys.REPLICATION_PASSWORD_KEY,
             cluster.getMetadata().getName()));
-    spec.getConfiguration().getCredentials().getUsers()
+    spec.getConfigurations().getCredentials().getUsers()
         .setAuthenticator(new StackGresClusterUserSecretKeyRef());
-    spec.getConfiguration().getCredentials().getUsers().getAuthenticator()
+    spec.getConfigurations().getCredentials().getUsers().getAuthenticator()
         .setPassword(new SecretKeySelector(
             StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_KEY,
             cluster.getMetadata().getName()));
@@ -306,18 +308,18 @@ public interface StackGresShardedClusterForCitusUtil {
 
   private static void setConfigurationsPatroniInitialConfig(
       StackGresShardedCluster cluster, final StackGresClusterSpec spec, int index) {
-    if (spec.getConfiguration() == null) {
-      spec.setConfiguration(new StackGresClusterConfiguration());
+    if (spec.getConfigurations() == null) {
+      spec.setConfigurations(new StackGresClusterConfigurations());
     }
-    spec.getConfiguration().setPatroni(new StackGresClusterPatroni());
-    spec.getConfiguration().getPatroni()
+    spec.getConfigurations().setPatroni(new StackGresClusterPatroni());
+    spec.getConfigurations().getPatroni()
         .setInitialConfig(new StackGresClusterPatroniInitialConfig());
-    spec.getConfiguration().getPatroni().getInitialConfig()
+    spec.getConfigurations().getPatroni().getInitialConfig()
         .put("scope", cluster.getMetadata().getName());
     var citus = new HashMap<String, Object>(2);
     citus.put("database", cluster.getSpec().getDatabase());
     citus.put("group", index);
-    spec.getConfiguration().getPatroni().getInitialConfig()
+    spec.getConfigurations().getPatroni().getInitialConfig()
         .put("citus", citus);
   }
 
@@ -379,21 +381,21 @@ public interface StackGresShardedClusterForCitusUtil {
 
   private static void setClusterSpecFromShardOverrides(
       StackGresShardedClusterShard specOverride, StackGresClusterSpec spec, int index) {
-    if (specOverride.getConfigurationForShards() != null) {
-      if (specOverride.getConfigurationForShards().getPostgresConfig() != null) {
-        spec.getConfiguration().setPostgresConfig(
-            specOverride.getConfigurationForShards().getPostgresConfig());
+    if (specOverride.getConfigurationsForShards() != null) {
+      if (specOverride.getConfigurationsForShards().getSgPostgresConfig() != null) {
+        spec.getConfigurations().setSgPostgresConfig(
+            specOverride.getConfigurationsForShards().getSgPostgresConfig());
       }
-      if (specOverride.getConfigurationForShards().getConnectionPoolingConfig() != null) {
-        spec.getConfiguration().setConnectionPoolingConfig(
-            specOverride.getConfigurationForShards().getConnectionPoolingConfig());
+      if (specOverride.getConfigurationsForShards().getSgPoolingConfig() != null) {
+        spec.getConfigurations().setSgPoolingConfig(
+            specOverride.getConfigurationsForShards().getSgPoolingConfig());
       }
     }
     if (specOverride.getInstancesPerCluster() != null) {
       spec.setInstances(specOverride.getInstancesPerCluster());
     }
-    if (specOverride.getResourceProfile() != null) {
-      spec.setResourceProfile(specOverride.getResourceProfile());
+    if (specOverride.getSgInstanceProfile() != null) {
+      spec.setSgInstanceProfile(specOverride.getSgInstanceProfile());
     }
     if (specOverride.getReplicationForShards() != null) {
       spec.setReplication(specOverride.getReplicationForShards());
@@ -422,55 +424,55 @@ public interface StackGresShardedClusterForCitusUtil {
         spec.getMetadata().setAnnotations(specOverride.getMetadata().getAnnotations());
       }
     }
-    if (specOverride.getPodForShards() != null) {
-      if (specOverride.getPodForShards().getDisableConnectionPooling() != null) {
-        spec.getPod().setDisableConnectionPooling(
-            specOverride.getPodForShards().getDisableConnectionPooling());
+    if (specOverride.getPodsForShards() != null) {
+      if (specOverride.getPodsForShards().getDisableConnectionPooling() != null) {
+        spec.getPods().setDisableConnectionPooling(
+            specOverride.getPodsForShards().getDisableConnectionPooling());
       }
-      if (specOverride.getPodForShards().getDisableMetricsExporter() != null) {
-        spec.getPod().setDisableMetricsExporter(
-            specOverride.getPodForShards().getDisableMetricsExporter());
+      if (specOverride.getPodsForShards().getDisableMetricsExporter() != null) {
+        spec.getPods().setDisableMetricsExporter(
+            specOverride.getPodsForShards().getDisableMetricsExporter());
       }
-      if (specOverride.getPodForShards().getDisablePostgresUtil() != null) {
-        spec.getPod().setDisablePostgresUtil(
-            specOverride.getPodForShards().getDisablePostgresUtil());
+      if (specOverride.getPodsForShards().getDisablePostgresUtil() != null) {
+        spec.getPods().setDisablePostgresUtil(
+            specOverride.getPodsForShards().getDisablePostgresUtil());
       }
-      if (specOverride.getPodForShards().getManagementPolicy() != null) {
-        spec.getPod().setManagementPolicy(specOverride.getPodForShards().getManagementPolicy());
+      if (specOverride.getPodsForShards().getManagementPolicy() != null) {
+        spec.getPods().setManagementPolicy(specOverride.getPodsForShards().getManagementPolicy());
       }
-      if (specOverride.getPodForShards().getPersistentVolume() != null) {
-        if (specOverride.getPodForShards().getPersistentVolume().getSize() != null) {
-          spec.getPod().getPersistentVolume().setSize(
-              specOverride.getPodForShards().getPersistentVolume().getSize());
+      if (specOverride.getPodsForShards().getPersistentVolume() != null) {
+        if (specOverride.getPodsForShards().getPersistentVolume().getSize() != null) {
+          spec.getPods().getPersistentVolume().setSize(
+              specOverride.getPodsForShards().getPersistentVolume().getSize());
         }
-        if (specOverride.getPodForShards().getPersistentVolume().getStorageClass() != null) {
-          spec.getPod().getPersistentVolume().setStorageClass(
-              specOverride.getPodForShards().getPersistentVolume().getStorageClass());
+        if (specOverride.getPodsForShards().getPersistentVolume().getStorageClass() != null) {
+          spec.getPods().getPersistentVolume().setStorageClass(
+              specOverride.getPodsForShards().getPersistentVolume().getStorageClass());
         }
       }
-      if (specOverride.getPodForShards().getResources() != null) {
-        if (spec.getPod().getResources() == null) {
-          spec.getPod().setResources(new StackGresClusterResources());
+      if (specOverride.getPodsForShards().getResources() != null) {
+        if (spec.getPods().getResources() == null) {
+          spec.getPods().setResources(new StackGresClusterResources());
         }
-        if (specOverride.getPodForShards().getResources()
+        if (specOverride.getPodsForShards().getResources()
             .getEnableClusterLimitsRequirements() != null) {
-          spec.getPod().getResources().setEnableClusterLimitsRequirements(
-              specOverride.getPodForShards().getResources().getEnableClusterLimitsRequirements());
+          spec.getPods().getResources().setEnableClusterLimitsRequirements(
+              specOverride.getPodsForShards().getResources().getEnableClusterLimitsRequirements());
         }
       }
-      if (specOverride.getPodForShards().getScheduling() != null) {
-        spec.getPod().setScheduling(
-            specOverride.getPodForShards().getScheduling());
+      if (specOverride.getPodsForShards().getScheduling() != null) {
+        spec.getPods().setScheduling(
+            specOverride.getPodsForShards().getScheduling());
       }
-      if (specOverride.getPodForShards().getCustomVolumes() != null) {
-        spec.getPod().setCustomVolumes(specOverride.getPodForShards().getCustomVolumes());
+      if (specOverride.getPodsForShards().getCustomVolumes() != null) {
+        spec.getPods().setCustomVolumes(specOverride.getPodsForShards().getCustomVolumes());
       }
-      if (specOverride.getPodForShards().getCustomContainers() != null) {
-        spec.getPod().setCustomContainers(specOverride.getPodForShards().getCustomContainers());
+      if (specOverride.getPodsForShards().getCustomContainers() != null) {
+        spec.getPods().setCustomContainers(specOverride.getPodsForShards().getCustomContainers());
       }
-      if (specOverride.getPodForShards().getCustomInitContainers() != null) {
-        spec.getPod().setCustomInitContainers(
-            specOverride.getPodForShards().getCustomInitContainers());
+      if (specOverride.getPodsForShards().getCustomInitContainers() != null) {
+        spec.getPods().setCustomInitContainers(
+            specOverride.getPodsForShards().getCustomInitContainers());
       }
     }
   }

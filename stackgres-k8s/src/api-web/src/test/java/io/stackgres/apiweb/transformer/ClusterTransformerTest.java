@@ -11,15 +11,15 @@ import javax.inject.Inject;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.apiweb.dto.cluster.ClusterCondition;
-import io.stackgres.apiweb.dto.cluster.ClusterConfiguration;
+import io.stackgres.apiweb.dto.cluster.ClusterConfigurations;
 import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterExtension;
-import io.stackgres.apiweb.dto.cluster.ClusterInitData;
+import io.stackgres.apiweb.dto.cluster.ClusterInitialData;
 import io.stackgres.apiweb.dto.cluster.ClusterManagedScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterManagedSql;
-import io.stackgres.apiweb.dto.cluster.ClusterNonProduction;
-import io.stackgres.apiweb.dto.cluster.ClusterPod;
+import io.stackgres.apiweb.dto.cluster.ClusterNonProductionOptions;
+import io.stackgres.apiweb.dto.cluster.ClusterPods;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgres;
 import io.stackgres.apiweb.dto.cluster.ClusterPostgresServices;
 import io.stackgres.apiweb.dto.cluster.ClusterReplicateFrom;
@@ -30,14 +30,14 @@ import io.stackgres.apiweb.dto.cluster.ClusterSpecMetadata;
 import io.stackgres.apiweb.dto.cluster.ClusterStatus;
 import io.stackgres.common.crd.Condition;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitalData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPod;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
@@ -98,7 +98,7 @@ class ClusterTransformerTest {
     target.setInstances(instances);
 
     var instanceProfile = StringUtils.getRandomString(10);
-    source.setResourceProfile(instanceProfile);
+    source.setSgInstanceProfile(instanceProfile);
     target.setSgInstanceProfile(instanceProfile);
 
     var postgres = createPostgres();
@@ -110,16 +110,16 @@ class ClusterTransformerTest {
     target.setReplication(replication.target());
 
     var configuration = createConfiguration();
-    source.setConfiguration(configuration.source());
-    target.setConfiguration(configuration.target());
+    source.setConfigurations(configuration.source());
+    target.setConfigurations(configuration.target());
 
     var pods = createPodsConfiguration();
-    source.setPod(pods.source());
+    source.setPods(pods.source());
     target.setPods(pods.target());
 
     var initialData = createInitialData();
-    source.setInitData(initialData.source());
-    target.setInitData(initialData.target());
+    source.setInitialData(initialData.source());
+    target.setInitialData(initialData.target());
 
     var replicateFrom = createReplicateFrom();
     source.setReplicateFrom(replicateFrom.source());
@@ -193,19 +193,20 @@ class ClusterTransformerTest {
   }
 
   private static TransformerTuple<
-      ClusterConfiguration, StackGresClusterConfiguration> createConfiguration() {
-    return TransformerTestUtil.fillTupleWithRandomData(ClusterConfiguration.class,
-        StackGresClusterConfiguration.class);
+      ClusterConfigurations, StackGresClusterConfigurations> createConfiguration() {
+    return TransformerTestUtil.fillTupleWithRandomData(ClusterConfigurations.class,
+        StackGresClusterConfigurations.class);
   }
 
-  private static TransformerTuple<ClusterPod, StackGresClusterPod> createPodsConfiguration() {
+  private static TransformerTuple<ClusterPods, StackGresClusterPods> createPodsConfiguration() {
     return TransformerTestUtil
-        .fillTupleWithRandomData(ClusterPod.class, StackGresClusterPod.class);
+        .fillTupleWithRandomData(ClusterPods.class, StackGresClusterPods.class);
   }
 
-  private static TransformerTuple<ClusterInitData, StackGresClusterInitData> createInitialData() {
+  private static TransformerTuple<ClusterInitialData, StackGresClusterInitalData>
+      createInitialData() {
     var initialData = TransformerTestUtil
-        .fillTupleWithRandomData(ClusterInitData.class, StackGresClusterInitData.class);
+        .fillTupleWithRandomData(ClusterInitialData.class, StackGresClusterInitalData.class);
     return initialData;
   }
 
@@ -235,10 +236,10 @@ class ClusterTransformerTest {
     );
   }
 
-  private static TransformerTuple<ClusterNonProduction,
+  private static TransformerTuple<ClusterNonProductionOptions,
       StackGresClusterNonProduction> createNonProductionOptions() {
     var nonProduction = TransformerTestUtil.fillTupleWithRandomData(
-        ClusterNonProduction.class,
+        ClusterNonProductionOptions.class,
         StackGresClusterNonProduction.class
     );
 

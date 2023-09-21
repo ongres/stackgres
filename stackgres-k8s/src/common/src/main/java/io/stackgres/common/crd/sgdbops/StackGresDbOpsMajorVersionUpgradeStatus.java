@@ -10,7 +10,6 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
@@ -23,25 +22,18 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresDbOpsMajorVersionUpgradeStatus {
 
-  @JsonProperty("sourcePostgresVersion")
   private String sourcePostgresVersion;
 
-  @JsonProperty("targetPostgresVersion")
   private String targetPostgresVersion;
 
-  @JsonProperty("primaryInstance")
   private String primaryInstance;
 
-  @JsonProperty("initialInstances")
   private List<String> initialInstances;
 
-  @JsonProperty("pendingToRestartInstances")
   private List<String> pendingToRestartInstances;
 
-  @JsonProperty("restartedInstances")
   private List<String> restartedInstances;
 
-  @JsonProperty("failure")
   private String failure;
 
   public String getSourcePostgresVersion() {

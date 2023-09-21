@@ -33,6 +33,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import javax.security.auth.x500.X500Principal;
@@ -64,6 +65,10 @@ public interface CryptoUtil {
   String END_PRIVATE_KEY = "-----END PRIVATE KEY-----";
   String BEGIN_PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----";
   String END_PUBLIC_KEY = "-----END PUBLIC KEY-----";
+
+  static String generatePassword() {
+    return UUID.randomUUID().toString().substring(4, 22);
+  }
 
   static Tuple3<String, String, String> generateCaCertificateAndPrivateKey(
       String subjectString, List<String> dnsList, Instant notAfter) {

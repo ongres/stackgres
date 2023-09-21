@@ -33,11 +33,9 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresShardedClusterShard extends StackGresClusterSpec {
 
-  @JsonProperty("index")
   @PositiveOrZero(message = "You need a shard index starting from zero")
-  private int index;
+  private Integer index;
 
-  @JsonProperty("instancesPerCluster")
   @Positive(message = "You need at least 1 instance in each cluster")
   private Integer instancesPerCluster;
 
@@ -47,11 +45,11 @@ public class StackGresShardedClusterShard extends StackGresClusterSpec {
 
   @JsonProperty("configurations")
   @Valid
-  private StackGresShardedClusterShardConfiguration configurationForShards;
+  private StackGresShardedClusterShardConfigurations configurationsForShards;
 
   @JsonProperty("pods")
   @Valid
-  private StackGresShardedClusterShardPod podForShards;
+  private StackGresShardedClusterShardPods podsForShards;
 
   @ReferencedField("replication.syncInstances")
   interface SyncInstances extends FieldReference { }
@@ -112,11 +110,11 @@ public class StackGresShardedClusterShard extends StackGresClusterSpec {
         || getInstancesPerCluster() > replicationForShards.getSyncInstances();
   }
 
-  public int getIndex() {
+  public Integer getIndex() {
     return index;
   }
 
-  public void setIndex(int index) {
+  public void setIndex(Integer index) {
     this.index = index;
   }
 
@@ -136,29 +134,30 @@ public class StackGresShardedClusterShard extends StackGresClusterSpec {
     this.replicationForShards = replicationForShards;
   }
 
-  public StackGresShardedClusterShardConfiguration getConfigurationForShards() {
-    return configurationForShards;
+  public StackGresShardedClusterShardConfigurations getConfigurationsForShards() {
+    return configurationsForShards;
   }
 
-  public void setConfigurationForShards(
-      StackGresShardedClusterShardConfiguration configurationForShards) {
-    this.configurationForShards = configurationForShards;
+  public void setConfigurationsForShards(
+      StackGresShardedClusterShardConfigurations configurationsForShards) {
+    this.configurationsForShards = configurationsForShards;
   }
 
-  public StackGresShardedClusterShardPod getPodForShards() {
-    return podForShards;
+  public StackGresShardedClusterShardPods getPodsForShards() {
+    return podsForShards;
   }
 
-  public void setPodForShards(StackGresShardedClusterShardPod podForShards) {
-    this.podForShards = podForShards;
+  public void setPodsForShards(StackGresShardedClusterShardPods podsForShards) {
+    this.podsForShards = podsForShards;
   }
 
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = super.hashCode();
-    result = prime * result + Objects.hash(configurationForShards, index, instancesPerCluster,
-        podForShards, replicationForShards);
+    result = prime * result
+        + Objects.hash(configurationsForShards, index, instancesPerCluster, podsForShards,
+            replicationForShards);
     return result;
   }
 
@@ -174,9 +173,10 @@ public class StackGresShardedClusterShard extends StackGresClusterSpec {
       return false;
     }
     StackGresShardedClusterShard other = (StackGresShardedClusterShard) obj;
-    return Objects.equals(configurationForShards, other.configurationForShards)
-        && index == other.index && Objects.equals(instancesPerCluster, other.instancesPerCluster)
-        && Objects.equals(podForShards, other.podForShards)
+    return Objects.equals(configurationsForShards, other.configurationsForShards)
+        && Objects.equals(index, other.index)
+        && Objects.equals(instancesPerCluster, other.instancesPerCluster)
+        && Objects.equals(podsForShards, other.podsForShards)
         && Objects.equals(replicationForShards, other.replicationForShards);
   }
 

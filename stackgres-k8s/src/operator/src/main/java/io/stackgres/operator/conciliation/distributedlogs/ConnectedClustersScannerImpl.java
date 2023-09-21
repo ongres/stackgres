@@ -35,7 +35,7 @@ public class ConnectedClustersScannerImpl implements ConnectedClustersScanner {
     return clusterScanner.getResources()
         .stream()
         .filter(cluster -> Optional.ofNullable(cluster.getSpec().getDistributedLogs())
-            .map(StackGresClusterDistributedLogs::getDistributedLogs)
+            .map(StackGresClusterDistributedLogs::getSgDistributedLogs)
             .map(distributedLogsRelativeId -> StackGresUtil.getNamespaceFromRelativeId(
                 distributedLogsRelativeId,
                 cluster.getMetadata().getNamespace()).equals(namespace)

@@ -23,13 +23,13 @@ import io.stackgres.common.ErrorType;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShard;
-import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardConfiguration;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardConfigurations;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShards;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -96,13 +96,13 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
         .orElse(null);
     String coordinatorPgConfig = Optional.of(cluster.getSpec())
         .map(StackGresShardedClusterSpec::getCoordinator)
-        .map(StackGresClusterSpec::getConfiguration)
-        .map(StackGresClusterConfiguration::getPostgresConfig)
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getSgPostgresConfig)
         .orElse(null);
     String shardsPgConfig = Optional.of(cluster.getSpec())
         .map(StackGresShardedClusterSpec::getShards)
-        .map(StackGresClusterSpec::getConfiguration)
-        .map(StackGresClusterConfiguration::getPostgresConfig)
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getSgPostgresConfig)
         .orElse(null);
 
     checkIfProvided(givenPgVersion, "postgres version");
@@ -111,12 +111,12 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
     for (var overrideShard : Optional.of(cluster.getSpec().getShards())
         .map(StackGresShardedClusterShards::getOverrides)
         .orElse(List.of())) {
-      if (overrideShard.getConfigurationForShards() == null
-          || overrideShard.getConfigurationForShards().getPostgresConfig() == null) {
+      if (overrideShard.getConfigurationsForShards() == null
+          || overrideShard.getConfigurationsForShards().getSgPostgresConfig() == null) {
         continue;
       }
       String overrideShardsPgConfig = overrideShard
-          .getConfigurationForShards().getPostgresConfig();
+          .getConfigurationsForShards().getSgPostgresConfig();
       checkIfProvided(overrideShardsPgConfig, "sgPostgresConfig", "for shard "
           + overrideShard.getIndex());
     }
@@ -148,12 +148,12 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
         for (var overrideShard : Optional.of(cluster.getSpec().getShards())
             .map(StackGresShardedClusterShards::getOverrides)
             .orElse(List.of())) {
-          if (overrideShard.getConfigurationForShards() == null
-              || overrideShard.getConfigurationForShards().getPostgresConfig() == null) {
+          if (overrideShard.getConfigurationsForShards() == null
+              || overrideShard.getConfigurationsForShards().getSgPostgresConfig() == null) {
             continue;
           }
           String overrideShardsPgConfig = overrideShard
-              .getConfigurationForShards().getPostgresConfig();
+              .getConfigurationsForShards().getSgPostgresConfig();
           validateAgainstConfiguration(givenMajorVersion, overrideShardsPgConfig, namespace,
               "for shard " + overrideShard.getIndex());
         }
@@ -168,13 +168,13 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
         }
 
         String oldCoordinatorPgConfig = oldCluster.getSpec().getCoordinator()
-            .getConfiguration().getPostgresConfig();
+            .getConfigurations().getSgPostgresConfig();
         if (!oldCoordinatorPgConfig.equals(coordinatorPgConfig)) {
           validateAgainstConfiguration(givenMajorVersion, coordinatorPgConfig, namespace,
               "for coordinator");
         }
         String oldShardsPgConfig = oldCluster.getSpec().getShards()
-            .getConfiguration().getPostgresConfig();
+            .getConfigurations().getSgPostgresConfig();
         if (!oldShardsPgConfig.equals(shardsPgConfig)) {
           validateAgainstConfiguration(givenMajorVersion, shardsPgConfig, namespace,
               "for shards");
@@ -182,23 +182,24 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
         for (var overrideShard : Optional.of(cluster.getSpec().getShards())
             .map(StackGresShardedClusterShards::getOverrides)
             .orElse(List.of())) {
-          if (overrideShard.getConfigurationForShards() == null
-              || overrideShard.getConfigurationForShards().getPostgresConfig() == null) {
+          if (overrideShard.getConfigurationsForShards() == null
+              || overrideShard.getConfigurationsForShards().getSgPostgresConfig() == null) {
             continue;
           }
           String overrideShardsPgConfig = overrideShard
-              .getConfigurationForShards().getPostgresConfig();
+              .getConfigurationsForShards().getSgPostgresConfig();
           String oldOverrideShardsPgConfig = Optional.of(oldCluster.getSpec().getShards())
               .map(StackGresShardedClusterShards::getOverrides)
               .stream()
               .flatMap(List::stream)
-              .filter(oldOverride -> Objects
-                  .equals(oldOverride.getIndex(), overrideShard.getIndex()))
+              .filter(oldOverride -> Objects.equals(
+                  oldOverride.getIndex(),
+                  overrideShard.getIndex()))
               .findFirst()
-              .map(StackGresShardedClusterShard::getConfigurationForShards)
-              .map(StackGresShardedClusterShardConfiguration::getPostgresConfig)
+              .map(StackGresShardedClusterShard::getConfigurationsForShards)
+              .map(StackGresShardedClusterShardConfigurations::getSgPostgresConfig)
               .orElse(oldCluster.getSpec().getShards()
-                  .getConfiguration().getPostgresConfig());
+                  .getConfigurations().getSgPostgresConfig());
           if (!oldOverrideShardsPgConfig.equals(overrideShardsPgConfig)) {
             validateAgainstConfiguration(givenMajorVersion, overrideShardsPgConfig, namespace,
                 "for shard " + overrideShard.getIndex());

@@ -53,6 +53,6 @@ class SgProfileDependenciesValidatorTest
 
   @Override
   protected void makeClusterNotDependant(StackGresCluster cluster) {
-    cluster.getSpec().setResourceProfile(null);
+    cluster.getSpec().setSgInstanceProfile(null);
   }
 }

@@ -11,8 +11,8 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerPgbouncerIni;
 import io.stackgres.operator.common.PoolingReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
+import io.stackgres.operator.validation.AbstractConstraintValidator;
 import io.stackgres.operator.validation.ConstraintValidationTest;
-import io.stackgres.operator.validation.ConstraintValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,7 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PoolingConstraintValidatorTest extends ConstraintValidationTest<PoolingReview> {
 
   @Override
-  protected ConstraintValidator<PoolingReview> buildValidator() {
+  protected AbstractConstraintValidator<PoolingReview> buildValidator() {
     return new PoolingConstraintValidator();
   }
 
@@ -46,7 +46,7 @@ class PoolingConstraintValidatorTest extends ConstraintValidationTest<PoolingRev
   @Test
   void nullPgBouncerConf_shouldFail() {
     PoolingReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getPgBouncer().getPgbouncerIni().setParameters(null);
+    review.getRequest().getObject().getSpec().getPgBouncer().getPgbouncerIni().setPgbouncer(null);
 
     checkNotNullErrorCause(StackGresPoolingConfigPgBouncerPgbouncerIni.class,
         "spec.pgBouncer.pgbouncer\\.ini.pgbouncer", review);
@@ -56,7 +56,7 @@ class PoolingConstraintValidatorTest extends ConstraintValidationTest<PoolingRev
   void emptyPgBouncerConf_shouldPass() throws Exception {
     PoolingReview review = getValidReview();
     review.getRequest().getObject().getSpec().getPgBouncer().getPgbouncerIni()
-        .setParameters(Map.of());
+        .setPgbouncer(Map.of());
 
     validator.validate(review);
   }

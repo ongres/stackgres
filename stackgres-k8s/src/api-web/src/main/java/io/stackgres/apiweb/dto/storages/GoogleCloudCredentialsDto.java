@@ -14,13 +14,11 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class GoogleCloudCredentialsDto {
 
-  @JsonProperty("fetchCredentialsFromMetadataService")
   private boolean fetchCredentialsFromMetadataService;
 
   @JsonProperty("serviceAccountJSON")
   private String serviceAccountJsonKey;
 
-  @JsonProperty("secretKeySelectors")
   private GoogleCloudSecretKeySelectorDto secretKeySelectors;
 
   public boolean isFetchCredentialsFromMetadataService() {

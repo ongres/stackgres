@@ -70,7 +70,7 @@ class DistributedLogsResourceTest
     assertEquals("distributedlogs", resource.getMetadata().getName());
     assertEquals("008af052-7fcd-4665-b3b9-6d7dedbc543c", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
-    assertNull(resource.getSpec().getNonProduction());
+    assertNull(resource.getSpec().getNonProductionOptions());
     assertNotNull(resource.getSpec().getPersistentVolume());
     assertEquals("128Mi", resource.getSpec().getPersistentVolume().getSize());
     assertNull(resource.getSpec().getPersistentVolume().getStorageClass());

@@ -25,7 +25,7 @@ public class PoolingDependenciesValidator
   @Override
   public void validate(PoolingReview review, StackGresCluster resource)
       throws ValidationFailed {
-    if (Objects.equals(resource.getSpec().getConfiguration().getConnectionPoolingConfig(),
+    if (Objects.equals(resource.getSpec().getConfigurations().getSgPoolingConfig(),
         review.getRequest().getName())) {
       fail(review, resource);
     }

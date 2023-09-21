@@ -13,7 +13,6 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
@@ -26,23 +25,17 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterManagedScriptEntryStatus {
 
-  @JsonProperty("id")
   @NotNull(message = "id can not be null")
   private Integer id;
 
-  @JsonProperty("startedAt")
   private String startedAt;
 
-  @JsonProperty("updatedAt")
   private String updatedAt;
 
-  @JsonProperty("failedAt")
   private String failedAt;
 
-  @JsonProperty("completedAt")
   private String completedAt;
 
-  @JsonProperty("scripts")
   @Valid
   private List<StackGresClusterManagedScriptEntryScriptStatus> scripts;
 

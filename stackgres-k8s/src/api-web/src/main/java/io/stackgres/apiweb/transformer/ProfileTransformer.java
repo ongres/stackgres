@@ -32,7 +32,7 @@ public class ProfileTransformer
   @Override
   public StackGresProfile toCustomResource(ProfileDto source, StackGresProfile original) {
     StackGresProfile transformation = Optional.ofNullable(original)
-        .map(crd -> mapper.convertValue(crd, StackGresProfile.class))
+        .map(o -> mapper.convertValue(original, StackGresProfile.class))
         .orElseGet(StackGresProfile::new);
     transformation.setMetadata(getCustomResourceMetadata(source, original));
     transformation.setSpec(getCustomResourceSpec(source.getSpec()));
@@ -44,7 +44,10 @@ public class ProfileTransformer
     ProfileDto transformation = new ProfileDto();
     transformation.setMetadata(getResourceMetadata(source));
     transformation.setSpec(getResourceSpec(source.getSpec()));
-    transformation.setStatus(getResourceStatus(clusters));
+    if (transformation.getStatus() == null) {
+      transformation.setStatus(new ProfileStatus());
+    }
+    transformation.getStatus().setClusters(clusters);
     return transformation;
   }
 
@@ -54,12 +57,6 @@ public class ProfileTransformer
 
   private ProfileSpec getResourceSpec(StackGresProfileSpec source) {
     return mapper.convertValue(source, ProfileSpec.class);
-  }
-
-  private ProfileStatus getResourceStatus(List<String> clusters) {
-    ProfileStatus transformation = new ProfileStatus();
-    transformation.setClusters(clusters);
-    return transformation;
   }
 
 }

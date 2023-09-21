@@ -54,7 +54,7 @@ class PoolingValidatorTest {
     final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     String poolingConfig =
-        review.getRequest().getObject().getSpec().getConfiguration().getConnectionPoolingConfig();
+        review.getRequest().getObject().getSpec().getConfigurations().getSgPoolingConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
     when(configFinder.findByNameAndNamespace(poolingConfig, namespace))
         .thenReturn(Optional.of(pgbouncerConfig));
@@ -71,7 +71,7 @@ class PoolingValidatorTest {
     final StackGresClusterReview review = AdmissionReviewFixtures.cluster().loadCreate().get();
 
     String poolingConfig =
-        review.getRequest().getObject().getSpec().getConfiguration().getConnectionPoolingConfig();
+        review.getRequest().getObject().getSpec().getConfigurations().getSgPoolingConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(poolingConfig, namespace))
@@ -94,7 +94,7 @@ class PoolingValidatorTest {
         .loadConnectionPoolingConfigUpdate().get();
 
     String poolingConfig =
-        review.getRequest().getObject().getSpec().getConfiguration().getConnectionPoolingConfig();
+        review.getRequest().getObject().getSpec().getConfigurations().getSgPoolingConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
@@ -121,7 +121,7 @@ class PoolingValidatorTest {
         .loadConnectionPoolingConfigUpdate().get();
 
     String poolingConfig =
-        review.getRequest().getObject().getSpec().getConfiguration().getConnectionPoolingConfig();
+        review.getRequest().getObject().getSpec().getConfigurations().getSgPoolingConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
@@ -142,7 +142,7 @@ class PoolingValidatorTest {
     review.getRequest().setOperation(Operation.DELETE);
 
     String poolingConfig =
-        review.getRequest().getObject().getSpec().getConfiguration().getConnectionPoolingConfig();
+        review.getRequest().getObject().getSpec().getConfigurations().getSgPoolingConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 

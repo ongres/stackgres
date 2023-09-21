@@ -6,7 +6,7 @@
 package io.stackgres.operator.mutation.distributedlogs;
 
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsConfiguration;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsConfigurations;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -27,19 +27,19 @@ public class DefaultPostgresMutator
 
   @Override
   protected void setValueSection(StackGresDistributedLogs resource) {
-    if (resource.getSpec().getConfiguration() == null) {
-      resource.getSpec().setConfiguration(new StackGresDistributedLogsConfiguration());
+    if (resource.getSpec().getConfigurations() == null) {
+      resource.getSpec().setConfigurations(new StackGresDistributedLogsConfigurations());
     }
   }
 
   @Override
   protected String getTargetPropertyValue(StackGresDistributedLogs resource) {
-    return resource.getSpec().getConfiguration().getPostgresConfig();
+    return resource.getSpec().getConfigurations().getSgPostgresConfig();
   }
 
   @Override
   protected void setTargetProperty(StackGresDistributedLogs resource, String value) {
-    resource.getSpec().getConfiguration().setPostgresConfig(value);
+    resource.getSpec().getConfigurations().setSgPostgresConfig(value);
   }
 
 }

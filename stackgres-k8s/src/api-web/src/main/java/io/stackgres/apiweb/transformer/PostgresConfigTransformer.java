@@ -9,7 +9,9 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.apiweb.dto.pgconfig.PostgresConfigDto;
 import io.stackgres.apiweb.dto.pgconfig.PostgresConfigSpec;
 import io.stackgres.apiweb.dto.pgconfig.PostgresConfigStatus;
@@ -27,10 +29,18 @@ public class PostgresConfigTransformer
 
   private static final String POSTGRESQLCO_NF_URL = "https://postgresqlco.nf/en/doc/param/%s/%s/";
 
+  private final ObjectMapper mapper;
+
+  @Inject
+  public PostgresConfigTransformer(ObjectMapper mapper) {
+    this.mapper = mapper;
+  }
+
   @Override
   public StackGresPostgresConfig toCustomResource(PostgresConfigDto source,
       StackGresPostgresConfig original) {
     StackGresPostgresConfig transformation = Optional.ofNullable(original)
+        .map(o -> mapper.convertValue(original, StackGresPostgresConfig.class))
         .orElseGet(StackGresPostgresConfig::new);
     transformation.setMetadata(getCustomResourceMetadata(source, original));
     transformation.setSpec(getCustomResourceSpec(source.getSpec()));

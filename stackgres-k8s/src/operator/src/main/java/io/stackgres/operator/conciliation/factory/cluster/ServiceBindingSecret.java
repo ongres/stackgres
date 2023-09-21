@@ -11,18 +11,18 @@ import java.util.stream.Stream;
 import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurationServiceBinding;
-import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
-import io.stackgres.common.crd.sgcluster.StackGresClusterStatusServiceBinding;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterServiceBinding;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 
 @Singleton
 @OperatorVersionBinder
@@ -32,73 +32,52 @@ public class ServiceBindingSecret implements ResourceGenerator<StackGresClusterC
 
   private static final String DEFAULT_SERVICE_BINDING_PROVIDER = "stackgres";
 
+  public static String name(StackGresCluster cluster) {
+    return ResourceUtil.resourceName(cluster.getMetadata().getName() + "-binding");
+  }
+
   @Override
   public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
     StackGresCluster cluster = context.getCluster();
-    var serviceBindingConfiguration = Optional.ofNullable(cluster.getSpec()
-        .getConfiguration().getBinding());
+    var binding = Optional.of(cluster.getSpec())
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getBinding);
 
-    if (serviceBindingConfiguration.isPresent()) {
-      return Stream.of(this.createSecretServiceBindingFromSgClusterSpecValues(context,
-        serviceBindingConfiguration.get()));
-    } else {
-      return Stream.of(this.createSecretServiceBindingWithDefaultValues(context));
-    }
-  }
-
-  private Secret createSecretServiceBindingWithDefaultValues(StackGresClusterContext context) {
-    return new SecretBuilder()
-      .withType(this.getServiceBindingType())
+    String username = binding
+        .map(StackGresClusterServiceBinding::getUsername)
+        .orElse(getPgUsernameFromSuperUserCredentials(context));
+    String password = context.getUserPasswordForBinding()
+        .orElse(getPgUserPasswordFromSuperUserCredentials(context));
+    return Stream.of(new SecretBuilder()
+      .withType(getServiceBindingType())
       .withNewMetadata()
-      .withName(this.getServiceBindingName(context.getCluster()))
-      .withNamespace(context.getCluster().getMetadata().getNamespace())
-      .endMetadata()
-      .addToStringData("type", DEFAULT_SERVICE_BINDING_TYPE)
-      .addToStringData("provider", DEFAULT_SERVICE_BINDING_PROVIDER)
-      .addToStringData("host", this.getPgHost(context))
-      .addToStringData("port", this.getPgPort())
-      .addToStringData("username", this.getPgUsernameFromSuperUserCredentials(context))
-      .addToStringData("password", this.getPgUserPasswordFromSuperUserCredentials(context))
-      .addToStringData("uri", this.buildPgConnectionUri(context,
-        this.getPgUsernameFromSuperUserCredentials(context),
-        this.getPgUserPasswordFromSuperUserCredentials(context), null))
-      .build();
-  }
-
-  private Secret createSecretServiceBindingFromSgClusterSpecValues(StackGresClusterContext context,
-      StackGresClusterConfigurationServiceBinding serviceBindingConfiguration) {
-    StackGresCluster cluster = context.getCluster();
-
-    return new SecretBuilder()
-      .withType(this.getServiceBindingType())
-      .withNewMetadata()
-      .withName(this.getServiceBindingName(cluster))
+      .withName(name(cluster))
       .withNamespace(cluster.getMetadata().getNamespace())
       .endMetadata()
       .addToStringData("type", DEFAULT_SERVICE_BINDING_TYPE)
-      .addToStringData("provider", serviceBindingConfiguration.getProvider())
-      .addToStringData("host", this.getPgHost(context))
-      .addToStringData("port", this.getPgPort())
-      .addToStringData("username", Optional.of(serviceBindingConfiguration
-          .getUsername()).orElse(this.getPgUsernameFromSuperUserCredentials(context)))
-      .addToStringData("password", context.getUserPasswordForBinding()
-          .orElse(this.getPgUserPasswordFromSuperUserCredentials(context)))
-      .addToStringData("uri", this.buildPgConnectionUri(context,
-        serviceBindingConfiguration.getUsername(),
-        context.getUserPasswordForBinding()
-          .orElse(this.getPgUserPasswordFromSuperUserCredentials(context)),
-        serviceBindingConfiguration.getDatabase()))
-      .build();
+      .addToStringData("provider", binding
+          .map(StackGresClusterServiceBinding::getProvider)
+          .orElse(DEFAULT_SERVICE_BINDING_PROVIDER))
+      .addToStringData("host", getPgHost(context))
+      .addToStringData("port", getPgPort())
+      .addToStringData("username", username)
+      .addToStringData("password", password)
+      .addToStringData("uri", buildPgConnectionUri(context,
+          username,
+          password,
+          binding
+          .map(StackGresClusterServiceBinding::getDatabase)))
+      .build());
   }
 
   private String buildPgConnectionUri(StackGresClusterContext context, String pgUsername,
-      String pgUserPassword, String database) {
-    if (database == null || database.isEmpty()) {
-      return String.format("postgresql://%s:%s@%s:%s", pgUsername, pgUserPassword,
-        this.getPgHost(context), this.getPgPort());
+      String pgUserPassword, Optional<String> database) {
+    if (database.isPresent()) {
+      return String.format("postgresql://%s:%s@%s:%s/%s", pgUsername, pgUserPassword,
+          getPgHost(context), getPgPort(), database.get());
     }
-    return String.format("postgresql://%s:%s@%s:%s/%s", pgUsername, pgUserPassword,
-      this.getPgHost(context), this.getPgPort(), database);
+    return String.format("postgresql://%s:%s@%s:%s", pgUsername, pgUserPassword,
+        getPgHost(context), getPgPort());
   }
 
   private String getServiceBindingType() {
@@ -122,11 +101,4 @@ public class ServiceBindingSecret implements ResourceGenerator<StackGresClusterC
     return PatroniSecret.getSuperuserCredentials(context).v2;
   }
 
-  private String getServiceBindingName(StackGresCluster cluster) {
-    Optional<String> serviceBindingNameFromStatusSpec = Optional.ofNullable(cluster.getStatus())
-        .map(StackGresClusterStatus::getBinding)
-        .map(StackGresClusterStatusServiceBinding::getName);
-    return serviceBindingNameFromStatusSpec
-      .orElseGet(() -> cluster.getMetadata().getName() + "-binding");
-  }
 }

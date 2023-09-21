@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.dbops;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -14,43 +13,30 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class DbOpsSpec {
 
-  @JsonProperty("sgCluster")
   private String sgCluster;
 
-  @JsonProperty("scheduling")
   private DbOpsSpecScheduling scheduling;
 
-  @JsonProperty("op")
   private String op;
 
-  @JsonProperty("runAt")
   private String runAt;
 
-  @JsonProperty("timeout")
   private String timeout;
 
-  @JsonProperty("maxRetries")
   private Integer maxRetries;
 
-  @JsonProperty("benchmark")
   private DbOpsBenchmark benchmark;
 
-  @JsonProperty("vacuum")
   private DbOpsVacuum vacuum;
 
-  @JsonProperty("repack")
   private DbOpsRepack repack;
 
-  @JsonProperty("majorVersionUpgrade")
   private DbOpsMajorVersionUpgrade majorVersionUpgrade;
 
-  @JsonProperty("restart")
   private DbOpsRestart restart;
 
-  @JsonProperty("minorVersionUpgrade")
   private DbOpsMinorVersionUpgrade minorVersionUpgrade;
 
-  @JsonProperty("securityUpgrade")
   private DbOpsSecurityUpgrade securityUpgrade;
 
   public String getSgCluster() {

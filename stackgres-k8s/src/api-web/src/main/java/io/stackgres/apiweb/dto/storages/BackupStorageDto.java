@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.dto.storages;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -14,19 +13,14 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class BackupStorageDto {
 
-  @JsonProperty("type")
   private String type;
 
-  @JsonProperty("s3")
   private AwsS3StorageDto s3;
 
-  @JsonProperty("s3Compatible")
   private AwsS3CompatibleStorageDto s3Compatible;
 
-  @JsonProperty("gcs")
   private GoogleCloudStorageDto gcs;
 
-  @JsonProperty("azureBlob")
   private AzureBlobStorageDto azureBlob;
 
   public String getType() {

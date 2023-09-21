@@ -31,7 +31,7 @@ public class ProfileResource
   public boolean belongsToCluster(StackGresProfile resource, StackGresCluster cluster) {
     return cluster.getMetadata().getNamespace().equals(
         resource.getMetadata().getNamespace())
-        && Objects.equals(cluster.getSpec().getResourceProfile(),
+        && Objects.equals(cluster.getSpec().getSgInstanceProfile(),
         resource.getMetadata().getName());
   }
 

@@ -19,7 +19,6 @@ public class ClusterManagedSql {
   @JsonProperty("continueOnSGScriptError")
   private Boolean continueOnScriptError;
 
-  @JsonProperty("scripts")
   private List<ClusterManagedScriptEntry> scripts;
 
   public Boolean getContinueOnScriptError() {

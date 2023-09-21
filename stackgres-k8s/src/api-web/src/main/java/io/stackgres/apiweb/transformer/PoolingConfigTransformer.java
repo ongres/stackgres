@@ -20,7 +20,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.apiweb.dto.pooling.PgBouncerIniParameter;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigDto;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigPgBouncer;
@@ -45,10 +47,18 @@ public class PoolingConfigTransformer
   private static final Pattern PARAMETER_PATTERN = Pattern.compile(
       "([^\\s=]+)\\s*=\\s*(:?'([^']+)'|[^ ]+)");
 
+  private final ObjectMapper mapper;
+
+  @Inject
+  public PoolingConfigTransformer(ObjectMapper mapper) {
+    this.mapper = mapper;
+  }
+
   @Override
   public StackGresPoolingConfig toCustomResource(PoolingConfigDto source,
                                                  StackGresPoolingConfig original) {
     StackGresPoolingConfig transformation = Optional.ofNullable(original)
+        .map(o -> mapper.convertValue(original, StackGresPoolingConfig.class))
         .orElseGet(StackGresPoolingConfig::new);
     transformation.setMetadata(getCustomResourceMetadata(source, original));
     transformation.setSpec(getCustomResourceSpec(source.getSpec()));
@@ -111,11 +121,11 @@ public class PoolingConfigTransformer
           String value = section.getString(key);
           if (value != null) {
             if ("pgbouncer".equals(sectionName) || sectionName == null) {
-              if (pgbouncerIni.getParameters() == null) {
-                pgbouncerIni.setParameters(new HashMap<>());
+              if (pgbouncerIni.getPgbouncer() == null) {
+                pgbouncerIni.setPgbouncer(new HashMap<>());
               }
               pgbouncerIni
-                  .getParameters().put(key, value);
+                  .getPgbouncer().put(key, value);
             }
             if ("databases".equals(sectionName)) {
               if (pgbouncerIni.getDatabases() == null) {
@@ -167,8 +177,8 @@ public class PoolingConfigTransformer
       addPropertiesToIni(pgBouncer.getPgbouncerIni().getUsers().entrySet(), ini, "users");
     }
 
-    if (pgBouncer.getPgbouncerIni().getParameters() != null) {
-      pgBouncer.getPgbouncerIni().getParameters().entrySet().stream()
+    if (pgBouncer.getPgbouncerIni().getPgbouncer() != null) {
+      pgBouncer.getPgbouncerIni().getPgbouncer().entrySet().stream()
           .sorted(Map.Entry.comparingByKey())
           .forEach(entry -> {
             ini.addProperty("pgbouncer." + entry.getKey(), entry.getValue());
@@ -186,8 +196,10 @@ public class PoolingConfigTransformer
     return transformation;
   }
 
-  private void addPropertiesToIni(Set<Entry<String, Map<String, String>>> source,
-                                  INIConfiguration target, String section) {
+  private void addPropertiesToIni(
+      Set<Entry<String, Map<String, String>>> source,
+      INIConfiguration target,
+      String section) {
     source.stream().sorted(Map.Entry.comparingByKey())
         .forEach(entry -> {
           String params = entry.getValue().entrySet().stream()
@@ -197,14 +209,15 @@ public class PoolingConfigTransformer
         });
   }
 
-  private PoolingConfigStatus getResourceStatus(List<String> clusters,
-                                                StackGresPoolingConfigStatus source,
-                                                StackGresPoolingConfigSpec sourceSpec) {
+  private PoolingConfigStatus getResourceStatus(
+      List<String> clusters,
+      StackGresPoolingConfigStatus source,
+      StackGresPoolingConfigSpec sourceSpec) {
     PoolingConfigStatus transformation = new PoolingConfigStatus();
     transformation.setClusters(clusters);
     transformation.setPgBouncer(new PoolingConfigPgBouncerStatus());
-    transformation.getPgBouncer().setParameters(
-        Seq.seq(sourceSpec.getPgBouncer().getPgbouncerIni().getParameters())
+    transformation.getPgBouncer().setPgbouncerIni(
+        Seq.seq(sourceSpec.getPgBouncer().getPgbouncerIni().getPgbouncer())
             .map(t -> t.concat(new PgBouncerIniParameter()))
             .peek(t -> t.v3.setParameter(t.v1))
             .peek(t -> t.v3.setValue(t.v2))

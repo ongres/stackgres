@@ -13,7 +13,6 @@ import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.ValidEnum;
@@ -27,20 +26,16 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterPostgres {
 
-  @JsonProperty("version")
   @NotBlank(message = "PostgreSQL version is required")
   private String version;
 
-  @JsonProperty("flavor")
   @ValidEnum(enumClass = StackGresPostgresFlavor.class, allowNulls = true,
       message = "flavor must be vanilla or babelfish")
   private String flavor;
 
-  @JsonProperty("ssl")
   @Valid
   private StackGresClusterSsl ssl;
 
-  @JsonProperty("extensions")
   @Valid
   private List<StackGresClusterExtension> extensions;
 

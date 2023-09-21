@@ -8,36 +8,30 @@ package io.stackgres.apiweb.dto.cluster;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-public class ClusterConfiguration {
+public class ClusterConfigurations {
 
-  @JsonProperty("sgPostgresConfig")
   private String sgPostgresConfig;
 
-  @JsonProperty("sgPoolingConfig")
   private String sgPoolingConfig;
 
-  @JsonProperty("sgBackupConfig")
   @Deprecated(since = "1.3.0", forRemoval = true)
   private String sgBackupConfig;
 
-  @JsonProperty("backupPath")
   @Deprecated(since = "1.3.0", forRemoval = true)
   private String backupPath;
 
-  @JsonProperty("backups")
   private List<ClusterBackupsConfiguration> backups;
 
-  @JsonProperty("patroni")
   private ClusterPatroni patroni;
 
-  @JsonProperty("credentials")
   private ClusterCredentials credentials;
+
+  private ClusterServiceBinding binding;
 
   public String getSgPostgresConfig() {
     return sgPostgresConfig;
@@ -97,6 +91,14 @@ public class ClusterConfiguration {
 
   public void setCredentials(ClusterCredentials credentials) {
     this.credentials = credentials;
+  }
+
+  public ClusterServiceBinding getBinding() {
+    return binding;
+  }
+
+  public void setBinding(ClusterServiceBinding binding) {
+    this.binding = binding;
   }
 
   @Override
