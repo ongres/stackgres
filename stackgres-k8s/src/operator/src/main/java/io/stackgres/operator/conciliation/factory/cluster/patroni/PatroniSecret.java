@@ -9,7 +9,6 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -33,6 +32,8 @@ import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 
 @Singleton
 @OperatorVersionBinder
@@ -53,28 +54,24 @@ public class PatroniSecret
     return ResourceUtil.resourceName(clusterName);
   }
 
-  private static String generatePassword() {
-    return UUID.randomUUID().toString().substring(4, 22);
-  }
-
   @Override
   public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
     return Stream.of(
-        ImmutableVolumePair.builder()
-            .volume(buildVolume(context))
-            .source(buildSource(context))
-            .build()
+      ImmutableVolumePair.builder()
+        .volume(buildVolume(context))
+        .source(buildSource(context))
+        .build()
     );
   }
 
   public @NotNull Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
-        .withName(StackGresVolume.PATRONI_CREDENTIALS.getName())
-        .withSecret(new SecretVolumeSourceBuilder()
-            .withSecretName(name(context))
-            .withDefaultMode(0400)
-            .build())
-        .build();
+      .withName(StackGresVolume.PATRONI_CREDENTIALS.getName())
+      .withSecret(new SecretVolumeSourceBuilder()
+        .withSecretName(name(context))
+        .withDefaultMode(0400)
+        .build())
+      .build();
   }
 
   /**
@@ -100,40 +97,63 @@ public class PatroniSecret
     setAuthenticatorCredentials(context, previousSecretData, data);
 
     if (getPostgresFlavorComponent(context.getSource()) == StackGresComponent.BABELFISH) {
-      setBabelfishCredentials(previousSecretData, data);
+      setBabelfishCredentials(context, previousSecretData, data);
     }
 
-    setPgBouncerCredentials(previousSecretData, data);
+    setPgBouncerCredentials(context, previousSecretData, data);
 
     setRestApiCredentials(context, previousSecretData, data);
 
     return new SecretBuilder()
-        .withNewMetadata()
-        .withNamespace(namespace)
-        .withName(name)
-        .withLabels(labels)
-        .endMetadata()
-        .withType("Opaque")
-        .withData(ResourceUtil.encodeSecret(StackGresUtil.addMd5Sum(data)))
-        .build();
+      .withNewMetadata()
+      .withNamespace(namespace)
+      .withName(name)
+      .withLabels(labels)
+      .endMetadata()
+      .withType("Opaque")
+      .withData(ResourceUtil.encodeSecret(StackGresUtil.addMd5Sum(data)))
+      .build();
   }
 
-  private void setSuperuserCredentials(StackGresClusterContext context,
-      Map<String, String> previousSecretData, Map<String, String> data) {
-    data.put(SUPERUSER_USERNAME_KEY, context.getSuperuserUsername()
+  private void setSuperuserCredentials(
+      StackGresClusterContext context,
+      Map<String, String> previousSecretData,
+      Map<String, String> data) {
+    var superuserCredentials = getSuperuserCredentials(context, previousSecretData);
+    data.put(SUPERUSER_USERNAME_KEY, superuserCredentials.v1);
+    data.put(SUPERUSER_USERNAME_ENV, superuserCredentials.v1);
+    data.put(SUPERUSER_PASSWORD_KEY, superuserCredentials.v2);
+    data.put(SUPERUSER_PASSWORD_ENV, superuserCredentials.v2);
+  }
+
+  public static Tuple2<String, String> getSuperuserCredentials(
+      StackGresClusterContext context) {
+    final Map<String, String> previousSecretData = context.getDatabaseSecret()
+        .map(Secret::getData)
+        .map(ResourceUtil::decodeSecret)
+        .orElse(Map.of());
+
+    return getSuperuserCredentials(context, previousSecretData);
+  }
+
+  private static Tuple2<String, String> getSuperuserCredentials(
+      StackGresClusterContext context,
+      Map<String, String> previousSecretData) {
+    return Tuple.tuple(
+        context.getSuperuserUsername()
         .orElse(previousSecretData
             .getOrDefault(SUPERUSER_USERNAME_KEY, previousSecretData
-                .getOrDefault(SUPERUSER_USERNAME_ENV, SUPERUSER_USERNAME))));
-    data.put(SUPERUSER_USERNAME_ENV, data.get(SUPERUSER_USERNAME_KEY));
-    data.put(SUPERUSER_PASSWORD_KEY, context.getSuperuserPassword()
+                .getOrDefault(SUPERUSER_USERNAME_ENV, SUPERUSER_USERNAME))),
+        context.getSuperuserPassword()
         .orElse(previousSecretData
             .getOrDefault(SUPERUSER_PASSWORD_KEY, previousSecretData
-                .getOrDefault(SUPERUSER_PASSWORD_ENV, generatePassword()))));
-    data.put(SUPERUSER_PASSWORD_ENV, data.get(SUPERUSER_PASSWORD_KEY));
+                .getOrDefault(SUPERUSER_PASSWORD_ENV, context.getGeneratedSuperuserPassword()))));
   }
 
-  private void setReplicationCredentials(StackGresClusterContext context,
-      Map<String, String> previousSecretData, Map<String, String> data) {
+  private void setReplicationCredentials(
+      StackGresClusterContext context,
+      Map<String, String> previousSecretData,
+      Map<String, String> data) {
     data.put(REPLICATION_USERNAME_KEY, context.getReplicationUsername()
         .orElse(previousSecretData
             .getOrDefault(REPLICATION_USERNAME_KEY, previousSecretData
@@ -142,12 +162,16 @@ public class PatroniSecret
     data.put(REPLICATION_PASSWORD_KEY, context.getReplicationPassword()
         .orElse(previousSecretData
             .getOrDefault(REPLICATION_PASSWORD_KEY, previousSecretData
-                .getOrDefault(REPLICATION_PASSWORD_ENV, generatePassword()))));
-    data.put(REPLICATION_PASSWORD_ENV, data.get(REPLICATION_PASSWORD_KEY));
+                .getOrDefault(REPLICATION_PASSWORD_ENV,
+                  context.getGeneratedReplicationPassword()))));
+    data.put(REPLICATION_PASSWORD_ENV, context.getReplicationPassword()
+        .orElse(data.get(REPLICATION_PASSWORD_KEY)));
   }
 
-  private void setAuthenticatorCredentials(StackGresClusterContext context,
-      Map<String, String> previousSecretData, Map<String, String> data) {
+  private void setAuthenticatorCredentials(
+      StackGresClusterContext context,
+      Map<String, String> previousSecretData,
+      Map<String, String> data) {
     data.put(AUTHENTICATOR_USERNAME_KEY, context.getAuthenticatorUsername()
         .orElse(previousSecretData
             .getOrDefault(AUTHENTICATOR_USERNAME_KEY, previousSecretData
@@ -160,15 +184,19 @@ public class PatroniSecret
     data.put(AUTHENTICATOR_PASSWORD_KEY, context.getAuthenticatorPassword()
         .orElse(previousSecretData
             .getOrDefault(AUTHENTICATOR_PASSWORD_KEY, previousSecretData
-                .getOrDefault(authenticatorPasswordEnv, generatePassword()))));
-    data.put(authenticatorPasswordEnv, data.get(AUTHENTICATOR_PASSWORD_KEY));
+                .getOrDefault(authenticatorPasswordEnv,
+                  context.getGeneratedAuthenticatorPassword()))));
+    data.put(authenticatorPasswordEnv, context.getAuthenticatorPassword()
+        .orElse(data.get(AUTHENTICATOR_PASSWORD_KEY)));
     data.put(authenticatorOptionsEnv, "superuser");
   }
 
-  private void setBabelfishCredentials(final Map<String, String> previousSecretData,
+  private void setBabelfishCredentials(
+      StackGresClusterContext context,
+      final Map<String, String> previousSecretData,
       final Map<String, String> data) {
     data.put(BABELFISH_PASSWORD_KEY, previousSecretData
-        .getOrDefault(BABELFISH_PASSWORD_KEY, generatePassword()));
+        .getOrDefault(BABELFISH_PASSWORD_KEY, context.getGeneratedBabelfishPassword()));
     data.put(BABELFISH_CREATE_USER_SQL_KEY,
         "SET log_statement TO 'none';\n"
             + "DROP ROLE IF EXISTS " + BABELFISH_USERNAME + ";\n"
@@ -176,17 +204,20 @@ public class PatroniSecret
             + " PASSWORD '" + data.get(BABELFISH_PASSWORD_KEY) + "';");
   }
 
-  private void setPgBouncerCredentials(final Map<String, String> previousSecretData,
+  private void setPgBouncerCredentials(
+      StackGresClusterContext context,
+      final Map<String, String> previousSecretData,
       final Map<String, String> data) {
     data.put(PGBOUNCER_ADMIN_USERNAME_ENV, PGBOUNCER_ADMIN_USERNAME);
     data.put(PGBOUNCER_ADMIN_PASSWORD_KEY, previousSecretData
-        .getOrDefault(PGBOUNCER_ADMIN_PASSWORD_KEY, generatePassword()));
+        .getOrDefault(PGBOUNCER_ADMIN_PASSWORD_KEY, context.getGeneratedPgBouncerAdminPassword()));
     data.put(PGBOUNCER_STATS_USERNAME_ENV, PGBOUNCER_STATS_USERNAME);
     data.put(PGBOUNCER_STATS_PASSWORD_KEY, previousSecretData
-        .getOrDefault(PGBOUNCER_STATS_PASSWORD_KEY, generatePassword()));
+        .getOrDefault(PGBOUNCER_STATS_PASSWORD_KEY, context.getGeneratedPgBouncerStatsPassword()));
   }
 
-  private void setRestApiCredentials(StackGresClusterContext context,
+  private void setRestApiCredentials(
+      StackGresClusterContext context,
       final Map<String, String> previousSecretData,
       final Map<String, String> data) {
     data.put(RESTAPI_USERNAME_KEY, RESTAPI_USERNAME);
@@ -194,7 +225,8 @@ public class PatroniSecret
     data.put(RESTAPI_PASSWORD_KEY, context.getPatroniRestApiPassword()
         .orElse(previousSecretData
             .getOrDefault(RESTAPI_PASSWORD_KEY, previousSecretData
-                .getOrDefault(RESTAPI_PASSWORD_ENV, generatePassword()))));
+                .getOrDefault(RESTAPI_PASSWORD_ENV,
+                  context.getGeneratedPatroniRestApiPassword()))));
     data.put(RESTAPI_PASSWORD_ENV, data.get(RESTAPI_PASSWORD_KEY));
   }
 
@@ -202,5 +234,4 @@ public class PatroniSecret
   public void setFactoryFactory(LabelFactoryForCluster<StackGresCluster> labelFactory) {
     this.labelFactory = labelFactory;
   }
-
 }
