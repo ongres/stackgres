@@ -52,9 +52,9 @@ spec:
             After an SGBackup is created the same Job performs a reconciliation of the backups by applying the retention window
              that has been configured in the SGCluster and removing the backups with managed lifecycle and the WAL files older
              than the ones that fit in the retention window. The reconciliation also removes backups (excluding WAL files) that do
-             not belongs to any SGBackup. If the target storage is changed deletion of an SGBackup backups with managed lifecycle
-             and the WAL files older than the ones that fit in the retention window and of backups that do not belongs to any
-             SGBackup will not be performed anymore on the previous storage, only on the new target storage.
+             not belongs to any SGBackup (including copies). If the target storage is changed deletion of an SGBackup backups with
+             managed lifecycle and the WAL files older than the ones that fit in the retention window and of backups that do not
+             belongs to any SGBackup will not be performed anymore on the previous storage, only on the new target storage.
           properties:
             metadata:
               type: object
