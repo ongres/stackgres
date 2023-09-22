@@ -3,7 +3,7 @@ title: High Availability
 weight: 7
 url: /administration/patroni
 aliases: [ /administration/patroni/management ]
-description: Details about how to use Patroni to handle the database replicas and primary nodes.
+description: Details about how Patroni is used to handle the database replicas and primary nodes.
 ---
 
 A StackGres cluster has a full high-availability PostgreSQL configuration managed by [Patroni](https://github.com/zalando/patroni).
@@ -29,11 +29,11 @@ stackgres-2   5/5     Running   0          162m
 
 ## Identifying the Master and Replica Nodes
 
-One of the most important task is to be able to identify which node is the current master and which ones the replica nodes.
+One of the most important task is to be able to identify which node is the current primary and which ones the replica nodes.
 
 There are two different ways to accomplish this. The first one is with the `kubectl` command using the pod labels:
 
-To identify the master node:
+To identify the primary node:
 
 ```
 $ kubectl get pods -n default -l app=StackGresCluster -l role=master
@@ -72,7 +72,7 @@ $ patronictl list
 As you can see we get the cluster status from a Patroni node.
 We can retrieve some valuable information here:
 
-- Who is the master node
+- Who is the primary node
 - Who are the replica nodes
 - The IP address and port
 - The state of each node
