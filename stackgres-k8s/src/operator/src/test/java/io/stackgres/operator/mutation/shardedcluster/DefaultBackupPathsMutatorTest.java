@@ -15,11 +15,11 @@ import java.util.Map;
 
 import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterBackupConfiguration;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
+import io.stackgres.operator.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;

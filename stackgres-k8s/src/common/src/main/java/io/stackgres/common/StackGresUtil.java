@@ -79,6 +79,10 @@ public interface StackGresUtil {
     return ResourceUtil.nameIsValidService(cluster.getMetadata().getName() + BACKUP_SUFFIX);
   }
 
+  static String shardedBackupPersistentVolumeName(StackGresShardedCluster cluster) {
+    return ResourceUtil.nameIsValidService(cluster.getMetadata().getName() + BACKUP_SUFFIX);
+  }
+
   /**
    * This function return the namespace of the relativeId if present or the namespace.
    *
@@ -364,7 +368,13 @@ public interface StackGresUtil {
         .map(ObjectMeta::getAnnotations)
         .filter(annotations -> annotations.containsKey(LOCK_POD_KEY)
             && annotations.containsKey(LOCK_TIMEOUT_KEY))
-        .map(annotations -> Long.parseLong(annotations.get(LOCK_TIMEOUT_KEY)))
+        .map(annotations -> {
+          try {
+            return Long.parseLong(annotations.get(LOCK_TIMEOUT_KEY));
+          } catch (NumberFormatException ex) {
+            return null;
+          }
+        })
         .map(lockTimeout -> checkTimestamp < lockTimeout)
         .orElse(false);
   }
@@ -381,7 +391,13 @@ public interface StackGresUtil {
         .filter(annotation -> annotation.containsKey(LOCK_POD_KEY)
             && annotation.containsKey(LOCK_TIMEOUT_KEY))
         .filter(annotations -> annotations.get(LOCK_POD_KEY).equals(lockPodName))
-        .map(annotations -> Long.parseLong(annotations.get(LOCK_TIMEOUT_KEY)))
+        .map(annotations -> {
+          try {
+            return Long.parseLong(annotations.get(LOCK_TIMEOUT_KEY));
+          } catch (NumberFormatException ex) {
+            return null;
+          }
+        })
         .map(lockTimeout -> checkTimestamp < lockTimeout)
         .orElse(false);
   }

@@ -62,6 +62,7 @@ rules:
     - sgobjectstorages
     - sgscripts
     - sgshardedclusters
+    - sgshardedbackups
     - sgconfigs
     - sgconfigs/status
   verbs:
@@ -95,6 +96,7 @@ rules:
     - sgdbops.stackgres.io
     - sgdistributedlogs.stackgres.io
     - sgshardedclusters.stackgres.io
+    - sgshardedbackups.stackgres.io
     - sgscripts.stackgres.io
   verbs:
     - get

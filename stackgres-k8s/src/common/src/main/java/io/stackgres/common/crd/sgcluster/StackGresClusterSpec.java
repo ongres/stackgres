@@ -44,7 +44,7 @@ public class StackGresClusterSpec {
   private String sgInstanceProfile;
 
   @Valid
-  private StackGresClusterInitalData initialData;
+  private StackGresClusterInitialData initialData;
 
   @Valid
   private StackGresClusterReplicateFrom replicateFrom;
@@ -225,11 +225,11 @@ public class StackGresClusterSpec {
     this.sgInstanceProfile = sgInstanceProfile;
   }
 
-  public StackGresClusterInitalData getInitialData() {
+  public StackGresClusterInitialData getInitialData() {
     return initialData;
   }
 
-  public void setInitialData(StackGresClusterInitalData initialData) {
+  public void setInitialData(StackGresClusterInitialData initialData) {
     this.initialData = initialData;
   }
 

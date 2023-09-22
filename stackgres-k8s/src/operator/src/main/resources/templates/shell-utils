@@ -108,7 +108,7 @@ release_lock() {
     return 0
   fi
   if ! kubectl annotate "$LOCK_RESOURCE" -n "$CLUSTER_NAMESPACE" "$LOCK_RESOURCE_NAME" \
-    --resource-version "$RESOURCE_VERSION" --overwrite "lockServiceAccount=" "lockPod=" "lockTimestamp=0"
+    --resource-version "$RESOURCE_VERSION" --overwrite "$LOCK_SERVICE_ACCOUNT_KEY-" "$LOCK_POD_KEY-" "$LOCK_TIMEOUT_KEY-"
   then
     kubectl get "$LOCK_RESOURCE" -n "$CLUSTER_NAMESPACE" "$LOCK_RESOURCE_NAME" --template="$TEMPLATE" > /tmp/lock-resource
     . /tmp/lock-resource

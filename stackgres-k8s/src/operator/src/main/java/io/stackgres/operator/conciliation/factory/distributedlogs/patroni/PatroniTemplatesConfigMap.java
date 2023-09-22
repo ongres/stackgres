@@ -21,7 +21,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
-import io.stackgres.operator.conciliation.factory.AbstractPatroniTemplatesConfigMap;
+import io.stackgres.operator.conciliation.factory.AbstractTemplatesConfigMap;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 @Singleton
 @OperatorVersionBinder
 public class PatroniTemplatesConfigMap
-    extends AbstractPatroniTemplatesConfigMap<StackGresDistributedLogsContext> {
+    extends AbstractTemplatesConfigMap<StackGresDistributedLogsContext> {
 
   private LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
@@ -60,7 +60,7 @@ public class PatroniTemplatesConfigMap
   }
 
   public @NotNull HasMetadata buildSource(StackGresDistributedLogsContext context) {
-    Map<String, String> data = getPatroniTemplates();
+    Map<String, String> data = getClusterTemplates();
 
     final StackGresDistributedLogs cluster = context.getSource();
 

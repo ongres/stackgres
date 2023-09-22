@@ -51,6 +51,7 @@ run() {
       else
         kill_with_childs "$TIMEOUT_PID"
         echo "Can not acquire lock"
+        cat "$SHARED_PATH/try-lock"
         echo "LOCK_LOST=true" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
         echo "TIMED_OUT=false" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
         echo "EXIT_CODE=1" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"

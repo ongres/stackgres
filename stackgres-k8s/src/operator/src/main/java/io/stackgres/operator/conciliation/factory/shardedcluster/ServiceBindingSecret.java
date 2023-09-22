@@ -13,7 +13,7 @@ import javax.inject.Singleton;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.EnvoyUtil;
-import io.stackgres.common.StackGresShardedClusterForCitusUtil;
+import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterServiceBinding;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
@@ -88,7 +88,7 @@ public class ServiceBindingSecret implements ResourceGenerator<StackGresShardedC
   }
 
   private String getPgHost(StackGresShardedClusterContext context) {
-    return StackGresShardedClusterForCitusUtil
+    return StackGresShardedClusterUtil
         .primaryCoordinatorServiceName(context.getSource())
         .concat(".")
         .concat(context.getSource().getMetadata().getNamespace());

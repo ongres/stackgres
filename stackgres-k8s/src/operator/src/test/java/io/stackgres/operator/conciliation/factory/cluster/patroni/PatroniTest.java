@@ -20,7 +20,7 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
@@ -120,11 +120,11 @@ class PatroniTest {
     Container patroniContainer = patroni.getContainer(clusterContainerContext);
     var dshmVolumeMount = new VolumeMountBuilder()
         .withName(StackGresVolume.DSHM.getName())
-        .withMountPath(ClusterStatefulSetPath.SHARED_MEMORY_PATH.path())
+        .withMountPath(ClusterPath.SHARED_MEMORY_PATH.path())
         .build();
     var pgLogVolumeMount = new VolumeMountBuilder()
         .withName(StackGresVolume.LOG.getName())
-        .withMountPath(ClusterStatefulSetPath.PG_LOG_PATH.path())
+        .withMountPath(ClusterPath.PG_LOG_PATH.path())
         .build();
     assertTrue(patroniContainer.getVolumeMounts().contains(dshmVolumeMount));
     assertTrue(patroniContainer.getVolumeMounts().contains(pgLogVolumeMount));

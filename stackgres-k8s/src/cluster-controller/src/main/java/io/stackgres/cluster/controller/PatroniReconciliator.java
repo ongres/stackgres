@@ -36,7 +36,7 @@ import io.stackgres.cluster.common.PatroniUtil;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationGroup;
@@ -59,10 +59,10 @@ public class PatroniReconciliator {
   private static final Logger LOGGER = LoggerFactory.getLogger(PatroniReconciliator.class);
 
   private static final Path PATRONI_CONFIG_PATH =
-      Paths.get(ClusterStatefulSetPath.PATRONI_CONFIG_FILE_PATH.path());
+      Paths.get(ClusterPath.PATRONI_CONFIG_FILE_PATH.path());
   private static final Path LAST_PATRONI_CONFIG_PATH =
-      Paths.get(ClusterStatefulSetPath.PATRONI_CONFIG_PATH.path()
-          + "/last-" + ClusterStatefulSetPath.PATRONI_CONFIG_FILE_PATH.filename());
+      Paths.get(ClusterPath.PATRONI_CONFIG_PATH.path()
+          + "/last-" + ClusterPath.PATRONI_CONFIG_FILE_PATH.filename());
 
   private static final Pattern TAGS_LINE_PATTERN = Pattern.compile("^tags:.*$");
 

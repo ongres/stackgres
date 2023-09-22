@@ -13,6 +13,7 @@ import static org.junit.Assert.assertThrows;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.base.Preconditions;
@@ -22,10 +23,12 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import junit.framework.AssertionFailedError;
+import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,11 +36,13 @@ public abstract class AbstractRequiredResourceGeneratorTest<T> {
 
   private int sgClusterMaxLength;
   private int sgScriptMaxLength;
+  private int sgBackupMaxLength;
 
   @BeforeEach
   void setUp() throws Exception {
     sgClusterMaxLength = getMaxLengthResourceNameFrom(StackGresCluster.KIND);
     sgScriptMaxLength = getMaxLengthResourceNameFrom(StackGresScript.KIND);
+    sgBackupMaxLength = getMaxLengthResourceNameFrom(StackGresBackup.KIND);
   }
 
   @Test
@@ -61,8 +66,14 @@ public abstract class AbstractRequiredResourceGeneratorTest<T> {
     assertThrows(AssertionFailedError.class, () -> {
       List<HasMetadata> decorateResources =
           getResourceGenerationDiscoverer().generateResources(getResourceContext());
-      decorateResources.stream().forEach(this::assertNameAndLabels);
+      Seq.seq(decorateResources)
+          .append(jobGeneratedResources())
+          .forEach(this::assertNameAndLabels);
     });
+  }
+
+  protected Stream<? extends HasMetadata> jobGeneratedResources() {
+    return Stream.of();
   }
 
   protected abstract String usingKind();
@@ -112,6 +123,12 @@ public abstract class AbstractRequiredResourceGeneratorTest<T> {
       Preconditions.checkArgument(name.length() <= sgScriptMaxLength,
           format("Valid name must be %s characters or less. But was %d (%s)",
               sgScriptMaxLength, name.length(), name));
+    } else if (resource instanceof StackGresBackup) {
+      final String name = resource.getMetadata().getName();
+      ResourceUtil.nameIsValidDnsSubdomain(name);
+      Preconditions.checkArgument(name.length() <= sgBackupMaxLength,
+          format("Valid name must be %s characters or less. But was %d (%s)",
+              sgBackupMaxLength, name.length(), name));
     } else {
       ResourceUtil.nameIsValidDnsSubdomain(resource.getMetadata().getName());
     }

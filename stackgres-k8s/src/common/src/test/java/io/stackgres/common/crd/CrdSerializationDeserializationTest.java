@@ -16,6 +16,7 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.ModelTestUtil;
@@ -36,6 +37,7 @@ class CrdSerializationDeserializationTest {
       StackGresDistributedLogs.class,
       StackGresScript.class,
       StackGresShardedCluster.class,
+      StackGresShardedBackup.class,
   })
   protected void assertSerializationAndDeserialization(Class<?> sourceClazz) throws Exception {
     ObjectMapper objectMapper = new ObjectMapper();

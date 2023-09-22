@@ -25,7 +25,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
@@ -106,8 +106,8 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
             .getLatestImageName())
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",
-            ClusterStatefulSetPath.TEMPLATES_PATH.path()
-                + "/" + ClusterStatefulSetPath.LOCAL_BIN_START_POSTGRES_EXPORTER_SH_PATH.filename())
+            ClusterPath.TEMPLATES_PATH.path()
+                + "/" + ClusterPath.LOCAL_BIN_START_POSTGRES_EXPORTER_SH_PATH.filename())
         .withEnv(
             new EnvVarBuilder()
                 .withName("PGAPPNAME")
@@ -116,7 +116,7 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
             new EnvVarBuilder()
                 .withName("DATA_SOURCE_NAME")
                 .withValue("postgresql://postgres@:" + EnvoyUtil.PG_PORT + "/postgres"
-                    + "?host=" + ClusterStatefulSetPath.PG_RUN_PATH.path()
+                    + "?host=" + ClusterPath.PG_RUN_PATH.path()
                     + "&sslmode=disable")
                 .build(),
             new EnvVarBuilder()

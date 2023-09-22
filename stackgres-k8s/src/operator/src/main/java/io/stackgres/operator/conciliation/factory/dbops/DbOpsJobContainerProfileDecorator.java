@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import javax.inject.Singleton;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
@@ -34,6 +35,8 @@ public class DbOpsJobContainerProfileDecorator extends AbstractContainerProfileD
   }
 
   @Override
+  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
+      justification = "False positive")
   public HasMetadata decorate(StackGresDbOpsContext context, HasMetadata resource) {
     if (DbOpsUtil.isAlreadyCompleted(context.getSource())
         || Optional.of(context.getCluster().getSpec())

@@ -33,7 +33,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitalData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
@@ -203,10 +203,10 @@ class ClusterTransformerTest {
         .fillTupleWithRandomData(ClusterPods.class, StackGresClusterPods.class);
   }
 
-  private static TransformerTuple<ClusterInitialData, StackGresClusterInitalData>
+  private static TransformerTuple<ClusterInitialData, StackGresClusterInitialData>
       createInitialData() {
     var initialData = TransformerTestUtil
-        .fillTupleWithRandomData(ClusterInitialData.class, StackGresClusterInitalData.class);
+        .fillTupleWithRandomData(ClusterInitialData.class, StackGresClusterInitialData.class);
     return initialData;
   }
 

@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.shardedcluster;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
@@ -19,10 +20,11 @@ public class ShardedClusterConciliator extends AbstractConciliator<StackGresShar
 
   @Inject
   public ShardedClusterConciliator(
+      KubernetesClient client,
       RequiredResourceGenerator<StackGresShardedCluster> requiredResourceGenerator,
       AbstractDeployedResourcesScanner<StackGresShardedCluster> deployedResourcesScanner,
       DeployedResourcesCache deployedResourcesCache) {
-    super(requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
+    super(client, requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
   }
 
 }

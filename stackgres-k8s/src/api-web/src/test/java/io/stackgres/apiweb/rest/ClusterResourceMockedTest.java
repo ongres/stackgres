@@ -82,7 +82,7 @@ import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitalData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
@@ -941,7 +941,7 @@ class ClusterResourceMockedTest extends
       }
 
       final ClusterInitialData dtoInitData = dtoSpec.getInitialData();
-      final StackGresClusterInitalData resourceInitData = resourceSpec.getInitialData();
+      final StackGresClusterInitialData resourceInitData = resourceSpec.getInitialData();
       if (dtoInitData != null) {
         assertNotNull(resourceInitData);
         final ClusterRestore dtoRestore = dtoInitData.getRestore();

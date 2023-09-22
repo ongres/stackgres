@@ -19,7 +19,7 @@ import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresDistributedLogsUtil;
@@ -110,7 +110,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
     final int pgRawPort = EnvoyUtil.PG_PORT;
     final int pgPort = EnvoyUtil.PG_PORT;
     Map<String, String> data = new HashMap<>();
-    data.put("PATRONI_CONFIG_FILE", ClusterStatefulSetPath.PATRONI_CONFIG_FILE_PATH.path());
+    data.put("PATRONI_CONFIG_FILE", ClusterPath.PATRONI_CONFIG_FILE_PATH.path());
     data.put("PATRONI_SCOPE", PatroniUtil.clusterScope(cluster));
     data.put("PATRONI_KUBERNETES_SCOPE_LABEL",
         labelFactory.labelMapper().clusterScopeKey(cluster));
@@ -122,9 +122,9 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
         "${PATRONI_KUBERNETES_POD_IP}:" + pgRawPort);
 
     data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:8008");
-    data.put("PATRONI_POSTGRESQL_DATA_DIR", ClusterStatefulSetPath.PG_DATA_PATH.path());
+    data.put("PATRONI_POSTGRESQL_DATA_DIR", ClusterPath.PG_DATA_PATH.path());
     data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/" + pgVersion + "/bin");
-    data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", ClusterStatefulSetPath.PG_RUN_PATH.path());
+    data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", ClusterPath.PG_RUN_PATH.path());
 
     if (PATRONI_LOGGER.isTraceEnabled()) {
       data.put("PATRONI_LOG_LEVEL", "DEBUG");

@@ -29,6 +29,8 @@ public class ShardedClusterStatus {
 
   private ClusterServiceBindingStatus binding;
 
+  private List<String> sgBackups;
+
   public List<ClusterCondition> getConditions() {
     return conditions;
   }
@@ -68,6 +70,14 @@ public class ShardedClusterStatus {
 
   public void setBinding(ClusterServiceBindingStatus binding) {
     this.binding = binding;
+  }
+
+  public List<String> getSgBackups() {
+    return sgBackups;
+  }
+
+  public void setSgBackups(List<String> sgBackups) {
+    this.sgBackups = sgBackups;
   }
 
   @Override

@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.validation;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -19,6 +21,8 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
@@ -46,6 +50,9 @@ public abstract class AbstractExtensionsValidator<
   }
 
   protected boolean extensionsChanged(T review) {
+    if (majorVersionOrBuildVersionChanged(review)) {
+      return true;
+    }
     final R resource = review.getRequest().getObject();
     final R oldResource = review.getRequest().getOldObject();
     if (oldResource == null) {
@@ -66,6 +73,43 @@ public abstract class AbstractExtensionsValidator<
     final Optional<List<StackGresClusterInstalledExtension>> oldToInstallExtensions =
         getToInstallExtensions(oldResource);
     if (!Objects.equals(toInstallExtensions, oldToInstallExtensions)) {
+      return true;
+    }
+    return false;
+  }
+
+  private boolean majorVersionOrBuildVersionChanged(T review) {
+    final R resource = review.getRequest().getObject();
+    final R oldResource = review.getRequest().getOldObject();
+    if (oldResource == null) {
+      return true;
+    }
+    final StackGresCluster cluster = getCluster(resource);
+    final StackGresCluster oldCluster = getCluster(oldResource);
+    String postgresVersion = Optional.of(cluster.getSpec())
+        .map(StackGresClusterSpec::getPostgres)
+        .map(StackGresClusterPostgres::getVersion)
+        .orElse(null);
+    String oldPostgresVersion = Optional.of(oldCluster.getSpec())
+        .map(StackGresClusterSpec::getPostgres)
+        .map(StackGresClusterPostgres::getVersion)
+        .orElse(null);
+    String postgresMajorVersion = getPostgresFlavorComponent(cluster)
+        .get(cluster)
+        .getMajorVersion(postgresVersion);
+    String oldPostgresMajorVersion = getPostgresFlavorComponent(oldCluster)
+        .get(oldCluster)
+        .getMajorVersion(oldPostgresVersion);
+    if (!Objects.equals(postgresMajorVersion, oldPostgresMajorVersion)) {
+      return true;
+    }
+    String buildMajorVersion = getPostgresFlavorComponent(cluster)
+        .get(cluster)
+        .getBuildMajorVersion(postgresVersion);
+    String oldBuildMajorVersion = getPostgresFlavorComponent(oldCluster)
+        .get(oldCluster)
+        .getBuildMajorVersion(oldPostgresVersion);
+    if (!Objects.equals(buildMajorVersion, oldBuildMajorVersion)) {
       return true;
     }
     return false;

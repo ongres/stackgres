@@ -23,14 +23,14 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.AbstractPatroniTemplatesConfigMap;
+import io.stackgres.operator.conciliation.factory.AbstractTemplatesConfigMap;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder
-public class TemplatesConfigMap extends AbstractPatroniTemplatesConfigMap<StackGresClusterContext> {
+public class TemplatesConfigMap extends AbstractTemplatesConfigMap<StackGresClusterContext> {
 
   private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
@@ -59,7 +59,7 @@ public class TemplatesConfigMap extends AbstractPatroniTemplatesConfigMap<StackG
   }
 
   public @NotNull HasMetadata buildSource(StackGresClusterContext context) {
-    Map<String, String> data = getPatroniTemplates();
+    Map<String, String> data = getClusterTemplates();
 
     final StackGresCluster cluster = context.getSource();
     return new ConfigMapBuilder()
@@ -73,7 +73,7 @@ public class TemplatesConfigMap extends AbstractPatroniTemplatesConfigMap<StackG
   }
 
   public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
-    Map<String, String> data = getPatroniTemplates();
+    Map<String, String> data = getClusterTemplates();
 
     final StackGresCluster cluster = context.getSource();
     ConfigMap configMap = new ConfigMapBuilder()

@@ -15,7 +15,6 @@ import java.util.stream.Stream;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
-import io.stackgres.common.ClusterContext;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -37,8 +36,6 @@ import org.mockito.MockitoAnnotations;
 public class BackupCronJobTest {
 
   @Mock
-  private ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext> envFactoryDiscoverer;
-  @Mock
   private LabelFactoryForCluster<StackGresCluster> labelFactory;
   @Mock
   private ResourceFactory<StackGresClusterContext, PodSecurityContext> clusterPodSecurityFactory;
@@ -50,6 +47,8 @@ public class BackupCronJobTest {
   private StackGresBackupContext backupContext;
   @Mock
   private LabelMapperForCluster<StackGresCluster> labelMapperSgCluster;
+  @Mock
+  private ClusterEnvironmentVariablesFactoryDiscoverer envFactoryDiscoverer;
   @Mock
   private BackupScriptTemplatesVolumeMounts backupScriptTemplatesVolumeMounts;
   @Mock
@@ -64,8 +63,9 @@ public class BackupCronJobTest {
   public void setup() {
     MockitoAnnotations.openMocks(this);
     backupCronJob =
-        new BackupCronJob(envFactoryDiscoverer, labelFactory, clusterPodSecurityFactory,
-            kubectl, backupScriptTemplatesVolumeMounts, backupTemplatesConfigMap);
+        new BackupCronJob(labelFactory, clusterPodSecurityFactory,
+            kubectl, envFactoryDiscoverer,
+            backupScriptTemplatesVolumeMounts, backupTemplatesConfigMap);
     sgBackup = Fixtures.backup().loadDefault().get();
     sgCluster = Fixtures.cluster().loadSchedulingBackup().get();
     backupPerformance = new BackupPerformance(10L, 10L, 1, null, null);

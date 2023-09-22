@@ -12,6 +12,7 @@ import java.util.Map;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import org.jetbrains.annotations.NotNull;
@@ -29,18 +30,18 @@ public class ConfigLabelFactory extends AbstractLabelFactory<StackGresConfig>
 
   @Override
   public Map<String, String> restapiLabels(@NotNull StackGresConfig resource) {
-    return Map.of(labelMapper().appKey(), labelMapper().appName(),
-        labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)),
-        labelMapper().resourceNameKey(resource), labelValue(resourceName(resource)),
-        labelMapper().restapiKey(resource), StackGresContext.RIGHT_VALUE);
+    return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
+        .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
+        .put(labelMapper().restapiKey(resource), StackGresContext.RIGHT_VALUE)
+        .build();
   }
 
   @Override
   public Map<String, String> grafanaIntegrationLabels(@NotNull StackGresConfig resource) {
-    return Map.of(labelMapper().appKey(), labelMapper().appName(),
-        labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)),
-        labelMapper().resourceNameKey(resource), labelValue(resourceName(resource)),
-        labelMapper().grafanaIntegrationKey(resource), StackGresContext.RIGHT_VALUE);
+    return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
+        .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
+        .put(labelMapper().grafanaIntegrationKey(resource), StackGresContext.RIGHT_VALUE)
+        .build();
   }
 
   @Override

@@ -17,9 +17,10 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterContext;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsMajorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDbOpsStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecBuilder;
@@ -39,8 +40,8 @@ public class MajorVersionUpgradeMounts implements VolumeMountsProvider<ClusterCo
         .map(StackGresCluster::getStatus)
         .map(StackGresClusterStatus::getDbOps)
         .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
-        .filter(status -> Boolean.TRUE.equals(status.getRollback()))
-        .isPresent()) {
+        .map(StackGresClusterDbOpsMajorVersionUpgradeStatus::getRollback)
+        .orElse(false)) {
       return ImmutableList.<VolumeMount>builder()
           .addAll(postgresExtensionMounts.getVolumeMounts(context))
           .build();
@@ -53,33 +54,33 @@ public class MajorVersionUpgradeMounts implements VolumeMountsProvider<ClusterCo
         .add(
             new VolumeMountBuilder()
                 .withName(context.getDataVolumeName())
-                .withMountPath(ClusterStatefulSetPath.PG_BIN_PATH.path(oldClusterContext))
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_BIN_PATH
-                    .subPath(oldClusterContext, ClusterStatefulSetPath.PG_BASE_PATH))
+                .withMountPath(ClusterPath.PG_BIN_PATH.path(oldClusterContext))
+                .withSubPath(ClusterPath.PG_RELOCATED_BIN_PATH
+                    .subPath(oldClusterContext, ClusterPath.PG_BASE_PATH))
                 .build(),
             new VolumeMountBuilder()
                 .withName(context.getDataVolumeName())
-                .withMountPath(ClusterStatefulSetPath.PG_EXTRA_LIB_PATH.path(oldClusterContext))
-                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH
-                    .subPath(oldClusterContext, ClusterStatefulSetPath.PG_BASE_PATH))
+                .withMountPath(ClusterPath.PG_EXTRA_LIB_PATH.path(oldClusterContext))
+                .withSubPath(ClusterPath.PG_EXTENSIONS_LIB64_PATH
+                    .subPath(oldClusterContext, ClusterPath.PG_BASE_PATH))
                 .build(),
             new VolumeMountBuilder()
                 .withName(context.getDataVolumeName())
-                .withMountPath(ClusterStatefulSetPath.PG_LIB_PATH.path(oldClusterContext))
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH
-                    .subPath(oldClusterContext, ClusterStatefulSetPath.PG_BASE_PATH))
+                .withMountPath(ClusterPath.PG_LIB_PATH.path(oldClusterContext))
+                .withSubPath(ClusterPath.PG_RELOCATED_LIB_PATH
+                    .subPath(oldClusterContext, ClusterPath.PG_BASE_PATH))
                 .build(),
             new VolumeMountBuilder()
                 .withName(context.getDataVolumeName())
-                .withMountPath(ClusterStatefulSetPath.PG_SHARE_PATH.path(oldClusterContext))
-                .withSubPath(ClusterStatefulSetPath.PG_RELOCATED_SHARE_PATH
-                    .subPath(oldClusterContext, ClusterStatefulSetPath.PG_BASE_PATH))
+                .withMountPath(ClusterPath.PG_SHARE_PATH.path(oldClusterContext))
+                .withSubPath(ClusterPath.PG_RELOCATED_SHARE_PATH
+                    .subPath(oldClusterContext, ClusterPath.PG_BASE_PATH))
                 .build(),
             new VolumeMountBuilder()
                 .withName(context.getDataVolumeName())
-                .withMountPath(ClusterStatefulSetPath.PG_EXTENSION_PATH.path(oldClusterContext))
-                .withSubPath(ClusterStatefulSetPath.PG_EXTENSIONS_EXTENSION_PATH
-                    .subPath(oldClusterContext, ClusterStatefulSetPath.PG_BASE_PATH))
+                .withMountPath(ClusterPath.PG_EXTENSION_PATH.path(oldClusterContext))
+                .withSubPath(ClusterPath.PG_EXTENSIONS_EXTENSION_PATH
+                    .subPath(oldClusterContext, ClusterPath.PG_BASE_PATH))
                 .build()
         ).build();
   }
@@ -90,8 +91,8 @@ public class MajorVersionUpgradeMounts implements VolumeMountsProvider<ClusterCo
         .map(StackGresCluster::getStatus)
         .map(StackGresClusterStatus::getDbOps)
         .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
-        .filter(status -> Boolean.TRUE.equals(status.getRollback()))
-        .isPresent()) {
+        .map(StackGresClusterDbOpsMajorVersionUpgradeStatus::getRollback)
+        .orElse(false)) {
       return ImmutableList.<EnvVar>builder()
           .addAll(postgresExtensionMounts.getDerivedEnvVars(context))
           .build();
@@ -104,27 +105,27 @@ public class MajorVersionUpgradeMounts implements VolumeMountsProvider<ClusterCo
         .addAll(postgresExtensionMounts.getDerivedEnvVars(context))
         .add(new EnvVarBuilder()
                 .withName("TARGET_PG_LIB_PATH")
-                .withValue(ClusterStatefulSetPath.PG_LIB_PATH.path(clusterContext))
+                .withValue(ClusterPath.PG_LIB_PATH.path(clusterContext))
                 .build(),
             new EnvVarBuilder()
                 .withName("TARGET_PG_LIB64_PATH")
-                .withValue(ClusterStatefulSetPath.PG_RELOCATED_LIB64_PATH.path(clusterContext))
+                .withValue(ClusterPath.PG_RELOCATED_LIB64_PATH.path(clusterContext))
                 .build(),
             new EnvVarBuilder()
                 .withName("TARGET_PG_EXTRA_LIB_PATH")
-                .withValue(ClusterStatefulSetPath.PG_EXTRA_LIB_PATH.path(clusterContext))
+                .withValue(ClusterPath.PG_EXTRA_LIB_PATH.path(clusterContext))
                 .build(),
             new EnvVarBuilder()
                 .withName("SOURCE_PG_LIB_PATH")
-                .withValue(ClusterStatefulSetPath.PG_LIB_PATH.path(oldClusterContext))
+                .withValue(ClusterPath.PG_LIB_PATH.path(oldClusterContext))
                 .build(),
             new EnvVarBuilder()
                 .withName("SOURCE_PG_LIB64_PATH")
-                .withValue(ClusterStatefulSetPath.PG_RELOCATED_LIB64_PATH.path(oldClusterContext))
+                .withValue(ClusterPath.PG_RELOCATED_LIB64_PATH.path(oldClusterContext))
                 .build(),
             new EnvVarBuilder()
                 .withName("SOURCE_PG_EXTRA_LIB_PATH")
-                .withValue(ClusterStatefulSetPath.PG_EXTRA_LIB_PATH.path(oldClusterContext))
+                .withValue(ClusterPath.PG_EXTRA_LIB_PATH.path(oldClusterContext))
                 .build())
         .build();
   }

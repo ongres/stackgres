@@ -18,7 +18,7 @@ import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -96,13 +96,13 @@ public class ReplicateConfigMap extends AbstractBackupConfigMap
 
   @Override
   protected String getAwsS3CompatibleCaCertificateFilePath(ClusterContext context) {
-    return ClusterStatefulSetPath.REPLICATE_SECRET_PATH.path(context)
+    return ClusterPath.REPLICATE_SECRET_PATH.path(context)
         + "/" + BackupEnvVarFactory.AWS_S3_COMPATIBLE_CA_CERTIFICATE_FILE_NAME;
   }
 
   @Override
   protected String getGcsCredentialsFilePath(ClusterContext context) {
-    return ClusterStatefulSetPath.REPLICATE_SECRET_PATH.path(context)
+    return ClusterPath.REPLICATE_SECRET_PATH.path(context)
         + "/" + BackupEnvVarFactory.GCS_CREDENTIALS_FILE_NAME;
   }
 

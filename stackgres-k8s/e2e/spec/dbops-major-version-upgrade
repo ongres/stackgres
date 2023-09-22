@@ -182,7 +182,5 @@ spec:
     check: true
 EOF
 
-  assert_dbops_failure "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$((E2E_TIMEOUT * 2))"
-
-  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
+  assert_dbops_failure "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$E2E_TIMEOUT"
 }

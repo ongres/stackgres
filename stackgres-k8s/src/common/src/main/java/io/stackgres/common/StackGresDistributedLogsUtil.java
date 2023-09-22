@@ -13,7 +13,7 @@ import com.google.common.io.Resources;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitalData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
@@ -104,7 +104,7 @@ public interface StackGresDistributedLogsUtil {
           distributedLogsCluster.getSpec().getPods().getScheduling().setPodAntiAffinity(
               distributedLogsScheduling.getPodAntiAffinity());
         });
-    distributedLogsCluster.getSpec().setInitialData(new StackGresClusterInitalData());
+    distributedLogsCluster.getSpec().setInitialData(new StackGresClusterInitialData());
     distributedLogsCluster.getSpec().getInitialData().setScripts(
         List.of(new StackGresClusterScriptEntry()));
     distributedLogsCluster.getSpec().getInitialData().getScripts().get(0).setName(

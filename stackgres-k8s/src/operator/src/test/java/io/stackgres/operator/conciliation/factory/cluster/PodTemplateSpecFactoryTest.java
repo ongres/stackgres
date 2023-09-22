@@ -19,6 +19,7 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelMapper;
 import io.stackgres.common.labels.LabelFactoryForCluster;
@@ -73,6 +74,8 @@ class PodTemplateSpecFactoryTest {
   @Mock
   private StackGresClusterContext clusterContext;
 
+  private StackGresConfig config;
+
   private StackGresCluster cluster;
 
   @BeforeEach
@@ -80,6 +83,7 @@ class PodTemplateSpecFactoryTest {
     this.podTemplateSpecFactory = new ClusterPodTemplateSpecFactory(
         podSecurityContext, labelFactory, containerFactoryDiscoverer,
         initContainerFactoryDiscoverer);
+    config = Fixtures.config().loadDefault().get();
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(POSTGRES_VERSION);
   }
@@ -87,6 +91,7 @@ class PodTemplateSpecFactoryTest {
   @Test
   void clusterWithVolumes_shouldAddOnlyUsedVolumes() {
     when(clusterContainerContext.getClusterContext()).thenReturn(clusterContext);
+    when(clusterContext.getConfig()).thenReturn(config);
     when(clusterContext.getSource()).thenReturn(cluster);
     when(clusterContext.getCluster()).thenReturn(cluster);
     when(labelFactory.labelMapper()).thenReturn(labelMapper);
@@ -131,6 +136,8 @@ class PodTemplateSpecFactoryTest {
     var availableVolumes = Map.of(
         "available-volume",
         JsonUtil.copy(availableVolume));
+    when(clusterContainerContext.getClusterContext()).thenReturn(clusterContext);
+    when(clusterContext.getConfig()).thenReturn(config);
     when(clusterContainerContext.availableVolumes()).thenReturn(availableVolumes);
     when(clusterContainerContext.getDataVolumeName()).thenReturn("available-volume");
     assertThrows(IllegalStateException.class,

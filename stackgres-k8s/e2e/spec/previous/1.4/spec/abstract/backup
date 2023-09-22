@@ -176,7 +176,7 @@ check_manual_backup() {
   local CUSTOM_COLUMNS=BACKUP_NAME:.status.internalName,PHASE:.status.process.status,HOSTNAME:.status.backupInformation.sourcePod
 
   # Avoid automatic backups while testing manual backups
-  disable_cron_schedule
+  disable_cluster_cron_schedule
   
   kubectl delete sgbackup -n "$CLUSTER_NAMESPACE" --all
 
@@ -359,7 +359,7 @@ enable_cronSchedule() {
     --patch '[{"op":"replace","path":"/spec/configurations/backups/0/cronSchedule","value":"*/1 * * * *"}]'
 }
 
-disable_cron_schedule() {
+disable_cluster_cron_schedule() {
   # Sets the value At 05:00 on day-of-month 31 in February.
   kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
     --patch '[{"op":"replace","path":"/spec/configurations/backups/0/cronSchedule","value":"0 5 31 2 *"}]'

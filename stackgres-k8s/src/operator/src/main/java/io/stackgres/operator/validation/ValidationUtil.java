@@ -30,6 +30,7 @@ public interface ValidationUtil {
   String OBJECT_STORAGE_VALIDATION_PATH = VALIDATION_PATH + "/sgobjectstorage";
   String SCRIPT_VALIDATION_PATH = VALIDATION_PATH + "/sgscript";
   String SHARDED_CLUSTER_VALIDATION_PATH = VALIDATION_PATH + "/sgshardedcluster";
+  String SHARDED_BACKUP_VALIDATION_PATH = VALIDATION_PATH + "/sgshardedbackup";
 
   Map<StackGresComponent, Map<StackGresVersion, List<String>>> SUPPORTED_POSTGRES_VERSIONS =
       Stream.of(StackGresComponent.POSTGRESQL, StackGresComponent.BABELFISH)

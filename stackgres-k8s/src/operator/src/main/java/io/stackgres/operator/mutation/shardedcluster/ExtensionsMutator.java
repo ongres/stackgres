@@ -5,8 +5,8 @@
 
 package io.stackgres.operator.mutation.shardedcluster;
 
-import static io.stackgres.common.StackGresShardedClusterForCitusUtil.getCoordinatorCluster;
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.getCoordinatorCluster;
 
 import java.util.List;
 import java.util.Map;
@@ -17,7 +17,6 @@ import javax.inject.Inject;
 
 import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -29,6 +28,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
+import io.stackgres.operator.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.mutation.AbstractExtensionsMutator;
 import io.stackgres.operator.validation.ValidationUtil;

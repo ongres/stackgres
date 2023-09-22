@@ -1,0 +1,52 @@
+{
+  "apiVersion": "v1",
+  "items": [
+    {
+      "apiVersion": "stackgres.io/v1",
+      "kind": "SGShardedBackup",
+      "metadata": {
+        "creationTimestamp": "2019-10-23T13:41:00Z",
+        "generation": 1,
+        "name": "test",
+        "namespace": "postgresql",
+        "resourceVersion": "629",
+        "selfLink": "/apis/stackgres.io/v1/namespaces/postgresql/sgbackups/test",
+        "uid": "bfb53778-f59a-11e9-b1b5-0242ac110002"
+      },
+      "spec": {
+        "sgShardedCluster": "stackgres",
+        "managedLifecycle": false
+      },
+      "status": {
+        "sgBackups": [
+          "backup-with-default-storage-backup-coord",
+          "backup-with-default-storage-backup-shard0",
+          "backup-with-default-storage-backup-shard1"
+        ],
+        "process": {
+          "status": "Completed",
+          "failure": "",
+          "jobPod": "backup-with-default-storage-backup-1578646560-mr7pg",
+          "managedLifecycle": false,
+          "timing": {
+            "start": "2020-01-10T08:56:06.879707Z",
+            "end": "2020-01-10T08:56:09.098819Z",
+            "stored": "2020-01-10T08:56:09.119Z"
+          }
+        },
+        "backupInformation": {
+          "postgresVersion": "110006",
+          "size": {
+            "compressed": 6686407,
+            "uncompressed": 24037855
+          }
+        }
+      }
+    }
+  ],
+  "kind": "List",
+  "metadata": {
+    "resourceVersion": "",
+    "selfLink": ""
+  }
+}

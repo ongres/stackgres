@@ -13,7 +13,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterDto;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterSpec;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterStatus;
-import io.stackgres.common.StackGresShardedClusterForCitusUtil;
+import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
@@ -62,10 +62,10 @@ class ShardedClusterTransformerTest {
     tuple.source().getSpec().getShards().setClusters(3);
     tuple.target().getSpec().getShards().setClusters(3);
     tuple.target().getStatus().setClusters(List.of(
-        StackGresShardedClusterForCitusUtil.getCoordinatorClusterName(tuple.source()),
-        StackGresShardedClusterForCitusUtil.getShardClusterName(tuple.source(), 0),
-        StackGresShardedClusterForCitusUtil.getShardClusterName(tuple.source(), 1),
-        StackGresShardedClusterForCitusUtil.getShardClusterName(tuple.source(), 2)));
+        StackGresShardedClusterUtil.getCoordinatorClusterName(tuple.source()),
+        StackGresShardedClusterUtil.getShardClusterName(tuple.source(), 0),
+        StackGresShardedClusterUtil.getShardClusterName(tuple.source(), 1),
+        StackGresShardedClusterUtil.getShardClusterName(tuple.source(), 2)));
     TransformerTestUtil.assertTransformation(transformer, tuple);
   }
 

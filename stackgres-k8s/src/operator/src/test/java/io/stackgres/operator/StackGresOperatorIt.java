@@ -15,7 +15,7 @@ import com.ongres.junit.docker.DockerExtension;
 import com.ongres.junit.docker.WhenReuse;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Service;
-import io.stackgres.common.ClusterStatefulSetEnvVars;
+import io.stackgres.common.ClusterEnvVar;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.crd.sgcluster.ClusterEventReason;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -147,7 +147,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
     ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
         "kubectl exec -t -n " + namespace + " "
             + CLUSTER_NAME + "-" + 0 + " -c patroni --"
-            + " sh -c \"exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value() + "'"
+            + " sh -c \"exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value() + "'"
             + " wal-g wal-fetch " + currentWalFileName
             + " /tmp/" + currentWalFileName + " && echo 1\"")),
         s -> s.anyMatch(line -> line.equals("1")), 60, ChronoUnit.SECONDS,
@@ -157,7 +157,7 @@ public class StackGresOperatorIt extends AbstractStackGresOperatorIt {
     ItHelper.waitUntil(Unchecked.supplier(() -> k8s.execute("sh", "-l", "-c",
         "kubectl exec -t -n " + namespace + " "
             + CLUSTER_NAME + "-" + 0 + " -c patroni --"
-            + " sh -c \"exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value() + "'"
+            + " sh -c \"exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value() + "'"
             + " wal-g backup-list | grep -n . | cut -d : -f 1\"")),
         s -> s.anyMatch(line -> line.equals("2")), 60, ChronoUnit.SECONDS,
         s -> Assertions.fail(

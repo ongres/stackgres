@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.script;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -37,7 +38,8 @@ public class ScriptDeployedResourceScanner
   }
 
   @Override
-  public DeployedResourcesSnapshot getDeployedResources(StackGresScript config) {
+  public DeployedResourcesSnapshot getDeployedResources(
+      StackGresScript config, List<HasMetadata> requiredResources) {
     return DeployedResourcesSnapshot.emptySnapshot();
   }
 

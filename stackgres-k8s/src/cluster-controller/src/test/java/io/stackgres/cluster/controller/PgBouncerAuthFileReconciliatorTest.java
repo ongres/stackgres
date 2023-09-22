@@ -26,6 +26,9 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import com.google.common.collect.ImmutableMap;
+import io.fabric8.kubernetes.api.model.ContainerStatusBuilder;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.FileSystemHandler;
@@ -43,6 +46,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class PgBouncerAuthFileReconciliatorTest {
+
+  @Mock
+  private ResourceFinder<Pod> podFinder;
 
   @Mock
   private CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder;
@@ -73,7 +79,9 @@ public class PgBouncerAuthFileReconciliatorTest {
   @BeforeEach
   void setUp() throws Exception {
     reconciliator = new PgBouncerAuthFileReconciliator(
-        poolingConfigFinder, secretFinder, postgresConnectionManager, fileSystemHandler);
+        "test", podFinder,
+        poolingConfigFinder, secretFinder,
+        postgresConnectionManager, fileSystemHandler);
   }
 
   @Test
@@ -84,6 +92,14 @@ public class PgBouncerAuthFileReconciliatorTest {
     poolingConfig.getSpec().getPgBouncer().getPgbouncerIni().setUsers(ImmutableMap.of());
     Secret secret = Fixtures.secret().loadPatroni().get();
     when(context.getCluster()).thenReturn(cluster);
+    when(podFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(new PodBuilder()
+            .withNewStatus()
+            .withContainerStatuses(new ContainerStatusBuilder()
+                .withReady(true)
+                .build())
+            .endStatus()
+            .build()));
     when(poolingConfigFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(poolingConfig));
     when(secretFinder.findByNameAndNamespace(any(), any()))
@@ -124,6 +140,14 @@ public class PgBouncerAuthFileReconciliatorTest {
             "user2", ImmutableMap.of()));
     Secret secret = Fixtures.secret().loadPatroni().get();
     when(context.getCluster()).thenReturn(cluster);
+    when(podFinder.findByNameAndNamespace(any(), any()))
+        .thenReturn(Optional.of(new PodBuilder()
+            .withNewStatus()
+            .withContainerStatuses(new ContainerStatusBuilder()
+                .withReady(true)
+                .build())
+            .endStatus()
+            .build()));
     when(poolingConfigFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(poolingConfig));
     when(secretFinder.findByNameAndNamespace(any(), any()))

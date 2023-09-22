@@ -5,26 +5,30 @@
 
 package io.stackgres.operator.conciliation.factory.cluster;
 
-import java.util.stream.Stream;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Singleton;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
-import io.stackgres.common.ClusterStatefulSetEnvVars;
-import io.stackgres.common.ClusterStatefulSetPath;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
+import io.stackgres.common.ClusterContext;
+import io.stackgres.common.ClusterEnvVar;
+import io.stackgres.common.ClusterPath;
+import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import org.jooq.lambda.Seq;
 
-@ApplicationScoped
+@Singleton
+@OperatorVersionBinder
 public class ClusterEnvironmentVariables
-    implements SubResourceStreamFactory<EnvVar, StackGresClusterContext> {
+    implements ClusterEnvironmentVariablesFactory {
 
-  public Stream<EnvVar> streamResources(StackGresClusterContext context) {
-    return Seq.of(ClusterStatefulSetPath.values())
+  @Override
+  public List<EnvVar> buildEnvironmentVariables(ClusterContext context) {
+    return Seq.of(ClusterPath.values())
         .map(clusterStatefulSetPath -> clusterStatefulSetPath.envVar(context))
-        .append(Seq.of(ClusterStatefulSetEnvVars.values())
-            .map(clusterStatefulEnvVar -> clusterStatefulEnvVar.envVar(context.getCluster())));
+        .append(Seq.of(ClusterEnvVar.values())
+            .map(cssev -> cssev.envVar(context.getCluster())))
+        .collect(Collectors.toUnmodifiableList());
   }
 
 }

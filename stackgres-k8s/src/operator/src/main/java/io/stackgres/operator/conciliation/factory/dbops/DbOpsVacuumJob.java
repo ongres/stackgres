@@ -16,7 +16,7 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -123,8 +123,8 @@ public class DbOpsVacuumJob extends AbstractDbOpsJob {
   }
 
   @Override
-  protected ClusterStatefulSetPath getRunScript() {
-    return ClusterStatefulSetPath.LOCAL_BIN_RUN_VACUUM_SH_PATH;
+  protected ClusterPath getRunScript() {
+    return ClusterPath.LOCAL_BIN_RUN_VACUUM_SH_PATH;
   }
 
 }

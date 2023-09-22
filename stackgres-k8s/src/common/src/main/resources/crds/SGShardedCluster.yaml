@@ -429,11 +429,11 @@ spec:
                   backups:
                     type: array
                     description: |
-                      List of backups configurations for this SGCluster
+                      List of sharded backups configurations for this SGShardedCluster
                     items:
                       type: object
                       description: |
-                        Backup configuration for this SGCluster
+                        Sharded backup configuration for this SGShardedCluster
                       properties:
                         compression:
                           type: string
@@ -443,7 +443,7 @@ spec:
                         cronSchedule:
                           type: string
                           description: |
-                            Continuous Archiving backups are composed of periodic *base backups* and all the WAL segments produced in between those base backups. This parameter specifies at what time and with what frequency to start performing a new base backup.
+                            Continuous Archiving backups are composed of periodic *base backups* and all the WAL segments produced in between those base backups for the coordinator and each shard. This parameter specifies at what time and with what frequency to start performing a new base backup.
                             
                             Use cron syntax (`m h dom mon dow`) for this parameter, i.e., 5 values separated by spaces:
                             *  `m`: minute, 0 to 59.
@@ -454,7 +454,7 @@ spec:
                             
                             Also ranges of values (`start-end`), the symbol `*` (meaning `first-last`) or even `*/N`, where `N` is a number, meaning ""every `N`, may be used. All times are UTC. It is recommended to avoid 00:00 as base backup time, to avoid overlapping with any other external operations happening at this time.
                             
-                            If not set, full backups are performed each day at 05:00 UTC.
+                            If not set, full backups are never performed automatically.
                         performance:
                           type: object
                           description: |
@@ -1636,6 +1636,72 @@ spec:
                     items:
                       type: string
                       description: The name of the fature gate to enable.
+              initialData:
+                type: object
+                description: |
+                  Sharded cluster initialization data options. Sharded cluster may be initialized empty, or from a sharded backup restoration.
+
+                  **This field can only be set on creation.**
+                properties:
+                  restore:
+                    type: object
+                    description: |
+                      This section allows to restore a sharded cluster from an existing copy of the metadata and data.
+                    properties:
+                      fromBackup:
+                        type: object
+                        description: |
+                          From which sharded backup to restore and how the process is configured
+
+                          **Example:**
+
+                          ```yaml
+                          apiVersion: stackgres.io/v1
+                          kind: SGShardedCluster
+                          metadata:
+                            name: stackgres
+                          spec:
+                            initialData:
+                              restore:
+                                fromBackup:
+                                  name: stackgres-backup
+                                downloadDiskConcurrency: 1
+                          ```
+                        properties:
+                          name:
+                            type: string
+                            description: |
+                              When set to the name of an existing [SGShardedBackup](https://stackgres.io/doc/latest/reference/crd/sgshardedbackup), the sharded cluster is initialized by restoring the
+                                backup data to it. If not set, the sharded cluster is initialized empty. The selected sharded backup must be in the same namespace.
+                          targetInclusive:
+                            type: boolean
+                            description: |
+                              Specify the [recovery_target_inclusive](https://postgresqlco.nf/doc/en/param/recovery_target_timeline/) to stop recovery just after the specified
+                                recovery target (true), or just before the recovery target (false). Applies when targetLsn, pointInTimeRecovery, or targetXid is specified. This
+                                setting controls whether transactions having exactly the target WAL location (LSN), commit time, or transaction ID, respectively, will be included
+                                in the recovery. Default is true.
+                          pointInTimeRecovery:
+                            type: object
+                            description: |
+                              It is possible to restore the database to its state at any time since your backup was taken using Point-in-Time Recovery (PITR) as long as another
+                                backup newer than the PITR requested restoration date does not exists.
+
+                              Point In Time Recovery (PITR). PITR allow to restore the database state to an arbitrary point of time in the past, as long as you specify a backup
+                                older than the PITR requested restoration date and does not exists a backup newer than the same restoration date.
+
+                              See also: https://www.postgresql.org/docs/current/continuous-archiving.html
+                            properties:
+                              restoreToTimestamp:
+                                type: string
+                                description: |
+                                  An ISO 8601 date, that holds UTC date indicating at which point-in-time the database have to be restored.
+                      downloadDiskConcurrency:
+                        type: integer
+                        minimum: 1
+                        description: |
+                          The backup fetch process may fetch several streams in parallel. Parallel fetching is enabled when set to a value larger than one.
+
+                          If not specified it will be interpreted as latest.
             required: ["database", "postgres", "coordinator", "shards"]
           status:
             type: object
@@ -1715,4 +1781,11 @@ spec:
                   name:
                     type: string
                     description: The name of the Secret as specified in [Service Binding spec for provisioned service](https://servicebinding.io/spec/core/1.0.0/#provisioned-service).
-
+              sgBackups:
+                type: array
+                description: |
+                  The list of SGBackups that compose the SGShardedBackup used to restore the sharded cluster.
+                items:
+                  type: string
+                  description: |
+                    One of the SGBackups that compose the SGShardedBackup used to restore the sharded cluster.

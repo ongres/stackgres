@@ -23,7 +23,7 @@ import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.StackGresGroupKind;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -185,7 +185,7 @@ public abstract class AbstractContainerProfileDecorator {
         .append(new VolumeMountBuilder()
             .withName(StackGresVolume.HUGEPAGES_2M.getName()
                 + "-" + entry.getKey())
-            .withMountPath(ClusterStatefulSetPath.HUGEPAGES_2M_PATH.path())
+            .withMountPath(ClusterPath.HUGEPAGES_2M_PATH.path())
             .build())
         .toList());
   }
@@ -220,7 +220,7 @@ public abstract class AbstractContainerProfileDecorator {
         .append(new VolumeMountBuilder()
             .withName(StackGresVolume.HUGEPAGES_1G.getName()
                 + "-" + entry.getKey())
-            .withMountPath(ClusterStatefulSetPath.HUGEPAGES_1G_PATH.path())
+            .withMountPath(ClusterPath.HUGEPAGES_1G_PATH.path())
             .build())
         .toList());
   }

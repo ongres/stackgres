@@ -20,7 +20,7 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.ClusterContext;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
@@ -30,7 +30,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitalData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
@@ -105,7 +105,7 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
 
         Optional.ofNullable(cluster.getSpec())
             .map(StackGresClusterSpec::getInitialData)
-            .map(StackGresClusterInitalData::getRestore)
+            .map(StackGresClusterInitialData::getRestore)
             .map(StackGresClusterRestore::getDownloadDiskConcurrency)
             .ifPresent(downloadDiskConcurrency -> data.put(
                 "WALG_DOWNLOAD_CONCURRENCY",
@@ -158,13 +158,13 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
 
   @Override
   protected String getAwsS3CompatibleCaCertificateFilePath(ClusterContext context) {
-    return ClusterStatefulSetPath.RESTORE_SECRET_PATH.path(context)
+    return ClusterPath.RESTORE_SECRET_PATH.path(context)
         + "/" + BackupEnvVarFactory.AWS_S3_COMPATIBLE_CA_CERTIFICATE_FILE_NAME;
   }
 
   @Override
   protected String getGcsCredentialsFilePath(ClusterContext context) {
-    return ClusterStatefulSetPath.RESTORE_SECRET_PATH.path(context)
+    return ClusterPath.RESTORE_SECRET_PATH.path(context)
         + "/" + BackupEnvVarFactory.GCS_CREDENTIALS_FILE_NAME;
   }
 

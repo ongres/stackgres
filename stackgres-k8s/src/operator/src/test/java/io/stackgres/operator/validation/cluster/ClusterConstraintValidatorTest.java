@@ -24,7 +24,7 @@ import io.stackgres.common.crd.Toleration;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitalData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
@@ -712,14 +712,14 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   @Test
   void notNullInitialDataScripts_shouldFail() {
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().setInitialData(new StackGresClusterInitalData());
+    review.getRequest().getObject().getSpec().setInitialData(new StackGresClusterInitialData());
     review.getRequest().getObject().getSpec().getInitialData().setScripts(new ArrayList<>());
     review.getRequest().getObject().getSpec().getInitialData().getScripts()
         .add(new StackGresClusterScriptEntry());
     review.getRequest().getObject().getSpec().getInitialData().getScripts().get(0)
         .setScript("SELECT 1");
 
-    checkErrorCause(StackGresClusterInitalData.class, "spec.initialData.scripts",
+    checkErrorCause(StackGresClusterInitialData.class, "spec.initialData.scripts",
         review, Null.class);
   }
 

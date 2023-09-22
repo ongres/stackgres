@@ -195,8 +195,13 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
     try {
       final T config;
       if (load) {
-        config = finder.findByNameAndNamespace(metadata.getName(), metadata.getNamespace())
-            .orElseThrow(() -> new IllegalArgumentException(configKey + " not found"));
+        var configFound = finder.findByNameAndNamespace(
+            metadata.getName(), metadata.getNamespace());
+        if (configFound.isEmpty()) {
+          LOGGER.debug("{} not found, skipping reconciliation", configId);
+          return;
+        }
+        config = configFound.get();
       } else {
         config = configKey;
       }

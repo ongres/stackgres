@@ -8,8 +8,10 @@ package io.stackgres.operator.conciliation.factory.cluster;
 import java.util.List;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
+import io.stackgres.common.ClusterContext;
 
-public interface ClusterEnvironmentVariablesFactory<T> {
+public interface ClusterEnvironmentVariablesFactory {
 
-  List<EnvVar> buildEnvironmentVariables(T context);
+  List<EnvVar> buildEnvironmentVariables(ClusterContext context);
+
 }

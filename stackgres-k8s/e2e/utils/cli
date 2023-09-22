@@ -487,6 +487,8 @@ cli_init_e2e_variables() {
   KIND_LOG_RESOURCE=true
   E2E_OPERATOR_REGISTRY=registry.gitlab.com
   E2E_OPERATOR_REGISTRY_PATH=/ongresinc/stackgres/
+  E2E_COMPONENTS_REGISTRY=registry.gitlab.com
+  E2E_COMPONENTS_REGISTRY_PATH=/ongresinc/builder/oci/
   E2E_TEST_REGISTRY=registry.gitlab.com
   E2E_TEST_REGISTRY_PATH=ongresinc/stackgres
   E2E_DISABLE_LOGS_SNAPSHOTS=true

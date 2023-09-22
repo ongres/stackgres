@@ -1,0 +1,13 @@
+{
+  "metadata": {
+    "name": "test",
+    "namespace": "postgresql",
+    "uid": "bfb53778-f59a-11e9-b1b5-0242ac110002"
+  },
+  "spec": {
+    "sgShardedCluster": "stackgres",
+    "managedLifecycle": false
+  },
+  "status": {
+  }
+}

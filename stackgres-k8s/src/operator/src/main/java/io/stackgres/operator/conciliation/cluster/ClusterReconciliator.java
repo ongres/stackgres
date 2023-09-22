@@ -128,6 +128,8 @@ public class ClusterReconciliator
             config.getStatus().setManagedSql(targetManagedSql);
             currentCluster.setStatus(config.getStatus());
           }
+          currentCluster.getSpec().setToInstallPostgresExtensions(
+              config.getSpec().getToInstallPostgresExtensions());
         });
   }
 

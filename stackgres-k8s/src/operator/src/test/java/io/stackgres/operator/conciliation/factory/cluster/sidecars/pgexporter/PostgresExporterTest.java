@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import javax.inject.Inject;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
@@ -71,12 +72,17 @@ class PostgresExporterTest {
   private ClusterContainerContext getClusterContainerContext() {
     return ImmutableClusterContainerContext.builder()
         .clusterContext(ImmutableStackGresClusterContext.builder()
+            .config(getDefaultConfig())
             .source(getDefaultCluster())
             .postgresConfig(new StackGresPostgresConfig())
             .profile(new StackGresProfile())
             .build())
         .dataVolumeName("test")
         .build();
+  }
+
+  private StackGresConfig getDefaultConfig() {
+    return Fixtures.config().loadDefault().get();
   }
 
   private StackGresCluster getDefaultCluster() {

@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.conciliation.shardedcluster;
 
-import static io.stackgres.common.StackGresShardedClusterForCitusUtil.postgresSslSecretName;
+import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.postgresSslSecretName;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -16,9 +16,9 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.quarkus.test.junit.QuarkusTest;
-import io.stackgres.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
+import io.stackgres.operator.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.junit.jupiter.api.Test;
 

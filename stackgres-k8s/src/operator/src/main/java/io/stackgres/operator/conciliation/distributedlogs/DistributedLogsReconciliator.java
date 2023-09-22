@@ -103,6 +103,8 @@ public class DistributedLogsReconciliator extends AbstractReconciliator<StackGre
             config.getStatus().setPodStatuses(targetPodStatuses);
           }
           currentDistributedLogs.setStatus(config.getStatus());
+          currentDistributedLogs.getSpec().setToInstallPostgresExtensions(
+              config.getSpec().getToInstallPostgresExtensions());
         });
   }
 

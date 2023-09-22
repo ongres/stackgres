@@ -13,8 +13,8 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterContext;
-import io.stackgres.common.ClusterStatefulSetEnvVars;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterEnvVar;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 
@@ -27,11 +27,11 @@ public class RestoreVolumeMounts implements VolumeMountsProvider<ClusterContaine
     return List.of(
         new VolumeMountBuilder()
             .withName(StackGresVolume.RESTORE_ENV.getName())
-            .withMountPath(ClusterStatefulSetPath.RESTORE_ENV_PATH.path(clusterContext))
+            .withMountPath(ClusterPath.RESTORE_ENV_PATH.path(clusterContext))
             .build(),
         new VolumeMountBuilder()
             .withName(StackGresVolume.RESTORE_CREDENTIALS.getName())
-            .withMountPath(ClusterStatefulSetPath.RESTORE_SECRET_PATH.path(clusterContext))
+            .withMountPath(ClusterPath.RESTORE_SECRET_PATH.path(clusterContext))
             .build()
     );
   }
@@ -40,9 +40,9 @@ public class RestoreVolumeMounts implements VolumeMountsProvider<ClusterContaine
   public List<EnvVar> getDerivedEnvVars(ClusterContainerContext context) {
     final ClusterContext clusterContext = context.getClusterContext();
     return List.of(
-        ClusterStatefulSetEnvVars.RESTORE_ENV.envVar(clusterContext),
-        ClusterStatefulSetPath.RESTORE_ENV_PATH.envVar(clusterContext),
-        ClusterStatefulSetPath.RESTORE_SECRET_PATH.envVar(clusterContext)
+        ClusterEnvVar.RESTORE_ENV.envVar(clusterContext),
+        ClusterPath.RESTORE_ENV_PATH.envVar(clusterContext),
+        ClusterPath.RESTORE_SECRET_PATH.envVar(clusterContext)
     );
   }
 }

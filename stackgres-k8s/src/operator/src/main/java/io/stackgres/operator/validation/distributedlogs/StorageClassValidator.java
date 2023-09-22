@@ -8,6 +8,7 @@ package io.stackgres.operator.validation.distributedlogs;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -28,6 +29,8 @@ public class StorageClassValidator implements DistributedLogsValidator {
   }
 
   @Override
+  @SuppressFBWarnings(value = "SF_SWITCH_NO_DEFAULT",
+      justification = "False positive")
   public void validate(StackGresDistributedLogsReview review) throws ValidationFailed {
 
     StackGresDistributedLogs distributedLogs = review.getRequest().getObject();

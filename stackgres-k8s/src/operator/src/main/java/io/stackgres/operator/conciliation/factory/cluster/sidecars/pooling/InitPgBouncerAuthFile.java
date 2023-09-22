@@ -16,7 +16,7 @@ import javax.inject.Singleton;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresVolume;
@@ -31,10 +31,10 @@ import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContex
 public class InitPgBouncerAuthFile implements ContainerFactory<ClusterContainerContext> {
 
   private static final String PGBOUNCER_ADMIN_PASSWORD_PATH =
-      ClusterStatefulSetPath.PGBOUNCER_CONFIG_PATH.path()
+      ClusterPath.PGBOUNCER_CONFIG_PATH.path()
       + "/" + PGBOUNCER_ADMIN_PASSWORD_KEY;
   private static final String PGBOUNCER_STATS_PASSWORD_PATH =
-      ClusterStatefulSetPath.PGBOUNCER_CONFIG_PATH.path()
+      ClusterPath.PGBOUNCER_CONFIG_PATH.path()
       + "/" + PGBOUNCER_STATS_PASSWORD_KEY;
 
   @Inject
@@ -47,7 +47,7 @@ public class InitPgBouncerAuthFile implements ContainerFactory<ClusterContainerC
         .withImage(kubectl.getImageName(context.getClusterContext().getCluster()))
         .withCommand("/bin/sh", "-exc",
             ""
-                + "mkdir -p '" + ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.path() + "'\n"
+                + "mkdir -p '" + ClusterPath.PGBOUNCER_AUTH_PATH.path() + "'\n"
                 + "test -f '" + PGBOUNCER_ADMIN_PASSWORD_PATH + "'\n"
                 + "test -f '" + PGBOUNCER_STATS_PASSWORD_PATH + "'\n"
                 + "PGBOUNCER_ADMIN_MD5=\"$({\n"
@@ -63,12 +63,12 @@ public class InitPgBouncerAuthFile implements ContainerFactory<ClusterContainerC
                     + " \\\"md5$PGBOUNCER_ADMIN_MD5\\\"\"\n"
                 + "printf '%s\\n' \"\\\"" + PGBOUNCER_STATS_USERNAME + "\\\""
                     + " \\\"md5$PGBOUNCER_STATS_MD5\\\"\"\n"
-                + ") > '" + ClusterStatefulSetPath.PGBOUNCER_AUTH_FILE_PATH.path() + "'")
+                + ") > '" + ClusterPath.PGBOUNCER_AUTH_FILE_PATH.path() + "'")
         .withImagePullPolicy("IfNotPresent")
         .addToVolumeMounts(
             new VolumeMountBuilder()
             .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())
-            .withMountPath(ClusterStatefulSetPath.PGBOUNCER_CONFIG_PATH.path())
+            .withMountPath(ClusterPath.PGBOUNCER_CONFIG_PATH.path())
             .build(),
             new VolumeMountBuilder()
             .withName(StackGresVolume.PGBOUNCER_SECRETS.getName())

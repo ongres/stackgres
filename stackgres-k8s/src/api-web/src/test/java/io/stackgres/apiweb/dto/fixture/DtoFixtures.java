@@ -43,4 +43,8 @@ public interface DtoFixtures {
     return new ShardedClusterDtoFixture();
   }
 
+  static ShardedBackupDtoFixture shardedBackup() {
+    return new ShardedBackupDtoFixture();
+  }
+
 }

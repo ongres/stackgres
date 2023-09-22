@@ -9,9 +9,11 @@ import static io.stackgres.operator.common.CryptoUtil.generatePassword;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.stackgres.common.ShardedClusterContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -21,12 +23,17 @@ import org.immutables.value.Value;
 
 @Value.Immutable
 public interface StackGresShardedClusterContext
-    extends GenerationContext<StackGresShardedCluster> {
+    extends GenerationContext<StackGresShardedCluster>, ShardedClusterContext {
 
   @Override
   @Value.Derived
   default StackGresVersion getVersion() {
     return StackGresVersion.getStackGresVersion(getSource());
+  }
+
+  @Override
+  default StackGresShardedCluster getShardedCluster() {
+    return getSource();
   }
 
   StackGresClusterContext getCoordinator();
@@ -40,6 +47,8 @@ public interface StackGresShardedClusterContext
   List<Endpoints> getShardsPrimaryEndpoints();
 
   Optional<Secret> getDatabaseSecret();
+
+  Set<String> getClusterBackupNamespaces();
 
   Optional<String> getSuperuserUsername();
 

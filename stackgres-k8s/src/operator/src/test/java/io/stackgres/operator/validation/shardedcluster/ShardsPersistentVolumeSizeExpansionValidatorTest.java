@@ -11,11 +11,11 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Map;
 
-import io.stackgres.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.labels.LabelFactoryForShardedCluster;
 import io.stackgres.common.resource.CustomResourceScanner;
+import io.stackgres.operator.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.PersistentVolumeSizeExpansionValidator;

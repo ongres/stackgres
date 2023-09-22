@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -22,6 +23,7 @@ import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
@@ -32,6 +34,7 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.BackupConfigFinder;
 import io.stackgres.common.resource.BackupFinder;
 import io.stackgres.common.resource.ClusterFinder;
+import io.stackgres.common.resource.ConfigScanner;
 import io.stackgres.common.resource.ObjectStorageFinder;
 import io.stackgres.common.resource.PoolingConfigFinder;
 import io.stackgres.common.resource.PostgresConfigFinder;
@@ -43,6 +46,9 @@ import io.stackgres.operator.resource.PrometheusScanner;
 import org.junit.jupiter.api.BeforeEach;
 
 abstract class AbstractClusterRequiredResourcesGeneratorTest {
+
+  @InjectMock
+  ConfigScanner configScanner;
 
   @InjectMock
   ClusterFinder clusterFinder;
@@ -74,6 +80,7 @@ abstract class AbstractClusterRequiredResourcesGeneratorTest {
   @Inject
   ClusterRequiredResourcesGenerator generator;
 
+  StackGresConfig config;
   StackGresCluster cluster;
   StackGresBackupConfig backupConfig;
   StackGresPostgresConfig postgresConfig;
@@ -84,6 +91,7 @@ abstract class AbstractClusterRequiredResourcesGeneratorTest {
 
   @BeforeEach
   void setUp() {
+    config = Fixtures.config().loadDefault().get();
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL
         .getLatest().streamOrderedVersions()
@@ -115,6 +123,7 @@ abstract class AbstractClusterRequiredResourcesGeneratorTest {
     backup = Fixtures.backup().loadDefault().get();
     setNamespace(backup);
     minioSecret = Fixtures.secret().loadMinio().get();
+    when(configScanner.findResources()).thenReturn(Optional.of(List.of(config)));
   }
 
   private void setNamespace(HasMetadata resource) {

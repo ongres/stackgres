@@ -16,7 +16,7 @@ import javax.inject.Singleton;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.StackGresShardedClusterForCitusUtil;
+import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.labels.LabelFactoryForShardedCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -59,7 +59,7 @@ public class ShardedClusterEndpoints implements ResourceGenerator<StackGresShard
     return Stream.of(new EndpointsBuilder()
         .withNewMetadata()
         .withNamespace(context.getSource().getMetadata().getNamespace())
-        .withName(StackGresShardedClusterForCitusUtil.primaryCoordinatorServiceName(
+        .withName(StackGresShardedClusterUtil.primaryCoordinatorServiceName(
             context.getSource()))
         .addToLabels(labelFactory.genericLabels(context.getSource()))
         .endMetadata()
@@ -73,7 +73,7 @@ public class ShardedClusterEndpoints implements ResourceGenerator<StackGresShard
     return Stream.of(new EndpointsBuilder()
         .withNewMetadata()
         .withNamespace(context.getSource().getMetadata().getNamespace())
-        .withName(StackGresShardedClusterForCitusUtil.primariesShardsServiceName(
+        .withName(StackGresShardedClusterUtil.primariesShardsServiceName(
             context.getSource()))
         .addToLabels(labelFactory.genericLabels(context.getSource()))
         .endMetadata()

@@ -34,7 +34,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCredentials;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitalData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniCredentials;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
@@ -49,6 +49,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.crd.sgcluster.StackGresClusterUserSecretKeyRef;
 import io.stackgres.common.crd.sgcluster.StackGresClusterUsersCredentials;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
@@ -79,6 +80,8 @@ public class ClusterRequiredResourcesGenerator
 
   private final Supplier<VersionInfo> kubernetesVersionSupplier;
 
+  private final CustomResourceScanner<StackGresConfig> configScanner;
+
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
 
   private final CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
@@ -106,6 +109,7 @@ public class ClusterRequiredResourcesGenerator
   @Inject
   public ClusterRequiredResourcesGenerator(
       Supplier<VersionInfo> kubernetesVersionSupplier,
+      CustomResourceScanner<StackGresConfig> configScanner,
       CustomResourceFinder<StackGresCluster> clusterFinder,
       CustomResourceFinder<StackGresBackupConfig> backupConfigFinder,
       CustomResourceFinder<StackGresObjectStorage> objectStorageFinder,
@@ -119,6 +123,7 @@ public class ClusterRequiredResourcesGenerator
       OperatorPropertyContext operatorContext,
       ResourceGenerationDiscoverer<StackGresClusterContext> discoverer) {
     this.kubernetesVersionSupplier = kubernetesVersionSupplier;
+    this.configScanner = configScanner;
     this.clusterFinder = clusterFinder;
     this.backupConfigFinder = backupConfigFinder;
     this.objectStorageFinder = objectStorageFinder;
@@ -146,14 +151,21 @@ public class ClusterRequiredResourcesGenerator
   }
 
   @Override
-  public List<HasMetadata> getRequiredResources(StackGresCluster config) {
-    final ObjectMeta metadata = config.getMetadata();
+  public List<HasMetadata> getRequiredResources(StackGresCluster cluster) {
+    final ObjectMeta metadata = cluster.getMetadata();
     final String clusterName = metadata.getName();
     final String clusterNamespace = metadata.getNamespace();
 
     VersionInfo kubernetesVersion = kubernetesVersionSupplier.get();
 
-    final StackGresClusterSpec spec = config.getSpec();
+    final StackGresConfig config = configScanner.findResources()
+        .stream()
+        .filter(list -> list.size() == 1)
+        .flatMap(List::stream)
+        .findAny()
+        .orElseThrow(() -> new IllegalArgumentException(
+            "SGConfig not found or more than one exists. Aborting reoconciliation!"));
+    final StackGresClusterSpec spec = cluster.getSpec();
     final StackGresClusterConfigurations clusterConfiguration = spec.getConfigurations();
     final StackGresPostgresConfig pgConfig = postgresConfigFinder
         .findByNameAndNamespace(clusterConfiguration.getSgPostgresConfig(), clusterNamespace)
@@ -186,7 +198,10 @@ public class ClusterRequiredResourcesGenerator
 
     final Set<String> clusterBackupNamespaces = getClusterBackupNamespaces(clusterNamespace);
 
-    final Optional<StackGresBackup> restoreBackup = findRestoreBackup(config, clusterNamespace);
+    Optional<Secret> databaseSecret =
+        secretFinder.findByNameAndNamespace(clusterName, clusterNamespace);
+
+    final Optional<StackGresBackup> restoreBackup = findRestoreBackup(cluster, clusterNamespace);
 
     final Credentials credentials = getCredentials(clusterNamespace, spec);
 
@@ -222,20 +237,21 @@ public class ClusterRequiredResourcesGenerator
     final var userPasswordForBinding = getUserPasswordServiceBindingFromSecret(clusterNamespace,
         spec);
 
-    final PostgresSsl postgresSsl = getPostgresSsl(clusterNamespace, config);
+    final PostgresSsl postgresSsl = getPostgresSsl(clusterNamespace, cluster);
 
     StackGresClusterContext context = ImmutableStackGresClusterContext.builder()
         .kubernetesVersion(kubernetesVersion)
-        .source(config)
+        .config(config)
+        .source(cluster)
         .postgresConfig(pgConfig)
         .profile(profile)
         .backupConfig(backupConfig)
         .objectStorageConfig(objectStorage)
         .poolingConfig(pooling)
         .restoreBackup(restoreBackup)
-        .prometheus(getPrometheus(config))
+        .prometheus(getPrometheus(cluster))
         .clusterBackupNamespaces(clusterBackupNamespaces)
-        .databaseSecret(secretFinder.findByNameAndNamespace(clusterName, clusterNamespace))
+        .databaseSecret(databaseSecret)
         .replicateCluster(replicateCluster)
         .replicateObjectStorageConfig(replicateObjectStorageConfig)
         .superuserUsername(credentials.superuserUsername)
@@ -618,7 +634,7 @@ public class ClusterRequiredResourcesGenerator
       final String clusterNamespace) {
     return Optional
         .ofNullable(config.getSpec().getInitialData())
-        .map(StackGresClusterInitalData::getRestore)
+        .map(StackGresClusterInitialData::getRestore)
         .map(StackGresClusterRestore::getFromBackup)
         .map(StackGresClusterRestoreFromBackup::getName)
         .flatMap(backupName -> backupFinder.findByNameAndNamespace(backupName, clusterNamespace));

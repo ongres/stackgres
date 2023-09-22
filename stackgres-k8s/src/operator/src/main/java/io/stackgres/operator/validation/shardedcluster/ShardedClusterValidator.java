@@ -32,4 +32,10 @@ public interface ShardedClusterValidator extends Validator<StackGresShardedClust
         errorTypeUri, message, fields);
   }
 
+  default void failWithReasonAndFields(String reason, String message, String...fields)
+      throws ValidationFailed {
+    failWithMessageAndFields(HasMetadata.getKind(StackGresShardedCluster.class),
+        reason, message, fields);
+  }
+
 }

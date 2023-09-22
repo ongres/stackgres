@@ -11,11 +11,18 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
+import javax.ws.rs.core.Response;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.OwnerReference;
+import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.tuple.Tuple;
@@ -27,14 +34,17 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
 
   protected static final Logger LOGGER = LoggerFactory.getLogger(AbstractConciliator.class);
 
+  private final KubernetesClient client;
   private final RequiredResourceGenerator<T> requiredResourceGenerator;
   private final AbstractDeployedResourcesScanner<T> deployedResourceScanner;
   protected final DeployedResourcesCache deployedResourcesCache;
 
   protected AbstractConciliator(
+      KubernetesClient client,
       RequiredResourceGenerator<T> requiredResourceGenerator,
       AbstractDeployedResourcesScanner<T> deployedResourceScanner,
       DeployedResourcesCache deployedResourcesCache) {
+    this.client = client;
     this.requiredResourceGenerator = requiredResourceGenerator;
     this.deployedResourceScanner = deployedResourceScanner;
     this.deployedResourcesCache = deployedResourcesCache;
@@ -42,6 +52,7 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
 
   public AbstractConciliator() {
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
+    this.client = null;
     this.requiredResourceGenerator = null;
     this.deployedResourceScanner = null;
     this.deployedResourcesCache = null;
@@ -55,7 +66,7 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
         .toList();
 
     DeployedResourcesSnapshot deployedResourcesSnapshot =
-        deployedResourceScanner.getDeployedResources(config);
+        deployedResourceScanner.getDeployedResources(config, requiredResources);
 
     List<HasMetadata> creations = requiredResources.stream()
         .filter(Predicate.not(deployedResourcesSnapshot::isDeployed))
@@ -81,10 +92,87 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
         .map(t -> t.map2(DeployedResource::foundDeployed))
         .toList();
 
+    var deployedOtherOwnerRequiredResources = deployedResourcesSnapshot.deployedResources().stream()
+        .filter(deployedResource -> deployedResource.getMetadata().getOwnerReferences() != null
+            && !deployedResource.getMetadata().getOwnerReferences().isEmpty())
+        .map(ResourceKey::create)
+        .filter(deployedResourceKey -> deployedResourcesSnapshot.ownedDeployedResources().stream()
+            .map(ResourceKey::create)
+            .noneMatch(deployedResourceKey::equals))
+        .filter(deployedResourceKey -> requiredResources.stream()
+            .map(ResourceKey::create)
+            .anyMatch(deployedResourceKey::equals))
+        .toList();
+    if (!deployedOtherOwnerRequiredResources.isEmpty()) {
+      LOGGER.warn("Following resources are required but already exists in the cluster and are"
+          + " owned by another resource: {}",
+          deployedOtherOwnerRequiredResources.stream()
+          .map(resourceKey -> resourceKey.kind()
+              + " " + resourceKey.namespace()
+              + "." + resourceKey.name())
+          .collect(Collectors.joining(", ")));
+      // Workaround for https://github.com/kubernetes/kubernetes/issues/120960
+      cleanupNonGarbageCollectedResources(
+          deployedResourcesSnapshot, deployedOtherOwnerRequiredResources);
+      return new ReconciliationResult(
+          List.of(),
+          List.of(),
+          deletions);
+    }
+
     return new ReconciliationResult(
         creations,
         patches,
         deletions);
+  }
+
+  private void cleanupNonGarbageCollectedResources(
+      DeployedResourcesSnapshot deployedResourcesSnapshot,
+      List<ResourceKey> deployedNonOwnedRequiredResources) {
+    deployedNonOwnedRequiredResources.stream()
+        .filter(resourceKey -> resourceKey.kind().equals(
+            HasMetadata.getKind(ServiceAccount.class)))
+        .map(resourceKey -> deployedResourcesSnapshot.deployedResources().stream()
+            .filter(deployedResource -> ResourceKey.create(deployedResource).equals(resourceKey))
+            .findFirst()
+            .orElseThrow())
+        .filter(resource -> resource.getMetadata().getOwnerReferences() != null
+            && !resource.getMetadata().getOwnerReferences().isEmpty())
+        .forEach(resource -> {
+          if (resource.getMetadata().getOwnerReferences()
+              .stream()
+              .noneMatch(ownerReference -> {
+                try {
+                  var ownerResource = client
+                      .genericKubernetesResources(
+                          ownerReference.getApiVersion(), ownerReference.getKind())
+                      .inNamespace(resource.getMetadata().getNamespace())
+                      .withName(ownerReference.getName())
+                      .get();
+                  return ownerResource.getMetadata().getUid().equals(ownerReference.getUid());
+                } catch (KubernetesClientException ex) {
+                  if (ex.getCode() == Response.Status.NOT_FOUND.getStatusCode()) {
+                    return false;
+                  }
+                  throw ex;
+                }
+              })) {
+            LOGGER.warn("Proceding to delete following required resource that already exists"
+                + " in the cluster but was not garbage collected due to a bug (see"
+                + " https://github.com/kubernetes/kubernetes/issues/120960): {}",
+                resource.getKind()
+                + " " + resource.getMetadata().getNamespace()
+                + "." + resource.getMetadata().getName());
+            try {
+              client.resource(resource).delete();
+            } catch (KubernetesClientException ex) {
+              LOGGER.warn("Error while trying to remove ungarbaged resource "
+                  + resource.getKind()
+                  + " " + resource.getMetadata().getNamespace()
+                  + "." + resource.getMetadata().getName(), ex);
+            }
+          }
+        });
   }
 
   class OwnerReferenceMapper implements Function<HasMetadata, HasMetadata> {
@@ -97,6 +185,8 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
     }
 
     @Override
+    @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
+        justification = "False positive")
     public HasMetadata apply(HasMetadata resource) {
       if (Objects.equals(
           resource.getMetadata().getNamespace(),

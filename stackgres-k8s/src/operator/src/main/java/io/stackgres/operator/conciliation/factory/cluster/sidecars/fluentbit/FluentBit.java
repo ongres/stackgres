@@ -22,7 +22,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.FluentdUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
@@ -106,12 +106,12 @@ public class FluentBit implements
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)
         .withCommand("/bin/sh", "-ex",
-            ClusterStatefulSetPath.TEMPLATES_PATH.path()
-                + "/" + ClusterStatefulSetPath.LOCAL_BIN_START_FLUENTBIT_SH_PATH.filename())
+            ClusterPath.TEMPLATES_PATH.path()
+                + "/" + ClusterPath.LOCAL_BIN_START_FLUENTBIT_SH_PATH.filename())
         .addToEnv(
             new EnvVarBuilder()
             .withName("FLUENT_BIT_LAST_CONFIG_PATH")
-            .withValue(ClusterStatefulSetPath.FLUENT_BIT_LAST_CONFIG_PATH.path())
+            .withValue(ClusterPath.FLUENT_BIT_LAST_CONFIG_PATH.path())
             .build())
         .addAllToEnv(logMounts.getDerivedEnvVars(context))
         .addAllToEnv(postgresSocket.getDerivedEnvVars(context))
@@ -199,9 +199,9 @@ public class FluentBit implements
         + "\n"
         + "[INPUT]\n"
         + "    Name              tail\n"
-        + "    Path              " + ClusterStatefulSetPath.PG_LOG_PATH.path() + "/postgres*.csv\n"
+        + "    Path              " + ClusterPath.PG_LOG_PATH.path() + "/postgres*.csv\n"
         + "    Tag               " + FluentdUtil.POSTGRES_LOG_TYPE + "\n"
-        + "    DB                " + ClusterStatefulSetPath.PG_LOG_PATH.path() + "/postgreslog.db\n"
+        + "    DB                " + ClusterPath.PG_LOG_PATH.path() + "/postgreslog.db\n"
         + "    Multiline         On\n"
         + "    Parser_Firstline  postgreslog_firstline\n"
         + "    Parser_1          postgreslog_1\n"
@@ -211,9 +211,9 @@ public class FluentBit implements
         + "[INPUT]\n"
         + "    Name              tail\n"
         + "    Key               message\n"
-        + "    Path              " + ClusterStatefulSetPath.PG_LOG_PATH.path() + "/patroni*.log\n"
+        + "    Path              " + ClusterPath.PG_LOG_PATH.path() + "/patroni*.log\n"
         + "    Tag               " + FluentdUtil.PATRONI_LOG_TYPE + "\n"
-        + "    DB                " + ClusterStatefulSetPath.PG_LOG_PATH.path() + "/patronilog.db\n"
+        + "    DB                " + ClusterPath.PG_LOG_PATH.path() + "/patronilog.db\n"
         + "    Multiline         On\n"
         + "    Parser_Firstline  patronilog_firstline\n"
         + "    Parser_1          patronilog_1\n"

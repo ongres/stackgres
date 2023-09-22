@@ -32,6 +32,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromStorage;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
@@ -47,6 +48,8 @@ import org.jetbrains.annotations.NotNull;
 @Value.Immutable
 public interface StackGresClusterContext extends GenerationContext<StackGresCluster>,
     ClusterContext {
+
+  StackGresConfig getConfig();
 
   Optional<VersionInfo> getKubernetesVersion();
 

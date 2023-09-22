@@ -29,11 +29,57 @@ public interface Validator<T extends AdmissionReview<?>> {
 
   @SuppressWarnings("unchecked")
   default String getFieldPath(
+      Class<?> clazz1, String field1) {
+    return getFieldPath(
+        Tuple.tuple(clazz1, field1));
+  }
+
+  @SuppressWarnings("unchecked")
+  default String getFieldPath(
       Class<?> clazz1, String field1,
       Class<?> clazz2, String field2) {
     return getFieldPath(
         Tuple.tuple(clazz1, field1),
         Tuple.tuple(clazz2, field2));
+  }
+
+  @SuppressWarnings("unchecked")
+  default String getFieldPath(
+      Class<?> clazz1, String field1,
+      Class<?> clazz2, String field2,
+      Class<?> clazz3, String field3) {
+    return getFieldPath(
+        Tuple.tuple(clazz1, field1),
+        Tuple.tuple(clazz2, field2),
+        Tuple.tuple(clazz3, field3));
+  }
+
+  @SuppressWarnings("unchecked")
+  default String getFieldPath(
+      Class<?> clazz1, String field1,
+      Class<?> clazz2, String field2,
+      Class<?> clazz3, String field3,
+      Class<?> clazz4, String field4) {
+    return getFieldPath(
+        Tuple.tuple(clazz1, field1),
+        Tuple.tuple(clazz2, field2),
+        Tuple.tuple(clazz3, field3),
+        Tuple.tuple(clazz4, field4));
+  }
+
+  @SuppressWarnings("unchecked")
+  default String getFieldPath(
+      Class<?> clazz1, String field1,
+      Class<?> clazz2, String field2,
+      Class<?> clazz3, String field3,
+      Class<?> clazz4, String field4,
+      Class<?> clazz5, String field5) {
+    return getFieldPath(
+        Tuple.tuple(clazz1, field1),
+        Tuple.tuple(clazz2, field2),
+        Tuple.tuple(clazz3, field3),
+        Tuple.tuple(clazz4, field4),
+        Tuple.tuple(clazz5, field5));
   }
 
   @SuppressWarnings("unchecked")

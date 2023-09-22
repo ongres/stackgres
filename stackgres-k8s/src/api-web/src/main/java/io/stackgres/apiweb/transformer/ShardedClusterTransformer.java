@@ -5,8 +5,8 @@
 
 package io.stackgres.apiweb.transformer;
 
-import static io.stackgres.common.StackGresShardedClusterForCitusUtil.getCoordinatorClusterName;
-import static io.stackgres.common.StackGresShardedClusterForCitusUtil.getShardClusterName;
+import static io.stackgres.common.StackGresShardedClusterUtil.getCoordinatorClusterName;
+import static io.stackgres.common.StackGresShardedClusterUtil.getShardClusterName;
 
 import java.util.Optional;
 

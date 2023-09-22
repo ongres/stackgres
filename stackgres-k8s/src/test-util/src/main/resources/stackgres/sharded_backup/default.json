@@ -1,0 +1,35 @@
+{
+  "kind": "SGShardedBackup",
+  "apiVersion": "stackgres.io/v1",
+  "metadata": {
+    "annotations": {
+      "stackgres.io/operatorVersion": "1.2.0"
+    },
+    "name": "backup-with-default-storage",
+    "namespace": "backup-with-default-storage",
+    "uid": "bded7e9a-3939-11ea-be74-0242ac110002",
+    "ownerReferences": [
+      {
+        "apiVersion": "batch/v1",
+        "kind": "CronJob",
+        "name": "backup-with-default-storage-backup",
+        "uid": "769faf87-3939-11ea-be74-0242ac110002"
+      }
+    ]
+  },
+  "spec": {
+    "sgShardedCluster": "backup-with-default-storage",
+    "managedLifecycle": false
+  },
+  "status": {
+    "sgBackups": [
+      "backup-with-default-storage-backup-coord",
+      "backup-with-default-storage-backup-shard0",
+      "backup-with-default-storage-backup-shard1"
+    ],
+    "process": {
+      "status": "Running",
+      "jobPod": "backup-with-default-storage-backup-1579273020-svf9b"
+    }
+  }
+}

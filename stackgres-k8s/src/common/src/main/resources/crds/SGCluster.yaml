@@ -733,8 +733,7 @@ spec:
                             
                             Also ranges of values (`start-end`), the symbol `*` (meaning `first-last`) or even `*/N`, where `N` is a number, meaning ""every `N`, may be used. All times are UTC. It is recommended to avoid 00:00 as base backup time, to avoid overlapping with any other external operations happening at this time.
                             
-                            If not set, full backups are performed each day at 05:00 UTC.
-                          default: "0 5 * * *"
+                            If not set, full backups are never performed automatically.
                         performance:
                           type: object
                           description: |
@@ -1002,7 +1001,6 @@ spec:
                 type: object
                 description: |
                   Cluster initialization data options. Cluster may be initialized empty, or from a backup restoration.
-                  Specifying scripts to run on the database after cluster creation is also possible.
 
                   **This field can only be set on creation.**
                 properties:

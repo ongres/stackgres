@@ -13,8 +13,8 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterContext;
-import io.stackgres.common.ClusterStatefulSetEnvVars;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterEnvVar;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
 
@@ -27,11 +27,11 @@ public class ReplicateVolumeMounts implements VolumeMountsProvider<ClusterContai
     return List.of(
         new VolumeMountBuilder()
             .withName(StackGresVolume.REPLICATE_ENV.getName())
-            .withMountPath(ClusterStatefulSetPath.REPLICATE_ENV_PATH.path(clusterContext))
+            .withMountPath(ClusterPath.REPLICATE_ENV_PATH.path(clusterContext))
             .build(),
         new VolumeMountBuilder()
             .withName(StackGresVolume.REPLICATE_CREDENTIALS.getName())
-            .withMountPath(ClusterStatefulSetPath.REPLICATE_SECRET_PATH.path(clusterContext))
+            .withMountPath(ClusterPath.REPLICATE_SECRET_PATH.path(clusterContext))
             .build()
     );
   }
@@ -40,9 +40,9 @@ public class ReplicateVolumeMounts implements VolumeMountsProvider<ClusterContai
   public List<EnvVar> getDerivedEnvVars(ClusterContainerContext context) {
     final ClusterContext clusterContext = context.getClusterContext();
     return List.of(
-        ClusterStatefulSetEnvVars.REPLICATE_ENV.envVar(clusterContext),
-        ClusterStatefulSetPath.REPLICATE_ENV_PATH.envVar(clusterContext),
-        ClusterStatefulSetPath.REPLICATE_SECRET_PATH.envVar(clusterContext)
+        ClusterEnvVar.REPLICATE_ENV.envVar(clusterContext),
+        ClusterPath.REPLICATE_ENV_PATH.envVar(clusterContext),
+        ClusterPath.REPLICATE_SECRET_PATH.envVar(clusterContext)
     );
   }
 }

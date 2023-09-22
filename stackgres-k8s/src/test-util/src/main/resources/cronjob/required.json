@@ -201,9 +201,6 @@
               }, {
                 "name" : "RETAIN",
                 "value" : "5"
-              }, {
-                "name" : "WINDOW",
-                "value" : "3600"
               } ],
               "image" : "bitnami/kubectl:1.19.2",
               "imagePullPolicy" : "IfNotPresent",

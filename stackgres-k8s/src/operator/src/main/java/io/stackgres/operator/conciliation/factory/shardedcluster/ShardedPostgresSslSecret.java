@@ -5,9 +5,9 @@
 
 package io.stackgres.operator.conciliation.factory.shardedcluster;
 
-import static io.stackgres.common.StackGresShardedClusterForCitusUtil.CERTIFICATE_KEY;
-import static io.stackgres.common.StackGresShardedClusterForCitusUtil.PRIVATE_KEY_KEY;
-import static io.stackgres.common.StackGresShardedClusterForCitusUtil.postgresSslSecretName;
+import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.CERTIFICATE_KEY;
+import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.PRIVATE_KEY_KEY;
+import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.postgresSslSecretName;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;

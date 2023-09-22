@@ -11,12 +11,18 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import org.jooq.lambda.Seq;
 
-public interface ClusterContext {
+public interface ClusterContext extends EnvVarContext<StackGresCluster> {
 
   StackGresCluster getCluster();
 
+  @Override
+  default StackGresCluster getResource() {
+    return getCluster();
+  }
+
+  @Override
   default Map<String, String> getEnvironmentVariables() {
-    return Seq.of(ClusterStatefulSetEnvVars.values())
+    return Seq.of(ClusterEnvVar.values())
         .map(clusterStatefulSetEnvVars -> clusterStatefulSetEnvVars.envVar(getCluster()))
         .toMap(EnvVar::getName, EnvVar::getValue);
   }

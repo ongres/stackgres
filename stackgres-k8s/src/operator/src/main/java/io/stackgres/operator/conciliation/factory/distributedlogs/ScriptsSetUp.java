@@ -13,7 +13,7 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterContext;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresInitContainer;
@@ -50,20 +50,20 @@ public class ScriptsSetUp implements ContainerFactory<DistributedLogsContainerCo
             .getImageName(context.getDistributedLogsContext().getSource()))
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",
-            ClusterStatefulSetPath.TEMPLATES_PATH.path()
-                + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_SCRIPTS_SH_PATH.filename())
-        .withEnv(ClusterStatefulSetPath.envVars(clusterContext))
+            ClusterPath.TEMPLATES_PATH.path()
+                + "/" + ClusterPath.LOCAL_BIN_SETUP_SCRIPTS_SH_PATH.filename())
+        .withEnv(ClusterPath.envVars(clusterContext))
         .addToEnv(new EnvVarBuilder().withName("HOME").withValue("/tmp").build())
         .withVolumeMounts(
             new VolumeMountBuilder()
                 .withName(StackGresVolume.SCRIPT_TEMPLATES.getName())
-                .withMountPath(ClusterStatefulSetPath.TEMPLATES_PATH.path())
+                .withMountPath(ClusterPath.TEMPLATES_PATH.path())
                 .build())
         .addAllToVolumeMounts(containerUserOverrideMounts.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
                 .withName(StackGresVolume.LOCAL_BIN.getName())
-                .withMountPath(ClusterStatefulSetPath.LOCAL_BIN_PATH.path())
+                .withMountPath(ClusterPath.LOCAL_BIN_PATH.path())
                 .build())
         .build();
   }

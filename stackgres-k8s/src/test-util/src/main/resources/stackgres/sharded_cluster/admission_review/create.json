@@ -53,6 +53,13 @@
           "version": "13.4",
           "flavor": "vanilla"
         },
+        "initialData":{
+          "restore": {
+            "fromBackup": {
+              "name": "backup-with-default-storage-0-297"
+            }
+          }
+        },
         "postgresServices": {
           "coordinator": {
             "any": {

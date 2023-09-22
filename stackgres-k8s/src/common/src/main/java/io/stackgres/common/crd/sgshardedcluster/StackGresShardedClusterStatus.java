@@ -43,6 +43,8 @@ public class StackGresShardedClusterStatus {
   @Valid
   private StackGresClusterServiceBindingStatus binding;
 
+  private List<String> sgBackups;
+
   public List<Condition> getConditions() {
     return conditions;
   }
@@ -76,9 +78,18 @@ public class StackGresShardedClusterStatus {
     this.binding = binding;
   }
 
+  public List<String> getSgBackups() {
+    return sgBackups;
+  }
+
+  public void setSgBackups(List<String> sgBackups) {
+    this.sgBackups = sgBackups;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(binding, clusterStatuses, conditions, toInstallPostgresExtensions);
+    return Objects.hash(binding, clusterStatuses, conditions, sgBackups,
+        toInstallPostgresExtensions);
   }
 
   @Override
@@ -93,6 +104,7 @@ public class StackGresShardedClusterStatus {
     return Objects.equals(binding, other.binding)
         && Objects.equals(clusterStatuses, other.clusterStatuses)
         && Objects.equals(conditions, other.conditions)
+        && Objects.equals(sgBackups, other.sgBackups)
         && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);
   }
 

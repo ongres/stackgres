@@ -17,6 +17,7 @@ import java.util.regex.Matcher;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -147,6 +148,8 @@ public interface PatroniUtil {
     return ResourceUtil.nameIsValidDnsSubdomain(baseNameFor(cluster) + SYNC_SERVICE);
   }
 
+  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
+      justification = "False positive")
   private static String baseNameFor(CustomResource<?, ?> resource) {
     if (resource instanceof StackGresCluster cluster) {
       return baseName(cluster);
@@ -199,6 +202,13 @@ public interface PatroniUtil {
         .map(ObjectMeta::getAnnotations)
         .map(annotations -> annotations.get(LEADER_KEY))
         .map(podName::equals).orElse(false);
+  }
+
+  /**
+   * Return true when labels match a patroni replica pod, false otherwise.
+   */
+  static boolean isReplica(Map<String, String> labels) {
+    return Objects.equals(labels.get(ROLE_KEY), REPLICA_ROLE);
   }
 
   static boolean isBootstrapped(final Optional<Endpoints> patroniConfigEndpoints) {

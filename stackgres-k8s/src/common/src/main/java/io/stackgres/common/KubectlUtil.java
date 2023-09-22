@@ -17,6 +17,7 @@ import io.stackgres.common.component.Component;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +71,10 @@ public class KubectlUtil {
 
   public String getImageName(@NotNull StackGresDistributedLogs distributedLogs) {
     return getImageName(StackGresVersion.getStackGresVersion(distributedLogs));
+  }
+
+  public String getImageName(@NotNull StackGresShardedCluster cluster) {
+    return getImageName(StackGresVersion.getStackGresVersion(cluster));
   }
 
 }

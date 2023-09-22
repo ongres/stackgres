@@ -24,8 +24,8 @@ import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterStatefulSetEnvVars;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterEnvVar;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
@@ -90,7 +90,7 @@ public class Patroni implements ContainerFactory<DistributedLogsContainerContext
         .withName(StackGresContainer.PATRONI.getName())
         .withImage(StackGresUtil.getPatroniImageName(cluster))
         .withCommand("/bin/sh", "-ex",
-            ClusterStatefulSetPath.LOCAL_BIN_START_PATRONI_SH_PATH.path())
+            ClusterPath.LOCAL_BIN_START_PATRONI_SH_PATH.path())
         .withResources(podResources)
         .withImagePullPolicy("IfNotPresent")
         .withPorts(
@@ -152,11 +152,11 @@ public class Patroni implements ContainerFactory<DistributedLogsContainerContext
         .addAll(postgresSocket.getVolumeMounts(context))
         .add(new VolumeMountBuilder()
             .withName(StackGresVolume.DSHM.getName())
-            .withMountPath(ClusterStatefulSetPath.SHARED_MEMORY_PATH.path())
+            .withMountPath(ClusterPath.SHARED_MEMORY_PATH.path())
             .build())
         .add(new VolumeMountBuilder()
             .withName(StackGresVolume.LOG.getName())
-            .withMountPath(ClusterStatefulSetPath.PG_LOG_PATH.path())
+            .withMountPath(ClusterPath.PG_LOG_PATH.path())
             .build())
         .addAll(localBinMounts.getVolumeMounts(context))
         .add(
@@ -191,11 +191,11 @@ public class Patroni implements ContainerFactory<DistributedLogsContainerContext
         .addAll(postgresExtensionsEnvVars)
         .addAll(resource)
         .add(
-            ClusterStatefulSetPath.PATRONI_CONFIG_PATH.envVar(),
-            ClusterStatefulSetPath.PATRONI_CONFIG_FILE_PATH.envVar(),
-            ClusterStatefulSetPath.PATRONI_ENV_PATH.envVar(Map.of(
-                ClusterStatefulSetEnvVars.PATRONI_ENV.name(),
-                ClusterStatefulSetEnvVars.PATRONI_ENV.value())))
+            ClusterPath.PATRONI_CONFIG_PATH.envVar(),
+            ClusterPath.PATRONI_CONFIG_FILE_PATH.envVar(),
+            ClusterPath.PATRONI_ENV_PATH.envVar(Map.of(
+                ClusterEnvVar.PATRONI_ENV.name(),
+                ClusterEnvVar.PATRONI_ENV.value())))
         .addAll(hugePagesMounts.getDerivedEnvVars(context))
         .build();
   }

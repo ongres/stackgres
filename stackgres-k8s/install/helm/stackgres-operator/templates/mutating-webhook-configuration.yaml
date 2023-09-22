@@ -1,7 +1,9 @@
 {{- $cert := "Cg==" }}
 {{- $certSecret := lookup "v1" "Secret" .Release.Namespace (include "cert-name" .) }}
-{{- if and $certSecret (index $certSecret.data "tls.crt") }}
+{{- if $certSecret }}
+{{- if (index $certSecret.data "tls.crt") }}
 {{- $cert = (index $certSecret.data "tls.crt") }}
+{{- end }}
 {{- end }}
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
@@ -181,5 +183,20 @@ webhooks:
         namespace: {{ .Release.Namespace }}
         name: {{ .Release.Name }}
         path: '/stackgres/mutation/sgshardedcluster'
+      caBundle: {{ $cert }}
+    admissionReviewVersions: ["v1"]
+  - name: sgshardedbackups.mutating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgshardedbackups"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: {{ .Release.Namespace }}
+        name: {{ .Release.Name }}
+        path: '/stackgres/mutation/sgshardedbackup'
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]

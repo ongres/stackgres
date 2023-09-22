@@ -19,7 +19,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.labels.ClusterLabelMapper;
+import io.stackgres.common.labels.LabelMapperForCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.conciliation.factory.backup.BackupJob;
@@ -32,13 +32,13 @@ public class BackupStatusManager {
   private static final Logger LOGGER = LoggerFactory.getLogger(BackupStatusManager.class);
 
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
-  private final ClusterLabelMapper clusterLabelMapper;
+  private final LabelMapperForCluster<StackGresCluster> clusterLabelMapper;
   private final ResourceFinder<Job> jobFinder;
 
   @Inject
   public BackupStatusManager(
       CustomResourceFinder<StackGresCluster> clusterFinder,
-      ClusterLabelMapper clusterLabelMapper,
+      LabelMapperForCluster<StackGresCluster> clusterLabelMapper,
       ResourceFinder<Job> jobFinder) {
     this.clusterFinder = clusterFinder;
     this.clusterLabelMapper = clusterLabelMapper;

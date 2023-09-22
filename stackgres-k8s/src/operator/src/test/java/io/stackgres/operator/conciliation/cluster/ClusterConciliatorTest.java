@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
+import static io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil.buildResources;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -40,7 +41,6 @@ import io.stackgres.operator.conciliation.DeployedResourcesSnapshot;
 import io.stackgres.operator.conciliation.ReconciliationResult;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceKey;
-import io.stackgres.operator.conciliation.factory.cluster.KubernetessMockResourceGenerationUtil;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.stackgres.testutil.JsonUtil;
@@ -71,14 +71,16 @@ class ClusterConciliatorTest {
 
   @Test
   void nonDeployedResources_shouldAppearInTheCreation() {
-    final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
-        .buildResources(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace());
+    final List<HasMetadata> requiredResources = buildResources(cluster);
 
-    final List<HasMetadata> lastRequiredResources = new ArrayList<>(deepCopy(requiredResources));
+    final List<HasMetadata> lastRequiredResources =
+        new ArrayList<>(deepCopy(requiredResources));
 
-    final List<HasMetadata> deployedResources = new ArrayList<>(deepCopy(lastRequiredResources));
+    final List<HasMetadata> deployedResources =
+        new ArrayList<>(deepCopy(lastRequiredResources));
 
-    final List<HasMetadata> foundDeployedResources = new ArrayList<>(deepCopy(deployedResources));
+    final List<HasMetadata> foundDeployedResources =
+        new ArrayList<>(deepCopy(deployedResources));
 
     requiredResources.removeIf(Predicate.not(this::hasControllerOwnerReference));
 
@@ -107,8 +109,7 @@ class ClusterConciliatorTest {
 
   @Test
   void resourceToDelete_shouldAppearInTheDeletions() {
-    final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
-        .buildResources(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace());
+    final List<HasMetadata> requiredResources = buildResources(cluster);
 
     final List<HasMetadata> lastRequiredResources = deepCopy(requiredResources);
 
@@ -141,8 +142,7 @@ class ClusterConciliatorTest {
 
   @Test
   void whenThereIsNoChanges_allResourcesShouldBeEmpty() {
-    final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
-        .buildResources(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace());
+    final List<HasMetadata> requiredResources = buildResources(cluster);
 
     final List<HasMetadata> lastRequiredResources = deepCopy(requiredResources);
 
@@ -168,8 +168,7 @@ class ClusterConciliatorTest {
 
   @Test
   void whenThereAreRequiredChanges_shouldBeDetected() {
-    final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
-        .buildResources(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace());
+    final List<HasMetadata> requiredResources = buildResources(cluster);
 
     final List<HasMetadata> lastRequiredResources = deepCopy(requiredResources);
 
@@ -204,8 +203,7 @@ class ClusterConciliatorTest {
 
   @Test
   void whenThereAreDeployedChangesOnMetadataLabels_shouldBeDetected() {
-    final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
-        .buildResources(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace());
+    final List<HasMetadata> requiredResources = buildResources(cluster);
 
     final List<HasMetadata> lastRequiredResources = deepCopy(requiredResources);
 
@@ -243,8 +241,7 @@ class ClusterConciliatorTest {
 
   @Test
   void whenThereAreDeployedChangesOnMetadataAnnotations_shouldBeDetected() {
-    final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
-        .buildResources(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace());
+    final List<HasMetadata> requiredResources = buildResources(cluster);
 
     final List<HasMetadata> lastRequiredResources = deepCopy(requiredResources);
 
@@ -281,9 +278,8 @@ class ClusterConciliatorTest {
   }
 
   @Test
-  void whenThereAreDeployedChangesOnMetadataOwnerReferences_shouldBeDetected() {
-    final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
-        .buildResources(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace());
+  void whenThereAreDeployedChangesOnMetadataOwnerReferences_shouldDoNothing() {
+    final List<HasMetadata> requiredResources = buildResources(cluster);
 
     final List<HasMetadata> lastRequiredResources = deepCopy(requiredResources);
 
@@ -300,7 +296,7 @@ class ClusterConciliatorTest {
         .findFirst()
         .get();
     updatedResource.v1.getMetadata()
-        .setOwnerReferences(List.of(ResourceUtil.getOwnerReference(cluster)));
+        .setOwnerReferences(List.of(ResourceUtil.getControllerOwnerReference(cluster)));
 
     ClusterConciliator conciliator = buildConciliator(
         requiredResources,
@@ -311,15 +307,45 @@ class ClusterConciliatorTest {
     ReconciliationResult result = conciliator.evalReconciliationState(cluster);
     assertEquals(0, result.getDeletions().size());
     assertEquals(0, result.getCreations().size());
-    assertEquals(1, result.getPatches().size());
+    assertEquals(0, result.getPatches().size());
+  }
 
-    assertEquals(updatedResource.v1, result.getPatches().get(0).v2);
+  @Test
+  void whenThereAreDeployedWithOtherMetadataOwnerReferences_shouldDoNoting() {
+    final List<HasMetadata> requiredResources = buildResources(cluster);
+
+    final List<HasMetadata> lastRequiredResources = deepCopy(requiredResources);
+
+    final List<HasMetadata> deployedResources = deepCopy(requiredResources);
+
+    final List<HasMetadata> foundDeployedResources = deepCopy(deployedResources);
+
+    requiredResources.removeIf(Predicate.not(this::hasControllerOwnerReference));
+
+    var updatedResource = Seq.seq(foundDeployedResources)
+        .zipWithIndex()
+        .filter(t -> hasAnotherOwnerReference(t.v1))
+        .sorted(shuffle())
+        .findFirst()
+        .get();
+    updatedResource.v1.getMetadata()
+        .setOwnerReferences(List.of(ResourceUtil.getControllerOwnerReference(updatedResource.v1)));
+
+    ClusterConciliator conciliator = buildConciliator(
+        requiredResources,
+        lastRequiredResources,
+        deployedResources,
+        foundDeployedResources);
+
+    ReconciliationResult result = conciliator.evalReconciliationState(cluster);
+    assertEquals(0, result.getDeletions().size());
+    assertEquals(0, result.getCreations().size());
+    assertEquals(0, result.getPatches().size());
   }
 
   @Test
   void whenThereAreDeployedChangesOnStatefulSetSpec_shouldBeDetected() {
-    final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
-        .buildResources(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace());
+    final List<HasMetadata> requiredResources = buildResources(cluster);
 
     final List<HasMetadata> lastRequiredResources = deepCopy(requiredResources);
 
@@ -355,8 +381,7 @@ class ClusterConciliatorTest {
 
   @Test
   void whenThereAreDeployedChangesOnServiceSpec_shouldBeDetected() {
-    final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
-        .buildResources(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace());
+    final List<HasMetadata> requiredResources = buildResources(cluster);
 
     final List<HasMetadata> lastRequiredResources = deepCopy(requiredResources);
 
@@ -392,8 +417,7 @@ class ClusterConciliatorTest {
 
   @Test
   void whenThereAreDeployedChangesOnMetadataResourceVersion_shouldNotBeDetected() {
-    final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
-        .buildResources(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace());
+    final List<HasMetadata> requiredResources = buildResources(cluster);
 
     final List<HasMetadata> lastRequiredResources = deepCopy(requiredResources);
 
@@ -426,8 +450,7 @@ class ClusterConciliatorTest {
 
   @Test
   void whenThereAreDeployedChangesOnStatefulSetStatus_shouldNotBeDetected() {
-    final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
-        .buildResources(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace());
+    final List<HasMetadata> requiredResources = buildResources(cluster);
 
     final List<HasMetadata> lastRequiredResources = deepCopy(requiredResources);
 
@@ -460,8 +483,7 @@ class ClusterConciliatorTest {
 
   @Test
   void whenThereAreDeployedChangesOnServiceStatus_shouldNotBeDetected() {
-    final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
-        .buildResources(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace());
+    final List<HasMetadata> requiredResources = buildResources(cluster);
 
     final List<HasMetadata> lastRequiredResources = deepCopy(requiredResources);
 
@@ -498,8 +520,7 @@ class ClusterConciliatorTest {
 
   @Test
   void conciliation_shouldDetectStatefulSetChanges() {
-    final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
-        .buildResources(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace());
+    final List<HasMetadata> requiredResources = buildResources(cluster);
 
     final List<HasMetadata> lastRequiredResources = deepCopy(requiredResources);
 
@@ -537,8 +558,7 @@ class ClusterConciliatorTest {
 
   @Test
   void conciliation_shouldIgnoreChangesOnResourcesMarkedWithReconciliationPauseAnnotatinon() {
-    final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
-        .buildResources(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace());
+    final List<HasMetadata> requiredResources = buildResources(cluster);
 
     final List<HasMetadata> lastRequiredResources = deepCopy(requiredResources);
 
@@ -569,8 +589,7 @@ class ClusterConciliatorTest {
 
   @Test
   void conciliation_shouldIgnoreDeletionsOnResourcesMarkedWithReconciliationPauseAnnotation() {
-    final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
-        .buildResources(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace());
+    final List<HasMetadata> requiredResources = buildResources(cluster);
 
     final List<HasMetadata> lastRequiredResources = deepCopy(requiredResources);
 
@@ -619,8 +638,7 @@ class ClusterConciliatorTest {
 
   @Test
   void conciliation_shouldDetectStatefulSetChangesOnMissingPrimaryPod() {
-    final List<HasMetadata> requiredResources = KubernetessMockResourceGenerationUtil
-        .buildResources(cluster.getMetadata().getName(), cluster.getMetadata().getNamespace());
+    final List<HasMetadata> requiredResources = buildResources(cluster);
 
     requiredResources.removeIf(Predicate.not(this::hasControllerOwnerReference));
 
@@ -652,7 +670,9 @@ class ClusterConciliatorTest {
   }
 
   protected List<HasMetadata> deepCopy(List<HasMetadata> source) {
-    return source.stream().map(JsonUtil::copy).toList();
+    return source.stream()
+        .map(JsonUtil::copy)
+        .toList();
   }
 
   protected ClusterConciliator buildConciliator(
@@ -680,20 +700,39 @@ class ClusterConciliatorTest {
 
     when(requiredResourceGenerator.getRequiredResources(cluster))
         .thenReturn(required);
-    when(deployedResourcesScanner.getDeployedResources(cluster))
+    when(deployedResourcesScanner.getDeployedResources(cluster, required))
         .thenReturn(deplyedResourcesSnapshot);
 
     final ClusterConciliator clusterConciliator = new ClusterConciliator(
+        null,
         requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache,
         new ClusterLabelFactory(new ClusterLabelMapper()));
     return clusterConciliator;
   }
 
+  private boolean hasAnotherOwnerReference(HasMetadata resource) {
+    return resource.getMetadata().getOwnerReferences() != null
+        && (resource.getMetadata().getOwnerReferences().isEmpty()
+        || resource.getMetadata().getOwnerReferences().stream()
+        .noneMatch(ownerReference -> ownerReference.getKind()
+            .equals(HasMetadata.getKind(cluster.getClass()))
+            && ownerReference.getApiVersion().equals(HasMetadata.getApiVersion(cluster.getClass()))
+            && ownerReference.getName().equals(cluster.getMetadata().getName())
+            && ownerReference.getUid().equals(cluster.getMetadata().getUid())
+        && ownerReference.getController() != null
+        && ownerReference.getController()));
+  }
+
   private boolean hasControllerOwnerReference(HasMetadata resource) {
-    return resource.getMetadata().getOwnerReferences().size() > 0
+    return resource.getMetadata().getOwnerReferences() != null
         && resource.getMetadata().getOwnerReferences().stream()
-        .anyMatch(ownerReference -> ownerReference.getController() != null
-        && ownerReference.getController());
+        .anyMatch(ownerReference -> ownerReference.getKind()
+            .equals(HasMetadata.getKind(cluster.getClass()))
+            && ownerReference.getApiVersion().equals(HasMetadata.getApiVersion(cluster.getClass()))
+            && ownerReference.getName().equals(cluster.getMetadata().getName())
+            && ownerReference.getUid().equals(cluster.getMetadata().getUid())
+            && ownerReference.getController() != null
+            && ownerReference.getController());
   }
 
   public static <T> Comparator<T> shuffle() {

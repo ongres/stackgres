@@ -41,7 +41,7 @@ import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterShards;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterSpec;
 import io.stackgres.apiweb.transformer.ScriptTransformer;
 import io.stackgres.common.ManagedSqlUtil;
-import io.stackgres.common.StackGresShardedClusterForCitusUtil;
+import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
@@ -159,15 +159,15 @@ public class ShardedClusterResource
     var foundCluster = shardedClusterFinder.findByNameAndNamespace(clusterName, namespace);
     foundCluster
         .flatMap(cluster -> serviceFinder.findByNameAndNamespace(
-            StackGresShardedClusterForCitusUtil.primaryCoordinatorServiceName(cluster), namespace))
+            StackGresShardedClusterUtil.primaryCoordinatorServiceName(cluster), namespace))
         .ifPresent(service -> info.setPrimaryDns(StackGresUtil.getServiceDnsName(service)));
     foundCluster
         .flatMap(cluster -> serviceFinder.findByNameAndNamespace(
-            StackGresShardedClusterForCitusUtil.anyCoordinatorServiceName(cluster), namespace))
+            StackGresShardedClusterUtil.anyCoordinatorServiceName(cluster), namespace))
         .ifPresent(service -> info.setReadsDns(StackGresUtil.getServiceDnsName(service)));
     foundCluster
         .flatMap(cluster -> serviceFinder.findByNameAndNamespace(
-            StackGresShardedClusterForCitusUtil.primariesShardsServiceName(cluster), namespace))
+            StackGresShardedClusterUtil.primariesShardsServiceName(cluster), namespace))
         .ifPresent(service -> info.setPrimariesDns(StackGresUtil.getServiceDnsName(service)));
 
     info.setSuperuserUsername(SUPERUSER_USERNAME);
