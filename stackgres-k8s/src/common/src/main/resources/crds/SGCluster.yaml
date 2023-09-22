@@ -1056,11 +1056,9 @@ spec:
                             pointInTimeRecovery:
                               type: object
                               description: |
-                                It is possible to restore the database to its state at any time since your backup was taken using Point-in-Time Recovery (PITR) as long as another
-                                 backup newer than the PITR requested restoration date does not exists.
-
-                                Point In Time Recovery (PITR). PITR allow to restore the database state to an arbitrary point of time in the past, as long as you specify a backup
-                                 older than the PITR requested restoration date and does not exists a backup newer than the same restoration date.
+                                Using Point-in-Time Recovery (PITR) it is possible to restore the database to its state at any moment in the past by setting `restoreToTimestamp`
+                                 to a value between the timestamps at which your chosen SGBackup and the subsequent one were taken. If the chosen SGBackup is the latest one, the
+                                 `restoreToTimestamp` value can be between the timestamps at which that last SGBackup was taken and the current one.
 
                                 See also: https://www.postgresql.org/docs/current/continuous-archiving.html
                               properties:
