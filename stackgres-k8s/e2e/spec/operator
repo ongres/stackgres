@@ -203,17 +203,17 @@ check_operator_upgrade_with_cluster_using_1_4_0_and_1_5_0() {
   local PREVIOUS_VERSION_2=1.5.0
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
-    --set-string cluster.postgres.version=13.4
+    --set-string cluster.postgres.version=13.9
   create_or_replace_cluster "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
     --set instanceProfiles=null \
     --set configurations.create=false \
-    --set-string cluster.postgres.version=13.4
+    --set-string cluster.postgres.version=13.9
   create_or_replace_cluster "$CLUSTER_2_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set-string "cluster.pods.scheduling.nodeSelector.$NODE_LABEL_KEY=$NODE_LABEL_VALUE" \
     --set instanceProfiles=null \
     --set configurations.create=false \
-    --set-string cluster.postgres.version=13.4
+    --set-string cluster.postgres.version=13.9
   kubectl patch mutatingwebhookconfigurations.admissionregistration.k8s.io stackgres-operator \
     --type=json -p='[{"op":"replace","path":"/webhooks/0/rules/0/operations/1","value":"DELETE"}]'
   kubectl annotate sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_1_NAME" \

@@ -8,13 +8,13 @@ package io.stackgres.jobs.dbops.clusterrestart;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicates;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -132,7 +132,7 @@ public class ClusterWatcher {
             return members;
           } else {
             var primaryNotReady = members.stream()
-                .filter(Predicates.not(ClusterWatcher::isPrimaryReady))
+                .filter(Predicate.not(ClusterWatcher::isPrimaryReady))
                 .map(ClusterMember::getName)
                 .collect(Collectors.joining());
             LOGGER.debug("Primary {} is not ready",

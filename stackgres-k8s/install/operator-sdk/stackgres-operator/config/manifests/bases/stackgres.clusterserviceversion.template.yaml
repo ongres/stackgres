@@ -73,8 +73,8 @@ $(
     operatorframework.io/arch.arm64: supported
     operatorframework.io/os.linux: supported
   relatedImages:
-  - image: quay.io/ongres/kubectl:v1.25.5-build-6.19
-    name: kubectl_1_25_5
+  - image: quay.io/ongres/kubectl:v1.25.14-build-6.23
+    name: kubectl_1_25_14
   - image: gcr.io/kubebuilder/kube-rbac-proxy:v0.13.0
     name: kube-rbac-proxy_0_13_0
   - image: quay.io/stackgres/operator:${VERSION}

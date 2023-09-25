@@ -11,7 +11,7 @@ deploy_psql_pod() {
     namespace: $NAMESPACE
   spec:
     containers:
-    - image: ongres/postgres-util:v14.2-build-6.10
+    - image: ongres/postgres-util:v16.0-build-6.23
       command: [ "sh", "-c", "while true; do sleep 300; done" ]
       imagePullPolicy: IfNotPresent
       name: postgres

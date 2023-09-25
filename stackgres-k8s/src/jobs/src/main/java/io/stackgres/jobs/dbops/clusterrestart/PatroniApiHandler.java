@@ -10,7 +10,6 @@ import java.net.URL;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -68,9 +67,9 @@ public class PatroniApiHandler {
                     .namespace(namespace)
                     .name(member.getString("name"))
                     .state(getStringOrEmpty(member, "state")
-                        .map(this::toMemberState))
+                        .map(MemberState::fromString))
                     .role(getStringOrEmpty(member, "role")
-                        .map(this::toMemberRole))
+                        .map(MemberRole::fromString))
                     .apiUrl(getStringOrEmpty(member, "api_url"))
                     .host(getStringOrEmpty(member, "host"))
                     .port(getIntegerOrEmpty(member, "port"))
@@ -122,9 +121,9 @@ public class PatroniApiHandler {
             JsonObject patroni = instance.getJsonObject("patroni");
             return ImmutablePatroniInformation.builder()
                 .role(getStringOrEmpty(instance, "role")
-                    .map(this::toMemberRole))
+                    .map(MemberRole::fromString))
                 .state(getStringOrEmpty(instance, "state")
-                    .map(this::toMemberState))
+                    .map(MemberState::fromString))
                 .serverVersion(getIntegerOrEmpty(instance, "server_version"))
                 .patroniScope(getStringOrEmpty(patroni, "scope"))
                 .patroniVersion(getStringOrEmpty(patroni, "version"))
@@ -231,32 +230,6 @@ public class PatroniApiHandler {
                   name -> jsonObject.getValue(name).toString())));
     } catch (ClassCastException ex) {
       return Optional.empty();
-    }
-  }
-
-  private MemberRole toMemberRole(String role) {
-    if (Objects.equals("leader", role)
-        || Objects.equals("master", role)
-        || Objects.equals("standby_leader", role)) {
-      return MemberRole.LEADER;
-    } else if (Objects.equals("replica", role)) {
-      return MemberRole.REPLICA;
-    } else {
-      return null;
-    }
-  }
-
-  private MemberState toMemberState(String state) {
-    if (Objects.equals("running", state)) {
-      return MemberState.RUNNING;
-    } else if (Objects.equals("stopped", state)) {
-      return MemberState.STOPPED;
-    } else if (Objects.equals("starting", state)) {
-      return MemberState.STARTING;
-    } else if (Objects.equals("restarting", state)) {
-      return MemberState.RESTARTING;
-    } else {
-      return null;
     }
   }
 

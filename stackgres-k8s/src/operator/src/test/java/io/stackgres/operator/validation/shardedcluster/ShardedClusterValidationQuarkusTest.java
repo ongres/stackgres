@@ -136,29 +136,25 @@ class ShardedClusterValidationQuarkusTest {
     StackGresPoolingConfigList poolconfList =
         client.resources(StackGresPoolingConfig.class, StackGresPoolingConfigList.class)
             .list();
-    client.resources(StackGresPoolingConfig.class, StackGresPoolingConfigList.class)
-        .delete(poolconfList.getItems());
+    client.resourceList(poolconfList).delete();
 
     StackGresBackupConfigList bkconfList = client
         .resources(StackGresBackupConfig.class, StackGresBackupConfigList.class)
         .list();
-    client.resources(StackGresBackupConfig.class, StackGresBackupConfigList.class)
-        .delete(bkconfList.getItems());
+    client.resourceList(bkconfList).delete();
 
     StackGresPostgresConfigList pgconfList = client
         .resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)
         .list();
-    client.resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)
-        .delete(pgconfList.getItems());
+    client.resourceList(pgconfList).delete();
 
     StackGresProfileList instanceList = client
         .resources(StackGresProfile.class, StackGresProfileList.class)
         .list();
-    client.resources(StackGresProfile.class, StackGresProfileList.class)
-        .delete(instanceList.getItems());
+    client.resourceList(instanceList).delete();
 
     StorageClassList storageList = client.storage().v1().storageClasses().list();
-    client.resourceList(storageList.getItems()).delete();
+    client.resourceList(storageList).delete();
   }
 
   @Test
@@ -215,7 +211,7 @@ class ShardedClusterValidationQuarkusTest {
       assertThat(body.get("kind").asText(), is("AdmissionReview"));
       assertThat(body.get("response").get("status").get("code").asInt(), is(400));
       assertThat(body.get("response").get("status").get("message").asText(),
-          is("Some extensions were not found: citus 11.3-1, citus_columnar 11.3-1"));
+          is("Some extensions were not found: citus 12.0-1, citus_columnar 11.3-1"));
     } catch (AssertionError ae) {
       throw new AssertionError("Body " + body + " has unexpected values", ae);
     }

@@ -50,7 +50,7 @@
         "sgCluster": "stackgres",
         "op": "majorVersionUpgrade",
         "majorVersionUpgrade": {
-          "postgresVersion": "12.4",
+          "postgresVersion": "12.15",
           "sgPostgresConfig": "postgresconf"
         }
       },

@@ -4,6 +4,7 @@ describe('Create SGShardedCluster', () => {
     });
 
     const namespace = Cypress.env('k8s_namespace')
+    const postgresVersion = '15.2' // Set fixed postgres version
     let resourceName;
 
     before( () => {
@@ -78,7 +79,7 @@ describe('Create SGShardedCluster', () => {
                     }
                 },
                 postgres: {
-                    version: "latest",
+                    version: postgresVersion,
                     flavor: "vanilla"
                 },
                 nonProductionOptions: {
@@ -125,9 +126,16 @@ describe('Create SGShardedCluster', () => {
         // Test Cluster Name
         cy.get('[data-field="metadata.name"]')
             .type('basic-' + resourceName)
-        // Test Cluster Database
+        
+            // Test Cluster Database
         cy.get('[data-field="spec.database"]')
             .type('basic_' + resourceName)
+
+        // Temporary: choose postgres version since citus is not available yet for PG16
+        cy.get('ul[data-field="spec.postgres.version"] li').first()
+            .click()
+        cy.get('ul[data-field="spec.postgres.version"] a[data-val="' + postgresVersion + '"]')
+            .click()
 
         // Test Submit form
         cy.get('form#createShardedCluster button[type="submit"]')
@@ -186,7 +194,7 @@ describe('Create SGShardedCluster', () => {
         // Test postgres version
         cy.get('ul[data-field="spec.postgres.version"] li').first()
             .click()
-        cy.get('ul[data-field="spec.postgres.version"] a[data-val="' + Cypress.env('postgres_version') + '"]')
+        cy.get('ul[data-field="spec.postgres.version"] a[data-val="' + postgresVersion + '"]')
             .click()
 
         // Check Enable SSL Connections
@@ -2938,6 +2946,12 @@ describe('Create SGShardedCluster', () => {
         // Test Cluster Database
         cy.get('[data-field="spec.database"]')
             .type('repeater_' + resourceName)
+
+        // Temporary: choose postgres version since citus is not available yet for PG16
+        cy.get('ul[data-field="spec.postgres.version"] li').first()
+            .click()
+        cy.get('ul[data-field="spec.postgres.version"] a[data-val="' + postgresVersion + '"]')
+            .click()
         
         // Coordinator section
         cy.get('form#createShardedCluster li.coordinator')

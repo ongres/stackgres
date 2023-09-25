@@ -9,4 +9,12 @@ public enum MemberRole {
 
   LEADER, REPLICA;
 
+  static MemberRole fromString(String role) {
+    return switch (role) {
+      case "leader", "master", "standby_leader" -> MemberRole.LEADER;
+      case "replica" -> MemberRole.REPLICA;
+      default -> null;
+    };
+  }
+
 }

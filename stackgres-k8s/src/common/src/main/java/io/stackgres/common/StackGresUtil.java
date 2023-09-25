@@ -334,7 +334,7 @@ public interface StackGresUtil {
   static List<ExtensionTuple> getDefaultShardedClusterExtensions(
       String pgVersion, StackGresVersion stackGresVersion) {
     return List.of(
-        new ExtensionTuple("citus", "11.3-1"),
+        new ExtensionTuple("citus", "12.0-1"),
         new ExtensionTuple("citus_columnar", "11.3-1"));
   }
 
