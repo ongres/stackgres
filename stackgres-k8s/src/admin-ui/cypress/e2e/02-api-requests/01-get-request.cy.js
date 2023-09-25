@@ -28,10 +28,10 @@ describe('GET requests', () => {
                     disableClusterPodAntiAffinity: true
                 },
                 postgres: {
-                    version: "13.3",
+                    version: "15.2",
                     extensions: [{
                         name: "pg_repack",
-                        version: "1.4.7",
+                        version: "1.4.8",
                         publisher: "com.ongres",
                         repository: "https://extensions.stackgres.io/postgres/repository"
                     }],

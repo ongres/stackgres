@@ -31,7 +31,7 @@ describe('Create SGDbOp', () => {
                     disableClusterPodAntiAffinity: true
                 },
                 postgres: {
-                    version: "13.3",
+                    version: "14.4",
                     /*extensions: [{
                         name: "pg_repack",
                         version: "1.4.7",
@@ -49,7 +49,7 @@ describe('Create SGDbOp', () => {
                 namespace: namespace
             },
             spec: {
-                postgresVersion: "14",
+                postgresVersion: "15",
                 'postgresql.conf':""
             }
         })
@@ -332,7 +332,7 @@ describe('Create SGDbOp', () => {
             .select('ReducedImpact')
 
         cy.get('select[data-field="spec.minorVersionUpgrade.postgresVersion"]')
-            .select('13.4')
+            .select('14.5')
 
         // Test Submit form
         cy.get('form#createDbops button[type="submit"]')
@@ -379,7 +379,7 @@ describe('Create SGDbOp', () => {
             .type('/backup/path/test')
 
         cy.get('select[data-field="spec.majorVersionUpgrade.postgresVersion"]')
-            .select('14.4')
+            .select('15.2')
 
         cy.get('select[data-field="spec.majorVersionUpgrade.sgPostgresConfig"]')
             .select(pgConfigName)

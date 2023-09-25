@@ -50,7 +50,7 @@ describe('Create SGBackup', () => {
                     }
                 },
                 postgres: {
-                    version: "13.3",
+                    version: "15.2",
                     flavor: "vanilla"
                 }
             }  
@@ -85,7 +85,7 @@ describe('Create SGBackup', () => {
                     }
                 },
                 postgres: {
-                    version: "13.3",
+                    version: "15.2",
                     flavor: "vanilla"
                 }
             }  
