@@ -3,13 +3,12 @@
 #
 # Build the image with:
 #
-# docker build -f stackgres-k8s/ci/build/Dockerfile.build -t registry.gitlab.com/ongresinc/stackgres/build-amd64:1.5 stackgres-k8s/ci/build/
+# docker build -f stackgres-k8s/ci/build/Dockerfile-builder -t registry.gitlab.com/ongresinc/stackgres/build-amd64:1.6 stackgres-k8s/ci/build/
 #
 ###
 
-FROM ghcr.io/graalvm/graalvm-ce:ol8-java17-22.3.0
-  ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
-  RUN gu --auto-yes install native-image
-  RUN microdnf --nodocs install python3-pip jq util-linux
+FROM quay.io/quarkus/ubi-quarkus-mandrel-builder-image:22.3-java17
+  USER root
+  RUN microdnf --nodocs install python3-pip jq util-linux findutils
   RUN pip3 install yamllint yq
   RUN microdnf clean all

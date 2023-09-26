@@ -7,7 +7,7 @@
 #
 ###
 
-FROM registry.access.redhat.com/ubi8-minimal:8.7-1107
+FROM registry.access.redhat.com/ubi8-minimal:8.8-1072
   # From https://github.com/docker-library/docker/blob/master/20.10/cli/Dockerfile
   RUN microdnf install -y \
       ca-certificates \
@@ -15,9 +15,9 @@ FROM registry.access.redhat.com/ubi8-minimal:8.7-1107
       wget \
       tar
   # RUN [ -e /etc/nsswitch.conf ] && grep '^hosts: files dns' /etc/nsswitch.conf
-  ENV DOCKER_VERSION 24.0.0
+  ENV DOCKER_VERSION 24.0.6
   RUN set -eux; \
-    wget -O 'docker.tgz' "https://download.docker.com/linux/static/stable/$(uname -m)/docker-24.0.0.tgz"; \
+    wget -O 'docker.tgz' "https://download.docker.com/linux/static/stable/$(uname -m)/docker-24.0.6.tgz"; \
     tar --extract \
       --file docker.tgz \
       --strip-components 1 \
@@ -28,18 +28,18 @@ FROM registry.access.redhat.com/ubi8-minimal:8.7-1107
     rm docker.tgz; \
     docker --version
 
-  ENV DOCKER_BUILDX_VERSION 0.10.4
+  ENV DOCKER_BUILDX_VERSION 0.11.2
   RUN set -eux; \
-    wget -O 'docker-buildx' "https://github.com/docker/buildx/releases/download/v0.10.4/buildx-v0.10.4.linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"; \
+    wget -O 'docker-buildx' "https://github.com/docker/buildx/releases/download/v0.11.2/buildx-v0.11.2.linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"; \
     plugin='/usr/local/libexec/docker/cli-plugins/docker-buildx'; \
     mkdir -p "$(dirname "$plugin")"; \
     mv -vT 'docker-buildx' "$plugin"; \
     chmod +x "$plugin"; \
     docker buildx version
 
-  ENV DOCKER_COMPOSE_VERSION 2.17.3
+  ENV DOCKER_COMPOSE_VERSION 2.21.0
   RUN set -eux; \
-  	wget -O 'docker-compose' "https://github.com/docker/compose/releases/download/v2.17.3/docker-compose-linux-$(uname -m)"; \
+  	wget -O 'docker-compose' "https://github.com/docker/compose/releases/download/v2.21.0/docker-compose-linux-$(uname -m)"; \
   	plugin='/usr/local/libexec/docker/cli-plugins/docker-compose'; \
   	mkdir -p "$(dirname "$plugin")"; \
   	mv -vT 'docker-compose' "$plugin"; \
@@ -83,7 +83,7 @@ FROM registry.access.redhat.com/ubi8-minimal:8.7-1107
     echo 'dockremap:165536:65536' >> /etc/subgid
 
   RUN set -eux; \
-    wget -O 'docker.tgz' "https://download.docker.com/linux/static/stable/$(uname -m)/docker-24.0.0.tgz"; \
+    wget -O 'docker.tgz' "https://download.docker.com/linux/static/stable/$(uname -m)/docker-24.0.6.tgz"; \
     tar --extract \
       --file docker.tgz \
       --strip-components 1 \
@@ -127,7 +127,7 @@ FROM registry.access.redhat.com/ubi8-minimal:8.7-1107
   RUN microdnf install -y xz
   RUN mkdir -p ~/.docker/cli-plugins
   RUN echo '{"experimental":"enabled"}' > ~/.docker/config.json
-  RUN wget -O /bin/kubectl "https://dl.k8s.io/release/v1.27.2/bin/linux/$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/kubectl"
+  RUN wget -O /bin/kubectl "https://dl.k8s.io/release/v1.28.2/bin/linux/$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/kubectl"
   RUN chmod a+x /bin/kubectl
   RUN wget -O /bin/kind-0.15.0 "https://github.com/kubernetes-sigs/kind/releases/download/v0.15.0/kind-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
   RUN chmod a+x /bin/kind-0.15.0
@@ -136,7 +136,7 @@ FROM registry.access.redhat.com/ubi8-minimal:8.7-1107
   RUN ln -s /bin/kind-0.20.0 /bin/kind
   RUN wget -O /bin/k3d "https://github.com/rancher/k3d/releases/download/v5.5.1/k3d-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
   RUN chmod a+x /bin/k3d
-  RUN wget "https://get.helm.sh/helm-v3.12.0-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64).tar.gz" -O -|tar xz --strip-components=1 -C /bin -f - "linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/helm"
+  RUN wget "https://get.helm.sh/helm-v3.12.3-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64).tar.gz" -O -|tar xz --strip-components=1 -C /bin -f - "linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/helm"
   RUN wget "https://github.com/derailed/k9s/releases/download/v0.27.4/k9s_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64).tar.gz" -O -|tar xz -C /bin -f - k9s
   RUN pip3 install awscli
   RUN wget https://github.com/operator-framework/operator-sdk/releases/download/v1.29.0/operator-sdk_linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64) -O /bin/operator-sdk

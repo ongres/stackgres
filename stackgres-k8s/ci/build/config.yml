@@ -1,11 +1,11 @@
 .images:
-  ci_image: &ci_image registry.gitlab.com/ongresinc/stackgres/ci:1.22
-  jdk_build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.5
-  jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi8/openjdk-17-runtime:1.17-1.1693366274
-  ubi8_micro_image: &ubi8_micro_image registry.access.redhat.com/ubi8-micro:8.8-5
-  ubi9_minimal_image: &ubi9_minimal_image registry.access.redhat.com/ubi9-minimal:9.2-717
-  admin_ui_build_image: &admin_ui_build_image registry.access.redhat.com/ubi8/nodejs-16:1-118.1692780867
-  admin_ui_nginx_image: &admin_ui_nginx_image registry.access.redhat.com/ubi8/nginx-120:1-117.1692780863
+  ci_image: &ci_image registry.gitlab.com/ongresinc/stackgres/ci:1.23
+  jdk_build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.6
+  jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi8/openjdk-17:1.17-1.1693366272
+  ubi8_micro_image: &ubi8_micro_image registry.access.redhat.com/ubi8-micro:8.8-7
+  ubi9_minimal_image: &ubi9_minimal_image registry.access.redhat.com/ubi9-minimal:9.2-750
+  admin_ui_build_image: &admin_ui_build_image registry.access.redhat.com/ubi8/nodejs-16:1-129
+  admin_ui_nginx_image: &admin_ui_nginx_image registry.access.redhat.com/ubi8/nginx-120:1-127
   helm_operator_image: &helm_operator_image quay.io/operator-framework/helm-operator:v1.31.0
 platforms:
   - linux-x86_64
