@@ -3381,7 +3381,7 @@
                                                     } || {"pointInTimeRecovery": null})
                                                 }
                                             } || {"fromBackup": null}),
-                                            ...((this.downloadDiskConcurrency != 1) && {
+                                            ...(( this.hasProp(previous, 'spec.initialData.restore.downloadDiskConcurrency') || (this.downloadDiskConcurrency != 1)) && {
                                                 "downloadDiskConcurrency": this.downloadDiskConcurrency 
                                             } || {"downloadDiskConcurrency": null} )
                                         },
