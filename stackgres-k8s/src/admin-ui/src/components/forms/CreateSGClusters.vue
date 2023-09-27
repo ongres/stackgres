@@ -245,6 +245,35 @@
                             <span class="helpTooltip" data-tooltip="StackGres supports enabling automatic monitoring for your Postgres cluster, but you need to provide or install the <a href='https://stackgres.io/doc/latest/install/prerequisites/monitoring/' target='_blank'>Prometheus stack as a pre-requisite</a>. Then, check this option to configure automatically sending metrics to the Prometheus stack."></span>
                         </div>                  
                     </div>
+
+                    <hr/>
+
+                    <div class="row-50">
+                        <h3>
+                            Distributed Logs
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs')"></span>
+                        </h3>
+                        <p>Send Postgres and Patroni logs to a central <a href="https://stackgres.io/doc/latest/reference/crd/sgdistributedlogs/" target="_blank">SGDistributedLogs</a> instance. Optional: if not enabled, logs are sent to the standard output.</p>
+
+                        <div class="col">
+                            <label for="spec.distributedLogs.sgDistributedLogs">Logs Cluster</label>
+                            <select v-model="distributedLogs" class="distributedLogs" data-field="spec.distributedLogs.sgDistributedLogs" @change="(distributedLogs == 'createNewResource') && createNewResource('sgdistributedlogs')" :set="( (distributedLogs == 'createNewResource') && (distributedLogs = '') )">
+                                <option value="">Select Logs Server</option>
+                                <option v-for="cluster in logsClusters" :value="( (cluster.data.metadata.namespace !== $route.params.namespace) ? cluster.data.metadata.namespace + '.' : '') + cluster.data.metadata.name">{{ cluster.data.metadata.name }}</option>
+                                <template v-if="iCan('create', 'sgdistributedlogs', $route.params.namespace)">
+                                    <option value="" disabled>– OR –</option>
+                                    <option value="createNewResource">Create new logs server</option>
+                                </template>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs.sgDistributedLogs')"></span>
+                        </div>
+
+                        <div class="col" v-if="distributedLogs.length">
+                            <label for="spec.distributedLogs.retention">Retention</label>
+                            <input v-model="retention" data-field="spec.distributedLogs.retention" autocomplete="off">
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs.retention')"></span>
+                        </div>
+                    </div>
                 </div>
             </fieldset>
 
@@ -1116,35 +1145,6 @@
 
                     <div class="warning" v-if="!enableMonitoring">
                         In order to enable monitoring from within the web console, both of these options should be enabled.
-                    </div>
-
-                    <hr/>
-
-                    <div class="row-50">
-                        <h3>
-                            Distributed Logs
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs')"></span>
-                        </h3>
-                        <p>Send Postgres and Patroni logs to a central <a href="https://stackgres.io/doc/latest/reference/crd/sgdistributedlogs/" target="_blank">SGDistributedLogs</a> instance. Optional: if not enabled, logs are sent to the standard output.</p>
-
-                        <div class="col">
-                            <label for="spec.distributedLogs.sgDistributedLogs">Logs Cluster</label>
-                            <select v-model="distributedLogs" class="distributedLogs" data-field="spec.distributedLogs.sgDistributedLogs" @change="(distributedLogs == 'createNewResource') && createNewResource('sgdistributedlogs')" :set="( (distributedLogs == 'createNewResource') && (distributedLogs = '') )">
-                                <option value="">Select Logs Server</option>
-                                <option v-for="cluster in logsClusters" :value="( (cluster.data.metadata.namespace !== $route.params.namespace) ? cluster.data.metadata.namespace + '.' : '') + cluster.data.metadata.name">{{ cluster.data.metadata.name }}</option>
-                                <template v-if="iCan('create', 'sgdistributedlogs', $route.params.namespace)">
-                                    <option value="" disabled>– OR –</option>
-                                    <option value="createNewResource">Create new logs server</option>
-                                </template>
-                            </select>
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs.sgDistributedLogs')"></span>
-                        </div>
-
-                        <div class="col" v-if="distributedLogs.length">
-                            <label for="spec.distributedLogs.retention">Retention</label>
-                            <input v-model="retention" data-field="spec.distributedLogs.retention" autocomplete="off">
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs.retention')"></span>
-                        </div>
                     </div>
                 </div>
             </fieldset>
