@@ -518,7 +518,7 @@
                         <div class="row-50">
                             <div class="col">
                                 <label for="spec.replication.mode">Mode</label>
-                                <select v-model="replication.mode" required data-field="spec.replication.mode" @change="['sync', 'strict-sync'].includes(replication.mode) ? (replication['syncInstances'] = 1) : ((replication.hasOwnProperty('syncInstances') && delete replication.syncInstances) )">    
+                                <select v-model="replication.mode" required data-field="spec.replication.mode" @change="['sync', 'strict-sync'].includes(replication.mode) ? (!replication.hasOwnProperty('syncInstances') && (replication['syncInstances'] = 1) ) : ((replication.hasOwnProperty('syncInstances') && delete replication.syncInstances) )">    
                                     <option selected>async</option>
                                     <option>sync</option>
                                     <option>strict-sync</option>
@@ -2043,7 +2043,7 @@
                         <div class="row-50">
                             <div class="col">
                                 <label for="spec.coordinator.replication.mode">Mode</label>
-                                <select v-model="coordinator.replication.mode" required data-field="spec.coordinator.replication.mode" @change="['sync', 'strict-sync'].includes(coordinator.replication.mode) ? (coordinator.replication['syncInstances'] = 1) : ((coordinator.replication.hasOwnProperty('syncInstances') && delete coordinator.replication.syncInstances) )">    
+                                <select v-model="coordinator.replication.mode" required data-field="spec.coordinator.replication.mode" @change="['sync', 'strict-sync'].includes(coordinator.replication.mode) ? (!coordinator.replication.hasOwnProperty('syncInstances') && (coordinator.replication['syncInstances'] = 1) ) : ((coordinator.replication.hasOwnProperty('syncInstances') && delete coordinator.replication.syncInstances) )">    
                                     <option>async</option>
                                     <option>sync</option>
                                     <option>strict-sync</option>
@@ -4116,7 +4116,7 @@
                         <div class="row-50">
                             <div class="col">
                                 <label for="spec.shards.replication.mode">Mode</label>
-                                <select v-model="shards.replication.mode" required data-field="spec.shards.replication.mode" @change="['sync', 'strict-sync'].includes(shards.replication.mode) ? (shards.replication['syncInstances'] = 1) : ((shards.replication.hasOwnProperty('syncInstances') && delete shards.replication.syncInstances) )">    
+                                <select v-model="shards.replication.mode" required data-field="spec.shards.replication.mode" @change="['sync', 'strict-sync'].includes(shards.replication.mode) ? (!shards.replication.hasOwnProperty('syncInstances') && (shards.replication['syncInstances'] = 1) ) : ((shards.replication.hasOwnProperty('syncInstances') && delete shards.replication.syncInstances) )">    
                                     <option selected>async</option>
                                     <option>sync</option>
                                     <option>strict-sync</option>
@@ -8229,14 +8229,14 @@
 
                 overrides.forEach( (override, overrideIndex) => {
 
-                    override.sgInstanceProfile = override.sgInstanceProfile.length ? override.sgInstanceProfile : null;
+                    override['sgInstanceProfile'] = ( (override.hasOwnProperty('sgInstanceProfile') && override.sgInstanceProfile.length) ? override.sgInstanceProfile : null );
                     
                     if(
-                        override.configurations.hasOwnProperty('sgPoolingConfig') && override.configurations.sgPoolingConfig.length || 
-                        override.configurations.hasOwnProperty('sgPostgresConfig') && override.configurations.sgPostgresConfig.length
+                        vc.hasProp(override, 'configurations.sgPoolingConfig') && override.configurations.sgPoolingConfig.length || 
+                        vc.hasProp(override, 'configurations.sgPostgresConfig') && override.configurations.sgPostgresConfig.length
                     ) {
-                        override.configurations['sgPoolingConfig'] = override.configurations.hasOwnProperty('sgPoolingConfig') && override.configurations.sgPoolingConfig.length ? override.configurations.sgPoolingConfig : null;
-                        override.configurations['sgPostgresConfig'] = override.configurations.hasOwnProperty('sgPostgresConfig') && override.configurations.sgPostgresConfig.length ? override.configurations.sgPostgresConfig : null;
+                        override.configurations['sgPoolingConfig'] = vc.hasProp(override, 'configurations.sgPoolingConfig') && override.configurations.sgPoolingConfig.length ? override.configurations.sgPoolingConfig : null;
+                        override.configurations['sgPostgresConfig'] = vc.hasProp(override, 'configurations.sgPostgresConfig') && override.configurations.sgPostgresConfig.length ? override.configurations.sgPostgresConfig : null;
                     } else {
                         override.configurations = null;
                     }
