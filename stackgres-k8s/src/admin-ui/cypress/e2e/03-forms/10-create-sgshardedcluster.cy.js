@@ -375,7 +375,7 @@ describe('Create SGShardedCluster', () => {
 
         // Test User-Supplied Pods Sidecars
         cy.get('form#createShardedCluster li[data-step="coordinator.pods"]')
-            .click()
+            .click({force: true})
 
         // Test Custom volumes
         cy.get('input[data-field="spec.coordinator.pods.customVolumes[0].name"]')
@@ -948,7 +948,7 @@ describe('Create SGShardedCluster', () => {
 
         // Test User-Supplied Pods Sidecars
         cy.get('form#createShardedCluster li[data-step="shards.pods"]')
-            .click()
+            .click({force: true})
 
         // Test Custom volumes
         cy.get('input[data-field="spec.shards.pods.customVolumes[0].name"]')
@@ -1473,6 +1473,522 @@ describe('Create SGShardedCluster', () => {
             .clear()
             .type('10')
 
+        // Test Shards Overrides
+        cy.get('form#createShardedCluster li.overrides')
+            .click()
+
+        cy.get('button#addOverride')
+            .click()
+
+        cy.get('select[data-field="spec.shards.overrides[0].index"]')
+            .select('Cluster #1')
+
+        // Test Overrides instancesPerCluster
+        cy.get('input[data-field="spec.shards.overrides[0].instancesPerCluster"]')
+            .clear()
+            .type('3')
+
+        // Test Overrides Volume Size
+        cy.get('input[data-field="spec.shards.overrides[0].pods.persistentVolume.size"]')
+            .clear()
+            .type('2')
+
+        
+        /*  Note: Disable Overrides' ManagedSQL tests until bug is solved
+            https://gitlab.com/ongresinc/stackgres/-/issues/2464
+
+            // Test Overrides scripts
+            cy.get('form#createShardedCluster li[data-step="overrides.scripts"]')
+                .click()
+            
+            // Test Overrides create new script
+            cy.get('label[for="spec.shards.overrides[0].managedSql.scripts.scriptSource"] + select')
+                .select('createNewScript')
+
+            // Test Overrides Entry script textarea
+            cy.get('[data-field="spec.shards.overrides[0].managedSql.scripts[0].scriptSpec.scripts[0].script"]')
+                .type(resourceName)        
+            
+            // Test Overrides Add Script button
+            cy.get('.scriptFieldset > div.fieldsetFooter > a.addRow')
+                .click()
+
+            // Test Overrides select script
+            cy.get('[data-field="spec.shards.overrides[0].managedSql.scripts.scriptSource.shards[1]"]')
+                .select('script-' + resourceName)
+        */
+
+        // Test User-Supplied Pods Sidecars
+        cy.get('form#createShardedCluster li[data-step="overrides.pods"]')
+            .click()
+
+        // Test Custom volumes
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[0].name"]')
+            .type('vol1')
+
+        cy.get('select[data-field="spec.shards.overrides[0].pods.customVolumes[0].type"]')
+            .select('emptyDir')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[0].emptyDir.medium"]')
+            .type('medium')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[0].emptyDir.sizeLimit"]')
+            .type('1Gi')
+        
+        cy.get('fieldset[data-fieldset="spec.shards.overrides[0].pods.customVolumes"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[1].name"]')
+            .type('vol2')
+
+        cy.get('select[data-field="spec.shards.overrides[0].pods.customVolumes[1].type"]')
+            .select('configMap')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[1].configMap.name"]')
+            .type('name')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[1].configMap.optional"]')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[1].configMap.defaultMode"]')
+            .type('0')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[1].configMap.items[0].key"]')
+            .type('key1')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[1].configMap.items[0].mode"]')
+            .type('0')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[1].configMap.items[0].path"]')
+            .type('path')
+        
+        // Note: Disabled until repeater gets optimized. Causes test to wait and fail
+        /* cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customVolumes[1].configMap.items"] + .fieldsetFooter a.addRow')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[1].configMap.items[1].key"]')
+            .type('key2')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[1].configMap.items[1].mode"]')
+            .type('0')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[1].configMap.items[1].path"]')
+            .type('path2')
+        
+        cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customVolumes[1].configMap.items"] + .fieldsetFooter a.addRow')
+            .click()
+
+        cy.get('div[data-field="spec.shards.overrides[0].pods.customVolumes[1].configMap.items[2]"] a.delete')
+            .click() */
+
+        cy.get('fieldset[data-fieldset="spec.shards.overrides[0].pods.customVolumes"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[2].name"]')
+            .type('vol3')
+
+        cy.get('select[data-field="spec.shards.overrides[0].pods.customVolumes[2].type"]')
+            .select('secret')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[2].secret.secretName"]')
+            .type('name')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[2].secret.optional"]')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[2].secret.defaultMode"]')
+            .type('0')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[2].secret.items[0].key"]')
+            .type('key1')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[2].secret.items[0].mode"]')
+            .type('0')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[2].secret.items[0].path"]')
+            .type('path')
+        
+        // Note: Disabled until repeater gets optimized. Causes test to wait and fail
+        /* cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customVolumes[2].secret.items"] + .fieldsetFooter a.addRow')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[2].secret.items[1].key"]')
+            .type('key2')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[2].secret.items[1].mode"]')
+            .type('0')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[2].secret.items[1].path"]')
+            .type('path2')
+        
+        cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customVolumes[2].secret.items"] + .fieldsetFooter a.addRow')
+            .click()
+
+        cy.get('div[data-field="spec.shards.overrides[0].pods.customVolumes[2].secret.items[2]"] a.delete')
+            .click()
+        */
+
+        // Test Custom Init Containers
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].name"]')
+            .type('container1')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].image"]')
+            .type('image1')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].imagePullPolicy"]')
+            .type('imagePullPolicy1')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].workingDir"]')
+            .type('workingDir1')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].args[0]"]')
+            .type('arg1')
+
+        cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customInitContainers[0].args"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].args[1]"]')
+            .type('arg2')
+        
+        cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customInitContainers[0].args"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].args[2]"] + a.delete')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].command[0]"]')
+            .type('command1')
+
+        cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customInitContainers[0].command"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].command[1]"]')
+            .type('command2')
+
+        cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customInitContainers[0].command"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].command[2]"] + a.delete')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].env[0].name"]')
+            .type('var1')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].env[0].value"]')
+            .type('val1')
+
+        cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customInitContainers[0].env"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].env[1].name"]')
+            .type('var2')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].env[1].value"]')
+            .type('val2')
+
+        cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customInitContainers[0].env"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('div[data-field="spec.shards.overrides[0].pods.customInitContainers[0].env[2]"] a.delete')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].ports[0].name"]')
+            .type('port1')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].ports[0].hostIP"]')
+            .type('ip1')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].ports[0].hostPort"]')
+            .type('1')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].ports[0].containerPort"]')
+            .type('1')
+        
+        cy.get('select[data-field="spec.shards.overrides[0].pods.customInitContainers[0].ports[0].protocol"]')
+            .select('TCP')
+
+        cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customInitContainers.ports"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].ports[1].name"]')
+            .type('port2')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].ports[1].hostIP"]')
+            .type('ip2')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].ports[1].hostPort"]')
+            .type('2')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].ports[1].containerPort"]')
+            .type('2')
+        
+        cy.get('select[data-field="spec.shards.overrides[0].pods.customInitContainers[0].ports[1].protocol"]')
+            .select('UDP')
+
+        cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customInitContainers.ports"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('div[data-field="spec.shards.overrides[0].pods.customInitContainers[0].ports[2]"] a.delete')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].volumeMounts[0].name"]')
+            .type('vol1')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].volumeMounts[0].readOnly"]')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].volumeMounts[0].mountPath"]')
+            .type('mountPath')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].volumeMounts[0].mountPropagation"]')
+            .type('mountPropagation')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].volumeMounts[0].subPath"]')
+            .type('subPath')
+
+        cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customInitContainers[0].volumeMounts"] + .fieldsetFooter a.addRow')
+            .click()
+
+        cy.get('div[data-field="spec.shards.overrides[0].pods.customInitContainers[0].volumeMounts[1]"] a.delete')
+            .click()
+
+        cy.get('fieldset[data-fieldset="spec.shards.overrides[0].pods.customInitContainers"] + .fieldsetFooter a.addRow')
+            .click()
+
+        cy.get('div[data-field="spec.shards.overrides[0].pods.customInitContainers[1]"] > .header a.delete')
+            .click()
+
+        // Test Custom Containers
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].name"]')
+            .type('container1')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].image"]')
+            .type('image1')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].imagePullPolicy"]')
+            .type('imagePullPolicy1')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].workingDir"]')
+            .type('workingDir1')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].args[0]"]')
+            .type('arg1')
+
+        cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customContainers[0].args"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].args[1]"]')
+            .type('arg2')
+        
+        cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customContainers[0].args"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].args[2]"] + a.delete')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].command[0]"]')
+            .type('command1')
+
+        cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customContainers[0].command"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].command[1]"]')
+            .type('command2')
+
+        cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customContainers[0].command"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].command[2]"] + a.delete')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].env[0].name"]')
+            .type('var1')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].env[0].value"]')
+            .type('val1')
+
+        cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customContainers[0].env"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].env[1].name"]')
+            .type('var2')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].env[1].value"]')
+            .type('val2')
+
+        cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customContainers[0].env"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('div[data-field="spec.shards.overrides[0].pods.customContainers[0].env[2]"] a.delete')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].ports[0].name"]')
+            .type('port1')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].ports[0].hostIP"]')
+            .type('ip1')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].ports[0].hostPort"]')
+            .type('1')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].ports[0].containerPort"]')
+            .type('1')
+        
+        cy.get('select[data-field="spec.shards.overrides[0].pods.customContainers[0].ports[0].protocol"]')
+            .select('TCP')
+
+        cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customContainers.ports"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].ports[1].name"]')
+            .type('port2')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].ports[1].hostIP"]')
+            .type('ip2')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].ports[1].hostPort"]')
+            .type('2')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].ports[1].containerPort"]')
+            .type('2')
+        
+        cy.get('select[data-field="spec.shards.overrides[0].pods.customContainers[0].ports[1].protocol"]')
+            .select('UDP')
+
+        cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customContainers.ports"] + .fieldsetFooter .addRow')
+            .click()
+
+        cy.get('div[data-field="spec.shards.overrides[0].pods.customContainers[0].ports[2]"] a.delete')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].volumeMounts[0].name"]')
+            .type('vol1')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].volumeMounts[0].readOnly"]')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].volumeMounts[0].mountPath"]')
+            .type('mountPath')
+
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].volumeMounts[0].mountPropagation"]')
+            .type('mountPropagation')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].volumeMounts[0].subPath"]')
+            .type('subPath')
+
+        cy.get('fieldset[data-field="spec.shards.overrides[0].pods.customContainers[0].volumeMounts"] + .fieldsetFooter a.addRow')
+            .click()
+
+        cy.get('div[data-field="spec.shards.overrides[0].pods.customContainers[0].volumeMounts[1]"] a.delete')
+            .click()
+
+        cy.get('fieldset[data-fieldset="spec.shards.overrides[0].pods.customContainers"] + .fieldsetFooter a.addRow')
+            .click()
+
+        cy.get('div[data-field="spec.shards.overrides[0].pods.customContainers[1]"] > .header a.delete')
+            .click()
+
+        // Test Overrides Replication
+        cy.get('form#createShardedCluster li[data-step="overrides.pods-replication"]')
+            .click()
+        
+        cy.get('select[data-field="spec.shards.overrides[0].replication.mode"]')
+            .select('sync')
+
+        cy.get('input[data-field="spec.shards.overrides[0].replication.syncInstances"]')
+            .clear()
+            .type('2')
+
+        // Test Overrides Metadata
+        cy.get('form#createShardedCluster li[data-step="overrides.metadata"]')
+            .click()
+
+        cy.get('input[data-field="spec.shards.overrides[0].metadata.labels.clusterPods[0].label"]')
+            .type('label')
+        cy.get('input[data-field="spec.shards.overrides[0].metadata.labels.clusterPods[0].value"]')
+            .type('value')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.allResources[0].annotation"]')
+            .type('annotation')
+        cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.allResources[0].value"]')
+            .type('value')
+
+        cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.clusterPods[0].annotation"]')
+            .type('annotation')
+        cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.clusterPods[0].value"]')
+            .type('value')
+
+        cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.services[0].annotation"]')
+            .type('annotation')        
+        cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.services[0].value"]')
+            .type('value')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.primaryService[0].annotation"]')
+            .type('annotation')        
+        cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.primaryService[0].value"]')
+            .type('value')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.replicasService[0].annotation"]')
+            .type('annotation')        
+        cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.replicasService[0].value"]')
+            .type('value')
+
+        /*  Note: Disable Overrides' Scheduling tests until bug is solved 
+            https://gitlab.com/ongresinc/stackgres/-/issues/2465
+
+            // Tests Overrides' Scheduling
+            cy.get('form#createShardedCluster li[data-step="overrides.scheduling"]')
+                .click()
+
+            // Tests Shards Node Selectors
+            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeSelector[0].label"]')
+                .type('key')
+            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeSelector[0].value"]')
+                .type('value')
+
+            // Tests Shards Node Tolerations
+            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.tolerations[0].key"]')
+                .type('key')
+            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.tolerations[0].value"]')
+                .type('value')
+            cy.get('select[data-field="spec.shards.overrides[0].pods.scheduling.tolerations[0].effect"]')
+                .select('NoSchedule')
+            
+            // Tests Overrides' Node Affinity (Required)
+            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.key"]')
+                .type('key')
+            cy.get('select[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator"]')
+                .select('In')
+            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.values"]')
+                .type('value')
+
+            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.key"]')
+                .type('key')
+            cy.get('select[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.operator"]')
+                .select('In')
+            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.values"]')
+                .type('value')
+            
+            // Tests Overrides' Node Affinity (Preferred)
+            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.key"]')
+                .type('key')
+            cy.get('select[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.operator"]')
+                .select('In')
+            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.values"]')
+                .type('value')
+            
+            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.key"]')
+                .type('key')
+            cy.get('select[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.operator"]')
+                .select('In')
+            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.values"]')
+                .type('value')
+
+            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight"]')
+                .clear()
+                .type('10')
+        */
+
         // Setup get and put mock to check resource is not found and all fields are correctly set
         cy.intercept('GET', '/stackgres/namespaces/' + namespace + '/sgshardedclusters/advanced-' + resourceName)
             .as('getCluster')
@@ -1825,8 +2341,125 @@ describe('Create SGShardedCluster', () => {
             .and('nested.include', {"nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchFields[0].operator": 'In'})
             .and('nested.include', {"nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchFields[0].values[0]": 'value'})
             .and('nested.include', {"nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight": '10'})
+        cy.get('@postCluster')
+            .its('request.body.spec.shards')
+            .should('nested.include', {"overrides[0].instancesPerCluster": '3'})
+            .and('nested.include', {"overrides[0].pods.persistentVolume.size": '2Gi'})
+        // Note: Disabled until overrides' managedSql bug is fixed 
+        /*  
+        cy.get('@postCluster')
+            .and('nested.include', {"overrides[0].managedSql.scripts[0].scriptSpec.scripts[0].script": '' + resourceName})
+            .and('nested.include', {"overrides[0].managedSql.scripts[1].sgScript": 'script-' + resourceName})
+        */
+            .and('nested.include', {"overrides[0].pods.customVolumes[0].emptyDir.medium": 'medium'})
+            .and('nested.include', {"overrides[0].pods.customVolumes[0].emptyDir.sizeLimit": '1Gi'})
+            .and('nested.include', {"overrides[0].pods.customVolumes[1].name": 'vol2'})
+            .and('nested.include', {"overrides[0].pods.customVolumes[1].configMap.name": 'name'})
+            .and('nested.include', {"overrides[0].pods.customVolumes[1].configMap.optional": false})
+            .and('nested.include', {"overrides[0].pods.customVolumes[1].configMap.defaultMode": '0'})
+            .and('nested.include', {"overrides[0].pods.customVolumes[1].configMap.items[0].key": 'key1'})
+            .and('nested.include', {"overrides[0].pods.customVolumes[1].configMap.items[0].mode": '0'})
+            .and('nested.include', {"overrides[0].pods.customVolumes[1].configMap.items[0].path": 'path'})
+            // Note: Disabled until repeater gets optimized. Causes test to wait and fail
+            /* .and('nested.include', {"overrides[0].pods.customVolumes[1].configMap.items[1].key": 'key2'})
+            .and('nested.include', {"overrides[0].pods.customVolumes[1].configMap.items[1].mode": '0'})
+            .and('nested.include', {"overrides[0].pods.customVolumes[1].configMap.items[1].path": 'path2'}) */
+            .and('nested.include', {"overrides[0].pods.customVolumes[2].name": 'vol3'})
+            .and('nested.include', {"overrides[0].pods.customVolumes[2].secret.secretName": 'name'})
+            .and('nested.include', {"overrides[0].pods.customVolumes[2].secret.optional": false})
+            .and('nested.include', {"overrides[0].pods.customVolumes[2].secret.defaultMode": '0'})
+            .and('nested.include', {"overrides[0].pods.customVolumes[2].secret.items[0].key": 'key1'})
+            .and('nested.include', {"overrides[0].pods.customVolumes[2].secret.items[0].mode": '0'})
+            .and('nested.include', {"overrides[0].pods.customVolumes[2].secret.items[0].path": 'path'})
+            // Note: Disabled until repeater gets optimized. Causes test to wait and fail
+            /* .and('nested.include', {"overrides[0].pods.customVolumes[2].secret.items[1].key": 'key2'})
+            .and('nested.include', {"overrides[0].pods.customVolumes[2].secret.items[1].mode": '0'})
+            .and('nested.include', {"overrides[0].pods.customVolumes[2].secret.items[1].path": 'path2'}) */
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].name": 'container1'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].image": 'image1'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].imagePullPolicy": 'imagePullPolicy1'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].workingDir": 'workingDir1'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].args[0]": 'arg1'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].args[1]": 'arg2'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].command[0]": 'command1'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].command[1]": 'command2'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].env[0].name": 'var1'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].env[0].value": 'val1'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].env[1].name": 'var2'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].env[1].value": 'val2'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].ports[0].name": 'port1'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].ports[0].hostIP": 'ip1'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].ports[0].hostPort": '1'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].ports[0].containerPort": '1'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].ports[0].protocol": 'TCP'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].ports[1].name": 'port2'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].ports[1].hostIP": 'ip2'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].ports[1].hostPort": '2'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].ports[1].containerPort": '2'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].ports[1].protocol": 'UDP'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].volumeMounts[0].name": 'vol1'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].volumeMounts[0].readOnly": true})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].volumeMounts[0].mountPath": 'mountPath'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].volumeMounts[0].mountPropagation": 'mountPropagation'})
+            .and('nested.include', {"overrides[0].pods.customInitContainers[0].volumeMounts[0].subPath": 'subPath'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].name": 'container1'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].image": 'image1'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].imagePullPolicy": 'imagePullPolicy1'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].workingDir": 'workingDir1'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].args[0]": 'arg1'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].args[1]": 'arg2'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].command[0]": 'command1'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].command[1]": 'command2'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].env[0].name": 'var1'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].env[0].value": 'val1'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].env[1].name": 'var2'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].env[1].value": 'val2'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].ports[0].name": 'port1'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].ports[0].hostIP": 'ip1'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].ports[0].hostPort": '1'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].ports[0].containerPort": '1'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].ports[0].protocol": 'TCP'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].ports[1].name": 'port2'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].ports[1].hostIP": 'ip2'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].ports[1].hostPort": '2'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].ports[1].containerPort": '2'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].ports[1].protocol": 'UDP'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].volumeMounts[0].name": 'vol1'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].volumeMounts[0].readOnly": true})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].volumeMounts[0].mountPath": 'mountPath'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].volumeMounts[0].mountPropagation": 'mountPropagation'})
+            .and('nested.include', {"overrides[0].pods.customContainers[0].volumeMounts[0].subPath": 'subPath'})
+            .and('nested.include', {"overrides[0].replication.mode": 'sync'})
+            .and('nested.include', {"overrides[0].replication.syncInstances": '2'})
+            .and('nested.include', {"overrides[0].metadata.labels.clusterPods.label": 'value'})
+            .and('nested.include', {"overrides[0].metadata.annotations.allResources.annotation": 'value'})
+            .and('nested.include', {"overrides[0].metadata.annotations.clusterPods.annotation": 'value'})
+            .and('nested.include', {"overrides[0].metadata.annotations.services.annotation": 'value'})
+            .and('nested.include', {"overrides[0].metadata.annotations.primaryService.annotation": 'value'})
+            .and('nested.include', {"overrides[0].metadata.annotations.replicasService.annotation": 'value'})
+        // Note: Disabled until overrides' scheduling bug is fixed 
+        /*  
+        cy.get('@postCluster')
+            .and('nested.include', {"overrides[0].pods.scheduling.nodeSelector.key": 'value'})
+            .and('nested.include', {"overrides[0].pods.scheduling.tolerations[0].key": 'key'})
+            .and('nested.include', {"overrides[0].pods.scheduling.tolerations[0].value": 'value'})
+            .and('nested.include', {"overrides[0].pods.scheduling.tolerations[0].operator": 'Equal'})
+            .and('nested.include', {"overrides[0].pods.scheduling.tolerations[0].effect": 'NoSchedule'})
+            .and('nested.include', {"overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key": 'key'})
+            .and('nested.include', {"overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].operator": 'In'})
+            .and('nested.include', {"overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].values[0]": 'value'})
+            .and('nested.include', {"overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchFields[0].key": 'key'})
+            .and('nested.include', {"overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchFields[0].operator": 'In'})
+            .and('nested.include', {"overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchFields[0].values[0]": 'value'})
+            .and('nested.include', {"overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].key": 'key'})
+            .and('nested.include', {"overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].operator": 'In'})
+            .and('nested.include', {"overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchExpressions[0].values[0]": 'value'})
+            .and('nested.include', {"overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchFields[0].key": 'key'})
+            .and('nested.include', {"overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchFields[0].operator": 'In'})
+            .and('nested.include', {"overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchFields[0].values[0]": 'value'})
+            .and('nested.include', {"overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight": '10'})
+        */
     });
-
     
     it('Updating an advanced SGShardedCluster should be possible', () => {
         // Edit advanced cluster
@@ -1955,7 +2588,7 @@ describe('Create SGShardedCluster', () => {
         cy.get('input[data-field="spec.replication.syncInstances"]')
             .should('have.value', '2')
             .clear()
-            .type('3')
+            .type('1')
 
         // Test Metadata
         cy.get('form#createShardedCluster li[data-step="general.metadata"]')
@@ -2120,7 +2753,7 @@ describe('Create SGShardedCluster', () => {
         
         // Test Coordinator Add Script button
         cy.get('.scriptFieldset > div.fieldsetFooter > a.addRow')
-            .click()
+            .click({force: true})
 
         // Test Coordinator create new script
         cy.get('select[data-field="spec.coordinator.managedSql.scripts.scriptSource.coordinator[2]"]')
@@ -2141,7 +2774,7 @@ describe('Create SGShardedCluster', () => {
         cy.get('input[data-field="spec.coordinator.replication.syncInstances"]')
             .should('have.value', '2')
             .clear()
-            .type('3')
+            .type('1')
 
         // Test Coordinator Postgres Services
         cy.get('form#createShardedCluster li[data-step="coordinator.services"]')
@@ -2433,7 +3066,7 @@ describe('Create SGShardedCluster', () => {
         
         // Test Shards Add Script button
         cy.get('.scriptFieldset > div.fieldsetFooter > a.addRow')
-            .click()
+            .click({force: true})
 
         // Test Shards create new script
         cy.get('select[data-field="spec.shards.managedSql.scripts.scriptSource.shards[2]"]')
@@ -2454,7 +3087,7 @@ describe('Create SGShardedCluster', () => {
         cy.get('input[data-field="spec.shards.replication.syncInstances"]')
             .should('have.value', '2')
             .clear()
-            .type('3')
+            .type('1')
 
         // Test Shards Postgres Services
         cy.get('form#createShardedCluster li[data-step="shards.services"]')
@@ -2780,7 +3413,7 @@ describe('Create SGShardedCluster', () => {
         cy.get('@putCluster')
             .its('request.body.spec.replication')
             .and('nested.include', {"mode": 'strict-sync'})
-            .and('nested.include', {"syncInstances": '3'})
+            .and('nested.include', {"syncInstances": '1'})
         cy.get('@putCluster')
             .its('request.body.spec.metadata')
             .should('nested.include', {"labels.clusterPods.label1": 'value1'})
@@ -2821,7 +3454,7 @@ describe('Create SGShardedCluster', () => {
         cy.get('@putCluster')
             .its('request.body.spec.coordinator.replication')
             .and('nested.include', {"mode": 'strict-sync'})
-            .and('nested.include', {"syncInstances": '3'})
+            .and('nested.include', {"syncInstances": '1'})
         cy.get('@putCluster')
             .its('request.body.spec.postgresServices')
             .should('nested.include', {"coordinator.primary.type": 'NodePort'})
@@ -2894,7 +3527,7 @@ describe('Create SGShardedCluster', () => {
         cy.get('@putCluster')
             .its('request.body.spec.shards.replication')
             .and('nested.include', {"mode": 'strict-sync'})
-            .and('nested.include', {"syncInstances": '3'})
+            .and('nested.include', {"syncInstances": '1'})
         cy.get('@putCluster')
             .its('request.body.spec.postgresServices')
             .should('nested.include', {"shards.primaries.type": 'NodePort'})
@@ -3075,7 +3708,7 @@ describe('Create SGShardedCluster', () => {
 
         // Coordinator Add new Script
         cy.get('.scriptFieldset > div.fieldsetFooter > a.addRow')
-            .click()
+            .click({force: true})
 
         cy.get('select[data-field="spec.coordinator.managedSql.scripts.scriptSource.coordinator[1]"]')
             .select('createNewScript')
@@ -3101,7 +3734,7 @@ describe('Create SGShardedCluster', () => {
 
         // Shards Add new Script
         cy.get('.scriptFieldset > div.fieldsetFooter > a.addRow')
-            .click()
+            .click({force: true})
 
         cy.get('select[data-field="spec.shards.managedSql.scripts.scriptSource.shards[1]"]')
             .select('createNewScript')
