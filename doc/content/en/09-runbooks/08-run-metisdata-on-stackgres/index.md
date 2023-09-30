@@ -50,6 +50,11 @@ spec:
     name: create-metisdata-database
     script: |
       create database metisdata;
+  - id: 1
+    database: metisdata;
+    name: create-extension-pgvector
+    script: |
+      create extension if not exists pg_store_plans;
 ```
 
 ```sh
@@ -67,6 +72,8 @@ metadata:
 spec:
   postgres:
     version: '15'
+    extensions:
+    -name: pg_store_plans
   instances: 1
   pods:
     persistentVolume:
