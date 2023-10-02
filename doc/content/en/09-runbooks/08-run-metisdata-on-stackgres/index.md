@@ -51,8 +51,8 @@ spec:
     script: |
       create database metisdata;
   - id: 1
-    database: metisdata;
-    name: create-extension-pgvector
+    database: metisdata
+    name: create-extension-pgstoreplans
     script: |
       create extension if not exists pg_store_plans;
 ```
@@ -73,7 +73,7 @@ spec:
   postgres:
     version: '15'
     extensions:
-    -name: pg_store_plans
+    - name: pg_store_plans
   instances: 1
   pods:
     persistentVolume:
@@ -104,7 +104,7 @@ postgres-0                     6/6     Running   0          16m
 And the database `metisdata` should exist and being owned by the user with the same name:
 
 ```sh
-kubectl -n metisdata exec -it metisdata-0 -c postgres-util -- psql -l metisdata
+kubectl -n metisdata exec -it metisdata-0 -c postgres-util -- psql -l 
                                              List of databases
    Name    |  Owner   | Encoding | Collate |  Ctype  | ICU Locale | Locale Provider |   Access privileges   
 -----------+----------+----------+---------+---------+------------+-----------------+-----------------------
@@ -122,7 +122,7 @@ kubectl -n metisdata exec -it metisdata-0 -c postgres-util -- psql -l metisdata
 Add the [Metis Helm repository](https://github.com/metis-data/helm-charts) to your local Helm installation and update the Helm repository to ensure that you have the latest version:
 
 ```
-helm repo add metis-data https://metis-data.github.io/helm-charts/Metis
+helm repo metis-data https://metis-data.github.io/helm-charts/
 helm repo update
 ```
 
@@ -131,7 +131,7 @@ Create helm chart with specific api-key and pg connection on your relevant names
 ```
 helm install metis-mmc metis-data/metis-md-collector \
   --set apiKey="*****1" \
-  --set dbConnectionStrings=postgresql://postgres:*****2@postgres.metisdata.svc:5432/postgres;
+  --set dbConnectionStrings=postgresql://postgres:*****2@postgres.metisdata.svc:5432/metisdata;
 ```
 
 Where the:
