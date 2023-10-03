@@ -4,9 +4,9 @@ set -e
 
 cd "$(dirname "$0")"
 
-OUTPUT_TEMPLATE="target/templates/stackgres-operator.qute.yaml"
-
 STACKGRES_VERSION="$(sh ../../ci/build/version.sh)"
+
+OUTPUT_TEMPLATE="target/templates/stackgres-operator.qute.yaml"
 
 rm -Rf "target/stackgres-operator" "target/templates"
 mkdir -p "target"
@@ -25,7 +25,7 @@ mkdir -p "target/templates"
 
 # Helm 3.6.0+ required to set the --kube-version
 helm template --namespace '$namespace$' stackgres-operator "target/stackgres-operator" \
-  --kube-version="v1.22" \
+  --kube-version="1.27" \
   --set-string adminui.service.type='$adminui-service-type$' \
   --set-string grafana.autoEmbed='true' \
   --set-string qutePreprocess='true' \
@@ -41,6 +41,8 @@ helm template --namespace '$namespace$' stackgres-operator "target/stackgres-ope
     BLOCK_SEPARATOR_INDEX="$(printf '%s' "$BLOCK_SEPARATOR_INDEXES" | head -n "$INDEX" | tail -n 1)"
     if [ "$BLOCK_SEPARATOR_INDEX" = "$PREVIOUS_BLOCK_SEPARATOR_INDEX" ]
     then
+      tail -n +"$((PREVIOUS_BLOCK_SEPARATOR_INDEX+1))" $OUTPUT_TEMPLATE \
+        > "target/templates/stackgres-operator-qute-template-$INDEX.yaml"
       break
     fi
     if [ -n "$PREVIOUS_BLOCK_SEPARATOR_INDEX" ]
@@ -96,5 +98,5 @@ sed -i 's/#grafana.preprocess.end/{\/if}/g' $OUTPUT_TEMPLATE
 sed -i 's/#comment.preprocess.start/{|/g' $OUTPUT_TEMPLATE
 sed -i 's/#comment.preprocess.end/|}/g' $OUTPUT_TEMPLATE
 
-sed -i 's/password:.*/password: {webapi-password}/g' $OUTPUT_TEMPLATE
-sed -i 's/clearPassword:.*/clearPassword: {webapi-password-clear}/g' $OUTPUT_TEMPLATE
+sed -i 's/password: \".*\"/password: {webapi-password}/g' $OUTPUT_TEMPLATE
+sed -i 's/clearPassword: \".*\"/clearPassword: {webapi-password-clear}/g' $OUTPUT_TEMPLATE
