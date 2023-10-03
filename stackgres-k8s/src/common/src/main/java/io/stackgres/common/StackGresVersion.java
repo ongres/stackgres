@@ -8,6 +8,7 @@ package io.stackgres.common;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
@@ -54,7 +55,9 @@ public enum StackGresVersion {
     return versionAsNumber;
   }
 
-  public static long getVersionAsNumber(String version) {
+  @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",
+      justification = "False positive")
+  private static long getVersionAsNumber(String version) {
     int lastMajorVersionIndex = version.indexOf('.') - 1;
     if (lastMajorVersionIndex < 0) {
       throw new IllegalArgumentException(
@@ -75,7 +78,7 @@ public enum StackGresVersion {
           version.substring(lastMajorVersionIndex + 2, lastMinorVersionIndex));
       if (majorVersion > 0x3FF
           || minorVersion > 0x3FF) {
-        throw new Exception("Too large numbers");
+        throw new IllegalArgumentException("Too large numbers");
       }
       return majorVersion << 10
           | minorVersion;
@@ -85,7 +88,7 @@ public enum StackGresVersion {
     }
   }
 
-  static StackGresVersion ofVersion(String version) {
+  private static StackGresVersion ofVersion(String version) {
     return Stream.of(values())
         .filter(minorVersion -> version.startsWith(minorVersion.version + ".")
             || version.equals(minorVersion.version))
@@ -164,7 +167,7 @@ public enum StackGresVersion {
     return getStackGresVersionFromResourceAsNumber(distributedLogs);
   }
 
-  private static long getStackGresVersionFromResourceAsNumber(HasMetadata resource) {
+  public static long getStackGresVersionFromResourceAsNumber(HasMetadata resource) {
     return Optional.of(resource)
         .map(HasMetadata::getMetadata)
         .map(ObjectMeta::getAnnotations)

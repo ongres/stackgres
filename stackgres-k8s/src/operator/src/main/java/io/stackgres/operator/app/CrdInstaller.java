@@ -8,17 +8,23 @@ package io.stackgres.operator.app;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionVersion;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.stackgres.common.CrdLoader;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
 import org.jetbrains.annotations.NotNull;
+import org.jooq.lambda.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,15 +36,52 @@ public class CrdInstaller {
   private final ResourceFinder<CustomResourceDefinition> crdResourceFinder;
   private final ResourceWriter<CustomResourceDefinition> crdResourceWriter;
   private final CrdLoader crdLoader;
+  private final KubernetesClient client;
 
   @Inject
   public CrdInstaller(
       ResourceFinder<CustomResourceDefinition> crdResourceFinder,
       ResourceWriter<CustomResourceDefinition> crdResourceWriter,
-      YamlMapperProvider yamlMapperProvider) {
+      YamlMapperProvider yamlMapperProvider,
+      KubernetesClient client) {
     this.crdResourceFinder = crdResourceFinder;
     this.crdResourceWriter = crdResourceWriter;
+    this.client = client;
     this.crdLoader = new CrdLoader(yamlMapperProvider.get());
+  }
+
+  public void checkUpgrade() {
+    var resourcesToUpgrade = crdLoader.scanCrds().stream()
+        .map(crd -> crdResourceFinder.findByName(crd.getMetadata().getName()))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .flatMap(crd -> client
+          .genericKubernetesResources(CustomResourceDefinitionContext.fromCrd(crd))
+          .inAnyNamespace()
+          .list()
+          .getItems()
+          .stream()
+          .map(cluster -> Tuple.tuple(cluster, Optional.of(cluster)
+                .map(StackGresVersion::getStackGresVersionFromResourceAsNumber)
+                .map(Long.valueOf(StackGresVersion.OLDEST.getVersionAsNumber())::compareTo)
+                .filter(comparison -> comparison > 0)
+                .map(result -> "version at " + cluster.getMetadata().getAnnotations()
+                    .get(StackGresContext.VERSION_KEY))
+                .orElse("")))
+          .filter(t -> !t.v2.isEmpty()))
+        .toList();
+    if (!resourcesToUpgrade.isEmpty()) {
+      throw new RuntimeException("Can not upgrade due to some resources still at version"
+          + " older than \"" + StackGresVersion.OLDEST.getVersion() + "\"."
+          + " Please, downgrade to a previous version of the operator and run a SGDbOps of"
+          + " type securityUpgrade on all the SGClusters of the following list"
+          + " (if any is present):\n"
+          + resourcesToUpgrade.stream()
+          .map(t -> t.v1.getKind() + " "
+              + t.v1.getMetadata().getNamespace() + "."
+              + t.v1.getMetadata().getName() + ": " + t.v2)
+          .collect(Collectors.joining("\n")));
+    }
   }
 
   public void installCustomResourceDefinitions() {
