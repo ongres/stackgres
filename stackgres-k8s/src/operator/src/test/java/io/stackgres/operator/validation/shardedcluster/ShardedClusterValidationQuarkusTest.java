@@ -30,6 +30,8 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigList;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileList;
+import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
+import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupList;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import io.stackgres.common.fixture.Fixtures;
@@ -70,7 +72,7 @@ class ShardedClusterValidationQuarkusTest {
     status.setToInstallPostgresExtensions(
         getInstalledExtension("citus", "citus_columnar"));
     StackGresShardedClusterSpec spec = review.getRequest().getObject().getSpec();
-    spec.getPostgres().setVersion("15.2");
+    spec.getPostgres().setVersion(POSTGRES_VERSION);
 
     return review;
   }
@@ -114,7 +116,7 @@ class ShardedClusterValidationQuarkusTest {
     client.resourceList(pgconfList.getItems()).delete();
     var pgConfig = Fixtures.postgresConfig().loadDefault().get();
     pgConfig.getMetadata().setNamespace("test");
-    pgConfig.getSpec().setPostgresVersion("15");
+    pgConfig.getSpec().setPostgresVersion(POSTGRES_MAJOR_VERSION);
     client.resource(pgConfig).createOrReplace();
 
     StackGresProfileList instanceList =
@@ -129,6 +131,16 @@ class ShardedClusterValidationQuarkusTest {
     client.resourceList(storageList.getItems()).delete();
     var storage = Fixtures.storageClass().loadDefault().get();
     client.resource(storage).create();
+
+    StackGresShardedBackupList backupList =
+        client.resources(StackGresShardedBackup.class, StackGresShardedBackupList.class)
+            .list();
+    client.resourceList(backupList.getItems()).delete();
+    var backup = Fixtures.shardedBackupList().loadDefault().get().getItems().get(0);
+    backup.getMetadata().setNamespace("test");
+    backup.getMetadata().setName("backup-with-default-storage-0-297");
+    backup.getStatus().getBackupInformation().setPostgresVersion(POSTGRES_VERSION);
+    client.resource(backup).createOrReplace();
   }
 
   @AfterAll

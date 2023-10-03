@@ -26,7 +26,6 @@ import io.fabric8.kubernetes.api.model.batch.v1.CronJobBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContainer;
-import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
 import io.stackgres.common.labels.ClusterLabelFactory;
@@ -40,9 +39,15 @@ public class KubernetessMockResourceGenerationUtil {
         .withNewMetadata()
         .withNamespace(namespace)
         .withName(name)
-        .withUid(StringUtil.generateRandom())
+        .withUid(generateRandom())
         .endMetadata()
         .build();
+    return buildResources(cluster);
+  }
+
+  public static List<HasMetadata> buildResources(StackGresCluster cluster) {
+    final String namespace = cluster.getMetadata().getNamespace();
+    final String name = cluster.getMetadata().getName();
     ClusterLabelFactory labelFactory = new ClusterLabelFactory(new ClusterLabelMapper());
     return Stream.of(
         new SecretBuilder()

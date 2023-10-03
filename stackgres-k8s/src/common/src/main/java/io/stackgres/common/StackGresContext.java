@@ -46,6 +46,13 @@ public interface StackGresContext {
   String SHARDEDCLUSTER_NAMESPACE_KEY = "shardedcluster-namespace";
   String COORDINATOR_KEY = "coordinator";
   String SHARDS_KEY = "shards";
+  String SHARDED_BACKUP_KEY = "sharded-backup";
+  String SCHEDULED_SHARDED_BACKUP_KEY = "scheduled-sharded-backup";
+  String SCHEDULED_SHARDED_BACKUP_JOB_NAME_KEY = "scheduled-sharded-backup-job-name";
+  String SHARDED_BACKUP_APP_NAME = "StackGresShardedBackup";
+  String SHARDED_BACKUP_NAME_KEY = "sharded-backup-name";
+  String SHARDED_BACKUP_UID_KEY = "sharded-backup-uid";
+  String SHARDED_BACKUP_NAMESPACE_KEY = "backup-namespace";
   String CONFIG_APP_NAME = "StackGresConfig";
   String CONFIG_NAME_KEY = "config-name";
   String CONFIG_UID_KEY = "config-uid";

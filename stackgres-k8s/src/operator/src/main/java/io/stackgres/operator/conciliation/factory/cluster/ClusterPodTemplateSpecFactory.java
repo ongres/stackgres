@@ -44,6 +44,10 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloper;
+import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperContainerPatches;
+import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperPatches;
+import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.InitContainerFactoryDiscoverer;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -56,6 +60,7 @@ import io.stackgres.operator.conciliation.factory.PodTemplateResult;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniRole;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple2;
 
 @Singleton
 @OperatorVersionBinder
@@ -112,6 +117,18 @@ public class ClusterPodTemplateSpecFactory
     final List<String> claimedVolumes = Stream.concat(containers.stream(), initContainers.stream())
         .flatMap(container -> container.getVolumeMounts().stream())
         .map(VolumeMount::getName)
+        .filter(volumeName -> Seq.seq(
+            Optional.of(context.getClusterContext().getConfig().getSpec())
+            .map(StackGresConfigSpec::getDeveloper)
+            .map(StackGresConfigDeveloper::getPatches)
+            .map(StackGresConfigDeveloperPatches::getClusterController)
+            .map(StackGresConfigDeveloperContainerPatches::getVolumes)
+            .stream()
+            .flatMap(List::stream)
+            .map(Volume.class::cast))
+            .grouped(volume -> volume.getName())
+            .map(Tuple2::v1)
+            .noneMatch(volumeName::equals))
         .distinct()
         .toList();
 
@@ -282,6 +299,18 @@ public class ClusterPodTemplateSpecFactory
             .map(VolumeBuilder::new)
             .map(builder -> builder.withName(StackGresVolume.CUSTOM.getName(builder.getName())))
             .map(VolumeBuilder::build)
+            .toList())
+        .addAllToVolumes(Seq.seq(
+            Optional.of(context.getClusterContext().getConfig().getSpec())
+            .map(StackGresConfigSpec::getDeveloper)
+            .map(StackGresConfigDeveloper::getPatches)
+            .map(StackGresConfigDeveloperPatches::getClusterController)
+            .map(StackGresConfigDeveloperContainerPatches::getVolumes)
+            .stream()
+            .flatMap(List::stream)
+            .map(Volume.class::cast))
+            .grouped(volume -> volume.getName())
+            .flatMap(t -> t.v2.limit(1))
             .toList())
         .endSpec()
         .build();

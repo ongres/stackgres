@@ -179,7 +179,7 @@ pgbouncer_users_check() {
     return 1
   fi
 
-  RESPONSE_REPLICA="$(run_query -h "$CLUSTER_NAME" -i 0 -p 5432 -u user2:test)"
+  RESPONSE_REPLICA="$(wait_until run_query -h "$CLUSTER_NAME" -i 0 -p 5432 -u user2:test)"
   if [ "$RESPONSE_REPLICA" = "1" ]
   then
     echo "SUCCESS: Connections are possible using user2 in pgbouncer users section"

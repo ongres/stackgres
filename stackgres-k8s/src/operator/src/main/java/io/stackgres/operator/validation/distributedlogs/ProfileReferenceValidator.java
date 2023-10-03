@@ -10,6 +10,7 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -30,6 +31,8 @@ public class ProfileReferenceValidator implements DistributedLogsValidator {
   }
 
   @Override
+  @SuppressFBWarnings(value = "SF_SWITCH_NO_DEFAULT",
+      justification = "False positive")
   public void validate(StackGresDistributedLogsReview review) throws ValidationFailed {
     switch (review.getRequest().getOperation()) {
       case CREATE: {

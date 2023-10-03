@@ -24,7 +24,7 @@ import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
@@ -112,19 +112,19 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
         .addToVolumeMounts(
             new VolumeMountBuilder()
                 .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())
-                .withMountPath(ClusterStatefulSetPath.PGBOUNCER_CONFIG_PATH.path())
+                .withMountPath(ClusterPath.PGBOUNCER_CONFIG_PATH.path())
                 .build(),
             new VolumeMountBuilder()
                 .withName(StackGresVolume.PGBOUNCER.getName())
-                .withMountPath(ClusterStatefulSetPath.PGBOUNCER_CONFIG_FILE_PATH.path())
+                .withMountPath(ClusterPath.PGBOUNCER_CONFIG_FILE_PATH.path())
                 .withSubPath("pgbouncer.ini")
                 .withReadOnly(true)
                 .build(),
             new VolumeMountBuilder()
                 .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())
-                .withMountPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.path())
-                .withSubPath(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.subPath(
-                    ClusterStatefulSetPath.PGBOUNCER_CONFIG_PATH))
+                .withMountPath(ClusterPath.PGBOUNCER_AUTH_PATH.path())
+                .withSubPath(ClusterPath.PGBOUNCER_AUTH_PATH.subPath(
+                    ClusterPath.PGBOUNCER_CONFIG_PATH))
                 .withReadOnly(true)
                 .build())
         .build();
@@ -177,8 +177,8 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
   private Map<String, String> getDefaultParameters() {
     return Map.ofEntries(
         Map.entry("listen_port", Integer.toString(EnvoyUtil.PG_POOL_PORT)),
-        Map.entry("unix_socket_dir", ClusterStatefulSetPath.PG_RUN_PATH.path()),
-        Map.entry("auth_file", ClusterStatefulSetPath.PGBOUNCER_AUTH_FILE_PATH.path()));
+        Map.entry("unix_socket_dir", ClusterPath.PG_RUN_PATH.path()),
+        Map.entry("auth_file", ClusterPath.PGBOUNCER_AUTH_FILE_PATH.path()));
   }
 
   private Volume buildAuthFileVolume() {

@@ -17,6 +17,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -34,6 +35,7 @@ class ClusterResourceGenerationDiscovererTest
   @Inject
   ClusterResourceGenerationDiscoverer resourceGenerationDiscoverer;
 
+  private StackGresConfig config;
   private StackGresCluster resource;
   private StackGresPostgresConfig pgConfig;
   private StackGresProfile profile;
@@ -43,6 +45,7 @@ class ClusterResourceGenerationDiscovererTest
 
   @BeforeEach
   public void setup() {
+    this.config = Fixtures.config().loadDefault().get();
     this.resource = Fixtures.cluster().loadDefault().withLatestPostgresVersion().get();
     this.pgConfig = Fixtures.postgresConfig().loadDefault().get();
     this.profile = Fixtures.instanceProfile().loadSizeS().get();
@@ -60,6 +63,7 @@ class ClusterResourceGenerationDiscovererTest
   @Override
   protected StackGresClusterContext getResourceContext() {
     return ImmutableStackGresClusterContext.builder()
+        .config(config)
         .source(resource)
         .postgresConfig(pgConfig)
         .profile(profile)

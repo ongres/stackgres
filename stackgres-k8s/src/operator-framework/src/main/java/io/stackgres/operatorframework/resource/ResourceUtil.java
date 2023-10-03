@@ -12,7 +12,6 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -24,8 +23,6 @@ import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
-import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -192,19 +189,6 @@ public interface ResourceUtil {
   }
 
   /**
-   * Get a custom resource definition from Kubernetes.
-   *
-   * @param client Kubernetes client to call the API.
-   * @param crdName Name of the CDR to lookup.
-   * @return the CustomResourceDefinition model.
-   */
-  static Optional<CustomResourceDefinition> getCustomResource(KubernetesClient client,
-      String crdName) {
-    return Optional.ofNullable(client.apiextensions().v1().customResourceDefinitions()
-        .withName(crdName).get());
-  }
-
-  /**
    * Get the object reference of any resource.
    */
   static ObjectReference getObjectReference(HasMetadata resource) {
@@ -240,6 +224,7 @@ public interface ResourceUtil {
         .withName(resource.getMetadata().getName())
         .withUid(resource.getMetadata().getUid())
         .withController(true)
+        .withBlockOwnerDeletion(true)
         .build();
   }
 

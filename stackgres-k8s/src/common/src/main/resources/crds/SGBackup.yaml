@@ -22,7 +22,7 @@ spec:
         jsonPath: .spec.sgCluster
       - name: managed
         type: string
-        jsonPath: .status.process.managedLifecycle
+        jsonPath: .spec.managedLifecycle
       - name: status
         type: string
         jsonPath: .status.process.status

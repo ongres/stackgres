@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.script;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
@@ -19,10 +20,11 @@ public class ScriptConciliator extends AbstractConciliator<StackGresScript> {
 
   @Inject
   public ScriptConciliator(
+      KubernetesClient client,
       RequiredResourceGenerator<StackGresScript> requiredResourceGenerator,
       AbstractDeployedResourcesScanner<StackGresScript> deployedResourcesScanner,
       DeployedResourcesCache deployedResourcesCache) {
-    super(requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
+    super(client, requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
   }
 
 }

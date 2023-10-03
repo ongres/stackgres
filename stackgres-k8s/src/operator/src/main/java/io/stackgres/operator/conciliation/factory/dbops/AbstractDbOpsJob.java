@@ -27,7 +27,7 @@ import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.CdiUtil;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.DbOpsUtil;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.OperatorProperty;
@@ -123,13 +123,13 @@ public abstract class AbstractDbOpsJob implements JobFactory {
     return StackGresUtil.getPatroniImageName(context.getCluster());
   }
 
-  protected abstract ClusterStatefulSetPath getRunScript();
+  protected abstract ClusterPath getRunScript();
 
   protected String getSetResultImage(StackGresDbOpsContext context) {
     return kubectl.getImageName(context.getCluster());
   }
 
-  protected ClusterStatefulSetPath getSetResultScript() {
+  protected ClusterPath getSetResultScript() {
     return null;
   }
 
@@ -268,7 +268,7 @@ public abstract class AbstractDbOpsJob implements JobFactory {
                     .toList())
                 .build())
             .withCommand("/bin/sh", "-ex",
-                ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RUNNING_SH_PATH.path())
+                ClusterPath.LOCAL_BIN_SET_DBOPS_RUNNING_SH_PATH.path())
             .withVolumeMounts(dbOpsVolumeMounts.getVolumeMounts(context))
             .build())
         .withContainers(
@@ -305,7 +305,7 @@ public abstract class AbstractDbOpsJob implements JobFactory {
                         new EnvVarBuilder()
                             .withName("RUN_SCRIPT_PATH")
                             .withValue(Optional.ofNullable(getRunScript())
-                                .map(ClusterStatefulSetPath::path)
+                                .map(ClusterPath::path)
                                 .orElse(""))
                             .build(),
                         new EnvVarBuilder()
@@ -319,7 +319,7 @@ public abstract class AbstractDbOpsJob implements JobFactory {
                     .addAll(runEnvVars)
                     .build())
                 .withCommand("/bin/sh", "-ex",
-                    ClusterStatefulSetPath.LOCAL_BIN_RUN_DBOPS_SH_PATH.path())
+                    ClusterPath.LOCAL_BIN_RUN_DBOPS_SH_PATH.path())
                 .withVolumeMounts(dbOpsVolumeMounts.getVolumeMounts(context))
                 .build(),
             new ContainerBuilder()
@@ -351,7 +351,7 @@ public abstract class AbstractDbOpsJob implements JobFactory {
                         new EnvVarBuilder()
                             .withName("SET_RESULT_SCRIPT_PATH")
                             .withValue(Optional.ofNullable(getSetResultScript())
-                                .map(ClusterStatefulSetPath::path)
+                                .map(ClusterPath::path)
                                 .orElse(""))
                             .build(),
                         new EnvVarBuilder()
@@ -385,7 +385,7 @@ public abstract class AbstractDbOpsJob implements JobFactory {
                     .addAll(setResultEnvVars)
                     .build())
                 .withCommand("/bin/sh", "-ex",
-                    ClusterStatefulSetPath.LOCAL_BIN_SET_DBOPS_RESULT_SH_PATH.path())
+                    ClusterPath.LOCAL_BIN_SET_DBOPS_RESULT_SH_PATH.path())
                 .withVolumeMounts(dbOpsVolumeMounts.getVolumeMounts(context))
                 .build())
         .withVolumes(

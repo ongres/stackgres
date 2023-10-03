@@ -199,7 +199,7 @@ check_backup_pg_version() {
     echo "SUCCESS: Cluster was not created"
   fi
 
-  if grep -q "Cannot restore from backup $BACKUP_NAME" "$LOG_PATH/create-alter-cluster.log"
+  if grep -q "Cannot restore from SGBackup $BACKUP_NAME" "$LOG_PATH/create-alter-cluster.log"
   then
     echo "SUCCESS: Error message was the expected"
   else 

@@ -131,7 +131,25 @@
               "size": "5Gi",
               "storageClass": "standard"
             }
-          }
+          },
+          "overrides":[{
+            "index": 1,
+            "managedSql": {
+              "scripts": [{
+                "id": 0,
+                "sgScript": "stackgres-default"
+              },{
+                "id": 1,
+                "sgScript": "test1"
+              },{
+                "id": 2,
+                "sgScript": "test2"
+              },{
+                "id": 3,
+                "sgScript": "test3"
+              }]
+            }
+          }]
         },
         "prometheusAutobind": "true"
       },

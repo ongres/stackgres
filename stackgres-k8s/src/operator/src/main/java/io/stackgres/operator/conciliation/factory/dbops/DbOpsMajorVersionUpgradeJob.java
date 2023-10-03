@@ -21,7 +21,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContainer;
@@ -198,8 +198,8 @@ public class DbOpsMajorVersionUpgradeJob extends AbstractDbOpsJob {
   }
 
   @Override
-  protected ClusterStatefulSetPath getRunScript() {
-    return ClusterStatefulSetPath.LOCAL_BIN_RUN_MAJOR_VERSION_UPGRADE_SH_PATH;
+  protected ClusterPath getRunScript() {
+    return ClusterPath.LOCAL_BIN_RUN_MAJOR_VERSION_UPGRADE_SH_PATH;
   }
 
   @Override

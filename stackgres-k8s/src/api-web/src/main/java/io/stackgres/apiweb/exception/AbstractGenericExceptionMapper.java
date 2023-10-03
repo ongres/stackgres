@@ -12,6 +12,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
 
 import com.google.common.base.Throwables;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.quarkus.security.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,8 @@ public abstract class AbstractGenericExceptionMapper<T extends Throwable>
       AbstractGenericExceptionMapper.class);
 
   @Override
+  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
+      justification = "False positive")
   public Response toResponse(T throwable) {
     int statusCode = Status.INTERNAL_SERVER_ERROR.getStatusCode();
     Throwable cause = Throwables.getRootCause(throwable);

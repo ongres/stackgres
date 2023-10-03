@@ -1,7 +1,5 @@
 #!/bin/sh
 
-LOCK_RESOURCE="cronjob.batch"
-LOCK_RESOURCE_NAME="$CRONJOB_NAME"
 RETRY_DELAY="${RETRY_DELAY:-1000}"
 
 . "$LOCAL_BIN_SHELL_UTILS_PATH"
@@ -283,7 +281,7 @@ EOF
         (
           kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o yaml
           echo "$BACKUP_STATUS_YAML"
-        ) | kubectl create --dry-run=$DRY_RUN_CLIENT -f - -o json)"
+        ) | kubectl create --dry-run="$DRY_RUN_CLIENT" -f - -o json)"
     else
       BACKUP_ALREADY_COMPLETED=true
     fi
@@ -316,12 +314,11 @@ get_primary_and_replica_pods() {
 }
 
 do_backup() {
-  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
+  if ! cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
     -- sh -e $SHELL_XTRACE > /tmp/backup-push 2>&1
 exec-with-env "$BACKUP_ENV" \\
   -- wal-g backup-push "$PG_DATA_PATH" -f $([ "$BACKUP_IS_PERMANENT" = true ] && printf %s '-p' || true)
 EOF
-  if [ "$?" != 0 ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
       {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed:\n'; cat /tmp/backup-push; } | to_json_string)"'}
@@ -342,14 +339,14 @@ EOF
     echo "Backup name not found in backup-push log"
     exit 1
   fi
+  cat /tmp/backup-push
 }
 
 extract_controldata() {
-  cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
+  if cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
       -- sh -e $SHELL_XTRACE > /tmp/pg_controldata
 pg_controldata --pgdata="$PG_DATA_PATH"
 EOF
-  if [ "$?" = 0 ]
   then
     cat /tmp/pg_controldata | awk -F ':' '{ printf "%s: %s\n", $1, $2 }' | awk '{ $2=$2;print }'| awk -F ': ' '
           BEGIN { print "\n            {"}

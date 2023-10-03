@@ -11,7 +11,7 @@ import javax.inject.Singleton;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -46,13 +46,13 @@ public class InitRelocateBinaries implements ContainerFactory<ClusterContainerCo
         .withImage(patroniImageName)
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",
-            ClusterStatefulSetPath.TEMPLATES_PATH.path()
-                + "/" + ClusterStatefulSetPath.LOCAL_BIN_RELOCATE_BINARIES_SH_PATH.filename())
+            ClusterPath.TEMPLATES_PATH.path()
+                + "/" + ClusterPath.LOCAL_BIN_RELOCATE_BINARIES_SH_PATH.filename())
         .withEnv(postgresExtensionsMounts.getDerivedEnvVars(context))
         .withVolumeMounts(templateMounts.getVolumeMounts(context))
         .addToVolumeMounts(new VolumeMountBuilder()
             .withName(context.getDataVolumeName())
-            .withMountPath(ClusterStatefulSetPath.PG_BASE_PATH.path())
+            .withMountPath(ClusterPath.PG_BASE_PATH.path())
             .build())
         .build();
   }

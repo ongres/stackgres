@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.stackgres.common.ClusterStatefulSetEnvVars;
+import io.stackgres.common.ClusterEnvVar;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
@@ -102,7 +102,7 @@ class PatroniConfigEndpointsTest {
     Map<String, String> pgParams = generator.getPostgresConfigValues(context);
 
     assertTrue(pgParams.containsKey("archive_command"));
-    final String expected = "exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value(cluster)
+    final String expected = "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value(cluster)
         + "' -- wal-g wal-push %p";
     assertEquals(expected, pgParams.get("archive_command"));
   }
@@ -117,7 +117,7 @@ class PatroniConfigEndpointsTest {
     Map<String, String> pgRecoveryParams = generator.getPostgresRecoveryConfigValues(context);
 
     assertTrue(pgRecoveryParams.containsKey("restore_command"));
-    final String expected = "exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value(cluster)
+    final String expected = "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value(cluster)
         + "' -- wal-g wal-fetch %f %p";
     assertEquals(expected, pgRecoveryParams.get("restore_command"));
   }

@@ -26,6 +26,8 @@ import io.stackgres.common.fixture.postgresconfig.JsonPostgresConfigFixture;
 import io.stackgres.common.fixture.postgresconfig.PostgresConfigFixture;
 import io.stackgres.common.fixture.postgresconfig.PostgresConfigListFixture;
 import io.stackgres.common.fixture.script.ScriptFixture;
+import io.stackgres.common.fixture.shardedbackup.ShardedBackupFixture;
+import io.stackgres.common.fixture.shardedbackup.ShardedBackupListFixture;
 import io.stackgres.common.fixture.shardedcluster.ShardedClusterFixture;
 import io.stackgres.common.fixture.shardedcluster.ShardedClusterListFixture;
 import io.stackgres.common.fixture.upgrade.Upgrade;
@@ -106,6 +108,14 @@ public interface Fixtures {
 
   static ShardedClusterListFixture shardedClusterList() {
     return new ShardedClusterListFixture();
+  }
+
+  static ShardedBackupFixture shardedBackup() {
+    return new ShardedBackupFixture();
+  }
+
+  static ShardedBackupListFixture shardedBackupList() {
+    return new ShardedBackupListFixture();
   }
 
   static ConfigFixture config() {

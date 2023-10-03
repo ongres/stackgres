@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -18,6 +19,7 @@ import io.quarkus.test.junit.mockito.InjectMock;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
@@ -27,6 +29,7 @@ import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ClusterFinder;
+import io.stackgres.common.resource.ConfigScanner;
 import io.stackgres.common.resource.PoolingConfigFinder;
 import io.stackgres.common.resource.PostgresConfigFinder;
 import io.stackgres.common.resource.ProfileConfigFinder;
@@ -36,6 +39,9 @@ import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.param
 import org.junit.jupiter.api.BeforeEach;
 
 abstract class AbstractShardedClusterRequiredResourcesGeneratorTest {
+
+  @InjectMock
+  ConfigScanner configScanner;
 
   @InjectMock
   ClusterFinder clusterFinder;
@@ -55,6 +61,7 @@ abstract class AbstractShardedClusterRequiredResourcesGeneratorTest {
   @Inject
   ShardedClusterRequiredResourcesGenerator generator;
 
+  StackGresConfig config;
   StackGresShardedCluster cluster;
   StackGresPostgresConfig postgresConfig;
   StackGresPoolingConfig poolingConfig;
@@ -62,6 +69,7 @@ abstract class AbstractShardedClusterRequiredResourcesGeneratorTest {
 
   @BeforeEach
   void setUp() {
+    config = Fixtures.config().loadDefault().get();
     cluster = Fixtures.shardedCluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL
         .getLatest().streamOrderedVersions()
@@ -88,6 +96,7 @@ abstract class AbstractShardedClusterRequiredResourcesGeneratorTest {
     instanceProfile = Fixtures.instanceProfile().loadSizeS().get();
     instanceProfile.getMetadata().setNamespace(namespace);
     setNamespace(instanceProfile);
+    when(configScanner.findResources()).thenReturn(Optional.of(List.of(config)));
   }
 
   private void setNamespace(HasMetadata resource) {

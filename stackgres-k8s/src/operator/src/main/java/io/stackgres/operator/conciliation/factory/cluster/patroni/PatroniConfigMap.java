@@ -33,7 +33,7 @@ import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
@@ -45,7 +45,7 @@ import io.stackgres.common.crd.CustomContainer;
 import io.stackgres.common.crd.CustomServicePort;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitalData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
@@ -200,7 +200,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
     final int pgPort = EnvoyUtil.PG_ENTRY_PORT;
     final int babelfishPort = EnvoyUtil.BF_ENTRY_PORT;
     Map<String, String> data = new HashMap<>();
-    data.put("PATRONI_CONFIG_FILE", ClusterStatefulSetPath.PATRONI_CONFIG_FILE_PATH.path());
+    data.put("PATRONI_CONFIG_FILE", ClusterPath.PATRONI_CONFIG_FILE_PATH.path());
     data.put("PATRONI_SCOPE", PatroniUtil.clusterScope(cluster));
     data.put("PATRONI_INITIAL_CONFIG", Optional
         .ofNullable(cluster.getSpec().getConfigurations().getPatroni())
@@ -225,13 +225,13 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
         "${PATRONI_KUBERNETES_POD_IP}:" + pgRawPort);
 
     data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:" + EnvoyUtil.PATRONI_PORT);
-    data.put("PATRONI_POSTGRESQL_DATA_DIR", ClusterStatefulSetPath.PG_DATA_PATH.path());
+    data.put("PATRONI_POSTGRESQL_DATA_DIR", ClusterPath.PG_DATA_PATH.path());
     data.put("PATRONI_POSTGRESQL_BIN_DIR", "/usr/lib/postgresql/" + pgVersion + "/bin");
-    data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", ClusterStatefulSetPath.PG_RUN_PATH.path());
+    data.put("PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", ClusterPath.PG_RUN_PATH.path());
 
     if (Optional.ofNullable(cluster.getSpec().getDistributedLogs())
         .map(StackGresClusterDistributedLogs::getSgDistributedLogs).isPresent()) {
-      data.put("PATRONI_LOG_DIR", ClusterStatefulSetPath.PG_LOG_PATH.path());
+      data.put("PATRONI_LOG_DIR", ClusterPath.PG_LOG_PATH.path());
       data.put("PATRONI_LOG_FILE_NUM", "2");
       data.put("PATRONI_LOG_FILE_SIZE", String.valueOf(PATRONI_LOG_FILE_SIZE));
     }
@@ -243,7 +243,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
     data.put("PATRONI_SCRIPTS",
         Optional.ofNullable(
             cluster.getSpec().getInitialData())
-            .map(StackGresClusterInitalData::getScripts)
+            .map(StackGresClusterInitialData::getScripts)
             .map(List::size)
             .map(String::valueOf)
             .orElse("0"));

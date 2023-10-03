@@ -19,4 +19,12 @@ public interface LabelMapperForShardedCluster
     return getKeyPrefix(resource) + StackGresContext.SHARDS_KEY;
   }
 
+  default String scheduledShardedBackupKey(StackGresShardedCluster resource) {
+    return getKeyPrefix(resource) + StackGresContext.SCHEDULED_SHARDED_BACKUP_KEY;
+  }
+
+  default String scheduledShardedBackupJobNameKey(StackGresShardedCluster resource) {
+    return getKeyPrefix(resource) + StackGresContext.SCHEDULED_SHARDED_BACKUP_JOB_NAME_KEY;
+  }
+
 }

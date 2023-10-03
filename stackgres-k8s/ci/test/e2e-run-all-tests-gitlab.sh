@@ -90,18 +90,12 @@ run_all_tests_loop() {
       done
   echo
 
-  if [ "$E2E_SKIP_TEST_CACHE" != true ]
-  then
-    echo "Retrieving cache..."
-    export IS_WEB
-    E2E_EXCLUDES_BY_HASH="$(sh stackgres-k8s/e2e/e2e get_already_passed_tests)"
-    echo 'done'
-  
-    echo
-  else
-    echo "Skipping cache, all tests will be executed!"
-    E2E_EXCLUDES_BY_HASH=""
-  fi
+  echo "Retrieving cache..."
+  export IS_WEB
+  E2E_EXCLUDES_BY_HASH="$(sh stackgres-k8s/e2e/e2e get_already_passed_tests)"
+  echo 'done'
+
+  echo
 
   echo "Retrieved image digests:"
   sort stackgres-k8s/e2e/target/all-test-result-images | uniq \

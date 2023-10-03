@@ -15,7 +15,7 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.StackGresInitContainer;
@@ -55,8 +55,8 @@ public class ScriptsSetUp implements ContainerFactory<ClusterContainerContext> {
         .withImage(kubectl.getImageName(context.getClusterContext().getCluster()))
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",
-            ClusterStatefulSetPath.TEMPLATES_PATH.path()
-                + "/" + ClusterStatefulSetPath.LOCAL_BIN_SETUP_SCRIPTS_SH_PATH.filename())
+            ClusterPath.TEMPLATES_PATH.path()
+                + "/" + ClusterPath.LOCAL_BIN_SETUP_SCRIPTS_SH_PATH.filename())
         .withEnv(getClusterEnvVars(context))
         .addToEnv(new EnvVarBuilder().withName("HOME").withValue("/tmp").build())
         .withVolumeMounts(templateMounts.getVolumeMounts(context))
@@ -77,7 +77,7 @@ public class ScriptsSetUp implements ContainerFactory<ClusterContainerContext> {
             .withName("POSTGRES_PORT")
             .withValue(Integer.toString(EnvoyUtil.PG_PORT))
             .build())
-        .add(ClusterStatefulSetPath.BASE_SECRET_PATH.envVar())
+        .add(ClusterPath.BASE_SECRET_PATH.envVar())
         .build();
   }
 

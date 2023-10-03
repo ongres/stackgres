@@ -10,6 +10,7 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
@@ -21,10 +22,11 @@ public class BackupConciliator extends AbstractConciliator<StackGresBackup> {
 
   @Inject
   public BackupConciliator(
+      KubernetesClient client,
       RequiredResourceGenerator<StackGresBackup> requiredResourceGenerator,
       AbstractDeployedResourcesScanner<StackGresBackup> deployedResourcesScanner,
       DeployedResourcesCache deployedResourcesCache) {
-    super(requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
+    super(client, requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache);
   }
 
   @Override

@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.validation.shardedcluster;
 
-import static io.stackgres.common.StackGresShardedClusterForCitusUtil.getCoordinatorCluster;
+import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.getCoordinatorCluster;
 
 import java.util.List;
 import java.util.Optional;

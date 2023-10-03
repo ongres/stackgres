@@ -127,7 +127,7 @@ class ClusterRequiredResourcesGeneratorForPostgresSslTest
         cluster.getSpec().getConfigurations().getSgPoolingConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getSgInstanceProfile(), clusterNamespace);
-    verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(secretFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
   @Test
@@ -153,7 +153,7 @@ class ClusterRequiredResourcesGeneratorForPostgresSslTest
         cluster.getSpec().getConfigurations().getSgPoolingConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getSgInstanceProfile(), clusterNamespace);
-    verify(secretFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(secretFinder, times(3)).findByNameAndNamespace(any(), any());
   }
 
   @Test
@@ -179,7 +179,7 @@ class ClusterRequiredResourcesGeneratorForPostgresSslTest
         cluster.getSpec().getConfigurations().getSgPoolingConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getSgInstanceProfile(), clusterNamespace);
-    verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(secretFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
   @Test
@@ -205,7 +205,7 @@ class ClusterRequiredResourcesGeneratorForPostgresSslTest
         cluster.getSpec().getConfigurations().getSgPoolingConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getSgInstanceProfile(), clusterNamespace);
-    verify(secretFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(secretFinder, times(3)).findByNameAndNamespace(any(), any());
   }
 
   private void mockPostgresSsl() {

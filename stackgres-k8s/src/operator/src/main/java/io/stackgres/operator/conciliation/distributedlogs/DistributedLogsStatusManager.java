@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation.distributedlogs;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -32,6 +33,7 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.StatusManager;
 import io.stackgres.operatorframework.resource.ConditionUpdater;
+import org.jooq.lambda.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +65,29 @@ public class DistributedLogsStatusManager
       updateCondition(getClusterRequiresUpgrade(), source);
     } else {
       updateCondition(getFalsePendingUpgrade(), source);
+    }
+    if (source.getStatus() != null
+        && source.getStatus().getArch() != null
+        && source.getStatus().getOs() != null
+        && source.getStatus().getPodStatuses() != null
+        && source.getSpec().getToInstallPostgresExtensions() != null) {
+      source.getStatus().getPodStatuses()
+          .stream()
+          .filter(StackGresClusterPodStatus::getPrimary)
+          .flatMap(podStatus -> source.getSpec().getToInstallPostgresExtensions().stream()
+              .filter(toInstallExtension -> podStatus
+                  .getInstalledPostgresExtensions().stream()
+                  .noneMatch(toInstallExtension::equals))
+              .map(toInstallExtension -> Tuple.tuple(
+                  toInstallExtension,
+                  podStatus.getInstalledPostgresExtensions().stream()
+                  .filter(installedExtension -> Objects.equals(
+                      installedExtension.getName(),
+                      toInstallExtension.getName()))
+                  .findFirst())))
+          .filter(t -> t.v2.isPresent())
+          .map(t -> t.map2(Optional::get))
+          .forEach(t -> t.v1.setBuild(t.v2.getBuild()));
     }
     return source;
   }

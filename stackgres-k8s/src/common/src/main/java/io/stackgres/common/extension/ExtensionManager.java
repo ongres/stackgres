@@ -21,7 +21,7 @@ import java.util.zip.GZIPInputStream;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterContext;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.FileSystemHandler;
 import io.stackgres.common.SignatureUtil;
 import io.stackgres.common.WebClientFactory;
@@ -109,7 +109,7 @@ public abstract class ExtensionManager {
         justification = "False positive")
     public boolean isExtensionInstalled() throws Exception {
       return fileSystemHandler.exists(
-          Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
+          Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
           .resolve(packageName + INSTALLED_SUFFIX));
     }
 
@@ -117,7 +117,7 @@ public abstract class ExtensionManager {
         justification = "False positive")
     public boolean areLinksCreated() throws Exception {
       return fileSystemHandler.exists(
-          Paths.get(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH.path(context))
+          Paths.get(ClusterPath.PG_RELOCATED_LIB_PATH.path(context))
           .resolve(packageName + LINKS_CREATED_SUFFIX));
     }
 
@@ -140,10 +140,10 @@ public abstract class ExtensionManager {
         justification = "False positive")
     public void verify() throws Exception {
       try (InputStream signatureInputStream = fileSystemHandler.newInputStream(
-          Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
+          Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
           .resolve(packageName + SHA256_SUFFIX));
           InputStream extensionPackageInputStream = fileSystemHandler.newInputStream(
-              Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
+              Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
               .resolve(packageName + TGZ_SUFFIX))) {
         if (!SignatureUtil.verify(extensionPublisher.getPublicKey(),
             signatureInputStream, extensionPackageInputStream)) {
@@ -158,7 +158,7 @@ public abstract class ExtensionManager {
     public boolean doesInstallOverwriteAnySharedFile() throws Exception {
       try (
           InputStream extensionPackageInputStream = fileSystemHandler.newInputStream(
-              Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
+              Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
               .resolve(packageName + TGZ_SUFFIX));
           InputStream extensionPackageInputStreamUncompressed = new GZIPInputStream(
               extensionPackageInputStream)) {
@@ -169,7 +169,7 @@ public abstract class ExtensionManager {
     @SuppressFBWarnings(value = "UPM_UNCALLED_PRIVATE_METHOD",
         justification = "False positive")
     public boolean doesInstallOverwriteAnySharedFile(InputStream inputStream) throws Exception {
-      return visitTar(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context)),
+      return visitTar(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context)),
           inputStream,
           ExtensionManager.this::isSharedFileOverwritten,
           false, (prev, next) -> prev || next);
@@ -181,7 +181,7 @@ public abstract class ExtensionManager {
     public void installExtension() throws Exception {
       try (
           InputStream extensionPackageInputStream = fileSystemHandler.newInputStream(
-              Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
+              Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
               .resolve(packageName + TGZ_SUFFIX));
           InputStream extensionPackageInputStreamUncompressed = new GZIPInputStream(
               extensionPackageInputStream)) {
@@ -189,30 +189,30 @@ public abstract class ExtensionManager {
       }
       createExtensionLinks();
       fileSystemHandler.createOrReplaceFile(
-          Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
+          Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
           .resolve(packageName + INSTALLED_SUFFIX));
       fileSystemHandler.deleteIfExists(
-          Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
+          Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
           .resolve(packageName + PENDING_SUFFIX));
     }
 
     public void createExtensionLinks() throws Exception {
       fileSystemHandler
-          .list(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_LIB_PATH.path(context)))
+          .list(Paths.get(ClusterPath.PG_EXTENSIONS_LIB_PATH.path(context)))
           .map(libFile -> Tuple.tuple(libFile,
-              Paths.get(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH.path(context))
+              Paths.get(ClusterPath.PG_RELOCATED_LIB_PATH.path(context))
                   .resolve(libFile.getFileName())))
           .forEach(
               Unchecked.consumer(t -> fileSystemHandler
                   .createOrReplaceSymbolicLink(t.v2, t.v1)));
       fileSystemHandler.createOrReplaceFile(
-          Paths.get(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH.path(context))
+          Paths.get(ClusterPath.PG_RELOCATED_LIB_PATH.path(context))
           .resolve(packageName + LINKS_CREATED_SUFFIX));
     }
 
     private void extractTar(InputStream inputStream)
         throws Exception {
-      visitTar(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context)),
+      visitTar(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context)),
           inputStream,
           ExtensionManager.this::extractFile,
           null, (prev, next) -> null);
@@ -220,13 +220,13 @@ public abstract class ExtensionManager {
 
     public boolean isExtensionPendingOverwrite() {
       return fileSystemHandler.exists(
-          Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
+          Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
           .resolve(packageName + PENDING_SUFFIX));
     }
 
     public void setExtensionAsPending() throws Exception {
       fileSystemHandler.createOrReplaceFile(
-          Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
+          Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
           .resolve(packageName + PENDING_SUFFIX));
     }
   }
@@ -245,7 +245,7 @@ public abstract class ExtensionManager {
         justification = "False positive")
     public boolean isExtensionInstalled() throws Exception {
       return fileSystemHandler.exists(
-          Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
+          Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
           .resolve(packageName + INSTALLED_SUFFIX));
     }
 
@@ -254,33 +254,33 @@ public abstract class ExtensionManager {
         justification = "False positive")
     public void uninstallExtension() throws Exception {
       fileSystemHandler.deleteIfExists(
-          Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
+          Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
           .resolve(packageName + INSTALLED_SUFFIX));
       fileSystemHandler.deleteIfExists(
-          Paths.get(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH.path(context))
+          Paths.get(ClusterPath.PG_RELOCATED_LIB_PATH.path(context))
           .resolve(packageName + LINKS_CREATED_SUFFIX));
       fileSystemHandler.deleteIfExists(
-          Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
+          Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
           .resolve(packageName + PENDING_SUFFIX));
       try (
           InputStream extensionPackageInputStream = fileSystemHandler
               .newInputStream(
-                  Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
+                  Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
                   .resolve(packageName + TGZ_SUFFIX));
           InputStream extensionPackageInputStreamUncompressed = new GZIPInputStream(
               extensionPackageInputStream)) {
         removeTarFiles(extensionPackageInputStreamUncompressed);
       }
       fileSystemHandler.deleteIfExists(
-          Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
+          Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
           .resolve(packageName + TGZ_SUFFIX));
       fileSystemHandler.deleteIfExists(
-          Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context))
+          Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context))
           .resolve(packageName + SHA256_SUFFIX));
     }
 
     private void removeTarFiles(InputStream inputStream) throws Exception {
-      visitTar(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context)),
+      visitTar(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context)),
           inputStream,
           ExtensionManager.this::removeFileIfExists,
           null, (prev, next) -> null);

@@ -11,11 +11,16 @@ import java.util.function.Function;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceAccount;
+import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
+import io.fabric8.kubernetes.api.model.rbac.Role;
+import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -87,8 +92,13 @@ public class ShardedClusterDeployedResourceScanner
               ? extends KubernetesResourceList<? extends HasMetadata>,
               ? extends Resource<? extends HasMetadata>>>>ofEntries(
           Map.entry(Secret.class, KubernetesClient::secrets),
+          Map.entry(ConfigMap.class, KubernetesClient::configMaps),
           Map.entry(Endpoints.class, KubernetesClient::endpoints),
           Map.entry(Service.class, KubernetesClient::services),
+          Map.entry(ServiceAccount.class, KubernetesClient::serviceAccounts),
+          Map.entry(Role.class, client -> client.rbac().roles()),
+          Map.entry(RoleBinding.class, client -> client.rbac().roleBindings()),
+          Map.entry(CronJob.class, client -> client.batch().v1().cronjobs()),
           Map.entry(StackGresCluster.class, client -> client
               .resources(StackGresCluster.class, StackGresClusterList.class)),
           Map.entry(StackGresPostgresConfig.class, client -> client

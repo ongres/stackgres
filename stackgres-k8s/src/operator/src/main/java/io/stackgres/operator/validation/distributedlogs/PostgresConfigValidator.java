@@ -13,6 +13,7 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -41,6 +42,8 @@ public class PostgresConfigValidator implements DistributedLogsValidator {
   }
 
   @Override
+  @SuppressFBWarnings(value = "SF_SWITCH_NO_DEFAULT",
+      justification = "False positive")
   public void validate(StackGresDistributedLogsReview review) throws ValidationFailed {
     StackGresDistributedLogs distributedLogs = review.getRequest().getObject();
 

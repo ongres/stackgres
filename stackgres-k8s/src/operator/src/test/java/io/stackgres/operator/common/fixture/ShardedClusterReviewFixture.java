@@ -117,6 +117,12 @@ public class ShardedClusterReviewFixture extends VersionedFixture<StackGresShard
     return this;
   }
 
+  public ShardedClusterReviewFixture loadRestoreConfigUpdate() {
+    fixture = readFromJson(
+        STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_RESTORE_CONFIG_UPDATE_JSON);
+    return this;
+  }
+
   public StackGresShardedClusterReviewBuilder getBuilder() {
     return new StackGresShardedClusterReviewBuilder(fixture);
   }

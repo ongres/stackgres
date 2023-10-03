@@ -20,7 +20,7 @@ import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresPort;
-import io.stackgres.common.StackGresShardedClusterForCitusUtil;
+import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -85,7 +85,7 @@ public class ShardedClusterServices implements
     return new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
-        .withName(StackGresShardedClusterForCitusUtil.anyCoordinatorServiceName(
+        .withName(StackGresShardedClusterUtil.anyCoordinatorServiceName(
             context.getSource()))
         .addToLabels(labelFactory.genericLabels(cluster))
         .endMetadata()
@@ -125,7 +125,7 @@ public class ShardedClusterServices implements
     return new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
-        .withName(StackGresShardedClusterForCitusUtil.primaryCoordinatorServiceName(
+        .withName(StackGresShardedClusterUtil.primaryCoordinatorServiceName(
             context.getSource()))
         .addToLabels(labelFactory.genericLabels(cluster))
         .endMetadata()
@@ -163,7 +163,7 @@ public class ShardedClusterServices implements
     return new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
-        .withName(StackGresShardedClusterForCitusUtil.primariesShardsServiceName(
+        .withName(StackGresShardedClusterUtil.primariesShardsServiceName(
             context.getSource()))
         .addToLabels(labelFactory.genericLabels(cluster))
         .endMetadata()

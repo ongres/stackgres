@@ -16,7 +16,7 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -52,8 +52,8 @@ public class InitRelocateBinaries implements ContainerFactory<DistributedLogsCon
             context.getDistributedLogsContext().getSource()))
         .withImagePullPolicy("IfNotPresent")
         .withCommand("/bin/sh", "-ex",
-            ClusterStatefulSetPath.TEMPLATES_PATH.path()
-                + "/" + ClusterStatefulSetPath.LOCAL_BIN_RELOCATE_BINARIES_SH_PATH.filename())
+            ClusterPath.TEMPLATES_PATH.path()
+                + "/" + ClusterPath.LOCAL_BIN_RELOCATE_BINARIES_SH_PATH.filename())
         .withEnv(getEnvVars(context))
         .withVolumeMounts(getVolumeMounts(context))
         .build();
@@ -65,7 +65,7 @@ public class InitRelocateBinaries implements ContainerFactory<DistributedLogsCon
         .addAll(containerUserOverrideMounts.getVolumeMounts(context))
         .add(new VolumeMountBuilder()
             .withName(context.getDataVolumeName())
-            .withMountPath(ClusterStatefulSetPath.PG_BASE_PATH.path())
+            .withMountPath(ClusterPath.PG_BASE_PATH.path())
             .build())
         .build();
   }

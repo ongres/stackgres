@@ -12,7 +12,7 @@ import javax.enterprise.context.ApplicationScoped;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.StackGresVolume;
 
 @ApplicationScoped
@@ -23,26 +23,26 @@ public class ContainerUserOverrideMounts implements VolumeMountsProvider<Contain
     return List.of(
         new VolumeMountBuilder()
             .withName(StackGresVolume.USER.getName())
-            .withMountPath(ClusterStatefulSetPath.ETC_PASSWD_PATH.path())
-            .withSubPath(ClusterStatefulSetPath.ETC_PASSWD_PATH.subPath())
+            .withMountPath(ClusterPath.ETC_PASSWD_PATH.path())
+            .withSubPath(ClusterPath.ETC_PASSWD_PATH.subPath())
             .withReadOnly(true)
             .build(),
         new VolumeMountBuilder()
             .withName(StackGresVolume.USER.getName())
-            .withMountPath(ClusterStatefulSetPath.ETC_GROUP_PATH.path())
-            .withSubPath(ClusterStatefulSetPath.ETC_GROUP_PATH.subPath())
+            .withMountPath(ClusterPath.ETC_GROUP_PATH.path())
+            .withSubPath(ClusterPath.ETC_GROUP_PATH.subPath())
             .withReadOnly(true)
             .build(),
         new VolumeMountBuilder()
             .withName(StackGresVolume.USER.getName())
-            .withMountPath(ClusterStatefulSetPath.ETC_SHADOW_PATH.path())
-            .withSubPath(ClusterStatefulSetPath.ETC_SHADOW_PATH.subPath())
+            .withMountPath(ClusterPath.ETC_SHADOW_PATH.path())
+            .withSubPath(ClusterPath.ETC_SHADOW_PATH.subPath())
             .withReadOnly(true)
             .build(),
         new VolumeMountBuilder()
             .withName(StackGresVolume.USER.getName())
-            .withMountPath(ClusterStatefulSetPath.ETC_GSHADOW_PATH.path())
-            .withSubPath(ClusterStatefulSetPath.ETC_GSHADOW_PATH.subPath())
+            .withMountPath(ClusterPath.ETC_GSHADOW_PATH.path())
+            .withSubPath(ClusterPath.ETC_GSHADOW_PATH.subPath())
             .withReadOnly(true)
             .build());
   }
@@ -50,10 +50,10 @@ public class ContainerUserOverrideMounts implements VolumeMountsProvider<Contain
   @Override
   public List<EnvVar> getDerivedEnvVars(ContainerContext context) {
     return List.of(
-        ClusterStatefulSetPath.ETC_PASSWD_PATH.envVar(),
-        ClusterStatefulSetPath.ETC_GROUP_PATH.envVar(),
-        ClusterStatefulSetPath.ETC_SHADOW_PATH.envVar(),
-        ClusterStatefulSetPath.ETC_GSHADOW_PATH.envVar()
+        ClusterPath.ETC_PASSWD_PATH.envVar(),
+        ClusterPath.ETC_GROUP_PATH.envVar(),
+        ClusterPath.ETC_SHADOW_PATH.envVar(),
+        ClusterPath.ETC_GSHADOW_PATH.envVar()
     );
   }
 }

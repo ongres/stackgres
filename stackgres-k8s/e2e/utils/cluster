@@ -392,11 +392,6 @@ remove_cluster() {
   helm get manifest "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
     | yq 'select(.kind == "SGCluster")' \
     | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
-  helm get manifest "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
-    | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
-  helm get hooks "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
-    | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
-  helm uninstall "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null || true
   kubectl wait sts --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
   kubectl wait pvc --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
   kubectl wait pod --namespace "$NAMESPACE" -l "cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
@@ -405,6 +400,11 @@ remove_cluster() {
   kubectl wait pvc --namespace "$NAMESPACE" -l "stackgres.io/cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
   kubectl wait pod --namespace "$NAMESPACE" -l "stackgres.io/cluster-name=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
   kubectl delete endpoints --namespace "$NAMESPACE" -l "stackgres.io/cluster-name=$RELEASE" --ignore-not-found 2>/dev/null || true
+  helm get manifest "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
+    | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
+  helm get hooks "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
+    | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
+  helm uninstall "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null || true
 }
 
 remove_cluster_if_exists() {
@@ -414,5 +414,38 @@ remove_cluster_if_exists() {
   if helm get values "$RELEASE"  --namespace "$NAMESPACE" > /dev/null 2>&1
   then
     remove_cluster "$RELEASE" "$NAMESPACE"
+  fi
+}
+
+remove_sharded_cluster() {
+  local RELEASE="$1"
+  local NAMESPACE="$2"
+
+  echo "Deleting release $RELEASE" 
+  helm get manifest "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
+    | yq 'select(.kind == "SGShardedCluster")' \
+    | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
+  kubectl wait sts --namespace "$NAMESPACE" -l "cluster-scope=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
+  kubectl wait pvc --namespace "$NAMESPACE" -l "cluster-scope=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
+  kubectl wait pod --namespace "$NAMESPACE" -l "cluster-scope=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
+  kubectl delete endpoints --namespace "$NAMESPACE" -l "cluster-scope=$RELEASE" --ignore-not-found 2>/dev/null || true
+  kubectl wait sts --namespace "$NAMESPACE" -l "stackgres.io/cluster-scope=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
+  kubectl wait pvc --namespace "$NAMESPACE" -l "stackgres.io/cluster-scope=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
+  kubectl wait pod --namespace "$NAMESPACE" -l "stackgres.io/cluster-scope=$RELEASE" --for=delete --timeout="${E2E_TIMEOUT}s" 2>/dev/null || true
+  kubectl delete endpoints --namespace "$NAMESPACE" -l "stackgres.io/cluster-scope=$RELEASE" --ignore-not-found 2>/dev/null || true
+  helm get manifest "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
+    | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
+  helm get hooks "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
+    | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
+  helm uninstall "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null || true
+}
+
+remove_sharded_cluster_if_exists() {
+  local RELEASE="$1"
+  local NAMESPACE="$2"
+
+  if helm get values "$RELEASE"  --namespace "$NAMESPACE" > /dev/null 2>&1
+  then
+    remove_sharded_cluster "$RELEASE" "$NAMESPACE"
   fi
 }

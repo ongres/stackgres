@@ -19,7 +19,7 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresVolume;
@@ -97,9 +97,9 @@ public class PatroniResetInit implements ContainerFactory<ClusterContainerContex
             .withImage(kubectl.getImageName(clusterContext.getCluster()))
             .withImagePullPolicy("IfNotPresent")
             .withCommand("/bin/sh", "-ex",
-                ClusterStatefulSetPath.TEMPLATES_PATH.path()
+                ClusterPath.TEMPLATES_PATH.path()
                     + "/"
-                    + ClusterStatefulSetPath.LOCAL_BIN_RESET_PATRONI_SH_PATH.filename())
+                    + ClusterPath.LOCAL_BIN_RESET_PATRONI_SH_PATH.filename())
             .addToEnv(
                 new EnvVarBuilder()
                     .withName("PRIMARY_INSTANCE")
@@ -117,7 +117,7 @@ public class PatroniResetInit implements ContainerFactory<ClusterContainerContex
                     .withName("SOURCE_VERSION")
                     .withValue(sourceVersion)
                     .build(),
-                ClusterStatefulSetPath.PG_UPGRADE_PATH.envVar(),
+                ClusterPath.PG_UPGRADE_PATH.envVar(),
                 new EnvVarBuilder()
                     .withName("POD_NAME")
                     .withValueFrom(new EnvVarSourceBuilder()

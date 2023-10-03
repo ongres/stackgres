@@ -24,6 +24,8 @@ PATRONI_ROLE_KEY=role
 PATRONI_PRIMARY_ROLE=master
 PATRONI_REPLICA_ROLE=replica
 BACKUP_ENV=backup
+LOCK_RESOURCE=sgclusters.stackgres.io
+LOCK_RESOURCE_NAME=test
 LOCK_SLEEP=0
 LOCK_TIMEOUT_KEY=stackgres.io/lockTimeout
 LOCK_POD_KEY=stackgres.io/lockPod
@@ -37,7 +39,7 @@ mock kubectl kubectl_mock
 kubectl_mock() {
   mokked
   case "$*" in
-    ("get cronjob.batch "*" --template="'
+    ("get sgclusters.stackgres.io "*" --template="'
   LOCK_POD='*'
   LOCK_TIMEOUT='*'
   RESOURCE_VERSION={{ .metadata.resourceVersion }}
@@ -48,7 +50,7 @@ kubectl_mock() {
       RESOURCE_VERSION=test
       '
     ;;
-    ("annotate cronjob.batch "*)
+    ("annotate sgclusters.stackgres.io "*)
     ;;
     ("get $CLUSTER_CRD_NAME -n $CLUSTER_NAMESPACE $CLUSTER_NAME --template={{ if .spec.configurations.backupPath }}{{ .spec.configurations.backupPath }}{{ else }}{{ (index .spec.configurations.backups 0).path }}{{ end }}")
     echo test

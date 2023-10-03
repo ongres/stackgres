@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.controller;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -16,9 +17,10 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterControllerProperty;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
@@ -27,6 +29,10 @@ import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloper;
+import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperContainerPatches;
+import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperPatches;
+import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.operator.common.Sidecar;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
@@ -147,23 +153,32 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
         .addToVolumeMounts(
             new VolumeMountBuilder()
             .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())
-            .withMountPath(ClusterStatefulSetPath.PGBOUNCER_CONFIG_PATH.path())
+            .withMountPath(ClusterPath.PGBOUNCER_CONFIG_PATH.path())
             .build())
         .addToVolumeMounts(
             new VolumeMountBuilder()
                 .withName(StackGresVolume.PATRONI_CONFIG.getName())
-                .withMountPath(ClusterStatefulSetPath.PATRONI_CONFIG_PATH.path())
+                .withMountPath(ClusterPath.PATRONI_CONFIG_PATH.path())
                 .build())
         .addToVolumeMounts(
             new VolumeMountBuilder()
                 .withName(StackGresVolume.POSTGRES_SSL.getName())
-                .withMountPath(ClusterStatefulSetPath.SSL_PATH.path())
+                .withMountPath(ClusterPath.SSL_PATH.path())
                 .build())
         .addToVolumeMounts(
             new VolumeMountBuilder()
                 .withName(StackGresVolume.POSTGRES_SSL_COPY.getName())
-                .withMountPath(ClusterStatefulSetPath.SSL_COPY_PATH.path())
+                .withMountPath(ClusterPath.SSL_COPY_PATH.path())
                 .build())
+        .addAllToVolumeMounts(Optional.of(context.getClusterContext().getConfig().getSpec())
+            .map(StackGresConfigSpec::getDeveloper)
+            .map(StackGresConfigDeveloper::getPatches)
+            .map(StackGresConfigDeveloperPatches::getClusterController)
+            .map(StackGresConfigDeveloperContainerPatches::getVolumeMounts)
+            .stream()
+            .flatMap(List::stream)
+            .map(VolumeMount.class::cast)
+            .toList())
         .build();
   }
 

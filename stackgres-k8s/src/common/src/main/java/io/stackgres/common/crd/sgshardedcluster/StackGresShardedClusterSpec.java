@@ -74,6 +74,9 @@ public class StackGresShardedClusterSpec {
   private Boolean prometheusAutobind;
 
   @Valid
+  private StackGresShardedClusterInitialData initialData;
+
+  @Valid
   private StackGresClusterNonProduction nonProductionOptions;
 
   @ReferencedField("postgres")
@@ -231,6 +234,14 @@ public class StackGresShardedClusterSpec {
     this.prometheusAutobind = prometheusAutobind;
   }
 
+  public StackGresShardedClusterInitialData getInitialData() {
+    return initialData;
+  }
+
+  public void setInitialData(StackGresShardedClusterInitialData initialData) {
+    this.initialData = initialData;
+  }
+
   public StackGresClusterNonProduction getNonProductionOptions() {
     return nonProductionOptions;
   }
@@ -241,9 +252,9 @@ public class StackGresShardedClusterSpec {
 
   @Override
   public int hashCode() {
-    return Objects.hash(configurations, coordinator, database, distributedLogs, metadata,
-        nonProductionOptions, postgres, postgresServices, prometheusAutobind, replication,
-        type, shards);
+    return Objects.hash(configurations, coordinator, database, distributedLogs, initialData,
+        metadata, nonProductionOptions, postgres, postgresServices, prometheusAutobind,
+        replication, shards, type);
   }
 
   @Override
@@ -259,13 +270,15 @@ public class StackGresShardedClusterSpec {
         && Objects.equals(coordinator, other.coordinator)
         && Objects.equals(database, other.database)
         && Objects.equals(distributedLogs, other.distributedLogs)
+        && Objects.equals(initialData, other.initialData)
         && Objects.equals(metadata, other.metadata)
         && Objects.equals(nonProductionOptions, other.nonProductionOptions)
         && Objects.equals(postgres, other.postgres)
         && Objects.equals(postgresServices, other.postgresServices)
         && Objects.equals(prometheusAutobind, other.prometheusAutobind)
-        && Objects.equals(replication, other.replication) && Objects.equals(type, other.type)
-        && Objects.equals(shards, other.shards);
+        && Objects.equals(replication, other.replication)
+        && Objects.equals(shards, other.shards)
+        && Objects.equals(type, other.type);
   }
 
   @Override

@@ -7,38 +7,38 @@ package io.stackgres.common;
 
 import java.util.Map;
 
-public interface VolumePath {
+public interface VolumePath<T> {
 
   String filename();
 
-  String filename(ClusterContext context);
+  String filename(T context);
 
-  String filename(ClusterContext context, Map<String, String> envVars);
+  String filename(T context, Map<String, String> envVars);
 
   String filename(Map<String, String> envVars);
 
   String path();
 
-  String path(ClusterContext context);
+  String path(T context);
 
-  String path(ClusterContext context, Map<String, String> envVars);
+  String path(T context, Map<String, String> envVars);
 
   String path(Map<String, String> envVars);
 
   String subPath();
 
-  String subPath(ClusterContext context);
+  String subPath(T context);
 
-  String subPath(ClusterContext context, Map<String, String> envVars);
+  String subPath(T context, Map<String, String> envVars);
 
   String subPath(Map<String, String> envVars);
 
-  String subPath(VolumePath relativeTo);
+  String subPath(VolumePath<T> relativeTo);
 
-  String subPath(ClusterContext context, VolumePath relativeTo);
+  String subPath(T context, VolumePath<T> relativeTo);
 
-  String subPath(Map<String, String> envVars, VolumePath relativeTo);
+  String subPath(Map<String, String> envVars, VolumePath<T> relativeTo);
 
-  String subPath(ClusterContext context, Map<String, String> envVars, VolumePath relativeTo);
+  String subPath(T context, Map<String, String> envVars, VolumePath<T> relativeTo);
 
 }

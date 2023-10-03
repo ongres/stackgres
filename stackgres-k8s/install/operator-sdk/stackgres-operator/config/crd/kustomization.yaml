@@ -13,4 +13,5 @@ resources:
 - bases/SGObjectStorage.yaml
 - bases/SGScript.yaml
 - bases/SGShardedCluster.yaml
+- bases/SGShardedBackup.yaml
 #+kubebuilder:scaffold:crdkustomizeresource

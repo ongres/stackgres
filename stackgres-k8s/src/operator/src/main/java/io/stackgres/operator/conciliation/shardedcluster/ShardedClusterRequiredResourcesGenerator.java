@@ -5,16 +5,19 @@
 
 package io.stackgres.operator.conciliation.shardedcluster;
 
-import static io.stackgres.common.StackGresShardedClusterForCitusUtil.CERTIFICATE_KEY;
-import static io.stackgres.common.StackGresShardedClusterForCitusUtil.PRIVATE_KEY_KEY;
-import static io.stackgres.common.StackGresShardedClusterForCitusUtil.getCoordinatorCluster;
-import static io.stackgres.common.StackGresShardedClusterForCitusUtil.getShardsCluster;
-import static io.stackgres.common.StackGresShardedClusterForCitusUtil.postgresSslSecretName;
+import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.CERTIFICATE_KEY;
+import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.PRIVATE_KEY_KEY;
+import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.getCoordinatorCluster;
+import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.getShardsCluster;
+import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.postgresSslSecretName;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -26,6 +29,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
@@ -36,15 +40,24 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterServiceBinding;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.crd.sgcluster.StackGresClusterUserSecretKeyRef;
 import io.stackgres.common.crd.sgcluster.StackGresClusterUsersCredentials;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
+import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupSpec;
+import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupStatus;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinator;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterInitialData;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterRestore;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterRestoreFromBackup;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShards;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
@@ -64,39 +77,51 @@ public class ShardedClusterRequiredResourcesGenerator
 
   private final Supplier<VersionInfo> kubernetesVersionSupplier;
 
+  private final CustomResourceScanner<StackGresConfig> configScanner;
+
   private final CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
 
   private final CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder;
 
   private final CustomResourceFinder<StackGresProfile> profileFinder;
 
+  private final CustomResourceFinder<StackGresShardedBackup> backupFinder;
+
   private final ResourceFinder<Secret> secretFinder;
 
   private final ResourceFinder<Endpoints> endpointsFinder;
+
+  private final CustomResourceScanner<StackGresShardedBackup> shardedBackupScanner;
 
   private final ResourceGenerationDiscoverer<StackGresShardedClusterContext> discoverer;
 
   @Inject
   public ShardedClusterRequiredResourcesGenerator(
       Supplier<VersionInfo> kubernetesVersionSupplier,
+      CustomResourceScanner<StackGresConfig> configScanner,
       CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder,
       CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder,
       CustomResourceFinder<StackGresProfile> profileFinder,
+      CustomResourceFinder<StackGresShardedBackup> backupFinder,
       ResourceFinder<Secret> secretFinder,
       ResourceFinder<Endpoints> endpointsFinder,
+      CustomResourceScanner<StackGresShardedBackup> shardedBackupScanner,
       ResourceGenerationDiscoverer<StackGresShardedClusterContext> discoverer) {
     this.kubernetesVersionSupplier = kubernetesVersionSupplier;
+    this.configScanner = configScanner;
     this.postgresConfigFinder = postgresConfigFinder;
     this.poolingConfigFinder = poolingConfigFinder;
     this.profileFinder = profileFinder;
+    this.backupFinder = backupFinder;
     this.secretFinder = secretFinder;
     this.endpointsFinder = endpointsFinder;
+    this.shardedBackupScanner = shardedBackupScanner;
     this.discoverer = discoverer;
   }
 
   @Override
-  public List<HasMetadata> getRequiredResources(StackGresShardedCluster config) {
-    final ObjectMeta metadata = config.getMetadata();
+  public List<HasMetadata> getRequiredResources(StackGresShardedCluster cluster) {
+    final ObjectMeta metadata = cluster.getMetadata();
     final String clusterName = metadata.getName();
     final String clusterNamespace = metadata.getNamespace();
 
@@ -105,20 +130,48 @@ public class ShardedClusterRequiredResourcesGenerator
     Optional<Secret> databaseSecret = secretFinder
         .findByNameAndNamespace(clusterName, clusterNamespace);
 
+    final StackGresConfig config = configScanner.findResources()
+        .stream()
+        .filter(list -> list.size() == 1)
+        .flatMap(List::stream)
+        .findAny()
+        .orElseThrow(() -> new IllegalArgumentException(
+            "SGConfig not found or more than one exists. Aborting reoconciliation!"));
     StackGresPostgresConfig coordinatorConfig = postgresConfigFinder.findByNameAndNamespace(
-        config.getSpec().getCoordinator().getConfigurations().getSgPostgresConfig(),
+        cluster.getSpec().getCoordinator().getConfigurations().getSgPostgresConfig(),
         clusterNamespace)
         .orElseThrow(() -> new IllegalArgumentException(
             "Coordinator of SGShardedCluster "
                 + clusterNamespace + "." + clusterName
                 + " have a non existent " + StackGresPostgresConfig.KIND
-                + " " + config.getSpec().getCoordinator().getConfigurations()
+                + " " + cluster.getSpec().getCoordinator().getConfigurations()
                 .getSgPostgresConfig()));
-    StackGresClusterContext coordinatorContext = getCoordinatorContext(
-        clusterName, clusterNamespace, config, kubernetesVersion, databaseSecret);
+    if (Optional.of(cluster.getSpec())
+        .map(StackGresShardedClusterSpec::getInitialData)
+        .map(StackGresShardedClusterInitialData::getRestore)
+        .map(StackGresShardedClusterRestore::getFromBackup)
+        .map(StackGresShardedClusterRestoreFromBackup::getName)
+        .isPresent()) {
+      String backupName = cluster.getSpec().getInitialData().getRestore()
+          .getFromBackup().getName();
+      var sgBackups = backupFinder.findByNameAndNamespace(
+          backupName,
+          clusterNamespace)
+          .map(StackGresShardedBackup::getStatus)
+          .map(StackGresShardedBackupStatus::getSgBackups)
+          .orElseThrow(() -> new IllegalArgumentException(
+              "SGShardedBackup " + backupName + " not found"
+                  + " or SGBackup reference not found in it"));
+      if (cluster.getStatus() == null) {
+        cluster.setStatus(new StackGresShardedClusterStatus());
+      }
+      cluster.getStatus().setSgBackups(sgBackups);
+    }
+    StackGresClusterContext coordinatorContext = getCoordinatorContext(config,
+        clusterName, clusterNamespace, cluster, kubernetesVersion, databaseSecret);
 
-    List<StackGresClusterContext> shardsContexts = getShardsContexts(
-        clusterName, clusterNamespace, config, kubernetesVersion, databaseSecret);
+    List<StackGresClusterContext> shardsContexts = getShardsContexts(config,
+        clusterName, clusterNamespace, cluster, kubernetesVersion, databaseSecret);
 
     Optional<Endpoints> coordinatorPrimaryEndpoints = endpointsFinder
         .findByNameAndNamespace(
@@ -130,22 +183,25 @@ public class ShardedClusterRequiredResourcesGenerator
         .flatMap(Optional::stream)
         .toList();
 
-    final Credentials credentials = getCredentials(clusterNamespace, config.getSpec());
+    final Set<String> clusterBackupNamespaces = getClusterBackupNamespaces(clusterNamespace);
+
+    final Credentials credentials = getCredentials(clusterNamespace, cluster.getSpec());
 
     final var userPasswordForBinding = getUserPasswordServiceBindingFromSecret(clusterNamespace,
-        config.getSpec());
+        cluster.getSpec());
 
-    final PostgresSsl postgresSsl = getPostgresSsl(clusterNamespace, config);
+    final PostgresSsl postgresSsl = getPostgresSsl(clusterNamespace, cluster);
 
     StackGresShardedClusterContext context = ImmutableStackGresShardedClusterContext.builder()
         .kubernetesVersion(kubernetesVersion)
-        .source(config)
-        .databaseSecret(databaseSecret)
+        .source(cluster)
         .coordinatorConfig(coordinatorConfig)
         .coordinator(coordinatorContext)
         .shards(shardsContexts)
         .coordinatorPrimaryEndpoints(coordinatorPrimaryEndpoints)
         .shardsPrimaryEndpoints(shardsPrimaryEndpoints)
+        .clusterBackupNamespaces(clusterBackupNamespaces)
+        .databaseSecret(databaseSecret)
         .superuserUsername(credentials.superuserUsername)
         .superuserPassword(credentials.superuserPassword)
         .replicationUsername(credentials.replicationUsername)
@@ -162,12 +218,13 @@ public class ShardedClusterRequiredResourcesGenerator
   }
 
   private StackGresClusterContext getCoordinatorContext(
+      final StackGresConfig config,
       final String clusterName,
       final String clusterNamespace,
-      StackGresShardedCluster config,
+      StackGresShardedCluster cluster,
       VersionInfo kubernetesVersion,
       Optional<Secret> databaseSecret) {
-    final StackGresShardedClusterSpec spec = config.getSpec();
+    final StackGresShardedClusterSpec spec = cluster.getSpec();
     final StackGresShardedClusterCoordinator coordinator = spec.getCoordinator();
     final StackGresClusterConfigurations configuration = coordinator.getConfigurations();
     final StackGresPostgresConfig pgConfig = postgresConfigFinder
@@ -189,10 +246,11 @@ public class ShardedClusterRequiredResourcesGenerator
         .flatMap(poolingConfigName -> poolingConfigFinder
             .findByNameAndNamespace(poolingConfigName, clusterNamespace));
 
-    StackGresCluster coordinatorCluster = getCoordinatorCluster(config);
+    StackGresCluster coordinatorCluster = getCoordinatorCluster(cluster);
 
     StackGresClusterContext coordinatorContext = ImmutableStackGresClusterContext.builder()
         .kubernetesVersion(kubernetesVersion)
+        .config(config)
         .source(coordinatorCluster)
         .postgresConfig(pgConfig)
         .profile(profile)
@@ -203,12 +261,13 @@ public class ShardedClusterRequiredResourcesGenerator
   }
 
   private List<StackGresClusterContext> getShardsContexts(
+      final StackGresConfig config,
       final String clusterName,
       final String clusterNamespace,
-      StackGresShardedCluster config,
+      StackGresShardedCluster cluster,
       VersionInfo kubernetesVersion,
       Optional<Secret> databaseSecret) {
-    final StackGresShardedClusterSpec spec = config.getSpec();
+    final StackGresShardedClusterSpec spec = cluster.getSpec();
     final StackGresShardedClusterShards shards = spec.getShards();
     final StackGresClusterConfigurations configuration = shards.getConfigurations();
     final StackGresPostgresConfig pgConfig = postgresConfigFinder
@@ -230,25 +289,27 @@ public class ShardedClusterRequiredResourcesGenerator
         .flatMap(poolingConfigName -> poolingConfigFinder
             .findByNameAndNamespace(poolingConfigName, clusterNamespace));
 
-    return IntStream.range(0, config.getSpec().getShards().getClusters())
+    return IntStream.range(0, cluster.getSpec().getShards().getClusters())
         .mapToObj(index -> getShardContext(
-            config, kubernetesVersion, databaseSecret,
+            config, cluster, kubernetesVersion, databaseSecret,
             pgConfig, profile, pooling, index))
         .toList();
   }
 
   private StackGresClusterContext getShardContext(
-      StackGresShardedCluster config,
+      StackGresConfig config,
+      StackGresShardedCluster cluster,
       VersionInfo kubernetesVersion,
       Optional<Secret> databaseSecret,
       StackGresPostgresConfig pgConfig,
       StackGresProfile profile,
       Optional<StackGresPoolingConfig> pooling,
       int index) {
-    StackGresCluster shardsCluster = getShardsCluster(config, index);
+    StackGresCluster shardsCluster = getShardsCluster(cluster, index);
 
     StackGresClusterContext shardsContext = ImmutableStackGresClusterContext.builder()
         .kubernetesVersion(kubernetesVersion)
+        .config(config)
         .source(shardsCluster)
         .postgresConfig(pgConfig)
         .profile(profile)
@@ -469,6 +530,25 @@ public class ShardedClusterRequiredResourcesGenerator
         .map(Secret::getData)
         .map(data -> data.get(key))
         .map(ResourceUtil::decodeSecret);
+  }
+
+  private Set<String> getClusterBackupNamespaces(final String clusterNamespace) {
+    return shardedBackupScanner.getResources()
+        .stream()
+        .map(Optional::of)
+        .filter(backup -> backup
+            .map(StackGresShardedBackup::getSpec)
+            .map(StackGresShardedBackupSpec::getSgShardedCluster)
+            .map(StackGresUtil::isRelativeIdNotInSameNamespace)
+            .orElse(false))
+        .map(backup -> backup
+            .map(StackGresShardedBackup::getMetadata)
+            .map(ObjectMeta::getNamespace))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .filter(Predicate.not(clusterNamespace::equals))
+        .collect(Collectors.groupingBy(Function.identity()))
+        .keySet();
   }
 
 }

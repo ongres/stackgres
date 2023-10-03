@@ -130,7 +130,7 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
             .map(Optional::get)
             .grouped(this::getRequestedContextResourceKey)
             .flatMap(t -> t.v2.limit(1))
-            .map(requestedContextResource -> Tuple.tuple(requestedContextResource, false))
+            .map(requestedContextResource -> Tuple.tuple(requestedContextResource, true))
             .collect(ImmutableList.toImmutableList());
       }
     } catch (RuntimeException ex) {

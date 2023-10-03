@@ -20,7 +20,7 @@ ___
 ___
 
 The `SGBackup` custom resource represents a backup of the Postgres cluster.
-Backups are created automatically by a cron job configured using the settings in the [backup configuration](#configuration) or manually by creating a backup custom resource.
+Backups are created automatically by a cron job configured using the settings in the [backup configuration]({{% relref "06-crd-reference/01-sgcluster" %}}#sgclusterspecconfigurationsbackupsindex) or manually by creating a `SGBackup`.
 
 **Example:**
 
@@ -75,15 +75,15 @@ status:
 
 See also [Backups section]({{%  relref "04-administration-guide/04-backups#backups" %}}).
 
-A manual or automatically generated backup of an SGCluster configured with an SGBackupConfig.
+The SGBackup represents a manual or automatically generated backup of an SGCluster configured with an SGObjectStorage.
 
 When a SGBackup is created a Job will perform a full backup of the database and update the status of the SGBackup
  with the all the information required to restore it and some stats (or a failure message in case something unexpected
  happened).
 After an SGBackup is created the same Job performs a reconciliation of the backups by applying the retention window
- that has been configured in the SGBackupConfig and removing the backups with managed lifecycle and the WAL files older
+ that has been configured in the SGObjectStorage and removing the backups with managed lifecycle and the WAL files older
  than the ones that fit in the retention window. The reconciliation also removes backups (excluding WAL files) that do
- not belongs to any SGBackup. If the target storage of the SGBackupConfig is changed deletion of an SGBackup backups
+ not belongs to any SGBackup. If the target storage of the SGObjectStorage is changed deletion of an SGBackup backups
  with managed lifecycle and the WAL files older than the ones that fit in the retention window and of backups that do
  not belongs to any SGBackup will not be performed anymore on the previous storage, only on the new target storage.
 

@@ -39,6 +39,8 @@ public class ShardedClusterSpec {
 
   private Boolean prometheusAutobind;
 
+  private ShardedClusterInitalData initialData;
+
   private ClusterNonProductionOptions nonProductionOptions;
 
   public String getType() {
@@ -135,6 +137,14 @@ public class ShardedClusterSpec {
 
   public void setPostgresServices(ShardedClusterPostgresServices postgresServices) {
     this.postgresServices = postgresServices;
+  }
+
+  public ShardedClusterInitalData getInitialData() {
+    return initialData;
+  }
+
+  public void setInitialData(ShardedClusterInitalData initialData) {
+    this.initialData = initialData;
   }
 
   @Override

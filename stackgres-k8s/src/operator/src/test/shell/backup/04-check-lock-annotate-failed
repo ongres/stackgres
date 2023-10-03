@@ -12,7 +12,7 @@ mock kubectl kubectl_mock_overwrite
 kubectl_mock_overwrite() {
   mokked
   case "$*" in
-    ("annotate cronjob.batch "*)
+    ("annotate sgclusters.stackgres.io "*)
     local ANNOTATION_COUNT="$(cat "$TEST_TARGET_PATH/lock_annotation_count")"
     echo "$((ANNOTATION_COUNT + 1))" > "$TEST_TARGET_PATH/lock_annotation_count"
     if [ "$ANNOTATION_COUNT" = 1 ]

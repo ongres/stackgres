@@ -29,16 +29,22 @@ spec:
   {{- end }}
   {{- if or .Values.shardedCluster.configurations .Values.cluster.configurations.backups }}
   configurations:
+    {{- if not .Values.cluster.disableBackups }}
     {{- with .Values.cluster.configurations.backups }}
     {{- if .sgObjectStorage }}
     backups:
     - {{- toYaml . | nindent 6 }}
     {{- end }}
     {{- end }}
+    {{- end }}
     {{- with ((.Values.shardedCluster.configurations).credentials) }}
     credentials:
       {{- toYaml . | nindent 6 }}
     {{- end }}
+  {{- end }}
+  {{- with .Values.cluster.initialData }}
+  initialData:
+    {{- toYaml . | nindent 4 }}
   {{- end }}
   coordinator:
     instances: {{ .Values.cluster.instances }}

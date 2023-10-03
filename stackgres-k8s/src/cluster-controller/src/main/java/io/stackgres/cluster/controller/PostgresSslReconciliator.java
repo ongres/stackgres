@@ -31,7 +31,7 @@ import io.stackgres.cluster.common.PatroniUtil;
 import io.stackgres.cluster.common.PostgresUtil;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.common.ClusterContext;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
@@ -120,11 +120,11 @@ public class PostgresSslReconciliator {
   }
 
   private boolean sslChanged() throws IOException {
-    return Files.list(Path.of(ClusterStatefulSetPath.SSL_PATH.path()))
+    return Files.list(Path.of(ClusterPath.SSL_PATH.path()))
         .filter(Predicate.not(Files::isDirectory))
         .map(file -> Tuple.tuple(
             file,
-            Path.of(ClusterStatefulSetPath.SSL_COPY_PATH.path())
+            Path.of(ClusterPath.SSL_COPY_PATH.path())
             .resolve(Optional.ofNullable(file.getFileName())
                 .map(Object::toString)
                 .orElseThrow())))
@@ -140,11 +140,11 @@ public class PostgresSslReconciliator {
   }
 
   private void copySsl() throws IOException {
-    Files.list(Path.of(ClusterStatefulSetPath.SSL_PATH.path()))
+    Files.list(Path.of(ClusterPath.SSL_PATH.path()))
         .filter(Predicate.not(Files::isDirectory))
         .map(file -> Tuple.tuple(
             file,
-            Path.of(ClusterStatefulSetPath.SSL_COPY_PATH.path())
+            Path.of(ClusterPath.SSL_COPY_PATH.path())
             .resolve(Optional.ofNullable(file.getFileName())
                 .map(Object::toString)
                 .orElseThrow())))
@@ -160,13 +160,13 @@ public class PostgresSslReconciliator {
   }
 
   private boolean testPostgresSsl(ClusterContext context) {
-    String postgresPassword = PostgresUtil.getPostgresPassword(context, secretFinder);
+    var postgresCredentials = PostgresUtil.getPostgresCredentials(context, secretFinder);
     try (Connection connection = postgresConnectionManager.getConnection(
         "localhost",
         EnvoyUtil.PG_PORT,
         "postgres",
-        "postgres",
-        postgresPassword,
+        postgresCredentials.username(),
+        postgresCredentials.password(),
         Map.entry("sslmode", "require"))) {
       return true;
     } catch (SQLException ex) {

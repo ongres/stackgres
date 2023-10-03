@@ -24,7 +24,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import io.stackgres.common.ClusterContext;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.FileSystemHandler;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.WebClientFactory;
@@ -162,25 +162,25 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(0)).createOrReplaceFile(any());
     verify(fileSystemHandler, times(2)).createDirectories(any());
     verify(fileSystemHandler, times(2)).createDirectories(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))));
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))));
     verify(fileSystemHandler, times(0)).createOrReplaceSymbolicLink(any(), any());
     verify(fileSystemHandler, times(2)).copyOrReplace(any(InputStream.class), any());
     verify(fileSystemHandler, times(1)).copyOrReplace(any(InputStream.class),
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("test.tgz.sha256")));
     verify(fileSystemHandler, times(1)).copyOrReplace(any(InputStream.class),
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("test.tgz")));
     verify(fileSystemHandler, times(2)).setPosixFilePermissions(any(), any());
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("test.tgz.sha256")),
         eq(ImmutableSet.of(
             PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
             PosixFilePermission.GROUP_READ,
             PosixFilePermission.OTHERS_READ)));
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("test.tgz")),
         eq(ImmutableSet.of(
             PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
@@ -200,12 +200,12 @@ public class ExtensionManagerTest {
         ExtensionUtil.getExtensionPackageName(cluster, getInstalledExtension());
     when(fileSystemHandler
         .newInputStream(
-            eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+            eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
                 .resolve(extensionPackageName + ExtensionManager.SHA256_SUFFIX))))
                     .then(invocation -> getClass().getResourceAsStream("/test.tgz.sha256"));
     when(fileSystemHandler
         .newInputStream(
-            eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+            eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
                 .resolve(extensionPackageName + ExtensionManager.TGZ_SUFFIX))))
                     .then(invocation -> getClass().getResourceAsStream("/test.tgz"));
     extensionManager.getExtensionInstaller(context(cluster), extension).verify();;
@@ -217,10 +217,10 @@ public class ExtensionManagerTest {
         eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, cluster, extension)));
     verify(fileSystemHandler, times(2)).newInputStream(any());
     verify(fileSystemHandler, times(1)).newInputStream(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.SHA256_SUFFIX)));
     verify(fileSystemHandler, times(1)).newInputStream(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.TGZ_SUFFIX)));
     verify(fileSystemHandler, times(0)).createOrReplaceFile(any());
     verify(fileSystemHandler, times(0)).createDirectories(any());
@@ -241,13 +241,13 @@ public class ExtensionManagerTest {
         ExtensionUtil.getExtensionPackageName(cluster, getInstalledExtension());
     when(fileSystemHandler
         .newInputStream(
-            eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+            eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
                 .resolve(extensionPackageName + ExtensionManager.TGZ_SUFFIX))))
                     .then(invocation -> getClass().getResourceAsStream("/test.tgz"));
     when(fileSystemHandler
-        .list(eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_LIB_PATH.path(context(cluster))))))
+        .list(eq(Paths.get(ClusterPath.PG_EXTENSIONS_LIB_PATH.path(context(cluster))))))
             .thenReturn(Stream
-                .of(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_LIB_PATH.path(context(cluster)))
+                .of(Paths.get(ClusterPath.PG_EXTENSIONS_LIB_PATH.path(context(cluster)))
                     .resolve("test.so")));
     ExtensionInstaller extensionInstaller =
         extensionManager.getExtensionInstaller(context(cluster), extension);
@@ -259,80 +259,80 @@ public class ExtensionManagerTest {
     verify(webClient, times(0)).getInputStream(any());
     verify(fileSystemHandler, times(1)).newInputStream(any());
     verify(fileSystemHandler, times(1)).newInputStream(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.TGZ_SUFFIX)));
     verify(fileSystemHandler, times(2)).createOrReplaceFile(any());
     verify(fileSystemHandler, times(1)).createOrReplaceFile(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.INSTALLED_SUFFIX)));
     verify(fileSystemHandler, times(1)).createOrReplaceFile(
-        eq(Paths.get(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_RELOCATED_LIB_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.LINKS_CREATED_SUFFIX)));
     verify(fileSystemHandler, times(17)).createDirectories(any());
     verify(fileSystemHandler, times(1)).createDirectories(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr")));
     verify(fileSystemHandler, times(1)).createDirectories(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/lib")));
     verify(fileSystemHandler, times(1)).createDirectories(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/lib/postgresql")));
     verify(fileSystemHandler, times(1)).createDirectories(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/lib/postgresql/12")));
     verify(fileSystemHandler, times(2)).createDirectories(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/lib/postgresql/12/lib")));
     verify(fileSystemHandler, times(1)).createDirectories(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/lib/postgresql/12/bin")));
     verify(fileSystemHandler, times(4)).createDirectories(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))));
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))));
     verify(fileSystemHandler, times(1)).createDirectories(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/share")));
     verify(fileSystemHandler, times(1)).createDirectories(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/share/postgresql")));
     verify(fileSystemHandler, times(1)).createDirectories(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/share/postgresql/12")));
     verify(fileSystemHandler, times(3)).createDirectories(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/share/postgresql/12/extension")));
     verify(fileSystemHandler, times(3)).createOrReplaceSymbolicLink(any(), any());
     verify(fileSystemHandler, times(1)).createOrReplaceSymbolicLink(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))
             .resolve("test.so.1")),
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))
             .resolve("test.so.1.0")));
     verify(fileSystemHandler, times(1)).createOrReplaceSymbolicLink(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))
             .resolve("test.so.2")),
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))
             .resolve("test.so.2.0")));
     verify(fileSystemHandler, times(1)).createOrReplaceSymbolicLink(
-        eq(Paths.get(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_RELOCATED_LIB_PATH.path(context(cluster)))
             .resolve("test.so")),
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_LIB_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_LIB_PATH.path(context(cluster)))
             .resolve("test.so")));
     verify(fileSystemHandler, times(4)).copyOrReplace(any(InputStream.class), any());
     verify(fileSystemHandler, times(1)).copyOrReplace(any(InputStream.class),
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/lib/postgresql/12/lib").resolve("test.so")));
     verify(fileSystemHandler, times(1)).copyOrReplace(any(InputStream.class),
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/share/postgresql/12/extension").resolve("test.control")));
     verify(fileSystemHandler, times(1)).copyOrReplace(any(InputStream.class),
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/share/postgresql/12/extension").resolve("test.sql")));
     verify(fileSystemHandler, times(1)).copyOrReplace(any(InputStream.class),
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))
             .resolve("test.so.1.0")));
     verify(fileSystemHandler, times(15)).setPosixFilePermissions(any(), any());
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr")),
         eq(ImmutableSet.of(
             PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
@@ -340,7 +340,7 @@ public class ExtensionManagerTest {
             PosixFilePermission.GROUP_READ, PosixFilePermission.GROUP_EXECUTE,
             PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_EXECUTE)));
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/lib")),
         eq(ImmutableSet.of(
             PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
@@ -348,7 +348,7 @@ public class ExtensionManagerTest {
             PosixFilePermission.GROUP_READ, PosixFilePermission.GROUP_EXECUTE,
             PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_EXECUTE)));
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/lib/postgresql")),
         eq(ImmutableSet.of(
             PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
@@ -356,7 +356,7 @@ public class ExtensionManagerTest {
             PosixFilePermission.GROUP_READ, PosixFilePermission.GROUP_EXECUTE,
             PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_EXECUTE)));
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/lib/postgresql/12")),
         eq(ImmutableSet.of(
             PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
@@ -364,7 +364,7 @@ public class ExtensionManagerTest {
             PosixFilePermission.GROUP_READ, PosixFilePermission.GROUP_EXECUTE,
             PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_EXECUTE)));
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/lib/postgresql/12/lib")),
         eq(ImmutableSet.of(
             PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
@@ -372,7 +372,7 @@ public class ExtensionManagerTest {
             PosixFilePermission.GROUP_READ, PosixFilePermission.GROUP_EXECUTE,
             PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_EXECUTE)));
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/lib/postgresql/12/bin")),
         eq(ImmutableSet.of(
             PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
@@ -380,14 +380,14 @@ public class ExtensionManagerTest {
             PosixFilePermission.GROUP_READ, PosixFilePermission.GROUP_EXECUTE,
             PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_EXECUTE)));
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))),
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))),
         eq(ImmutableSet.of(
             PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
             PosixFilePermission.OWNER_EXECUTE,
             PosixFilePermission.GROUP_READ, PosixFilePermission.GROUP_EXECUTE,
             PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_EXECUTE)));
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/share")),
         eq(ImmutableSet.of(
             PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
@@ -395,7 +395,7 @@ public class ExtensionManagerTest {
             PosixFilePermission.GROUP_READ, PosixFilePermission.GROUP_EXECUTE,
             PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_EXECUTE)));
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/share/postgresql")),
         eq(ImmutableSet.of(
             PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
@@ -403,7 +403,7 @@ public class ExtensionManagerTest {
             PosixFilePermission.GROUP_READ, PosixFilePermission.GROUP_EXECUTE,
             PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_EXECUTE)));
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/share/postgresql/12")),
         eq(ImmutableSet.of(
             PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
@@ -411,7 +411,7 @@ public class ExtensionManagerTest {
             PosixFilePermission.GROUP_READ, PosixFilePermission.GROUP_EXECUTE,
             PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_EXECUTE)));
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/share/postgresql/12/extension")),
         eq(ImmutableSet.of(
             PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
@@ -419,28 +419,28 @@ public class ExtensionManagerTest {
             PosixFilePermission.GROUP_READ, PosixFilePermission.GROUP_EXECUTE,
             PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_EXECUTE)));
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/lib/postgresql/12/lib").resolve("test.so")),
         eq(ImmutableSet.of(
             PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
             PosixFilePermission.GROUP_READ,
             PosixFilePermission.OTHERS_READ)));
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/share/postgresql/12/extension").resolve("test.control")),
         eq(ImmutableSet.of(
             PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
             PosixFilePermission.GROUP_READ,
             PosixFilePermission.OTHERS_READ)));
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/share/postgresql/12/extension").resolve("test.sql")),
         eq(ImmutableSet.of(
             PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
             PosixFilePermission.GROUP_READ,
             PosixFilePermission.OTHERS_READ)));
     verify(fileSystemHandler, times(1)).setPosixFilePermissions(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))
             .resolve("test.so.1.0")),
         eq(ImmutableSet.of(
             PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE,
@@ -448,7 +448,7 @@ public class ExtensionManagerTest {
             PosixFilePermission.OTHERS_READ)));
     verify(fileSystemHandler, times(1)).deleteIfExists(any());
     verify(fileSystemHandler, times(1)).deleteIfExists(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.PENDING_SUFFIX)));
     verify(fileSystemHandler, times(0)).identical(any(), any());
   }
@@ -462,11 +462,11 @@ public class ExtensionManagerTest {
         ExtensionUtil.getExtensionPackageName(cluster, getInstalledExtension());
     when(fileSystemHandler
         .newInputStream(
-            eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+            eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
                 .resolve(extensionPackageName + ExtensionManager.TGZ_SUFFIX))))
                     .then(invocation -> getClass().getResourceAsStream("/test.tgz"));
     when(fileSystemHandler
-        .exists(eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        .exists(eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/lib/postgresql/12/lib").resolve("test.so"))))
                 .thenReturn(false);
     StackGresClusterInstalledExtension extension = getInstalledExtension();
@@ -480,7 +480,7 @@ public class ExtensionManagerTest {
         eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, cluster, extension)));
     verify(fileSystemHandler, times(1)).newInputStream(any());
     verify(fileSystemHandler, times(1)).newInputStream(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.TGZ_SUFFIX)));
     verify(fileSystemHandler, times(0)).createOrReplaceFile(any());
     verify(fileSystemHandler, times(0)).createDirectories(any());
@@ -500,15 +500,15 @@ public class ExtensionManagerTest {
         ExtensionUtil.getExtensionPackageName(cluster, getInstalledExtension());
     when(fileSystemHandler
         .newInputStream(
-            eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+            eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
                 .resolve(extensionPackageName + ExtensionManager.TGZ_SUFFIX))))
                     .then(invocation -> getClass().getResourceAsStream("/test.tgz"));
     when(fileSystemHandler
-        .exists(eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        .exists(eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/lib/postgresql/12/lib").resolve("test.so"))))
                 .thenReturn(true);
     when(fileSystemHandler
-        .identical(eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        .identical(eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/lib/postgresql/12/lib").resolve("test.so")), any()))
                 .thenReturn(true);
     StackGresClusterInstalledExtension extension = getInstalledExtension();
@@ -522,7 +522,7 @@ public class ExtensionManagerTest {
         eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, cluster, extension)));
     verify(fileSystemHandler, times(1)).newInputStream(any());
     verify(fileSystemHandler, times(1)).newInputStream(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.TGZ_SUFFIX)));
     verify(fileSystemHandler, times(0)).createOrReplaceFile(any());
     verify(fileSystemHandler, times(0)).createDirectories(any());
@@ -532,7 +532,7 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(0)).deleteIfExists(any());
     verify(fileSystemHandler, times(1)).identical(any(), any());
     verify(fileSystemHandler, times(1)).identical(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/lib/postgresql/12/lib").resolve("test.so")), any());
   }
 
@@ -545,15 +545,15 @@ public class ExtensionManagerTest {
         ExtensionUtil.getExtensionPackageName(cluster, getInstalledExtension());
     when(fileSystemHandler
         .newInputStream(
-            eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+            eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
                 .resolve(extensionPackageName + ExtensionManager.TGZ_SUFFIX))))
                     .then(invocation -> getClass().getResourceAsStream("/test.tgz"));
     when(fileSystemHandler
-        .exists(eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        .exists(eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/lib/postgresql/12/lib").resolve("test.so"))))
                 .thenReturn(true);
     when(fileSystemHandler
-        .identical(eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        .identical(eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/lib/postgresql/12/lib").resolve("test.so")), any()))
                 .thenReturn(false);
     StackGresClusterInstalledExtension extension = getInstalledExtension();
@@ -566,10 +566,10 @@ public class ExtensionManagerTest {
     verify(webClient, times(0)).getInputStream(
         eq(ExtensionUtil.getExtensionPackageUri(REPOSITORY, cluster, extension)));
     verify(fileSystemHandler, times(0)).newInputStream(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.SHA256_SUFFIX)));
     verify(fileSystemHandler, times(1)).newInputStream(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.TGZ_SUFFIX)));
     verify(fileSystemHandler, times(0)).createOrReplaceFile(any());
     verify(fileSystemHandler, times(0)).createDirectories(any());
@@ -579,7 +579,7 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(0)).deleteIfExists(any());
     verify(fileSystemHandler, times(1)).identical(any(), any());
     verify(fileSystemHandler, times(1)).identical(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/lib/postgresql/12/lib").resolve("test.so")), any());
   }
 
@@ -616,7 +616,7 @@ public class ExtensionManagerTest {
     final String extensionPackageName =
         ExtensionUtil.getExtensionPackageName(cluster, getInstalledExtension());
     when(fileSystemHandler
-        .exists(eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        .exists(eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.PENDING_SUFFIX))))
                 .thenReturn(true);
     StackGresClusterInstalledExtension extension = getInstalledExtension();
@@ -658,7 +658,7 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(0)).newInputStream(any());
     verify(fileSystemHandler, times(1)).createOrReplaceFile(any());
     verify(fileSystemHandler, times(1)).createOrReplaceFile(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.PENDING_SUFFIX)));
     verify(fileSystemHandler, times(0)).createDirectories(any());
     verify(fileSystemHandler, times(0)).createOrReplaceSymbolicLink(any(), any());
@@ -676,7 +676,7 @@ public class ExtensionManagerTest {
         ExtensionUtil.getExtensionPackageName(cluster, getInstalledExtension());
     when(fileSystemHandler
         .newInputStream(
-            eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+            eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
                 .resolve(extensionPackageName + ExtensionManager.TGZ_SUFFIX))))
                     .then(invocation -> getClass().getResourceAsStream("/test.tgz"));
     StackGresClusterInstalledExtension installedExtension = getInstalledExtension();
@@ -687,10 +687,10 @@ public class ExtensionManagerTest {
         eq(ExtensionUtil.getIndexUri(REPOSITORY)), eq(StackGresExtensions.class));
     verify(webClient, times(0)).getInputStream(any());
     verify(fileSystemHandler, times(0)).newInputStream(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.INSTALLED_SUFFIX)));
     verify(fileSystemHandler, times(1)).newInputStream(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.TGZ_SUFFIX)));
     verify(fileSystemHandler, times(0)).createOrReplaceFile(any());
     verify(fileSystemHandler, times(0)).createDirectories(any());
@@ -699,25 +699,25 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(0)).setPosixFilePermissions(any(), any());
     verify(fileSystemHandler, times(7)).deleteIfExists(any());
     verify(fileSystemHandler, times(1)).deleteIfExists(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/share/postgresql/12/extension").resolve("test.control")));
     verify(fileSystemHandler, times(1)).deleteIfExists(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/share/postgresql/12/extension").resolve("test.sql")));
     verify(fileSystemHandler, times(1)).deleteIfExists(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.TGZ_SUFFIX)));
     verify(fileSystemHandler, times(1)).deleteIfExists(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.SHA256_SUFFIX)));
     verify(fileSystemHandler, times(1)).deleteIfExists(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.PENDING_SUFFIX)));
     verify(fileSystemHandler, times(1)).deleteIfExists(
-        eq(Paths.get(ClusterStatefulSetPath.PG_RELOCATED_LIB_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_RELOCATED_LIB_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.LINKS_CREATED_SUFFIX)));
     verify(fileSystemHandler, times(1)).deleteIfExists(
-        eq(Paths.get(ClusterStatefulSetPath.PG_EXTENSIONS_PATH.path(context(cluster)))
+        eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.INSTALLED_SUFFIX)));
     verify(fileSystemHandler, times(0)).identical(any(), any());
   }

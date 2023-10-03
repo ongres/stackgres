@@ -7,6 +7,7 @@ package io.stackgres.operator.validation.dbops;
 
 import javax.inject.Singleton;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.operator.common.DbOpsReview;
@@ -18,6 +19,8 @@ import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFail
 public class DbOpsImmutableSpecValidator implements DbOpsValidator {
 
   @Override
+  @SuppressFBWarnings(value = "SF_SWITCH_NO_DEFAULT",
+      justification = "False positive")
   public void validate(DbOpsReview review) throws ValidationFailed {
 
     switch (review.getRequest().getOperation()) {

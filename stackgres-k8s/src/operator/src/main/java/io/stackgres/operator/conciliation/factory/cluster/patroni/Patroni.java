@@ -27,7 +27,7 @@ import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
@@ -36,7 +36,7 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitalData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -124,11 +124,11 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
         .addAll(postgresSocket.getVolumeMounts(context))
         .add(new VolumeMountBuilder()
             .withName(StackGresVolume.DSHM.getName())
-            .withMountPath(ClusterStatefulSetPath.SHARED_MEMORY_PATH.path())
+            .withMountPath(ClusterPath.SHARED_MEMORY_PATH.path())
             .build())
         .add(new VolumeMountBuilder()
             .withName(StackGresVolume.LOG.getName())
-            .withMountPath(ClusterStatefulSetPath.PG_LOG_PATH.path())
+            .withMountPath(ClusterPath.PG_LOG_PATH.path())
             .build())
         .addAll(localBinMounts.getVolumeMounts(context))
         .addAll(patroniMounts.getVolumeMounts(context))
@@ -138,12 +138,12 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
         .addAll(hugePagesMounts.getVolumeMounts(context))
         .add(new VolumeMountBuilder()
             .withName(StackGresVolume.POSTGRES_SSL_COPY.getName())
-            .withMountPath(ClusterStatefulSetPath.SSL_PATH.path())
+            .withMountPath(ClusterPath.SSL_PATH.path())
             .withReadOnly(true)
             .build());
 
     Optional.ofNullable(cluster.getSpec().getInitialData())
-        .map(StackGresClusterInitalData::getRestore)
+        .map(StackGresClusterInitialData::getRestore)
         .map(StackGresClusterRestore::getFromBackup)
         .map(StackGresClusterRestoreFromBackup::getName).ifPresent(ignore ->
             volumeMounts.addAll(restoreMounts.getVolumeMounts(context))
@@ -153,7 +153,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
         .withName(StackGresContainer.PATRONI.getName())
         .withImage(patroniImageName)
         .withCommand("/bin/sh", "-ex",
-            ClusterStatefulSetPath.LOCAL_BIN_START_PATRONI_SH_PATH.path())
+            ClusterPath.LOCAL_BIN_START_PATRONI_SH_PATH.path())
         .withImagePullPolicy("IfNotPresent")
         .withPorts(
             new ContainerPortBuilder()

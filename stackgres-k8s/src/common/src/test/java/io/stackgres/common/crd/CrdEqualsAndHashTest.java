@@ -17,6 +17,7 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.testutil.ModelTestUtil;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -37,6 +38,7 @@ public class CrdEqualsAndHashTest {
       StackGresObjectStorage.class,
       StackGresScript.class,
       StackGresShardedCluster.class,
+      StackGresShardedBackup.class,
   })
   void crdShouldHaveEqualsAndHash(Class<?> resourceClazz) {
     var resource = ModelTestUtil.createWithRandomData(resourceClazz);

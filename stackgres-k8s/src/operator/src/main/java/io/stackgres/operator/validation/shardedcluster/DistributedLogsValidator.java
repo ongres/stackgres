@@ -10,6 +10,7 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
@@ -33,6 +34,8 @@ public class DistributedLogsValidator implements ShardedClusterValidator {
   }
 
   @Override
+  @SuppressFBWarnings(value = "SF_SWITCH_NO_DEFAULT",
+      justification = "False positive")
   public void validate(StackGresShardedClusterReview review) throws ValidationFailed {
     switch (review.getRequest().getOperation()) {
       case CREATE: {

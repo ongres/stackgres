@@ -15,7 +15,6 @@ import java.util.stream.Stream;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
-import io.stackgres.common.ClusterContext;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -38,8 +37,6 @@ import org.mockito.MockitoAnnotations;
 public class BackupJobTest {
 
   @Mock
-  private ClusterEnvironmentVariablesFactoryDiscoverer<ClusterContext> envFactoryDiscoverer;
-  @Mock
   private LabelFactoryForCluster<StackGresCluster> labelFactory;
   @Mock
   private LabelFactoryForBackup backupLabelFactory;
@@ -54,6 +51,8 @@ public class BackupJobTest {
   @Mock
   private LabelMapperForCluster<StackGresCluster> labelMapperSgCluster;
   @Mock
+  private ClusterEnvironmentVariablesFactoryDiscoverer envFactoryDiscoverer;
+  @Mock
   private BackupScriptTemplatesVolumeMounts backupScriptTemplatesVolumeMounts;
   @Mock
   private BackupTemplatesVolumeFactory backupTemplatesVolumeFactory;
@@ -67,9 +66,9 @@ public class BackupJobTest {
   public void setup() {
     MockitoAnnotations.openMocks(this);
     backupJob =
-        new BackupJob(envFactoryDiscoverer, backupLabelFactory, labelFactory,
-            backupPodSecurityFactory, kubectl, backupScriptTemplatesVolumeMounts,
-            backupTemplatesVolumeFactory);
+        new BackupJob(backupLabelFactory, labelFactory,
+            backupPodSecurityFactory, kubectl, envFactoryDiscoverer,
+            backupScriptTemplatesVolumeMounts, backupTemplatesVolumeFactory);
     sgBackup = Fixtures.backup().loadDefault().get();
     sgCluster = Fixtures.cluster().loadSchedulingBackup().get();
     backupPerformance = new BackupPerformance(10L, 10L, 1, null, null);

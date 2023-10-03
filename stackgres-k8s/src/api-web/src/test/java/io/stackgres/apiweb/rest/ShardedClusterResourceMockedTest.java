@@ -55,7 +55,7 @@ import io.stackgres.apiweb.transformer.ScriptTransformer;
 import io.stackgres.apiweb.transformer.ShardedClusterStatsTransformer;
 import io.stackgres.apiweb.transformer.ShardedClusterTransformer;
 import io.stackgres.common.StackGresPropertyContext;
-import io.stackgres.common.StackGresShardedClusterForCitusUtil;
+import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
@@ -146,7 +146,7 @@ class ShardedClusterResourceMockedTest extends
     servicePrimary = new ServiceBuilder()
         .withNewMetadata()
         .withNamespace(getResourceNamespace())
-        .withName(StackGresShardedClusterForCitusUtil
+        .withName(StackGresShardedClusterUtil
             .primaryCoordinatorServiceName(getResourceName()))
         .endMetadata()
         .withNewSpec()
@@ -747,7 +747,7 @@ class ShardedClusterResourceMockedTest extends
   protected void checkDto(ShardedClusterDto dto, StackGresShardedCluster customResource) {
     if (dto.getInfo() != null) {
       String appendDns = "." + "stackgres";
-      String expectedPrimaryDns = StackGresShardedClusterForCitusUtil
+      String expectedPrimaryDns = StackGresShardedClusterUtil
           .primaryCoordinatorServiceName("stackgres") + appendDns;
       assertEquals(expectedPrimaryDns, dto.getInfo().getPrimaryDns());
       assertEquals("postgres", dto.getInfo().getSuperuserUsername());

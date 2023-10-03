@@ -154,6 +154,7 @@ cluster:
     # - secret:
     # customContainers:
     # customInitContainers:
+  # disableBackups: false
   configurations:
     sgPostgresConfig: postgresconf
     sgPoolingConfig: pgbouncerconf

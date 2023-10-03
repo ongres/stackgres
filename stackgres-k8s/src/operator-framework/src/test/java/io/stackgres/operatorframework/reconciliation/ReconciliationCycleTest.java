@@ -60,6 +60,8 @@ class ReconciliationCycleTest {
   @Test
   void ifCalled_reconciliationShouldWork() throws Exception {
     when(reconciliator.reconcile(any(), any()))
+        .thenReturn(new ReconciliationResult<>())
+        .thenThrow(RuntimeException.class)
         .thenReturn(new ReconciliationResult<>());
     ReconciliationCycleResult<?> result =
         reconciliationCycle.reconciliationCycle(ImmutableList.of(Optional.of(resource)));
@@ -127,7 +129,7 @@ class ReconciliationCycleTest {
 
     @Override
     protected TestCustomResource getExistingContextResource(TestCustomResource contextResource) {
-      return null;
+      return contextResource;
     }
 
     @Override

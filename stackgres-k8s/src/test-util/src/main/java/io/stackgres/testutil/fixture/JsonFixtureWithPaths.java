@@ -487,6 +487,9 @@ public interface JsonFixtureWithPaths {
   String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_PROFILE_CONFIG_UPDATE_JSON =
       "stackgres/sharded_cluster/admission_review/profile_config_update.json";
 
+  String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_RESTORE_CONFIG_UPDATE_JSON =
+      "stackgres/sharded_cluster/admission_review/restore_config_update.json";
+
   String STACKGRES_SHARDED_CLUSTER_ADMISSION_REVIEW_STORAGE_CLASS_CONFIG_UPDATE_JSON =
       "stackgres/sharded_cluster/admission_review/storage_class_config_update.json";
 
@@ -510,6 +513,21 @@ public interface JsonFixtureWithPaths {
       "stackgres/sharded_cluster/inline_scripts.json";
 
   String STACKGRES_SHARDED_CLUSTER_LIST_JSON = "stackgres/sharded_cluster/list.json";
+
+  String STACKGRES_SHARDED_BACKUP_ADMISSION_REVIEW_CREATE_JSON =
+      "stackgres/sharded_backup/admission_review/create.json";
+
+  String STACKGRES_SHARDED_BACKUP_ADMISSION_REVIEW_DELETE_JSON =
+      "stackgres/sharded_backup/admission_review/delete.json";
+
+  String STACKGRES_SHARDED_BACKUP_ADMISSION_REVIEW_UPDATE_JSON =
+      "stackgres/sharded_backup/admission_review/update.json";
+
+  String STACKGRES_SHARDED_BACKUP_DEFAULT_JSON = "stackgres/sharded_backup/default.json";
+
+  String STACKGRES_SHARDED_BACKUP_DTO_JSON = "stackgres/sharded_backup/dto.json";
+
+  String STACKGRES_SHARDED_BACKUP_LIST_JSON = "stackgres/sharded_backup/list.json";
 
   String STATEFULSET_0_9_5_JSON = "statefulset/0.9.5.json";
 

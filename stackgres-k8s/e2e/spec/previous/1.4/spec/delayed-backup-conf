@@ -44,7 +44,7 @@ add_backup_manually(){
             key: secretkey
 EOF
 
-  enable_cron_schedule
+  enable_cluster_cron_schedule
 
   kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true"
 

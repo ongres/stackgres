@@ -18,7 +18,7 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
@@ -56,7 +56,22 @@ public class MajorVersionUpgradeInit implements ContainerFactory<ClusterContaine
         .map(StackGresCluster::getStatus)
         .map(StackGresClusterStatus::getDbOps)
         .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
-        .isPresent();
+        .isPresent()
+        && (Optional.of(context.getClusterContext().getSource())
+            .map(StackGresCluster::getStatus)
+            .map(StackGresClusterStatus::getDbOps)
+            .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
+            .map(StackGresClusterDbOpsMajorVersionUpgradeStatus::getSourcePostgresVersion)
+            .map(context.getClusterContext().getCluster()
+                .getSpec().getPostgres().getVersion()::equals)
+            .map(equals -> !equals)
+            .orElse(false)
+            || Optional.of(context.getClusterContext().getSource())
+            .map(StackGresCluster::getStatus)
+            .map(StackGresClusterStatus::getDbOps)
+            .map(StackGresClusterDbOpsStatus::getMajorVersionUpgrade)
+            .map(StackGresClusterDbOpsMajorVersionUpgradeStatus::getRollback)
+            .orElse(false));
   }
 
   @Override
@@ -96,9 +111,9 @@ public class MajorVersionUpgradeInit implements ContainerFactory<ClusterContaine
             .withImage(targetPatroniImageName)
             .withImagePullPolicy("IfNotPresent")
             .withCommand("/bin/sh", "-ex",
-                ClusterStatefulSetPath.TEMPLATES_PATH.path()
+                ClusterPath.TEMPLATES_PATH.path()
                     + "/"
-                    + ClusterStatefulSetPath.LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH.filename())
+                    + ClusterPath.LOCAL_BIN_MAJOR_VERSION_UPGRADE_SH_PATH.filename())
             .withEnvFrom(new EnvFromSourceBuilder()
                 .withConfigMapRef(new ConfigMapEnvSourceBuilder()
                     .withName(PatroniConfigMap.name(clusterContext)).build())
@@ -154,7 +169,7 @@ public class MajorVersionUpgradeInit implements ContainerFactory<ClusterContaine
                         .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
                         .build())
                     .build(),
-                ClusterStatefulSetPath.ETC_POSTGRES_PATH.envVar())
+                ClusterPath.ETC_POSTGRES_PATH.envVar())
             .addAllToEnv(majorVersionUpgradeMounts
                 .getDerivedEnvVars(majorVersoinUpgradeContainerContext))
             .withVolumeMounts(templateMounts.getVolumeMounts(context))
@@ -163,15 +178,15 @@ public class MajorVersionUpgradeInit implements ContainerFactory<ClusterContaine
             )
             .addToVolumeMounts(new VolumeMountBuilder()
                 .withName(StackGresVolume.DSHM.getName())
-                .withMountPath(ClusterStatefulSetPath.SHARED_MEMORY_PATH.path())
+                .withMountPath(ClusterPath.SHARED_MEMORY_PATH.path())
                 .build())
             .addToVolumeMounts(new VolumeMountBuilder()
                 .withName(StackGresVolume.LOG.getName())
-                .withMountPath(ClusterStatefulSetPath.PG_LOG_PATH.path())
+                .withMountPath(ClusterPath.PG_LOG_PATH.path())
                 .build())
             .addToVolumeMounts(new VolumeMountBuilder()
                 .withName(StackGresVolume.POSTGRES_CONFIG.getName())
-                .withMountPath(ClusterStatefulSetPath.ETC_POSTGRES_PATH.path())
+                .withMountPath(ClusterPath.ETC_POSTGRES_PATH.path())
                 .build())
             .build();
   }

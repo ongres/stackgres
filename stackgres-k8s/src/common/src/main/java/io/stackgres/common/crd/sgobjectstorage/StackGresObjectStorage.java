@@ -77,13 +77,25 @@ public class StackGresObjectStorage extends CustomResource<BackupStorage, Void>
 
   @Override
   public int hashCode() {
-    return Objects.hash(spec);
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(spec);
+    return result;
   }
 
   @Override
   public boolean equals(Object obj) {
-    return obj instanceof StackGresObjectStorage other
-        && Objects.equals(spec, other.spec);
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
+      return false;
+    }
+    if (!(obj instanceof StackGresObjectStorage)) {
+      return false;
+    }
+    StackGresObjectStorage other = (StackGresObjectStorage) obj;
+    return Objects.equals(spec, other.spec);
   }
 
   @Override

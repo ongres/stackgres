@@ -10,21 +10,9 @@ import java.net.SocketTimeoutException;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.common.OperatorProperty;
-import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgconfig.StackGresConfig;
-import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,20 +77,9 @@ public class DefaultOperatorBootstrap implements OperatorBootstrap {
         if (OperatorProperty.INSTALL_CRDS.getBoolean()) {
           crdInstaller.installCustomResourceDefinitions();
         }
+        crdInstaller.checkCustomResourceDefinitions();
         if (OperatorProperty.INSTALL_WEBHOOKS.getBoolean()) {
           crdWebhookInstaller.installWebhooks();
-        }
-        if (!hasCustomResource(client, StackGresCluster.class)
-            || !hasCustomResource(client, StackGresProfile.class)
-            || !hasCustomResource(client, StackGresPostgresConfig.class)
-            || !hasCustomResource(client, StackGresPoolingConfig.class)
-            || !hasCustomResource(client, StackGresBackupConfig.class)
-            || !hasCustomResource(client, StackGresBackup.class)
-            || !hasCustomResource(client, StackGresDistributedLogs.class)
-            || !hasCustomResource(client, StackGresDbOps.class)
-            || !hasCustomResource(client, StackGresShardedCluster.class)
-            || !hasCustomResource(client, StackGresConfig.class)) {
-          throw new RuntimeException("Some required CRDs does not exists");
         }
         crUpdater.updateExistingCustomResources();
         operatorLockHolder.startReconciliation();
@@ -120,16 +97,6 @@ public class DefaultOperatorBootstrap implements OperatorBootstrap {
       }
       throw ex;
     }
-  }
-
-  private boolean hasCustomResource(KubernetesClient client,
-      Class<? extends CustomResource<?, ?>> customResource) {
-    final String crdName = CustomResource.getCRDName(customResource);
-    if (!ResourceUtil.getCustomResource(client, crdName).isPresent()) {
-      LOGGER.error("CRD not found, please create it first: {}", crdName);
-      return false;
-    }
-    return true;
   }
 
 }

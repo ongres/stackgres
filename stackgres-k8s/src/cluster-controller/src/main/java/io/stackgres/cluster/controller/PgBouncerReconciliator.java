@@ -20,6 +20,7 @@ import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 
 import com.ongres.process.FluentProcess;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterControllerEventReason;
@@ -27,7 +28,7 @@ import io.stackgres.cluster.common.ClusterPgBouncerConfigEventReason;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterControllerProperty;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.FileSystemHandler;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.postgres.PostgresConnectionManager;
@@ -46,15 +47,15 @@ public class PgBouncerReconciliator {
   private static final Pattern PGBOUNCER_COMMAND_PATTERN =
       Pattern.compile("^/usr/local/bin/pgbouncer .*$");
   private static final Path PGBOUNCER_AUTH_PATH =
-      Paths.get(ClusterStatefulSetPath.PGBOUNCER_AUTH_FILE_PATH.path());
+      Paths.get(ClusterPath.PGBOUNCER_AUTH_FILE_PATH.path());
   private static final Path LAST_PGBOUNCER_AUTH_PATH =
-      Paths.get(ClusterStatefulSetPath.PGBOUNCER_AUTH_PATH.path()
-          + "/last-" + ClusterStatefulSetPath.PGBOUNCER_AUTH_FILE_PATH.filename());
+      Paths.get(ClusterPath.PGBOUNCER_AUTH_PATH.path()
+          + "/last-" + ClusterPath.PGBOUNCER_AUTH_FILE_PATH.filename());
   private static final Path PGBOUNCER_CONFIG_PATH =
-      Paths.get(ClusterStatefulSetPath.PGBOUNCER_CONFIG_FILE_PATH.path());
+      Paths.get(ClusterPath.PGBOUNCER_CONFIG_FILE_PATH.path());
   private static final Path LAST_PGBOUNCER_CONFIG_PATH =
-      Paths.get(ClusterStatefulSetPath.PGBOUNCER_CONFIG_PATH.path()
-          + "/last-" + ClusterStatefulSetPath.PGBOUNCER_CONFIG_FILE_PATH.filename());
+      Paths.get(ClusterPath.PGBOUNCER_CONFIG_PATH.path()
+          + "/last-" + ClusterPath.PGBOUNCER_CONFIG_FILE_PATH.filename());
 
   private final EventController eventController;
   private final boolean pgbouncerReconciliationEnabled;
@@ -67,6 +68,7 @@ public class PgBouncerReconciliator {
     @Inject CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder;
     @Inject ResourceFinder<Secret> secretFinder;
     @Inject PostgresConnectionManager postgresConnectionManager;
+    @Inject ResourceFinder<Pod> podFinder;
   }
 
   @Inject
@@ -75,6 +77,7 @@ public class PgBouncerReconciliator {
     this.pgbouncerReconciliationEnabled = parameters.propertyContext.getBoolean(
         ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_PGBOUNCER);
     this.authFileReconciliator = new PgBouncerAuthFileReconciliator(
+        parameters.propertyContext.getPodName(), parameters.podFinder,
         parameters.poolingConfigFinder, parameters.secretFinder,
         parameters.postgresConnectionManager, new FileSystemHandler());
   }

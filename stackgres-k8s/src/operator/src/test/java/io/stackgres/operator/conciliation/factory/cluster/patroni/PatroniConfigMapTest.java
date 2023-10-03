@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.IntOrString;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
@@ -179,7 +179,7 @@ class PatroniConfigMapTest {
   void getConfigMapWhenDistributedLogsSpecIsPresent_shouldContainLogInformationEnvVars() {
     when(context.getCluster()).thenReturn(cluster);
     ConfigMap configMap = generator.buildSource(context);
-    assertEquals(ClusterStatefulSetPath.PG_LOG_PATH.path(),
+    assertEquals(ClusterPath.PG_LOG_PATH.path(),
         configMap.getData().get("PATRONI_LOG_DIR"));
     assertEquals("2", configMap.getData().get("PATRONI_LOG_FILE_NUM"));
     assertEquals(String.valueOf(PatroniConfigMap.PATRONI_LOG_FILE_SIZE),

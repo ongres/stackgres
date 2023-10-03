@@ -22,15 +22,15 @@ import com.ongres.pgconfig.validator.GucValidator;
 import com.ongres.pgconfig.validator.PgParameter;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.stackgres.common.ClusterStatefulSetEnvVars;
-import io.stackgres.common.ClusterStatefulSetPath;
+import io.stackgres.common.ClusterEnvVar;
+import io.stackgres.common.ClusterPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitalData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
@@ -113,7 +113,7 @@ public class PatroniConfigEndpoints
           patroniConf.getStandbyCluster().setPort(
               String.valueOf(PatroniUtil.REPLICATION_SERVICE_PORT));
           patroniConf.getStandbyCluster().setRestoreCommand("exec-with-env '"
-              + ClusterStatefulSetEnvVars.REPLICATE_ENV.value(context.getSource()) + "'"
+              + ClusterEnvVar.REPLICATE_ENV.value(context.getSource()) + "'"
               + " -- wal-g wal-fetch %f %p");
           patroniConf.getStandbyCluster().setCreateReplicaMethods(
               Seq.<String>of()
@@ -121,7 +121,7 @@ public class PatroniConfigEndpoints
                   .filter(createReplicaMethod -> Optional
                       .ofNullable(cluster.getSpec())
                       .map(StackGresClusterSpec::getInitialData)
-                      .map(StackGresClusterInitalData::getRestore)
+                      .map(StackGresClusterInitialData::getRestore)
                       .map(StackGresClusterRestore::getFromBackup)
                       .isPresent()))
               .append("basebackup")
@@ -157,7 +157,7 @@ public class PatroniConfigEndpoints
             patroniConf.getStandbyCluster().setPort(String.valueOf(REPLICATION_SERVICE_PORT));
           }
           patroniConf.getStandbyCluster().setRestoreCommand("exec-with-env '"
-              + ClusterStatefulSetEnvVars.REPLICATE_ENV.value(context.getSource()) + "'"
+              + ClusterEnvVar.REPLICATE_ENV.value(context.getSource()) + "'"
               + " -- wal-g wal-fetch %f %p");
           patroniConf.getStandbyCluster().setCreateReplicaMethods(
               Seq.<String>of()
@@ -165,7 +165,7 @@ public class PatroniConfigEndpoints
                   .filter(createReplicaMethod -> Optional
                       .ofNullable(cluster.getSpec())
                       .map(StackGresClusterSpec::getInitialData)
-                      .map(StackGresClusterInitalData::getRestore)
+                      .map(StackGresClusterInitialData::getRestore)
                       .map(StackGresClusterRestore::getFromBackup)
                       .isPresent()))
               .append(Seq.of("basebackup")
@@ -226,7 +226,7 @@ public class PatroniConfigEndpoints
 
     if (isBackupConfigurationPresent(context)) {
       params.put("archive_command",
-          "exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value(context
+          "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value(context
               .getSource()) + "'"
               + " -- wal-g wal-push %p");
     } else {
@@ -239,7 +239,7 @@ public class PatroniConfigEndpoints
         .map(StackGresClusterDistributedLogs::getSgDistributedLogs).isPresent()) {
       params.put("logging_collector", "on");
       params.put("log_destination", "csvlog");
-      params.put("log_directory", ClusterStatefulSetPath.PG_LOG_PATH.path());
+      params.put("log_directory", ClusterPath.PG_LOG_PATH.path());
       params.put("log_filename", "postgres-%M.log");
       params.put("log_rotation_age", "30min");
       params.put("log_rotation_size", "0kB");
@@ -261,9 +261,9 @@ public class PatroniConfigEndpoints
         .orElse(false)) {
       params.put("ssl", "on");
       params.put("ssl_cert_file",
-          ClusterStatefulSetPath.SSL_PATH.path() + "/" + PostgresSslSecret.CERTIFICATE_KEY);
+          ClusterPath.SSL_PATH.path() + "/" + PostgresSslSecret.CERTIFICATE_KEY);
       params.put("ssl_key_file",
-          ClusterStatefulSetPath.SSL_PATH.path() + "/" + PostgresSslSecret.PRIVATE_KEY_KEY);
+          ClusterPath.SSL_PATH.path() + "/" + PostgresSslSecret.PRIVATE_KEY_KEY);
     }
 
     return params;
@@ -274,7 +274,7 @@ public class PatroniConfigEndpoints
 
     if (isBackupConfigurationPresent(context)) {
       params.put("restore_command",
-          "exec-with-env '" + ClusterStatefulSetEnvVars.BACKUP_ENV.value(context
+          "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value(context
               .getSource()) + "'"
               + " -- wal-g wal-fetch %f %p");
     }

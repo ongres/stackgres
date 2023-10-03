@@ -131,4 +131,19 @@ public class CrdInstaller {
         .anyMatch(installedVersion -> installedVersion.equals(currentVersion));
   }
 
+  public void checkCustomResourceDefinitions() {
+    crdLoader.scanCrds()
+        .forEach(this::checkCrd);
+  }
+
+  protected void checkCrd(@NotNull CustomResourceDefinition currentCrd) {
+    String name = currentCrd.getMetadata().getName();
+    Optional<CustomResourceDefinition> installedCrdOpt = crdResourceFinder
+        .findByName(name);
+
+    if (installedCrdOpt.isEmpty()) {
+      throw new RuntimeException("CRD " + name + " was not found.");
+    }
+  }
+
 }

@@ -22,10 +22,12 @@ spec:
   configurations: 
     sgPostgresConfig: {{ quote .Values.cluster.configurations.sgPostgresConfig }}
     sgPoolingConfig: {{ quote .Values.cluster.configurations.sgPoolingConfig }}
+    {{- if not .Values.cluster.disableBackups }}
     {{- with .Values.cluster.configurations.backups }}
     {{- if .sgObjectStorage }}
     backups:
     - {{- toYaml . | nindent 6 }}
+    {{- end }}
     {{- end }}
     {{- end }}
   sgInstanceProfile: {{ quote .Values.cluster.sgInstanceProfile }}

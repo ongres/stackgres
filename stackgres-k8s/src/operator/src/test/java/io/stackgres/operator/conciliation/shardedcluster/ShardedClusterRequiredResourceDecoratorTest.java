@@ -15,13 +15,14 @@ import javax.inject.Inject;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
-import io.stackgres.common.StackGresShardedClusterForCitusUtil;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.common.Prometheus;
+import io.stackgres.operator.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceGeneratorTest;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
@@ -37,6 +38,7 @@ class ShardedClusterRequiredResourceDecoratorTest
   @Inject
   ShardedClusterResourceGenerationDiscoverer resourceGenerationDiscoverer;
 
+  private StackGresConfig config;
   private StackGresShardedCluster resource;
   private StackGresPostgresConfig pgConfig;
   private StackGresProfile profile;
@@ -44,6 +46,7 @@ class ShardedClusterRequiredResourceDecoratorTest
 
   @BeforeEach
   public void setup() {
+    this.config = Fixtures.config().loadDefault().get();
     this.resource = Fixtures.shardedCluster().loadDefault().withLatestPostgresVersion().get();
     this.pgConfig = Fixtures.postgresConfig().loadDefault().get();
     this.profile = Fixtures.instanceProfile().loadSizeS().get();
@@ -68,6 +71,7 @@ class ShardedClusterRequiredResourceDecoratorTest
 
   private StackGresClusterContext getCoordinatorContext() {
     return ImmutableStackGresClusterContext.builder()
+        .config(config)
         .source(StackGresShardedClusterForCitusUtil.getCoordinatorCluster(resource))
         .postgresConfig(pgConfig)
         .profile(profile)
@@ -79,6 +83,7 @@ class ShardedClusterRequiredResourceDecoratorTest
   private List<StackGresClusterContext> getShardsContext() {
     return Seq.range(0, resource.getSpec().getShards().getClusters())
         .<StackGresClusterContext>map(index -> ImmutableStackGresClusterContext.builder()
+            .config(config)
             .source(StackGresShardedClusterForCitusUtil.getShardsCluster(resource, index))
             .postgresConfig(pgConfig)
             .profile(profile)

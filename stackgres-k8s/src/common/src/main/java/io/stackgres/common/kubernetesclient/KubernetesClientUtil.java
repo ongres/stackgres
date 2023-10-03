@@ -9,6 +9,7 @@ import static io.stackgres.common.RetryUtil.calculateExponentialBackoffDelay;
 
 import java.util.function.Supplier;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +18,8 @@ public interface KubernetesClientUtil {
   /**
    * Return true when exception is a conflict (409) error.
    */
+  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
+      justification = "False positive")
   static boolean isConflict(Throwable ex) {
     return ex instanceof KubernetesClientException kce
         && kce.getCode() == 409;
