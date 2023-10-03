@@ -512,7 +512,7 @@ store_test_results() {
 
   run_as_root_on_host chown "$(id -u)":"$(id -g)" "$(pwd)" -R
   cat << EOF > "$TARGET_PATH/Dockerfile.e2e"
-FROM registry.access.redhat.com/ubi8-micro:8.7-6
+FROM registry.access.redhat.com/ubi8-micro:8.8-7
   COPY . /project
 EOF
 
@@ -552,7 +552,7 @@ store_test_result() {
 
   run_as_root_on_host chown "$(id -u)":"$(id -g)" "$(pwd)" -R
   cat << EOF > "$TARGET_PATH/Dockerfile.e2e.$SPEC_NAME"
-FROM registry.access.redhat.com/ubi8-micro:8.7-6
+FROM registry.access.redhat.com/ubi8-micro:8.8-7
   COPY . /project
 EOF
 
