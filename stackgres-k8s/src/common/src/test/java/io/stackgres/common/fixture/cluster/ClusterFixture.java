@@ -5,7 +5,10 @@
 
 package io.stackgres.common.fixture.cluster;
 
+import java.util.HashMap;
+
 import io.stackgres.common.StackGresComponent;
+import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.NodeAffinity;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
@@ -88,6 +91,14 @@ public class ClusterFixture extends VersionedFixture<StackGresCluster> {
 
   public ClusterFixture withLatestPostgresVersion() {
     fixture.getSpec().getPostgres().setVersion(POSTGRES_LATEST_VERSION);
+    return this;
+  }
+
+  public ClusterFixture withOperatorVersion(String version) {
+    if (fixture.getMetadata().getAnnotations() == null) {
+      fixture.getMetadata().setAnnotations(new HashMap<>());
+    }
+    fixture.getMetadata().getAnnotations().put(StackGresContext.VERSION_KEY, version);
     return this;
   }
 
