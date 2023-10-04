@@ -47,6 +47,7 @@ import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
+import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
@@ -65,14 +66,17 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
   private final ContainerUserOverrideMounts containerUserOverrideMounts;
   private final PostgresSocketMount postgresSocket;
+  private final ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts;
 
   @Inject
   protected PgBouncerPooling(LabelFactoryForCluster<StackGresCluster> labelFactory,
       ContainerUserOverrideMounts containerUserOverrideMounts,
-      PostgresSocketMount postgresSocket) {
+      PostgresSocketMount postgresSocket,
+      ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts) {
     this.labelFactory = labelFactory;
     this.containerUserOverrideMounts = containerUserOverrideMounts;
     this.postgresSocket = postgresSocket;
+    this.scriptTemplatesVolumeMounts = scriptTemplatesVolumeMounts;
   }
 
   public static String configName(StackGresClusterContext clusterContext) {
@@ -106,9 +110,16 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
         .withName(StackGresContainer.PGBOUNCER.getName())
         .withImage(StackGresComponent.PGBOUNCER.get(context.getClusterContext().getCluster())
             .getLatestImageName())
+        .withCommand("/bin/sh", "-ex",
+            ClusterPath.TEMPLATES_PATH.path()
+                + "/" + ClusterPath.LOCAL_BIN_START_PGBOUNCER_SH_PATH.filename())
         .withImagePullPolicy("IfNotPresent")
+        .withEnv(
+            ClusterPath.PGBOUNCER_CONFIG_FILE_PATH.envVar(),
+            ClusterPath.PGBOUNCER_CONFIG_UPDATED_FILE_PATH.envVar())
         .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
         .addAllToVolumeMounts(containerUserOverrideMounts.getVolumeMounts(context))
+        .addAllToVolumeMounts(scriptTemplatesVolumeMounts.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
                 .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())
@@ -116,15 +127,7 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
                 .build(),
             new VolumeMountBuilder()
                 .withName(StackGresVolume.PGBOUNCER.getName())
-                .withMountPath(ClusterPath.PGBOUNCER_CONFIG_FILE_PATH.path())
-                .withSubPath("pgbouncer.ini")
-                .withReadOnly(true)
-                .build(),
-            new VolumeMountBuilder()
-                .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())
-                .withMountPath(ClusterPath.PGBOUNCER_AUTH_PATH.path())
-                .withSubPath(ClusterPath.PGBOUNCER_AUTH_PATH.subPath(
-                    ClusterPath.PGBOUNCER_CONFIG_PATH))
+                .withMountPath(ClusterPath.PGBOUNCER_CONFIG_UPDATED_FILE_PATH.path())
                 .withReadOnly(true)
                 .build())
         .build();
@@ -159,7 +162,8 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
     final StackGresCluster sgCluster = context.getSource();
 
     String configFile = getConfigFile(context);
-    Map<String, String> data = Map.of("pgbouncer.ini", configFile);
+    Map<String, String> data = Map.of(
+        ClusterPath.PGBOUNCER_CONFIG_FILE_PATH.filename(), configFile);
 
     String namespace = sgCluster.getMetadata().getNamespace();
     String configMapName = configName(context);

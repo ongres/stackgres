@@ -5,6 +5,8 @@
 
 package io.stackgres.cluster.controller;
 
+import static io.stackgres.common.ConfigFilesUtil.configChanged;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,8 +37,6 @@ import io.stackgres.common.postgres.PostgresConnectionManager;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
-import org.jooq.lambda.Seq;
-import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,18 +44,18 @@ import org.slf4j.LoggerFactory;
 public class PgBouncerReconciliator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PgBouncerReconciliator.class);
-  private static final Pattern PGBOUNCER_COMMAND_PATTERN =
-      Pattern.compile("^/usr/local/bin/pgbouncer .*$");
+  private static final Path PGBOUNCER_CONFIG_PATH =
+      Paths.get(ClusterPath.PGBOUNCER_CONFIG_UPDATED_FILE_PATH.path()
+          + "/" + ClusterPath.PGBOUNCER_CONFIG_FILE_PATH.filename());
+  private static final Path LAST_PGBOUNCER_CONFIG_PATH =
+      Paths.get(ClusterPath.PGBOUNCER_CONFIG_FILE_PATH.path());
   private static final Path PGBOUNCER_AUTH_PATH =
       Paths.get(ClusterPath.PGBOUNCER_AUTH_FILE_PATH.path());
   private static final Path LAST_PGBOUNCER_AUTH_PATH =
       Paths.get(ClusterPath.PGBOUNCER_AUTH_PATH.path()
           + "/last-" + ClusterPath.PGBOUNCER_AUTH_FILE_PATH.filename());
-  private static final Path PGBOUNCER_CONFIG_PATH =
-      Paths.get(ClusterPath.PGBOUNCER_CONFIG_FILE_PATH.path());
-  private static final Path LAST_PGBOUNCER_CONFIG_PATH =
-      Paths.get(ClusterPath.PGBOUNCER_CONFIG_PATH.path()
-          + "/last-" + ClusterPath.PGBOUNCER_CONFIG_FILE_PATH.filename());
+  private static final Pattern PGBOUNCER_COMMAND_PATTERN =
+      Pattern.compile("^/usr/local/bin/pgbouncer .*$");
 
   private final EventController eventController;
   private final boolean pgbouncerReconciliationEnabled;
@@ -109,33 +109,22 @@ public class PgBouncerReconciliator {
   }
 
   private void reconcilePgBouncerConfig(KubernetesClient client) throws IOException {
-    if (configChanged()) {
+    boolean configChanged = configChanged(PGBOUNCER_CONFIG_PATH, LAST_PGBOUNCER_CONFIG_PATH);
+    boolean authConfigChanged = configChanged(PGBOUNCER_AUTH_PATH, LAST_PGBOUNCER_AUTH_PATH);
+    if (configChanged || authConfigChanged) {
       reloadPatroniConfig();
-      Files.copy(PGBOUNCER_CONFIG_PATH, LAST_PGBOUNCER_CONFIG_PATH,
-          StandardCopyOption.REPLACE_EXISTING);
-      Files.copy(PGBOUNCER_AUTH_PATH, LAST_PGBOUNCER_AUTH_PATH,
-          StandardCopyOption.REPLACE_EXISTING);
+      if (configChanged) {
+        Files.copy(PGBOUNCER_CONFIG_PATH, LAST_PGBOUNCER_CONFIG_PATH,
+            StandardCopyOption.REPLACE_EXISTING);
+      }
+      if (authConfigChanged) {
+        Files.copy(PGBOUNCER_AUTH_PATH, LAST_PGBOUNCER_AUTH_PATH,
+            StandardCopyOption.REPLACE_EXISTING);
+      }
       LOGGER.info("PgBouncer config updated");
       eventController.sendEvent(ClusterPgBouncerConfigEventReason.CLUSTER_PGBOUNCER_CONFIG_UPDATED,
           "Patroni config updated", client);
     }
-  }
-
-  private boolean configChanged() throws IOException {
-    return !Files.exists(LAST_PGBOUNCER_CONFIG_PATH)
-        || !Files.exists(LAST_PGBOUNCER_AUTH_PATH)
-        || !Seq.seq(Files.readAllLines(LAST_PGBOUNCER_CONFIG_PATH))
-        .zipWithIndex()
-        .allMatch(Unchecked.predicate(line -> Seq
-            .seq(Files.readAllLines(PGBOUNCER_CONFIG_PATH))
-            .zipWithIndex()
-            .anyMatch(line::equals)))
-        || !Seq.seq(Files.readAllLines(LAST_PGBOUNCER_AUTH_PATH))
-        .zipWithIndex()
-        .allMatch(Unchecked.predicate(line -> Seq
-            .seq(Files.readAllLines(PGBOUNCER_AUTH_PATH))
-            .zipWithIndex()
-            .anyMatch(line::equals)));
   }
 
   private void reloadPatroniConfig() {
