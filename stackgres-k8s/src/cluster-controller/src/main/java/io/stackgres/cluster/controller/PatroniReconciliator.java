@@ -5,10 +5,7 @@
 
 package io.stackgres.cluster.controller;
 
-import static io.stackgres.common.PatroniUtil.FALSE_TAG_VALUE;
-import static io.stackgres.common.PatroniUtil.NOFAILOVER_TAG;
-import static io.stackgres.common.PatroniUtil.NOLOADBALANCE_TAG;
-import static io.stackgres.common.PatroniUtil.TRUE_TAG_VALUE;
+import static io.stackgres.common.ConfigFilesUtil.configChanged;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,11 +29,12 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterControllerEventReason;
 import io.stackgres.cluster.common.ClusterPatroniConfigEventReason;
-import io.stackgres.cluster.common.PatroniUtil;
+import io.stackgres.cluster.common.PatroniCommandUtil;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.ClusterPath;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationGroup;
@@ -46,7 +44,6 @@ import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
-import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +62,11 @@ public class PatroniReconciliator {
           + "/last-" + ClusterPath.PATRONI_CONFIG_FILE_PATH.filename());
 
   private static final Pattern TAGS_LINE_PATTERN = Pattern.compile("^tags:.*$");
+
+  private static final String NOLOADBALANCE_TAG = PatroniUtil.NOLOADBALANCE_TAG;
+  private static final String NOFAILOVER_TAG = PatroniUtil.NOFAILOVER_TAG;
+  private static final String TRUE_TAG_VALUE = PatroniUtil.TRUE_TAG_VALUE;
+  private static final String FALSE_TAG_VALUE = PatroniUtil.FALSE_TAG_VALUE;
 
   private final boolean reconcilePatroni;
   private final String podName;
@@ -164,10 +166,11 @@ public class PatroniReconciliator {
     if (needsUpdate) {
       replacePatroniTags(tags);
     }
-    if (configChanged()) {
-      PatroniUtil.reloadPatroniConfig();
+    if (configChanged(PATRONI_CONFIG_PATH, LAST_PATRONI_CONFIG_PATH)) {
+      PatroniCommandUtil.reloadPatroniConfig();
       setPatroniTagsAsPodLabels(client, cluster, tagsMap);
-      copyConfig();
+      Files.copy(PATRONI_CONFIG_PATH, LAST_PATRONI_CONFIG_PATH,
+          StandardCopyOption.REPLACE_EXISTING);
       LOGGER.info("Patroni config updated");
       eventController.sendEvent(ClusterPatroniConfigEventReason.CLUSTER_PATRONI_CONFIG_UPDATED,
           "Patroni config updated", client);
@@ -255,21 +258,6 @@ public class PatroniReconciliator {
     FluentProcess.start("sed", "-i",
         String.format("s/^tags:.*$/%s/", tagsAsYamlString),
         PATRONI_CONFIG_PATH.toString()).join();
-  }
-
-  private boolean configChanged() throws IOException {
-    return !Files.exists(LAST_PATRONI_CONFIG_PATH)
-        || !Seq.seq(Files.readAllLines(LAST_PATRONI_CONFIG_PATH))
-        .zipWithIndex()
-        .allMatch(Unchecked.predicate(line -> Seq
-            .seq(Files.readAllLines(PATRONI_CONFIG_PATH))
-            .zipWithIndex()
-            .anyMatch(line::equals)));
-  }
-
-  private void copyConfig() throws IOException {
-    Files.copy(PATRONI_CONFIG_PATH, LAST_PATRONI_CONFIG_PATH,
-        StandardCopyOption.REPLACE_EXISTING);
   }
 
   private void setPatroniTagsAsPodLabels(KubernetesClient client, final StackGresCluster cluster,

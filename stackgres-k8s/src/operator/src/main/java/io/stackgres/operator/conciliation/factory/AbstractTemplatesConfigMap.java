@@ -24,6 +24,7 @@ public abstract class AbstractTemplatesConfigMap<T>
       ClusterPath.LOCAL_BIN_SETUP_SCRIPTS_SH_PATH,
       ClusterPath.LOCAL_BIN_RELOCATE_BINARIES_SH_PATH,
       ClusterPath.LOCAL_BIN_START_PATRONI_SH_PATH,
+      ClusterPath.LOCAL_BIN_START_PGBOUNCER_SH_PATH,
       ClusterPath.LOCAL_BIN_PATRONICTL_PATH,
       ClusterPath.LOCAL_BIN_POST_INIT_SH_PATH,
       ClusterPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH,

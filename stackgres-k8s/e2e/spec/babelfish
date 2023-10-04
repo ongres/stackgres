@@ -170,21 +170,27 @@ pgbouncer_users_check() {
   kubectl delete pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true"
   wait_pods_running "$CLUSTER_NAMESPACE" 2
 
-  RESPONSE_REPLICA="$(wait_until run_query -h "$CLUSTER_NAME" -i 0 -p 5432 -u user1:test)"
+  RESPONSE_REPLICA="$(wait_until run_query -h "$CLUSTER_NAME" -i 0 -p 5432 -u user1:test || true)"
   if [ "$RESPONSE_REPLICA" = "1" ]
   then
     echo "SUCCESS: Connections are possible using user1 in pgbouncer users section"
   else
     echo "FAIL: Cannot connect using user1 in pgbouncer users section"
+    echo
+    echo "Content of /etc/pgbouncer:"
+    kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c pgbouncer -- grep . /etc/pgbouncer -R
     return 1
   fi
 
-  RESPONSE_REPLICA="$(wait_until run_query -h "$CLUSTER_NAME" -i 0 -p 5432 -u user2:test)"
+  RESPONSE_REPLICA="$(wait_until run_query -h "$CLUSTER_NAME" -i 0 -p 5432 -u user2:test || true)"
   if [ "$RESPONSE_REPLICA" = "1" ]
   then
     echo "SUCCESS: Connections are possible using user2 in pgbouncer users section"
   else
     echo "FAIL: Cannot connect using user2 in pgbouncer users section"
+    echo
+    echo "Content of /etc/pgbouncer:"
+    kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c pgbouncer -- grep . /etc/pgbouncer -R
     return 1
   fi
 }

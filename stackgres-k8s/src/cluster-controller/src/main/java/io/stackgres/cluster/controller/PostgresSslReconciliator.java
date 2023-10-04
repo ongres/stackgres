@@ -27,7 +27,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterControllerEventReason;
 import io.stackgres.cluster.common.ClusterPatroniConfigEventReason;
-import io.stackgres.cluster.common.PatroniUtil;
+import io.stackgres.cluster.common.PatroniCommandUtil;
 import io.stackgres.cluster.common.PostgresUtil;
 import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.common.ClusterContext;
@@ -109,7 +109,7 @@ public class PostgresSslReconciliator {
             && !testPostgresSsl(context))) {
       copySsl();
       try {
-        PatroniUtil.reloadPatroniConfig();
+        PatroniCommandUtil.reloadPatroniConfig();
       } catch (Exception ex) {
         LOGGER.warn("Was not able to reload Patroni, will try later if needed: " + ex.getMessage());
       }

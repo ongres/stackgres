@@ -152,20 +152,22 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
         .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
-            .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())
-            .withMountPath(ClusterPath.PGBOUNCER_CONFIG_PATH.path())
-            .build())
-        .addToVolumeMounts(
+                .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())
+                .withMountPath(ClusterPath.PGBOUNCER_CONFIG_PATH.path())
+                .build(),
+            new VolumeMountBuilder()
+                .withName(StackGresVolume.PGBOUNCER.getName())
+                .withMountPath(ClusterPath.PGBOUNCER_CONFIG_UPDATED_FILE_PATH.path())
+                .withReadOnly(true)
+                .build(),
             new VolumeMountBuilder()
                 .withName(StackGresVolume.PATRONI_CONFIG.getName())
                 .withMountPath(ClusterPath.PATRONI_CONFIG_PATH.path())
-                .build())
-        .addToVolumeMounts(
+                .build(),
             new VolumeMountBuilder()
                 .withName(StackGresVolume.POSTGRES_SSL.getName())
                 .withMountPath(ClusterPath.SSL_PATH.path())
-                .build())
-        .addToVolumeMounts(
+                .build(),
             new VolumeMountBuilder()
                 .withName(StackGresVolume.POSTGRES_SSL_COPY.getName())
                 .withMountPath(ClusterPath.SSL_COPY_PATH.path())
