@@ -13,6 +13,7 @@ import java.util.Objects;
 
 import com.google.common.io.Resources;
 import io.stackgres.common.ClusterPath;
+import io.stackgres.common.ShardedClusterPath;
 import org.jooq.lambda.Unchecked;
 
 public abstract class AbstractTemplatesConfigMap<T>
@@ -46,9 +47,17 @@ public abstract class AbstractTemplatesConfigMap<T>
       ClusterPath.LOCAL_BIN_START_FLUENTBIT_SH_PATH,
       ClusterPath.LOCAL_BIN_START_POSTGRES_EXPORTER_SH_PATH);
 
-  public static final List<ClusterPath> SHARDED_CLUSTER_TEMPLATE_PATHS = List.of(
-      ClusterPath.LOCAL_BIN_SHELL_UTILS_PATH,
-      ClusterPath.LOCAL_BIN_CREATE_SHARDED_BACKUP_SH_PATH);
+  public static final List<ShardedClusterPath> SHARDED_CLUSTER_TEMPLATE_PATHS = List.of(
+      ShardedClusterPath.LOCAL_BIN_SHELL_UTILS_PATH,
+      ShardedClusterPath.LOCAL_BIN_CREATE_SHARDED_BACKUP_SH_PATH,
+      ShardedClusterPath.LOCAL_BIN_SET_SHARDED_DBOPS_RUNNING_SH_PATH,
+      ShardedClusterPath.LOCAL_BIN_RUN_SHARDED_DBOPS_SH_PATH,
+      ShardedClusterPath.LOCAL_BIN_SET_SHARDED_DBOPS_RESULT_SH_PATH,
+      ShardedClusterPath.LOCAL_BIN_RUN_RESHARDING_SH_PATH,
+      ShardedClusterPath.LOCAL_BIN_RUN_SHARDED_MAJOR_VERSION_UPGRADE_SH_PATH,
+      ShardedClusterPath.LOCAL_BIN_RUN_SHARDED_MINOR_VERSION_UPGRADE_SH_PATH,
+      ShardedClusterPath.LOCAL_BIN_RUN_SHARDED_SECURITY_UPGRADE_SH_PATH,
+      ShardedClusterPath.LOCAL_BIN_RUN_SHARDED_RESTART_SH_PATH);
 
   protected Map<String, String> getClusterTemplates() {
     Map<String, String> data = new HashMap<>();
@@ -72,7 +81,7 @@ public abstract class AbstractTemplatesConfigMap<T>
 
     for (String resource : SHARDED_CLUSTER_TEMPLATE_PATHS
         .stream()
-        .map(ClusterPath::filename)
+        .map(ShardedClusterPath::filename)
         .toList()) {
       data.put(resource, Unchecked.supplier(() -> Resources
           .asCharSource(Objects.requireNonNull(AbstractTemplatesConfigMap.class

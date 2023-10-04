@@ -33,7 +33,7 @@ import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder
-@OpJob("vacuum")
+@DbOpsJob("vacuum")
 public class DbOpsVacuumJob extends AbstractDbOpsJob {
 
   @Inject

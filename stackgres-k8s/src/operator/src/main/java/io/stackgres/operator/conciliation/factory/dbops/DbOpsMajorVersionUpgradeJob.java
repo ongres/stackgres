@@ -39,7 +39,7 @@ import io.stackgres.operator.conciliation.factory.ResourceFactory;
 
 @Singleton
 @OperatorVersionBinder
-@OpJob("majorVersionUpgrade")
+@DbOpsJob("majorVersionUpgrade")
 public class DbOpsMajorVersionUpgradeJob extends AbstractDbOpsJob {
 
   @Inject
@@ -134,11 +134,11 @@ public class DbOpsMajorVersionUpgradeJob extends AbstractDbOpsJob {
                     .build())
                 .build(),
             new EnvVarBuilder()
-                .withName("DB_OPS_CRD_NAME")
+                .withName("DBOPS_CRD_NAME")
                 .withValue(CustomResource.getCRDName(StackGresDbOps.class))
                 .build(),
             new EnvVarBuilder()
-                .withName("DB_OPS_NAME")
+                .withName("DBOPS_NAME")
                 .withValue(dbOps.getMetadata().getName())
                 .build(),
             new EnvVarBuilder()

@@ -11,18 +11,20 @@ CLUSTER_PRIMARY_POD_LABELS=app=StackGresCluster,cluster-uid=test,cluster-namespa
 SHARED_PATH="$TARGET_PATH/$TEST_NAME/shared"
 LOCAL_BIN_SHELL_UTILS_PATH="$PROJECT_PATH/src/main/resources/templates/shell-utils"
 TIMEOUT=1000000
-DB_OPS_CRD_NAME=sgdbop.stackgres.io
-DB_OPS_NAME=test
-CONDITION_DB_OPS_FALSE_RUNNING='{"lastTransitionTime":"$LAST_TRANSITION_TIME","reason":"OperationNotRunning","status":"False","type":"Running"}'
-CONDITION_DB_OPS_RUNNING='{"lastTransitionTime":"$LAST_TRANSITION_TIME","reason":"OperationRunning","status":"True","type":"Running"}'
-CONDITION_DB_OPS_FAILED='{"lastTransitionTime":"$LAST_TRANSITION_TIME","reason":"OperationFailed","status":"True","type":"Failed"}'
-CONDITION_DB_OPS_TIMED_OUT='{"lastTransitionTime":"$LAST_TRANSITION_TIME","reason":"OperationTimedOut","status":"True","type":"Failed"}'
-CONDITION_DB_OPS_LOCK_LOST='{"lastTransitionTime":"$LAST_TRANSITION_TIME","reason":"OperationLockLost","status":"True","type":"Failed"}'
-CONDITION_DB_OPS_FALSE_FAILED='{"lastTransitionTime":"$LAST_TRANSITION_TIME","reason":"OperationNotFailed","status":"False","type":"Failed"}'
-CONDITION_DB_OPS_COMPLETED='{"lastTransitionTime":"$LAST_TRANSITION_TIME","reason":"OperationCompleted","status":"True","type":"Completed"}'
-CONDITION_DB_OPS_FALSE_COMPLETED='{"lastTransitionTime":"$LAST_TRANSITION_TIME","reason":"OperationNotCompleted","status":"False","type":"Completed"}'
+DBOPS_CRD_NAME=sgdbop.stackgres.io
+DBOPS_NAME=test
+CONDITION_DBOPS_FALSE_RUNNING='{"lastTransitionTime":"$LAST_TRANSITION_TIME","reason":"OperationNotRunning","status":"False","type":"Running"}'
+CONDITION_DBOPS_RUNNING='{"lastTransitionTime":"$LAST_TRANSITION_TIME","reason":"OperationRunning","status":"True","type":"Running"}'
+CONDITION_DBOPS_FAILED='{"lastTransitionTime":"$LAST_TRANSITION_TIME","reason":"OperationFailed","status":"True","type":"Failed"}'
+CONDITION_DBOPS_TIMED_OUT='{"lastTransitionTime":"$LAST_TRANSITION_TIME","reason":"OperationTimedOut","status":"True","type":"Failed"}'
+CONDITION_DBOPS_LOCK_LOST='{"lastTransitionTime":"$LAST_TRANSITION_TIME","reason":"OperationLockLost","status":"True","type":"Failed"}'
+CONDITION_DBOPS_FALSE_FAILED='{"lastTransitionTime":"$LAST_TRANSITION_TIME","reason":"OperationNotFailed","status":"False","type":"Failed"}'
+CONDITION_DBOPS_COMPLETED='{"lastTransitionTime":"$LAST_TRANSITION_TIME","reason":"OperationCompleted","status":"True","type":"Completed"}'
+CONDITION_DBOPS_FALSE_COMPLETED='{"lastTransitionTime":"$LAST_TRANSITION_TIME","reason":"OperationNotCompleted","status":"False","type":"Completed"}'
 LOCK_TIMEOUT_KEY=stackgres.io/lockTimeout
 LOCK_POD_KEY=stackgres.io/lockPod
+RESOURCE_CRD_NAME="$DBOPS_CRD_NAME"
+RESOURCE_NAME="$DBOPS_NAME"
 
 shell_unit_test_skip() {
   return 1;

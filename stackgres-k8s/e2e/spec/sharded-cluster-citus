@@ -51,23 +51,27 @@ EOF
 }
 
 e2e_test() {
-  # run_test "Checking that is possible to connect using services is working" service_check
+  run_test "Checking that is possible to connect using services is working" service_check
 
-  # run_test "Checking that sharded technology is configured and working" sharded_check
+  run_test "Checking that sharded technology is configured and working" sharded_check
 
-  # run_test "Check that pgbouncer database is accesible using the service" pgbouncer_database_check
+  run_test "Check that pgbouncer database is accesible using the service" pgbouncer_database_check
 
-  # run_test "Checking that managed SQL is working" check_managed_sql_is_working
+  run_test "Checking that managed SQL is working" check_managed_sql_is_working
 
-  # run_test "Checking that backup is working" check_backup_is_working
+  run_test "Checking that backup is working" check_backup_is_working
 
-  # run_test "Checking that restart is working" check_restart_is_working
+  run_test "Checking that restart is working" check_restart_is_working
 
   run_test "Checking that sharded backup are working" check_sharded_backup_is_working
 
   run_test "Checking that automatic sharded backup are working" check_automatic_sharded_backup_is_working
 
   run_test "Checking that restoring a sharded backup is working" check_restore_sharded_backup_is_working
+
+  run_test "Checking that restart sharded dbops is working" check_sharded_dbops_restart_is_working
+
+  run_test "Checking that restart sharded dbops is working" check_sharded_dbops_resharding_is_working
 }
 
 service_check() {
@@ -187,7 +191,6 @@ check_backup_is_working() {
 }
 
 check_restart_is_working() {
-  local BACKUP_NAME
   local SHARDED_CLUSTER_NAME="$CLUSTER_NAME"
   local CLUSTER_NAME
   local NODE=0
@@ -380,6 +383,108 @@ check_restore_sharded_backup_is_working() {
     echo "SUCCESS. The sharded cluster has been recovered from the sharded backup"
   else
     echo "FAIL. The sharded cluster has not been recovered from the sharded backup"
+    return 1
+  fi
+}
+
+check_sharded_dbops_restart_is_working() {
+  SHARDED_DBOPS_NAME="$(get_sgshardeddbops_name restart-"${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGShardedDbOps
+metadata:
+  name: $SHARDED_DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgShardedCluster: $CLUSTER_NAME
+  op: restart
+  restart:
+    method: InPlace
+EOF
+
+  local DBOPS_NAME
+  local SUFFIX
+  for SUFFIX in coord shard0 shard1
+  do
+    DBOPS_NAME="$SHARDED_DBOPS_NAME-$SUFFIX"
+    wait_dbops_is_completed "$DBOPS_NAME"
+  done
+
+  wait_sharded_dbops_is_completed "$SHARDED_DBOPS_NAME"
+}
+
+check_sharded_dbops_resharding_is_working() {
+  SHARDED_DBOPS_NAME="$(get_sgshardeddbops_name resharding-"${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
+
+  NODE_NAME="$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
+    psql -t -A -d citus -c "SELECT nodename from pg_dist_node WHERE shouldhaveshards LIMIT 1")"
+  kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- psql -d citus \
+    -c "CREATE TABLE distributed AS SELECT i, (SELECT string_agg(md5(random()::text), ' ') FROM generate_series(1, (30 * random())::integer)) AS t FROM generate_series(1, 100000) AS i" \
+    -c "ALTER TABLE distributed ADD PRIMARY KEY (i)" \
+    -c "SELECT create_distributed_table('distributed', 'i')" \
+    -c "SELECT citus_drain_node('$NODE_NAME', 7433)" \
+    -c "SELECT citus_remove_node('$NODE_NAME', 7433)" \
+    -c "SELECT citus_add_node('$NODE_NAME', 7433)"
+  if ! kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
+    psql -t -A -d citus -c "SELECT COUNT(*) FROM get_rebalance_table_shards_plan()" | grep -qxF 0
+  then
+    echo "SUCCESS. The sharded cluster requires resharding"
+  else
+    echo "FAIL. The sharded cluster does not requires resharding"
+    return 1
+  fi
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGShardedDbOps
+metadata:
+  name: $SHARDED_DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgShardedCluster: $CLUSTER_NAME
+  op: resharding
+  resharding:
+    citus:
+      threshold: 0.1
+      drainOnly: false
+      rebalanceStrategy: by_disk_size
+EOF
+
+  wait_sharded_dbops_is_completed "$SHARDED_DBOPS_NAME"
+
+  if kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
+    psql -t -A -d citus -c "SELECT COUNT(*) FROM get_rebalance_table_shards_plan()" | grep -qxF 0
+  then
+    echo "SUCCESS. The sharded cluster has been resharded"
+  else
+    echo "FAIL. The sharded cluster has not been resharded"
+    return 1
+  fi
+}
+
+wait_dbops_is_completed() {
+  local DBOPS_NAME="$1"
+  if wait_until eval 'kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+    --template "{{ range .status.conditions }}{{ if eq .status \"True\" }}{{ .type }}{{ end }}{{ end }}" \
+    | grep -q "^Completed$"'
+  then
+    echo "SUCCESS. The dbops has completed"
+  else
+    echo "FAIL. The dbops has failed or did not completed"
+    return 1
+  fi
+}
+
+wait_sharded_dbops_is_completed() {
+  local SHARDED_DBOPS_NAME="$1"
+  if wait_until eval 'kubectl get sgshardeddbops -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" \
+    --template "{{ range .status.conditions }}{{ if eq .status \"True\" }}{{ .type }}{{ end }}{{ end }}" \
+    | grep -q "^Completed$"'
+  then
+    echo "SUCCESS. The sharded dbops has completed"
+  else
+    echo "FAIL. The sharded dbops has failed or did not completed"
     return 1
   fi
 }

@@ -355,6 +355,18 @@ delete_k8s() {
   fi
 }
 
+has_image_k8s() {
+  check_kind_version
+
+  local KIND_IMAGE_ID
+  KIND_IMAGE_ID="$( (docker exec "${KIND_NAME}-control-plane" crictl inspecti -o json "$1" 2>/dev/null || printf '{"status": {"id": "unknown"}}') | jq -r '.status.id' | grep -v '^$')"
+  if [ "$KIND_IMAGE_ID" != unknown ]
+  then
+    return
+  fi
+  return 1
+}
+
 load_image_k8s() {
   check_kind_version
 
@@ -414,6 +426,14 @@ tag_image_k8s() {
   docker exec "${KIND_NAME}-control-plane" ctr -n k8s.io images tag --force "$1" "$2"
 
   echo "Tagged image $1 as $2 in kind environemnt $KIND_NAME"
+}
+
+get_latest_image_k8s() {
+  check_kind_version
+
+  local IMAGE="$1"
+  docker exec "$KIND_NAME-control-plane" crictl images -o json \
+    | jq -r '.images|map(select(.repoTags|any(.|startswith("'"${IMAGE%%:*}"':"))))|last|.repoTags|last'
 }
 
 load_certificate_k8s() {

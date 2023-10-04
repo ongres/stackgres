@@ -55,6 +55,10 @@ public interface AdmissionReviewFixtures {
     return new ShardedBackupReviewFixture();
   }
 
+  static ShardedDbOpsReviewFixture shardedDbOps() {
+    return new ShardedDbOpsReviewFixture();
+  }
+
   static ConfigReviewFixture config() {
     return new ConfigReviewFixture();
   }

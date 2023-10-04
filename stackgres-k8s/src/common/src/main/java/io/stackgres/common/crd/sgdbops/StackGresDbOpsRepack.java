@@ -8,6 +8,8 @@ package io.stackgres.common.crd.sgdbops;
 import java.util.List;
 import java.util.Objects;
 
+import javax.validation.Valid;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -22,6 +24,7 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresDbOpsRepack extends StackGresDbOpsRepackConfig {
 
+  @Valid
   private List<StackGresDbOpsRepackDatabase> databases;
 
   public List<StackGresDbOpsRepackDatabase> getDatabases() {

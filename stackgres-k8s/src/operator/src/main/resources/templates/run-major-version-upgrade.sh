@@ -41,7 +41,7 @@ run_op() {
 
     echo "Signaling major version upgrade started to cluster"
     echo
-    DB_OPS_PATCH="$(cat << EOF
+    DBOPS_PATCH="$(cat << EOF
       {
         "majorVersionUpgrade":{
           "initialInstances": [$(
@@ -80,7 +80,7 @@ EOF
 
     until {
       DBOPS="$({ kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json || printf .; } | jq -c .)"
-      DBOPS="$(printf '%s' "$DBOPS" | jq -c '.status.dbOps = '"$DB_OPS_PATCH")"
+      DBOPS="$(printf '%s' "$DBOPS" | jq -c '.status.dbOps = '"$DBOPS_PATCH")"
       printf '%s' "$DBOPS" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f -
       }
     do
@@ -289,7 +289,7 @@ update_status() {
   then
     PENDING_TO_RESTART_INSTANCES="$INITIAL_INSTANCES"
   else
-    PENDING_TO_RESTART_INSTANCES="$(echo "$INITIAL_INSTANCES" \
+    PENDING_TO_RESTART_INSTANCES="$(echo "$INITIAL_INSTANCES" | tr ' ' '\n' | grep -vxF '' \
       | while read INSTANCE
         do
           PODS="$(kubectl get pods -n "$CLUSTER_NAMESPACE" -l "$CLUSTER_POD_LABELS" -o name)"
@@ -320,13 +320,13 @@ update_status() {
   then
     echo '<none>'
   else
-    echo "$PENDING_TO_RESTART_INSTANCES" | sed 's/^/ - /'
+    echo "$PENDING_TO_RESTART_INSTANCES" | tr ' ' '\n' | sed 's/^/ - /'
   fi
   echo
 
-  OPERATION="$(kubectl get "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" \
+  OPERATION="$(kubectl get "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
     --template='{{ if .status.majorVersionUpgrade }}replace{{ else }}add{{ end }}')"
-  kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=json \
+  kubectl patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=json \
     -p "$(cat << EOF
 [
   {"op":"$OPERATION","path":"/status/majorVersionUpgrade","value":{

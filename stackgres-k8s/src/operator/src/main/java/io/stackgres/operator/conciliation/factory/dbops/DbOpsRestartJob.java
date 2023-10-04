@@ -34,8 +34,8 @@ import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder
-@OpJob("restart")
-public class DbOpsRestartJob implements JobFactory {
+@DbOpsJob("restart")
+public class DbOpsRestartJob implements DbOpsJobFactory {
 
   private final LabelFactoryForDbOps dbOpsLabelFactory;
   private final ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory;

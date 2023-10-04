@@ -11,7 +11,11 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 public interface StackGresShardedClusterUtil {
 
   static String getCoordinatorClusterName(StackGresShardedCluster cluster) {
-    return cluster.getMetadata().getName() + "-coord";
+    return getCoordinatorClusterName(cluster.getMetadata().getName());
+  }
+
+  static String getCoordinatorClusterName(String name) {
+    return name + "-coord";
   }
 
   static String getShardClusterName(StackGresShardedCluster cluster, int shardIndex) {

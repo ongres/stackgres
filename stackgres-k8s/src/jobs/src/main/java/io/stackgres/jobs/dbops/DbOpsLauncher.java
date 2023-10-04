@@ -167,9 +167,9 @@ public class DbOpsLauncher {
 
   public List<Condition> getStartingConditions() {
     final List<Condition> conditions = List.of(
-        DbOpsStatusCondition.DB_OPS_RUNNING.getCondition(),
-        DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED.getCondition(),
-        DbOpsStatusCondition.DB_OPS_FALSE_FAILED.getCondition()
+        DbOpsStatusCondition.DBOPS_RUNNING.getCondition(),
+        DbOpsStatusCondition.DBOPS_FALSE_COMPLETED.getCondition(),
+        DbOpsStatusCondition.DBOPS_FALSE_FAILED.getCondition()
     );
     Condition.setTransitionTimes(conditions);
     return conditions;
@@ -177,9 +177,9 @@ public class DbOpsLauncher {
 
   public List<Condition> getCompletedConditions() {
     final List<Condition> conditions = List.of(
-        DbOpsStatusCondition.DB_OPS_FALSE_RUNNING.getCondition(),
-        DbOpsStatusCondition.DB_OPS_COMPLETED.getCondition(),
-        DbOpsStatusCondition.DB_OPS_FALSE_FAILED.getCondition()
+        DbOpsStatusCondition.DBOPS_FALSE_RUNNING.getCondition(),
+        DbOpsStatusCondition.DBOPS_COMPLETED.getCondition(),
+        DbOpsStatusCondition.DBOPS_FALSE_FAILED.getCondition()
     );
     Condition.setTransitionTimes(conditions);
     return conditions;
@@ -187,9 +187,9 @@ public class DbOpsLauncher {
 
   public List<Condition> getFailedConditions() {
     final List<Condition> conditions = List.of(
-        DbOpsStatusCondition.DB_OPS_FALSE_RUNNING.getCondition(),
-        DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED.getCondition(),
-        DbOpsStatusCondition.DB_OPS_FAILED.getCondition()
+        DbOpsStatusCondition.DBOPS_FALSE_RUNNING.getCondition(),
+        DbOpsStatusCondition.DBOPS_FALSE_COMPLETED.getCondition(),
+        DbOpsStatusCondition.DBOPS_FAILED.getCondition()
     );
     Condition.setTransitionTimes(conditions);
     return conditions;
@@ -197,9 +197,9 @@ public class DbOpsLauncher {
 
   public List<Condition> getTimeoutConditions() {
     final List<Condition> conditions = List.of(
-        DbOpsStatusCondition.DB_OPS_FALSE_RUNNING.getCondition(),
-        DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED.getCondition(),
-        DbOpsStatusCondition.DB_OPS_TIMED_OUT.getCondition()
+        DbOpsStatusCondition.DBOPS_FALSE_RUNNING.getCondition(),
+        DbOpsStatusCondition.DBOPS_FALSE_COMPLETED.getCondition(),
+        DbOpsStatusCondition.DBOPS_TIMED_OUT.getCondition()
     );
     Condition.setTransitionTimes(conditions);
     return conditions;

@@ -94,15 +94,15 @@ public class DbOpsStatusManager
   }
 
   protected Condition getFalseRunning() {
-    return DbOpsStatusCondition.DB_OPS_FALSE_RUNNING.getCondition();
+    return DbOpsStatusCondition.DBOPS_FALSE_RUNNING.getCondition();
   }
 
   protected Condition getFalseCompleted() {
-    return DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED.getCondition();
+    return DbOpsStatusCondition.DBOPS_FALSE_COMPLETED.getCondition();
   }
 
   protected Condition getFailedDueToUnexpectedFailure() {
-    var failed = DbOpsStatusCondition.DB_OPS_FAILED.getCondition();
+    var failed = DbOpsStatusCondition.DBOPS_FAILED.getCondition();
     failed.setMessage("Unexpected failure");
     return failed;
   }

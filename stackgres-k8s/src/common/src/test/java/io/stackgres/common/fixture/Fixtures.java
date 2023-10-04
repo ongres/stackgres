@@ -14,6 +14,7 @@ import io.stackgres.common.fixture.cluster.ClusterListFixture;
 import io.stackgres.common.fixture.cluster.JsonClusterFixture;
 import io.stackgres.common.fixture.config.ConfigFixture;
 import io.stackgres.common.fixture.dbops.DbOpsFixture;
+import io.stackgres.common.fixture.dbops.DbOpsListFixture;
 import io.stackgres.common.fixture.distributedlogs.DistributedLogsFixture;
 import io.stackgres.common.fixture.distributedlogs.DistributedLogsListFixture;
 import io.stackgres.common.fixture.instanceprofile.InstanceProfileFixture;
@@ -30,6 +31,8 @@ import io.stackgres.common.fixture.shardedbackup.ShardedBackupFixture;
 import io.stackgres.common.fixture.shardedbackup.ShardedBackupListFixture;
 import io.stackgres.common.fixture.shardedcluster.ShardedClusterFixture;
 import io.stackgres.common.fixture.shardedcluster.ShardedClusterListFixture;
+import io.stackgres.common.fixture.shardeddbops.ShardedDbOpsFixture;
+import io.stackgres.common.fixture.shardeddbops.ShardedDbOpsListFixture;
 import io.stackgres.common.fixture.upgrade.Upgrade;
 
 public interface Fixtures {
@@ -68,6 +71,10 @@ public interface Fixtures {
 
   static DbOpsFixture dbOps() {
     return new DbOpsFixture();
+  }
+
+  static DbOpsListFixture dbOpsList() {
+    return new DbOpsListFixture();
   }
 
   static InstanceProfileFixture instanceProfile() {
@@ -116,6 +123,14 @@ public interface Fixtures {
 
   static ShardedBackupListFixture shardedBackupList() {
     return new ShardedBackupListFixture();
+  }
+
+  static ShardedDbOpsFixture shardedDbOps() {
+    return new ShardedDbOpsFixture();
+  }
+
+  static ShardedDbOpsListFixture shardedDbOpsList() {
+    return new ShardedDbOpsListFixture();
   }
 
   static ConfigFixture config() {

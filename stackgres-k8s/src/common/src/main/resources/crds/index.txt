@@ -11,3 +11,4 @@ SGObjectStorage.yaml
 SGScript.yaml
 SGShardedCluster.yaml
 SGShardedBackup.yaml
+SGShardedDbOps.yaml

@@ -12,11 +12,10 @@ import io.stackgres.common.crd.OperatorEventReason;
 
 public enum DbOpsEventReason implements OperatorEventReason {
 
-  DB_OPS_CREATED(NORMAL, "DbOpsCreated"),
-  DB_OPS_FAILED(WARNING, "DbOpsFailed"),
-  DB_OPS_TIMED_OUT(WARNING, "DbOpsTimedOut"),
-  DB_OPS_COMPLETED(NORMAL, "DbOpsCompleted"),
-  DB_OPS_CONFIG_ERROR(WARNING, "DbOpsConfigFailed");
+  DBOPS_CREATED(NORMAL, "DbOpsCreated"),
+  DBOPS_UPDATED(NORMAL, "DbOpsUpdated"),
+  DBOPS_DELETED(NORMAL, "DbOpsDeleted"),
+  DBOPS_CONFIG_ERROR(WARNING, "DbOpsConfigFailed");
 
   private final Type type;
   private final String reason;

@@ -229,32 +229,43 @@ EOF
 
   BACKUP_COMPRESSED_SIZE=0
   BACKUP_UNCOMPRESSED_SIZE=0
-  for BACKUP_NAME in $(cat /tmp/current-backups)
+  echo "Waiting for SGDBackup $(cat /tmp/current-backups | tr '\n' ' ' | tr -s ' ') to complete"
+  touch /tmp/completed-backups
+  while true
   do
-    echo "Waiting for backup $BACKUP_NAME to complete"
-    while true
+    local COMPLETED=true
+    for BACKUP_NAME in $(cat /tmp/current-backups)
     do
-      BACKUP_STATUS="$(kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-        --template='{{ .status.process.status }} {{ .status.backupInformation.size.compressed }} {{ .status.backupInformation.size.uncompressed }}')"
-      if ! printf %s "$BACKUP_STATUS" | grep -q "^\($BACKUP_PHASE_COMPLETED\|$BACKUP_PHASE_FAILED\) "
+      if ! grep -qxF "$BACKUP_NAME" /tmp/completed-backups
       then
-        sleep 2
-        continue
+        BACKUP_STATUS="$(kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+          --template='{{ .status.process.status }} {{ .status.backupInformation.size.compressed }} {{ .status.backupInformation.size.uncompressed }}')"
+        if ! printf %s "$BACKUP_STATUS" | grep -q "^\($BACKUP_PHASE_COMPLETED\|$BACKUP_PHASE_FAILED\) "
+        then
+          COMPLETED=false
+          continue
+        fi
+        printf %s "$BACKUP_NAME" >> /tmp/completed-backups
+        BACKUP_COMPRESSED_SIZE="$((BACKUP_COMPRESSED_SIZE + $(printf %s "$BACKUP_STATUS" | cut -d ' ' -f 2) ))"
+        BACKUP_UNCOMPRESSED_SIZE="$((BACKUP_UNCOMPRESSED_SIZE + $(printf %s "$BACKUP_STATUS" | cut -d ' ' -f 3) ))"
+        if printf %s "$BACKUP_STATUS" | grep -q "^$BACKUP_PHASE_FAILED "
+        then
+          echo "Backup $BACKUP_NAME failed" > /tmp/backup-push
+          kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
+            {"op":"replace","path":"/status/process/failure","value":'"$(printf 'Backup failed: Backup %s failed' "$BACKUP_NAME" | to_json_string)"'}
+            ]'
+          exit 1
+        fi
+        echo "...$BACKUP_NAME completed"
       fi
-      BACKUP_COMPRESSED_SIZE="$((BACKUP_COMPRESSED_SIZE + $(printf %s "$BACKUP_STATUS" | cut -d ' ' -f 2) ))"
-      BACKUP_UNCOMPRESSED_SIZE="$((BACKUP_UNCOMPRESSED_SIZE + $(printf %s "$BACKUP_STATUS" | cut -d ' ' -f 3) ))"
-      if printf %s "$BACKUP_STATUS" | grep -q "^$BACKUP_PHASE_FAILED "
-      then
-        echo "Backup $BACKUP_NAME failed" > /tmp/backup-push
-        kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
-          {"op":"replace","path":"/status/process/failure","value":'"$(printf 'Backup failed: Backup %s failed' "$BACKUP_NAME" | to_json_string)"'}
-          ]'
-        exit 1
-      fi
-      break
     done
-    echo "...backup completed"
+    if "$COMPLETED"
+    then
+      break
+    fi
+    sleep 2
   done
+  echo "...backup completed"
   printf %s "$BACKUP_COMPRESSED_SIZE" > /tmp/current-compressed-size
   printf %s "$BACKUP_UNCOMPRESSED_SIZE" > /tmp/current-uncompressed-size
 
@@ -267,12 +278,13 @@ EOF
 }
 
 create_backup_restore_point() {
-  if ! cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
-      -- sh -e $SHELL_XTRACE > /tmp/backup-restore-point 2>&1
-psql -d "$SHARDED_CLUSTER_DATABASE" \
+  cat << EOF | { set +e; kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
+      -- sh -e $SHELL_XTRACE 2>&1; printf %s "$?" > /tmp/backup-restore-point-exit-code; } | tee /tmp/backup-restore-point
+psql -d "$SHARDED_CLUSTER_DATABASE" -v ON_ERROR_STOP=1 \
   -c "SELECT citus_create_restore_point('$SHARDED_BACKUP_NAME')" \
   -c "SELECT pg_switch_wal()"
 EOF
+  if [ "$(cat /tmp/backup-restore-point-exit-code)" != 0 ]
   then
     cat /tmp/backup-restore-point > /tmp/backup-push
     kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
@@ -280,7 +292,6 @@ EOF
       ]'
     exit 1
   fi
-  cat /tmp/backup-restore-point
 }
 
 set_backup_completed() {

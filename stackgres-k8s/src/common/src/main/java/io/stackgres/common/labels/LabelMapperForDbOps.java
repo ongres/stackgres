@@ -12,7 +12,7 @@ public interface LabelMapperForDbOps
     extends LabelMapper<StackGresDbOps> {
 
   default String dbOpsKey(StackGresDbOps resource) {
-    return getKeyPrefix(resource) + StackGresContext.DB_OPS_KEY;
+    return getKeyPrefix(resource) + StackGresContext.DBOPS_KEY;
   }
 
 }

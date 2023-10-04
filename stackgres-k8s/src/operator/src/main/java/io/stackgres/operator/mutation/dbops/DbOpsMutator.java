@@ -9,5 +9,5 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.operator.common.DbOpsReview;
 import io.stackgres.operatorframework.admissionwebhook.mutating.Mutator;
 
-public interface DbOpsMutator  extends Mutator<StackGresDbOps, DbOpsReview> {
+public interface DbOpsMutator extends Mutator<StackGresDbOps, DbOpsReview> {
 }

@@ -18,14 +18,14 @@ import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 
 @ApplicationScoped
 public class BenchmarkJobDiscoverer
-    extends AbstractDiscoverer<JobFactory>  {
+    extends AbstractDiscoverer<DbOpsJobFactory>  {
 
   @Inject
-  public BenchmarkJobDiscoverer(@BenchmarkJob Instance<JobFactory> instance) {
+  public BenchmarkJobDiscoverer(@BenchmarkJob Instance<DbOpsJobFactory> instance) {
     super(instance);
   }
 
-  public Map<String, JobFactory> discoverFactories(StackGresDbOpsContext context) {
+  public Map<String, DbOpsJobFactory> discoverFactories(StackGresDbOpsContext context) {
     return hub.get(context.getVersion()).stream()
         .collect(Collectors.toMap(
             dbop -> getAnnotation(dbop, BenchmarkJob.class).value(),

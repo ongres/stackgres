@@ -34,8 +34,8 @@ import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder
-@OpJob("minorVersionUpgrade")
-public class DbOpsMinorVersionUpgradeJob implements JobFactory {
+@DbOpsJob("minorVersionUpgrade")
+public class DbOpsMinorVersionUpgradeJob implements DbOpsJobFactory {
 
   private final ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory;
   private final LabelFactoryForDbOps dbOpsLabelFactory;

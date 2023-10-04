@@ -49,7 +49,7 @@ import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
-public abstract class AbstractDbOpsJob implements JobFactory {
+public abstract class AbstractDbOpsJob implements DbOpsJobFactory {
 
   private static final Pattern UPPERCASE_PATTERN = Pattern.compile("(\\p{javaUpperCase})");
 
@@ -229,11 +229,11 @@ public abstract class AbstractDbOpsJob implements JobFactory {
                         .withValue(namespace)
                         .build(),
                     new EnvVarBuilder()
-                        .withName("DB_OPS_NAME")
+                        .withName("DBOPS_NAME")
                         .withValue(name)
                         .build(),
                     new EnvVarBuilder()
-                        .withName("DB_OPS_CRD_NAME")
+                        .withName("DBOPS_CRD_NAME")
                         .withValue(CustomResource.getCRDName(StackGresDbOps.class))
                         .build(),
                     new EnvVarBuilder()
@@ -359,18 +359,12 @@ public abstract class AbstractDbOpsJob implements JobFactory {
                             .withValue(namespace)
                             .build(),
                         new EnvVarBuilder()
-                            .withName("DB_OPS_NAME")
+                            .withName("DBOPS_NAME")
                             .withValue(name)
                             .build(),
                         new EnvVarBuilder()
-                            .withName("DB_OPS_CRD_NAME")
+                            .withName("DBOPS_CRD_NAME")
                             .withValue(CustomResource.getCRDName(StackGresDbOps.class))
-                            .build(),
-                        new EnvVarBuilder()
-                            .withName("JOB_POD_LABELS")
-                            .withValue(Seq.seq(labels)
-                                .append(Tuple.tuple("job-name", jobName(dbOps)))
-                                .map(t -> t.v1 + "=" + t.v2).toString(","))
                             .build(),
                         new EnvVarBuilder()
                             .withName("HOME")

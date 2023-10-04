@@ -1,0 +1,14 @@
+{
+  "metadata": {
+    "name": "stackgres",
+    "namespace": "default"
+  },
+  "spec": {
+    "sgShardedCluster": "test",
+    "op": "restart",
+    "maxRetries": 3,
+    "restart": {
+      "method": "InPlace"
+    }
+  }
+}

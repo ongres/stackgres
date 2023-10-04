@@ -19,8 +19,8 @@ import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 
 @Singleton
 @OperatorVersionBinder
-@OpJob("benchmark")
-public class DbOpsBenchmarkJob implements JobFactory {
+@DbOpsJob("benchmark")
+public class DbOpsBenchmarkJob implements DbOpsJobFactory {
 
   private final BenchmarkJobDiscoverer jobDiscoverer;
 
@@ -31,7 +31,7 @@ public class DbOpsBenchmarkJob implements JobFactory {
 
   @Override
   public Job createJob(StackGresDbOpsContext context) {
-    Map<String, JobFactory> factories = jobDiscoverer.discoverFactories(context);
+    Map<String, DbOpsJobFactory> factories = jobDiscoverer.discoverFactories(context);
 
     final String benchmarkType = Optional.ofNullable(context.getSource().getSpec())
         .map(StackGresDbOpsSpec::getBenchmark)

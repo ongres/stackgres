@@ -34,11 +34,11 @@ import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1beta1.JobTemplateSpecBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.common.ClusterPath;
 import io.stackgres.common.JobUtil;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.ShardedClusterPath;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
@@ -422,7 +422,7 @@ public class ShardedBackupCronJobV1Beta1
                         .build())
                     .build())
                 .withCommand("/bin/bash", "-e" + (BACKUP_LOGGER.isTraceEnabled() ? "x" : ""),
-                    ClusterPath.LOCAL_BIN_CREATE_SHARDED_BACKUP_SH_PATH.path())
+                    ShardedClusterPath.LOCAL_BIN_CREATE_SHARDED_BACKUP_SH_PATH.path())
                 .withVolumeMounts(backupScriptTemplatesVolumeMounts.getVolumeMounts(context))
                 .build())
             .withVolumes(volumes

@@ -18,6 +18,7 @@ import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.ModelTestUtil;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -38,6 +39,7 @@ class CrdSerializationDeserializationTest {
       StackGresScript.class,
       StackGresShardedCluster.class,
       StackGresShardedBackup.class,
+      StackGresShardedDbOps.class,
   })
   protected void assertSerializationAndDeserialization(Class<?> sourceClazz) throws Exception {
     ObjectMapper objectMapper = new ObjectMapper();

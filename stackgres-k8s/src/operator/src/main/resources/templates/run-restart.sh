@@ -16,7 +16,7 @@ run_op() {
     echo "Signaling $NORMALIZED_OP_NAME started to cluster"
     echo
 
-    DB_OPS_PATCH="$(cat << EOF
+    DBOPS_PATCH="$(cat << EOF
       {
         "dbOps": {
           "$OP_NAME":{
@@ -41,7 +41,7 @@ EOF
     )"
     until (
       DBOPS="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json)"
-      DBOPS="$(printf '%s' "$DBOPS" | jq '.status |= . + '"$DB_OPS_PATCH")"
+      DBOPS="$(printf '%s' "$DBOPS" | jq '.status |= . + '"$DBOPS_PATCH")"
       printf '%s' "$DBOPS" | kubectl replace --raw /apis/"$CRD_GROUP"/v1/namespaces/"$CLUSTER_NAMESPACE"/"$CLUSTER_CRD_NAME"/"$CLUSTER_NAME" -f -
       )
     do
@@ -326,9 +326,9 @@ update_status() {
   fi
   echo
 
-  OPERATION="$(kubectl get "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" \
+  OPERATION="$(kubectl get "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
     --template="{{ if .status.$OP_NAME }}replace{{ else }}add{{ end }}")"
-  kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=json \
+  kubectl patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=json \
     -p "$(cat << EOF
 [
   {"op":"$OPERATION","path":"/status/$OP_NAME","value":{

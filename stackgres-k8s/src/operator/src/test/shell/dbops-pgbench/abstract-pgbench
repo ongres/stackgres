@@ -31,12 +31,12 @@ mock kubectl kubectl_mock
 kubectl_mock() {
   mokked
   case "$*" in
-    ("get $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME -o json")
+    ("get $DBOPS_CRD_NAME -n $CLUSTER_NAMESPACE $DBOPS_NAME -o json")
       echo '{
         "apiVersion": "stackgres.io/v1",
         "kind": "SGDbOps",
         "metadata": {
-          "name": "'"$DB_OPS_NAME"'",
+          "name": "'"$DBOPS_NAME"'",
           "namespace": "'"$CLUSTER_NAMESPACE"'",
           "resourceVersion": "1",
           "uid": "172381f8-3f37-46c9-9a29-8284a73d1e5e"
@@ -54,7 +54,7 @@ kubectl_mock() {
         }
       }'
     ;;
-    ("patch $DB_OPS_CRD_NAME -n $CLUSTER_NAMESPACE $DB_OPS_NAME "*)
+    ("patch $DBOPS_CRD_NAME -n $CLUSTER_NAMESPACE $DBOPS_NAME "*)
     ;;
     ("create --raw /api/v1/namespaces/test/events -f -")
     ;;

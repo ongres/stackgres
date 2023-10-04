@@ -1,5 +1,8 @@
 #!/bin/sh
 
+RESOURCE_CRD_NAME="$DBOPS_CRD_NAME"
+RESOURCE_NAME="$DBOPS_NAME"
+
 . "$LOCAL_BIN_SHELL_UTILS_PATH"
 
 eval_in_place() {
@@ -12,14 +15,14 @@ EVAL_IN_PLACE_EOF
 LAST_TRANSITION_TIME="$(date_iso8601)"
 STARTED="$LAST_TRANSITION_TIME"
 
-kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=merge \
+kubectl patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=merge \
   -p "$(cat << EOF
 {
   "status": {
     "conditions":[
-        $(eval_in_place "$CONDITION_DB_OPS_RUNNING"),
-        $(eval_in_place "$CONDITION_DB_OPS_FALSE_COMPLETED"),
-        $(eval_in_place "$CONDITION_DB_OPS_FALSE_FAILED")
+        $(eval_in_place "$CONDITION_DBOPS_RUNNING"),
+        $(eval_in_place "$CONDITION_DBOPS_FALSE_COMPLETED"),
+        $(eval_in_place "$CONDITION_DBOPS_FALSE_FAILED")
     ],
     "opStarted": "$STARTED"
   }

@@ -19,6 +19,10 @@ public interface DtoFixtures {
     return new ClusterDtoFixture();
   }
 
+  static DbOpsDtoFixture dbOps() {
+    return new DbOpsDtoFixture();
+  }
+
   static DistributedLogsDtoFixture distributedLogs() {
     return new DistributedLogsDtoFixture();
   }
@@ -45,6 +49,10 @@ public interface DtoFixtures {
 
   static ShardedBackupDtoFixture shardedBackup() {
     return new ShardedBackupDtoFixture();
+  }
+
+  static ShardedDbOpsDtoFixture shardedDbOps() {
+    return new ShardedDbOpsDtoFixture();
   }
 
 }

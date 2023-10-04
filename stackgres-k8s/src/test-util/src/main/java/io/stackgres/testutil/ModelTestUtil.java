@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.Quantity;
 
 public class ModelTestUtil {
@@ -247,6 +248,8 @@ public class ModelTestUtil {
     return visit(visitor, clazz, null);
   }
 
+  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
+      justification = "False positive")
   public static <T> T visit(ResourceVisitor<T> visitor, Class<?> clazz,
       Type genericType) {
     if (isValueType(clazz)) {
@@ -276,6 +279,8 @@ public class ModelTestUtil {
     return TypeFactory.rawClass(listType.getActualTypeArguments()[index]);
   }
 
+  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
+      justification = "False positive")
   private static ParameterizedType getParameterizedType(Class<?> clazz, Type genericType) {
     final ParameterizedType parameterizedType;
     if (genericType instanceof ParameterizedType currentGenericType) {

@@ -23,7 +23,7 @@ public interface StackGresContext {
   String GRAFANA_INTEGRATION_KEY = "grafana-integration";
   String CLUSTER_KEY = "cluster";
   String BACKUP_KEY = "backup";
-  String DB_OPS_KEY = "db-ops";
+  String DBOPS_KEY = "db-ops";
   String SCHEDULED_BACKUP_KEY = "scheduled-backup";
   String SCHEDULED_BACKUP_JOB_NAME_KEY = "scheduled-backup-job-name";
   String DISRUPTABLE_KEY = "disruptible";
@@ -47,12 +47,17 @@ public interface StackGresContext {
   String COORDINATOR_KEY = "coordinator";
   String SHARDS_KEY = "shards";
   String SHARDED_BACKUP_KEY = "sharded-backup";
+  String SHARDED_DBOPS_KEY = "sharded-db-ops";
   String SCHEDULED_SHARDED_BACKUP_KEY = "scheduled-sharded-backup";
   String SCHEDULED_SHARDED_BACKUP_JOB_NAME_KEY = "scheduled-sharded-backup-job-name";
   String SHARDED_BACKUP_APP_NAME = "StackGresShardedBackup";
   String SHARDED_BACKUP_NAME_KEY = "sharded-backup-name";
   String SHARDED_BACKUP_UID_KEY = "sharded-backup-uid";
-  String SHARDED_BACKUP_NAMESPACE_KEY = "backup-namespace";
+  String SHARDED_BACKUP_NAMESPACE_KEY = "sharded-backup-namespace";
+  String SHARDED_DBOPS_APP_NAME = "StackGresShardedDbOps";
+  String SHARDED_DBOPS_NAME_KEY = "sharded-dbops-name";
+  String SHARDED_DBOPS_UID_KEY = "sharded-dbops-uid";
+  String SHARDED_DBOPS_NAMESPACE_KEY = "sharded-dbops-namespace";
   String CONFIG_APP_NAME = "StackGresConfig";
   String CONFIG_NAME_KEY = "config-name";
   String CONFIG_UID_KEY = "config-uid";

@@ -47,7 +47,7 @@ spec:
                 maxLength: 57
                 pattern: "^[a-z]([-a-z0-9]*[a-z0-9])?$"
                 description: |
-                  Name of the Database Operation. A database operation represents a ""kind"" of operation on a StackGres cluster, classified by a given name. The operation reference one SGCluster by its name. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 `label`, an alphanumeric (a-z, and 0-9) string, with a maximum length of 21 characters, with the '-' character allowed anywhere except the first or last character.
+                  Name of the Database Operation. A database operation represents a ""kind"" of operation on a StackGres cluster, classified by a given name. The operation reference one SGCluster by its name. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 `label`, an alphanumeric (a-z, and 0-9) string, with the '-' character allowed anywhere except the first or last character.
 
                   The name must be unique across all database operations in the same namespace."
           spec:
@@ -91,7 +91,6 @@ spec:
                   * `restart`: perform a restart of the cluster.
                   * `minorVersionUpgrade`: perform a minor version upgrade of PostgreSQL.
                   * `securityUpgrade`: perform a security upgrade of the cluster.
-                  * `upgrade`: perform a operator API upgrade of the cluster
               runAt:
                 type: string
                 description: |
@@ -302,7 +301,7 @@ spec:
 
                       When provided will indicate were the backups and WAL files will be stored.
 
-                      The path should be different from the current `.spec.configurations.backupPath` value for the target `SGCluster`
+                      The path should be different from the current `.spec.configurations.backups[].path` value for the target `SGCluster`
                         in order to avoid mixing WAL files of two distinct major versions of postgres.
                   link:
                     type: boolean
