@@ -8,6 +8,7 @@ package io.stackgres.apiweb.rest;
 import java.util.List;
 import java.util.Objects;
 
+import javax.annotation.Nullable;
 import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.Path;
 
@@ -50,11 +51,14 @@ public class PostgresConfigResource extends
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = PostgresConfigDto.class)) })
       })
   @Override
-  public void create(PostgresConfigDto resource) {
-    super.create(resource);
+  public PostgresConfigDto create(PostgresConfigDto resource, @Nullable Boolean dryRun) {
+    return super.create(resource, dryRun);
   }
 
   @Operation(
@@ -62,17 +66,20 @@ public class PostgresConfigResource extends
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  public void delete(PostgresConfigDto resource) {
-    super.delete(resource);
+  public void delete(PostgresConfigDto resource, @Nullable Boolean dryRun) {
+    super.delete(resource, dryRun);
   }
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = PostgresConfigDto.class)) })
       })
   @Override
-  public void update(PostgresConfigDto resource) {
-    super.update(resource);
+  public PostgresConfigDto update(PostgresConfigDto resource, @Nullable Boolean dryRun) {
+    return super.update(resource, dryRun);
   }
 
   @Override

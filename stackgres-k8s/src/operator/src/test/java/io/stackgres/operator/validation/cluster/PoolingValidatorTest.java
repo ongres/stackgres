@@ -83,7 +83,7 @@ class PoolingValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Pooling config " + poolingConfig + " not found", resultMessage);
+    assertEquals("SGPoolingConfig " + poolingConfig + " not found", resultMessage);
 
   }
 
@@ -107,7 +107,7 @@ class PoolingValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Cannot update to pooling config " + poolingConfig
+    assertEquals("Cannot update to SGPoolingConfig " + poolingConfig
         + " because it doesn't exists", resultMessage);
 
     verify(configFinder).findByNameAndNamespace(eq(poolingConfig), eq(namespace));

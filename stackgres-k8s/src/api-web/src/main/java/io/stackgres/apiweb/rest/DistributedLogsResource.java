@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.annotation.Nullable;
 import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.Path;
 
@@ -53,11 +54,14 @@ public class DistributedLogsResource
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = DistributedLogsDto.class)) })
       })
   @Override
-  public void create(DistributedLogsDto resource) {
-    super.create(resource);
+  public DistributedLogsDto create(DistributedLogsDto resource, @Nullable Boolean dryRun) {
+    return super.create(resource, dryRun);
   }
 
   @Operation(
@@ -65,17 +69,20 @@ public class DistributedLogsResource
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  public void delete(DistributedLogsDto resource) {
-    super.delete(resource);
+  public void delete(DistributedLogsDto resource, @Nullable Boolean dryRun) {
+    super.delete(resource, dryRun);
   }
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = DistributedLogsDto.class)) })
       })
   @Override
-  public void update(DistributedLogsDto resource) {
-    super.update(resource);
+  public DistributedLogsDto update(DistributedLogsDto resource, @Nullable Boolean dryRun) {
+    return super.update(resource, dryRun);
   }
 
   @Override

@@ -14,10 +14,10 @@ public interface ResourceRestService<T extends ResourceDto> {
 
   @NotNull List<@NotNull T> list();
 
-  void create(@NotNull T resource);
+  T create(@NotNull T resource, Boolean dryRun);
 
-  void delete(@NotNull T resource);
+  void delete(@NotNull T resource, Boolean dryRun);
 
-  void update(@NotNull T resource);
+  T update(@NotNull T resource, Boolean dryRun);
 
 }

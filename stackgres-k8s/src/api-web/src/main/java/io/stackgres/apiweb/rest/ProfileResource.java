@@ -8,6 +8,7 @@ package io.stackgres.apiweb.rest;
 import java.util.List;
 import java.util.Objects;
 
+import javax.annotation.Nullable;
 import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.Path;
 
@@ -50,11 +51,14 @@ public class ProfileResource
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ProfileDto.class)) })
       })
   @Override
-  public void create(ProfileDto resource) {
-    super.create(resource);
+  public ProfileDto create(ProfileDto resource, @Nullable Boolean dryRun) {
+    return super.create(resource, dryRun);
   }
 
   @Operation(
@@ -62,17 +66,20 @@ public class ProfileResource
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  public void delete(ProfileDto resource) {
-    super.delete(resource);
+  public void delete(ProfileDto resource, @Nullable Boolean dryRun) {
+    super.delete(resource, dryRun);
   }
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ProfileDto.class)) })
       })
   @Override
-  public void update(ProfileDto resource) {
-    super.update(resource);
+  public ProfileDto update(ProfileDto resource, @Nullable Boolean dryRun) {
+    return super.update(resource, dryRun);
   }
 
   @Override

@@ -10,62 +10,45 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
+import io.stackgres.operator.validation.AbstractReferenceValidator;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @Singleton
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)
-public class ProfileReferenceValidator implements DistributedLogsValidator {
-
-  private final CustomResourceFinder<StackGresProfile> profileFinder;
+public class ProfileReferenceValidator
+    extends AbstractReferenceValidator<
+      StackGresDistributedLogs, StackGresDistributedLogsReview, StackGresProfile>
+    implements DistributedLogsValidator {
 
   @Inject
   public ProfileReferenceValidator(CustomResourceFinder<StackGresProfile> profileFinder) {
-    this.profileFinder = profileFinder;
+    super(profileFinder);
   }
 
   @Override
-  @SuppressFBWarnings(value = "SF_SWITCH_NO_DEFAULT",
-      justification = "False positive")
-  public void validate(StackGresDistributedLogsReview review) throws ValidationFailed {
-    switch (review.getRequest().getOperation()) {
-      case CREATE: {
-        StackGresDistributedLogs distributedLogs = review.getRequest().getObject();
-        String resourceProfile = distributedLogs.getSpec().getSgInstanceProfile();
-        checkIfProfileExists(review, "Invalid profile " + resourceProfile);
-        break;
-      }
-      case UPDATE: {
-        StackGresDistributedLogs distributedLogs = review.getRequest().getObject();
-        String resourceProfile = distributedLogs.getSpec().getSgInstanceProfile();
-        checkIfProfileExists(review, "Cannot update to profile "
-            + resourceProfile + " because it doesn't exists");
-        break;
-      }
-      default:
-    }
-
+  protected Class<StackGresProfile> getReferenceClass() {
+    return StackGresProfile.class;
   }
 
-  private void checkIfProfileExists(StackGresDistributedLogsReview review, String onError)
-      throws ValidationFailed {
-    StackGresDistributedLogs distributedLogs = review.getRequest().getObject();
-    String resourceProfile = distributedLogs.getSpec().getSgInstanceProfile();
-    String namespace = distributedLogs.getMetadata().getNamespace();
+  @Override
+  protected String getReference(StackGresDistributedLogs resource) {
+    return resource.getSpec().getSgInstanceProfile();
+  }
 
-    Optional<StackGresProfile> profileOpt = profileFinder
-        .findByNameAndNamespace(resourceProfile, namespace);
+  @Override
+  protected boolean checkReferenceFilter(StackGresDistributedLogsReview review) {
+    return !Optional.ofNullable(review.getRequest().getDryRun()).orElse(false);
+  }
 
-    if (!profileOpt.isPresent()) {
-      fail(onError);
-    }
-
+  @Override
+  protected void onNotFoundReference(String message) throws ValidationFailed {
+    fail(message);
   }
 
 }

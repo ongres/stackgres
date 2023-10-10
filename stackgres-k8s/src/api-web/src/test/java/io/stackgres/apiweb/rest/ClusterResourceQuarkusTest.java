@@ -143,7 +143,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
         .post("/stackgres/sgclusters")
         .then()
         .log().all()
-        .statusCode(204);
+        .statusCode(200);
   }
 
   @Test
@@ -209,7 +209,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
         .post("/stackgres/sgclusters")
-        .then().statusCode(204);
+        .then().statusCode(200);
 
     ConfigMap configMap = mockServer.getClient().configMaps().inNamespace("test")
         .withName(scriptSpec.getScripts().get(0).getScriptFrom().getConfigMapKeyRef().getName())
@@ -236,7 +236,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
         .post("/stackgres/sgclusters")
-        .then().statusCode(204);
+        .then().statusCode(200);
 
     final ScriptFrom scriptFrom = scriptSpec.getScripts().get(0).getScriptFrom();
     final SecretKeySelector secretKeyRef = scriptFrom.getSecretKeyRef();
@@ -264,7 +264,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
         .post("/stackgres/sgclusters")
-        .then().statusCode(204);
+        .then().statusCode(200);
 
     final ScriptFrom secretScriptFrom = secretScriptEntry.getScriptFrom();
     final SecretKeySelector secretKeyRef = secretScriptFrom.getSecretKeyRef();
@@ -346,7 +346,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
         .post("/stackgres/sgclusters")
-        .then().statusCode(204);
+        .then().statusCode(200);
 
     given()
         .header(AUTHENTICATION_HEADER)

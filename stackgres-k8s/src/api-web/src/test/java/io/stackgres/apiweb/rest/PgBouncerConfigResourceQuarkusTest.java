@@ -78,7 +78,7 @@ class PgBouncerConfigResourceQuarkusTest implements AuthenticatedResourceTest {
         .accept(ContentType.JSON)
         .post("/stackgres/sgpoolconfigs")
         .then()
-        .statusCode(204);
+        .statusCode(200);
   }
 
   @Test
@@ -152,7 +152,7 @@ class PgBouncerConfigResourceQuarkusTest implements AuthenticatedResourceTest {
         .accept(ContentType.JSON)
         .post("/stackgres/sgpoolconfigs")
         .then()
-        .statusCode(204);
+        .statusCode(200);
 
     dto.getSpec().getPgBouncer()
         .setParameters("""
@@ -178,7 +178,7 @@ class PgBouncerConfigResourceQuarkusTest implements AuthenticatedResourceTest {
         .body(dto)
         .put("/stackgres/sgpoolconfigs")
         .then()
-        .statusCode(204);
+        .statusCode(200);
   }
 
 }

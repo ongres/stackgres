@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -226,7 +227,7 @@ class ShardedClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources();
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
-    verify(scheduler, times(1)).create(any());
+    verify(scheduler, times(1)).create(any(), anyBoolean());
     verify(scheduler, times(0)).update(any(), any());
     verify(scriptScheduler, times(0)).create(any());
     verify(scriptScheduler, times(0)).update(any());
@@ -274,7 +275,7 @@ class ShardedClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources();
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
-    verify(scheduler, times(1)).create(any());
+    verify(scheduler, times(1)).create(any(), anyBoolean());
     verify(scheduler, times(0)).update(any(), any());
     verify(scriptScheduler, times(0)).create(any());
     verify(scriptScheduler, times(1)).update(any());
@@ -298,7 +299,7 @@ class ShardedClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources();
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
-    verify(scheduler, times(1)).create(any());
+    verify(scheduler, times(1)).create(any(), anyBoolean());
     verify(scheduler, times(0)).update(any(), any());
     verify(scriptScheduler, times(1)).create(any());
     verify(scriptScheduler, times(0)).update(any());
@@ -323,7 +324,7 @@ class ShardedClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources();
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
-    verify(scheduler, times(1)).create(any());
+    verify(scheduler, times(1)).create(any(), anyBoolean());
     verify(scheduler, times(0)).update(any(), any());
     verify(scriptScheduler, times(1)).create(any());
     verify(scriptScheduler, times(0)).update(any());
@@ -364,7 +365,7 @@ class ShardedClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources();
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
-    verify(scheduler, times(1)).create(any());
+    verify(scheduler, times(1)).create(any(), anyBoolean());
     verify(scheduler, times(0)).update(any(), any());
     verify(scriptScheduler, times(1)).create(any());
     verify(scriptScheduler, times(0)).update(any());
@@ -408,7 +409,7 @@ class ShardedClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources();
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
-    verify(scheduler, times(1)).create(any());
+    verify(scheduler, times(1)).create(any(), anyBoolean());
     verify(scheduler, times(0)).update(any(), any());
     verify(scriptScheduler, times(1)).create(any());
     verify(scriptScheduler, times(0)).update(any());
@@ -450,7 +451,7 @@ class ShardedClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources();
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
-    verify(scheduler, times(1)).create(any());
+    verify(scheduler, times(1)).create(any(), anyBoolean());
     verify(scheduler, times(0)).update(any(), any());
     verify(scriptScheduler, times(1)).create(any());
     verify(scriptScheduler, times(0)).update(any());
@@ -489,7 +490,7 @@ class ShardedClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources();
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
-    verify(scheduler, times(1)).create(any());
+    verify(scheduler, times(1)).create(any(), anyBoolean());
     verify(scheduler, times(0)).update(any(), any());
     verify(scriptScheduler, times(1)).create(any());
     verify(scriptScheduler, times(0)).update(any());
@@ -531,7 +532,7 @@ class ShardedClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources();
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
-    verify(scheduler, times(1)).create(any());
+    verify(scheduler, times(1)).create(any(), anyBoolean());
     verify(scheduler, times(0)).update(any(), any());
     verify(scriptScheduler, times(1)).create(any());
     verify(scriptScheduler, times(0)).update(any());
@@ -571,7 +572,7 @@ class ShardedClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources();
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
-    verify(scheduler, times(1)).create(any());
+    verify(scheduler, times(1)).create(any(), anyBoolean());
     verify(scheduler, times(0)).update(any(), any());
     verify(scriptScheduler, times(1)).create(any());
     verify(scriptScheduler, times(0)).update(any());

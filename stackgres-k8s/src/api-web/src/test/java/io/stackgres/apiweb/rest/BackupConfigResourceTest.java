@@ -9,6 +9,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.doAnswer;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
@@ -102,14 +105,16 @@ class BackupConfigResourceTest extends AbstractDependencyCustomResourceTest
 
   @Test
   void createBackupConfigWithGoogleIdentity_shouldNotFail() {
-
     BackupConfigDto backupConfigDto = DtoFixtures.backupConfig()
         .loadGoogleIdentityConfig().get();
 
     resourceDto = backupConfigDto;
 
-    service.create(resourceDto);
+    doAnswer(invocation -> {
+      return transformer.toCustomResource(resourceDto, null);
+    }).when(scheduler).create(any(), anyBoolean());
 
+    service.create(resourceDto, false);
   }
 
   @Override

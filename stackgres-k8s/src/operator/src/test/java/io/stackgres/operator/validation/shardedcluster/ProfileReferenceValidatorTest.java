@@ -126,7 +126,8 @@ class ProfileReferenceValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Invalid profile " + resourceProfile + " for coordinator", resultMessage);
+    assertEquals("SGInstanceProfile " + resourceProfile
+        + " not found for coordinator", resultMessage);
 
     verify(profileFinder, times(1)).findByNameAndNamespace(anyString(), anyString());
   }
@@ -154,7 +155,7 @@ class ProfileReferenceValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Invalid profile " + resourceProfile + " for shards", resultMessage);
+    assertEquals("SGInstanceProfile " + resourceProfile + " not found for shards", resultMessage);
 
     verify(profileFinder, times(2)).findByNameAndNamespace(anyString(), anyString());
   }
@@ -188,7 +189,8 @@ class ProfileReferenceValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Invalid profile " + ovverideResourceProfile + " for shard 0", resultMessage);
+    assertEquals("SGInstanceProfile " + ovverideResourceProfile
+        + " not found for shards override 0", resultMessage);
 
     verify(profileFinder, times(3)).findByNameAndNamespace(anyString(), anyString());
   }
@@ -213,7 +215,7 @@ class ProfileReferenceValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Cannot update coordinator to profile " + resourceProfile
+    assertEquals("Cannot update coordinator to SGInstanceProfile " + resourceProfile
         + " because it doesn't exists", resultMessage);
 
     verify(profileFinder, times(1)).findByNameAndNamespace(anyString(), anyString());
@@ -239,7 +241,7 @@ class ProfileReferenceValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Cannot update shards to profile " + resourceProfile
+    assertEquals("Cannot update shards to SGInstanceProfile " + resourceProfile
         + " because it doesn't exists", resultMessage);
 
     verify(profileFinder, times(1)).findByNameAndNamespace(anyString(), anyString());
@@ -268,8 +270,8 @@ class ProfileReferenceValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Cannot update shard 0 to profile " + ovverideResourceProfile
-        + " because it doesn't exists", resultMessage);
+    assertEquals("Cannot update shards override 0 to SGInstanceProfile "
+        + ovverideResourceProfile + " because it doesn't exists", resultMessage);
 
     verify(profileFinder, times(1)).findByNameAndNamespace(anyString(), anyString());
   }
@@ -286,7 +288,6 @@ class ProfileReferenceValidatorTest {
 
   @Test
   void giveAnAttemptToUpdateOverrideShardsToAnKnownProfile_shouldNotFail() throws ValidationFailed {
-
     final StackGresShardedClusterReview review =
         AdmissionReviewFixtures.shardedCluster().loadProfileConfigUpdate().get();
 

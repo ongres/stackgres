@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import javax.annotation.Nullable;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
@@ -121,12 +122,32 @@ public class ShardedClusterResource
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ShardedClusterDto.class)) })
       })
   @Override
-  public void create(ShardedClusterDto resource) {
-    createOrUpdateScripts(resource);
-    super.create(resource);
+  public ShardedClusterDto create(ShardedClusterDto resource, @Nullable Boolean dryRun) {
+    if (!Optional.ofNullable(dryRun).orElse(false)) {
+      createOrUpdateScripts(resource);
+    }
+    return super.create(resource, dryRun);
+  }
+
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ShardedClusterDto.class)) })
+      })
+  @Override
+  public ShardedClusterDto update(ShardedClusterDto resource, @Nullable Boolean dryRun) {
+    if (!Optional.ofNullable(dryRun).orElse(false)) {
+      createOrUpdateScripts(resource);
+    }
+    return super.update(resource, dryRun);
   }
 
   @Operation(
@@ -134,18 +155,8 @@ public class ShardedClusterResource
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  public void update(ShardedClusterDto resource) {
-    createOrUpdateScripts(resource);
-    super.update(resource);
-  }
-
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
-      })
-  @Override
-  public void delete(ShardedClusterDto resource) {
-    super.delete(resource);
+  public void delete(ShardedClusterDto resource, @Nullable Boolean dryRun) {
+    super.delete(resource, dryRun);
   }
 
   ShardedClusterDto setInfo(ShardedClusterDto resource) {

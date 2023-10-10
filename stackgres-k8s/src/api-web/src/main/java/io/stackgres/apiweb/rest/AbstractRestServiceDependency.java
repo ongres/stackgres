@@ -6,14 +6,17 @@
 package io.stackgres.apiweb.rest;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
+import javax.ws.rs.QueryParam;
 
 import io.fabric8.kubernetes.client.CustomResource;
 import io.quarkus.security.Authenticated;
@@ -67,15 +70,19 @@ public abstract class AbstractRestServiceDependency
     return resources.stream()
         .map(resource -> transformer.toResource(
             resource,
-            Seq.seq(clusters).filter(cluster -> belongsToCluster(resource, cluster))
-                .map(cluster ->
-                    StackGresUtil.getRelativeId(
-                        cluster.getMetadata().getName(),
-                        cluster.getMetadata().getNamespace(),
-                        resource.getMetadata().getNamespace())
-                )
-                .toList()))
+            connectedClusters(clusters, resource)))
         .collect(Collectors.toList());
+  }
+
+  private List<String> connectedClusters(List<StackGresCluster> clusters, R resource) {
+    return Seq.seq(clusters).filter(cluster -> belongsToCluster(resource, cluster))
+        .map(cluster ->
+            StackGresUtil.getRelativeId(
+                cluster.getMetadata().getName(),
+                cluster.getMetadata().getNamespace(),
+                resource.getMetadata().getNamespace())
+        )
+        .toList();
   }
 
   /**
@@ -86,8 +93,11 @@ public abstract class AbstractRestServiceDependency
   @POST
   @CommonApiResponses
   @Override
-  public void create(@NotNull T resource) {
-    scheduler.create(transformer.toCustomResource(resource, null));
+  public T create(@NotNull T resource, @Nullable @QueryParam("dryRun") Boolean dryRun) {
+    return transformer.toResource(
+        scheduler.create(transformer.toCustomResource(resource, null),
+            Optional.ofNullable(dryRun).orElse(false)),
+        List.of());
   }
 
   /**
@@ -98,8 +108,9 @@ public abstract class AbstractRestServiceDependency
   @DELETE
   @CommonApiResponses
   @Override
-  public void delete(@NotNull T resource) {
-    scheduler.delete(transformer.toCustomResource(resource, null));
+  public void delete(@NotNull T resource, @Nullable @QueryParam("dryRun") Boolean dryRun) {
+    scheduler.delete(transformer.toCustomResource(resource, null),
+        Optional.ofNullable(dryRun).orElse(false));
   }
 
   /**
@@ -110,14 +121,25 @@ public abstract class AbstractRestServiceDependency
   @PUT
   @CommonApiResponses
   @Override
-  public void update(@NotNull T resource) {
+  public T update(@NotNull T resource, @Nullable @QueryParam("dryRun") Boolean dryRun) {
     R transformedResource = transformer.toCustomResource(
         resource,
         finder.findByNameAndNamespace(
             resource.getMetadata().getName(), resource.getMetadata().getNamespace())
             .orElseThrow(NotFoundException::new));
-    scheduler.update(transformedResource,
-        currentResource -> updateSpec(currentResource, transformedResource));
+
+    List<StackGresCluster> clusters = clusterScanner.getResources();
+
+    if (Optional.ofNullable(dryRun).orElse(false)) {
+      return transformer.toResource(
+          scheduler.update(transformedResource,
+              currentResource -> updateSpec(currentResource, transformedResource)),
+          connectedClusters(clusters, transformedResource));
+    }
+    return transformer.toResource(
+        scheduler.update(transformedResource,
+            currentResource -> updateSpec(currentResource, transformedResource)),
+        connectedClusters(clusters, transformedResource));
   }
 
   protected abstract void updateSpec(R resourceToUpdate, R resource);

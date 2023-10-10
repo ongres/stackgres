@@ -10,7 +10,9 @@ import static io.stackgres.apiweb.rest.BackupConfigResourceUtil.secretName;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
+import javax.annotation.Nullable;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
@@ -69,14 +71,18 @@ public class BackupConfigResource extends
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = BackupConfigDto.class)) })
       })
   @Override
-  public void create(BackupConfigDto resource) {
+  public BackupConfigDto create(BackupConfigDto resource, @Nullable Boolean dryRun) {
     setSecretKeySelectors(resource);
-    createOrUpdateSecret(resource);
-    super.create(resource);
-    createOrUpdateSecret(resource);
+    if (!Optional.ofNullable(dryRun).orElse(false)) {
+      createOrUpdateSecret(resource);
+    }
+    return super.create(resource, dryRun);
   }
 
   @Operation(
@@ -84,21 +90,25 @@ public class BackupConfigResource extends
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  public void delete(BackupConfigDto resource) {
+  public void delete(BackupConfigDto resource, @Nullable Boolean dryRun) {
     setSecretKeySelectors(resource);
-    super.delete(resource);
-    deleteSecret(resource);
+    super.delete(resource, dryRun);
   }
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = BackupConfigDto.class)) })
       })
   @Override
-  public void update(BackupConfigDto resource) {
+  public BackupConfigDto update(BackupConfigDto resource, @Nullable Boolean dryRun) {
     setSecretKeySelectors(resource);
-    createOrUpdateSecret(resource);
-    super.update(resource);
+    if (!Optional.ofNullable(dryRun).orElse(false)) {
+      createOrUpdateSecret(resource);
+    }
+    return super.update(resource, dryRun);
   }
 
   private void setSecretKeySelectors(BackupConfigDto resource) {
@@ -135,13 +145,6 @@ public class BackupConfigResource extends
               .build());
           return null;
         });
-  }
-
-  private void deleteSecret(BackupConfigDto resource) {
-    final String namespace = resource.getMetadata().getNamespace();
-    final String name = secretName(resource);
-    secretFinder.findByNameAndNamespace(name, namespace)
-        .ifPresent(secretWriter::delete);
   }
 
   @Override

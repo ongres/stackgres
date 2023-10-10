@@ -10,67 +10,48 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.validation.AbstractReferenceValidator;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @Singleton
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)
-public class PoolingConfigValidator implements ClusterValidator {
-
-  private final CustomResourceFinder<StackGresPoolingConfig> configFinder;
+public class PoolingConfigValidator
+    extends AbstractReferenceValidator<
+      StackGresCluster, StackGresClusterReview, StackGresPoolingConfig>
+    implements ClusterValidator {
 
   @Inject
   public PoolingConfigValidator(
       CustomResourceFinder<StackGresPoolingConfig> configFinder) {
-    this.configFinder = configFinder;
+    super(configFinder);
   }
 
   @Override
-  @SuppressFBWarnings(value = "SF_SWITCH_NO_DEFAULT",
-      justification = "False positive")
-  public void validate(StackGresClusterReview review) throws ValidationFailed {
-    switch (review.getRequest().getOperation()) {
-      case CREATE: {
-        StackGresCluster cluster = review.getRequest().getObject();
-        String poolingConfig = cluster.getSpec().getConfigurations().getSgPoolingConfig();
-        checkIfPoolingConfigExists(review, "Pooling config " + poolingConfig
-            + " not found");
-        break;
-      }
-      case UPDATE: {
-        StackGresCluster cluster = review.getRequest().getObject();
-        String poolingConfig = cluster.getSpec().getConfigurations().getSgPoolingConfig();
-        checkIfPoolingConfigExists(review, "Cannot update to pooling config "
-            + poolingConfig + " because it doesn't exists");
-        break;
-      }
-      default:
-    }
-
+  protected Class<StackGresPoolingConfig> getReferenceClass() {
+    return StackGresPoolingConfig.class;
   }
 
-  private void checkIfPoolingConfigExists(StackGresClusterReview review,
-                                          String onError) throws ValidationFailed {
+  @Override
+  protected String getReference(StackGresCluster resource) {
+    return resource.getSpec().getConfigurations().getSgPoolingConfig();
+  }
 
-    StackGresCluster cluster = review.getRequest().getObject();
-    String poolingConfig = cluster.getSpec().getConfigurations().getSgPoolingConfig();
-    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
+  @Override
+  protected boolean checkReferenceFilter(StackGresClusterReview review) {
+    return !Optional.ofNullable(review.getRequest().getDryRun()).orElse(false)
+        && Boolean.FALSE.equals(
+        review.getRequest().getObject().getSpec().getPods().getDisableConnectionPooling());
+  }
 
-    if (Boolean.FALSE.equals(cluster.getSpec().getPods().getDisableConnectionPooling())) {
-      checkIfProvided(poolingConfig, "sgPoolingConfig");
-      Optional<StackGresPoolingConfig> poolingConfigOpt = configFinder
-          .findByNameAndNamespace(poolingConfig, namespace);
-
-      if (poolingConfigOpt.isEmpty()) {
-        fail(onError);
-      }
-    }
+  @Override
+  protected void onNotFoundReference(String message) throws ValidationFailed {
+    fail(message);
   }
 
 }

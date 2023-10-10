@@ -7,6 +7,7 @@ package io.stackgres.apiweb.rest;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.Path;
 
@@ -40,11 +41,14 @@ public class ShardedBackupResource
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ShardedBackupDto.class)) })
       })
   @Override
-  public void create(ShardedBackupDto resource) {
-    super.create(resource);
+  public ShardedBackupDto create(ShardedBackupDto resource, @Nullable Boolean dryRun) {
+    return super.create(resource, dryRun);
   }
 
   @Operation(
@@ -52,17 +56,20 @@ public class ShardedBackupResource
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  public void delete(ShardedBackupDto resource) {
-    super.delete(resource);
+  public void delete(ShardedBackupDto resource, @Nullable Boolean dryRun) {
+    super.delete(resource, dryRun);
   }
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ShardedBackupDto.class)) })
       })
   @Override
-  public void update(ShardedBackupDto resource) {
-    super.update(resource);
+  public ShardedBackupDto update(ShardedBackupDto resource, @Nullable Boolean dryRun) {
+    return super.update(resource, dryRun);
   }
 
   @Override

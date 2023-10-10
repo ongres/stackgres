@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.mutation;
 
+import java.util.Optional;
+
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -52,7 +54,8 @@ public abstract class AbstractDefaultResourceMutator<C extends CustomResource<?,
 
     setValueSection(resource);
     if (isTargetPropertyEmpty(resource)) {
-      if (!finder.findByNameAndNamespace(defaultResourceName, targetNamespace).isPresent()) {
+      if (!Optional.ofNullable(review.getRequest().getDryRun()).orElse(false)
+          && !finder.findByNameAndNamespace(defaultResourceName, targetNamespace).isPresent()) {
         defaultResource.getMetadata().setNamespace(targetNamespace);
         scheduler.create(defaultResource);
       }

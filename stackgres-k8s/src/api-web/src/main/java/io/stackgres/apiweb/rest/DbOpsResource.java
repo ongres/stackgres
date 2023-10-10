@@ -7,6 +7,7 @@ package io.stackgres.apiweb.rest;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.Path;
 
@@ -40,11 +41,14 @@ public class DbOpsResource
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = DbOpsDto.class)) })
       })
   @Override
-  public void create(DbOpsDto resource) {
-    super.create(resource);
+  public DbOpsDto create(DbOpsDto resource, @Nullable Boolean dryRun) {
+    return super.create(resource, dryRun);
   }
 
   @Operation(
@@ -52,17 +56,20 @@ public class DbOpsResource
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  public void delete(DbOpsDto resource) {
-    super.delete(resource);
+  public void delete(DbOpsDto resource, @Nullable Boolean dryRun) {
+    super.delete(resource, dryRun);
   }
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = DbOpsDto.class)) })
       })
   @Override
-  public void update(DbOpsDto resource) {
-    super.update(resource);
+  public DbOpsDto update(DbOpsDto resource, @Nullable Boolean dryRun) {
+    return super.update(resource, dryRun);
   }
 
   @Override

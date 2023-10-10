@@ -26,17 +26,17 @@ public class FakeDbOpsScheduler implements CustomResourceScheduler<StackGresDbOp
   }
 
   @Override
-  public StackGresDbOps create(@NotNull StackGresDbOps resource) {
+  public StackGresDbOps create(@NotNull StackGresDbOps resource, boolean dryRun) {
     return kubeDb.addOrReplaceDbOps(resource);
   }
 
   @Override
-  public void delete(@NotNull StackGresDbOps resource) {
+  public void delete(@NotNull StackGresDbOps resource, boolean dryRun) {
     kubeDb.delete(resource);
   }
 
   @Override
-  public StackGresDbOps update(@NotNull StackGresDbOps resource) {
+  public StackGresDbOps update(@NotNull StackGresDbOps resource, boolean dryRun) {
     return kubeDb.addOrReplaceDbOps(resource);
   }
 

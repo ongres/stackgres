@@ -85,7 +85,7 @@ class ProfileReferenceValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Invalid profile " + resourceProfile, resultMessage);
+    assertEquals("SGInstanceProfile " + resourceProfile + " not found", resultMessage);
 
     verify(profileFinder).findByNameAndNamespace(anyString(), anyString());
   }
@@ -108,7 +108,7 @@ class ProfileReferenceValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Cannot update to profile " + resourceProfile
+    assertEquals("Cannot update to SGInstanceProfile " + resourceProfile
         + " because it doesn't exists", resultMessage);
 
     verify(profileFinder).findByNameAndNamespace(anyString(), anyString());

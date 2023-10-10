@@ -20,6 +20,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
@@ -35,6 +36,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShards;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
+import io.stackgres.operator.validation.AbstractReferenceValidator;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -62,7 +64,6 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
   private final Map<StackGresComponent, Map<StackGresVersion, List<String>>>
       supportedPostgresVersions;
 
-  private final String errorCrReferencerUri;
   private final String errorPostgresMismatchUri;
   private final String errorForbiddenUpdateUri;
 
@@ -78,7 +79,6 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
           orderedSupportedPostgresVersions) {
     this.configFinder = configFinder;
     this.supportedPostgresVersions = orderedSupportedPostgresVersions;
-    this.errorCrReferencerUri = ErrorType.getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
     this.errorPostgresMismatchUri = ErrorType.getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
     this.errorForbiddenUpdateUri = ErrorType.getErrorTypeUri(ErrorType.FORBIDDEN_CR_UPDATE);
   }
@@ -108,28 +108,35 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
         .map(StackGresClusterConfigurations::getSgPostgresConfig)
         .orElse(null);
 
-    checkIfProvided(givenPgVersion, "postgres version");
-    checkIfProvided(coordinatorPgConfig, "sgPostgresConfig", "for coordinator");
-    checkIfProvided(shardsPgConfig, "sgPostgresConfig", "for shards");
-    for (var overrideShard : Optional.of(cluster.getSpec().getShards())
-        .map(StackGresShardedClusterShards::getOverrides)
-        .orElse(List.of())) {
-      if (overrideShard.getConfigurationsForShards() == null
-          || overrideShard.getConfigurationsForShards().getSgPostgresConfig() == null) {
-        continue;
-      }
-      String overrideShardsPgConfig = overrideShard
-          .getConfigurationsForShards().getSgPostgresConfig();
-      checkIfProvided(overrideShardsPgConfig, "sgPostgresConfig", "for shard "
-          + overrideShard.getIndex());
+    if (givenPgVersion == null || coordinatorPgConfig == null || shardsPgConfig == null) {
+      return;
     }
 
-    if (givenPgVersion != null && !isPostgresVersionSupported(cluster, givenPgVersion)) {
+    if (!isPostgresVersionSupported(cluster, givenPgVersion)) {
       final String message = "Unsupported postgres version " + givenPgVersion
           + ".  Supported postgres versions are: "
           + Seq.seq(supportedPostgresVersions.get(getPostgresFlavorComponent(cluster)))
           .toString(", ");
       fail(errorPostgresMismatchUri, message);
+    }
+
+    new CoordinatorPostgresConfigValidator(configFinder).validate(review);
+    new ShardsPostgresConfigValidator(configFinder).validate(review);
+    for (var overrideShard : Optional.ofNullable(review.getRequest().getObject())
+        .map(StackGresShardedCluster::getSpec)
+        .map(StackGresShardedClusterSpec::getShards)
+        .map(StackGresShardedClusterShards::getOverrides)
+        .map(Seq::seq)
+        .map(seq -> seq.zipWithIndex().toList())
+        .orElse(List.of())) {
+      if (overrideShard.v1.getConfigurationsForShards() == null
+          || overrideShard.v1.getConfigurationsForShards().getSgPostgresConfig() == null) {
+        continue;
+      }
+      new ShardsOverridePostgresConfigValidator(
+          configFinder,
+          overrideShard.v2.intValue(),
+          overrideShard.v1.getIndex()).validate(review);
     }
 
     String givenMajorVersion = getPostgresFlavorComponent(cluster).get(cluster)
@@ -259,24 +266,16 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
         .findByNameAndNamespace(pgConfig, namespace);
 
     if (postgresConfigOpt.isPresent()) {
-
       StackGresPostgresConfig postgresConfig = postgresConfigOpt.get();
       String pgVersion = postgresConfig.getSpec().getPostgresVersion();
 
       if (!pgVersion.equals(givenMajorVersion)) {
         final String message = "Invalid postgres version, must be "
-            + pgVersion + " to use sgPostgresConfig " + pgConfig
+            + pgVersion + " to use SGPostgresConfig " + pgConfig
             + (messageSuffixes.length == 0 ? ""
                 : " " + Arrays.asList(messageSuffixes).stream().collect(Collectors.joining(" ")));
         fail(errorPostgresMismatchUri, message);
       }
-
-    } else {
-
-      final String message = "Invalid sgPostgresConfig value " + pgConfig
-          + (messageSuffixes.length == 0 ? ""
-              : " " + Arrays.asList(messageSuffixes).stream().collect(Collectors.joining(" ")));
-      fail(errorCrReferencerUri, message);
     }
   }
 
@@ -284,6 +283,136 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
     return supportedPostgresVersions.get(getPostgresFlavorComponent(cluster))
         .get(StackGresVersion.getStackGresVersion(cluster))
         .contains(version);
+  }
+
+  private class CoordinatorPostgresConfigValidator
+      extends AbstractReferenceValidator<
+        StackGresShardedCluster, StackGresShardedClusterReview, StackGresPostgresConfig> {
+
+    private CoordinatorPostgresConfigValidator(
+        CustomResourceFinder<StackGresPostgresConfig> configFinder) {
+      super(configFinder);
+    }
+
+    @Override
+    protected Class<StackGresPostgresConfig> getReferenceClass() {
+      return StackGresPostgresConfig.class;
+    }
+
+    @Override
+    protected String getReference(StackGresShardedCluster resource) {
+      return Optional.ofNullable(resource.getSpec()
+          .getCoordinator().getConfigurations())
+          .map(StackGresClusterConfigurations::getSgPostgresConfig)
+          .orElse(null);
+    }
+
+    @Override
+    protected boolean checkReferenceFilter(StackGresShardedClusterReview review) {
+      return !Optional.ofNullable(review.getRequest().getDryRun()).orElse(false);
+    }
+
+    @Override
+    protected void onNotFoundReference(String message) throws ValidationFailed {
+      PostgresConfigValidator.this.fail(message);
+    }
+
+    @Override
+    protected String getCreateNotFoundErrorMessage(String reference) {
+      return HasMetadata.getKind(getReferenceClass())
+          + " " + reference + " not found for coordinator";
+    }
+
+    @Override
+    protected String getUpdateNotFoundErrorMessage(String reference) {
+      return "Cannot update coordinator to "
+          + HasMetadata.getKind(getReferenceClass()) + " "
+          + reference + " because it doesn't exists";
+    }
+  }
+
+  private class ShardsPostgresConfigValidator
+      extends CoordinatorPostgresConfigValidator {
+
+    private ShardsPostgresConfigValidator(
+        CustomResourceFinder<StackGresPostgresConfig> configFinder) {
+      super(configFinder);
+    }
+
+    @Override
+    protected String getReference(StackGresShardedCluster resource) {
+      return Optional.ofNullable(resource.getSpec()
+          .getShards().getConfigurations())
+          .map(StackGresClusterConfigurations::getSgPostgresConfig)
+          .orElse(null);
+    }
+
+    @Override
+    protected String getCreateNotFoundErrorMessage(String reference) {
+      return HasMetadata.getKind(getReferenceClass())
+          + " " + reference + " not found for shards";
+    }
+
+    @Override
+    protected String getUpdateNotFoundErrorMessage(String reference) {
+      return "Cannot update shards to "
+          + HasMetadata.getKind(getReferenceClass()) + " "
+          + reference + " because it doesn't exists";
+    }
+  }
+
+  private class ShardsOverridePostgresConfigValidator
+      extends CoordinatorPostgresConfigValidator {
+
+    private final int index;
+    private final Integer shardIndex;
+
+    private ShardsOverridePostgresConfigValidator(
+        CustomResourceFinder<StackGresPostgresConfig> configFinder,
+        int index,
+        Integer shardIndex) {
+      super(configFinder);
+      this.index = index;
+      this.shardIndex = shardIndex;
+    }
+
+    @Override
+    protected String getReference(StackGresShardedCluster resource) {
+      return Optional.ofNullable(resource.getSpec()
+          .getShards().getOverrides())
+          .map(overrides -> overrides.get(index))
+          .map(StackGresShardedClusterShard::getConfigurationsForShards)
+          .map(StackGresClusterConfigurations::getSgPostgresConfig)
+          .orElse(null);
+    }
+
+    @Override
+    protected boolean checkReferenceFilter(StackGresShardedClusterReview review) {
+      return super.checkReferenceFilter(review)
+          && !Objects.equals(
+              review.getRequest().getObject().getSpec()
+              .getShards().getOverrides().get(index)
+              .getConfigurationsForShards().getSgPostgresConfig(),
+              Optional.ofNullable(review.getRequest().getOldObject())
+              .map(StackGresShardedCluster::getSpec)
+              .map(StackGresShardedClusterSpec::getShards)
+              .map(StackGresClusterSpec::getConfigurations)
+              .map(StackGresClusterConfigurations::getSgPostgresConfig)
+              .orElse(null));
+    }
+
+    @Override
+    protected String getCreateNotFoundErrorMessage(String reference) {
+      return HasMetadata.getKind(getReferenceClass())
+          + " " + reference + " not found for shards override " + shardIndex;
+    }
+
+    @Override
+    protected String getUpdateNotFoundErrorMessage(String reference) {
+      return "Cannot update shards override " + shardIndex + " to "
+          + HasMetadata.getKind(getReferenceClass()) + " "
+          + reference + " because it doesn't exists";
+    }
   }
 
 }

@@ -7,6 +7,7 @@ package io.stackgres.apiweb.rest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
@@ -96,15 +97,15 @@ abstract class AbstractDependencyCustomResourceTest
 
   @Test
   void createShouldNotFail() {
-    doAnswer((Answer<Void>) invocation -> {
+    doAnswer(invocation -> {
       R customResource = invocation.getArgument(0);
 
       checkCustomResource(customResource, Operation.CREATE);
 
-      return null;
-    }).when(scheduler).create(any());
+      return transformer.toCustomResource(resourceDto, null);
+    }).when(scheduler).create(any(), anyBoolean());
 
-    service.create(resourceDto);
+    service.create(resourceDto, false);
   }
 
   @Test
@@ -112,15 +113,15 @@ abstract class AbstractDependencyCustomResourceTest
     when(finder.findByNameAndNamespace(anyString(), anyString())).thenReturn(
         customResources.getItems().stream().findFirst());
 
-    doAnswer((Answer<Void>) invocation -> {
+    doAnswer(invocation -> {
       R customResource = invocation.getArgument(0);
 
       checkCustomResource(customResource, Operation.UPDATE);
 
-      return null;
+      return transformer.toCustomResource(resourceDto, null);
     }).when(scheduler).update(any(), any());
 
-    service.update(resourceDto);
+    service.update(resourceDto, false);
   }
 
   @Test
@@ -131,9 +132,9 @@ abstract class AbstractDependencyCustomResourceTest
       checkCustomResource(customResource, Operation.DELETE);
 
       return null;
-    }).when(scheduler).delete(any());
+    }).when(scheduler).delete(any(), anyBoolean());
 
-    service.delete(resourceDto);
+    service.delete(resourceDto, false);
   }
 
   protected abstract DefaultKubernetesResourceList<R> getCustomResourceList();

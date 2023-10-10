@@ -38,18 +38,20 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?
   }
 
   @Override
-  public T create(T resource) {
+  public T create(T resource, boolean dryRun) {
     return getCustomResourceEndpoints()
         .inNamespace(resource.getMetadata().getNamespace())
         .resource(resource)
+        .dryRun(dryRun)
         .create();
   }
 
   @Override
-  public T update(T resource) {
+  public T update(T resource, boolean dryRun) {
     return getCustomResourceEndpoints()
         .inNamespace(resource.getMetadata().getNamespace())
         .resource(resource)
+        .dryRun(dryRun)
         .patch();
   }
 
@@ -96,10 +98,11 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?
   }
 
   @Override
-  public void delete(T resource) {
+  public void delete(T resource, boolean dryRun) {
     getCustomResourceEndpoints()
         .inNamespace(resource.getMetadata().getNamespace())
         .resource(resource)
+        .dryRun(dryRun)
         .delete();
   }
 

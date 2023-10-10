@@ -7,6 +7,7 @@ package io.stackgres.apiweb.rest;
 
 import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
@@ -48,7 +49,6 @@ class ConfigResourceTest implements AuthenticatedResourceTest {
   @Test
   @DisplayName("Given a created list of object resources it should list them")
   void testConfigList() {
-
     var configTuple = ConfigTransformerTest.createConfig();
     doReturn(
         List.of(configTuple.source())
@@ -68,21 +68,16 @@ class ConfigResourceTest implements AuthenticatedResourceTest {
         JsonUtil.toJson(List.of(configTuple.target())),
         JsonUtil.toJson(Arrays.asList(response))
     );
-
   }
 
   @Test
   @DisplayName("The config creation should not fail")
   void testConfigCreation() {
-
     var configTuple = ConfigTransformerTest
         .createConfig();
 
-    when(scheduler.create(any()))
-        .then(
-            (Answer<StackGresConfig>) invocationOnMock -> invocationOnMock
-                .getArgument(0, StackGresConfig.class)
-        );
+    when(scheduler.create(any(), anyBoolean()))
+        .thenAnswer(invocation -> invocation.getArgument(0, StackGresConfig.class));
 
     given().header(AUTHENTICATION_HEADER)
         .contentType(ContentType.JSON)
@@ -90,15 +85,14 @@ class ConfigResourceTest implements AuthenticatedResourceTest {
         .body(configTuple.target())
         .post("/stackgres/sgconfigs")
         .then()
-        .statusCode(204);
+        .statusCode(200);
 
-    verify(scheduler).create(any());
+    verify(scheduler).create(any(), anyBoolean());
   }
 
   @Test
   @DisplayName("The object storage update should not fail")
   void testConfigUpdate() {
-
     var configTuple = ConfigTransformerTest
         .createConfig();
 
@@ -121,7 +115,7 @@ class ConfigResourceTest implements AuthenticatedResourceTest {
         .body(configTuple.target())
         .put("/stackgres/sgconfigs")
         .then()
-        .statusCode(204);
+        .statusCode(200);
 
     verify(scheduler).update(any(), any());
   }
@@ -129,7 +123,6 @@ class ConfigResourceTest implements AuthenticatedResourceTest {
   @Test
   @DisplayName("The object storage dalete should not fail")
   void testConfigDeletion() {
-
     var configTuple = ConfigTransformerTest
         .createConfig();
 
@@ -150,6 +143,6 @@ class ConfigResourceTest implements AuthenticatedResourceTest {
         .then()
         .statusCode(204);
 
-    verify(scheduler).delete(any());
+    verify(scheduler).delete(any(), anyBoolean());
   }
 }

@@ -198,7 +198,7 @@ class ShardedClusterValidationQuarkusTest {
         .body("response.allowed", is(false),
             "kind", is("AdmissionReview"),
             "response.status.code", is(400),
-            "response.status.message", is("Storage class standard not found for coordinator"))
+            "response.status.message", is("StorageClass standard not found for coordinator"))
         .statusCode(200);
 
     client.resource(storage).create();
