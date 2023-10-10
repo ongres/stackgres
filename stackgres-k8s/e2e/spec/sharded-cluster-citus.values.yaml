@@ -29,5 +29,11 @@ cluster:
       cronSchedule: '0 5 31 2 *'
       sgObjectStorage: backupconf
   prometheusAutobind: false
+shardedCluster:
+  shards:
+    pods:
+      persistentVolume:
+        size: 128Mi
+      managementPolicy: Parallel
 nonProductionOptions:
   disableClusterPodAntiAffinity: true

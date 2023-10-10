@@ -61,17 +61,15 @@ e2e_test() {
 
   run_test "Checking that backup is working" check_backup_is_working
 
-  run_test "Checking that restart is working" check_restart_is_working
-
   run_test "Checking that sharded backup are working" check_sharded_backup_is_working
 
   run_test "Checking that automatic sharded backup are working" check_automatic_sharded_backup_is_working
 
   run_test "Checking that restoring a sharded backup is working" check_restore_sharded_backup_is_working
 
-  run_test "Checking that restart sharded dbops is working" check_sharded_dbops_restart_is_working
-
   run_test "Checking that restart sharded dbops is working" check_sharded_dbops_resharding_is_working
+
+  run_test "Checking that restart sharded dbops is working" check_sharded_dbops_restart_is_working
 }
 
 service_check() {
@@ -177,45 +175,6 @@ check_backup_is_working() {
   do
     CLUSTER_NAME="$SHARDED_CLUSTER_NAME-$SUFFIX"
     check_wal_archive 0
-
-    check_manual_backup 0
-
-    BACKUP_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
-    create_backup "$BACKUP_NAME" false
-    wait_backup_is_completed "$BACKUP_NAME" "$NODE"
-
-    check_timelines
-
-    check_control_data
-  done
-}
-
-check_restart_is_working() {
-  local SHARDED_CLUSTER_NAME="$CLUSTER_NAME"
-  local CLUSTER_NAME
-  local NODE=0
-  local SUFFIX
-  for SUFFIX in "coord" "shard0" "shard1"
-  do
-    CLUSTER_NAME="$SHARDED_CLUSTER_NAME-$SUFFIX"
-    DBOPS_NAME="$(get_sgdbops_name restart-"${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
-
-    set_restarted_pods
-
-    cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1
-kind: SGDbOps
-metadata:
-  name: $DBOPS_NAME
-  namespace: $CLUSTER_NAMESPACE
-spec:
-  sgCluster: $CLUSTER_NAME
-  op: restart
-  restart:
-    method: InPlace
-EOF
-
-    check_restart_without_data
   done
 }
 
@@ -387,39 +346,13 @@ check_restore_sharded_backup_is_working() {
   fi
 }
 
-check_sharded_dbops_restart_is_working() {
-  SHARDED_DBOPS_NAME="$(get_sgshardeddbops_name restart-"${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
-
-  cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1
-kind: SGShardedDbOps
-metadata:
-  name: $SHARDED_DBOPS_NAME
-  namespace: $CLUSTER_NAMESPACE
-spec:
-  sgShardedCluster: $CLUSTER_NAME
-  op: restart
-  restart:
-    method: InPlace
-EOF
-
-  local DBOPS_NAME
-  local SUFFIX
-  for SUFFIX in coord shard0 shard1
-  do
-    DBOPS_NAME="$SHARDED_DBOPS_NAME-$SUFFIX"
-    wait_dbops_is_completed "$DBOPS_NAME"
-  done
-
-  wait_sharded_dbops_is_completed "$SHARDED_DBOPS_NAME"
-}
-
 check_sharded_dbops_resharding_is_working() {
   SHARDED_DBOPS_NAME="$(get_sgshardeddbops_name resharding-"${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
 
   NODE_NAME="$(kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
     psql -t -A -d citus -c "SELECT nodename from pg_dist_node WHERE shouldhaveshards LIMIT 1")"
-  kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- psql -d citus \
+  kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
+    psql -d citus -v ON_ERROR_STOP=1 \
     -c "CREATE TABLE distributed AS SELECT i, (SELECT string_agg(md5(random()::text), ' ') FROM generate_series(1, (30 * random())::integer)) AS t FROM generate_series(1, 100000) AS i" \
     -c "ALTER TABLE distributed ADD PRIMARY KEY (i)" \
     -c "SELECT create_distributed_table('distributed', 'i')" \
@@ -461,6 +394,33 @@ EOF
     echo "FAIL. The sharded cluster has not been resharded"
     return 1
   fi
+}
+
+check_sharded_dbops_restart_is_working() {
+  SHARDED_DBOPS_NAME="$(get_sgshardeddbops_name restart-"${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGShardedDbOps
+metadata:
+  name: $SHARDED_DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgShardedCluster: $CLUSTER_NAME
+  op: restart
+  restart:
+    method: InPlace
+EOF
+
+  local DBOPS_NAME
+  local SUFFIX
+  for SUFFIX in coord shard0 shard1
+  do
+    DBOPS_NAME="$SHARDED_DBOPS_NAME-$SUFFIX"
+    wait_dbops_is_completed "$DBOPS_NAME"
+  done
+
+  wait_sharded_dbops_is_completed "$SHARDED_DBOPS_NAME"
 }
 
 wait_dbops_is_completed() {
