@@ -108,7 +108,7 @@ class BackupConfigResourceTest extends AbstractDependencyCustomResourceTest
 
     resourceDto = backupConfigDto;
 
-    service.create(resourceDto);
+    service.create(resourceDto, false);
 
   }
 

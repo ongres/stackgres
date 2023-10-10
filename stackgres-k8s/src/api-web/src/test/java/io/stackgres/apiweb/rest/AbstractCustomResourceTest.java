@@ -95,7 +95,7 @@ public abstract class AbstractCustomResourceTest
       return null;
     }).when(scheduler).create(any());
 
-    service.create(dto);
+    service.create(dto, false);
   }
 
   @Test
@@ -111,7 +111,7 @@ public abstract class AbstractCustomResourceTest
       return null;
     }).when(scheduler).update(any(), any());
 
-    service.update(dto);
+    service.update(dto, false);
   }
 
   @Test
@@ -124,7 +124,7 @@ public abstract class AbstractCustomResourceTest
       return null;
     }).when(scheduler).delete(any());
 
-    service.delete(dto);
+    service.delete(dto, false);
   }
 
   protected abstract DefaultKubernetesResourceList<R> getCustomResourceList();

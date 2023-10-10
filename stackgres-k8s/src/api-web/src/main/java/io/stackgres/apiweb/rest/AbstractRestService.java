@@ -6,13 +6,16 @@
 package io.stackgres.apiweb.rest;
 
 import java.util.List;
+import java.util.Optional;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
+import javax.ws.rs.QueryParam;
 
 import io.fabric8.kubernetes.client.CustomResource;
 import io.quarkus.security.Authenticated;
@@ -65,8 +68,10 @@ public abstract class AbstractRestService
   @POST
   @CommonApiResponses
   @Override
-  public void create(@NotNull T resource) {
-    scheduler.create(transformer.toCustomResource(resource, null));
+  public T create(@NotNull T resource, @Nullable @QueryParam("dryRun") Boolean dryRun) {
+    return transformer.toDto(
+        scheduler.create(transformer.toCustomResource(resource, null),
+        Optional.ofNullable(dryRun).orElse(false)));
   }
 
   /**
@@ -77,8 +82,9 @@ public abstract class AbstractRestService
   @DELETE
   @CommonApiResponses
   @Override
-  public void delete(@NotNull T resource) {
-    scheduler.delete(transformer.toCustomResource(resource, null));
+  public void delete(@NotNull T resource, @Nullable @QueryParam("dryRun") Boolean dryRun) {
+    scheduler.delete(transformer.toCustomResource(resource, null),
+        Optional.ofNullable(dryRun).orElse(false));
   }
 
   /**
@@ -89,14 +95,18 @@ public abstract class AbstractRestService
   @PUT
   @CommonApiResponses
   @Override
-  public void update(@NotNull T resource) {
+  public T update(@NotNull T resource, @Nullable @QueryParam("dryRun") Boolean dryRun) {
     R transformedResource = transformer.toCustomResource(
         resource,
         finder.findByNameAndNamespace(
             resource.getMetadata().getName(), resource.getMetadata().getNamespace())
             .orElseThrow(NotFoundException::new));
-    scheduler.update(transformedResource,
-        currentResource -> updateSpec(currentResource, transformedResource));
+    if (Optional.ofNullable(dryRun).orElse(false)) {
+      return transformer.toDto(scheduler.update(transformedResource,
+          currentResource -> updateSpec(currentResource, transformedResource)));
+    }
+    return transformer.toDto(scheduler.update(transformedResource,
+        currentResource -> updateSpec(currentResource, transformedResource)));
   }
 
   protected abstract void updateSpec(R resourceToUpdate, R resource);

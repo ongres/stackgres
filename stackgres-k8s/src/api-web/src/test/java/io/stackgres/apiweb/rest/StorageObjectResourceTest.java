@@ -147,7 +147,7 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
 
     this.resourceDto = convertBackupConfigDtoToStorageObjectDto(backupConfigDto);
 
-    service.create(this.resourceDto);
+    service.create(this.resourceDto, false);
 
   }
 

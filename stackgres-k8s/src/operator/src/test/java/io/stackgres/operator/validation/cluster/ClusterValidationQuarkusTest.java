@@ -208,7 +208,7 @@ class ClusterValidationQuarkusTest {
         .body("response.allowed", is(false),
             "kind", is("AdmissionReview"),
             "response.status.code", is(400),
-            "response.status.message", is("Storage class standard not found"))
+            "response.status.message", is("StorageClass standard not found"))
         .statusCode(200);
 
     client.resource(storage).create();

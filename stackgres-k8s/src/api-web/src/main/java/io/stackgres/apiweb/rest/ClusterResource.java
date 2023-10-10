@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import javax.annotation.Nullable;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
@@ -121,12 +122,28 @@ public class ClusterResource
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ClusterDto.class)) })
       })
   @Override
-  public void create(ClusterDto resource) {
+  public ClusterDto create(ClusterDto resource, @Nullable Boolean dryRun) {
     createOrUpdateScripts(resource);
-    super.create(resource);
+    return super.create(resource, dryRun);
+  }
+
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ClusterDto.class)) })
+      })
+  @Override
+  public ClusterDto update(ClusterDto resource, @Nullable Boolean dryRun) {
+    createOrUpdateScripts(resource);
+    return super.update(resource, dryRun);
   }
 
   @Operation(
@@ -134,18 +151,8 @@ public class ClusterResource
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  public void update(ClusterDto resource) {
-    createOrUpdateScripts(resource);
-    super.update(resource);
-  }
-
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
-      })
-  @Override
-  public void delete(ClusterDto resource) {
-    super.delete(resource);
+  public void delete(ClusterDto resource, @Nullable Boolean dryRun) {
+    super.delete(resource, dryRun);
   }
 
   ClusterDto setInfo(ClusterDto resource) {

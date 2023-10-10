@@ -161,7 +161,7 @@ class PostgresVersionValidatorTest {
 
     validator.validate(review);
 
-    verify(configFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(configFinder, times(4)).findByNameAndNamespace(any(), any());
   }
 
   @Test
@@ -185,7 +185,7 @@ class PostgresVersionValidatorTest {
 
     validator.validate(review);
 
-    verify(configFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(configFinder, times(4)).findByNameAndNamespace(any(), any());
   }
 
   @Test
@@ -209,24 +209,7 @@ class PostgresVersionValidatorTest {
 
     validator.validate(review);
 
-    verify(configFinder, times(2)).findByNameAndNamespace(any(), any());
-  }
-
-  @Test
-  void givenNoPostgresVersion_shouldFail() throws ValidationFailed {
-    final StackGresShardedClusterReview review = AdmissionReviewFixtures.shardedCluster()
-        .loadInvalidCreationNoPgVersion().get();
-
-    ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
-      validator.validate(review);
-    });
-
-    String resultMessage = exception.getResult().getMessage();
-
-    assertEquals("postgres version must be provided",
-        resultMessage);
-
-    verify(configFinder, never()).findByNameAndNamespace(any(), any());
+    verify(configFinder, times(4)).findByNameAndNamespace(any(), any());
   }
 
   @Test
@@ -251,10 +234,10 @@ class PostgresVersionValidatorTest {
 
     assertEquals(
         "Invalid postgres version, must be " + FIRST_PG_MAJOR_VERSION
-            + " to use sgPostgresConfig postgresconf for coordinator",
+            + " to use SGPostgresConfig postgresconf for coordinator",
         resultMessage);
 
-    verify(configFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(configFinder, times(3)).findByNameAndNamespace(any(), any());
   }
 
   @Test
@@ -284,10 +267,10 @@ class PostgresVersionValidatorTest {
 
     assertEquals(
         "Invalid postgres version, must be " + FIRST_PG_MAJOR_VERSION
-            + " to use sgPostgresConfig " + postgresProfile + " for shards",
+            + " to use SGPostgresConfig " + postgresProfile + " for shards",
         resultMessage);
 
-    verify(configFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(configFinder, times(4)).findByNameAndNamespace(any(), any());
   }
 
   @Test
@@ -327,27 +310,10 @@ class PostgresVersionValidatorTest {
 
     assertEquals(
         "Invalid postgres version, must be " + FIRST_PG_MAJOR_VERSION
-            + " to use sgPostgresConfig " + postgresProfile + " for shard 0",
+            + " to use SGPostgresConfig " + postgresProfile + " for shard 0",
         resultMessage);
 
-    verify(configFinder, times(3)).findByNameAndNamespace(any(), any());
-  }
-
-  @Test
-  void givenAnEmptyPostgresVersion_shouldFail() {
-    final StackGresShardedClusterReview review = AdmissionReviewFixtures.shardedCluster()
-        .loadInvalidCreationEmptyPgVersion().get();
-
-    ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
-      validator.validate(review);
-    });
-
-    String resultMessage = exception.getResult().getMessage();
-
-    assertEquals("postgres version must be provided",
-        resultMessage);
-
-    verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
+    verify(configFinder, times(6)).findByNameAndNamespace(any(), any());
   }
 
   @Test
@@ -466,7 +432,7 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Invalid sgPostgresConfig value " + postgresProfile + " for coordinator",
+    assertEquals("SGPostgresConfig " + postgresProfile + " not found for coordinator",
         resultMessage);
 
     verify(configFinder).findByNameAndNamespace(any(), any());
@@ -495,7 +461,7 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Invalid sgPostgresConfig value " + postgresProfile + " for shards",
+    assertEquals("SGPostgresConfig " + postgresProfile + " not found for shards",
         resultMessage);
 
     verify(configFinder, times(2)).findByNameAndNamespace(any(), any());
@@ -534,48 +500,10 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Invalid sgPostgresConfig value " + postgresProfile + " for shard 0",
+    assertEquals("SGPostgresConfig " + postgresProfile + " not found for shards override 0",
         resultMessage);
 
     verify(configFinder, times(3)).findByNameAndNamespace(any(), any());
-  }
-
-  @Test
-  void givenNoCoordinatorPostgresConfigReference_shouldFail() {
-    final StackGresShardedClusterReview review =
-        AdmissionReviewFixtures.shardedCluster().loadCreate().get();
-
-    StackGresShardedClusterSpec spec = review.getRequest().getObject().getSpec();
-    spec.getCoordinator().getConfigurations().setSgPostgresConfig(null);
-
-    ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
-      validator.validate(review);
-    });
-
-    String resultMessage = exception.getResult().getMessage();
-
-    assertEquals("sgPostgresConfig must be provided for coordinator", resultMessage);
-
-    verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
-  }
-
-  @Test
-  void givenNoShardsPostgresConfigReference_shouldFail() {
-    final StackGresShardedClusterReview review =
-        AdmissionReviewFixtures.shardedCluster().loadCreate().get();
-
-    StackGresShardedClusterSpec spec = review.getRequest().getObject().getSpec();
-    spec.getShards().getConfigurations().setSgPostgresConfig(null);
-
-    ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
-      validator.validate(review);
-    });
-
-    String resultMessage = exception.getResult().getMessage();
-
-    assertEquals("sgPostgresConfig must be provided for shards", resultMessage);
-
-    verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
   }
 
   @Test
@@ -598,8 +526,8 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Invalid sgPostgresConfig value " + postgresProfile + " for coordinator",
-        resultMessage);
+    assertEquals("Cannot update coordinator to SGPostgresConfig "
+        + postgresProfile + " because it doesn't exists", resultMessage);
 
     verify(configFinder).findByNameAndNamespace(any(), any());
   }
@@ -628,8 +556,8 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Invalid sgPostgresConfig value " + postgresProfile + " for shards",
-        resultMessage);
+    assertEquals("Cannot update shards to SGPostgresConfig "
+        + postgresProfile + " because it doesn't exists", resultMessage);
 
     verify(configFinder, times(2)).findByNameAndNamespace(any(), any());
   }
@@ -677,8 +605,8 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Invalid sgPostgresConfig value " + postgresProfile + " for shard 0",
-        resultMessage);
+    assertEquals("Cannot update shards override 0 to SGPostgresConfig "
+        + postgresProfile + " because it doesn't exists", resultMessage);
 
     verify(configFinder, times(2)).findByNameAndNamespace(any(), any());
   }
@@ -701,6 +629,16 @@ class PostgresVersionValidatorTest {
     String postgresVersion = getRandomBuggyPostgresVersion();
     review.getRequest().getObject().getSpec().getPostgres().setVersion(postgresVersion);
 
+    StackGresShardedClusterSpec spec = review.getRequest().getObject().getSpec();
+    String namespace = review.getRequest().getObject().getMetadata().getNamespace();
+
+    when(configFinder.findByNameAndNamespace(spec.getCoordinator()
+        .getConfigurations().getSgPostgresConfig(), namespace))
+        .thenReturn(Optional.of(postgresConfig));
+    when(configFinder.findByNameAndNamespace(spec.getShards()
+        .getConfigurations().getSgPostgresConfig(), namespace))
+        .thenReturn(Optional.of(postgresConfig));
+
     ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
       validator.validate(review);
     });
@@ -709,7 +647,7 @@ class PostgresVersionValidatorTest {
 
     assertTrue(resultMessage.contains("Do not use PostgreSQL " + postgresVersion), resultMessage);
 
-    verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
+    verify(configFinder, times(2)).findByNameAndNamespace(anyString(), anyString());
   }
 
 }

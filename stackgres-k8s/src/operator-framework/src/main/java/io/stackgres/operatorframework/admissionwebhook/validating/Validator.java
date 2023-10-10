@@ -14,7 +14,6 @@ import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.fabric8.kubernetes.api.model.StatusDetailsBuilder;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
-import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
@@ -95,18 +94,6 @@ public interface Validator<T extends AdmissionReview<?>> {
             .map(this::escapeFieldName)
             .orElseThrow()))
         .collect(Collectors.joining("."));
-  }
-
-  /**
-   * Check value exists and is not empty.
-   */
-  default void checkIfProvided(String value, @NotNull String field, String...messageSuffixes)
-      throws ValidationFailed {
-    if (value == null || value.isEmpty()) {
-      throw new ValidationFailed(field + " must be provided"
-          + (messageSuffixes.length == 0 ? ""
-              : " " + Arrays.asList(messageSuffixes).stream().collect(Collectors.joining(" "))));
-    }
   }
 
   default void fail(String kind, String reason, String message) throws ValidationFailed {

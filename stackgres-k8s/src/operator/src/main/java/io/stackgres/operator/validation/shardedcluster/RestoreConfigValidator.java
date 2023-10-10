@@ -23,16 +23,21 @@ import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupStatus;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterInitialData;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterRestore;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterRestoreFromBackup;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
+import io.stackgres.operator.validation.AbstractReferenceValidator;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @Singleton
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)
-public class RestoreConfigValidator implements ShardedClusterValidator {
+public class RestoreConfigValidator
+    extends AbstractReferenceValidator<
+      StackGresShardedCluster, StackGresShardedClusterReview, StackGresShardedBackup>
+    implements ShardedClusterValidator {
 
   private final String errorCrReferencerUri = ErrorType
       .getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
@@ -45,6 +50,7 @@ public class RestoreConfigValidator implements ShardedClusterValidator {
 
   @Inject
   public RestoreConfigValidator(CustomResourceFinder<StackGresShardedBackup> backupFinder) {
+    super(backupFinder);
     this.backupFinder = backupFinder;
   }
 
@@ -79,17 +85,13 @@ public class RestoreConfigValidator implements ShardedClusterValidator {
         if (restoreConfig.getFromBackup() == null) {
           break;
         }
+
+        super.validate(review);
+
         Optional<StackGresShardedBackup> foundBackup = backupFinder
             .findByNameAndNamespace(backupName, namespace);
 
-        if (foundBackup.isEmpty()) {
-          final String message = "SGShardedBackup " + backupName + " not found";
-          fail(errorCrReferencerUri, message);
-        }
-
-        StackGresShardedBackup backup = foundBackup.get();
-
-        if (Optional.of(backup)
+        if (foundBackup
             .map(StackGresShardedBackup::getStatus)
             .map(StackGresShardedBackupStatus::getProcess)
             .map(StackGresShardedBackupProcess::getStatus)
@@ -102,9 +104,11 @@ public class RestoreConfigValidator implements ShardedClusterValidator {
         }
 
         int clusters = 1 + cluster.getSpec().getShards().getClusters();
-        if (backup.getStatus() == null
-            || backup.getStatus().getSgBackups() == null
-            || backup.getStatus().getSgBackups().size() != clusters) {
+        if (!foundBackup
+            .map(StackGresShardedBackup::getStatus)
+            .map(StackGresShardedBackupStatus::getSgBackups)
+            .map(sgBackups -> sgBackups.size() == clusters)
+            .orElse(false)) {
           fail(
               errorConstraintViolationUri,
               "sgBackups must be an array of size " + clusters
@@ -118,18 +122,20 @@ public class RestoreConfigValidator implements ShardedClusterValidator {
               .orElse("null"));
         }
 
-        String backupMajorVersion = getMajorVersion(backup);
+        if (foundBackup.isPresent()) {
+          String backupMajorVersion = getMajorVersion(foundBackup.get());
 
-        String givenPgVersion = review.getRequest().getObject().getSpec()
-            .getPostgres().getVersion();
-        String givenMajorVersion = getPostgresFlavorComponent(cluster)
-            .get(cluster)
-            .getMajorVersion(givenPgVersion);
+          String givenPgVersion = review.getRequest().getObject().getSpec()
+              .getPostgres().getVersion();
+          String givenMajorVersion = getPostgresFlavorComponent(cluster)
+              .get(cluster)
+              .getMajorVersion(givenPgVersion);
 
-        if (!backupMajorVersion.equals(givenMajorVersion)) {
-          final String message = "Cannot restore from SGShardedBackup " + backupName
-              + " because it comes from a different postgres major version";
-          fail(errorPostgresMismatch, message);
+          if (!backupMajorVersion.equals(givenMajorVersion)) {
+            final String message = "Cannot restore from SGShardedBackup " + backupName
+                + " because it comes from a different postgres major version";
+            fail(errorPostgresMismatch, message);
+          }
         }
         break;
       case UPDATE:
@@ -138,7 +144,7 @@ public class RestoreConfigValidator implements ShardedClusterValidator {
 
         final String message = "Cannot update SGShardedCluster's restore configuration";
         if (!Objects.equals(restoreConfig, oldRestoreConfig)) {
-          fail(errorCrReferencerUri, message);
+          fail(errorConstraintViolationUri, message);
         }
         break;
       default:
@@ -154,13 +160,32 @@ public class RestoreConfigValidator implements ShardedClusterValidator {
           .map(StackGresShardedClusterInitialData::getRestore);
 
       if (!initRestoreOpt.isPresent() && oldRestoreOpt.isPresent()) {
-        fail(errorCrReferencerUri, "Cannot update SGShardedCluster's restore configuration");
+        fail(errorConstraintViolationUri, "Cannot update SGShardedCluster's restore configuration");
       }
     }
   }
 
   private String getMajorVersion(StackGresShardedBackup backup) {
     return backup.getStatus().getBackupInformation().getPostgresVersion().split("\\.")[0];
+  }
+
+  @Override
+  protected Class<StackGresShardedBackup> getReferenceClass() {
+    return StackGresShardedBackup.class;
+  }
+
+  @Override
+  protected String getReference(StackGresShardedCluster resource) {
+    return Optional.ofNullable(resource.getSpec().getInitialData())
+        .map(StackGresShardedClusterInitialData::getRestore)
+        .map(StackGresShardedClusterRestore::getFromBackup)
+        .map(StackGresShardedClusterRestoreFromBackup::getName)
+        .orElse(null);
+  }
+
+  @Override
+  protected void onNotFoundReference(String message) throws ValidationFailed {
+    fail(message);
   }
 
 }

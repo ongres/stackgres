@@ -8,6 +8,7 @@ package io.stackgres.apiweb.rest;
 import java.util.List;
 import java.util.Objects;
 
+import javax.annotation.Nullable;
 import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.Path;
 
@@ -50,11 +51,14 @@ public class ConnectionPoolingConfigResource extends
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = PoolingConfigDto.class)) })
       })
   @Override
-  public void create(PoolingConfigDto resource) {
-    super.create(resource);
+  public PoolingConfigDto create(PoolingConfigDto resource, @Nullable Boolean dryRun) {
+    return super.create(resource, dryRun);
   }
 
   @Operation(
@@ -62,17 +66,20 @@ public class ConnectionPoolingConfigResource extends
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  public void delete(PoolingConfigDto resource) {
-    super.delete(resource);
+  public void delete(PoolingConfigDto resource, @Nullable Boolean dryRun) {
+    super.delete(resource, dryRun);
   }
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = PoolingConfigDto.class)) })
       })
   @Override
-  public void update(PoolingConfigDto resource) {
-    super.update(resource);
+  public PoolingConfigDto update(PoolingConfigDto resource, @Nullable Boolean dryRun) {
+    return super.update(resource, dryRun);
   }
 
   @Override

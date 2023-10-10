@@ -41,11 +41,11 @@ public class StorageClassValidator implements ShardedClusterValidator {
         StackGresShardedCluster cluster = review.getRequest().getObject();
         String coordinatorStorageClass = cluster.getSpec().getCoordinator()
             .getPods().getPersistentVolume().getStorageClass();
-        checkIfStorageClassExist(coordinatorStorageClass, "Storage class "
+        checkIfStorageClassExist(coordinatorStorageClass, "StorageClass "
             + coordinatorStorageClass + " not found for coordinator");
         String shardsStorageClass = cluster.getSpec().getShards()
             .getPods().getPersistentVolume().getStorageClass();
-        checkIfStorageClassExist(shardsStorageClass, "Storage class "
+        checkIfStorageClassExist(shardsStorageClass, "StorageClass "
             + shardsStorageClass + " not found for shards");
         for (var overrideShard : Optional.of(cluster.getSpec().getShards())
             .map(StackGresShardedClusterShards::getOverrides)
@@ -56,7 +56,7 @@ public class StorageClassValidator implements ShardedClusterValidator {
           }
           String overrideShardsStorageClass = overrideShard
               .getPodsForShards().getPersistentVolume().getStorageClass();
-          checkIfStorageClassExist(overrideShardsStorageClass, "Storage class "
+          checkIfStorageClassExist(overrideShardsStorageClass, "StorageClass "
               + overrideShardsStorageClass + " not found for shard " + overrideShard.getIndex());
         }
         break;
@@ -66,11 +66,11 @@ public class StorageClassValidator implements ShardedClusterValidator {
         String coordinatorStorageClass = cluster.getSpec().getCoordinator()
             .getPods().getPersistentVolume().getStorageClass();
         checkIfStorageClassExist(coordinatorStorageClass,
-            "Cannot update coordinator to storage class "
+            "Cannot update coordinator to StorageClass "
                 + coordinatorStorageClass + " because it doesn't exists");
         String shardsStorageClass = cluster.getSpec().getShards()
             .getPods().getPersistentVolume().getStorageClass();
-        checkIfStorageClassExist(shardsStorageClass, "Cannot update shards to storage class "
+        checkIfStorageClassExist(shardsStorageClass, "Cannot update shards to StorageClass "
             + shardsStorageClass + " because it doesn't exists");
         for (var overrideShard : Optional.of(cluster.getSpec().getShards())
             .map(StackGresShardedClusterShards::getOverrides)
@@ -82,7 +82,7 @@ public class StorageClassValidator implements ShardedClusterValidator {
           String overrideShardsStorageClass = overrideShard
               .getPodsForShards().getPersistentVolume().getStorageClass();
           checkIfStorageClassExist(overrideShardsStorageClass, "Cannot update shard "
-              + overrideShard.getIndex() + " to storage class "
+              + overrideShard.getIndex() + " to StorageClass "
               + overrideShardsStorageClass + " because it doesn't exists");
         }
         break;

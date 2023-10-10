@@ -7,6 +7,7 @@ package io.stackgres.operator.validation.shardedcluster;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -67,7 +68,7 @@ class RestoreConfigValidatorTest {
 
     validator.validate(review);
 
-    verify(finder).findByNameAndNamespace(anyString(), anyString());
+    verify(finder, times(2)).findByNameAndNamespace(anyString(), anyString());
   }
 
   @Test
@@ -104,7 +105,7 @@ class RestoreConfigValidatorTest {
         "Cannot restore from SGShardedBackup " + backupName
         + " because it comes from a different postgres major version");
 
-    verify(finder).findByNameAndNamespace(anyString(), anyString());
+    verify(finder, times(2)).findByNameAndNamespace(anyString(), anyString());
   }
 
   @Test

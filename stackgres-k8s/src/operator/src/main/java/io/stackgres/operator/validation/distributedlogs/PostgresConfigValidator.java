@@ -21,23 +21,26 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsConfigu
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
+import io.stackgres.operator.validation.AbstractReferenceValidator;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @Singleton
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)
-public class PostgresConfigValidator implements DistributedLogsValidator {
+public class PostgresConfigValidator
+    extends AbstractReferenceValidator<
+      StackGresDistributedLogs, StackGresDistributedLogsReview, StackGresPostgresConfig>
+    implements DistributedLogsValidator {
 
   private final CustomResourceFinder<StackGresPostgresConfig> configFinder;
 
-  private final String errorCrReferencerUri;
   private final String errorPostgresMismatchUri;
 
   @Inject
   public PostgresConfigValidator(
       CustomResourceFinder<StackGresPostgresConfig> configFinder) {
+    super(configFinder);
     this.configFinder = configFinder;
-    this.errorCrReferencerUri = ErrorType.getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
     this.errorPostgresMismatchUri = ErrorType.getErrorTypeUri(ErrorType.PG_VERSION_MISMATCH);
   }
 
@@ -54,11 +57,11 @@ public class PostgresConfigValidator implements DistributedLogsValidator {
     String givenPgVersion = StackGresDistributedLogsUtil.getPostgresVersion(distributedLogs);
     String pgConfig = distributedLogs.getSpec().getConfigurations().getSgPostgresConfig();
 
-    checkIfProvided(pgConfig, "sgPostgresConfig");
-
     String givenMajorVersion = getPostgresFlavorComponent(distributedLogs).get(distributedLogs)
         .getMajorVersion(givenPgVersion);
     String namespace = distributedLogs.getMetadata().getNamespace();
+
+    super.validate(review);
 
     switch (review.getRequest().getOperation()) {
       case CREATE:
@@ -83,21 +86,37 @@ public class PostgresConfigValidator implements DistributedLogsValidator {
         .findByNameAndNamespace(pgConfig, namespace);
 
     if (postgresConfigOpt.isPresent()) {
-
       StackGresPostgresConfig postgresConfig = postgresConfigOpt.get();
       String pgVersion = postgresConfig.getSpec().getPostgresVersion();
 
       if (!pgVersion.equals(givenMajorVersion)) {
-        final String message = "Invalid postgres version for sgPostgresConfig " + pgConfig
+        final String message = "Invalid postgres version for SGPostgresConfig " + pgConfig
             + ", it must be " + givenMajorVersion;
         fail(errorPostgresMismatchUri, message);
       }
-
-    } else {
-
-      final String message = "Invalid sgPostgresConfig value " + pgConfig;
-      fail(errorCrReferencerUri, message);
     }
+  }
+
+  @Override
+  protected Class<StackGresPostgresConfig> getReferenceClass() {
+    return StackGresPostgresConfig.class;
+  }
+
+  @Override
+  protected String getReference(StackGresDistributedLogs resource) {
+    return Optional.ofNullable(resource.getSpec().getConfigurations())
+        .map(StackGresDistributedLogsConfigurations::getSgPostgresConfig)
+        .orElse(null);
+  }
+
+  @Override
+  protected boolean checkReferenceFilter(StackGresDistributedLogsReview review) {
+    return !Optional.ofNullable(review.getRequest().getDryRun()).orElse(false);
+  }
+
+  @Override
+  protected void onNotFoundReference(String message) throws ValidationFailed {
+    fail(message);
   }
 
 }

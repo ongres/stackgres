@@ -29,6 +29,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.validation.AbstractReferenceValidator;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operator.validation.ValidationUtil;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -37,7 +38,10 @@ import org.jooq.lambda.tuple.Tuple2;
 
 @Singleton
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)
-public class PostgresConfigValidator implements ClusterValidator {
+public class PostgresConfigValidator
+    extends AbstractReferenceValidator<
+      StackGresCluster, StackGresClusterReview, StackGresPostgresConfig>
+    implements ClusterValidator {
 
   private static final String PG_14_CREATE_CONCURRENT_INDEX_BUG =
       "Please, use PostgreSQL 14.4 since it fixes an issue"
@@ -70,6 +74,7 @@ public class PostgresConfigValidator implements ClusterValidator {
       CustomResourceFinder<StackGresPostgresConfig> configFinder,
       Map<StackGresComponent, Map<StackGresVersion, List<String>>>
           orderedSupportedPostgresVersions) {
+    super(configFinder);
     this.configFinder = configFinder;
     this.supportedPostgresVersions = orderedSupportedPostgresVersions;
     this.errorCrReferencerUri = ErrorType.getErrorTypeUri(ErrorType.INVALID_CR_REFERENCE);
@@ -96,16 +101,19 @@ public class PostgresConfigValidator implements ClusterValidator {
         .map(StackGresClusterConfigurations::getSgPostgresConfig)
         .orElse(null);
 
-    checkIfProvided(givenPgVersion, "postgres version");
-    checkIfProvided(pgConfig, "sgPostgresConfig");
+    if (givenPgVersion == null || pgConfig == null) {
+      return;
+    }
 
-    if (givenPgVersion != null && !isPostgresVersionSupported(cluster, givenPgVersion)) {
+    if (!isPostgresVersionSupported(cluster, givenPgVersion)) {
       final String message = "Unsupported postgres version " + givenPgVersion
           + ".  Supported postgres versions are: "
           + Seq.seq(supportedPostgresVersions.get(getPostgresFlavorComponent(cluster)))
           .toString(", ");
       fail(errorPostgresMismatchUri, message);
     }
+
+    super.validate(review);
 
     String givenMajorVersion = getPostgresFlavorComponent(cluster).get(cluster)
         .getMajorVersion(givenPgVersion);
@@ -185,20 +193,14 @@ public class PostgresConfigValidator implements ClusterValidator {
         .findByNameAndNamespace(pgConfig, namespace);
 
     if (postgresConfigOpt.isPresent()) {
-
       StackGresPostgresConfig postgresConfig = postgresConfigOpt.get();
       String pgVersion = postgresConfig.getSpec().getPostgresVersion();
 
       if (!pgVersion.equals(givenMajorVersion)) {
         final String message = "Invalid postgres version, must be "
-            + pgVersion + " to use sgPostgresConfig " + pgConfig;
+            + pgVersion + " to use SGPostgresConfig " + pgConfig;
         fail(errorPostgresMismatchUri, message);
       }
-
-    } else {
-
-      final String message = "Invalid sgPostgresConfig value " + pgConfig;
-      fail(errorCrReferencerUri, message);
     }
   }
 
@@ -206,6 +208,28 @@ public class PostgresConfigValidator implements ClusterValidator {
     return supportedPostgresVersions.get(getPostgresFlavorComponent(cluster))
         .get(StackGresVersion.getStackGresVersion(cluster))
         .contains(version);
+  }
+
+  @Override
+  protected Class<StackGresPostgresConfig> getReferenceClass() {
+    return StackGresPostgresConfig.class;
+  }
+
+  @Override
+  protected String getReference(StackGresCluster resource) {
+    return Optional.ofNullable(resource.getSpec().getConfigurations())
+        .map(StackGresClusterConfigurations::getSgPostgresConfig)
+        .orElse(null);
+  }
+
+  @Override
+  protected boolean checkReferenceFilter(StackGresClusterReview review) {
+    return !Optional.ofNullable(review.getRequest().getDryRun()).orElse(false);
+  }
+
+  @Override
+  protected void onNotFoundReference(String message) throws ValidationFailed {
+    fail(errorCrReferencerUri, message);
   }
 
 }

@@ -7,6 +7,7 @@ package io.stackgres.operator.validation.cluster;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -72,7 +73,7 @@ class RestoreConfigValidatorTest {
 
     validator.validate(review);
 
-    verify(finder).findByNameAndNamespace(anyString(), anyString());
+    verify(finder, times(2)).findByNameAndNamespace(anyString(), anyString());
   }
 
   @Test
@@ -109,7 +110,7 @@ class RestoreConfigValidatorTest {
         "Cannot restore from SGBackup " + backupName
             + " because it comes from an incompatible postgres version");
 
-    verify(finder).findByNameAndNamespace(anyString(), anyString());
+    verify(finder, times(2)).findByNameAndNamespace(anyString(), anyString());
   }
 
   @Test

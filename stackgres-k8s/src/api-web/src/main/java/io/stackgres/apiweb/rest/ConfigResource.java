@@ -7,6 +7,7 @@ package io.stackgres.apiweb.rest;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.Path;
 
@@ -42,11 +43,26 @@ public class ConfigResource extends AbstractRestService<ConfigDto,
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ConfigDto.class)) })
       })
   @Override
-  public void create(@NotNull ConfigDto resource) {
-    super.create(resource);
+  public ConfigDto create(@NotNull ConfigDto resource, @Nullable Boolean dryRun) {
+    return super.create(resource, dryRun);
+  }
+
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ConfigDto.class)) })
+      })
+  @Override
+  public ConfigDto update(@NotNull ConfigDto resource, @Nullable Boolean dryRun) {
+    return super.update(resource, dryRun);
   }
 
   @Operation(
@@ -54,17 +70,8 @@ public class ConfigResource extends AbstractRestService<ConfigDto,
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  public void update(@NotNull ConfigDto resource) {
-    super.update(resource);
-  }
-
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
-      })
-  @Override
-  public void delete(@NotNull ConfigDto resource) {
-    super.delete(resource);
+  public void delete(@NotNull ConfigDto resource, @Nullable Boolean dryRun) {
+    super.delete(resource, dryRun);
   }
 
   @Override
