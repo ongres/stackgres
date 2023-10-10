@@ -282,7 +282,8 @@ create_backup_restore_point() {
       -- sh -e $SHELL_XTRACE 2>&1; printf %s "$?" > /tmp/backup-restore-point-exit-code; } | tee /tmp/backup-restore-point
 psql -d "$SHARDED_CLUSTER_DATABASE" -v ON_ERROR_STOP=1 \
   -c "SELECT citus_create_restore_point('$SHARDED_BACKUP_NAME')" \
-  -c "SELECT pg_switch_wal()"
+  -c "SELECT pg_switch_wal()" \
+  -c "SELECT run_command_on_workers(\\\$\\\$ SELECT pg_switch_wal() \\\$\\\$)"
 EOF
   if [ "$(cat /tmp/backup-restore-point-exit-code)" != 0 ]
   then

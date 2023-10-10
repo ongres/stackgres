@@ -324,7 +324,15 @@ check_restore_sharded_backup_is_working() {
     --template '{{ range .items }}{{ printf "%s %s\n" .status.process.status .metadata.name }}{{ end }}' \
     | grep "^Completed " | head -n 1 | cut -d ' ' -f 2)"
 
+  kubectl get secret -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
+    | jq "del(.metadata.ownerReferences) | del(.metadata.labels) | .metadata.name = \"$CLUSTER_NAME-back\"" \
+    | kubectl create -f -
+
   remove_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  kubectl get secret -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-back" -o json \
+    | jq ".metadata.name = \"$CLUSTER_NAME\"" \
+    | kubectl create -f -
 
   create_or_replace_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" "2" \
     --set-string cluster.initialData.restore.fromBackup.name="$SHARDED_BACKUP_NAME"
@@ -354,8 +362,12 @@ check_sharded_dbops_resharding_is_working() {
   kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
     psql -d citus -v ON_ERROR_STOP=1 \
     -c "CREATE TABLE distributed AS SELECT i, (SELECT string_agg(md5(random()::text), ' ') FROM generate_series(1, (30 * random())::integer)) AS t FROM generate_series(1, 100000) AS i" \
-    -c "ALTER TABLE distributed ADD PRIMARY KEY (i)" \
-    -c "SELECT create_distributed_table('distributed', 'i')" \
+    -c "ALTER TABLE distributed ADD PRIMARY KEY (i)"
+  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
+    psql -d citus -v ON_ERROR_STOP=1 \
+    -c "SELECT create_distributed_table('distributed', 'i')"
+  kubectl exec -n "$CLUSTER_NAMESPACE" "${CLUSTER_NAME}-coord-0" -c "postgres-util" -- \
+    psql -d citus -v ON_ERROR_STOP=1 \
     -c "SELECT citus_drain_node('$NODE_NAME', 7433)" \
     -c "SELECT citus_remove_node('$NODE_NAME', 7433)" \
     -c "SELECT citus_add_node('$NODE_NAME', 7433)"
