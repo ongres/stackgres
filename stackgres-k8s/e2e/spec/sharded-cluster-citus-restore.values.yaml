@@ -14,5 +14,11 @@ cluster:
       sgObjectStorage: backupconf
   prometheusAutobind: false
   disableBackups: true
+shardedCluster:
+  shards:
+    pods:
+      persistentVolume:
+        size: 128Mi
+      managementPolicy: Parallel
 nonProductionOptions:
   disableClusterPodAntiAffinity: true

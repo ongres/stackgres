@@ -206,6 +206,13 @@ shardedCluster:
   shards:
     clusters: 2
     instancesPerCluster: 1
+    sgInstanceProfile: size-xs
+    configurations:
+      sgPostgresConfig: postgresconf
+      sgPoolingConfig: pgbouncerconf
+    pods:
+      persistentVolume:
+        size: 5Gi
 
 instanceProfiles:
   - name: size-xs

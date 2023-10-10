@@ -61,17 +61,15 @@ e2e_test() {
 
   run_test "Checking that backup is working" check_backup_is_working
 
-  run_test "Checking that restart is working" check_restart_is_working
-
   run_test "Checking that sharded backup are working" check_sharded_backup_is_working
 
   run_test "Checking that automatic sharded backup are working" check_automatic_sharded_backup_is_working
 
   run_test "Checking that restoring a sharded backup is working" check_restore_sharded_backup_is_working
 
-  run_test "Checking that restart sharded dbops is working" check_sharded_dbops_restart_is_working
-
   run_test "Checking that restart sharded dbops is working" check_sharded_dbops_resharding_is_working
+
+  run_test "Checking that restart sharded dbops is working" check_sharded_dbops_restart_is_working
 }
 
 service_check() {
@@ -187,35 +185,6 @@ check_backup_is_working() {
     check_timelines
 
     check_control_data
-  done
-}
-
-check_restart_is_working() {
-  local SHARDED_CLUSTER_NAME="$CLUSTER_NAME"
-  local CLUSTER_NAME
-  local NODE=0
-  local SUFFIX
-  for SUFFIX in "coord" "shard0" "shard1"
-  do
-    CLUSTER_NAME="$SHARDED_CLUSTER_NAME-$SUFFIX"
-    DBOPS_NAME="$(get_sgdbops_name restart-"${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
-
-    set_restarted_pods
-
-    cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1
-kind: SGDbOps
-metadata:
-  name: $DBOPS_NAME
-  namespace: $CLUSTER_NAMESPACE
-spec:
-  sgCluster: $CLUSTER_NAME
-  op: restart
-  restart:
-    method: InPlace
-EOF
-
-    check_restart_without_data
   done
 }
 
@@ -387,33 +356,6 @@ check_restore_sharded_backup_is_working() {
   fi
 }
 
-check_sharded_dbops_restart_is_working() {
-  SHARDED_DBOPS_NAME="$(get_sgshardeddbops_name restart-"${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
-
-  cat << EOF | kubectl create -f -
-apiVersion: stackgres.io/v1
-kind: SGShardedDbOps
-metadata:
-  name: $SHARDED_DBOPS_NAME
-  namespace: $CLUSTER_NAMESPACE
-spec:
-  sgShardedCluster: $CLUSTER_NAME
-  op: restart
-  restart:
-    method: InPlace
-EOF
-
-  local DBOPS_NAME
-  local SUFFIX
-  for SUFFIX in coord shard0 shard1
-  do
-    DBOPS_NAME="$SHARDED_DBOPS_NAME-$SUFFIX"
-    wait_dbops_is_completed "$DBOPS_NAME"
-  done
-
-  wait_sharded_dbops_is_completed "$SHARDED_DBOPS_NAME"
-}
-
 check_sharded_dbops_resharding_is_working() {
   SHARDED_DBOPS_NAME="$(get_sgshardeddbops_name resharding-"${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
 
@@ -461,6 +403,33 @@ EOF
     echo "FAIL. The sharded cluster has not been resharded"
     return 1
   fi
+}
+
+check_sharded_dbops_restart_is_working() {
+  SHARDED_DBOPS_NAME="$(get_sgshardeddbops_name restart-"${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGShardedDbOps
+metadata:
+  name: $SHARDED_DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgShardedCluster: $CLUSTER_NAME
+  op: restart
+  restart:
+    method: InPlace
+EOF
+
+  local DBOPS_NAME
+  local SUFFIX
+  for SUFFIX in coord shard0 shard1
+  do
+    DBOPS_NAME="$SHARDED_DBOPS_NAME-$SUFFIX"
+    wait_dbops_is_completed "$DBOPS_NAME"
+  done
+
+  wait_sharded_dbops_is_completed "$SHARDED_DBOPS_NAME"
 }
 
 wait_dbops_is_completed() {
