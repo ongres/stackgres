@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -32,6 +33,8 @@ class DistributedLogsResourceGenerationDiscovererTest
   @Inject
   DistributedLogsResourceGenerationDiscoverer resourceGenerationDiscoverer;
 
+  private StackGresConfig config;
+
   private StackGresDistributedLogs resource;
 
   private StackGresPostgresConfig postgresConfig;
@@ -44,6 +47,7 @@ class DistributedLogsResourceGenerationDiscovererTest
 
   @BeforeEach
   public void setup() {
+    this.config = Fixtures.config().loadDefault().get();
     this.resource = Fixtures.distributedLogs().loadDefault().get();
     this.postgresConfig = Fixtures.postgresConfig().loadDefault().get();
     this.connectecCluster = Fixtures.cluster().loadDefault()
@@ -72,6 +76,7 @@ class DistributedLogsResourceGenerationDiscovererTest
   @Override
   protected StackGresDistributedLogsContext getResourceContext() throws IOException {
     return ImmutableStackGresDistributedLogsContext.builder()
+        .config(config)
         .source(resource)
         .postgresConfig(postgresConfig)
         .profile(profile)

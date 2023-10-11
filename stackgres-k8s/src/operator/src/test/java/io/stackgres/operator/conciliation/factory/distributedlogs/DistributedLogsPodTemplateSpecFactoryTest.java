@@ -10,6 +10,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.LabelFactoryForCluster;
@@ -38,12 +39,14 @@ public class DistributedLogsPodTemplateSpecFactoryTest {
   private StackGresDistributedLogsContext sgDistributedLogContext;
   @Mock
   private LabelMapperForCluster<StackGresDistributedLogs> labelMapperForCluster;
+  private StackGresConfig config;
   private StackGresDistributedLogs distributedLogs;
   private DistributedLogsPodTemplateSpecFactory distributedLogPodTemplateSpecFactory;
 
   @BeforeEach
   public void setup() {
     openMocks(this);
+    config = Fixtures.config().loadDefault().get();
     distributedLogs = Fixtures.distributedLogs().loadDefault().get();
 
     distributedLogPodTemplateSpecFactory =
@@ -54,6 +57,7 @@ public class DistributedLogsPodTemplateSpecFactoryTest {
   @Test
   public void shouldDistributedLogPodSpecHasNodeSelector_onceDistributedLogsHasNodeSelectors() {
     given(context.getDistributedLogsContext()).willReturn(sgDistributedLogContext);
+    given(sgDistributedLogContext.getConfig()).willReturn(config);
     given(sgDistributedLogContext.getSource()).willReturn(distributedLogs);
     given(labelFactory.labelMapper()).willReturn(labelMapperForCluster);
 
@@ -64,6 +68,7 @@ public class DistributedLogsPodTemplateSpecFactoryTest {
   @Test
   public void shouldDistributedLogPodSpecHasNodeAffinity_onceDistributedLogsHasNodeAffinity() {
     given(context.getDistributedLogsContext()).willReturn(sgDistributedLogContext);
+    given(sgDistributedLogContext.getConfig()).willReturn(config);
     given(sgDistributedLogContext.getSource()).willReturn(distributedLogs);
     given(labelFactory.labelMapper()).willReturn(labelMapperForCluster);
 

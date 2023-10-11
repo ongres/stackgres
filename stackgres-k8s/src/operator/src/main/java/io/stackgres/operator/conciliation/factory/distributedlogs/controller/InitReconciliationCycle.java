@@ -5,7 +5,9 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs.controller;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -16,12 +18,17 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresController;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresVolume;
+import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloper;
+import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperContainerPatches;
+import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperPatches;
+import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
@@ -130,6 +137,15 @@ public class InitReconciliationCycle implements ContainerFactory<DistributedLogs
                 .build()
         )
         .addAllToVolumeMounts(containerUserOverrideMounts.getVolumeMounts(context))
+        .addAllToVolumeMounts(Optional.of(context.getDistributedLogsContext().getConfig().getSpec())
+            .map(StackGresConfigSpec::getDeveloper)
+            .map(StackGresConfigDeveloper::getPatches)
+            .map(StackGresConfigDeveloperPatches::getDistributedlogsController)
+            .map(StackGresConfigDeveloperContainerPatches::getVolumeMounts)
+            .stream()
+            .flatMap(List::stream)
+            .map(VolumeMount.class::cast)
+            .toList())
         .build();
   }
 
