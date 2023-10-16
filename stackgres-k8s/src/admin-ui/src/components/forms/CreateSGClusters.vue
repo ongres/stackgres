@@ -1147,20 +1147,18 @@
                         In order to enable monitoring from within the web console, both of these options should be enabled.
                     </div>
                 </div>
-            </fieldset>
-
-            <fieldset class="step" :class="(currentStep == 'pods') && 'active'" data-fieldset="pods">
-                <div class="header">
+                                    
+                
+                <div class="header marginTop">
                     <h2>User-Supplied Pods Sidecars</h2>
                 </div>
 
                 <div class="fields">
-                    <div class="header">
-                        <h3 for="spec.pods.customVolumes">
-                            Custom Volumes
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes')"></span>
-                        </h3>
-                    </div>
+                    <h3 for="spec.pods.customVolumes">
+                        Custom Volumes
+                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes')"></span>
+                    </h3>   
+    
                     <p>List of volumes that can be mounted by custom containers belonging to the pod</p>
 
                     <br/>
@@ -1399,12 +1397,10 @@
                     <br/><br/><br/>
 
                     <template v-if="!editMode || pods.customInitContainers.length">
-                        <div class="header">
-                            <h3 for="spec.pods.customInitContainers">
-                                Custom Init Containers
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers')"></span>
-                            </h3>
-                        </div>
+                        <h3 for="spec.pods.customInitContainers">
+                            Custom Init Containers
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers')"></span>
+                        </h3>
                         <p>A list of custom application init containers that run within the cluster’s Pods</p>
 
                         <br/>
@@ -1711,12 +1707,10 @@
                     </template>
 
                     <template v-if="!editMode || pods.customContainers.length">
-                        <div class="header">
-                            <h3 for="spec.pods.customContainers">
-                                Custom Containers
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers')"></span>
-                            </h3>
-                        </div>
+                        <h3 for="spec.pods.customContainers">
+                            Custom Containers
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers')"></span>
+                        </h3>
                         <p>A list of custom application containers that run within the cluster’s Pods</p>
 
                         <br/>
@@ -3012,7 +3006,7 @@
             const vc = this;
 
             return {
-                formSteps: ['cluster', 'extensions', 'backups', 'initialization', 'replicate-from', 'scripts', 'sidecars', 'pods', 'pods-replication', 'services', 'metadata', 'scheduling', 'non-production'],
+                formSteps: ['cluster', 'extensions', 'backups', 'initialization', 'replicate-from', 'scripts', 'sidecars', 'pods-replication', 'services', 'metadata', 'scheduling', 'non-production'],
                 editMode: (vc.$route.name === 'EditCluster'),
                 editReady: false,
                 instances: 1,
