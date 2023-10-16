@@ -133,14 +133,10 @@ public class DistributedLogsClusterReconciliator {
       }
       statusUpdated = statusUpdated || updateStatus(distributedLogs, database, retention);
     }
+
     String fluentdConfigHash = configManager.getFluentdConfigHash();
-    if (!Objects.equals(
-        distributedLogs.getStatus().getFluentdConfigHash(),
-        fluentdConfigHash)) {
-      LOGGER.info("Reloading fluentd configuration");
-      configManager.reloadFluentdConfiguration();
-      distributedLogs.getStatus().setFluentdConfigHash(fluentdConfigHash);
-    }
+    distributedLogs.getStatus().setFluentdConfigHash(fluentdConfigHash);
+    configManager.reloadFluentdConfiguration();
     return new ReconciliationResult<>(statusUpdated, exceptions.build());
   }
 

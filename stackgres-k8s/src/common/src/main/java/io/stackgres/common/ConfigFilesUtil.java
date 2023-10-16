@@ -14,10 +14,19 @@ import org.jooq.lambda.Seq;
 
 public interface ConfigFilesUtil {
 
+  /**
+   * Check if source configPath /that must exists) has changed against lastConfigPath (that may
+   *  not exists).
+   */
   static boolean configChanged(Path configPath, Path lastConfigPath) throws IOException {
     return configChanged(configPath, lastConfigPath, line -> true);
   }
 
+  /**
+   * Check if source configPath /that must exists) has changed against lastConfigPath (that may
+   *  not exists).
+   * The filter is applied to each line of both files before the comparison is performed.
+   */
   static boolean configChanged(Path configPath, Path lastConfigPath, Predicate<String> filter)
       throws IOException {
     return !Files.exists(lastConfigPath)
