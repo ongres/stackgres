@@ -7,6 +7,7 @@ package io.stackgres.common.resource;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
@@ -16,17 +17,15 @@ import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Quantity;
 import org.jooq.lambda.tuple.Tuple;
 
-public class ResourceUtil {
+public interface ResourceUtil {
 
-  public static final BigDecimal MILLICPU_MULTIPLIER = new BigDecimal(1000);
-  public static final BigDecimal LOAD_MULTIPLIER = new BigDecimal(1000);
-  public static final BigDecimal KILOBYTE = Quantity.getAmountInBytes(new Quantity("1Ki"));
-  public static final BigDecimal MEBIBYTES = Quantity.getAmountInBytes(new Quantity("1Mi"));
-  public static final BigDecimal GIBIBYTES = Quantity.getAmountInBytes(new Quantity("1Gi"));
+  BigDecimal MILLICPU_MULTIPLIER = new BigDecimal(1000);
+  BigDecimal LOAD_MULTIPLIER = new BigDecimal(1000);
+  BigDecimal KILOBYTE = Quantity.getAmountInBytes(new Quantity("1Ki"));
+  BigDecimal MEBIBYTES = Quantity.getAmountInBytes(new Quantity("1Mi"));
+  BigDecimal GIBIBYTES = Quantity.getAmountInBytes(new Quantity("1Gi"));
 
-  private ResourceUtil() {}
-
-  public static Optional<BigInteger> toBigInteger(String value) {
+  static Optional<BigInteger> toBigInteger(String value) {
     try {
       return Optional.of(new BigInteger(value));
     } catch (Exception ex) {
@@ -34,7 +33,7 @@ public class ResourceUtil {
     }
   }
 
-  public static Optional<BigInteger> toMillicpus(String cpus) {
+  static Optional<BigInteger> toMillicpus(String cpus) {
     try {
       return Optional.of(new BigDecimal(cpus).multiply(MILLICPU_MULTIPLIER).toBigInteger());
     } catch (Exception ex) {
@@ -42,7 +41,7 @@ public class ResourceUtil {
     }
   }
 
-  public static Optional<BigInteger> toMillicpus(BigInteger cpus) {
+  static Optional<BigInteger> toMillicpus(BigInteger cpus) {
     try {
       return Optional.of(new BigDecimal(cpus).multiply(MILLICPU_MULTIPLIER).toBigInteger());
     } catch (Exception ex) {
@@ -50,7 +49,7 @@ public class ResourceUtil {
     }
   }
 
-  public static Optional<BigInteger> kilobytesToBytes(String kilobytes) {
+  static Optional<BigInteger> kilobytesToBytes(String kilobytes) {
     try {
       return Optional.of(new BigDecimal(kilobytes).multiply(KILOBYTE).toBigInteger());
     } catch (Exception ex) {
@@ -58,7 +57,7 @@ public class ResourceUtil {
     }
   }
 
-  public static Optional<BigInteger> toMilliload(String load) {
+  static Optional<BigInteger> toMilliload(String load) {
     try {
       return Optional.of(new BigDecimal(load).multiply(LOAD_MULTIPLIER).toBigInteger());
     } catch (Exception ex) {
@@ -66,11 +65,11 @@ public class ResourceUtil {
     }
   }
 
-  public static String asMillicpusWithUnit(BigInteger millicpus) {
+  static String asMillicpusWithUnit(BigInteger millicpus) {
     return millicpus + "m";
   }
 
-  public static String asBytesWithUnit(BigInteger bytes) {
+  static String asBytesWithUnit(BigInteger bytes) {
     ImmutableList<String> units = ImmutableList.of(
         "Ki", "Mi", "Gi", "Ti", "Pi", "Ei");
     return units.stream().reduce(
@@ -82,12 +81,31 @@ public class ResourceUtil {
         .map((value, unit) -> getDecimalFormat().format(value) + unit);
   }
 
-  public static String asLoad(BigInteger milliload) {
+  static String asLoad(BigInteger milliload) {
     return getDecimalFormat().format(new BigDecimal(milliload).divide(LOAD_MULTIPLIER));
   }
 
-  public static DecimalFormat getDecimalFormat() {
+  static DecimalFormat getDecimalFormat() {
     return new DecimalFormat("#0.00", new DecimalFormatSymbols(Locale.US));
+  }
+
+  static String toCpuValue(BigDecimal value) {
+    if (value.remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) > 0) {
+      return value
+          .multiply(ResourceUtil.MILLICPU_MULTIPLIER)
+          .setScale(0, RoundingMode.CEILING).toString() + "m";
+    }
+    return value
+        .setScale(0, RoundingMode.CEILING).toString();
+  }
+
+  static String toMemoryValue(BigDecimal value) {
+    if (value.remainder(ResourceUtil.GIBIBYTES).compareTo(BigDecimal.ZERO) == 0) {
+      return value.divide(ResourceUtil.GIBIBYTES)
+          .setScale(0, RoundingMode.CEILING).toString() + "Gi";
+    }
+    return value.divide(ResourceUtil.MEBIBYTES)
+        .setScale(0, RoundingMode.CEILING).toString() + "Mi";
   }
 
 }

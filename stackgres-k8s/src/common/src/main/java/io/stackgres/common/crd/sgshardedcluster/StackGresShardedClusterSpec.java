@@ -22,6 +22,7 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
+import io.stackgres.common.crd.sgcluster.StackGresClusterProfile;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
@@ -35,6 +36,10 @@ import io.sundr.builder.annotations.Buildable;
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresShardedClusterSpec {
+
+  @ValidEnum(enumClass = StackGresClusterProfile.class, allowNulls = true,
+      message = "profile must be production, testing or development")
+  private String profile;
 
   @ValidEnum(enumClass = StackGresShardingType.class, allowNulls = false,
       message = "only supported type is citus")
@@ -146,6 +151,14 @@ public class StackGresShardedClusterSpec {
         || ovverideShard.getInstancesPerCluster() > replication.getSyncInstances());
   }
 
+  public String getProfile() {
+    return profile;
+  }
+
+  public void setProfile(String profile) {
+    this.profile = profile;
+  }
+
   public StackGresClusterSpecMetadata getMetadata() {
     return metadata;
   }
@@ -253,7 +266,7 @@ public class StackGresShardedClusterSpec {
   @Override
   public int hashCode() {
     return Objects.hash(configurations, coordinator, database, distributedLogs, initialData,
-        metadata, nonProductionOptions, postgres, postgresServices, prometheusAutobind,
+        metadata, nonProductionOptions, postgres, postgresServices, profile, prometheusAutobind,
         replication, shards, type);
   }
 
@@ -275,6 +288,7 @@ public class StackGresShardedClusterSpec {
         && Objects.equals(nonProductionOptions, other.nonProductionOptions)
         && Objects.equals(postgres, other.postgres)
         && Objects.equals(postgresServices, other.postgresServices)
+        && Objects.equals(profile, other.profile)
         && Objects.equals(prometheusAutobind, other.prometheusAutobind)
         && Objects.equals(replication, other.replication)
         && Objects.equals(shards, other.shards)

@@ -55,8 +55,6 @@ class PatroniTest {
   @Mock
   ResourceFactory<StackGresClusterContext, List<EnvVar>> patroniEnvironmentVariables;
   @Mock
-  ResourceFactory<StackGresClusterContext, ResourceRequirements> requirementsFactory;
-  @Mock
   PostgresSocketMount postgresSocket;
   @Mock
   PostgresExtensionMounts postgresExtensions;
@@ -91,13 +89,12 @@ class PatroniTest {
 
   @BeforeEach
   void setUp() {
-    patroni = new Patroni(patroniEnvironmentVariables, requirementsFactory,
+    patroni = new Patroni(patroniEnvironmentVariables,
         postgresSocket, postgresExtensions, localBinMounts, restoreMounts, backupMounts,
         replicateMounts, patroniMounts, hugePagesMounts, volumeDiscoverer);
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(POSTGRES_VERSION);
     when(clusterContainerContext.getClusterContext()).thenReturn(clusterContext);
-    when(requirementsFactory.createResource(clusterContext)).thenReturn(podResources);
     when(patroniEnvironmentVariables.createResource(clusterContext)).thenReturn(List.of());
     when(volumeDiscoverer.discoverVolumes(clusterContext))
         .thenReturn(Map.of(StackGresVolume.PATRONI_ENV.getName(),

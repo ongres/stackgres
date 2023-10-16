@@ -15,9 +15,7 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
 import io.stackgres.common.StackGresGroupKind;
-import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
-import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.AbstractContainerProfileDecorator;
 import io.stackgres.operator.conciliation.factory.Decorator;
@@ -38,10 +36,7 @@ public class ShardedBackupJobContainerProfileDecorator extends AbstractContainer
       justification = "False positive")
   public HasMetadata decorate(StackGresShardedBackupContext context, HasMetadata resource) {
     if (ShardedBackupJob.skipBackupJobCreation(context)
-        || Optional.of(context.getShardedCluster().getSpec())
-        .map(StackGresShardedClusterSpec::getNonProductionOptions)
-        .map(StackGresClusterNonProduction::getDisableClusterResourceRequirements)
-        .orElse(false)) {
+        || context.calculateDisableClusterResourceRequirements()) {
       return resource;
     }
 
@@ -54,12 +49,6 @@ public class ShardedBackupJobContainerProfileDecorator extends AbstractContainer
           Optional.ofNullable(context.getShardedCluster().getSpec()
               .getCoordinator().getPods().getResources())
           .map(StackGresClusterResources::getEnableClusterLimitsRequirements)
-          .orElse(false),
-          Optional.ofNullable(context.getShardedCluster().getSpec().getNonProductionOptions())
-          .map(StackGresClusterNonProduction::getEnableSetClusterCpuRequests)
-          .orElse(false),
-          Optional.ofNullable(context.getShardedCluster().getSpec().getNonProductionOptions())
-          .map(StackGresClusterNonProduction::getEnableSetClusterMemoryRequests)
           .orElse(false));
     }
 

@@ -12,7 +12,6 @@ import static org.mockito.Mockito.when;
 
 import io.stackgres.common.ClusterPath;
 import io.stackgres.common.StackGresVolume;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileHugePages;
 import io.stackgres.common.fixture.Fixtures;
@@ -34,15 +33,12 @@ class HugePagesMountsTest {
   @Mock
   private StackGresClusterContext clusterContext;
 
-  private StackGresCluster cluster;
-
   private StackGresProfile profile;
 
   @BeforeEach
   void setUp() {
     hugePagesMounts = new HugePagesMounts();
     profile = Fixtures.instanceProfile().loadSizeS().get();
-    cluster = Fixtures.cluster().loadDefault().get();
     when(clusterContainerContext.getClusterContext()).thenReturn(clusterContext);
   }
 
@@ -51,7 +47,6 @@ class HugePagesMountsTest {
     profile.getSpec().setHugePages(new StackGresProfileHugePages());
     profile.getSpec().getHugePages().setHugepages2Mi("2Mi");
     profile.getSpec().getHugePages().setHugepages1Gi("1Gi");
-    when(clusterContext.getSource()).thenReturn(cluster);
     when(clusterContext.getProfile()).thenReturn(profile);
 
     var volumeMounts = hugePagesMounts.getVolumeMounts(clusterContainerContext);
@@ -87,7 +82,6 @@ class HugePagesMountsTest {
 
   @Test
   void givenAClusterWithoutAProfileWithHugePages_itShouldNotCreateTheMountsWithHugePages() {
-    when(clusterContext.getSource()).thenReturn(cluster);
     when(clusterContext.getProfile()).thenReturn(profile);
 
     var volumeMounts = hugePagesMounts.getVolumeMounts(clusterContainerContext);

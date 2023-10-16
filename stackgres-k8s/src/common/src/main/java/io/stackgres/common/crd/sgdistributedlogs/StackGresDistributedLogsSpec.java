@@ -16,6 +16,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.crd.sgcluster.StackGresClusterProfile;
+import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
+import io.stackgres.common.validation.ValidEnum;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
@@ -25,6 +28,10 @@ import io.sundr.builder.annotations.Buildable;
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresDistributedLogsSpec {
+
+  @ValidEnum(enumClass = StackGresClusterProfile.class, allowNulls = true,
+      message = "profile must be production, testing or development")
+  private String profile;
 
   @NotNull(message = "Persistent volume must be specified")
   @Valid
@@ -36,7 +43,8 @@ public class StackGresDistributedLogsSpec {
   @Valid
   private StackGresDistributedLogsNonProduction nonProductionOptions;
 
-  private StackGresDistributedLogsResources resources;
+  @Valid
+  private StackGresClusterResources resources;
 
   @Valid
   private StackGresDistributedLogsPodScheduling scheduling;
@@ -53,6 +61,14 @@ public class StackGresDistributedLogsSpec {
 
   @Valid
   private List<StackGresClusterInstalledExtension> toInstallPostgresExtensions;
+
+  public String getProfile() {
+    return profile;
+  }
+
+  public void setProfile(String profile) {
+    this.profile = profile;
+  }
 
   public StackGresDistributedLogsPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -71,11 +87,11 @@ public class StackGresDistributedLogsSpec {
     this.nonProductionOptions = nonProductionOptions;
   }
 
-  public StackGresDistributedLogsResources getResources() {
+  public StackGresClusterResources getResources() {
     return resources;
   }
 
-  public void setResources(StackGresDistributedLogsResources resources) {
+  public void setResources(StackGresClusterResources resources) {
     this.resources = resources;
   }
 
@@ -131,7 +147,8 @@ public class StackGresDistributedLogsSpec {
   @Override
   public int hashCode() {
     return Objects.hash(configurations, metadata, nonProductionOptions, persistentVolume,
-        postgresServices, sgInstanceProfile, scheduling, toInstallPostgresExtensions);
+        postgresServices, profile, resources, scheduling, sgInstanceProfile,
+        toInstallPostgresExtensions);
   }
 
   @Override
@@ -148,8 +165,10 @@ public class StackGresDistributedLogsSpec {
         && Objects.equals(nonProductionOptions, other.nonProductionOptions)
         && Objects.equals(persistentVolume, other.persistentVolume)
         && Objects.equals(postgresServices, other.postgresServices)
-        && Objects.equals(sgInstanceProfile, other.sgInstanceProfile)
+        && Objects.equals(profile, other.profile)
+        && Objects.equals(resources, other.resources)
         && Objects.equals(scheduling, other.scheduling)
+        && Objects.equals(sgInstanceProfile, other.sgInstanceProfile)
         && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);
   }
 

@@ -23,6 +23,8 @@ public class StackGresClusterResources {
 
   private Boolean enableClusterLimitsRequirements;
 
+  private Boolean disableResourcesRequestsSplitFromTotal;
+
   public Boolean getEnableClusterLimitsRequirements() {
     return enableClusterLimitsRequirements;
   }
@@ -31,9 +33,18 @@ public class StackGresClusterResources {
     this.enableClusterLimitsRequirements = enableClusterLimitsRequirements;
   }
 
+  public Boolean getDisableResourcesRequestsSplitFromTotal() {
+    return disableResourcesRequestsSplitFromTotal;
+  }
+
+  public void setDisableResourcesRequestsSplitFromTotal(
+      Boolean disableResourcesRequestsSplitFromTotal) {
+    this.disableResourcesRequestsSplitFromTotal = disableResourcesRequestsSplitFromTotal;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(enableClusterLimitsRequirements);
+    return Objects.hash(disableResourcesRequestsSplitFromTotal, enableClusterLimitsRequirements);
   }
 
   @Override
@@ -45,7 +56,9 @@ public class StackGresClusterResources {
       return false;
     }
     StackGresClusterResources other = (StackGresClusterResources) obj;
-    return Objects.equals(enableClusterLimitsRequirements, other.enableClusterLimitsRequirements);
+    return Objects.equals(
+        disableResourcesRequestsSplitFromTotal, other.disableResourcesRequestsSplitFromTotal)
+        && Objects.equals(enableClusterLimitsRequirements, other.enableClusterLimitsRequirements);
   }
 
   @Override

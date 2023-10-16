@@ -24,7 +24,6 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HTTPGetActionBuilder;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterPath;
@@ -61,7 +60,6 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
 
   private final ResourceFactory<StackGresClusterContext, List<EnvVar>> patroniEnvironmentVariables;
 
-  private final ResourceFactory<StackGresClusterContext, ResourceRequirements> requirementsFactory;
   private final PostgresSocketMount postgresSocket;
   private final PostgresExtensionMounts postgresExtensions;
   private final LocalBinMounts localBinMounts;
@@ -75,7 +73,6 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
   @Inject
   public Patroni(
       ResourceFactory<StackGresClusterContext, List<EnvVar>> patroniEnvironmentVariables,
-      ResourceFactory<StackGresClusterContext, ResourceRequirements> requirementsFactory,
       PostgresSocketMount postgresSocket,
       PostgresExtensionMounts postgresExtensions,
       LocalBinMounts localBinMounts,
@@ -87,7 +84,6 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
       VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer) {
     super();
     this.patroniEnvironmentVariables = patroniEnvironmentVariables;
-    this.requirementsFactory = requirementsFactory;
     this.postgresSocket = postgresSocket;
     this.postgresExtensions = postgresExtensions;
     this.localBinMounts = localBinMounts;
@@ -116,9 +112,6 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
     final StackGresClusterContext clusterContext = context.getClusterContext();
     final StackGresCluster cluster = clusterContext.getSource();
     final String patroniImageName = StackGresUtil.getPatroniImageName(cluster);
-
-    ResourceRequirements podResources = requirementsFactory
-        .createResource(clusterContext);
 
     ImmutableList.Builder<VolumeMount> volumeMounts = ImmutableList.<VolumeMount>builder()
         .addAll(postgresSocket.getVolumeMounts(context))
@@ -207,7 +200,6 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
             .withPeriodSeconds(2)
             .withTimeoutSeconds(1)
             .build())
-        .withResources(podResources)
         .build();
   }
 

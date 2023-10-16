@@ -17,6 +17,8 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ShardedClusterSpec {
 
+  private String profile;
+
   private String type;
 
   private String database;
@@ -42,6 +44,14 @@ public class ShardedClusterSpec {
   private ShardedClusterInitalData initialData;
 
   private ClusterNonProductionOptions nonProductionOptions;
+
+  public String getProfile() {
+    return profile;
+  }
+
+  public void setProfile(String profile) {
+    this.profile = profile;
+  }
 
   public String getType() {
     return type;
