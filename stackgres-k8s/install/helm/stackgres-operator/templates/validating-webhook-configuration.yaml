@@ -200,3 +200,18 @@ webhooks:
         path: '/stackgres/validation/sgshardedbackup'
       caBundle: {{ $cert }}
     admissionReviewVersions: ["v1"]
+  - name: sgshardeddbops.validating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgshardeddbops"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: {{ .Release.Namespace }}
+        name: {{ .Release.Name }}
+        path: '/stackgres/validation/sgshardeddbops'
+      caBundle: {{ $cert }}
+    admissionReviewVersions: ["v1"]

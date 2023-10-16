@@ -72,6 +72,34 @@ spec:
         storageClass: {{ quote .Values.cluster.pods.persistentVolume.storageClass }}
         {{- end }}
         {{- end }}
+      {{- with .Values.cluster.pods.disableConnectionPooling }}
+      disableConnectionPooling: {{ . }}
+      {{- end }}
+      {{- with .Values.cluster.pods.disablePostgresUtil }}
+      disablePostgresUtil: {{ . }}
+      {{- end }}
+      {{- with .Values.cluster.pods.disableMetricsExporter }}
+      disableMetricsExporter: {{ . }}
+      {{- end }}
+      {{- with .Values.cluster.pods.scheduling }}
+      scheduling:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.cluster.pods.managementPolicy }}
+      managementPolicy: {{ . }}
+      {{- end }}
+      {{- with .Values.cluster.pods.customVolumes }}
+      customVolumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.cluster.pods.customContainers }}
+      customContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.cluster.pods.customInitContainers }}
+      customInitContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     {{- with ((.Values.shardedCluster.coordinator).replication) }}
     replication:
       {{- toYaml . | nindent 6 }}
@@ -80,9 +108,9 @@ spec:
     clusters: {{ .Values.shardedCluster.shards.clusters }}
     instancesPerCluster: {{ .Values.shardedCluster.shards.instancesPerCluster }}
     configurations: 
-      sgPostgresConfig: {{ quote .Values.cluster.configurations.sgPostgresConfig }}
-      sgPoolingConfig: {{ quote .Values.cluster.configurations.sgPoolingConfig }}
-    sgInstanceProfile: {{ quote .Values.cluster.sgInstanceProfile }}
+      sgPostgresConfig: {{ quote .Values.shardedCluster.shards.configurations.sgPostgresConfig }}
+      sgPoolingConfig: {{ quote .Values.shardedCluster.shards.configurations.sgPoolingConfig }}
+    sgInstanceProfile: {{ quote .Values.shardedCluster.shards.sgInstanceProfile }}
     {{- with .Values.shardedCluster.shards.managedSql }}
     managedSql:
     {{- with .continueOnSGScriptError }}
@@ -95,14 +123,42 @@ spec:
     {{- end }}
     pods:
       persistentVolume:
-        size: {{ quote .Values.cluster.pods.persistentVolume.size }}
-        {{- if .Values.cluster.pods.persistentVolume.storageClass }}
-        {{- if eq "-" .Values.cluster.pods.persistentVolume.storageClass }}
+        size: {{ quote .Values.shardedCluster.shards.pods.persistentVolume.size }}
+        {{- if .Values.shardedCluster.shards.pods.persistentVolume.storageClass }}
+        {{- if eq "-" .Values.shardedCluster.shards.pods.persistentVolume.storageClass }}
         storageClass: ""
         {{- else }}
-        storageClass: {{ quote .Values.cluster.pods.persistentVolume.storageClass }}
+        storageClass: {{ quote .Values.shardedCluster.shards.pods.persistentVolume.storageClass }}
         {{- end }}
         {{- end }}
+      {{- with .Values.shardedCluster.shards.pods.disableConnectionPooling }}
+      disableConnectionPooling: {{ . }}
+      {{- end }}
+      {{- with .Values.shardedCluster.shards.pods.disablePostgresUtil }}
+      disablePostgresUtil: {{ . }}
+      {{- end }}
+      {{- with .Values.shardedCluster.shards.pods.disableMetricsExporter }}
+      disableMetricsExporter: {{ . }}
+      {{- end }}
+      {{- with .Values.shardedCluster.shards.pods.scheduling }}
+      scheduling:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.shardedCluster.shards.pods.managementPolicy }}
+      managementPolicy: {{ . }}
+      {{- end }}
+      {{- with .Values.shardedCluster.shards.pods.customVolumes }}
+      customVolumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.shardedCluster.shards.pods.customContainers }}
+      customContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.shardedCluster.shards.pods.customInitContainers }}
+      customInitContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     {{- with .Values.shardedCluster.shards.replication }}
     replication:
       {{- toYaml . | nindent 6 }}

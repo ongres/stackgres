@@ -34,8 +34,8 @@ import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder
-@OpJob("securityUpgrade")
-public class DbOpsSecurityUpgradeJob implements JobFactory {
+@DbOpsJob("securityUpgrade")
+public class DbOpsSecurityUpgradeJob implements DbOpsJobFactory {
 
   private final LabelFactoryForDbOps dbOpsLabelFactory;
   private final ResourceFactory<StackGresDbOpsContext, PodSecurityContext> podSecurityFactory;

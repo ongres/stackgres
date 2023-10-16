@@ -76,30 +76,6 @@ class DbOpsMajorVersionUpgradeMutatorTest {
   }
 
   @Test
-  void majorVersionUpgradeWithBackupButWithoutBackupPath_shouldSetIt() {
-    when(clusterFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(cluster));
-
-    review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setBackupPath(null);
-    final StackGresDbOps actualDbOps = mutate(review);
-
-    final StackGresDbOps dbOps = review.getRequest().getObject();
-    final String postgresVersion = dbOps.getSpec()
-        .getMajorVersionUpgrade().getPostgresVersion();
-    final String postgresFlavor = cluster.getSpec()
-        .getPostgres().getFlavor();
-    final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
-        .get(cluster)
-        .getMajorVersion(postgresVersion);
-    assertEquals(
-        BackupStorageUtil.getPath(
-            dbOps.getMetadata().getNamespace(),
-            dbOps.getSpec().getSgCluster(),
-            postgresMajorVersion),
-        actualDbOps.getSpec().getMajorVersionUpgrade().getBackupPath());
-  }
-
-  @Test
   void majorVersionUpgradeWithBackupsButWithoutBackupPath_shouldSetIt() {
     cluster.getSpec().getConfigurations().setSgBackupConfig(null);
     cluster.getSpec().getConfigurations().setBackupPath(null);
@@ -129,6 +105,26 @@ class DbOpsMajorVersionUpgradeMutatorTest {
             dbOps.getMetadata().getNamespace(),
             dbOps.getSpec().getSgCluster(),
             postgresMajorVersion),
+        actualDbOps.getSpec().getMajorVersionUpgrade().getBackupPath());
+  }
+
+  @Test
+  void majorVersionUpgradeWithBackupsAndWithBackupPath_shouldDoNothing() {
+    cluster.getSpec().getConfigurations().setSgBackupConfig(null);
+    cluster.getSpec().getConfigurations().setBackupPath(null);
+    cluster.getSpec().getConfigurations().setBackups(new ArrayList<>());
+    cluster.getSpec().getConfigurations().getBackups()
+        .add(new StackGresClusterBackupConfiguration());
+    cluster.getSpec().getConfigurations().getBackups()
+        .get(0).setSgObjectStorage("test");
+    cluster.getSpec().getConfigurations().getBackups()
+        .get(0).setPath("test");
+
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setBackupPath("test");
+    final StackGresDbOps actualDbOps = mutate(review);
+
+    assertEquals(
+        "test",
         actualDbOps.getSpec().getMajorVersionUpgrade().getBackupPath());
   }
 

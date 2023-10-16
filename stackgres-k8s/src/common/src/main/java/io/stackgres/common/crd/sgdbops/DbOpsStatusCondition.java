@@ -11,14 +11,14 @@ import io.stackgres.common.crd.Condition;
 
 public enum DbOpsStatusCondition {
 
-  DB_OPS_FALSE_RUNNING(Type.RUNNING, Status.FALSE, "OperationNotRunning"),
-  DB_OPS_RUNNING(Type.RUNNING, Status.TRUE, "OperationRunning"),
-  DB_OPS_FAILED(Type.FAILED, Status.TRUE, "OperationFailed"),
-  DB_OPS_TIMED_OUT(Type.FAILED, Status.TRUE, "OperationTimedOut"),
-  DB_OPS_LOCK_LOST(Type.FAILED, Status.TRUE, "OperationLockLost"),
-  DB_OPS_FALSE_FAILED(Type.FAILED, Status.FALSE, "OperationNotFailed"),
-  DB_OPS_COMPLETED(Type.COMPLETED, Status.TRUE, "OperationCompleted"),
-  DB_OPS_FALSE_COMPLETED(Type.COMPLETED, Status.FALSE, "OperationNotCompleted");
+  DBOPS_FALSE_RUNNING(Type.RUNNING, Status.FALSE, "OperationNotRunning"),
+  DBOPS_RUNNING(Type.RUNNING, Status.TRUE, "OperationRunning"),
+  DBOPS_FAILED(Type.FAILED, Status.TRUE, "OperationFailed"),
+  DBOPS_TIMED_OUT(Type.FAILED, Status.TRUE, "OperationTimedOut"),
+  DBOPS_LOCK_LOST(Type.FAILED, Status.TRUE, "OperationLockLost"),
+  DBOPS_FALSE_FAILED(Type.FAILED, Status.FALSE, "OperationNotFailed"),
+  DBOPS_COMPLETED(Type.COMPLETED, Status.TRUE, "OperationCompleted"),
+  DBOPS_FALSE_COMPLETED(Type.COMPLETED, Status.FALSE, "OperationNotCompleted");
 
   private final String type;
   private final String status;

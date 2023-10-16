@@ -35,6 +35,8 @@ Options:
   --native-image-tag      If set use the native image tag for the operator images
   --image-tag <tag>       Specify the JVM image tag to use for the operator
                            images
+  --use-latest-image-tag  If default or specified image tag is not found, retrieve
+                           the latest one used and set it as the image tag 
   --reuse-operator        Reuse an already installed operator
   --skip-spec-uninstall   Skip uninstallation after spec to allow post inspections
   --skip-operator-install  Skip installation of the operator
@@ -130,6 +132,7 @@ EOF
           --reset-env
           --native-image-tag
           --image-tag
+          --use-latest-image-tag
           --reuse-operator
           --skip-spec-uninstall
           --skip-operator-install
@@ -241,6 +244,20 @@ cli() {
         IMAGE_TAG="$VALUE"
       else
         IMAGE_TAG="$VALUE-jvm"
+      fi
+      ;;
+      ('--use-latest-image-tag')
+      cli_set_parameter_boolean "$@"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
+      if "$VALUE"
+      then
+        local OPERATOR_IMAGE_NAME
+        OPERATOR_IMAGE_NAME="$(sh stackgres-k8s/e2e/e2e eval 'printf %s "$OPERATOR_IMAGE_NAME"')"
+        if ! sh stackgres-k8s/e2e/e2e has_image_k8s "$OPERATOR_IMAGE_NAME"
+        then
+          OPERATOR_IMAGE_NAME="$(sh stackgres-k8s/e2e/e2e get_latest_image_k8s "$OPERATOR_IMAGE_NAME")"
+          IMAGE_TAG="${OPERATOR_IMAGE_NAME##*:}"
+        fi
       fi
       ;;
       ('--reuse-operator')

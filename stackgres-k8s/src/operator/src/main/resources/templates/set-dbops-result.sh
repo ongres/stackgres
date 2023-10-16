@@ -1,5 +1,8 @@
 #!/bin/sh
 
+RESOURCE_CRD_NAME="$DBOPS_CRD_NAME"
+RESOURCE_NAME="$DBOPS_NAME"
+
 . "$LOCAL_BIN_SHELL_UTILS_PATH"
 
 eval_in_place() {
@@ -11,14 +14,14 @@ EVAL_IN_PLACE_EOF
 
 set_completed() {
   create_event "DbOpCompleted" "Normal" "Database operation $OP_NAME completed"
-  kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=merge \
+  kubectl patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=merge \
     -p "$(cat << EOF
 {
   "status": {
     "conditions":[
-      $(eval_in_place "$CONDITION_DB_OPS_FALSE_RUNNING"),
-      $(eval_in_place "$CONDITION_DB_OPS_COMPLETED"),
-      $(eval_in_place "$CONDITION_DB_OPS_FALSE_FAILED")
+      $(eval_in_place "$CONDITION_DBOPS_FALSE_RUNNING"),
+      $(eval_in_place "$CONDITION_DBOPS_COMPLETED"),
+      $(eval_in_place "$CONDITION_DBOPS_FALSE_FAILED")
     ]
   }
 }
@@ -28,14 +31,14 @@ EOF
 
 set_timed_out() {
   create_event "DbOpTimeOut" "Warning" "Database operation $OP_NAME timed out"
-  kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=merge \
+  kubectl patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=merge \
     -p "$(cat << EOF
 {
   "status": {
     "conditions":[
-      $(eval_in_place "$CONDITION_DB_OPS_FALSE_RUNNING"),
-      $(eval_in_place "$CONDITION_DB_OPS_FALSE_COMPLETED"),
-      $(eval_in_place "$CONDITION_DB_OPS_TIMED_OUT")
+      $(eval_in_place "$CONDITION_DBOPS_FALSE_RUNNING"),
+      $(eval_in_place "$CONDITION_DBOPS_FALSE_COMPLETED"),
+      $(eval_in_place "$CONDITION_DBOPS_TIMED_OUT")
     ]
   }
 }
@@ -45,14 +48,14 @@ EOF
 
 set_lock_lost() {
   create_event "DbOpTimeOut" "Warning" "Database operation $OP_NAME lost the lock"
-  kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=merge \
+  kubectl patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=merge \
     -p "$(cat << EOF
 {
   "status": {
     "conditions":[
-      $(eval_in_place "$CONDITION_DB_OPS_FALSE_RUNNING"),
-      $(eval_in_place "$CONDITION_DB_OPS_FALSE_COMPLETED"),
-      $(eval_in_place "$CONDITION_DB_OPS_LOCK_LOST")
+      $(eval_in_place "$CONDITION_DBOPS_FALSE_RUNNING"),
+      $(eval_in_place "$CONDITION_DBOPS_FALSE_COMPLETED"),
+      $(eval_in_place "$CONDITION_DBOPS_LOCK_LOST")
     ]
   }
 }
@@ -64,14 +67,14 @@ set_failed() {
   if [ -z "$FAILURE" ]
   then
     create_event "DbOpFailed" "Warning" "Database operation $OP_NAME failed"
-    kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=merge \
+    kubectl patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=merge \
       -p "$(cat << EOF
 {
   "status": {
     "conditions":[
-      $(eval_in_place "$CONDITION_DB_OPS_FALSE_RUNNING"),
-      $(eval_in_place "$CONDITION_DB_OPS_FALSE_COMPLETED"),
-      $(eval_in_place "$CONDITION_DB_OPS_FAILED")
+      $(eval_in_place "$CONDITION_DBOPS_FALSE_RUNNING"),
+      $(eval_in_place "$CONDITION_DBOPS_FALSE_COMPLETED"),
+      $(eval_in_place "$CONDITION_DBOPS_FAILED")
     ]
   }
 }
@@ -79,14 +82,14 @@ EOF
       )"
   else
     create_event "DbOpFailed" "Warning" "Database operation $OP_NAME failed: $FAILURE"
-    kubectl patch "$DB_OPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DB_OPS_NAME" --type=merge \
+    kubectl patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=merge \
       -p "$(cat << EOF
 {
   "status": {
     "conditions":[
-      $(eval_in_place "$CONDITION_DB_OPS_FALSE_RUNNING"),
-      $(eval_in_place "$CONDITION_DB_OPS_FALSE_COMPLETED"),
-      $(eval_in_place "$CONDITION_DB_OPS_FAILED")
+      $(eval_in_place "$CONDITION_DBOPS_FALSE_RUNNING"),
+      $(eval_in_place "$CONDITION_DBOPS_FALSE_COMPLETED"),
+      $(eval_in_place "$CONDITION_DBOPS_FAILED")
     ],
     "$OP_NAME": {
       "failure": $FAILURE

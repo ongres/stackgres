@@ -49,6 +49,7 @@ public class DefaultOperatorBootstrap implements OperatorBootstrap {
 
   @Override
   public void syncBootstrap() {
+    crdInstaller.checkUpgrade();
     if (OperatorProperty.INSTALL_CONFIG.getBoolean()) {
       configInstaller.installOrUpdateConfig();
     }

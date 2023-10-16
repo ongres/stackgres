@@ -55,6 +55,11 @@ public class DbOpsReviewFixture extends VersionedFixture<DbOpsReview> {
     return this;
   }
 
+  public DbOpsReviewFixture loadDelete() {
+    fixture = readFromJson(STACKGRES_DB_OPS_ADMISSION_REVIEW_DELETE_JSON);
+    return this;
+  }
+
   public DbOpsReviewBuilder getBuilder() {
     return new DbOpsReviewBuilder(fixture);
   }

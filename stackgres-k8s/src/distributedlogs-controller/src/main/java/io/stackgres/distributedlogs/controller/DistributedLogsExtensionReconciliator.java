@@ -53,7 +53,7 @@ public class DistributedLogsExtensionReconciliator
   protected void onUninstallException(KubernetesClient client, StackGresCluster cluster,
       String extension, String podName, Exception ex) {
     String message = MessageFormatter.arrayFormat(
-        "StackGres Cluster {}.{}: uninstall of extension {} failed on pod {}",
+        "SGDistributedLogs {}.{}: uninstall of extension {} failed on pod {}",
         new String[] {
             cluster.getMetadata().getNamespace(),
             cluster.getMetadata().getName(),
@@ -74,7 +74,7 @@ public class DistributedLogsExtensionReconciliator
   protected void onInstallException(KubernetesClient client, StackGresCluster cluster,
       String extension, String podName, Exception ex) {
     String message = MessageFormatter.arrayFormat(
-        "StackGres Cluster {}.{}: install of extension {} failed on pod {}",
+        "SGDistributedLogs {}.{}: install of extension {} failed on pod {}",
         new String[] {
             cluster.getMetadata().getNamespace(),
             cluster.getMetadata().getName(),

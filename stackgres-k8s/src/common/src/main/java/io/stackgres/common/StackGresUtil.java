@@ -458,6 +458,18 @@ public interface StackGresUtil {
             "12"));
   }
 
+  static String getPatroniImageName(StackGresShardedCluster cluster) {
+    return getPatroniImageName(cluster, cluster.getSpec().getPostgres().getVersion());
+  }
+
+  static String getPatroniImageName(StackGresShardedCluster cluster, String postgresVersion) {
+    Component postgresComponentFlavor = getPostgresFlavorComponent(cluster).get(cluster);
+    return StackGresComponent.PATRONI.get(cluster).getImageName(
+        StackGresComponent.LATEST,
+        Map.of(postgresComponentFlavor,
+            postgresVersion));
+  }
+
   static @NotNull StackGresComponent getPostgresFlavorComponent(StackGresCluster cluster) {
     return getPostgresFlavorComponent(cluster.getSpec().getPostgres().getFlavor());
   }

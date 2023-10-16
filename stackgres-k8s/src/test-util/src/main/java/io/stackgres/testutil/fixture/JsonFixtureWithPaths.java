@@ -291,6 +291,9 @@ public interface JsonFixtureWithPaths {
   String STACKGRES_CONFIG_DEFAULT_JSON =
       "stackgres/config/default.json";
 
+  String STACKGRES_DB_OPS_ADMISSION_REVIEW_DELETE_JSON =
+      "stackgres/db_ops/admission_review/delete.json";
+
   String STACKGRES_DB_OPS_ADMISSION_REVIEW_MAJOR_VERSION_UPGRADE_CREATE_JSON =
       "stackgres/db_ops/admission_review/major_version_upgrade_create.json";
 
@@ -311,6 +314,10 @@ public interface JsonFixtureWithPaths {
 
   String STACKGRES_DB_OPS_ADMISSION_REVIEW_VACUUM_CREATE_JSON =
       "stackgres/db_ops/admission_review/vacuum_create.json";
+
+  String STACKGRES_DB_OPS_DTO_JSON = "stackgres/db_ops/dto.json";
+
+  String STACKGRES_DB_OPS_LIST_JSON = "stackgres/db_ops/list.json";
 
   String STACKGRES_DB_OPS_BENCHMARK_JSON = "stackgres/db_ops/benchmark.json";
 
@@ -528,6 +535,43 @@ public interface JsonFixtureWithPaths {
   String STACKGRES_SHARDED_BACKUP_DTO_JSON = "stackgres/sharded_backup/dto.json";
 
   String STACKGRES_SHARDED_BACKUP_LIST_JSON = "stackgres/sharded_backup/list.json";
+
+  String STACKGRES_SHARDED_DB_OPS_ADMISSION_REVIEW_DELETE_JSON =
+      "stackgres/sharded_db_ops/admission_review/delete.json";
+
+  String STACKGRES_SHARDED_DB_OPS_ADMISSION_REVIEW_MAJOR_VERSION_UPGRADE_CREATE_JSON =
+      "stackgres/sharded_db_ops/admission_review/major_version_upgrade_create.json";
+
+  String STACKGRES_SHARDED_DB_OPS_ADMISSION_REVIEW_MINOR_VERSION_UPGRADE_CREATE_JSON =
+      "stackgres/sharded_db_ops/admission_review/minor_version_upgrade_create.json";
+
+  String STACKGRES_SHARDED_DB_OPS_ADMISSION_REVIEW_RESHARDING_CREATE_JSON =
+      "stackgres/sharded_db_ops/admission_review/resharding_create.json";
+
+  String STACKGRES_SHARDED_DB_OPS_ADMISSION_REVIEW_RESTART_CREATE_JSON =
+      "stackgres/sharded_db_ops/admission_review/restart_create.json";
+
+  String STACKGRES_SHARDED_DB_OPS_ADMISSION_REVIEW_SECURITY_UPGRADE_CREATE_JSON =
+      "stackgres/sharded_db_ops/admission_review/security_upgrade_create.json";
+
+  String STACKGRES_SHARDED_DB_OPS_DTO_JSON = "stackgres/sharded_db_ops/dto.json";
+
+  String STACKGRES_SHARDED_DB_OPS_LIST_JSON = "stackgres/sharded_db_ops/list.json";
+
+  String STACKGRES_SHARDED_DB_OPS_MAJOR_VERSION_UPGRADE_JSON =
+      "stackgres/sharded_db_ops/major_version_upgrade.json";
+
+  String STACKGRES_SHARDED_DB_OPS_MINOR_VERSION_UPGRADE_JSON =
+      "stackgres/sharded_db_ops/minor_version_upgrade.json";
+
+  String STACKGRES_SHARDED_DB_OPS_RESHARDING_JSON = "stackgres/sharded_db_ops/resharding.json";
+
+  String STACKGRES_SHARDED_DB_OPS_RESTART_JSON = "stackgres/sharded_db_ops/restart.json";
+
+  String STACKGRES_SHARDED_DB_OPS_SCHEDULING_JSON = "stackgres/sharded_db_ops/scheduling.json";
+
+  String STACKGRES_SHARDED_DB_OPS_SECURITY_UPGRADE_JSON =
+      "stackgres/sharded_db_ops/security_upgrade.json";
 
   String STATEFULSET_0_9_5_JSON = "statefulset/0.9.5.json";
 

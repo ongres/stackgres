@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 import com.ongres.process.FluentProcess;
 
-public interface PatroniUtil {
+public interface PatroniCommandUtil {
 
   Pattern PATRONI_COMMAND_PATTERN =
       Pattern.compile("^[^ ]+ /usr/bin/patroni .*$");

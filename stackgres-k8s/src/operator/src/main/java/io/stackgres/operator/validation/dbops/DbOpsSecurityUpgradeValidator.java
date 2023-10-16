@@ -46,7 +46,7 @@ public class DbOpsSecurityUpgradeValidator implements DbOpsValidator {
           if (cluster.map(c -> getPostgresFlavorComponent(c).get(c).streamOrderedVersions()
               .noneMatch(c.getSpec().getPostgres().getVersion()::equals))
               .orElse(false)) {
-            fail("Major version upgrade must be performed on StackGresCluster before performing"
+            fail("Major version upgrade must be performed on SGCluster before performing"
                 + " the upgrade since Postgres version " + cluster.get().getSpec().getPostgres()
                 .getVersion() + " will not be supported after the upgrade is completed");
           }

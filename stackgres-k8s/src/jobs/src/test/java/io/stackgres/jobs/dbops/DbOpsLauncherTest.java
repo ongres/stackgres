@@ -240,11 +240,11 @@ class DbOpsLauncherTest {
     assertNotNull(conditions);
     assertEquals(3, conditions.size());
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_RUNNING::isCondition));
+        .anyMatch(DbOpsStatusCondition.DBOPS_RUNNING::isCondition));
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED::isCondition));
+        .anyMatch(DbOpsStatusCondition.DBOPS_FALSE_COMPLETED::isCondition));
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_FAILED::isCondition));
+        .anyMatch(DbOpsStatusCondition.DBOPS_FALSE_FAILED::isCondition));
   }
 
   @Test
@@ -262,11 +262,11 @@ class DbOpsLauncherTest {
     assertNotNull(conditions);
     assertEquals(3, conditions.size());
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_RUNNING::isCondition));
+        .anyMatch(DbOpsStatusCondition.DBOPS_FALSE_RUNNING::isCondition));
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_COMPLETED::isCondition));
+        .anyMatch(DbOpsStatusCondition.DBOPS_COMPLETED::isCondition));
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_FAILED::isCondition));
+        .anyMatch(DbOpsStatusCondition.DBOPS_FALSE_FAILED::isCondition));
   }
 
   @Test
@@ -284,11 +284,11 @@ class DbOpsLauncherTest {
     assertNotNull(conditions);
     assertEquals(3, conditions.size());
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_RUNNING::isCondition));
+        .anyMatch(DbOpsStatusCondition.DBOPS_FALSE_RUNNING::isCondition));
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED::isCondition));
+        .anyMatch(DbOpsStatusCondition.DBOPS_FALSE_COMPLETED::isCondition));
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_FAILED::isCondition));
+        .anyMatch(DbOpsStatusCondition.DBOPS_FAILED::isCondition));
   }
 
   @Test
@@ -303,9 +303,9 @@ class DbOpsLauncherTest {
     dbOps.getStatus().setOpStarted(previousOpStarted.toString());
     dbOps.getStatus().setOpRetries(0);
     dbOps.getStatus().setConditions(Seq.of(
-        DbOpsStatusCondition.DB_OPS_FALSE_RUNNING,
-        DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED,
-        DbOpsStatusCondition.DB_OPS_FAILED)
+        DbOpsStatusCondition.DBOPS_FALSE_RUNNING,
+        DbOpsStatusCondition.DBOPS_FALSE_COMPLETED,
+        DbOpsStatusCondition.DBOPS_FAILED)
         .map(DbOpsStatusCondition::getCondition)
         .peek(condition -> condition.setLastTransitionTime(previousOpStarted.toString()))
         .toList());
@@ -322,11 +322,11 @@ class DbOpsLauncherTest {
     assertNotNull(conditions);
     assertEquals(3, conditions.size());
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_RUNNING::isCondition));
+        .anyMatch(DbOpsStatusCondition.DBOPS_RUNNING::isCondition));
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_COMPLETED::isCondition));
+        .anyMatch(DbOpsStatusCondition.DBOPS_FALSE_COMPLETED::isCondition));
     assertTrue(() -> conditions.stream()
-        .anyMatch(DbOpsStatusCondition.DB_OPS_FALSE_FAILED::isCondition));
+        .anyMatch(DbOpsStatusCondition.DBOPS_FALSE_FAILED::isCondition));
   }
 
 }

@@ -95,7 +95,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
         .withArgs(
             """
             echo 'Wait for postgres to be up, running and initialized'
-            until curl -s localhost:8008/read-only --fail > /dev/null; do sleep 1; done
+            until curl -s localhost:8008/readiness --fail > /dev/null; do sleep 1; done
             mkdir -p /tmp/fluentd
             chmod 700 /tmp/fluentd
             export TMPDIR=/tmp/fluentd

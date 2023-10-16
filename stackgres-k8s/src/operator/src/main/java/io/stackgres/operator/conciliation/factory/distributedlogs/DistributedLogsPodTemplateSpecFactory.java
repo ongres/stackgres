@@ -29,6 +29,10 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
+import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloper;
+import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperContainerPatches;
+import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperPatches;
+import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPodScheduling;
@@ -44,6 +48,7 @@ import io.stackgres.operator.conciliation.factory.PodTemplateResult;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.distributedlogs.patroni.PatroniRole;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple2;
 
 @Singleton
 public class DistributedLogsPodTemplateSpecFactory
@@ -95,6 +100,18 @@ public class DistributedLogsPodTemplateSpecFactory
     final List<String> claimedVolumes = Stream.concat(containers.stream(), initContainers.stream())
         .flatMap(container -> container.getVolumeMounts().stream())
         .map(VolumeMount::getName)
+        .filter(volumeName -> Seq.seq(
+            Optional.of(context.getDistributedLogsContext().getConfig().getSpec())
+            .map(StackGresConfigSpec::getDeveloper)
+            .map(StackGresConfigDeveloper::getPatches)
+            .map(StackGresConfigDeveloperPatches::getDistributedlogsController)
+            .map(StackGresConfigDeveloperContainerPatches::getVolumes)
+            .stream()
+            .flatMap(List::stream)
+            .map(Volume.class::cast))
+            .grouped(volume -> volume.getName())
+            .map(Tuple2::v1)
+            .noneMatch(volumeName::equals))
         .distinct()
         .toList();
 
@@ -127,6 +144,18 @@ public class DistributedLogsPodTemplateSpecFactory
         .withServiceAccountName(PatroniRole.roleName(context.getDistributedLogsContext()))
         .withSecurityContext(podSecContext.createResource(context.getDistributedLogsContext()))
         .withVolumes(volumes)
+        .addAllToVolumes(Seq.seq(
+            Optional.of(context.getDistributedLogsContext().getConfig().getSpec())
+            .map(StackGresConfigSpec::getDeveloper)
+            .map(StackGresConfigDeveloper::getPatches)
+            .map(StackGresConfigDeveloperPatches::getDistributedlogsController)
+            .map(StackGresConfigDeveloperContainerPatches::getVolumes)
+            .stream()
+            .flatMap(List::stream)
+            .map(Volume.class::cast))
+            .grouped(volume -> volume.getName())
+            .flatMap(t -> t.v2.limit(1))
+            .toList())
         .withContainers(containers)
         .withInitContainers(initContainers)
         .withTerminationGracePeriodSeconds(60L)

@@ -720,6 +720,10 @@ before_operator_install_or_upgrade() {
 after_operator_install_or_upgrade() {
   wait_services_available "$OPERATOR_NAMESPACE" 1 '^stackgres-operator$'
   wait_services_available "$OPERATOR_NAMESPACE" 1 '^stackgres-restapi$'
+  if [ "$EXTENSIONS_CACHE_ENABLED" = true ]
+  then
+    wait_services_available "$OPERATOR_NAMESPACE" 1 '^stackgres-operator-extensions-cache$'
+  fi
   set_max_length
   update_ui_clear_password
 }
@@ -1495,6 +1499,10 @@ get_sgshardedcluster_name() {
 
 get_sgshardedbackup_name() {
   get_cr_name "$1" sgshardedbackups.stackgres.io
+}
+
+get_sgshardeddbops_name() {
+  get_cr_name "$1" sgshardeddbops.stackgres.io
 }
 
 get_cr_name() {

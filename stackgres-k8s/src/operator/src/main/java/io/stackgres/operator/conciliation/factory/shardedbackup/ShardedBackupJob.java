@@ -32,10 +32,10 @@ import io.fabric8.kubernetes.api.model.TolerationBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.stackgres.common.ClusterPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.ShardedClusterPath;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
@@ -425,7 +425,7 @@ public class ShardedBackupJob
                     .build())
                 .build())
             .withCommand("/bin/bash", "-e" + (LOGGER.isTraceEnabled() ? "x" : ""),
-                ClusterPath.LOCAL_BIN_CREATE_SHARDED_BACKUP_SH_PATH.path())
+                ShardedClusterPath.LOCAL_BIN_CREATE_SHARDED_BACKUP_SH_PATH.path())
             .withVolumeMounts(backupScriptTemplatesVolumeMounts.getVolumeMounts(context))
             .build())
         .withVolumes(backupTemplatesVolumeFactory.buildVolumes(context)

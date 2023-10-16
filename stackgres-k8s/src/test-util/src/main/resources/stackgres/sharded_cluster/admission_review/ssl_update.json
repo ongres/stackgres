@@ -50,7 +50,7 @@
         "type": "citus",
         "database": "citus",
         "postgres": {
-          "version": "13.4",
+          "version": "13.5",
           "flavor": "vanilla",
           "ssl": {
             "enabled": true,
@@ -132,7 +132,7 @@
         "type": "citus",
         "database": "citus",
         "postgres": {
-          "version": "13.4",
+          "version": "13.5",
           "flavor": "vanilla",
           "ssl": {
             "enabled": true,

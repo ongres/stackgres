@@ -32,22 +32,17 @@ class BackupValidationResourceTest extends ValidationResourceTest<BackupReview> 
 
   @Test
   void givenAnValidAdmissionReview_itShouldReturnASuccessfulResponse() throws ValidationFailed {
-
     super.givenAnValidAdmissionReview_itShouldReturnASuccessfulResponse();
-
   }
 
   @Test
   void givenAnInvalidAdmissionReview_itShouldReturnAFailedResponse() throws ValidationFailed {
-
     super.givenAnInvalidAdmissionReview_itShouldReturnAFailedResponse();
-
   }
 
   @Test
   void givenAnDeletionReview_itShouldNotFail() throws ValidationFailed {
     super.givenAnDeletionReview_itShouldNotFail();
-
   }
 
 }

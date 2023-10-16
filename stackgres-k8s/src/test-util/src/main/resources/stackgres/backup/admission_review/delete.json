@@ -9,7 +9,7 @@
     },
     "resource": {
       "group": "stackgres.io",
-      "resource": "sgbackupconfigs",
+      "resource": "sgbackups",
       "version": "v1"
     },
     "subResource": null,

@@ -233,7 +233,7 @@ public class FluentBit implements
         + "    Match        " + FluentdUtil.PATRONI_LOG_TYPE + "\n"
         + "    Rule         $message ^.*$ "
         + tagName(cluster, FluentdUtil.PATRONI_LOG_TYPE)
-        + "." + clusterNamespace + ".${HOSTNAME} false\n"
+        + "." + clusterNamespace + ".${HOSTNAME} true\n"
         + "    Emitter_Name patroni_re_emitted"
         + "\n"
         + "[FILTER]\n"
@@ -253,7 +253,11 @@ public class FluentBit implements
         + "\n"
         + "[OUTPUT]\n"
         + "    Name              stdout\n"
-        + "    Match             " + tagName(cluster, "*") + "\n"
+        + "    Match             " + FluentdUtil.PATRONI_LOG_TYPE + "\n"
+        + "\n"
+        + "[OUTPUT]\n"
+        + "    Name              stdout\n"
+        + "    Match             " + FluentdUtil.POSTGRES_LOG_TYPE + "\n"
         + "\n";
     Map<String, String> data = Map.of(
         "parsers.conf", parsersConfigFile,

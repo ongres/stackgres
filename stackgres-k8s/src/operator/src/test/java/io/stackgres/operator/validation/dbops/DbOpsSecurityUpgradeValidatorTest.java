@@ -80,7 +80,7 @@ class DbOpsSecurityUpgradeValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Major version upgrade must be performed on StackGresCluster before performing"
+    assertEquals("Major version upgrade must be performed on SGCluster before performing"
         + " the upgrade since Postgres version 11.11 will not be"
         + " supported after the upgrade is completed", resultMessage);
   }

@@ -34,7 +34,7 @@ import org.jooq.lambda.Seq;
 
 @Singleton
 @OperatorVersionBinder
-@OpJob("repack")
+@DbOpsJob("repack")
 public class DbOpsRepackJob extends AbstractDbOpsJob {
 
   @Inject

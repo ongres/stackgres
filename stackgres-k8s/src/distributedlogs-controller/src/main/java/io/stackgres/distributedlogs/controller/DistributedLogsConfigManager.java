@@ -10,48 +10,35 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
 
 import javax.enterprise.context.ApplicationScoped;
 
 import com.ongres.process.FluentProcess;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.stackgres.common.ConfigFilesUtil;
 import io.stackgres.common.StackGresUtil;
-import org.jooq.lambda.Seq;
-import org.jooq.lambda.Unchecked;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME",
     justification = "This is not a bug if working with containers")
 public class DistributedLogsConfigManager {
 
-  private static final Path FLUENTD_CONF_FROM_CONFIGMAP_PATH =
-      Paths.get("/etc/fluentd/fluentd.conf");
-  private static final Path FLUENTD_CONF_PATH = Paths.get("/fluentd/fluentd.conf");
-  private static final Path FLUENTD_CONF_MD5_PATH = Paths.get("/fluentd/fluentd.conf.md5");
+  private static final Logger LOGGER = LoggerFactory.getLogger(
+      DistributedLogsConfigManager.class);
 
-  public String getFluentdConfigHash() {
-    return StackGresUtil.getMd5Sum(FLUENTD_CONF_FROM_CONFIGMAP_PATH);
-  }
+  private static final Path LAST_FLUENTD_CONF_PATH = Paths.get("/fluentd/last-fluentd.conf");
+  public static final Path FLUENTD_CONF_PATH = Paths.get("/etc/fluentd/fluentd.conf");
 
   public void reloadFluentdConfiguration() throws IOException {
-    if (Files.exists(FLUENTD_CONF_MD5_PATH)
-        && Files.readString(FLUENTD_CONF_MD5_PATH).equals(getFluentdConfigHash())) {
+    if (!ConfigFilesUtil.configChanged(
+        FLUENTD_CONF_PATH, LAST_FLUENTD_CONF_PATH)) {
       return;
     }
-    boolean needsRestart = Files.exists(FLUENTD_CONF_PATH)
-        && !Seq.seq(Files.readAllLines(FLUENTD_CONF_FROM_CONFIGMAP_PATH))
-        .filter(configMapLine -> configMapLine.matches("^\\s*workers\\s+[0-9]+$"))
-        .zipWithIndex()
-        .allMatch(Unchecked.predicate(
-            configMapLine -> Seq.seq(Files.readAllLines(FLUENTD_CONF_PATH))
-            .filter(line -> line.matches("^\\s*workers\\s+[0-9]+$"))
-            .zipWithIndex()
-            .anyMatch(line -> line.equals(configMapLine))));
-    Files.copy(
-        FLUENTD_CONF_FROM_CONFIGMAP_PATH,
-        FLUENTD_CONF_PATH,
-        StandardCopyOption.REPLACE_EXISTING);
+    boolean needsRestart = ConfigFilesUtil.configChanged(
+        FLUENTD_CONF_PATH, LAST_FLUENTD_CONF_PATH,
+        line -> line.matches("^\\s*workers\\s+[0-9]+$"));
     String fluentdPid = ProcessHandle.allProcesses()
         .filter(process -> process.info().commandLine()
             .map(command -> command.startsWith("/usr/local/bin/ruby /usr/local/bin/fluentd "))
@@ -61,14 +48,20 @@ public class DistributedLogsConfigManager {
         .findAny()
         .orElseThrow(() -> new IllegalStateException("Fluentd process not found"));
     if (needsRestart) {
+      LOGGER.info("Reloading fluentd configuration (with restart)");
       FluentProcess.start("sh", "-c", "kill -s INT " + fluentdPid).join();
     } else {
+      LOGGER.info("Reloading fluentd configuration");
       FluentProcess.start("sh", "-c", "kill -s USR2 " + fluentdPid).join();
     }
-    Files.writeString(FLUENTD_CONF_MD5_PATH, getFluentdConfigHash(),
-        StandardOpenOption.CREATE,
-        StandardOpenOption.WRITE,
-        StandardOpenOption.TRUNCATE_EXISTING);
+    Files.copy(
+        FLUENTD_CONF_PATH,
+        LAST_FLUENTD_CONF_PATH,
+        StandardCopyOption.REPLACE_EXISTING);
+  }
+
+  public String getFluentdConfigHash() {
+    return StackGresUtil.getMd5Sum(FLUENTD_CONF_PATH);
   }
 
 }

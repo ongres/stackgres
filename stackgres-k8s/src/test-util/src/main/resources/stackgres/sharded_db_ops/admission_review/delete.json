@@ -1,0 +1,35 @@
+{
+  "kind": "AdmissionReview",
+  "request": {
+    "uid": "afbc4e6f-f66f-11e9-8982-0242ac110002",
+    "kind": {
+      "kind": "SGShardedDbOps",
+      "group": "stackgres.io",
+      "version": "v1"
+    },
+    "resource": {
+      "group": "stackgres.io",
+      "resource": "sgshardeddbops",
+      "version": "v1"
+    },
+    "subResource": null,
+    "requestKind": null,
+    "requestResource": null,
+    "requestSubResource": null,
+    "name": "backup-with-default-storage",
+    "namespace": "backup-with-default-storage",
+    "operation": "DELETE",
+    "userInfo": {
+      "groups": [
+        "system:masters",
+        "system:authenticated"
+      ],
+      "username": "kubernetes-admin"
+    },
+    "object": null,
+    "oldObject": null,
+    "options": null,
+    "dryRun": false
+  },
+  "apiVersion": "admission.k8s.io/v1"
+}
