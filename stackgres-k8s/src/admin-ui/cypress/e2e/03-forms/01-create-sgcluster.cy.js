@@ -369,9 +369,6 @@ describe('Create SGCluster', () => {
             .click()
 
         // Test User-Supplied Pods Sidecars
-        cy.get('form#createCluster li[data-step="pods"]')
-            .click()
-
         // Test Custom volumes
         cy.get('input[data-field="spec.pods.customVolumes[0].name"]')
             .type('vol1')
@@ -1364,7 +1361,7 @@ describe('Create SGCluster', () => {
             .should('be.disabled')
 
         // Test User-Supplied Pods Sidecars
-        cy.get('form#createCluster li[data-step="pods"]')
+        cy.get('form#createCluster li[data-step="sidecars"]')
             .click()
 
         // Test Custom volumes
