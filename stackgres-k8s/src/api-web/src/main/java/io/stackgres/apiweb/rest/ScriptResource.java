@@ -11,6 +11,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import javax.annotation.Nullable;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
@@ -96,16 +97,19 @@ public class ScriptResource
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ScriptDto.class)) })
       })
   @Override
-  public void create(ScriptDto resource) {
+  public ScriptDto create(ScriptDto resource, @Nullable Boolean dryRun) {
     List<Secret> secretsToCreate = getSecretsToCreate(resource);
     List<ConfigMap> configMapsToCreate = getConfigMapsToCreate(resource);
 
     secretsToCreate.forEach(secretWriter::create);
     configMapsToCreate.forEach(configMapWriter::create);
-    super.create(resource);
+    return super.create(resource, dryRun);
   }
 
   @Operation(
@@ -113,22 +117,27 @@ public class ScriptResource
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  public void delete(ScriptDto resource) {
-    super.delete(resource);
+  public void delete(ScriptDto resource, @Nullable Boolean dryRun) {
+    super.delete(resource, dryRun);
   }
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ScriptDto.class)) })
       })
   @Override
-  public void update(ScriptDto resource) {
+  public ScriptDto update(ScriptDto resource, @Nullable Boolean dryRun) {
     List<Secret> secretsToCreate = getSecretsToCreate(resource);
     List<ConfigMap> configMapsToCreate = getConfigMapsToCreate(resource);
 
-    secretsToCreate.forEach(secretWriter::create);
-    configMapsToCreate.forEach(configMapWriter::create);
-    super.update(resource);
+    if (!Optional.ofNullable(dryRun).orElse(false)) {
+      secretsToCreate.forEach(secretWriter::create);
+      configMapsToCreate.forEach(configMapWriter::create);
+    }
+    return super.update(resource, dryRun);
   }
 
   ScriptDto setConfigMaps(ScriptDto resource) {

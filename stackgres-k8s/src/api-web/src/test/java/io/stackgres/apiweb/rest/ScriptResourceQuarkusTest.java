@@ -9,6 +9,9 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.when;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -92,13 +95,15 @@ class ScriptResourceQuarkusTest implements AuthenticatedResourceTest {
     final Metadata metadata = script.getMetadata();
     metadata.setNamespace("test");
 
+    when(scriptScheduler.create(any(), anyBoolean())).thenReturn(this.script);
+
     given()
         .header(AUTHENTICATION_HEADER)
         .body(script)
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
         .post("/stackgres/sgscripts")
-        .then().statusCode(204);
+        .then().statusCode(200);
   }
 
   @Test
@@ -138,13 +143,15 @@ class ScriptResourceQuarkusTest implements AuthenticatedResourceTest {
     final Metadata metadata = script.getMetadata();
     metadata.setNamespace("test");
 
+    when(scriptScheduler.create(any(), anyBoolean())).thenReturn(this.script);
+
     given()
         .header(AUTHENTICATION_HEADER)
         .body(script)
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
         .post("/stackgres/sgscripts")
-        .then().statusCode(204);
+        .then().statusCode(200);
 
     ConfigMap configMap = mockServer.getClient().configMaps().inNamespace("test")
         .withName(entry.getScriptFrom().getConfigMapKeyRef().getName())
@@ -165,13 +172,15 @@ class ScriptResourceQuarkusTest implements AuthenticatedResourceTest {
     final Metadata metadata = script.getMetadata();
     metadata.setNamespace("test");
 
+    when(scriptScheduler.create(any(), anyBoolean())).thenReturn(this.script);
+
     given()
         .header(AUTHENTICATION_HEADER)
         .body(script)
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
         .post("/stackgres/sgscripts")
-        .then().statusCode(204);
+        .then().statusCode(200);
 
     final ScriptFrom scriptFrom = entry.getScriptFrom();
     final SecretKeySelector secretKeyRef = scriptFrom.getSecretKeyRef();
@@ -197,13 +206,15 @@ class ScriptResourceQuarkusTest implements AuthenticatedResourceTest {
     final Metadata metadata = script.getMetadata();
     metadata.setNamespace("test");
 
+    when(scriptScheduler.create(any(), anyBoolean())).thenReturn(this.script);
+
     given()
         .header(AUTHENTICATION_HEADER)
         .body(script)
         .contentType(ContentType.JSON)
         .accept(ContentType.JSON)
         .post("/stackgres/sgscripts")
-        .then().statusCode(204);
+        .then().statusCode(200);
 
     final ScriptFrom secretScriptFrom = secretScriptEntry.getScriptFrom();
     final SecretKeySelector secretKeyRef = secretScriptFrom.getSecretKeyRef();

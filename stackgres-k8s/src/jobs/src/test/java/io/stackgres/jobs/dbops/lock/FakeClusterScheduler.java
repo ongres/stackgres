@@ -28,17 +28,17 @@ public class FakeClusterScheduler implements CustomResourceScheduler<StackGresCl
   }
 
   @Override
-  public StackGresCluster create(@NotNull StackGresCluster resource) {
+  public StackGresCluster create(@NotNull StackGresCluster resource, boolean dryRun) {
     return kubeDb.addOrReplaceCluster(resource);
   }
 
   @Override
-  public void delete(@NotNull StackGresCluster resource) {
+  public void delete(@NotNull StackGresCluster resource, boolean dryRun) {
     kubeDb.delete(resource);
   }
 
   @Override
-  public StackGresCluster update(@NotNull StackGresCluster resource) {
+  public StackGresCluster update(@NotNull StackGresCluster resource, boolean dryRun) {
     return kubeDb.addOrReplaceCluster(resource);
   }
 

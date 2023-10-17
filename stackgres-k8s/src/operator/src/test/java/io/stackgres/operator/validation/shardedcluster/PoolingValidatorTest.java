@@ -127,7 +127,7 @@ class PoolingValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Pooling config " + poolingConfig + " not found for coordinator", resultMessage);
+    assertEquals("SGPoolingConfig " + poolingConfig + " not found for coordinator", resultMessage);
 
     verify(configFinder, times(1)).findByNameAndNamespace(any(), any());
   }
@@ -156,7 +156,7 @@ class PoolingValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Pooling config " + poolingConfig + " not found for shards", resultMessage);
+    assertEquals("SGPoolingConfig " + poolingConfig + " not found for shards", resultMessage);
 
     verify(configFinder, times(2)).findByNameAndNamespace(any(), any());
   }
@@ -193,7 +193,8 @@ class PoolingValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Pooling config " + poolingConfig + " not found for shard 0", resultMessage);
+    assertEquals("SGPoolingConfig " + poolingConfig
+        + " not found for shards override 0", resultMessage);
 
     verify(configFinder, times(3)).findByNameAndNamespace(any(), any());
   }
@@ -219,7 +220,7 @@ class PoolingValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Cannot update coordinator to pooling config " + poolingConfig
+    assertEquals("Cannot update coordinator to SGPoolingConfig " + poolingConfig
         + " because it doesn't exists", resultMessage);
 
     verify(configFinder, times(1)).findByNameAndNamespace(any(), any());
@@ -246,7 +247,7 @@ class PoolingValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Cannot update shards to pooling config " + poolingConfig
+    assertEquals("Cannot update shards to SGPoolingConfig " + poolingConfig
         + " because it doesn't exists", resultMessage);
 
     verify(configFinder, times(1)).findByNameAndNamespace(any(), any());
@@ -278,7 +279,7 @@ class PoolingValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Cannot update shard 0 to pooling config " + poolingConfig
+    assertEquals("Cannot update shards override 0 to SGPoolingConfig " + poolingConfig
         + " because it doesn't exists", resultMessage);
 
     verify(configFinder, times(1)).findByNameAndNamespace(any(), any());

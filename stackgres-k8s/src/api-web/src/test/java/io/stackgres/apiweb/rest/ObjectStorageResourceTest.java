@@ -7,6 +7,7 @@ package io.stackgres.apiweb.rest;
 
 import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
@@ -56,7 +57,6 @@ class ObjectStorageResourceTest implements AuthenticatedResourceTest {
   @Test
   @DisplayName("Given a created list of object resources it should list them")
   void testObjectStorageList() {
-
     var objectStorageTuple = ObjectStorageTransformerTest.createObjectStorage();
     doReturn(
         List.of(objectStorageTuple.source())
@@ -93,21 +93,17 @@ class ObjectStorageResourceTest implements AuthenticatedResourceTest {
         JsonUtil.toJson(List.of(objectStorageTuple.target())),
         JsonUtil.toJson(Arrays.asList(response))
     );
-
   }
 
   @Test
   @DisplayName("The object storage creation should not fail")
   void testObjectStorageCreation() {
-
     var objectStorageTuple = ObjectStorageTransformerTest
         .createObjectStorage();
 
-    when(scheduler.create(any()))
-        .then(
-            (Answer<StackGresObjectStorage>) invocationOnMock -> invocationOnMock
-                .getArgument(0, StackGresObjectStorage.class)
-        );
+    when(scheduler.create(any(), anyBoolean()))
+        .thenAnswer(invocation -> invocation
+            .getArgument(0, StackGresObjectStorage.class));
     objectStorageTuple.target().getSpec().getS3().getAwsCredentials()
         .setAccessKeyId(StringUtils.getRandomString());
     objectStorageTuple.target().getSpec().getS3().getAwsCredentials()
@@ -122,15 +118,14 @@ class ObjectStorageResourceTest implements AuthenticatedResourceTest {
         .body(objectStorageTuple.target())
         .post("/stackgres/sgobjectstorages")
         .then()
-        .statusCode(204);
+        .statusCode(200);
 
-    verify(scheduler).create(any());
+    verify(scheduler).create(any(), anyBoolean());
   }
 
   @Test
   @DisplayName("The object storage update should not fail")
   void testObjectStorageUpdate() {
-
     var objectStorageTuple = ObjectStorageTransformerTest
         .createObjectStorage();
 
@@ -153,7 +148,7 @@ class ObjectStorageResourceTest implements AuthenticatedResourceTest {
         .body(objectStorageTuple.target())
         .put("/stackgres/sgobjectstorages")
         .then()
-        .statusCode(204);
+        .statusCode(200);
 
     verify(scheduler).update(any(), any());
   }
@@ -161,7 +156,6 @@ class ObjectStorageResourceTest implements AuthenticatedResourceTest {
   @Test
   @DisplayName("The object storage dalete should not fail")
   void testObjectStorageDeletion() {
-
     var objectStorageTuple = ObjectStorageTransformerTest
         .createObjectStorage();
 
@@ -182,6 +176,6 @@ class ObjectStorageResourceTest implements AuthenticatedResourceTest {
         .then()
         .statusCode(204);
 
-    verify(scheduler).delete(any());
+    verify(scheduler).delete(any(), anyBoolean());
   }
 }

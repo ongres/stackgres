@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -84,7 +85,7 @@ class PostgresVersionValidatorTest {
 
     validator.validate(review);
 
-    verify(configFinder).findByNameAndNamespace(eq(postgresConfigName), eq(namespace));
+    verify(configFinder, times(2)).findByNameAndNamespace(eq(postgresConfigName), eq(namespace));
   }
 
   @Test
@@ -107,11 +108,11 @@ class PostgresVersionValidatorTest {
     String resultMessage = exception.getResult().getMessage();
 
     assertEquals(
-        "Invalid postgres version for sgPostgresConfig " + postgresConfigName
+        "Invalid postgres version for SGPostgresConfig " + postgresConfigName
         + ", it must be " + getMajorPostgresVersion(distributedLogsPostgresVersion),
         resultMessage);
 
-    verify(configFinder).findByNameAndNamespace(eq(postgresConfigName), eq(namespace));
+    verify(configFinder, times(2)).findByNameAndNamespace(eq(postgresConfigName), eq(namespace));
   }
 
   @Test
@@ -139,47 +140,9 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Invalid sgPostgresConfig value " + postgresConfigName, resultMessage);
+    assertEquals("SGPostgresConfig " + postgresConfigName + " not found", resultMessage);
 
     verify(configFinder).findByNameAndNamespace(eq(postgresConfigName), eq(namespace));
-  }
-
-  @Test
-  void givenEmptyPostgresConfigReference_shouldFail() {
-    final StackGresDistributedLogsReview review =
-        AdmissionReviewFixtures.distributedLogs().loadCreate().get();
-
-    StackGresDistributedLogsSpec spec = review.getRequest().getObject().getSpec();
-    spec.getConfigurations().setSgPostgresConfig("");
-
-    ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
-      validator.validate(review);
-    });
-
-    String resultMessage = exception.getResult().getMessage();
-
-    assertEquals("sgPostgresConfig must be provided", resultMessage);
-
-    verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
-  }
-
-  @Test
-  void givenNoPostgresConfigReference_shouldFail() {
-    final StackGresDistributedLogsReview review =
-        AdmissionReviewFixtures.distributedLogs().loadCreate().get();
-
-    StackGresDistributedLogsSpec spec = review.getRequest().getObject().getSpec();
-    spec.getConfigurations().setSgPostgresConfig(null);
-
-    ValidationFailed exception = assertThrows(ValidationFailed.class, () -> {
-      validator.validate(review);
-    });
-
-    String resultMessage = exception.getResult().getMessage();
-
-    assertEquals("sgPostgresConfig must be provided", resultMessage);
-
-    verify(configFinder, never()).findByNameAndNamespace(anyString(), anyString());
   }
 
   @Test
@@ -201,7 +164,8 @@ class PostgresVersionValidatorTest {
 
     String resultMessage = exception.getResult().getMessage();
 
-    assertEquals("Invalid sgPostgresConfig value " + postgresConfigName, resultMessage);
+    assertEquals("Cannot update to SGPostgresConfig "
+        + postgresConfigName + " because it doesn't exists", resultMessage);
 
     verify(configFinder).findByNameAndNamespace(eq(postgresConfigName), eq(namespace));
   }

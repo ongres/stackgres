@@ -80,7 +80,7 @@ class StorageClassValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Storage class " + storageClass + " not found", resultMessage);
+    assertEquals("StorageClass " + storageClass + " not found", resultMessage);
 
   }
 
@@ -102,7 +102,7 @@ class StorageClassValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Cannot update to storage class " + storageClass
+    assertEquals("Cannot update to StorageClass " + storageClass
         + " because it doesn't exists", resultMessage);
 
     verify(storageClassFinder).findByName(eq(storageClass));

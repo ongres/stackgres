@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.annotation.Nullable;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
@@ -63,14 +64,34 @@ public class ObjectStorageResource extends AbstractRestServiceDependency<ObjectS
 
   @Operation(
       responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ObjectStorageDto.class)) })
       })
   @Override
-  public void create(@NotNull ObjectStorageDto resource) {
+  public ObjectStorageDto create(@NotNull ObjectStorageDto resource, @Nullable Boolean dryRun) {
     setSecretKeySelectors(resource);
-    createOrUpdateSecret(resource);
-    super.create(resource);
-    createOrUpdateSecret(resource);
+    if (!Optional.ofNullable(dryRun).orElse(false)) {
+      createOrUpdateSecret(resource);
+    }
+    return super.create(resource, dryRun);
+  }
+
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+              content = { @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ObjectStorageDto.class)) })
+      })
+  @Override
+  public ObjectStorageDto update(@NotNull ObjectStorageDto resource, @Nullable Boolean dryRun) {
+    setSecretKeySelectors(resource);
+    if (!Optional.ofNullable(dryRun).orElse(false)) {
+      createOrUpdateSecret(resource);
+    }
+    return super.update(resource, dryRun);
   }
 
   @Operation(
@@ -78,21 +99,9 @@ public class ObjectStorageResource extends AbstractRestServiceDependency<ObjectS
           @ApiResponse(responseCode = "200", description = "OK")
       })
   @Override
-  public void update(@NotNull ObjectStorageDto resource) {
+  public void delete(@NotNull ObjectStorageDto resource, @Nullable Boolean dryRun) {
     setSecretKeySelectors(resource);
-    createOrUpdateSecret(resource);
-    super.update(resource);
-  }
-
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
-      })
-  @Override
-  public void delete(@NotNull ObjectStorageDto resource) {
-    setSecretKeySelectors(resource);
-    super.delete(resource);
-    deleteSecret(resource);
+    super.delete(resource, dryRun);
   }
 
   @Override
@@ -151,13 +160,6 @@ public class ObjectStorageResource extends AbstractRestServiceDependency<ObjectS
               .build());
           return null;
         });
-  }
-
-  private void deleteSecret(ObjectStorageDto resource) {
-    final String namespace = resource.getMetadata().getNamespace();
-    final String name = BackupStorageDtoUtil.secretName(resource);
-    secretFinder.findByNameAndNamespace(name, namespace)
-        .ifPresent(secretWriter::delete);
   }
 
   @Override

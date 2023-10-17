@@ -10,7 +10,6 @@ import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -18,66 +17,48 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.operator.validation.AbstractReferenceValidator;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 
 @Singleton
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)
-public class DistributedLogsValidator implements ClusterValidator {
-
-  private final CustomResourceFinder<StackGresDistributedLogs> distributedLogsFinder;
+public class DistributedLogsValidator
+    extends AbstractReferenceValidator<
+      StackGresCluster, StackGresClusterReview, StackGresDistributedLogs>
+    implements ClusterValidator {
 
   @Inject
   public DistributedLogsValidator(
       CustomResourceFinder<StackGresDistributedLogs> distributedLogsFinder) {
-    this.distributedLogsFinder = distributedLogsFinder;
+    super(distributedLogsFinder);
   }
 
   @Override
-  @SuppressFBWarnings(value = "SF_SWITCH_NO_DEFAULT",
-      justification = "False positive")
-  public void validate(StackGresClusterReview review) throws ValidationFailed {
-    switch (review.getRequest().getOperation()) {
-      case CREATE: {
-        StackGresCluster cluster = review.getRequest().getObject();
-        String distributedLogs = Optional.ofNullable(cluster.getSpec().getDistributedLogs())
-            .map(StackGresClusterDistributedLogs::getSgDistributedLogs)
-            .orElse(null);
-        checkIfDistributedLogsExists(cluster, distributedLogs,
-            "Distributed logs " + distributedLogs + " not found");
-        break;
-      }
-      case UPDATE: {
-        StackGresCluster cluster = review.getRequest().getObject();
-        String distributedLogs = Optional.ofNullable(cluster.getSpec().getDistributedLogs())
-            .map(StackGresClusterDistributedLogs::getSgDistributedLogs)
-            .orElse(null);
-        checkIfDistributedLogsExists(cluster, distributedLogs,
-            "Cannot update to distributed logs " + distributedLogs
-            + " because it doesn't exists");
-        break;
-      }
-      default:
-    }
-
+  protected Class<StackGresDistributedLogs> getReferenceClass() {
+    return StackGresDistributedLogs.class;
   }
 
-  private void checkIfDistributedLogsExists(StackGresCluster cluster,
-      String distributedLogs, String onError) throws ValidationFailed {
+  @Override
+  protected String getReference(StackGresCluster resource) {
+    return Optional.ofNullable(resource.getSpec().getDistributedLogs())
+        .map(StackGresClusterDistributedLogs::getSgDistributedLogs)
+        .map(StackGresUtil::getNameFromRelativeId)
+        .orElse(null);
+  }
 
-    String namespace = cluster.getMetadata().getNamespace();
+  @Override
+  protected String getReferenceNamespace(StackGresCluster resource) {
+    return Optional.ofNullable(resource.getSpec().getDistributedLogs())
+        .map(StackGresClusterDistributedLogs::getSgDistributedLogs)
+        .map(reference -> StackGresUtil.getNamespaceFromRelativeId(
+            reference, resource.getMetadata().getNamespace()))
+        .orElse(null);
+  }
 
-    if (distributedLogs != null) {
-      checkIfProvided(distributedLogs, "sgDistributedLogs");
-      Optional<StackGresDistributedLogs> distributedLogsOpt = distributedLogsFinder
-          .findByNameAndNamespace(
-              StackGresUtil.getNameFromRelativeId(distributedLogs),
-              StackGresUtil.getNamespaceFromRelativeId(distributedLogs, namespace));
-
-      if (!distributedLogsOpt.isPresent()) {
-        fail(onError);
-      }
-    }
+  @Override
+  protected void onNotFoundReference(String message) throws ValidationFailed {
+    fail(message);
   }
 
 }

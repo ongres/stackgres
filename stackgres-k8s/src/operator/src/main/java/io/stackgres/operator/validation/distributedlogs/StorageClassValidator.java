@@ -32,7 +32,6 @@ public class StorageClassValidator implements DistributedLogsValidator {
   @SuppressFBWarnings(value = "SF_SWITCH_NO_DEFAULT",
       justification = "False positive")
   public void validate(StackGresDistributedLogsReview review) throws ValidationFailed {
-
     StackGresDistributedLogs distributedLogs = review.getRequest().getObject();
 
     if (distributedLogs == null) {

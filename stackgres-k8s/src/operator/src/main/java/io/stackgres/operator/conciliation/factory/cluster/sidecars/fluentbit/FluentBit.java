@@ -146,7 +146,8 @@ public class FluentBit implements
 
   private Optional<HasMetadata> buildConfiMapSource(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
-    if (cluster.getSpec().getDistributedLogs() == null) {
+    if (cluster.getSpec().getDistributedLogs() == null
+        || cluster.getSpec().getDistributedLogs().getSgDistributedLogs() == null) {
       return Optional.empty();
     }
     final String namespace = cluster.getMetadata().getNamespace();

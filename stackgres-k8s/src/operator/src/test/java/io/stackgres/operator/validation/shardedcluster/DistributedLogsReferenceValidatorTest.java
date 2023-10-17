@@ -92,7 +92,7 @@ class DistributedLogsReferenceValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Distributed logs " + distributedLogsName + " not found", resultMessage);
+    assertEquals("SGDistributedLogs " + distributedLogsName + " not found", resultMessage);
 
     verify(distributedLogsFinder).findByNameAndNamespace(anyString(), anyString());
   }
@@ -116,7 +116,7 @@ class DistributedLogsReferenceValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Cannot update to distributed logs " + distributedLogsName
+    assertEquals("Cannot update to SGDistributedLogs " + distributedLogsName
         + " because it doesn't exists", resultMessage);
 
     verify(distributedLogsFinder).findByNameAndNamespace(anyString(), anyString());

@@ -134,7 +134,7 @@ class StorageClassValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Storage class " + storageClass + " not found for coordinator", resultMessage);
+    assertEquals("StorageClass " + storageClass + " not found for coordinator", resultMessage);
   }
 
   @Test
@@ -160,7 +160,7 @@ class StorageClassValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Storage class " + storageClass + " not found for shards", resultMessage);
+    assertEquals("StorageClass " + storageClass + " not found for shards", resultMessage);
   }
 
   @Test
@@ -201,7 +201,7 @@ class StorageClassValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Storage class " + overrideStorageClass + " not found for shard 0", resultMessage);
+    assertEquals("StorageClass " + overrideStorageClass + " not found for shard 0", resultMessage);
   }
 
   @Test
@@ -222,7 +222,7 @@ class StorageClassValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Cannot update coordinator to storage class " + storageClass
+    assertEquals("Cannot update coordinator to StorageClass " + storageClass
         + " because it doesn't exists", resultMessage);
 
     verify(storageClassFinder).findByName(eq(storageClass));
@@ -251,7 +251,7 @@ class StorageClassValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Cannot update shards to storage class " + storageClass
+    assertEquals("Cannot update shards to StorageClass " + storageClass
         + " because it doesn't exists", resultMessage);
 
     verify(storageClassFinder).findByName(eq(storageClass));
@@ -295,7 +295,7 @@ class StorageClassValidatorTest {
 
     String resultMessage = ex.getMessage();
 
-    assertEquals("Cannot update shard 0 to storage class " + overrideStorageClass
+    assertEquals("Cannot update shard 0 to StorageClass " + overrideStorageClass
         + " because it doesn't exists", resultMessage);
 
     verify(storageClassFinder).findByName(eq(storageClass));

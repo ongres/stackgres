@@ -9,6 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.doAnswer;
 
 import java.util.stream.Collectors;
 
@@ -141,14 +144,16 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
 
   @Test
   void createBackupConfigWithGoogleIdentity_shouldNotFail() {
-
     final BackupConfigDto backupConfigDto = DtoFixtures.backupConfig()
         .loadGoogleIdentityConfig().get();
 
     this.resourceDto = convertBackupConfigDtoToStorageObjectDto(backupConfigDto);
 
-    service.create(this.resourceDto);
+    doAnswer(invocation -> {
+      return transformer.toCustomResource(resourceDto, null);
+    }).when(scheduler).create(any(), anyBoolean());
 
+    service.create(this.resourceDto, false);
   }
 
   @Override
