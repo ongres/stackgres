@@ -7759,7 +7759,7 @@
                                 ...(this.hasProp(previous, 'spec.coordinator.pods') && previous.spec.coordinator.pods),
                                 "persistentVolume": {
                                     "size": this.coordinator.pods.persistentVolume.size.size+this.coordinator.pods.persistentVolume.size.unit,
-                                    ...( this.coordinator.pods.persistentVolume.hasOwnProperty('storageClass') && {
+                                    ...( ( this.coordinator.pods.persistentVolume.hasOwnProperty('storageClass') && this.coordinator.pods.persistentVolume.storageClass.length ) && {
                                         "storageClass": this.coordinator.pods.persistentVolume.storageClass
                                     })
                                 },
@@ -8284,12 +8284,23 @@
                         override.managedSql = vc.hasScripts(override.managedSql.scripts, vc.scriptSource.overrides[overrideIndex]) ? vc.cleanUpScripts($.extend(true,{},override.managedSql)) : null;
                     }
                     
-                    override.pods.persistentVolume = {
-                        "size": override.pods.persistentVolume.size.size + override.pods.persistentVolume.size.unit,
-                        ...( (override.pods.persistentVolume.hasOwnProperty('storageClass') && override.pods.persistentVolume.storageClass.length) && {
-                            "storageClass": override.pods.persistentVolume.storageClass
-                        })
-                    };
+                    if (
+                        ( (override.pods.persistentVolume.size.size + override.pods.persistentVolume.size.unit) !== '1Gi' ) || 
+                        ( override.pods.persistentVolume.hasOwnProperty('storageClass') && override.pods.persistentVolume.storageClass.length )
+                    ) {
+                        if( (override.pods.persistentVolume.size.size + override.pods.persistentVolume.size.unit) !== '1Gi' ) {
+                            override.pods.persistentVolume.size = override.pods.persistentVolume.size.size + override.pods.persistentVolume.size.unit;
+                        } else {
+                            delete override.pods.persistentVolume.size;
+                        }
+
+                        if( override.pods.persistentVolume.hasOwnProperty('storageClass') && !override.pods.persistentVolume.storageClass.length ) {
+                            delete override.pods.persistentVolume.storageClass;
+                        }
+                    } else {
+                        delete override.pods.persistentVolume;
+                    }
+
                     override.pods.disableConnectionPooling = override.pods.disableConnectionPooling ? true : null;
                     override.pods.disablePostgresUtil = override.pods.disablePostgresUtil ? true : null;
                     override.pods.disableMetricsExporter = override.pods.disableMetricsExporter ? true : null;

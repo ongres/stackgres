@@ -256,7 +256,7 @@
                                 <li v-if="showDefaults || cluster.data.spec.prometheusAutobind">
                                     <button class="toggleSummary"></button>
                                     <strong class="label">Monitoring</strong>
-                                     <span class="helpTooltip" data-tooltip="StackGres supports enabling automatic monitoring for your Postgres cluster, but you need to provide or install the <a href='https://stackgres.io/doc/latest/install/prerequisites/monitoring/' target='_blank'>Prometheus stack as a pre-requisite</a>. Then, check this option to configure automatically sending metrics to the Prometheus stack."></span>
+                                    <span class="helpTooltip" data-tooltip="StackGres supports enabling automatic monitoring for your Postgres cluster, but you need to provide or install the <a href='https://stackgres.io/doc/latest/install/prerequisites/monitoring/' target='_blank'>Prometheus stack as a pre-requisite</a>. Then, check this option to configure automatically sending metrics to the Prometheus stack."></span>
                                     <span> : {{ (!cluster.data.spec.coordinator.pods.disableMetricsExporter && !cluster.data.spec.shards.pods.disableMetricsExporter && cluster.data.spec.prometheusAutobind) ? ' Enabled' : ' Disabled' }}</span>
                                     <ul>
                                         <li v-if="showDefaults || cluster.data.spec.prometheusAutobind">
