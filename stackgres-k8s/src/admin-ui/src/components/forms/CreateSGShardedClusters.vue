@@ -4876,8 +4876,8 @@
                             <h3>Instances</h3>
 
                             <div class="col">
-                                <label for="spec.shards.overrides.instancesPerCluster">Number of Instances per Cluster<span class="req">*</span></label>
-                                <input type="number" v-model="shards.overrides[overrideIndex].instancesPerCluster" required :data-field="'spec.shards.overrides[' + overrideIndex + '].instancesPerCluster'" min="1" max="16">
+                                <label for="spec.shards.overrides.instancesPerCluster">Number of Instances per Cluster</label>
+                                <input type="number" v-model="shards.overrides[overrideIndex].instancesPerCluster" :data-field="'spec.shards.overrides[' + overrideIndex + '].instancesPerCluster'" min="1" max="16">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.instancesPerCluster')"></span>
                             </div>
                             <div class="col">
@@ -4920,9 +4920,9 @@
 
                             <div class="col">
                                 <div class="unit-select">
-                                    <label for="spec.shards.overrides.pods.persistentVolume.size">Volume Size <span class="req">*</span></label>  
-                                    <input v-model="shards.overrides[overrideIndex].pods.persistentVolume.size.size" class="size" required :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.persistentVolume.size'" type="number">
-                                    <select v-model="shards.overrides[overrideIndex].pods.persistentVolume.size.unit" class="unit" required :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.persistentVolume.size'" >
+                                    <label for="spec.shards.overrides.pods.persistentVolume.size">Volume Size</label>  
+                                    <input v-model="shards.overrides[overrideIndex].pods.persistentVolume.size.size" class="size" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.persistentVolume.size'" type="number">
+                                    <select v-model="shards.overrides[overrideIndex].pods.persistentVolume.size.unit" class="unit" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.persistentVolume.size'" >
                                         <option disabled value="">Select Unit</option>
                                         <option value="Mi">MiB</option>
                                         <option value="Gi">GiB</option>
@@ -8134,7 +8134,7 @@
 
                 this.shards.overrides.push({
                     index: null,
-                    instancesPerCluster: 1,
+                    instancesPerCluster: null,
                     sgInstanceProfile: '',
                     replication: {
                         mode: 'async'
@@ -8267,6 +8267,10 @@
                 const vc = this;
 
                 overrides.forEach( (override, overrideIndex) => {
+
+                    if([null,''].includes(override.instancesPerCluster)) {
+                        delete override.instancesPerCluster;
+                    }
 
                     override['sgInstanceProfile'] = ( (override.hasOwnProperty('sgInstanceProfile') && override.sgInstanceProfile.length) ? override.sgInstanceProfile : null );
                     
