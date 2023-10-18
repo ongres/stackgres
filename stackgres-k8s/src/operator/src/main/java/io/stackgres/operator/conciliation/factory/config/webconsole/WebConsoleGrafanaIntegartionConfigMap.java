@@ -28,7 +28,6 @@ import io.stackgres.common.labels.LabelFactoryForConfig;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.config.StackGresConfigContext;
-import io.stackgres.operator.conciliation.factory.cluster.sidecars.pgexporter.PostgresExporter;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Unchecked;
@@ -75,14 +74,16 @@ public class WebConsoleGrafanaIntegartionConfigMap
 
     final Map<String, String> data = new HashMap<>();
     data.put("integrate-grafana.sh", Unchecked.supplier(() -> Resources
-        .asCharSource(Objects.requireNonNull(PostgresExporter.class.getResource(
+        .asCharSource(Objects.requireNonNull(
+            WebConsoleGrafanaIntegartionConfigMap.class.getResource(
             "/webconsole/integrate-grafana.sh")),
             StandardCharsets.UTF_8)
         .read()).get());
     getDashboards().forEach(dashboardFile -> data.put(
             dashboardFile, Unchecked.supplier(() -> Resources
-                .asCharSource(Objects.requireNonNull(PostgresExporter.class.getResource(
-                    "/webconsole/grafana-dashboard/" + dashboardFile)),
+                .asCharSource(Objects.requireNonNull(
+                    WebConsoleGrafanaIntegartionConfigMap.class.getResource(
+                    "/webconsole/grafana-dashboards/" + dashboardFile)),
                     StandardCharsets.UTF_8)
                 .read()).get()));
 
@@ -98,8 +99,9 @@ public class WebConsoleGrafanaIntegartionConfigMap
 
   public static List<String> getDashboards() {
     return Unchecked.supplier(() -> Resources
-        .asCharSource(Objects.requireNonNull(PostgresExporter.class.getResource(
-            "/webconsole/grafana-dashboard/index.txt")),
+        .asCharSource(Objects.requireNonNull(
+            WebConsoleGrafanaIntegartionConfigMap.class.getResource(
+            "/webconsole/grafana-dashboards/index.txt")),
             StandardCharsets.UTF_8)
         .read()).get()
         .lines()

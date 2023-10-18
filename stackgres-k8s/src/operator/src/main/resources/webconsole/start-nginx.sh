@@ -15,14 +15,9 @@ GRAFANA_WEB_HOST=$GRAFANA_WEB_HOST
 GRAFANA_TOKEN=$GRAFANA_TOKEN"
 EOF
 fi
-envsubst '
-  $GRAFANA_EMBEDDED
-  $GRAFANA_URL_PATH
-  $GRAFANA_SCHEMA
-  $GRAFANA_WEB_HOST
-  $GRAFANA_TOKEN' \
-  < /etc/nginx/template.d/stackgres-restapi.template \
-  > /etc/nginx/conf.d/stackgres-restapi.conf
+eval "cat << NGINX_CONF_EOF
+$(cat /etc/nginx/template.d/stackgres-restapi.template)
+NGINX_CONF_EOF" > /etc/nginx/conf.d/stackgres-restapi.conf
 if [ "$SHOW_DEBUG" = true ]
 then
   cat /etc/nginx/conf.d/stackgres-restapi.conf

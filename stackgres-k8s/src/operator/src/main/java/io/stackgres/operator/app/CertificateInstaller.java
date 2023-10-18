@@ -98,6 +98,7 @@ public class CertificateInstaller {
     StackGresConfigContext context = ImmutableStackGresConfigContext.builder()
         .source(config)
         .operatorSecret(certSecretFound)
+        .isGrafanaEmbedded(false)
         .isGrafanaIntegrated(false)
         .isGrafanaIntegrationJobFailed(false)
         .build();
