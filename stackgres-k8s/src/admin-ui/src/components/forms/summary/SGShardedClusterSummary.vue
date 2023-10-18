@@ -2798,7 +2798,7 @@
                                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.index')"></span>
                                                         <span> : {{ override.index }}</span>
                                                     </li>
-                                                    <li v-if="override.hasOwnProperty('instancesPerCluster')">
+                                                    <li v-if="( override.hasOwnProperty('instancesPerCluster') && (showDefaults || ![1,null,''].includes(override.instancesPerCluster) ) )">
                                                         <strong class="label">Instances per Cluster</strong>
                                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.instancesPerCluster')"></span>
                                                         <span> : {{ override.instancesPerCluster }}</span>
