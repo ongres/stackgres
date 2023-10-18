@@ -770,10 +770,10 @@
                             <div class="col">
                                 <label for="spec.coordinator.sgInstanceProfile">Instance Profile</label>  
                                 <select v-model="coordinator.sgInstanceProfile" class="resourceProfile" data-field="spec.coordinator.sgInstanceProfile" @change="(resourceProfile == 'createNewResource') && createNewResource('sginstanceprofiles')" :set="( (resourceProfile == 'createNewResource') && (resourceProfile = '') )">
-                                    <option selected value="">Default (Cores: 1, RAM: 2GiB)</option>
+                                    <option :value="''">Default (Cores: 1, RAM: 2GiB)</option>
                                     <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace" :value="prof.name">{{ prof.name }} (Cores: {{ prof.data.spec.cpu }}, RAM: {{ prof.data.spec.memory }}B)</option>
                                     <template v-if="iCan('create', 'sginstanceprofiles', $route.params.namespace)">
-                                        <option value="" disabled>– OR –</option>
+                                        <option :value="null" disabled>– OR –</option>
                                         <option value="createNewResource">Create new profile</option>
                                     </template>
                                 </select>
@@ -789,10 +789,10 @@
                             <div class="col">
                                 <label for="spec.coordinator.configurations.sgPostgresConfig">Postgres Configuration</label>
                                 <select v-model="coordinator.configurations.sgPostgresConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig" @change="(coordinator.configurations.sgPostgresConfig == 'createNewResource') && createNewResource('sgpgconfigs')" :set="( (coordinator.configurations.sgPostgresConfig == 'createNewResource') && (coordinator.configurations.sgPostgresConfig = '') )">
-                                    <option value="" selected>Default</option>
+                                    <option :value="''">Default</option>
                                     <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == shortPostgresVersion) )">{{ conf.name }}</option>
                                     <template v-if="iCan('create', 'sgpgconfigs', $route.params.namespace)">
-                                        <option value="" disabled>– OR –</option>
+                                        <option :value="null" disabled>– OR –</option>
                                         <option value="createNewResource">Create new configuration</option>
                                     </template>
                                 </select>
@@ -857,10 +857,10 @@
                                     Connection Pooling Configuration
                                 </label>
                                 <select v-model="coordinator.configurations.sgPoolingConfig" class="connectionPoolingConfig" @change="(coordinator.configurations.sgPoolingConfig == 'createNewResource') && createNewResource('sgpoolconfigs')" :set="( (coordinator.configurations.sgPoolingConfig == 'createNewResource') && (coordinator.configurations.sgPoolingConfig = '') )">
-                                    <option value="" selected>Default</option>
+                                    <option :value="''">Default</option>
                                     <option v-for="conf in connPoolConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
                                     <template v-if="iCan('create', 'sgpoolconfigs', $route.params.namespace)">
-                                        <option value="" disabled>– OR –</option>
+                                        <option :value="null" disabled>– OR –</option>
                                         <option value="createNewResource">Create new configuration</option>
                                     </template>
                                 </select>
@@ -2842,10 +2842,10 @@
                             <div class="col">
                                 <label for="spec.shards.sgInstanceProfile">Instance Profile</label>  
                                 <select v-model="shards.sgInstanceProfile" class="resourceProfile" data-field="spec.shards.sgInstanceProfile" @change="(resourceProfile == 'createNewResource') && createNewResource('sginstanceprofiles')" :set="( (resourceProfile == 'createNewResource') && (resourceProfile = '') )">
-                                    <option selected value="">Default (Cores: 1, RAM: 2GiB)</option>
+                                    <option :value="''">Default (Cores: 1, RAM: 2GiB)</option>
                                     <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace" :value="prof.name">{{ prof.name }} (Cores: {{ prof.data.spec.cpu }}, RAM: {{ prof.data.spec.memory }}B)</option>
                                     <template v-if="iCan('create', 'sginstanceprofiles', $route.params.namespace)">
-                                        <option disabled>– OR –</option>
+                                        <option :value="null" disabled>– OR –</option>
                                         <option value="createNewResource">Create new profile</option>
                                     </template>
                                 </select>
@@ -2861,10 +2861,10 @@
                             <div class="col">
                                 <label for="spec.shards.configurations.sgPostgresConfig">Postgres Configuration</label>
                                 <select v-model="shards.configurations.sgPostgresConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig" @change="(shards.configurations.sgPostgresConfig == 'createNewResource') && createNewResource('sgpgconfigs')" :set="( (shards.configurations.sgPostgresConfig == 'createNewResource') && (shards.configurations.sgPostgresConfig = '') )">
-                                    <option value="" selected>Default</option>
+                                    <option :value="''" selected>Default</option>
                                     <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == shortPostgresVersion) )">{{ conf.name }}</option>
                                     <template v-if="iCan('create', 'sgpgconfigs', $route.params.namespace)">
-                                        <option disabled>– OR –</option>
+                                        <option :value="null" disabled>– OR –</option>
                                         <option value="createNewResource">Create new configuration</option>
                                     </template>
                                 </select>
@@ -2929,10 +2929,10 @@
                                     Connection Pooling Configuration
                                 </label>
                                 <select v-model="shards.configurations.sgPoolingConfig" class="connectionPoolingConfig" @change="(shards.configurations.sgPoolingConfig == 'createNewResource') && createNewResource('sgpoolconfigs')" :set="( (shards.configurations.sgPoolingConfig == 'createNewResource') && (shards.configurations.sgPoolingConfig = '') )">
-                                    <option value="" selected>Default</option>
+                                    <option :value="''">Default</option>
                                     <option v-for="conf in connPoolConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
                                     <template v-if="iCan('create', 'sgpoolconfigs', $route.params.namespace)">
-                                        <option value="" disabled>– OR –</option>
+                                        <option :value="null" disabled>– OR –</option>
                                         <option value="createNewResource">Create new configuration</option>
                                     </template>
                                 </select>
@@ -4883,10 +4883,10 @@
                             <div class="col">
                                 <label for="spec.shards.overrides.sgInstanceProfile">Instance Profile</label>  
                                 <select v-model="shards.overrides[overrideIndex].sgInstanceProfile" class="resourceProfile" :data-field="'spec.shards.overrides[' + overrideIndex + '].sgInstanceProfile'" @change="(resourceProfile == 'createNewResource') && createNewResource('sginstanceprofiles')" :set="( (resourceProfile == 'createNewResource') && (resourceProfile = '') )">
-                                    <option selected value="">Default (Cores: 1, RAM: 2GiB)</option>
+                                    <option :value="''">Default (Cores: 1, RAM: 2GiB)</option>
                                     <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace" :value="prof.name">{{ prof.name }} (Cores: {{ prof.data.spec.cpu }}, RAM: {{ prof.data.spec.memory }}B)</option>
                                     <template v-if="iCan('create', 'sginstanceprofiles', $route.params.namespace)">
-                                        <option disabled>– OR –</option>
+                                        <option :value="null">– OR –</option>
                                         <option value="createNewResource">Create new profile</option>
                                     </template>
                                 </select>
@@ -4902,10 +4902,10 @@
                             <div class="col">
                                 <label for="spec.shards.overrides.configurations.sgPostgresConfig">Postgres Configuration</label>
                                 <select v-model="shards.overrides[overrideIndex].configurations.sgPostgresConfig" class="pgConfig" :data-field="'spec.shards.overrides[' + overrideIndex + '].configurations.sgPostgresConfig'" @change="(shards.overrides[overrideIndex].configurations.sgPostgresConfig == 'createNewResource') && createNewResource('sgpgconfigs')" :set="( (shards.overrides[overrideIndex].configurations.sgPostgresConfig == 'createNewResource') && (shards.overrides[overrideIndex].configurations.sgPostgresConfig = '') )">
-                                    <option value="" selected>Default</option>
+                                    <option :value="''">Default</option>
                                     <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == shortPostgresVersion) )">{{ conf.name }}</option>
                                     <template v-if="iCan('create', 'sgpgconfigs', $route.params.namespace)">
-                                        <option disabled>– OR –</option>
+                                        <option :value="null" disabled>– OR –</option>
                                         <option value="createNewResource">Create new configuration</option>
                                     </template>
                                 </select>
@@ -4970,10 +4970,10 @@
                                     Connection Pooling Configuration
                                 </label>
                                 <select v-model="shards.overrides[overrideIndex].configurations.sgPoolingConfig" class="connectionPoolingConfig" @change="(shards.overrides[overrideIndex].configurations.sgPoolingConfig == 'createNewResource') && createNewResource('sgpoolconfigs')" :set="( (shards.overrides[overrideIndex].configurations.sgPoolingConfig == 'createNewResource') && (shards.overrides[overrideIndex].configurations.sgPoolingConfig = '') )">
-                                    <option value="" selected>Default</option>
+                                    <option :value="''">Default</option>
                                     <option v-for="conf in connPoolConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
                                     <template v-if="iCan('create', 'sgpoolconfigs', $route.params.namespace)">
-                                        <option value="" disabled>– OR –</option>
+                                        <option :value="null" disabled>– OR –</option>
                                         <option value="createNewResource">Create new configuration</option>
                                     </template>
                                 </select>
@@ -7292,7 +7292,7 @@
                     shards: [null],
                     overrides: [[null]]
                 },
-                overrideIndex: -1,
+                overrideIndex: 0,
             }
 
         },
@@ -7306,139 +7306,150 @@
             cluster() {
 
                 var vm = this;
-                var cluster = {};
+                let c = {};
                 
                 if( vm.editMode && !vm.editReady ) {
-                    store.state.sgshardedclusters.forEach(function( c ){
-                        if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
-                            vm.database = c.data.spec.database;
-                            vm.shardingType = c.data.spec.type;
+                    let cluster = store.state.sgshardedclusters.find(( c ) => (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace));
+                    if( typeof cluster !== 'undefined' ) {
+                        c = JSON.parse(JSON.stringify(cluster));
+                        vm.database = c.data.spec.database;
+                        vm.shardingType = c.data.spec.type;
 
-                            vm.managedBackups = vm.hasProp(c, 'data.spec.configurations.backups') && c.data.spec.configurations.backups.length;
-                            if (vm.managedBackups) {
-                                vm.backups = c.data.spec.configurations.backups;
-                                let cronScheduleSplit = vm.tzCrontab(vm.backups[0].cronSchedule, true).split(' ');
-                                vm.cronSchedule[0].ref = {};
-                                vm.cronSchedule[0].ref.value = vm.backups[0].cronSchedule;
-                                vm.cronSchedule[0].ref.min = cronScheduleSplit[0];
-                                vm.cronSchedule[0].ref.hour = cronScheduleSplit[1];
-                                vm.cronSchedule[0].ref.dom = cronScheduleSplit[2];
-                                vm.cronSchedule[0].ref.month = cronScheduleSplit[3];
-                                vm.cronSchedule[0].ref.dow = cronScheduleSplit[4];
-                                vm.cronSchedule[0].min = cronScheduleSplit[0];
-                                vm.cronSchedule[0].hour = cronScheduleSplit[1];
-                                vm.cronSchedule[0].dom = cronScheduleSplit[2];
-                                vm.cronSchedule[0].month = cronScheduleSplit[3];
-                                vm.cronSchedule[0].dow = cronScheduleSplit[4];
+                        vm.managedBackups = vm.hasProp(c, 'data.spec.configurations.backups') && c.data.spec.configurations.backups.length;
+                        if (vm.managedBackups) {
+                            vm.backups = c.data.spec.configurations.backups;
+                            let cronScheduleSplit = vm.tzCrontab(vm.backups[0].cronSchedule, true).split(' ');
+                            vm.cronSchedule[0].ref = {};
+                            vm.cronSchedule[0].ref.value = vm.backups[0].cronSchedule;
+                            vm.cronSchedule[0].ref.min = cronScheduleSplit[0];
+                            vm.cronSchedule[0].ref.hour = cronScheduleSplit[1];
+                            vm.cronSchedule[0].ref.dom = cronScheduleSplit[2];
+                            vm.cronSchedule[0].ref.month = cronScheduleSplit[3];
+                            vm.cronSchedule[0].ref.dow = cronScheduleSplit[4];
+                            vm.cronSchedule[0].min = cronScheduleSplit[0];
+                            vm.cronSchedule[0].hour = cronScheduleSplit[1];
+                            vm.cronSchedule[0].dom = cronScheduleSplit[2];
+                            vm.cronSchedule[0].month = cronScheduleSplit[3];
+                            vm.cronSchedule[0].dow = cronScheduleSplit[4];
 
-                                if(!c.data.spec.configurations.backups[0].hasOwnProperty('performance')) {
-                                    vm.backups[0].performance = {
-                                        maxNetworkBandwidth: '',
-                                        maxDiskBandwidth: '',
-                                        uploadDiskConcurrency: 1
-                                    }
+                            if(!c.data.spec.configurations.backups[0].hasOwnProperty('performance')) {
+                                vm.backups[0].performance = {
+                                    maxNetworkBandwidth: '',
+                                    maxDiskBandwidth: '',
+                                    uploadDiskConcurrency: 1
                                 }
                             }
+                        }
 
-                            vm.distributedLogs = (typeof c.data.spec.distributedLogs !== 'undefined') ? c.data.spec.distributedLogs.sgDistributedLogs : '';
-                            vm.retention = vm.hasProp(c, 'data.spec.distributedLogs.retention') ? c.data.spec.distributedLogs.retention : ''; 
-                            vm.replication = vm.hasProp(c, 'data.spec.replication') && c.data.spec.replication;
-                            vm.prometheusAutobind =  (typeof c.data.spec.prometheusAutobind !== 'undefined') ? c.data.spec.prometheusAutobind : false;
-                            vm.enableClusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? !c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : true;
-                            vm.babelfishFeatureGates = vm.hasProp(c, 'data.spec.nonProductionOptions.enabledFeatureGates') && c.data.spec.nonProductionOptions.enabledFeatureGates.includes('babelfish-flavor');
-                            
-                            vm.podsMetadata = vm.hasProp(c, 'data.spec.metadata.labels.clusterPods') ? vm.unparseProps(c.data.spec.metadata.labels.clusterPods, 'label') : [];
-                            vm.annotationsAll = vm.hasProp(c, 'data.spec.metadata.annotations.allResources') ? vm.unparseProps(c.data.spec.metadata.annotations.allResources) : [];
-                            vm.annotationsPods = vm.hasProp(c, 'data.spec.metadata.annotations.clusterPods') ? vm.unparseProps(c.data.spec.metadata.annotations.clusterPods) : [];
-                            vm.annotationsServices = vm.hasProp(c, 'data.spec.metadata.annotations.services') ? vm.unparseProps(c.data.spec.metadata.annotations.services) : [];
-                            vm.postgresServicesPrimaryAnnotations = vm.hasProp(c, 'data.spec.metadata.annotations.primaryService') ?  vm.unparseProps(c.data.spec.metadata.annotations.primaryService) : [];
-                            vm.postgresServicesReplicasAnnotations = vm.hasProp(c, 'data.spec.metadata.annotations.replicasService') ?  vm.unparseProps(c.data.spec.metadata.annotations.replicasService) : [];
-                            vm.postgresServices = vm.hasProp(c, 'data.spec.postgresServices') && c.data.spec.postgresServices;
+                        vm.distributedLogs = (typeof c.data.spec.distributedLogs !== 'undefined') ? c.data.spec.distributedLogs.sgDistributedLogs : '';
+                        vm.retention = vm.hasProp(c, 'data.spec.distributedLogs.retention') ? c.data.spec.distributedLogs.retention : ''; 
+                        vm.replication = vm.hasProp(c, 'data.spec.replication') && c.data.spec.replication;
+                        vm.prometheusAutobind =  (typeof c.data.spec.prometheusAutobind !== 'undefined') ? c.data.spec.prometheusAutobind : false;
+                        vm.enableClusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? !c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : true;
+                        vm.babelfishFeatureGates = vm.hasProp(c, 'data.spec.nonProductionOptions.enabledFeatureGates') && c.data.spec.nonProductionOptions.enabledFeatureGates.includes('babelfish-flavor');
+                        
+                        vm.podsMetadata = vm.hasProp(c, 'data.spec.metadata.labels.clusterPods') ? vm.unparseProps(c.data.spec.metadata.labels.clusterPods, 'label') : [];
+                        vm.annotationsAll = vm.hasProp(c, 'data.spec.metadata.annotations.allResources') ? vm.unparseProps(c.data.spec.metadata.annotations.allResources) : [];
+                        vm.annotationsPods = vm.hasProp(c, 'data.spec.metadata.annotations.clusterPods') ? vm.unparseProps(c.data.spec.metadata.annotations.clusterPods) : [];
+                        vm.annotationsServices = vm.hasProp(c, 'data.spec.metadata.annotations.services') ? vm.unparseProps(c.data.spec.metadata.annotations.services) : [];
+                        vm.postgresServicesPrimaryAnnotations = vm.hasProp(c, 'data.spec.metadata.annotations.primaryService') ?  vm.unparseProps(c.data.spec.metadata.annotations.primaryService) : [];
+                        vm.postgresServicesReplicasAnnotations = vm.hasProp(c, 'data.spec.metadata.annotations.replicasService') ?  vm.unparseProps(c.data.spec.metadata.annotations.replicasService) : [];
+                        vm.postgresServices = vm.hasProp(c, 'data.spec.postgresServices') && c.data.spec.postgresServices;
 
-                            vm.flavor = c.data.spec.postgres.hasOwnProperty('flavor') ? c.data.spec.postgres.flavor : 'vanilla' ;
-                            vm.selectedExtensions = vm.hasProp(c, 'data.spec.postgres.extensions') ? c.data.spec.postgres.extensions : [];
+                        vm.flavor = c.data.spec.postgres.hasOwnProperty('flavor') ? c.data.spec.postgres.flavor : 'vanilla' ;
+                        vm.selectedExtensions = vm.hasProp(c, 'data.spec.postgres.extensions') ? c.data.spec.postgres.extensions : [];
 
-                            if (vm.postgresVersion != c.data.spec.postgres.version) {
-                                vm.postgresVersion = c.data.spec.postgres.version;
-                                vm.getFlavorExtensions()
-                            }
+                        if (vm.postgresVersion != c.data.spec.postgres.version) {
+                            vm.postgresVersion = c.data.spec.postgres.version;
+                            vm.getFlavorExtensions()
+                        }
 
-                            if(c.data.spec.postgres.hasOwnProperty('ssl')) {
-                                vm.ssl = c.data.spec.postgres.ssl
+                        if(c.data.spec.postgres.hasOwnProperty('ssl')) {
+                            vm.ssl = c.data.spec.postgres.ssl
 
-                                if(!vm.ssl.hasOwnProperty('certificateSecretKeySelector')) {
-                                    vm.ssl['certificateSecretKeySelector'] = {
-                                        name: '',
-                                        key: ''
-                                    };
-                                }
-                                if(!vm.ssl.hasOwnProperty('privateKeySecretKeySelector')) {
-                                    vm.ssl['privateKeySecretKeySelector'] = {
-                                        name: '',
-                                        key: ''
-                                    }
-                                }
-                            }
-
-                            // Set Coordinator & Shards spec
-                            ['coordinator', 'shards'].forEach( (type) => {
-                                vm[type] = c.data.spec[type];
-
-                                // Volume Size
-                                let volumeSize = {
-                                   size: vm[type].pods.persistentVolume.size.match(/\d+/g)[0],
-                                   unit: vm[type].pods.persistentVolume.size.match(/[a-zA-Z]+/g)[0],
+                            if(!vm.ssl.hasOwnProperty('certificateSecretKeySelector')) {
+                                vm.ssl['certificateSecretKeySelector'] = {
+                                    name: '',
+                                    key: ''
                                 };
-                                vm[type].pods.persistentVolume.size = volumeSize;
-
-                                // Script Sources
-                                vm.setScriptsSource(c.data.spec[type], type);
-
-                                // Custom Volumes
-                                vm.customVolumesType[type] = [];
-                                if(vm.hasProp(c, 'data.spec.' + type + '.pods.customVolumes')) {
-                                    vm[type].pods.customVolumes.forEach( (v) => {
-                                        if(v.hasOwnProperty('emptyDir')) {
-                                            vm.customVolumesType[type].push('emptyDir');
-                                        } else if(v.hasOwnProperty('configMap')) {
-                                            vm.customVolumesType[type].push('configMap');
-                                        } else if(v.hasOwnProperty('secret')) {
-                                            vm.customVolumesType[type].push('secret');
-                                        }
-                                    });
+                            }
+                            if(!vm.ssl.hasOwnProperty('privateKeySecretKeySelector')) {
+                                vm.ssl['privateKeySecretKeySelector'] = {
+                                    name: '',
+                                    key: ''
                                 }
+                            }
+                        }
 
-                                // Replication
-                                if(!vm.hasProp(c, 'data.spec.' + type + '.replication')) {
-                                    vm[type]['replication'] = {
-                                        mode: 'async'
-                                    };
-                                }
+                        // Set Coordinator & Shards spec
+                        ['coordinator', 'shards'].forEach( (type) => {
+                            vm[type] = c.data.spec[type];
 
-                                // Metadata
-                                if(vm.hasProp(c, 'data.spec.' + type + '.metadata.labels.clusterPods')) {
-                                    vm[type].metadata.labels.clusterPods = vm.unparseProps(c.data.spec[type].metadata.labels.clusterPods, 'label');
-                                }
+                            // Volume Size
+                            let volumeSize = {
+                                size: vm[type].pods.persistentVolume.size.match(/\d+/g)[0],
+                                unit: vm[type].pods.persistentVolume.size.match(/[a-zA-Z]+/g)[0],
+                            };
+                            vm[type].pods.persistentVolume.size = volumeSize;
 
-                                ['allResources', 'clusterPods', 'services', 'primaryService', 'replicasService'].forEach( (annotation) => {
-                                    if(vm.hasProp(c, 'data.spec.' + type + '.metadata.annotations.' + annotation)) {
-                                        vm[type].metadata.annotations[annotation] = vm.unparseProps(c.data.spec[type].metadata.annotations[annotation]);
+                            // Script Sources
+                            vm.setScriptsSource(c.data.spec[type], type);
+
+                            // Custom Volumes
+                            vm.customVolumesType[type] = [];
+                            if(vm.hasProp(c, 'data.spec.' + type + '.pods.customVolumes')) {
+                                vm[type].pods.customVolumes.forEach( (v) => {
+                                    if(v.hasOwnProperty('emptyDir')) {
+                                        vm.customVolumesType[type].push('emptyDir');
+                                    } else if(v.hasOwnProperty('configMap')) {
+                                        vm.customVolumesType[type].push('configMap');
+                                    } else if(v.hasOwnProperty('secret')) {
+                                        vm.customVolumesType[type].push('secret');
                                     }
-                                })
+                                });
+                            }
 
-                                // Scheduling
-                                if(vm.hasProp(c, 'data.spec.' + type + '.pods.scheduling.nodeSelector')) {
-                                    vm[type].pods.scheduling.nodeSelector = vm.unparseProps(c.data.spec[type].pods.scheduling.nodeSelector, 'label');
+                            // Replication
+                            if(!vm.hasProp(c, 'data.spec.' + type + '.replication')) {
+                                vm[type]['replication'] = {
+                                    mode: 'async'
+                                };
+                            }
+
+                            // Metadata
+                            if(vm.hasProp(c, 'data.spec.' + type + '.metadata.labels.clusterPods')) {
+                                vm[type].metadata.labels.clusterPods = vm.unparseProps(c.data.spec[type].metadata.labels.clusterPods, 'label');
+                            }
+
+                            ['allResources', 'clusterPods', 'services', 'primaryService', 'replicasService'].forEach( (annotation) => {
+                                if(vm.hasProp(c, 'data.spec.' + type + '.metadata.annotations.' + annotation)) {
+                                    vm[type].metadata.annotations[annotation] = vm.unparseProps(c.data.spec[type].metadata.annotations[annotation]);
                                 }
-                            });
+                            })
 
-                            // Overrides
-                            if(vm.hasProp(c, 'data.spec.shards.overrides')) {
+                            // Scheduling
+                            if(vm.hasProp(c, 'data.spec.' + type + '.pods.scheduling.nodeSelector')) {
+                                vm[type].pods.scheduling.nodeSelector = vm.unparseProps(c.data.spec[type].pods.scheduling.nodeSelector, 'label');
+                            }
+                        });
 
-                                // Initialize overrideIndex
-                                vm.overrideIndex = 0;
+                        // Overrides
+                        if(vm.hasProp(c, 'data.spec.shards.overrides')) {
 
-                                c.data.spec.shards.overrides.forEach( (override, index) => {
+                            // Initialize overrideIndex
+                            vm.overrideIndex = 0;
+
+                            let overrides = c.data.spec.shards.overrides;
+
+                            overrides.forEach( (override, index) => {
+
+                                // Set instance profile if it doesn't exist
+                                if(!override.hasOwnProperty('sgInstanceProfile')) {
+                                    override['sgInstanceProfile'] = '';
+                                }
+
+                                // If exists, parse persisten volume
+                                if(vm.hasProp(override, 'pods.persistentVolume')) {
                                     // Volume Size
                                     let volumeSize = {
                                         size: override.pods.persistentVolume.size.match(/\d+/g)[0],
@@ -7446,60 +7457,88 @@
                                     };
                                     override.pods.persistentVolume.size = volumeSize;
 
-                                    // ManagedSQL    
-                                    vm.setScriptsSource(override, 'overrides');
-
-                                    // Custom Volumes
-                                    vm.customVolumesType.overrides[index] = [];
-                                    if(vm.hasProp(override, 'pods.customVolumes')) {
-                                        override.pods.customVolumes.forEach( (v) => {
-                                            if(v.hasOwnProperty('emptyDir')) {
-                                                vm.customVolumesType.overrides[index].push('emptyDir');
-                                            } else if(v.hasOwnProperty('configMap')) {
-                                                vm.customVolumesType.overrides[index].push('configMap');
-                                            } else if(v.hasOwnProperty('secret')) {
-                                                vm.customVolumesType.overrides[index].push('secret');
-                                            }
-                                        });
+                                    if(!override.pods.persistentVolume.hasOwnProperty('storageClass')) {
+                                        override.pods.persistentVolume['storageClass'] = '';
                                     }
 
-                                    // Replication
-                                    if(!vm.hasProp(override, 'replication')) {
-                                        override['replication'] = {
-                                            mode: 'async'
-                                        };
+                                } else { // If override has no persistent volume, initialize
+                                    override.pods['persistentVolume'] = {
+                                        size: '',
+                                        unit: '',
+                                        storageClass: ''
+                                    }
+                                }
+
+                                // If override has no configurations, initialize
+                                if(!override.hasOwnProperty('configurations')) {
+                                    override['configurations'] = {
+                                        sgPostgresConfig: '',
+                                        sgPoolingConfig: '',
+                                    };
+                                } else {
+                                    if(!override.configurations.hasOwnProperty('sgPostgresConfig')) {
+                                        override.configurations['sgPostgresConfig'] = '';
                                     }
 
-                                    // Metadata
-                                    if(vm.hasProp(override, 'metadata.labels.clusterPods')) {
-                                        override.metadata.labels.clusterPods = vm.unparseProps(override.metadata.labels.clusterPods, 'label');
+                                    if(!override.configurations.hasOwnProperty('sgPoolingConfig')) {
+                                        override.configurations['sgPoolingConfig'] = '';
                                     }
+                                }
 
-                                    ['allResources', 'clusterPods', 'services', 'primaryService', 'replicasService'].forEach( (annotation) => {
-                                        if(vm.hasProp(override, 'metadata.annotations.' + annotation)) {
-                                            override.metadata.annotations[annotation] = vm.unparseProps(override.metadata.annotations[annotation]);
+                                // ManagedSQL    
+                                vm.setScriptsSource(override, 'overrides');
+
+                                // Custom Volumes
+                                vm.customVolumesType.overrides[index] = [];
+                                if(vm.hasProp(override, 'pods.customVolumes')) {
+                                    override.pods.customVolumes.forEach( (v) => {
+                                        if(v.hasOwnProperty('emptyDir')) {
+                                            vm.customVolumesType.overrides[index].push('emptyDir');
+                                        } else if(v.hasOwnProperty('configMap')) {
+                                            vm.customVolumesType.overrides[index].push('configMap');
+                                        } else if(v.hasOwnProperty('secret')) {
+                                            vm.customVolumesType.overrides[index].push('secret');
                                         }
-                                    })
+                                    });
+                                }
 
-                                    // Scheduling
-                                    if(vm.hasProp(override, 'pods.scheduling.nodeSelector')) {
-                                        override.pods.scheduling.nodeSelector = vm.unparseProps(override.pods.scheduling.nodeSelector, 'label');
+                                // Replication
+                                if(!vm.hasProp(override, 'replication')) {
+                                    override['replication'] = {
+                                        mode: 'async'
+                                    };
+                                }
+
+                                // Metadata
+                                if(vm.hasProp(override, 'metadata.labels.clusterPods')) {
+                                    override.metadata.labels.clusterPods = vm.unparseProps(override.metadata.labels.clusterPods, 'label');
+                                }
+
+                                ['allResources', 'clusterPods', 'services', 'primaryService', 'replicasService'].forEach( (annotation) => {
+                                    if(vm.hasProp(override, 'metadata.annotations.' + annotation)) {
+                                        override.metadata.annotations[annotation] = vm.unparseProps(override.metadata.annotations[annotation]);
                                     }
-                                });
-                            } else {
-                                vm.$set(vm.shards, 'overrides', []);
-                            }
+                                })
 
-                            // Check if Monitoring should be enabled
-                            vm.checkEnableMonitoring(c.data.spec);
+                                // Scheduling
+                                if(vm.hasProp(override, 'pods.scheduling.nodeSelector')) {
+                                    override.pods.scheduling.nodeSelector = vm.unparseProps(override.pods.scheduling.nodeSelector, 'label');
+                                }
+                            });
 
-                            vm.editReady = vm.advancedMode = true
-                            return false
+                            vm.$set(vm.shards, 'overrides', overrides);
+                        } else {
+                            vm.$set(vm.shards, 'overrides', []);
                         }
-                    });
+
+                        // Check if Monitoring should be enabled
+                        vm.checkEnableMonitoring(c.data.spec);
+
+                        vm.editReady = vm.advancedMode = true
+                    }
                 }
                 
-                return cluster
+                return c
             },
 
             currentStepIndex() {
