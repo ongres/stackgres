@@ -5,6 +5,7 @@ e2e_exclusive_lock() {
 }
 
 e2e_test() {
+  run_test "Check that exporter queries are wokring" check_exporter_queries
   run_test "Check that exporter pod monitor was created" check_exporter_pod_monitor
   run_test "Check that envoy pod monitor was created" check_envoy_pod_monitor
   run_test "Check that grafana is embedded" check_grafana_embedded
@@ -35,6 +36,22 @@ check_grafana_secret() {
     echo "FAIL. Grafana URL can not be retrieved"
     return 1
   fi
+}
+
+check_exporter_queries() {
+  local METRIC
+  for METRIC in $(yq -r 'keys[]' "$PROJECT_PATH"/stackgres-k8s/src/operator/src/main/resources/prometheus-postgres-exporter/queries.yaml)
+  do
+    QUERY="$(yq -r ".[\"$METRIC\"].query" "$PROJECT_PATH"/stackgres-k8s/src/operator/src/main/resources/prometheus-postgres-exporter/queries.yaml)"
+    if wait_until eval 'kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
+      psql -v ON_ERROR_STOP=ON -c "$QUERY" > /dev/null'
+    then
+      echo "Exporter metric $METRIC query is working"
+    else
+      echo "Exporter metric $METRIC query is failing"
+      return 1
+    fi
+  done
 }
 
 check_exporter_pod_monitor() {
