@@ -91,7 +91,7 @@
             }]
           },
           "instances": 1,
-          "sgInstanceProfile": "size-xs",
+          "sgInstanceProfile": "size-s",
           "configurations": {
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"
@@ -121,7 +121,7 @@
           },
           "clusters": 2,
           "instancesPerCluster": 1,
-          "sgInstanceProfile": "size-xs",
+          "sgInstanceProfile": "size-s",
           "configurations": {
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"

@@ -163,6 +163,10 @@ public enum StackGresVersion {
     return getStackGresVersionFromResourceAsNumber(script);
   }
 
+  public static long getStackGresVersionAsNumber(StackGresShardedCluster config) {
+    return getStackGresVersionFromResourceAsNumber(config);
+  }
+
   public static long getStackGresVersionAsNumber(StackGresShardedBackup config) {
     return getStackGresVersionFromResourceAsNumber(config);
   }

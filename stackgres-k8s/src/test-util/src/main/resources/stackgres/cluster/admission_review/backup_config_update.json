@@ -55,7 +55,7 @@
           "mode": "async",
           "role": "ha-read"
         },
-        "sgInstanceProfile": "size-xs",
+        "sgInstanceProfile": "size-s",
         "configurations": {
           "sgPostgresConfig": "postgresconf",
           "sgPoolingConfig": "pgbouncerconf",
@@ -93,7 +93,7 @@
           "mode": "async",
           "role": "ha-read"
         },
-        "sgInstanceProfile": "size-xs",
+        "sgInstanceProfile": "size-s",
         "configurations": {
           "sgPostgresConfig": "postgresconf",
           "sgPoolingConfig": "pgbouncerconf",

@@ -57,14 +57,14 @@ class ProfileResourceTest extends AbstractDependencyCustomResourceTest
 
   @Override
   protected String getResourceName() {
-    return "size-xs";
+    return "size-s";
   }
 
   @Override
   protected void checkDto(ProfileDto resource) {
     assertNotNull(resource.getMetadata());
     assertEquals("stackgres", resource.getMetadata().getNamespace());
-    assertEquals("size-xs", resource.getMetadata().getName());
+    assertEquals("size-s", resource.getMetadata().getName());
     assertEquals("44f1f832-37a0-4346-9876-be4a9135dca5", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
     assertEquals("1", resource.getSpec().getCpu());
@@ -79,7 +79,7 @@ class ProfileResourceTest extends AbstractDependencyCustomResourceTest
   protected void checkCustomResource(StackGresProfile resource, Operation operation) {
     assertNotNull(resource.getMetadata());
     assertEquals("stackgres", resource.getMetadata().getNamespace());
-    assertEquals("size-xs", resource.getMetadata().getName());
+    assertEquals("size-s", resource.getMetadata().getName());
     assertEquals("44f1f832-37a0-4346-9876-be4a9135dca5", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
     assertEquals("1", resource.getSpec().getCpu());

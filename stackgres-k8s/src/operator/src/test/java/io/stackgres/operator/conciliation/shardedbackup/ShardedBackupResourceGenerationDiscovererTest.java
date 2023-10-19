@@ -43,7 +43,7 @@ public class ShardedBackupResourceGenerationDiscovererTest
   public void setup() {
     this.backup = Fixtures.shardedBackup().loadDefault().get();
     this.cluster = Fixtures.shardedCluster().loadDefault().withLatestPostgresVersion().get();
-    this.profile = Fixtures.instanceProfile().loadSizeXs().get();
+    this.profile = Fixtures.instanceProfile().loadSizeS().get();
   }
 
   @Override

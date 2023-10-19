@@ -42,9 +42,9 @@ e2e_test() {
 
   run_test "Updating an empty sgobjectstorage should be filled with default configurations" update_empty_sgobjectstorage
 
-  run_test "Creating an empty sginstanceprofile should be filled with default configurations" create_empty_sginstanceprofile
+  run_test "Creating an sginstanceprofile should be filled with default configurations" create_sginstanceprofile
 
-  run_test "Updating an empty sginstanceprofile should be filled with default configurations" update_empty_sginstanceprofile
+  run_test "Updating an sginstanceprofile should be filled with default configurations" update_sginstanceprofile
 
   run_test "If default configuration are already created it should create the cluster" create_empty_cluster_with_default_pgbouncer
 
@@ -357,7 +357,7 @@ EOF
   fi
 }
 
-create_empty_sginstanceprofile() {
+create_sginstanceprofile() {
   kubectl delete sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" --ignore-not-found
   cat << EOF | kubectl create --validate=false -f -
 apiVersion: stackgres.io/v1
@@ -366,12 +366,13 @@ metadata:
   name: $INSTANCE_PROFILE
   namespace: $CLUSTER_NAMESPACE
 spec:
-  memory: '512Mi'
+  cpu: '1'
+  memory: '2Gi'
 EOF
 
   local CREATED_FIELDS
   CREATED_FIELDS="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.spec')"
-  if [ -z "$CREATED_FIELDS" || "$CREATED_FIELDS" = "null" ]
+  if [ -z "$CREATED_FIELDS" ] || [ "$CREATED_FIELDS" = "null" ]
   then
     echo "FAIL. Default fields not filled"
     return 1
@@ -391,7 +392,7 @@ EOF
   fi
 }
 
-update_empty_sginstanceprofile() {
+update_sginstanceprofile() {
   kubectl delete sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" --ignore-not-found
   cat << EOF | kubectl create --validate=false -f -
 apiVersion: stackgres.io/v1
@@ -399,19 +400,21 @@ kind: SGInstanceProfile
 metadata:
   name: $INSTANCE_PROFILE
   namespace: $CLUSTER_NAMESPACE
-spec: {}
+spec:
+  cpu: '1'
+  memory: '2Gi'
 EOF
   local PREVIOUS_FIELDS
-  PREVIOUS_FIELDS="$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.spec.memory = "512Mi" | .spec')"
+  PREVIOUS_FIELDS="$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.spec.memory = "1Gi" | del(.spec.initContainers) | .spec')"
   local PATCH
   PATCH="$(kubectl get sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json \
     | jq 'del(.metadata.resourceVersion)|del(.metadata.uid)|del(.metadata.creationTimestamp)|del(.metadata.selfLink)|del(.metadata.geneartion)' \
-    | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])|.spec.memory = "512Mi"' \
+    | jq 'del(.metadata.annotations["stackgres.io/operatorVersion"])|.spec.memory = "1Gi"' \
     | kubectl create -f - --dry-run=client -o yaml)"
   kubectl patch sginstanceprofile -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" --type merge -p "$PATCH"
 
   local UPDATED_FIELDS
-  UPDATED_FIELDS="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq '.spec')"
+  UPDATED_FIELDS="$(kubectl get sginstanceprofiles.stackgres.io -n "$CLUSTER_NAMESPACE" "$INSTANCE_PROFILE" -o json | jq 'del(.spec.initContainers) | .spec')"
 
   if [ "$UPDATED_FIELDS" = "$PREVIOUS_FIELDS" ]
   then

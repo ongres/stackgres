@@ -68,7 +68,7 @@ cluster:
   #       password:
   #         name:
   #         key:
-  sgInstanceProfile: size-xs
+  sgInstanceProfile: size-s
   postgresServices:
     primary:
       enabled: true
@@ -206,7 +206,7 @@ shardedCluster:
   shards:
     clusters: 2
     instancesPerCluster: 1
-    sgInstanceProfile: size-xs
+    sgInstanceProfile: size-s
     configurations:
       sgPostgresConfig: postgresconf
       sgPoolingConfig: pgbouncerconf
@@ -215,9 +215,6 @@ shardedCluster:
         size: 5Gi
 
 instanceProfiles:
-  - name: size-xs
-    cpu: "500m"
-    memory: "512Mi"
   - name: size-s
     cpu: "1"
     memory: "2Gi"

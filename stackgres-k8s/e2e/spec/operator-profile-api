@@ -1,7 +1,7 @@
 #!/bin/sh
 
 e2e_test_install() {
-  PROFILE="size-xs"
+  PROFILE="size-s"
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false --set cluster.sgInstanceProfile="$PROFILE"
@@ -323,7 +323,7 @@ test_dependency_api_error(){
 
   EXPECTED_ERROR_TYPE="forbidden-configuration-deletion"
   EXPECTED_ERROR_TITLE="Forbidden configuration deletion"
-  EXPECTED_ERROR_DETAIL="Can't delete sginstanceprofiles.stackgres.io size-xs"
+  EXPECTED_ERROR_DETAIL="Can't delete sginstanceprofiles.stackgres.io size-s"
   EXPECTED_ERROR_FIELD=""
 
   assert_api_error "$ERROR_RESPONSE"

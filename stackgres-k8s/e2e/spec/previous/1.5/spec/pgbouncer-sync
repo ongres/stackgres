@@ -11,7 +11,7 @@ e2e_test_install() {
 apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
 metadata:
-  name: size-xs
+  name: size-s
   namespace: $CLUSTER_NAMESPACE
 spec:
   cpu: '500m'
@@ -58,7 +58,7 @@ spec:
     version: 'latest'
   configurations:
     sgPoolingConfig: $PGCBOUNCER
-  sgInstanceProfile: 'size-xs'
+  sgInstanceProfile: 'size-s'
   pods:
     persistentVolume:
       size: '32Mi'

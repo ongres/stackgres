@@ -66,7 +66,7 @@ class ClusterStatefulSetContainerProfileDecoratorTest extends AbstractProfileDec
   @BeforeEach
   void setUp() {
     cluster = Fixtures.cluster().loadDefault().get();
-    profile = Fixtures.instanceProfile().loadSizeXs().get();
+    profile = Fixtures.instanceProfile().loadSizeS().get();
 
     final ObjectMeta metadata = cluster.getMetadata();
     metadata.getAnnotations().put(StackGresContext.VERSION_KEY,

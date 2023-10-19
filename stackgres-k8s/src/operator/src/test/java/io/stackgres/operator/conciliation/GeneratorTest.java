@@ -88,7 +88,7 @@ public abstract class GeneratorTest {
 
   @BeforeEach
   void setUp() {
-    stackGresProfile = Fixtures.instanceProfile().loadSizeXs().get();
+    stackGresProfile = Fixtures.instanceProfile().loadSizeS().get();
     stackGresProfile.getMetadata().setNamespace(CLUSTER_NAMESPACE);
 
     stackGresPostgresConfig = Fixtures.postgresConfig().loadDefault().get();

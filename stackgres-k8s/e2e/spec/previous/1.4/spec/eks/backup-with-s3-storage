@@ -133,7 +133,7 @@ spec:
   instances: 2
   postgres:
     version: 'latest'
-  sgInstanceProfile: size-xs
+  sgInstanceProfile: size-s
   pods:
     persistentVolume:
       size: '512Mi'

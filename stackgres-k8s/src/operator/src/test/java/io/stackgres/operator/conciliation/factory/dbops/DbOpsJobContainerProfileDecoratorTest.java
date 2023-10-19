@@ -62,7 +62,7 @@ class DbOpsJobContainerProfileDecoratorTest extends AbstractProfileDecoratorTest
   void setUp() {
     dbOps = Fixtures.dbOps().loadRestart().get();
     cluster = Fixtures.cluster().loadDefault().get();
-    profile = Fixtures.instanceProfile().loadSizeXs().get();
+    profile = Fixtures.instanceProfile().loadSizeS().get();
 
     final ObjectMeta metadata = dbOps.getMetadata();
     metadata.getAnnotations().put(StackGresContext.VERSION_KEY,

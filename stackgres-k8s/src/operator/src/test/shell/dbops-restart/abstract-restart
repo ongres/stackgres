@@ -68,7 +68,7 @@ kubectl_mock() {
               "postgres": {
                 "version": "12.6"
               },
-              "sgInstanceProfile": "size-xs"
+              "sgInstanceProfile": "size-s"
           },
           "status": {
             "dbOps": {

@@ -72,7 +72,7 @@
           "type":"ClusterIP"
        }
     },
-    "sgInstanceProfile": "size-xs",
+    "sgInstanceProfile": "size-s",
     "configurations": {
       "sgPostgresConfig": "postgresconf"
     }

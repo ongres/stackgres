@@ -71,7 +71,7 @@ class BackupRequiredResourcesGeneratorTest {
         .getLatestVersion());
     cluster.getMetadata().setNamespace(backup.getMetadata().getNamespace());
     cluster.getMetadata().setName(backup.getSpec().getSgCluster());
-    profile = Fixtures.instanceProfile().loadSizeXs().get();
+    profile = Fixtures.instanceProfile().loadSizeS().get();
     backupConfig = Fixtures.backupConfig().loadDefault().get();
     backupConfig.getMetadata().setNamespace(backup.getMetadata().getNamespace());
     objectStorage = Fixtures.objectStorage().loadDefault().get();

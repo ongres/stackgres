@@ -55,7 +55,7 @@
           "mode": "async",
           "role": "ha-read"
         },
-        "sgInstanceProfile": "size-xs",
+        "sgInstanceProfile": "size-s",
         "initialData": {
           "restore": {
             "fromBackup": {
@@ -106,7 +106,7 @@
           "backupPath": "sgbackups.stackgres.io/default/stackgres/11",
           "sgBackupConfig": "backupconf"
         },
-        "sgInstanceProfile": "size-xs",
+        "sgInstanceProfile": "size-s",
         "initialData":{
           "restore": {
             "fromBackup": {

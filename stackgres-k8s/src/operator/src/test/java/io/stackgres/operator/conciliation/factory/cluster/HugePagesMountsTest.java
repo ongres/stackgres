@@ -38,7 +38,7 @@ class HugePagesMountsTest {
   @BeforeEach
   void setUp() {
     hugePagesMounts = new HugePagesMounts();
-    profile = Fixtures.instanceProfile().loadSizeS().get();
+    profile = Fixtures.instanceProfile().loadSizeM().get();
     when(clusterContainerContext.getClusterContext()).thenReturn(clusterContext);
   }
 

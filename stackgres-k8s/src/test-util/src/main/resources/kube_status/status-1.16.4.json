@@ -13,9 +13,9 @@
       }
     ],
     "group": "stackgres.io",
-    "name": "size-xs"
+    "name": "size-s"
   },
-  "message": "SGInstanceProfile.stackgres.io \"size-xs\" is invalid: spec.memory: Invalid value: \"\": spec.memory in body should match '^[0-9]+(\\.[0-9]+)?(Mi|Gi)$'",
+  "message": "SGInstanceProfile.stackgres.io \"size-s\" is invalid: spec.memory: Invalid value: \"\": spec.memory in body should match '^[0-9]+(\\.[0-9]+)?(Mi|Gi)$'",
   "reason": "Invalid",
   "status": "Failure"
 }

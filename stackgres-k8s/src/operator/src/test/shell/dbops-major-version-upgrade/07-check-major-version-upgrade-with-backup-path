@@ -30,7 +30,7 @@ kubectl_mock_overwrite() {
                   "postgres": {
                     "version": "11.8"
                   },
-                  "sgInstanceProfile": "size-xs",
+                  "sgInstanceProfile": "size-s",
                   "configurations": {
                     "sgBackupConfig": "test",
                     "backupPath": "test"

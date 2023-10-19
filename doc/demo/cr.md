@@ -15,7 +15,7 @@
 apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
 metadata:
-  name: size-xs
+  name: size-s
   annotations:
     "helm.sh/hook": "pre-install"
 spec:
@@ -115,7 +115,7 @@ metadata:
 spec:
   instances: 1
   postgresVersion: '11.6'
-  sgInstanceProfile: 'size-xs'
+  sgInstanceProfile: 'size-s'
   configurations:
     sgPostgresConfig: 'postgresconf'
     sgPoolingConfig: 'pgbouncerconf' 

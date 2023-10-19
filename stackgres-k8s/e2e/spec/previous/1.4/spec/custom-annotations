@@ -13,7 +13,7 @@ e2e_test_install() {
 apiVersion: stackgres.io/v1
 kind: SGInstanceProfile
 metadata:
-  name: size-xs
+  name: size-s
   namespace: $CLUSTER_NAMESPACE
 spec:
   cpu: '500m'
@@ -60,7 +60,7 @@ spec:
     scheduling:
       nodeSelector:
         $NODE_LABEL_KEY: $NODE_LABEL_VALUE
-  sgInstanceProfile: 'size-xs'
+  sgInstanceProfile: 'size-s'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
@@ -97,7 +97,7 @@ spec:
     scheduling:
       nodeSelector:
         $NODE_LABEL_KEY: $NODE_LABEL_VALUE
-  sgInstanceProfile: 'size-xs'
+  sgInstanceProfile: 'size-s'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
@@ -215,7 +215,7 @@ spec:
     scheduling:
       nodeSelector:
         $NODE_LABEL_KEY: $NODE_LABEL_VALUE
-  sgInstanceProfile: 'size-xs'
+  sgInstanceProfile: 'size-s'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF
@@ -266,7 +266,7 @@ spec:
     scheduling:
       nodeSelector:
         $NODE_LABEL_KEY: $NODE_LABEL_VALUE
-  sgInstanceProfile: 'size-xs'
+  sgInstanceProfile: 'size-s'
   nonProductionOptions:
     disableClusterPodAntiAffinity: true
 EOF

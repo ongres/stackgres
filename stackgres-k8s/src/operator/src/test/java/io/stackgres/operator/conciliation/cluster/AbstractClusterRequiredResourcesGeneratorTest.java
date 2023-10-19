@@ -117,7 +117,7 @@ abstract class AbstractClusterRequiredResourcesGeneratorTest {
     poolingConfig.getStatus().setPgBouncer(new StackGresPoolingConfigPgBouncerStatus());
     poolingConfig.getStatus().getPgBouncer()
         .setDefaultParameters(PgBouncerDefaultValues.getDefaultValues());
-    instanceProfile = Fixtures.instanceProfile().loadSizeS().get();
+    instanceProfile = Fixtures.instanceProfile().loadSizeM().get();
     instanceProfile.getMetadata().setNamespace(namespace);
     setNamespace(instanceProfile);
     backup = Fixtures.backup().loadDefault().get();

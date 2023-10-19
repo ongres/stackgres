@@ -35,7 +35,7 @@ spec:
   pods:
     persistentVolume:
       size: '5Gi'
-  sgInstanceProfile: 'size-xs'
+  sgInstanceProfile: 'size-s'
 ```
 
 See also [Cluster Creation section]({{% relref "04-administration-guide/02-cluster-creation" %}}).

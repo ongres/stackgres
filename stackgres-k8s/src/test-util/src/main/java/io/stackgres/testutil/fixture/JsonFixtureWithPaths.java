@@ -374,7 +374,7 @@ public interface JsonFixtureWithPaths {
 
   String STACKGRES_INSTANCE_PROFILE_SIZE_S_JSON = "stackgres/instance_profile/size-s.json";
 
-  String STACKGRES_INSTANCE_PROFILE_SIZE_XS_JSON = "stackgres/instance_profile/size-xs.json";
+  String STACKGRES_INSTANCE_PROFILE_SIZE_M_JSON = "stackgres/instance_profile/size-m.json";
 
   String STACKGRES_OBJECT_STORAGE_ADMISSION_REVIEW_CREATE_JSON =
       "stackgres/object_storage/admission_review/create.json";

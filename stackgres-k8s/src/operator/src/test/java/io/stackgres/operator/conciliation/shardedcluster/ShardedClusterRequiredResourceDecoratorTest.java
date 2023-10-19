@@ -49,7 +49,7 @@ class ShardedClusterRequiredResourceDecoratorTest
     this.config = Fixtures.config().loadDefault().get();
     this.resource = Fixtures.shardedCluster().loadDefault().withLatestPostgresVersion().get();
     this.pgConfig = Fixtures.postgresConfig().loadDefault().get();
-    this.profile = Fixtures.instanceProfile().loadSizeS().get();
+    this.profile = Fixtures.instanceProfile().loadSizeM().get();
     this.pooling = ofNullable(Fixtures.poolingConfig().loadDefault().get());
   }
 

@@ -38,7 +38,7 @@ public class BackupResourceGenerationDiscovererTest
   public void setup() {
     this.resource = Fixtures.backup().loadDefault().get();
     this.cluster = Fixtures.cluster().loadDefault().withLatestPostgresVersion().get();
-    this.profile = Fixtures.instanceProfile().loadSizeXs().get();
+    this.profile = Fixtures.instanceProfile().loadSizeS().get();
     this.backupConfig = Fixtures.backupConfig().loadDefault().get();
   }
 

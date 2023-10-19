@@ -37,7 +37,7 @@
         },
         "creationTimestamp": "2019-10-25T11:22:45Z",
         "generation": 1,
-        "name": "size-xs",
+        "name": "size-s",
         "namespace": "postgresql",
         "uid": "c4bc460a-f719-11e9-b325-0242ac110002"
       },

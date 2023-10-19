@@ -1,0 +1,17 @@
+{
+  "apiVersion": "stackgres.io/v1",
+  "kind": "SGInstanceProfile",
+  "metadata": {
+    "creationTimestamp": "2019-09-30T11:10:03Z",
+    "generation": 1,
+    "name": "size-m",
+    "namespace": "default",
+    "resourceVersion": "214289",
+    "selfLink": "/apis/stackgres.io/v1/namespaces/default/sginstanceprofiles/size-s",
+    "uid": "44f1f832-37a0-4346-9876-be4a9135dca5"
+  },
+  "spec": {
+    "cpu": "2",
+    "memory": "4Gi"
+  }
+}

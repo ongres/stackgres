@@ -68,7 +68,7 @@ class DistributedLogsStatefulSetContainerProfileDecoratorTest
   @BeforeEach
   void setUp() {
     distributedLogs = Fixtures.distributedLogs().loadDefault().get();
-    profile = Fixtures.instanceProfile().loadSizeXs().get();
+    profile = Fixtures.instanceProfile().loadSizeS().get();
 
     final ObjectMeta metadata = distributedLogs.getMetadata();
     metadata.getAnnotations().put(StackGresContext.VERSION_KEY,

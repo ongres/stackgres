@@ -45,7 +45,7 @@ class ProfileReferenceValidatorTest {
   void setUp() throws Exception {
     validator = new ProfileReferenceValidator(profileFinder);
 
-    profileSizeXs = Fixtures.instanceProfile().loadSizeXs().get();
+    profileSizeXs = Fixtures.instanceProfile().loadSizeS().get();
 
   }
 
@@ -122,7 +122,7 @@ class ProfileReferenceValidatorTest {
     String resourceProfile = review.getRequest().getObject().getSpec().getSgInstanceProfile();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
-    StackGresProfile profileSizeS = Fixtures.instanceProfile().loadSizeS().get();
+    StackGresProfile profileSizeS = Fixtures.instanceProfile().loadSizeM().get();
 
     when(profileFinder.findByNameAndNamespace(resourceProfile, namespace))
         .thenReturn(Optional.of(profileSizeS));

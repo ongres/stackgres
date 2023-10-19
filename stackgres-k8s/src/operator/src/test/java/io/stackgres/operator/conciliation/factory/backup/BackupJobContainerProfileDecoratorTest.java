@@ -64,7 +64,7 @@ class BackupJobContainerProfileDecoratorTest extends AbstractProfileDecoratorTes
   void setUp() {
     backup = Fixtures.backup().loadDefault().get();
     cluster = Fixtures.cluster().loadDefault().get();
-    profile = Fixtures.instanceProfile().loadSizeXs().get();
+    profile = Fixtures.instanceProfile().loadSizeS().get();
 
     final ObjectMeta metadata = backup.getMetadata();
     metadata.getAnnotations().put(StackGresContext.VERSION_KEY,

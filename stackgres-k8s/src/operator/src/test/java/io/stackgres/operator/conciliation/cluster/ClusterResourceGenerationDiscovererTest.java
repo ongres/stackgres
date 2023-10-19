@@ -48,7 +48,7 @@ class ClusterResourceGenerationDiscovererTest
     this.config = Fixtures.config().loadDefault().get();
     this.resource = Fixtures.cluster().loadDefault().withLatestPostgresVersion().get();
     this.pgConfig = Fixtures.postgresConfig().loadDefault().get();
-    this.profile = Fixtures.instanceProfile().loadSizeS().get();
+    this.profile = Fixtures.instanceProfile().loadSizeM().get();
     this.backupConfig = ofNullable(null);
     this.pooling = ofNullable(Fixtures.poolingConfig().loadDefault().get());
     this.secret = ofNullable(Fixtures.secret().loadMinio().get());

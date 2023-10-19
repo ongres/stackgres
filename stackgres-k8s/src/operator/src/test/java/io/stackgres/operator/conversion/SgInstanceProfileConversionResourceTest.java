@@ -15,7 +15,7 @@ class SgInstanceProfileConversionResourceTest extends ConversionResourceTest<Sta
 
   @Override
   protected StackGresProfile getCustomResource() {
-    return Fixtures.instanceProfile().loadSizeS().get();
+    return Fixtures.instanceProfile().loadSizeM().get();
   }
 
   @Override

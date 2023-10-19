@@ -39,7 +39,7 @@ abstract class DbOpsJobTestCase {
   void setUp() {
     cluster = Fixtures.cluster().loadDefault().get();
 
-    clusterProfile = Fixtures.instanceProfile().loadSizeXs().get();
+    clusterProfile = Fixtures.instanceProfile().loadSizeS().get();
 
     dbOps = getDbOps();
   }

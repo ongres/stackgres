@@ -123,7 +123,7 @@ class ShardedClusterValidationQuarkusTest {
         client.resources(StackGresProfile.class, StackGresProfileList.class)
             .list();
     client.resourceList(instanceList.getItems()).delete();
-    var instanceConfig = Fixtures.instanceProfile().loadSizeXs().get();
+    var instanceConfig = Fixtures.instanceProfile().loadSizeS().get();
     instanceConfig.getMetadata().setNamespace("test");
     client.resource(instanceConfig).createOrReplace();
 

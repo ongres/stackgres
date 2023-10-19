@@ -12,10 +12,10 @@
         "labels": {
             "app.kubernetes.io/managed-by": "Helm"
         },
-        "name": "size-xs",
+        "name": "size-s",
         "namespace": "dbops-security-upgrade-6270f0b2",
         "resourceVersion": "1774",
-        "selfLink": "/apis/stackgres.io/v1/namespaces/dbops-security-upgrade-6270f0b2/sginstanceprofiles/size-xs",
+        "selfLink": "/apis/stackgres.io/v1/namespaces/dbops-security-upgrade-6270f0b2/sginstanceprofiles/size-s",
         "uid": "88baebc0-ed8e-4ac4-8f3e-25ff1cc1450d"
     },
     "spec": {

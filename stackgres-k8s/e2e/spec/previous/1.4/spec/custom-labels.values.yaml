@@ -12,7 +12,7 @@ cluster:
     managementPolicy: Parallel
   configurations:
     sgBackupConfig: null
-  sgInstanceProfile: 'size-xs'
+  sgInstanceProfile: 'size-s'
   prometheusAutobind: false
 nonProductionOptions:
   disableClusterPodAntiAffinity: true

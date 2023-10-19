@@ -62,7 +62,7 @@ class ShardedDbOpsJobContainerProfileDecoratorTest extends AbstractProfileDecora
   void setUp() {
     dbOps = Fixtures.shardedDbOps().loadRestart().get();
     cluster = Fixtures.shardedCluster().loadDefault().get();
-    profile = Fixtures.instanceProfile().loadSizeXs().get();
+    profile = Fixtures.instanceProfile().loadSizeS().get();
 
     final ObjectMeta metadata = dbOps.getMetadata();
     metadata.getAnnotations().put(StackGresContext.VERSION_KEY,

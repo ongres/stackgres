@@ -140,7 +140,7 @@ class ClusterValidationQuarkusTest {
         client.resources(StackGresProfile.class, StackGresProfileList.class)
             .list();
     client.resourceList(instanceList).delete();
-    var instanceConfig = Fixtures.instanceProfile().loadSizeXs().get();
+    var instanceConfig = Fixtures.instanceProfile().loadSizeS().get();
     instanceConfig.getMetadata().setNamespace("test");
     client.resources(StackGresProfile.class, StackGresProfileList.class)
         .inNamespace(instanceConfig.getMetadata().getNamespace())
