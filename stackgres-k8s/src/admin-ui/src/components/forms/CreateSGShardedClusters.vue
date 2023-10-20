@@ -4971,12 +4971,12 @@
                                 </label>  
                                 <label for="connPoolingShards" class="switch yes-no">
                                     Enable
-                                    <input :checked="!shards.overrides[overrideIndex].pods.disableConnectionPooling" type="checkbox" id="connPoolingShards" @change="( (shards.overrides[overrideIndex].pods.disableConnectionPooling = !shards.overrides[overrideIndex].pods.disableConnectionPooling)) " data-switch="NO">
+                                    <input v-model="shards.overrides[overrideIndex].pods.disableConnectionPooling" type="checkbox" id="connPoolingShards" :true-value="false" :false-value="true" data-switch="NO">
                                 </label>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.configurations.sgPoolingConfig')"></span>
                             </div>
 
-                            <div class="col" v-if="!shards.overrides[overrideIndex].pods.disableConnectionPooling">
+                            <div class="col" v-if="!shards.overrides[overrideIndex].pods.hasOwnProperty('disableConnectionPooling') || !shards.overrides[overrideIndex].pods.disableConnectionPooling">
                                 <label for="connectionPoolingConfigShards">
                                     Connection Pooling Configuration
                                 </label>
@@ -7501,6 +7501,11 @@
                                     if(!override.configurations.hasOwnProperty('sgPoolingConfig')) {
                                         override.configurations['sgPoolingConfig'] = '';
                                     }
+                                }
+
+                                // Initialize connection pooling if it doesn't exist
+                                if(!vm.hasProp(override, 'pods.disableConnectionPooling')) {
+                                    override.pods['disableConnectionPooling'] = false;
                                 }
 
                                 // ManagedSQL    
