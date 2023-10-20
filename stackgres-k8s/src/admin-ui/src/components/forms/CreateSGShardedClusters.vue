@@ -2047,7 +2047,7 @@
                                     <option>async</option>
                                     <option>sync</option>
                                     <option>strict-sync</option>
-                                    <option selected>sync-all</option>
+                                    <option>sync-all</option>
                                     <option>strict-sync-all</option>
                                 </select>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.replication.mode')"></span>
@@ -4117,7 +4117,7 @@
                             <div class="col">
                                 <label for="spec.shards.replication.mode">Mode</label>
                                 <select v-model="shards.replication.mode" required data-field="spec.shards.replication.mode" @change="['sync', 'strict-sync'].includes(shards.replication.mode) ? (!shards.replication.hasOwnProperty('syncInstances') && (shards.replication['syncInstances'] = 1) ) : ((shards.replication.hasOwnProperty('syncInstances') && delete shards.replication.syncInstances) )">    
-                                    <option selected>async</option>
+                                    <option>async</option>
                                     <option>sync</option>
                                     <option>strict-sync</option>
                                     <option>sync-all</option>
@@ -6173,7 +6173,7 @@
                             <div class="col">
                                 <label for="spec.shards.overrides.replication.mode">Mode</label>
                                 <select v-model="shards.overrides[overrideIndex].replication.mode" required :data-field="'spec.shards.overrides[' + overrideIndex + '].replication.mode'" @change="['sync', 'strict-sync'].includes(shards.overrides[overrideIndex].replication.mode) ? (shards.overrides[overrideIndex].replication['syncInstances'] = 1) : ((shards.overrides[overrideIndex].replication.hasOwnProperty('syncInstances') && delete shards.overrides[overrideIndex].replication.syncInstances) )">    
-                                    <option selected>async</option>
+                                    <option>async</option>
                                     <option>sync</option>
                                     <option>strict-sync</option>
                                     <option>sync-all</option>
@@ -7522,11 +7522,9 @@
                                 }
 
                                 // Replication
-                                if(!vm.hasProp(override, 'replication')) {
-                                    override['replication'] = {
-                                        mode: 'async'
-                                    };
-                                }
+                                override['replication'] = vm.hasProp(override, 'replication') 
+                                    ? override.replication 
+                                    : { mode: 'async'};
 
                                 // Metadata
                                 if(vm.hasProp(override, 'metadata.labels.clusterPods')) {
