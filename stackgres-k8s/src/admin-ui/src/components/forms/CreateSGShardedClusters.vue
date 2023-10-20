@@ -4866,6 +4866,12 @@
                                         <option
                                             :value="index"
                                             :key="'override-cluster-' + index"
+                                            :disabled="
+                                                (
+                                                    (shards.overrides[overrideIndex].index !== index) &&
+                                                    (typeof shards.overrides.find( ov => ov.index == index) !== 'undefined')
+                                                )
+                                            "
                                         >
                                             Cluster #{{ index }}
                                         </option>
