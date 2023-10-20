@@ -7287,11 +7287,7 @@
                     shards: [ 
                         { base: '', entries: ['raw'] }
                     ],
-                    overrides: [
-                        [
-                            { base: '', entries: ['raw'] }
-                        ]
-                    ]
+                    overrides: []
                 },
                 currentScriptIndex: {
                     coordinator: { base: 0, entry: 0 },
@@ -8094,26 +8090,32 @@
                 const vm = this;
 
                 if(el.hasOwnProperty('managedSql')) {
-                    vm.scriptSource[type] = [];
+                    let scriptSource;
+
+                    if (type === 'overrides') {
+                        vm.scriptSource.overrides.push([]);
+                        scriptSource = vm.scriptSource.overrides[vm.scriptSource.overrides.length - 1];
+                    } else {
+                        scriptSource = vm.scriptSource[type];
+                    }
+
                     el.managedSql.scripts.forEach( (baseScript, baseIndex) => {
-                        vm.scriptSource[type].push({ base: baseScript.sgScript, entries: [] });
+                        scriptSource.push({ base: baseScript.sgScript, entries: [] });
 
                         if(vm.hasProp(baseScript, 'scriptSpec.scripts')) {
                             baseScript.scriptSpec.scripts.forEach(function(script, index){
                                 if(script.hasOwnProperty('script')) {
-                                    vm.scriptSource[type][baseIndex].entries.push('raw');
+                                    scriptSource[baseIndex].entries.push('raw');
                                 } else if(script.scriptFrom.hasOwnProperty('secretKeyRef')) {
-                                    vm.scriptSource[type][baseIndex].entries.push('secretKeyRef');
+                                    scriptSource[baseIndex].entries.push('secretKeyRef');
                                 } else if(script.scriptFrom.hasOwnProperty('configMapScript')) {
-                                    vm.scriptSource[type][baseIndex].entries.push('configMapKeyRef');
+                                    scriptSource[baseIndex].entries.push('configMapKeyRef');
                                 }
                             })
                         }
                     })
                 } else {
-                    let scriptParent = ( (type === 'overrides') ? vm.shards.overrides[vm.overrideIndex] : vm[type] );
-                    
-                    scriptParent['managedSql'] = {
+                    el['managedSql'] = {
                         continueOnSGScriptError: false,
                         scripts: []
                     };
