@@ -810,7 +810,7 @@
                                     <label for="spec.coordinator.pods.persistentVolume.size">Volume Size <span class="req">*</span></label>  
                                     <input v-model="coordinator.pods.persistentVolume.size.size" class="size" required data-field="spec.coordinator.pods.persistentVolume.size" type="number">
                                     <select v-model="coordinator.pods.persistentVolume.size.unit" class="unit" required data-field="spec.coordinator.pods.persistentVolume.size" >
-                                        <option disabled value="">Select Unit</option>
+                                        <option disabled :value="''">Select Unit</option>
                                         <option value="Mi">MiB</option>
                                         <option value="Gi">GiB</option>
                                         <option value="Ti">TiB</option>   
@@ -2882,7 +2882,7 @@
                                     <label for="spec.shards.pods.persistentVolume.size">Volume Size <span class="req">*</span></label>  
                                     <input v-model="shards.pods.persistentVolume.size.size" class="size" required data-field="spec.shards.pods.persistentVolume.size" type="number">
                                     <select v-model="shards.pods.persistentVolume.size.unit" class="unit" required data-field="spec.shards.pods.persistentVolume.size" >
-                                        <option disabled value="">Select Unit</option>
+                                        <option disabled :value="''">Select Unit</option>
                                         <option value="Mi">MiB</option>
                                         <option value="Gi">GiB</option>
                                         <option value="Ti">TiB</option>   
@@ -4863,7 +4863,12 @@
                                 <select v-model="shards.overrides[overrideIndex].index" required :data-field="'spec.shards.overrides[' + overrideIndex + '].index'">
                                     <option :value="nullVal" selected>Choose one...</option>
                                     <template v-for="(n, index) in parseInt(shards.clusters)">
-                                        <option :value="index">Cluster #{{ index }}</option>
+                                        <option
+                                            :value="index"
+                                            :key="'override-cluster-' + index"
+                                        >
+                                            Cluster #{{ index }}
+                                        </option>
                                     </template>
                                 </select>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.index')"></span>
@@ -4923,7 +4928,7 @@
                                     <label for="spec.shards.overrides.pods.persistentVolume.size">Volume Size</label>  
                                     <input v-model="shards.overrides[overrideIndex].pods.persistentVolume.size.size" class="size" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.persistentVolume.size'" type="number">
                                     <select v-model="shards.overrides[overrideIndex].pods.persistentVolume.size.unit" class="unit" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.persistentVolume.size'" >
-                                        <option disabled value="">Select Unit</option>
+                                        <option :value="''">Select Unit</option>
                                         <option value="Mi">MiB</option>
                                         <option value="Gi">GiB</option>
                                         <option value="Ti">TiB</option>   
@@ -7439,16 +7444,21 @@
                             // Initialize overrideIndex
                             vm.overrideIndex = 0;
 
-                            let overrides = c.data.spec.shards.overrides;
+                            let overrides = JSON.parse(JSON.stringify(c.data.spec.shards.overrides));
 
                             overrides.forEach( (override, index) => {
+
+                                // Set instances per cluster if it doesn't exist
+                                if(!override.hasOwnProperty('instancesPerCluster')) {
+                                    override['instancesPerCluster'] = null;
+                                }
 
                                 // Set instance profile if it doesn't exist
                                 if(!override.hasOwnProperty('sgInstanceProfile')) {
                                     override['sgInstanceProfile'] = '';
                                 }
 
-                                // If exists, parse persisten volume
+                                // If exists, parse persistent volume
                                 if(vm.hasProp(override, 'pods.persistentVolume')) {
                                     // Volume Size
                                     let volumeSize = {
@@ -7463,10 +7473,12 @@
 
                                 } else { // If override has no persistent volume, initialize
                                     override.pods['persistentVolume'] = {
-                                        size: '',
-                                        unit: '',
+                                        size: {
+                                            size: '',
+                                            unit: ''
+                                        },
                                         storageClass: ''
-                                    }
+                                    };
                                 }
 
                                 // If override has no configurations, initialize
@@ -8165,8 +8177,8 @@
                         disableMetricsExporter: false,
                         persistentVolume: {
                             size: {
-                                size: 1,
-                                unit: 'Gi'
+                                size: '',
+                                unit: ''
                             },
                             storageClass: ''
                         },
@@ -8289,10 +8301,10 @@
                     }
                     
                     if (
-                        ( (override.pods.persistentVolume.size.size + override.pods.persistentVolume.size.unit) !== '1Gi' ) || 
+                        ( ![null, ''].includes(override.pods.persistentVolume.size.size) && ![null, ''].includes(override.pods.persistentVolume.size.unit) ) || 
                         ( override.pods.persistentVolume.hasOwnProperty('storageClass') && override.pods.persistentVolume.storageClass.length )
                     ) {
-                        if( (override.pods.persistentVolume.size.size + override.pods.persistentVolume.size.unit) !== '1Gi' ) {
+                        if( ![null, ''].includes(override.pods.persistentVolume.size.size) && ![null, ''].includes(override.pods.persistentVolume.size.unit) ) {
                             override.pods.persistentVolume.size = override.pods.persistentVolume.size.size + override.pods.persistentVolume.size.unit;
                         } else {
                             delete override.pods.persistentVolume.size;
