@@ -2844,7 +2844,7 @@
                                                                 <strong class="label">Persistent Volume</strong>
                                                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.persistentVolume')"></span>
                                                                 <ul>
-                                                                    <li>
+                                                                    <li v-if="hasProp(override, 'pods.persistentVolume.size')">
                                                                         <strong class="label">Volume Size</strong>
                                                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.persistentVolume.size')"></span>
                                                                         <span class="value"> : {{ override.pods.persistentVolume.size }}B</span>
