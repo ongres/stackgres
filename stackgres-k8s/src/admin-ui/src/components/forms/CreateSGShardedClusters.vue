@@ -7399,6 +7399,10 @@
                             };
                             vm[type].pods.persistentVolume.size = volumeSize;
 
+                            if(!vm[type].pods.persistentVolume.hasOwnProperty('storageClass')) {
+                                vm[type].pods.persistentVolume['storageClass'] = '';
+                            }
+
                             // Script Sources
                             vm.setScriptsSource(c.data.spec[type], type);
 
