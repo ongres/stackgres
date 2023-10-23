@@ -1493,6 +1493,9 @@ describe('Create SGShardedCluster', () => {
             .clear()
             .type('2')
 
+        cy.get('input[data-field="spec.shards.overrides[0].pods.persistentVolume.unit"]')
+            .select('GiB')
+
         
         /*  Note: Disable Overrides' ManagedSQL tests until bug is solved
             https://gitlab.com/ongresinc/stackgres/-/issues/2464
