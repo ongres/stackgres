@@ -15,15 +15,16 @@ e2e_test_install() {
 
   PRIMARY_CLUSTER_NAME="$(get_sgcluster_name "primary-$SPEC_NAME")"
   create_or_replace_cluster "$PRIMARY_CLUSTER_NAME" "$CLUSTER_NAMESPACE" "1"
+  wait_cluster "$PRIMARY_CLUSTER_NAME" "$CLUSTER_NAMESPACE"
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
     --set configurations.create=false \
     --set instanceProfiles=null \
     --set-string cluster.replicateFrom.instance.sgCluster="$PRIMARY_CLUSTER_NAME"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
   wait_pods_running "$CLUSTER_NAMESPACE" "5"
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {

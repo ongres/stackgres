@@ -114,8 +114,9 @@ pgbouncer_database_check() {
 }
 
 pgbouncer_users_check() {
-  run_query -i 0 -p 5432 -q "CREATE USER user1 WITH PASSWORD 'test'";
-  run_query -i 0 -p 5432 -q "CREATE USER user2 WITH PASSWORD 'test'";
+  # PgBouncer doesn't correctly support SCRAM in userlist.txt: https://github.com/pgbouncer/pgbouncer/issues/774
+  run_query -i 0 -p 5432 -q "SET password_encryption = 'md5'; CREATE USER user1 WITH PASSWORD 'test'";
+  run_query -i 0 -p 5432 -q "SET password_encryption = 'md5'; CREATE USER user2 WITH PASSWORD 'test'";
   kubectl get sgpoolconfig -n "$CLUSTER_NAMESPACE" pgbouncerconf -o json \
     | jq '.spec.pgBouncer["pgbouncer.ini"].users = { user1: {}, user2: {} }' \
     | kubectl patch sgpoolconfig -n "$CLUSTER_NAMESPACE" pgbouncerconf --type merge -p "$(cat)"

@@ -28,11 +28,11 @@ e2e_test_install() {
     --set-string cluster.replicateFrom.users.authenticator.username.key="PATRONI_authenticator_USERNAME" \
     --set-string cluster.replicateFrom.users.authenticator.password.name="$PRIMARY_CLUSTER_NAME" \
     --set-string cluster.replicateFrom.users.authenticator.password.key="PATRONI_authenticator_PASSWORD"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 
   wait_pods_running "$CLUSTER_NAMESPACE" "4"
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 e2e_test() {
