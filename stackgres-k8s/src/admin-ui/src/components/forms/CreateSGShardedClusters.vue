@@ -31,7 +31,7 @@
                                     <button
                                         type="button"
                                         class="icon delete plain"
-                                        @click="overrideIndex -= 1; spliceArray(shards.overrides, overrideIndex)"
+                                        @click="deleteOverride(index)"
                                     >
                                     </button>
                                 </a>
@@ -8452,6 +8452,19 @@
                 });
 
                 return overrides;
+            },
+
+            deleteOverride(index) {
+                const vc = this;
+
+                if( (index == vc.overrideIndex) && (vc.overrideIndex != 0) ) {
+                    vc.overrideIndex -= 1;
+                }
+                
+                vc.spliceArray(vc.scriptSource.overrides, index);
+                vc.spliceArray(vc.customVolumesType.overrides, index);
+                vc.spliceArray(vc.shards.overrides, index);
+                vc.currentStep.overrides = 'shards';
             }
         },
     }
