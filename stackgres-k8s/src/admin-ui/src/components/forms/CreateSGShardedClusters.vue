@@ -2826,6 +2826,10 @@
                                 <label for="spec.shards.clusters">Number of Clusters <span class="req">*</span></label>
                                 <input type="number" v-model="shards.clusters" required data-field="spec.shards.clusters" min="1" max="16">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.clusters')"></span>
+
+                                <p class="warning" v-if="(shards.hasOwnProperty('overrides') && (shards.clusters < shards.overrides.length))">
+                                    Bear in mind that the number of clusters affects the amount of overrides that can be set. Please check the <a @click="currentSection = 'overrides'; overrideIndex = 0;">Overrides</a> section to make sure you have set them properly.
+                                </p>
                             </div>
                         </div>
                         
