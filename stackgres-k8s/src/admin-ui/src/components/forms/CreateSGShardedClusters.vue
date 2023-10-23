@@ -4933,7 +4933,7 @@
                                 <div class="unit-select">
                                     <label for="spec.shards.overrides.pods.persistentVolume.size">Volume Size</label>  
                                     <input v-model="shards.overrides[overrideIndex].pods.persistentVolume.size.size" class="size" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.persistentVolume.size'" type="number">
-                                    <select v-model="shards.overrides[overrideIndex].pods.persistentVolume.size.unit" class="unit" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.persistentVolume.size'" >
+                                    <select v-model="shards.overrides[overrideIndex].pods.persistentVolume.size.unit" class="unit" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.persistentVolume.size'" :required="!isNull(shards.overrides[overrideIndex].pods.persistentVolume.size.size)">
                                         <option :value="''">Select Unit</option>
                                         <option value="Mi">MiB</option>
                                         <option value="Gi">GiB</option>
