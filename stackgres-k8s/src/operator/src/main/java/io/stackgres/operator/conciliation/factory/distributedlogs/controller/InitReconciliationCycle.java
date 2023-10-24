@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.DistributedLogsControllerProperty;
@@ -69,59 +70,70 @@ public class InitReconciliationCycle implements ContainerFactory<DistributedLogs
         .withImage(StackGresController.DISTRIBUTEDLOGS_CONTROLLER.getImageName())
         .withEnv(
             new EnvVarBuilder()
-                .withName("COMMAND")
-                .withValue("run-reconciliation-cycle")
-                .build(),
+            .withName("COMMAND")
+            .withValue("run-reconciliation-cycle")
+            .build(),
             new EnvVarBuilder()
-                .withName(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAME
-                    .getEnvironmentVariableName())
-                .withValue(metadata.getName())
-                .build(),
+            .withName(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAME
+                .getEnvironmentVariableName())
+            .withValue(metadata.getName())
+            .build(),
             new EnvVarBuilder()
-                .withName(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAMESPACE
-                    .getEnvironmentVariableName())
-                .withValue(metadata.getNamespace())
-                .build(),
+            .withName(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_NAMESPACE
+                .getEnvironmentVariableName())
+            .withValue(metadata.getNamespace())
+            .build(),
             new EnvVarBuilder()
-                .withName(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_CONTROLLER_POD_NAME
-                    .getEnvironmentVariableName())
-                .withValueFrom(new EnvVarSourceBuilder()
-                    .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
-                    .build())
-                .build(),
-            new EnvVarBuilder()
-                .withName(DistributedLogsControllerProperty
-                    .DISTRIBUTEDLOGS_CONTROLLER_EXTENSIONS_REPOSITORY_URLS
-                    .getEnvironmentVariableName())
-                .withValue(OperatorProperty.EXTENSIONS_REPOSITORY_URLS
-                    .getString())
-                .build(),
-            new EnvVarBuilder()
-                .withName(DistributedLogsControllerProperty
-                    .DISTRIBUTEDLOGS_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES
-                    .getEnvironmentVariableName())
-                .withValue(Boolean.FALSE.toString())
-                .build(),
-            new EnvVarBuilder()
-                .withName("DISTRIBUTEDLOGS_CONTROLLER_LOG_LEVEL")
-                .withValue(System.getenv("OPERATOR_LOG_LEVEL"))
-                .build(),
-            new EnvVarBuilder()
-                .withName("DISTRIBUTEDLOGS_CONTROLLER_SHOW_STACK_TRACES")
-                .withValue(System.getenv("OPERATOR_SHOW_STACK_TRACES"))
-                .build(),
-            new EnvVarBuilder()
-                .withName("APP_OPTS")
-                .withValue(System.getenv("APP_OPTS"))
-                .build(),
-            new EnvVarBuilder()
-                .withName("DEBUG_DISTRIBUTEDLOGS_CONTROLLER")
-                .withValue(System.getenv("DEBUG_OPERATOR"))
-                .build(),
-            new EnvVarBuilder()
-                .withName("DEBUG_DISTRIBUTEDLOGS_CONTROLLER_SUSPEND")
-                .withValue(System.getenv("DEBUG_OPERATOR_SUSPEND"))
+            .withName(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_CONTROLLER_POD_NAME
+                .getEnvironmentVariableName())
+            .withValueFrom(new EnvVarSourceBuilder()
+                .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
                 .build())
+            .build(),
+            new EnvVarBuilder()
+            .withName(DistributedLogsControllerProperty
+                .DISTRIBUTEDLOGS_CONTROLLER_EXTENSIONS_REPOSITORY_URLS
+                .getEnvironmentVariableName())
+            .withValue(OperatorProperty.EXTENSIONS_REPOSITORY_URLS
+                .getString())
+            .build(),
+            new EnvVarBuilder()
+            .withName(DistributedLogsControllerProperty
+                .DISTRIBUTEDLOGS_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES
+                .getEnvironmentVariableName())
+            .withValue(Boolean.FALSE.toString())
+            .build(),
+            new EnvVarBuilder()
+            .withName("DISTRIBUTEDLOGS_CONTROLLER_LOG_LEVEL")
+            .withValue(System.getenv("OPERATOR_LOG_LEVEL"))
+            .build(),
+            new EnvVarBuilder()
+            .withName("DISTRIBUTEDLOGS_CONTROLLER_SHOW_STACK_TRACES")
+            .withValue(System.getenv("OPERATOR_SHOW_STACK_TRACES"))
+            .build(),
+            new EnvVarBuilder()
+            .withName("APP_OPTS")
+            .withValue(System.getenv("APP_OPTS"))
+            .build(),
+            new EnvVarBuilder()
+            .withName("DEBUG_DISTRIBUTEDLOGS_CONTROLLER")
+            .withValue(System.getenv("DEBUG_OPERATOR"))
+            .build(),
+            new EnvVarBuilder()
+            .withName("DEBUG_DISTRIBUTEDLOGS_CONTROLLER_SUSPEND")
+            .withValue(System.getenv("DEBUG_OPERATOR_SUSPEND"))
+            .build(),
+            new EnvVarBuilder()
+            .withName("MEMORY_REQUEST")
+            .withNewValueFrom()
+            .withNewResourceFieldRef()
+            .withResource("requests.memory")
+            .withDivisor(new Quantity("1"))
+            .withContainerName(
+                StackGresInitContainer.DISTRIBUTEDLOGS_RECONCILIATION_CYCLE.getName())
+            .endResourceFieldRef()
+            .endValueFrom()
+            .build())
         .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))
         .addAllToVolumeMounts(postgresDataMounts.getVolumeMounts(context))
         .addToVolumeMounts(
