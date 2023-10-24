@@ -863,99 +863,306 @@
                                         </li>
                                     </ul>
                                 </li>
-                            </ul>
-                        </li>
-                    </ul>
-
-                    <ul
-                        class="section"
-                        v-if="( 
-                            (cluster.data.spec.pods.hasOwnProperty('customVolumes') && !isNull(cluster.data.spec.pods.customVolumes)) || 
-                            (cluster.data.spec.pods.hasOwnProperty('customInitContainers') && !isNull(cluster.data.spec.pods.customInitContainers)) || 
-                            (cluster.data.spec.pods.hasOwnProperty('customContainers') && !isNull(cluster.data.spec.pods.customContainers)) )
-                        ">
-                        <li>
-                            <button class="toggleSummary"></button>
-                            <strong class="sectionTitle">User-Supplied Pods' Sidecars </strong>
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods')"></span>
-                            <ul>
-                                <li v-if="cluster.data.spec.pods.hasOwnProperty('customVolumes') && !isNull(cluster.data.spec.pods.customVolumes)">
+                   
+                                <li v-if="( 
+                                    (cluster.data.spec.pods.hasOwnProperty('customVolumes') && !isNull(cluster.data.spec.pods.customVolumes)) || 
+                                    (cluster.data.spec.pods.hasOwnProperty('customInitContainers') && !isNull(cluster.data.spec.pods.customInitContainers)) || 
+                                    (cluster.data.spec.pods.hasOwnProperty('customContainers') && !isNull(cluster.data.spec.pods.customContainers)) )
+                                ">
                                     <button class="toggleSummary"></button>
-                                    <strong class="label">Custom Volumes</strong>
-                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes')"></span>
+                                    <strong class="label">User-Supplied Pods' Sidecars </strong>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods')"></span>
                                     <ul>
-                                        <template v-for="(vol, index) in cluster.data.spec.pods.customVolumes">
-                                            <li :key="index">
-                                                <button class="toggleSummary"></button>
-                                                <strong class="label">Volume #{{ index + 1 }}</strong>
-                                                <ul>
-                                                    <li v-if="vol.hasOwnProperty('name')">
-                                                        <strong class="label">Name</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.name')"></span>
-                                                        <span class="value"> : {{ vol.name }}</span>
-                                                    </li>
-                                                    <li v-if="vol.hasOwnProperty('emptyDir') && Object.keys(vol.emptyDir).length && (!isNull(vol.emptyDir.medium) || !isNull(vol.emptyDir.sizeLimit))">
+                                        <li v-if="cluster.data.spec.pods.hasOwnProperty('customVolumes') && !isNull(cluster.data.spec.pods.customVolumes)">
+                                            <button class="toggleSummary"></button>
+                                            <strong class="label">Custom Volumes</strong>
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes')"></span>
+                                            <ul>
+                                                <template v-for="(vol, index) in cluster.data.spec.pods.customVolumes">
+                                                    <li :key="index">
                                                         <button class="toggleSummary"></button>
-                                                        <strong class="label">Empty Directory</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.emptyDir')"></span>
+                                                        <strong class="label">Volume #{{ index + 1 }}</strong>
                                                         <ul>
-                                                            <li v-if="vol.emptyDir.hasOwnProperty('medium') && !isNull(vol.emptyDir.medium)">
-                                                                <strong class="label">Medium</strong>
-                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.emptyDir.properties.medium')"></span>
-                                                                <span class="value"> : {{ vol.emptyDir.medium }}</span>
-                                                            </li>
-                                                            <li v-if="vol.emptyDir.hasOwnProperty('sizeLimit') && !isNull(vol.emptyDir.sizeLimit)">
-                                                                <strong class="label">Size Limit</strong>
-                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.emptyDir.properties.sizeLimit')"></span>
-                                                                <span class="value"> : {{ vol.emptyDir.sizeLimit }}</span>
-                                                            </li>
-                                                        </ul>
-                                                    </li>
-                                                    <li v-if="vol.hasOwnProperty('configMap') && Object.keys(vol.configMap).length">
-                                                        <button class="toggleSummary"></button>
-                                                        <strong class="label">Config Map</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap')"></span>
-                                                        <ul>
-                                                            <li v-if="vol.configMap.hasOwnProperty('name') && !isNull(vol.configMap.name)">
+                                                            <li v-if="vol.hasOwnProperty('name')">
                                                                 <strong class="label">Name</strong>
-                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.name')"></span>
-                                                                <span class="value"> : {{ vol.configMap.name }}</span>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.name')"></span>
+                                                                <span class="value"> : {{ vol.name }}</span>
                                                             </li>
-                                                            <li v-if="vol.configMap.hasOwnProperty('optional')">
-                                                                <strong class="label">Optional</strong>
-                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.name')"></span>
-                                                                <span class="value"> : {{ isEnabled(vol.configMap.optional) }}</span>
-                                                            </li>
-                                                            <li v-if="vol.configMap.hasOwnProperty('defaultMode') && !isNull(vol.configMap.defaultMode)">
-                                                                <strong class="label">Default Mode</strong>
-                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.defaultMode')"></span>
-                                                                <span class="value"> : {{ vol.configMap.defaultMode }}</span>
-                                                            </li>
-                                                            <li v-if="vol.configMap.hasOwnProperty('items') && vol.configMap.items.length">
+                                                            <li v-if="vol.hasOwnProperty('emptyDir') && Object.keys(vol.emptyDir).length && (!isNull(vol.emptyDir.medium) || !isNull(vol.emptyDir.sizeLimit))">
                                                                 <button class="toggleSummary"></button>
-                                                                <strong class="label">Items</strong>
-                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.items')"></span>
+                                                                <strong class="label">Empty Directory</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.emptyDir')"></span>
                                                                 <ul>
-                                                                    <template v-for="(item, index) in vol.configMap.items">
-                                                                        <li :key="index">
+                                                                    <li v-if="vol.emptyDir.hasOwnProperty('medium') && !isNull(vol.emptyDir.medium)">
+                                                                        <strong class="label">Medium</strong>
+                                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.emptyDir.properties.medium')"></span>
+                                                                        <span class="value"> : {{ vol.emptyDir.medium }}</span>
+                                                                    </li>
+                                                                    <li v-if="vol.emptyDir.hasOwnProperty('sizeLimit') && !isNull(vol.emptyDir.sizeLimit)">
+                                                                        <strong class="label">Size Limit</strong>
+                                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.emptyDir.properties.sizeLimit')"></span>
+                                                                        <span class="value"> : {{ vol.emptyDir.sizeLimit }}</span>
+                                                                    </li>
+                                                                </ul>
+                                                            </li>
+                                                            <li v-if="vol.hasOwnProperty('configMap') && Object.keys(vol.configMap).length">
+                                                                <button class="toggleSummary"></button>
+                                                                <strong class="label">Config Map</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap')"></span>
+                                                                <ul>
+                                                                    <li v-if="vol.configMap.hasOwnProperty('name') && !isNull(vol.configMap.name)">
+                                                                        <strong class="label">Name</strong>
+                                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.name')"></span>
+                                                                        <span class="value"> : {{ vol.configMap.name }}</span>
+                                                                    </li>
+                                                                    <li v-if="vol.configMap.hasOwnProperty('optional')">
+                                                                        <strong class="label">Optional</strong>
+                                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.name')"></span>
+                                                                        <span class="value"> : {{ isEnabled(vol.configMap.optional) }}</span>
+                                                                    </li>
+                                                                    <li v-if="vol.configMap.hasOwnProperty('defaultMode') && !isNull(vol.configMap.defaultMode)">
+                                                                        <strong class="label">Default Mode</strong>
+                                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.defaultMode')"></span>
+                                                                        <span class="value"> : {{ vol.configMap.defaultMode }}</span>
+                                                                    </li>
+                                                                    <li v-if="vol.configMap.hasOwnProperty('items') && vol.configMap.items.length">
+                                                                        <button class="toggleSummary"></button>
+                                                                        <strong class="label">Items</strong>
+                                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.items')"></span>
+                                                                        <ul>
+                                                                            <template v-for="(item, index) in vol.configMap.items">
+                                                                                <li :key="index">
+                                                                                    <button class="toggleSummary"></button>
+                                                                                    <strong class="label">Item #{{ index + 1 }}</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.items.items')"></span>
+                                                                                    <ul>
+                                                                                        <li v-if="item.hasOwnProperty('key') && !isNull(item.key)">
+                                                                                            <strong class="label">Key</strong>
+                                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.items.items.properties.key')"></span>
+                                                                                            <span class="value"> : {{ item.key }}</span>
+                                                                                        </li>
+                                                                                        <li v-if="item.hasOwnProperty('mode') && !isNull(item.mode)">
+                                                                                            <strong class="label">Mode</strong>
+                                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.items.items.properties.mode')"></span>
+                                                                                            <span class="value"> : {{ item.mode }}</span>
+                                                                                        </li>
+                                                                                        <li v-if="item.hasOwnProperty('path') && !isNull(item.path)">
+                                                                                            <strong class="label">Path</strong>
+                                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.items.items.properties.path')"></span>
+                                                                                            <span class="value"> : {{ item.path }}</span>
+                                                                                        </li>
+                                                                                    </ul>
+                                                                                </li>
+                                                                            </template>
+                                                                        </ul>
+                                                                    </li>
+                                                                </ul>
+                                                            </li>
+                                                            <li v-if="vol.hasOwnProperty('secret') && Object.keys(vol.secret).length">
+                                                                <button class="toggleSummary"></button>
+                                                                <strong class="label">Secret</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret')"></span>
+                                                                <ul>
+                                                                    <li v-if="vol.secret.hasOwnProperty('secretName') && !isNull(vol.secret.secretName)">
+                                                                        <strong class="label">Secret Name</strong>
+                                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.secretName')"></span>
+                                                                        <span class="value"> : {{ vol.secret.secretName }}</span>
+                                                                    </li>
+                                                                    <li v-if="vol.secret.hasOwnProperty('optional')">
+                                                                        <strong class="label">Optional</strong>
+                                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.optional')"></span>
+                                                                        <span class="value"> : {{ isEnabled(vol.secret.optional) }}</span>
+                                                                    </li>
+                                                                    <li v-if="vol.secret.hasOwnProperty('defaultMode') && !isNull(vol.secret.defaultMode)">
+                                                                        <strong class="label">Default Mode</strong>
+                                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.defaultMode')"></span>
+                                                                        <span class="value"> : {{ vol.secret.defaultMode }}</span>
+                                                                    </li>
+                                                                    <li v-if="vol.secret.hasOwnProperty('items') && vol.secret.items.length">
+                                                                        <button class="toggleSummary"></button>
+                                                                        <strong class="label">Items</strong>
+                                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.items')"></span>
+                                                                        <ul>
+                                                                            <template v-for="(item, index) in vol.secret.items">
+                                                                                <li :key="index">
+                                                                                    <button class="toggleSummary"></button>
+                                                                                    <strong class="label">Item #{{ index + 1 }}</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.items.items')"></span>
+                                                                                    <ul>
+                                                                                        <li v-if="item.hasOwnProperty('key') && !isNull(item.key)">
+                                                                                            <strong class="label">Key:</strong>
+                                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.items.items.properties.key')"></span>
+                                                                                            <span class="value"> : {{ item.key }}</span>
+                                                                                        </li>
+                                                                                        <li v-if="item.hasOwnProperty('mode') && !isNull(item.mode)">
+                                                                                            <strong class="label">Mode</strong>
+                                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.items.items.properties.mode')"></span>
+                                                                                            <span class="value"> : {{ item.mode }}</span>
+                                                                                        </li>
+                                                                                        <li v-if="item.hasOwnProperty('path') && !isNull(item.path)">
+                                                                                            <strong class="label">Path</strong>
+                                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.items.items.properties.path')"></span>
+                                                                                            <span class="value"> : {{ item.path }}</span>
+                                                                                        </li>
+                                                                                    </ul>
+                                                                                </li>
+                                                                            </template>
+                                                                        </ul>
+                                                                    </li>
+                                                                </ul>
+                                                            </li>
+                                                        </ul>
+                                                    </li>
+                                                </template>
+                                            </ul>
+                                        </li>
+
+                                        <li v-if="cluster.data.spec.pods.hasOwnProperty('customInitContainers') && !isNull(cluster.data.spec.pods.customInitContainers)">
+                                            <button class="toggleSummary"></button>
+                                            <strong class="label">Custom Init Containers</strong>
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers')"></span>
+
+                                            <ul>
+                                                <template v-for="(container, index) in cluster.data.spec.pods.customInitContainers">
+                                                    <li :key="'container-' + index">
+                                                        <button class="toggleSummary"></button>
+                                                        <strong class="label">Init Container #{{ index + 1 }}</strong>
+                                                        <ul>
+                                                            <li v-if="container.hasOwnProperty('name') && !isNull(container.name)">
+                                                                <strong class="label">Name</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.name')"></span>
+                                                                <span class="value"> : {{ container.name }}</span>
+                                                            </li>
+                                                            <li v-if="container.hasOwnProperty('image') && !isNull(container.image)">
+                                                                <strong class="label">Image</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.image')"></span>
+                                                                <span class="value"> : {{ container.image }}</span>
+                                                            </li>
+                                                            <li v-if="container.hasOwnProperty('imagePullPolicy') && !isNull(container.imagePullPolicy)">
+                                                                <strong class="label">Image Pull Policy</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.imagePullPolicy')"></span>
+                                                                <span class="value"> : {{ container.imagePullPolicy }}</span>
+                                                            </li>
+                                                            <li v-if="container.hasOwnProperty('workingDir') && !isNull(container.workingDir)">
+                                                                <strong class="label">Working Directory</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.workingDir')"></span>
+                                                                <span class="value"> : {{ container.workingDir }}</span>
+                                                            </li>
+                                                            <li v-if="container.hasOwnProperty('args') && !isNull(container.args)">
+                                                                <button class="toggleSummary"></button>
+                                                                <strong class="label">Arguments</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.arguments')"></span>
+                                                                <ul>
+                                                                    <template v-for="(arg, aIndex) in container.args">
+                                                                        <li :key="'argument-' + index + '-' + aIndex">
+                                                                            <span class="value">{{ arg }}</span>
+                                                                        </li>
+                                                                    </template>
+                                                                </ul>
+                                                            </li>
+                                                            <li v-if="container.hasOwnProperty('command') && !isNull(container.command)">
+                                                                <button class="toggleSummary"></button>
+                                                                <strong class="label">Command</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.command')"></span>
+                                                                <ul>
+                                                                    <template v-for="(command, cIndex) in container.command">
+                                                                        <li :key="'command-' + index + '-' + cIndex">
+                                                                            <span class="value">{{ command }}</span>
+                                                                        </li>
+                                                                    </template>
+                                                                </ul>
+                                                            </li>
+                                                            <li v-if="container.hasOwnProperty('env') && !isNull(container.env)">
+                                                                <button class="toggleSummary"></button>
+                                                                <strong class="label">Environment Variables</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.env')"></span>
+                                                                <ul>
+                                                                    <template v-for="(envVar, vIndex) in container.env">
+                                                                        <li :key="'var-' + index + '-' + vIndex">
+                                                                            <strong class="label">{{ envVar.name }}:</strong>
+                                                                            <span class="value">{{ envVar.value }}</span>
+                                                                        </li>
+                                                                    </template>
+                                                                </ul>
+                                                            </li>
+                                                            <li v-if="container.hasOwnProperty('ports') && !isNull(container.ports)">
+                                                                <button class="toggleSummary"></button>
+                                                                <strong class="label">Ports</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports')"></span>
+                                                                <ul>
+                                                                    <template v-for="(port, pIndex) in container.ports">
+                                                                        <li :key="'port-' + index + '-' + pIndex">
                                                                             <button class="toggleSummary"></button>
-                                                                            <strong class="label">Item #{{ index + 1 }}</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.items.items')"></span>
+                                                                            <strong class="label">Port #{{ pIndex + 1 }}</strong>
                                                                             <ul>
-                                                                                <li v-if="item.hasOwnProperty('key') && !isNull(item.key)">
-                                                                                    <strong class="label">Key</strong>
-                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.items.items.properties.key')"></span>
-                                                                                    <span class="value"> : {{ item.key }}</span>
+                                                                                <li v-if="port.hasOwnProperty('name') && !isNull(port.name)">
+                                                                                    <strong class="label">Name</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports.items.properties.name')"></span>
+                                                                                    <span class="value"> : {{ port.name }}</span>
                                                                                 </li>
-                                                                                <li v-if="item.hasOwnProperty('mode') && !isNull(item.mode)">
-                                                                                    <strong class="label">Mode</strong>
-                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.items.items.properties.mode')"></span>
-                                                                                    <span class="value"> : {{ item.mode }}</span>
+                                                                                <li v-if="port.hasOwnProperty('hostIP') && !isNull(port.hostIP)">
+                                                                                    <strong class="label">Host IP</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports.items.properties.hostIP')"></span>
+                                                                                    <span class="value"> : {{ port.hostIP }}</span>
                                                                                 </li>
-                                                                                <li v-if="item.hasOwnProperty('path') && !isNull(item.path)">
-                                                                                    <strong class="label">Path</strong>
-                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.configMap.properties.items.items.properties.path')"></span>
-                                                                                    <span class="value"> : {{ item.path }}</span>
+                                                                                <li v-if="port.hasOwnProperty('hostPort') && !isNull(port.hostPort)">
+                                                                                    <strong class="label">Host Port</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports.items.properties.hostPort')"></span>
+                                                                                    <span class="value"> : {{ port.hostPort }}</span>
+                                                                                </li>
+                                                                                <li v-if="port.hasOwnProperty('containerPort') && !isNull(port.containerPort)">
+                                                                                    <strong class="label">Container Port</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports.items.properties.containerPort')"></span>
+                                                                                    <span class="value"> : {{ port.containerPort }}</span>
+                                                                                </li>
+                                                                                <li v-if="port.hasOwnProperty('protocol') && !isNull(port.protocol)">
+                                                                                    <strong class="label">Protocol</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports.items.properties.protocol')"></span>
+                                                                                    <span class="value"> : {{ port.protocol }}</span>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                    </template>
+                                                                </ul>
+                                                            </li>
+                                                            <li v-if="container.hasOwnProperty('volumeMounts') && !isNull(container.volumeMounts)">
+                                                                <button class="toggleSummary"></button>
+                                                                <strong class="label">Volume Mounts</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts')"></span>
+                                                                <ul>
+                                                                    <template v-for="(vol, vIndex) in container.volumeMounts">
+                                                                        <li :key="'vol-' + index + '-' + vIndex">
+                                                                            <strong class="label">Volume #{{ vIndex + 1 }}</strong>
+                                                                            <ul>
+                                                                                <li v-if="vol.hasOwnProperty('name') && !isNull(vol.name)">
+                                                                                    <strong class="label">Name</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.name')"></span>
+                                                                                    <span class="value"> : {{ vol.name }}</span>
+                                                                                </li>
+                                                                                <li v-if="vol.hasOwnProperty('readOnly')">
+                                                                                    <strong class="label">Read Only</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.readOnly')"></span>
+                                                                                    <span class="value"> : {{ isEnabled(vol.readOnly) }}</span>
+                                                                                </li>
+                                                                                <li v-if="vol.hasOwnProperty('mountPath') && !isNull(vol.mountPath)">
+                                                                                    <strong class="label">Mount Path</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.mountPath')"></span>
+                                                                                    <span class="value"> : {{ vol.mountPath }}</span>
+                                                                                </li>
+                                                                                <li v-if="vol.hasOwnProperty('mountPropagation') && !isNull(vol.mountPropagation)">
+                                                                                    <strong class="label">Mount Propagation</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.mountPropagation')"></span>
+                                                                                    <span class="value"> : {{ vol.mountPropagation }}</span>
+                                                                                </li>
+                                                                                <li v-if="vol.hasOwnProperty('subPath') && !isNull(vol.subPath)">
+                                                                                    <strong class="label">Sub Path</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.subPath')"></span>
+                                                                                    <span class="value"> : {{ vol.subPath }}</span>
+                                                                                </li>
+                                                                                <li v-if="vol.hasOwnProperty('subPathExpr') && !isNull(vol.subPathExpr)">
+                                                                                    <strong class="label">Sub Path Expr</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.subPathExpr')"></span>
+                                                                                    <span class="value"> : {{ vol.subPathExpr }}</span>
                                                                                 </li>
                                                                             </ul>
                                                                         </li>
@@ -964,51 +1171,154 @@
                                                             </li>
                                                         </ul>
                                                     </li>
-                                                    <li v-if="vol.hasOwnProperty('secret') && Object.keys(vol.secret).length">
+                                                </template>
+                                            </ul>
+                                        </li>
+
+                                        <li v-if="cluster.data.spec.pods.hasOwnProperty('customContainers') && !isNull(cluster.data.spec.pods.customContainers)">
+                                            <button class="toggleSummary"></button>
+                                            <strong class="label">Custom Containers</strong>
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers')"></span>
+                                            <ul>
+                                                <template v-for="(container, index) in cluster.data.spec.pods.customContainers">
+                                                    <li :key="'container-' + index">
                                                         <button class="toggleSummary"></button>
-                                                        <strong class="label">Secret</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret')"></span>
+                                                        <strong class="label">Container #{{ index + 1 }}</strong>
                                                         <ul>
-                                                            <li v-if="vol.secret.hasOwnProperty('secretName') && !isNull(vol.secret.secretName)">
-                                                                <strong class="label">Secret Name</strong>
-                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.secretName')"></span>
-                                                                <span class="value"> : {{ vol.secret.secretName }}</span>
+                                                            <li v-if="container.hasOwnProperty('name') && !isNull(container.name)">
+                                                                <strong class="label">Name</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.name')"></span>
+                                                                <span class="value"> : {{ container.name }}</span>
                                                             </li>
-                                                            <li v-if="vol.secret.hasOwnProperty('optional')">
-                                                                <strong class="label">Optional</strong>
-                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.optional')"></span>
-                                                                <span class="value"> : {{ isEnabled(vol.secret.optional) }}</span>
+                                                            <li v-if="container.hasOwnProperty('image') && !isNull(container.image)">
+                                                                <strong class="label">Image</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.image')"></span>
+                                                                <span class="value"> : {{ container.image }}</span>
                                                             </li>
-                                                            <li v-if="vol.secret.hasOwnProperty('defaultMode') && !isNull(vol.secret.defaultMode)">
-                                                                <strong class="label">Default Mode</strong>
-                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.defaultMode')"></span>
-                                                                <span class="value"> : {{ vol.secret.defaultMode }}</span>
+                                                            <li v-if="container.hasOwnProperty('imagePullPolicy') && !isNull(container.imagePullPolicy)">
+                                                                <strong class="label">Image Pull Policy</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.imagePullPolicy')"></span>
+                                                                <span class="value"> : {{ container.imagePullPolicy }}</span>
                                                             </li>
-                                                            <li v-if="vol.secret.hasOwnProperty('items') && vol.secret.items.length">
+                                                            <li v-if="container.hasOwnProperty('workingDir') && !isNull(container.workingDir)">
+                                                                <strong class="label">Working Directory</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.workingDir')"></span>
+                                                                <span class="value"> : {{ container.workingDir }}</span>
+                                                            </li>
+                                                            <li v-if="container.hasOwnProperty('args') && !isNull(container.args)">
                                                                 <button class="toggleSummary"></button>
-                                                                <strong class="label">Items</strong>
-                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.items')"></span>
+                                                                <strong class="label">Arguments</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.arguments')"></span>
                                                                 <ul>
-                                                                    <template v-for="(item, index) in vol.secret.items">
-                                                                        <li :key="index">
-                                                                            <button class="toggleSummary"></button>
-                                                                            <strong class="label">Item #{{ index + 1 }}</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.items.items')"></span>
+                                                                    <template v-for="(arg, aIndex) in container.args">
+                                                                        <li :key="'argument-' + index + '-' + aIndex">
+                                                                            <span class="value">{{ arg }}</span>
+                                                                        </li>
+                                                                    </template>
+                                                                </ul>
+                                                            </li>
+                                                            <li v-if="container.hasOwnProperty('command') && !isNull(container.command)">
+                                                                <button class="toggleSummary"></button>
+                                                                <strong class="label">Command</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.command')"></span>
+                                                                <ul>
+                                                                    <template v-for="(command, cIndex) in container.command">
+                                                                        <li :key="'command-' + index + '-' + cIndex">
+                                                                            <span class="value">{{ command }}</span>
+                                                                        </li>
+                                                                    </template>
+                                                                </ul>
+                                                            </li>
+                                                            <li v-if="container.hasOwnProperty('env') && !isNull(container.env)">
+                                                                <button class="toggleSummary"></button>
+                                                                <strong class="label">Environment Variables</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.env')"></span>
+                                                                <ul>
+                                                                    <template v-for="(envVar, vIndex) in container.env">
+                                                                        <li :key="'var-' + index + '-' + vIndex">
+                                                                            <strong class="label">{{ envVar.name }}:</strong>
+                                                                            <span class="value">{{ envVar.value }}</span>
+                                                                        </li>
+                                                                    </template>
+                                                                </ul>
+                                                            </li>
+                                                            <li v-if="container.hasOwnProperty('ports') && !isNull(container.ports)">
+                                                                <button class="toggleSummary"></button>
+                                                                <strong class="label">Ports</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports')"></span>
+                                                                <ul>
+                                                                    <template v-for="(port, pIndex) in container.ports">
+                                                                        <li :key="'port-' + index + '-' + pIndex">
+                                                                            <strong class="label">Port #{{ pIndex + 1 }}</strong>
                                                                             <ul>
-                                                                                <li v-if="item.hasOwnProperty('key') && !isNull(item.key)">
-                                                                                    <strong class="label">Key:</strong>
-                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.items.items.properties.key')"></span>
-                                                                                    <span class="value"> : {{ item.key }}</span>
+                                                                                <li v-if="port.hasOwnProperty('name') && !isNull(port.name)">
+                                                                                    <strong class="label">Name</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports.items.properties.name')"></span>
+                                                                                    <span class="value"> : {{ port.name }}</span>
                                                                                 </li>
-                                                                                <li v-if="item.hasOwnProperty('mode') && !isNull(item.mode)">
-                                                                                    <strong class="label">Mode</strong>
-                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.items.items.properties.mode')"></span>
-                                                                                    <span class="value"> : {{ item.mode }}</span>
+                                                                                <li v-if="port.hasOwnProperty('hostIP') && !isNull(port.hostIP)">
+                                                                                    <strong class="label">Host IP</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports.items.properties.hostIP')"></span>
+                                                                                    <span class="value"> : {{ port.hostIP }}</span>
                                                                                 </li>
-                                                                                <li v-if="item.hasOwnProperty('path') && !isNull(item.path)">
-                                                                                    <strong class="label">Path</strong>
-                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customVolumes.secret.properties.items.items.properties.path')"></span>
-                                                                                    <span class="value"> : {{ item.path }}</span>
+                                                                                <li v-if="port.hasOwnProperty('hostPort') && !isNull(port.hostPort)">
+                                                                                    <strong class="label">Host Port</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports.items.properties.hostPort')"></span>
+                                                                                    <span class="value"> : {{ port.hostPort }}</span>
+                                                                                </li>
+                                                                                <li v-if="port.hasOwnProperty('containerPort') && !isNull(port.containerPort)">
+                                                                                    <strong class="label">Container Port</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports.items.properties.containerPort')"></span>
+                                                                                    <span class="value"> : {{ port.containerPort }}</span>
+                                                                                </li>
+                                                                                <li v-if="port.hasOwnProperty('protocol') && !isNull(port.protocol)">
+                                                                                    <strong class="label">Protocol</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports.items.properties.protocol')"></span>
+                                                                                    <span class="value"> : {{ port.protocol }}</span>
+                                                                                </li>
+                                                                            </ul>
+                                                                        </li>
+                                                                    </template>
+                                                                </ul>
+                                                            </li>
+                                                            <li v-if="container.hasOwnProperty('volumeMounts') && !isNull(container.volumeMounts)">
+                                                                <button class="toggleSummary"></button>
+                                                                <strong class="label">Volume Mounts</strong>
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts')"></span>
+                                                                <ul>
+                                                                    <template v-for="(vol, vIndex) in container.volumeMounts">
+                                                                        <li :key="'vol-' + index + '-' + vIndex">
+                                                                            <strong class="label">Volume #{{ vIndex + 1 }}</strong>
+                                                                            <ul>
+                                                                                <li v-if="vol.hasOwnProperty('name') && !isNull(vol.name)">
+                                                                                    <strong class="label">Name</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.name')"></span>
+                                                                                    <span class="value"> : {{ vol.name }}</span>
+                                                                                </li>
+                                                                                <li v-if="vol.hasOwnProperty('readOnly')">
+                                                                                    <strong class="label">Read Only</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.readOnly')"></span>
+                                                                                    <span class="value"> : {{ isEnabled(vol.readOnly) }}</span>
+                                                                                </li>
+                                                                                <li v-if="vol.hasOwnProperty('mountPath') && !isNull(vol.mountPath)">
+                                                                                    <strong class="label">Mount Path</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.mountPath')"></span>
+                                                                                    <span class="value"> : {{ vol.mountPath }}</span>
+                                                                                </li>
+                                                                                <li v-if="vol.hasOwnProperty('mountPropagation') && !isNull(vol.mountPropagation)">
+                                                                                    <strong class="label">Mount Propagation</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.mountPropagation')"></span>
+                                                                                    <span class="value"> : {{ vol.mountPropagation }}</span>
+                                                                                </li>
+                                                                                <li v-if="vol.hasOwnProperty('subPath') && !isNull(vol.subPath)">
+                                                                                    <strong class="label">Sub Path</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.subPath')"></span>
+                                                                                    <span class="value"> : {{ vol.subPath }}</span>
+                                                                                </li>
+                                                                                <li v-if="vol.hasOwnProperty('subPathExpr') && !isNull(vol.subPathExpr)">
+                                                                                    <strong class="label">Sub Path Expr</strong>
+                                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.subPathExpr')"></span>
+                                                                                    <span class="value"> : {{ vol.subPathExpr }}</span>
                                                                                 </li>
                                                                             </ul>
                                                                         </li>
@@ -1017,323 +1327,9 @@
                                                             </li>
                                                         </ul>
                                                     </li>
-                                                </ul>
-                                            </li>
-                                        </template>
-                                    </ul>
-                                </li>
-
-                                <li v-if="cluster.data.spec.pods.hasOwnProperty('customInitContainers') && !isNull(cluster.data.spec.pods.customInitContainers)">
-                                    <button class="toggleSummary"></button>
-                                    <strong class="label">Custom Init Containers</strong>
-                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers')"></span>
-
-                                    <ul>
-                                        <template v-for="(container, index) in cluster.data.spec.pods.customInitContainers">
-                                            <li :key="'container-' + index">
-                                                <button class="toggleSummary"></button>
-                                                <strong class="label">Init Container #{{ index + 1 }}</strong>
-                                                <ul>
-                                                    <li v-if="container.hasOwnProperty('name') && !isNull(container.name)">
-                                                        <strong class="label">Name</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.name')"></span>
-                                                        <span class="value"> : {{ container.name }}</span>
-                                                    </li>
-                                                    <li v-if="container.hasOwnProperty('image') && !isNull(container.image)">
-                                                        <strong class="label">Image</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.image')"></span>
-                                                        <span class="value"> : {{ container.image }}</span>
-                                                    </li>
-                                                    <li v-if="container.hasOwnProperty('imagePullPolicy') && !isNull(container.imagePullPolicy)">
-                                                        <strong class="label">Image Pull Policy</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.imagePullPolicy')"></span>
-                                                        <span class="value"> : {{ container.imagePullPolicy }}</span>
-                                                    </li>
-                                                    <li v-if="container.hasOwnProperty('workingDir') && !isNull(container.workingDir)">
-                                                        <strong class="label">Working Directory</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.workingDir')"></span>
-                                                        <span class="value"> : {{ container.workingDir }}</span>
-                                                    </li>
-                                                    <li v-if="container.hasOwnProperty('args') && !isNull(container.args)">
-                                                        <button class="toggleSummary"></button>
-                                                        <strong class="label">Arguments</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.arguments')"></span>
-                                                        <ul>
-                                                            <template v-for="(arg, aIndex) in container.args">
-                                                                <li :key="'argument-' + index + '-' + aIndex">
-                                                                    <span class="value">{{ arg }}</span>
-                                                                </li>
-                                                            </template>
-                                                        </ul>
-                                                    </li>
-                                                    <li v-if="container.hasOwnProperty('command') && !isNull(container.command)">
-                                                        <button class="toggleSummary"></button>
-                                                        <strong class="label">Command</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.command')"></span>
-                                                        <ul>
-                                                            <template v-for="(command, cIndex) in container.command">
-                                                                <li :key="'command-' + index + '-' + cIndex">
-                                                                    <span class="value">{{ command }}</span>
-                                                                </li>
-                                                            </template>
-                                                        </ul>
-                                                    </li>
-                                                    <li v-if="container.hasOwnProperty('env') && !isNull(container.env)">
-                                                        <button class="toggleSummary"></button>
-                                                        <strong class="label">Environment Variables</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.env')"></span>
-                                                        <ul>
-                                                            <template v-for="(envVar, vIndex) in container.env">
-                                                                <li :key="'var-' + index + '-' + vIndex">
-                                                                    <strong class="label">{{ envVar.name }}:</strong>
-                                                                    <span class="value">{{ envVar.value }}</span>
-                                                                </li>
-                                                            </template>
-                                                        </ul>
-                                                    </li>
-                                                    <li v-if="container.hasOwnProperty('ports') && !isNull(container.ports)">
-                                                        <button class="toggleSummary"></button>
-                                                        <strong class="label">Ports</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports')"></span>
-                                                        <ul>
-                                                            <template v-for="(port, pIndex) in container.ports">
-                                                                <li :key="'port-' + index + '-' + pIndex">
-                                                                    <button class="toggleSummary"></button>
-                                                                    <strong class="label">Port #{{ pIndex + 1 }}</strong>
-                                                                    <ul>
-                                                                        <li v-if="port.hasOwnProperty('name') && !isNull(port.name)">
-                                                                            <strong class="label">Name</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports.items.properties.name')"></span>
-                                                                            <span class="value"> : {{ port.name }}</span>
-                                                                        </li>
-                                                                        <li v-if="port.hasOwnProperty('hostIP') && !isNull(port.hostIP)">
-                                                                            <strong class="label">Host IP</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports.items.properties.hostIP')"></span>
-                                                                            <span class="value"> : {{ port.hostIP }}</span>
-                                                                        </li>
-                                                                        <li v-if="port.hasOwnProperty('hostPort') && !isNull(port.hostPort)">
-                                                                            <strong class="label">Host Port</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports.items.properties.hostPort')"></span>
-                                                                            <span class="value"> : {{ port.hostPort }}</span>
-                                                                        </li>
-                                                                        <li v-if="port.hasOwnProperty('containerPort') && !isNull(port.containerPort)">
-                                                                            <strong class="label">Container Port</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports.items.properties.containerPort')"></span>
-                                                                            <span class="value"> : {{ port.containerPort }}</span>
-                                                                        </li>
-                                                                        <li v-if="port.hasOwnProperty('protocol') && !isNull(port.protocol)">
-                                                                            <strong class="label">Protocol</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.ports.items.properties.protocol')"></span>
-                                                                            <span class="value"> : {{ port.protocol }}</span>
-                                                                        </li>
-                                                                    </ul>
-                                                                </li>
-                                                            </template>
-                                                        </ul>
-                                                    </li>
-                                                    <li v-if="container.hasOwnProperty('volumeMounts') && !isNull(container.volumeMounts)">
-                                                        <button class="toggleSummary"></button>
-                                                        <strong class="label">Volume Mounts</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts')"></span>
-                                                        <ul>
-                                                            <template v-for="(vol, vIndex) in container.volumeMounts">
-                                                                <li :key="'vol-' + index + '-' + vIndex">
-                                                                    <strong class="label">Volume #{{ vIndex + 1 }}</strong>
-                                                                    <ul>
-                                                                        <li v-if="vol.hasOwnProperty('name') && !isNull(vol.name)">
-                                                                            <strong class="label">Name</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.name')"></span>
-                                                                            <span class="value"> : {{ vol.name }}</span>
-                                                                        </li>
-                                                                        <li v-if="vol.hasOwnProperty('readOnly')">
-                                                                            <strong class="label">Read Only</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.readOnly')"></span>
-                                                                            <span class="value"> : {{ isEnabled(vol.readOnly) }}</span>
-                                                                        </li>
-                                                                        <li v-if="vol.hasOwnProperty('mountPath') && !isNull(vol.mountPath)">
-                                                                            <strong class="label">Mount Path</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.mountPath')"></span>
-                                                                            <span class="value"> : {{ vol.mountPath }}</span>
-                                                                        </li>
-                                                                        <li v-if="vol.hasOwnProperty('mountPropagation') && !isNull(vol.mountPropagation)">
-                                                                            <strong class="label">Mount Propagation</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.mountPropagation')"></span>
-                                                                            <span class="value"> : {{ vol.mountPropagation }}</span>
-                                                                        </li>
-                                                                        <li v-if="vol.hasOwnProperty('subPath') && !isNull(vol.subPath)">
-                                                                            <strong class="label">Sub Path</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.subPath')"></span>
-                                                                            <span class="value"> : {{ vol.subPath }}</span>
-                                                                        </li>
-                                                                        <li v-if="vol.hasOwnProperty('subPathExpr') && !isNull(vol.subPathExpr)">
-                                                                            <strong class="label">Sub Path Expr</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customInitContainers.volumeMounts.items.properties.subPathExpr')"></span>
-                                                                            <span class="value"> : {{ vol.subPathExpr }}</span>
-                                                                        </li>
-                                                                    </ul>
-                                                                </li>
-                                                            </template>
-                                                        </ul>
-                                                    </li>
-                                                </ul>
-                                            </li>
-                                        </template>
-                                    </ul>
-                                </li>
-
-                                <li v-if="cluster.data.spec.pods.hasOwnProperty('customContainers') && !isNull(cluster.data.spec.pods.customContainers)">
-                                    <button class="toggleSummary"></button>
-                                    <strong class="label">Custom Containers</strong>
-                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers')"></span>
-                                    <ul>
-                                        <template v-for="(container, index) in cluster.data.spec.pods.customContainers">
-                                            <li :key="'container-' + index">
-                                                <button class="toggleSummary"></button>
-                                                <strong class="label">Container #{{ index + 1 }}</strong>
-                                                <ul>
-                                                    <li v-if="container.hasOwnProperty('name') && !isNull(container.name)">
-                                                        <strong class="label">Name</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.name')"></span>
-                                                        <span class="value"> : {{ container.name }}</span>
-                                                    </li>
-                                                    <li v-if="container.hasOwnProperty('image') && !isNull(container.image)">
-                                                        <strong class="label">Image</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.image')"></span>
-                                                        <span class="value"> : {{ container.image }}</span>
-                                                    </li>
-                                                    <li v-if="container.hasOwnProperty('imagePullPolicy') && !isNull(container.imagePullPolicy)">
-                                                        <strong class="label">Image Pull Policy</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.imagePullPolicy')"></span>
-                                                        <span class="value"> : {{ container.imagePullPolicy }}</span>
-                                                    </li>
-                                                    <li v-if="container.hasOwnProperty('workingDir') && !isNull(container.workingDir)">
-                                                        <strong class="label">Working Directory</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.workingDir')"></span>
-                                                        <span class="value"> : {{ container.workingDir }}</span>
-                                                    </li>
-                                                    <li v-if="container.hasOwnProperty('args') && !isNull(container.args)">
-                                                        <button class="toggleSummary"></button>
-                                                        <strong class="label">Arguments</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.arguments')"></span>
-                                                        <ul>
-                                                            <template v-for="(arg, aIndex) in container.args">
-                                                                <li :key="'argument-' + index + '-' + aIndex">
-                                                                    <span class="value">{{ arg }}</span>
-                                                                </li>
-                                                            </template>
-                                                        </ul>
-                                                    </li>
-                                                    <li v-if="container.hasOwnProperty('command') && !isNull(container.command)">
-                                                        <button class="toggleSummary"></button>
-                                                        <strong class="label">Command</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.command')"></span>
-                                                        <ul>
-                                                            <template v-for="(command, cIndex) in container.command">
-                                                                <li :key="'command-' + index + '-' + cIndex">
-                                                                    <span class="value">{{ command }}</span>
-                                                                </li>
-                                                            </template>
-                                                        </ul>
-                                                    </li>
-                                                    <li v-if="container.hasOwnProperty('env') && !isNull(container.env)">
-                                                        <button class="toggleSummary"></button>
-                                                        <strong class="label">Environment Variables</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.env')"></span>
-                                                        <ul>
-                                                            <template v-for="(envVar, vIndex) in container.env">
-                                                                <li :key="'var-' + index + '-' + vIndex">
-                                                                    <strong class="label">{{ envVar.name }}:</strong>
-                                                                    <span class="value">{{ envVar.value }}</span>
-                                                                </li>
-                                                            </template>
-                                                        </ul>
-                                                    </li>
-                                                    <li v-if="container.hasOwnProperty('ports') && !isNull(container.ports)">
-                                                        <button class="toggleSummary"></button>
-                                                        <strong class="label">Ports</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports')"></span>
-                                                        <ul>
-                                                            <template v-for="(port, pIndex) in container.ports">
-                                                                <li :key="'port-' + index + '-' + pIndex">
-                                                                    <strong class="label">Port #{{ pIndex + 1 }}</strong>
-                                                                    <ul>
-                                                                        <li v-if="port.hasOwnProperty('name') && !isNull(port.name)">
-                                                                            <strong class="label">Name</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports.items.properties.name')"></span>
-                                                                            <span class="value"> : {{ port.name }}</span>
-                                                                        </li>
-                                                                        <li v-if="port.hasOwnProperty('hostIP') && !isNull(port.hostIP)">
-                                                                            <strong class="label">Host IP</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports.items.properties.hostIP')"></span>
-                                                                            <span class="value"> : {{ port.hostIP }}</span>
-                                                                        </li>
-                                                                        <li v-if="port.hasOwnProperty('hostPort') && !isNull(port.hostPort)">
-                                                                            <strong class="label">Host Port</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports.items.properties.hostPort')"></span>
-                                                                            <span class="value"> : {{ port.hostPort }}</span>
-                                                                        </li>
-                                                                        <li v-if="port.hasOwnProperty('containerPort') && !isNull(port.containerPort)">
-                                                                            <strong class="label">Container Port</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports.items.properties.containerPort')"></span>
-                                                                            <span class="value"> : {{ port.containerPort }}</span>
-                                                                        </li>
-                                                                        <li v-if="port.hasOwnProperty('protocol') && !isNull(port.protocol)">
-                                                                            <strong class="label">Protocol</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.ports.items.properties.protocol')"></span>
-                                                                            <span class="value"> : {{ port.protocol }}</span>
-                                                                        </li>
-                                                                    </ul>
-                                                                </li>
-                                                            </template>
-                                                        </ul>
-                                                    </li>
-                                                    <li v-if="container.hasOwnProperty('volumeMounts') && !isNull(container.volumeMounts)">
-                                                        <button class="toggleSummary"></button>
-                                                        <strong class="label">Volume Mounts</strong>
-                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts')"></span>
-                                                        <ul>
-                                                            <template v-for="(vol, vIndex) in container.volumeMounts">
-                                                                <li :key="'vol-' + index + '-' + vIndex">
-                                                                    <strong class="label">Volume #{{ vIndex + 1 }}</strong>
-                                                                    <ul>
-                                                                        <li v-if="vol.hasOwnProperty('name') && !isNull(vol.name)">
-                                                                            <strong class="label">Name</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.name')"></span>
-                                                                            <span class="value"> : {{ vol.name }}</span>
-                                                                        </li>
-                                                                        <li v-if="vol.hasOwnProperty('readOnly')">
-                                                                            <strong class="label">Read Only</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.readOnly')"></span>
-                                                                            <span class="value"> : {{ isEnabled(vol.readOnly) }}</span>
-                                                                        </li>
-                                                                        <li v-if="vol.hasOwnProperty('mountPath') && !isNull(vol.mountPath)">
-                                                                            <strong class="label">Mount Path</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.mountPath')"></span>
-                                                                            <span class="value"> : {{ vol.mountPath }}</span>
-                                                                        </li>
-                                                                        <li v-if="vol.hasOwnProperty('mountPropagation') && !isNull(vol.mountPropagation)">
-                                                                            <strong class="label">Mount Propagation</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.mountPropagation')"></span>
-                                                                            <span class="value"> : {{ vol.mountPropagation }}</span>
-                                                                        </li>
-                                                                        <li v-if="vol.hasOwnProperty('subPath') && !isNull(vol.subPath)">
-                                                                            <strong class="label">Sub Path</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.subPath')"></span>
-                                                                            <span class="value"> : {{ vol.subPath }}</span>
-                                                                        </li>
-                                                                        <li v-if="vol.hasOwnProperty('subPathExpr') && !isNull(vol.subPathExpr)">
-                                                                            <strong class="label">Sub Path Expr</strong>
-                                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.customContainers.volumeMounts.items.properties.subPathExpr')"></span>
-                                                                            <span class="value"> : {{ vol.subPathExpr }}</span>
-                                                                        </li>
-                                                                    </ul>
-                                                                </li>
-                                                            </template>
-                                                        </ul>
-                                                    </li>
-                                                </ul>
-                                            </li>
-                                        </template>
+                                                </template>
+                                            </ul>
+                                        </li>
                                     </ul>
                                 </li>
                             </ul>
