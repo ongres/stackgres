@@ -4898,7 +4898,7 @@
                             <div class="col">
                                 <label for="spec.shards.overrides.sgInstanceProfile">Instance Profile</label>  
                                 <select v-model="shards.overrides[overrideIndex].sgInstanceProfile" class="resourceProfile" :data-field="'spec.shards.overrides[' + overrideIndex + '].sgInstanceProfile'" @change="(resourceProfile == 'createNewResource') && createNewResource('sginstanceprofiles')" :set="( (resourceProfile == 'createNewResource') && (resourceProfile = '') )">
-                                    <option :value="''">Select profile...</option>
+                                    <option :value="''">Select profile</option>
                                     <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace" :value="prof.name">{{ prof.name }} (Cores: {{ prof.data.spec.cpu }}, RAM: {{ prof.data.spec.memory }}B)</option>
                                     <template v-if="iCan('create', 'sginstanceprofiles', $route.params.namespace)">
                                         <option :value="null">– OR –</option>
@@ -4917,7 +4917,7 @@
                             <div class="col">
                                 <label for="spec.shards.overrides.configurations.sgPostgresConfig">Postgres Configuration</label>
                                 <select v-model="shards.overrides[overrideIndex].configurations.sgPostgresConfig" class="pgConfig" :data-field="'spec.shards.overrides[' + overrideIndex + '].configurations.sgPostgresConfig'" @change="(shards.overrides[overrideIndex].configurations.sgPostgresConfig == 'createNewResource') && createNewResource('sgpgconfigs')" :set="( (shards.overrides[overrideIndex].configurations.sgPostgresConfig == 'createNewResource') && (shards.overrides[overrideIndex].configurations.sgPostgresConfig = '') )">
-                                    <option :value="''">Select configuration...</option>
+                                    <option :value="''">Select configuration</option>
                                     <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == shortPostgresVersion) )">{{ conf.name }}</option>
                                     <template v-if="iCan('create', 'sgpgconfigs', $route.params.namespace)">
                                         <option :value="null" disabled>– OR –</option>
@@ -4985,7 +4985,7 @@
                                     Connection Pooling Configuration
                                 </label>
                                 <select v-model="shards.overrides[overrideIndex].configurations.sgPoolingConfig" class="connectionPoolingConfig" @change="(shards.overrides[overrideIndex].configurations.sgPoolingConfig == 'createNewResource') && createNewResource('sgpoolconfigs')" :set="( (shards.overrides[overrideIndex].configurations.sgPoolingConfig == 'createNewResource') && (shards.overrides[overrideIndex].configurations.sgPoolingConfig = '') )">
-                                    <option :value="''">Select configuration...</option>
+                                    <option :value="''">Select configuration</option>
                                     <option v-for="conf in connPoolConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
                                     <template v-if="iCan('create', 'sgpoolconfigs', $route.params.namespace)">
                                         <option :value="null" disabled>– OR –</option>
