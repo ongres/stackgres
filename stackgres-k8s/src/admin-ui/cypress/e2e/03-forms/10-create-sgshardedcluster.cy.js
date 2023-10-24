@@ -1493,7 +1493,7 @@ describe('Create SGShardedCluster', () => {
             .clear()
             .type('2')
 
-        cy.get('input[data-field="spec.shards.overrides[0].pods.persistentVolume.unit"]')
+        cy.get('select[data-field="spec.shards.overrides[0].pods.persistentVolume.size"]')
             .select('GiB')
 
         
