@@ -9,7 +9,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.admissionregistration.v1.ValidatingWebhookConfiguration;
-import io.fabric8.kubernetes.api.model.admissionregistration.v1.ValidatingWebhookConfigurationList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -17,7 +16,6 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 @ApplicationScoped
 public class ValidatingWebhookConfigurationWriter extends AbstractUnamespacedResourceWriter<
     ValidatingWebhookConfiguration,
-    ValidatingWebhookConfigurationList,
     Resource<ValidatingWebhookConfiguration>> {
 
   @Inject
@@ -28,7 +26,7 @@ public class ValidatingWebhookConfigurationWriter extends AbstractUnamespacedRes
   @Override
   protected NonNamespaceOperation<
           ValidatingWebhookConfiguration,
-          ValidatingWebhookConfigurationList,
+          ?,
           Resource<ValidatingWebhookConfiguration>> getResourceEndpoints(KubernetesClient client) {
     return client.admissionRegistration().v1().validatingWebhookConfigurations();
   }

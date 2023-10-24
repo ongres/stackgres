@@ -230,7 +230,7 @@ class BackupJobReconciliationHandlerTest {
                           .entrySet().stream().anyMatch(
                               podLabel -> podLabel.getKey().equals(label.getKey())
                               && podLabel.getValue().equals(label.getValue()))))
-                  .collect(ImmutableList.toImmutableList());
+                  .toList();
             });
 
     lenient().doAnswer(arguments -> {

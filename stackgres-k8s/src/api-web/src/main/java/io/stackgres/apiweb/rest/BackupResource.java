@@ -23,7 +23,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 @Path("sgbackups")
 @RequestScoped
 @Authenticated
-public class BackupResource extends AbstractRestService<BackupDto, StackGresBackup> {
+public class BackupResource extends AbstractCustomResourceService<BackupDto, StackGresBackup> {
 
   @Operation(
       responses = {

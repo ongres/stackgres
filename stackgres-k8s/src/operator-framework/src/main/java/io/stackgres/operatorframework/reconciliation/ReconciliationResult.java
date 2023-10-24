@@ -5,15 +5,15 @@
 
 package io.stackgres.operatorframework.reconciliation;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-import com.google.common.collect.ImmutableList;
 import org.jooq.lambda.Seq;
 
 public class ReconciliationResult<R> {
   private final R result;
-  private final ImmutableList<Exception> exceptions;
+  private final List<Exception> exceptions;
 
   @SuppressWarnings("null")
   public ReconciliationResult() {
@@ -21,7 +21,7 @@ public class ReconciliationResult<R> {
   }
 
   public ReconciliationResult(R result) {
-    this(result, ImmutableList.of());
+    this(result, List.of());
   }
 
   public ReconciliationResult(Exception exception) {
@@ -30,16 +30,16 @@ public class ReconciliationResult<R> {
 
   public ReconciliationResult(R result,
       Exception exception) {
-    this(result, ImmutableList.of(exception));
+    this(result, List.of(exception));
   }
 
   public ReconciliationResult(
-      ImmutableList<Exception> exceptions) {
+      List<Exception> exceptions) {
     this(null, exceptions);
   }
 
   public ReconciliationResult(R result,
-      ImmutableList<Exception> exceptions) {
+      List<Exception> exceptions) {
     this.result = result;
     this.exceptions = exceptions;
   }
@@ -48,7 +48,7 @@ public class ReconciliationResult<R> {
     return Optional.ofNullable(result);
   }
 
-  public ImmutableList<Exception> getExceptions() {
+  public List<Exception> getExceptions() {
     return exceptions;
   }
 
@@ -60,7 +60,7 @@ public class ReconciliationResult<R> {
     return new ReconciliationResult<Void>(null,
         Seq.seq(exceptions)
         .append(other.exceptions)
-        .collect(ImmutableList.toImmutableList()));
+        .toList());
   }
 
   public Exception getException() {

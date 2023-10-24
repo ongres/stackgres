@@ -191,11 +191,11 @@ public class DistributedLogsQueryGenerator {
       MESSAGE_FIELD
       );
 
-  public static final ImmutableList<Field<?>> LOG_FIELDS = Seq.<Field<?>>of()
+  public static final List<Field<?>> LOG_FIELDS = Seq.<Field<?>>of()
       .append(LOG_TYPE_FIELD)
       .append(POSTGRES_FIELDS)
       .map(field -> field == MAPPED_ROLE_FIELD ? ROLE_FIELD : field)
-      .collect(ImmutableList.toImmutableList());
+      .toList();
 
   private final DSLContext context;
   private final DistributedLogsQueryParameters parameters;
@@ -311,7 +311,7 @@ public class DistributedLogsQueryGenerator {
                     OffsetDateTime.ofInstant(to.v1, ZoneOffset.UTC), to.v2)));
       }
     }
-    for (Tuple2<String, ImmutableList<String>> filter : Seq.seq(parameters.getFilters())
+    for (Tuple2<String, List<String>> filter : Seq.seq(parameters.getFilters())
         .map(filter -> Tuple.tuple(FILTER_CONVERSION_MAP.get(filter.v1), filter.v2))
         .toList()) {
       selectFromLogPatroni = applyFilterForFields(
@@ -351,8 +351,8 @@ public class DistributedLogsQueryGenerator {
   }
 
   private SelectConditionStep<Record> applyFilterForFields(
-      SelectConditionStep<Record> selectFrom, Tuple2<String, ImmutableList<String>> filter,
-      ImmutableList<Field<?>> fields) {
+      SelectConditionStep<Record> selectFrom, Tuple2<String, List<String>> filter,
+      List<Field<?>> fields) {
     final SelectConditionStep<Record> currentSelectFrom = selectFrom;
     selectFrom = fields.stream()
         .filter(field -> filter.v1.equals(field.getName()))
@@ -363,7 +363,7 @@ public class DistributedLogsQueryGenerator {
     return selectFrom;
   }
 
-  protected Condition filterCondition(Tuple2<String, ImmutableList<String>> filter,
+  protected Condition filterCondition(Tuple2<String, List<String>> filter,
       Field<?> field) {
     if (filter.v2.isEmpty()) {
       if (field == MAPPED_ROLE_FIELD) {

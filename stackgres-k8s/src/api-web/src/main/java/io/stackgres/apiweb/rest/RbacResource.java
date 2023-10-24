@@ -87,7 +87,6 @@ public class RbacResource {
     LOGGER.debug("User to review access {}", impersonated);
     // Connect with the serviceaccount permissions
     try (KubernetesClient client = kubernetesClientProvider.createDefault()) {
-
       SubjectAccessReview review = new SubjectAccessReviewBuilder()
           .withNewSpec()
           .withUser(impersonated)
@@ -168,11 +167,22 @@ public class RbacResource {
   }
 
   protected List<String> getResourcesUnnamespaced() {
-    return List.of("namespaces", "storageclasses.storage.k8s.io");
+    return List.of(
+        "namespaces",
+        "storageclasses.storage.k8s.io",
+        "clusterroles.rbac.authorization.k8s.io",
+        "clusterrolebindings.rbac.authorization.k8s.io");
   }
 
   protected List<String> getResourcesNamespaced() {
-    return List.of("pods", "secrets", "configmaps", "events", "pods/exec",
+    return List.of(
+        "pods",
+        "secrets",
+        "configmaps",
+        "events",
+        "pods/exec",
+        "roles.rbac.authorization.k8s.io",
+        "rolebindings.rbac.authorization.k8s.io",
         HasMetadata.getFullResourceName(StackGresScript.class),
         HasMetadata.getFullResourceName(StackGresObjectStorage.class),
         HasMetadata.getFullResourceName(StackGresBackupConfig.class),

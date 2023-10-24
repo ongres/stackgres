@@ -10,7 +10,6 @@ import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.apiweb.dto.configmap.ConfigMapDto;
 import io.stackgres.apiweb.transformer.ConfigMapMapper;
@@ -30,13 +29,13 @@ public class ConfigMapDtoScanner implements ResourceScanner<ConfigMapDto> {
   public List<ConfigMapDto> findResources() {
     return client.configMaps().list().getItems().stream()
         .map(ConfigMapMapper::map)
-        .collect(ImmutableList.toImmutableList());
+        .toList();
   }
 
   @Override
   public List<ConfigMapDto> findResourcesInNamespace(String namespace) {
     return client.configMaps().inNamespace(namespace).list().getItems().stream()
         .map(ConfigMapMapper::map)
-        .collect(ImmutableList.toImmutableList());
+        .toList();
   }
 }

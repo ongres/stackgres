@@ -9,13 +9,11 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.Resource;
 
 @ApplicationScoped
-public class SecretWriter extends AbstractResourceWriter<Secret, SecretList, Resource<Secret>> {
+public class SecretWriter extends AbstractResourceWriter<Secret> {
 
   @Inject
   public SecretWriter(KubernetesClient client) {
@@ -23,8 +21,7 @@ public class SecretWriter extends AbstractResourceWriter<Secret, SecretList, Res
   }
 
   @Override
-  protected MixedOperation<Secret, SecretList, Resource<Secret>>
-      getResourceEndpoints(KubernetesClient client) {
+  protected MixedOperation<Secret, ?, ?> getResourceEndpoints(KubernetesClient client) {
     return client.secrets();
   }
 

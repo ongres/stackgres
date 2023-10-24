@@ -15,7 +15,6 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.List;
 
-import com.google.common.collect.ImmutableList;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
 
@@ -24,7 +23,7 @@ public interface SignatureUtil {
   static boolean verify(String publicKeyPem, InputStream signatureInputStream,
       InputStream contentInputStream) throws Exception {
     final List<String> publicKeyPemLines = publicKeyPem.lines()
-        .collect(ImmutableList.toImmutableList());
+        .toList();
     Seq.seq(publicKeyPemLines)
         .findFirst()
         .filter(line -> line.equals("-----BEGIN PUBLIC KEY-----"))

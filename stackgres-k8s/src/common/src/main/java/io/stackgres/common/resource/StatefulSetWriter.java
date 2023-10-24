@@ -10,40 +10,41 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetList;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.RollableScalableResource;
 import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped
-public class StatefulSetWriter implements ResourceWriter<StatefulSet> {
+public class StatefulSetWriter
+    extends AbstractResourceWriter<StatefulSet> {
 
   private final KubernetesClient client;
 
   @Inject
   public StatefulSetWriter(KubernetesClient client) {
+    super(client);
     this.client = client;
   }
 
   @Override
-  public StatefulSet create(@NotNull StatefulSet resource) {
-    return client.apps().statefulSets().resource(resource).create();
-  }
-
-  @Override
-  public StatefulSet update(@NotNull StatefulSet resource) {
-    return client.apps().statefulSets().resource(resource).patch();
-  }
-
-  @Override
-  public void delete(@NotNull StatefulSet resource) {
-    client.apps().statefulSets().resource(resource).delete();
-  }
-
-  @Override
-  public void deleteWithoutCascading(@NotNull StatefulSet resource) {
+  public void deleteWithoutCascading(@NotNull StatefulSet resource, boolean dryRun) {
     client.apps().statefulSets()
         .resource(resource)
+        .dryRun(dryRun)
         .withPropagationPolicy(DeletionPropagation.ORPHAN)
         .delete();
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  protected MixedOperation<
+          StatefulSet,
+          StatefulSetList,
+          RollableScalableResource<StatefulSet>> getResourceEndpoints(
+      KubernetesClient client) {
+    return client.apps().statefulSets();
   }
 
 }

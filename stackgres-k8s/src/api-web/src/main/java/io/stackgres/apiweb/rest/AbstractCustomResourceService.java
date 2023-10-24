@@ -7,7 +7,6 @@ package io.stackgres.apiweb.rest;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -22,9 +21,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
-import io.stackgres.apiweb.transformer.DependencyResourceTransformer;
-import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.apiweb.transformer.ResourceTransformer;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -32,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 
 @Authenticated
-public abstract class AbstractRestServiceDependency
+public abstract class AbstractCustomResourceService
     <T extends ResourceDto, R extends CustomResource<?, ?>>
     implements ResourceRestService<T> {
 
@@ -46,12 +43,7 @@ public abstract class AbstractRestServiceDependency
   CustomResourceScheduler<R> scheduler;
 
   @Inject
-  CustomResourceScanner<StackGresCluster> clusterScanner;
-
-  @Inject
-  DependencyResourceTransformer<T, R> transformer;
-
-  public abstract boolean belongsToCluster(R resource, StackGresCluster cluster);
+  ResourceTransformer<T, R> transformer;
 
   /**
    * Looks for all resources of type {@code <R>} that are installed in the kubernetes cluster.
@@ -63,25 +55,8 @@ public abstract class AbstractRestServiceDependency
   @CommonApiResponses
   @Override
   public List<T> list() {
-    final List<R> resources = scanner.getResources();
-
-    List<StackGresCluster> clusters = clusterScanner.getResources();
-
-    return resources.stream()
-        .map(resource -> transformer.toResource(
-            resource,
-            connectedClusters(clusters, resource)))
-        .collect(Collectors.toList());
-  }
-
-  private List<String> connectedClusters(List<StackGresCluster> clusters, R resource) {
-    return Seq.seq(clusters).filter(cluster -> belongsToCluster(resource, cluster))
-        .map(cluster ->
-            StackGresUtil.getRelativeId(
-                cluster.getMetadata().getName(),
-                cluster.getMetadata().getNamespace(),
-                resource.getMetadata().getNamespace())
-        )
+    return Seq.seq(scanner.getResources())
+        .map(transformer::toDto)
         .toList();
   }
 
@@ -94,10 +69,9 @@ public abstract class AbstractRestServiceDependency
   @CommonApiResponses
   @Override
   public T create(@NotNull T resource, @Nullable @QueryParam("dryRun") Boolean dryRun) {
-    return transformer.toResource(
+    return transformer.toDto(
         scheduler.create(transformer.toCustomResource(resource, null),
-            Optional.ofNullable(dryRun).orElse(false)),
-        List.of());
+        Optional.ofNullable(dryRun).orElse(false)));
   }
 
   /**
@@ -127,19 +101,13 @@ public abstract class AbstractRestServiceDependency
         finder.findByNameAndNamespace(
             resource.getMetadata().getName(), resource.getMetadata().getNamespace())
             .orElseThrow(NotFoundException::new));
-
-    List<StackGresCluster> clusters = clusterScanner.getResources();
-
     if (Optional.ofNullable(dryRun).orElse(false)) {
-      return transformer.toResource(
-          scheduler.update(transformedResource,
-              currentResource -> updateSpec(currentResource, transformedResource)),
-          connectedClusters(clusters, transformedResource));
+      return transformer.toDto(scheduler.update(
+          transformedResource,
+          Optional.ofNullable(dryRun).orElse(false)));
     }
-    return transformer.toResource(
-        scheduler.update(transformedResource,
-            currentResource -> updateSpec(currentResource, transformedResource)),
-        connectedClusters(clusters, transformedResource));
+    return transformer.toDto(scheduler.update(transformedResource,
+        currentResource -> updateSpec(currentResource, transformedResource)));
   }
 
   protected abstract void updateSpec(R resourceToUpdate, R resource);

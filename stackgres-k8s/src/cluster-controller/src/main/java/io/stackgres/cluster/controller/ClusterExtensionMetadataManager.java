@@ -10,7 +10,6 @@ import java.net.URI;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.WebClientFactory;
@@ -28,7 +27,7 @@ public class ClusterExtensionMetadataManager extends ExtensionMetadataManager {
         Seq.of(propertyContext.getStringArray(
             ClusterControllerProperty.CLUSTER_CONTROLLER_EXTENSIONS_REPOSITORY_URLS))
             .map(URI::create)
-            .collect(ImmutableList.toImmutableList()));
+            .toList());
   }
 
 }

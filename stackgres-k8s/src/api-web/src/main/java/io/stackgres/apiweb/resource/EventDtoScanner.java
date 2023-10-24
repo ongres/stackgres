@@ -10,7 +10,6 @@ import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.apiweb.dto.event.EventDto;
 import io.stackgres.apiweb.transformer.EventMapper;
@@ -30,13 +29,13 @@ public class EventDtoScanner implements ResourceScanner<EventDto> {
   public List<EventDto> findResources() {
     return client.v1().events().list().getItems().stream()
         .map(EventMapper::map)
-        .collect(ImmutableList.toImmutableList());
+        .toList();
   }
 
   @Override
   public List<EventDto> findResourcesInNamespace(String namespace) {
     return client.v1().events().inNamespace(namespace).list().getItems().stream()
         .map(EventMapper::map)
-        .collect(ImmutableList.toImmutableList());
+        .toList();
   }
 }

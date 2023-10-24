@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 @Path("sgconfigs")
 @RequestScoped
 @Authenticated
-public class ConfigResource extends AbstractRestService<ConfigDto,
+public class ConfigResource extends AbstractCustomResourceService<ConfigDto,
     StackGresConfig> {
 
   @Operation(

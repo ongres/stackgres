@@ -40,7 +40,7 @@ import org.jooq.lambda.Seq;
 @RequestScoped
 @Authenticated
 public class BackupConfigResource extends
-    AbstractRestServiceDependency<BackupConfigDto, StackGresBackupConfig> {
+    AbstractCustomResourceServiceDependency<BackupConfigDto, StackGresBackupConfig> {
 
   @Inject
   ResourceFinder<Secret> secretFinder;

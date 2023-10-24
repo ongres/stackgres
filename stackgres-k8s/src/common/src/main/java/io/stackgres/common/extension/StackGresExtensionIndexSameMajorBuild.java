@@ -67,7 +67,7 @@ public class StackGresExtensionIndexSameMajorBuild {
     this.channels = Seq.seq(extension.getChannels())
         .filter(channel -> channel.v2().equals(version.getVersion()))
         .map(Tuple2::v1)
-        .collect(ImmutableList.toImmutableList());
+        .toList();
     this.build = ExtensionUtil.getMajorBuildOrNull(target.getBuild());
     this.arch = Optional.of(target.getArchOrDefault());
     this.os = Optional.of(target.getOsOrDefault());

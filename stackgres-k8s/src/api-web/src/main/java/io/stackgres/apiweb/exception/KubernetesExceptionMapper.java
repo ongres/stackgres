@@ -66,7 +66,6 @@ public class KubernetesExceptionMapper implements ExceptionMapper<KubernetesClie
   }
 
   private Response toResponse(Status status) {
-
     if (status.getCode() == CONFLICT_STATUS) {
       LOGGER.debug("Kubernetes responded with Conflict status. Parsing response");
       String type = ErrorType.getErrorTypeUri(ErrorType.ALREADY_EXISTS);

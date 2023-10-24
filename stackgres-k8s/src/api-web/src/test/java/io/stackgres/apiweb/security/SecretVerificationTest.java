@@ -7,10 +7,13 @@ package io.stackgres.apiweb.security;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import java.util.List;
+import java.util.Map;
+
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.quarkus.security.AuthenticationFailedException;
@@ -39,9 +42,9 @@ public class SecretVerificationTest {
         .withNewMetadata()
         .withNamespace("stackgres")
         .withName("test")
-        .withLabels(ImmutableMap.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE))
+        .withLabels(Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE))
         .endMetadata()
-        .withData(ImmutableMap.of(
+        .withData(Map.of(
             StackGresContext.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("test"),
             StackGresContext.REST_PASSWORD_KEY,
             ResourceUtil.encodeSecret(TokenUtils.sha256("testtest"))))
@@ -53,46 +56,32 @@ public class SecretVerificationTest {
 
   @Test
   void login_shouldSucceedTest() throws Exception {
-    when(secretScanner.findResourcesInNamespace("stackgres")).thenReturn(ImmutableList.of(secret));
+    when(secretScanner.findByLabelsAndNamespace(eq("stackgres"), any()))
+        .thenReturn(List.of(secret));
     assertEquals("test", secretVerification.verifyCredentials("test", "test"));
   }
 
   @Test
   void wrongPasswordLogin_shouldFailTest() throws Exception {
-    when(secretScanner.findResourcesInNamespace("stackgres")).thenReturn(ImmutableList.of(secret));
+    when(secretScanner.findByLabelsAndNamespace(eq("stackgres"), any()))
+        .thenReturn(List.of(secret));
     assertThrows(AuthenticationFailedException.class,
         () -> secretVerification.verifyCredentials("test", "wrong"));
   }
 
   @Test
   void secretWithoutLabelsLogin_shouldFailTest() throws Exception {
-    when(secretScanner.findResourcesInNamespace("stackgres"))
-        .thenReturn(ImmutableList.of(new SecretBuilder(secret)
-            .editMetadata()
-            .withLabels(null)
-            .endMetadata()
-            .build()));
-    assertThrows(AuthenticationFailedException.class,
-        () -> secretVerification.verifyCredentials("test", "test"));
-  }
-
-  @Test
-  void secretWithWrongLabelLogin_shouldFailTest() throws Exception {
-    when(secretScanner.findResourcesInNamespace("stackgres"))
-        .thenReturn(ImmutableList.of(new SecretBuilder(secret)
-            .editMetadata()
-            .withLabels(ImmutableMap.of(StackGresContext.AUTH_KEY, "wrong"))
-            .endMetadata()
-            .build()));
+    when(secretScanner.findByLabelsAndNamespace(eq("stackgres"), any()))
+        .thenReturn(List.of());
     assertThrows(AuthenticationFailedException.class,
         () -> secretVerification.verifyCredentials("test", "test"));
   }
 
   @Test
   void secretWithoutPasswordLogin_shouldFailTest() throws Exception {
-    when(secretScanner.findResourcesInNamespace("stackgres"))
-        .thenReturn(ImmutableList.of(new SecretBuilder(secret)
-            .withData(ImmutableMap.of(
+    when(secretScanner.findByLabelsAndNamespace(eq("stackgres"), any()))
+        .thenReturn(List.of(new SecretBuilder(secret)
+            .withData(Map.of(
                 StackGresContext.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("test")))
             .build()));
     assertThrows(AuthenticationFailedException.class,
@@ -101,9 +90,9 @@ public class SecretVerificationTest {
 
   @Test
   void secretWithoutK8sUsernameLogin_shouldFailTest() throws Exception {
-    when(secretScanner.findResourcesInNamespace("stackgres"))
-        .thenReturn(ImmutableList.of(new SecretBuilder(secret)
-            .withData(ImmutableMap.of(
+    when(secretScanner.findByLabelsAndNamespace(eq("stackgres"), any()))
+        .thenReturn(List.of(new SecretBuilder(secret)
+            .withData(Map.of(
                 StackGresContext.REST_PASSWORD_KEY,
                 ResourceUtil.encodeSecret(TokenUtils.sha256("testtest"))))
             .build()));
@@ -113,9 +102,9 @@ public class SecretVerificationTest {
 
   @Test
   void secretWithEmptyPasswordHashLogin_shouldFailTest() throws Exception {
-    when(secretScanner.findResourcesInNamespace("stackgres"))
-        .thenReturn(ImmutableList.of(new SecretBuilder(secret)
-            .withData(ImmutableMap.of(
+    when(secretScanner.findByLabelsAndNamespace(eq("stackgres"), any()))
+        .thenReturn(List.of(new SecretBuilder(secret)
+            .withData(Map.of(
                 StackGresContext.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("test"),
                 StackGresContext.REST_PASSWORD_KEY, ResourceUtil.encodeSecret("")))
             .build()));
@@ -125,9 +114,9 @@ public class SecretVerificationTest {
 
   @Test
   void secretWithEmptyK8sUsernameLogin_shouldFailTest() throws Exception {
-    when(secretScanner.findResourcesInNamespace("stackgres"))
-        .thenReturn(ImmutableList.of(new SecretBuilder(secret)
-            .withData(ImmutableMap.of(
+    when(secretScanner.findByLabelsAndNamespace(eq("stackgres"), any()))
+        .thenReturn(List.of(new SecretBuilder(secret)
+            .withData(Map.of(
                 StackGresContext.REST_K8SUSER_KEY, ResourceUtil.encodeSecret(""),
                 StackGresContext.REST_PASSWORD_KEY,
                 ResourceUtil.encodeSecret(TokenUtils.sha256("testtest"))))
@@ -138,9 +127,9 @@ public class SecretVerificationTest {
 
   @Test
   void secretWithApiUsernameLogin_shouldSucceedTest() throws Exception {
-    when(secretScanner.findResourcesInNamespace("stackgres"))
-        .thenReturn(ImmutableList.of(new SecretBuilder(secret)
-            .withData(ImmutableMap.of(
+    when(secretScanner.findByLabelsAndNamespace(eq("stackgres"), any()))
+        .thenReturn(List.of(new SecretBuilder(secret)
+            .withData(Map.of(
                 StackGresContext.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("test2"),
                 StackGresContext.REST_APIUSER_KEY, ResourceUtil.encodeSecret("test"),
                 StackGresContext.REST_PASSWORD_KEY,

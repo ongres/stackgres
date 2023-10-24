@@ -19,7 +19,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import io.quarkus.security.Authenticated;
@@ -105,7 +104,7 @@ public class NamespacedClusterLogsResource {
           "Distributed logs are not configured for specified cluster");
     }
 
-    final var filters = ImmutableMap.<String, ImmutableList<String>>builder();
+    final var filters = ImmutableMap.<String, List<String>>builder();
     addFilter("logType", logType, filters);
     addFilter("podName", podName, filters);
     addFilter("role", role, filters);
@@ -157,11 +156,11 @@ public class NamespacedClusterLogsResource {
   }
 
   private void addFilter(String key, List<String> values,
-      final Builder<String, ImmutableList<String>> filters) {
+      final Builder<String, List<String>> filters) {
     if (values != null && !values.isEmpty()) {
       filters.put(key, values.stream()
           .filter(value -> !value.isEmpty())
-          .collect(ImmutableList.toImmutableList()));
+          .toList());
     }
   }
 

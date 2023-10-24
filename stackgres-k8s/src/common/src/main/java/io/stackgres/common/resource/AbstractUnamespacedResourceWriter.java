@@ -5,15 +5,18 @@
 
 package io.stackgres.common.resource;
 
+import java.util.function.Consumer;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
+import org.jetbrains.annotations.NotNull;
 
-public abstract class AbstractUnamespacedResourceWriter<T extends HasMetadata,
-    L extends KubernetesResourceList<T>, R extends Resource<T>>
+public abstract class AbstractUnamespacedResourceWriter<
+        T extends HasMetadata, R extends Resource<T>>
     implements ResourceWriter<T> {
 
   private final KubernetesClient client;
@@ -28,34 +31,60 @@ public abstract class AbstractUnamespacedResourceWriter<T extends HasMetadata,
   }
 
   @Override
-  public T create(T resource) {
+  public T create(T resource, boolean dryRun) {
     return getResourceEndpoints(client)
         .resource(resource)
+        .dryRun(dryRun)
         .create();
   }
 
   @Override
-  public T update(T resource) {
+  public T update(T resource, boolean dryRun) {
     return getResourceEndpoints(client)
         .resource(resource)
+        .dryRun(dryRun)
         .patch();
   }
 
   @Override
-  public T update(T resource, String patch) {
+  public T update(T resource, String patch, boolean dryRun) {
     return getResourceEndpoints(client)
         .resource(resource)
+        .dryRun(dryRun)
         .patch(patch);
   }
 
   @Override
-  public void delete(T resource) {
+  public T update(@NotNull T resource, @NotNull Consumer<T> setter) {
+    return KubernetesClientUtil.retryOnConflict(
+        () -> {
+          T resourceToUpdate = getResourceEndpoints(client)
+              .withName(resource.getMetadata().getName())
+              .get();
+          if (resourceToUpdate == null) {
+            throw new RuntimeException("Can not update resource "
+                + resource.getFullResourceName()
+                + " " + resource.getMetadata().getNamespace()
+                + "." + resource.getMetadata().getName()
+                + ": resource not found");
+          }
+          setter.accept(resourceToUpdate);
+          return getResourceEndpoints(client)
+              .resource(resourceToUpdate)
+              .lockResourceVersion(resourceToUpdate.getMetadata().getResourceVersion())
+              .replace();
+        });
+  }
+
+  @Override
+  public void delete(T resource, boolean dryRun) {
     getResourceEndpoints(client)
         .resource(resource)
+        .dryRun(dryRun)
         .delete();
   }
 
-  protected abstract NonNamespaceOperation<T, L, R> getResourceEndpoints(
+  protected abstract NonNamespaceOperation<T, ?, R> getResourceEndpoints(
       KubernetesClient client);
 
 }

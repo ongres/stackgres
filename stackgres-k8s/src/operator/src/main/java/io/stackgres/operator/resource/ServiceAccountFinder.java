@@ -12,18 +12,20 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.stackgres.common.resource.AbstractResourceWriter;
 import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.common.resource.ResourceWriter;
-import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped
-public class ServiceAccountFinder implements ResourceFinder<ServiceAccount>,
-    ResourceWriter<ServiceAccount> {
+public class ServiceAccountFinder
+    extends AbstractResourceWriter<ServiceAccount>
+    implements ResourceFinder<ServiceAccount> {
 
   final KubernetesClient client;
 
   @Inject
   public ServiceAccountFinder(KubernetesClient client) {
+    super(client);
     this.client = client;
   }
 
@@ -41,23 +43,8 @@ public class ServiceAccountFinder implements ResourceFinder<ServiceAccount>,
   }
 
   @Override
-  public ServiceAccount create(@NotNull ServiceAccount resource) {
-    return client.serviceAccounts()
-        .resource(resource)
-        .create();
+  protected MixedOperation<ServiceAccount, ?, ?> getResourceEndpoints(KubernetesClient client) {
+    return client.serviceAccounts();
   }
 
-  @Override
-  public ServiceAccount update(@NotNull ServiceAccount resource) {
-    return client.serviceAccounts()
-        .resource(resource)
-        .patch(resource);
-  }
-
-  @Override
-  public void delete(@NotNull ServiceAccount resource) {
-    client.serviceAccounts()
-        .resource(resource)
-        .delete();
-  }
 }

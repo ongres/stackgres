@@ -5,6 +5,7 @@
 
 package io.stackgres.apiweb.security;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -38,11 +39,11 @@ public class SecretVerification {
     Objects.requireNonNull(apiUsername, StackGresContext.REST_APIUSER_KEY);
     Objects.requireNonNull(password, StackGresContext.REST_PASSWORD_KEY);
     String passwordHash = TokenUtils.sha256(apiUsername + password);
-    return secretScanner.findResourcesInNamespace(namespace)
+    return secretScanner
+        .findByLabelsAndNamespace(
+            namespace,
+            Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE))
         .stream()
-        .filter(s -> s.getMetadata().getLabels() != null)
-        .filter(s -> Objects.equals(s.getMetadata().getLabels()
-            .get(StackGresContext.AUTH_KEY), StackGresContext.AUTH_USER_VALUE))
         .filter(s -> !Strings.isNullOrEmpty(s.getData().get(StackGresContext.REST_K8SUSER_KEY)))
         .filter(s -> !Strings.isNullOrEmpty(s.getData().get(StackGresContext.REST_PASSWORD_KEY)))
         .filter(s -> Optional.ofNullable(s.getData().get(StackGresContext.REST_APIUSER_KEY))

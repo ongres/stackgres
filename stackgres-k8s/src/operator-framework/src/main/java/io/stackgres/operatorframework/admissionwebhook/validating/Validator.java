@@ -22,10 +22,6 @@ public interface Validator<T extends AdmissionReview<?>> {
 
   void validate(T review) throws ValidationFailed;
 
-  default String escapeFieldName(String name) {
-    return name.replace(".", "\\.").replace("[", "\\[");
-  }
-
   @SuppressWarnings("unchecked")
   default String getFieldPath(
       Class<?> clazz1, String field1) {
@@ -94,6 +90,10 @@ public interface Validator<T extends AdmissionReview<?>> {
             .map(this::escapeFieldName)
             .orElseThrow()))
         .collect(Collectors.joining("."));
+  }
+
+  default String escapeFieldName(String name) {
+    return name.replace(".", "\\.").replace("[", "\\[");
   }
 
   default void fail(String kind, String reason, String message) throws ValidationFailed {

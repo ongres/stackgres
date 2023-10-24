@@ -19,7 +19,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
@@ -93,15 +92,15 @@ public class DistributedLogsFetcherImpl implements DistributedLogsFetcher {
             context.explain(query).toString().replace("\n", "\t"));
       }
       return Seq.seq(query.fetch())
-          .map(record -> record.into(MappedClusterLogEntryDto.class))
-          .collect(ImmutableList.toImmutableList());
+          .<ClusterLogEntryDto>map(record -> record.into(MappedClusterLogEntryDto.class))
+          .toList();
     } catch (SQLException ex) {
       final String databaseName = FluentdUtil.databaseName(
           parameters.getCluster().getMetadata().getNamespace(),
           parameters.getCluster().getMetadata().getName());
       if (Objects.equals(ex.getMessage(),
           "FATAL: database \"" + databaseName + "\" does not exist")) {
-        return ImmutableList.of();
+        return List.of();
       }
       throw new RuntimeException(ex);
     }

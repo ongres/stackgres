@@ -26,7 +26,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 @RequestScoped
 @Authenticated
 public class ConnectionPoolingConfigResource extends
-    AbstractRestServiceDependency<PoolingConfigDto, StackGresPoolingConfig> {
+    AbstractCustomResourceServiceDependency<PoolingConfigDto, StackGresPoolingConfig> {
 
   @Override
   public boolean belongsToCluster(StackGresPoolingConfig resource, StackGresCluster cluster) {

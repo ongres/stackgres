@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 import javax.ws.rs.core.UriBuilder;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -92,7 +91,7 @@ public interface ExtensionUtil {
                 .orElseThrow(() -> new IllegalArgumentException(
                     "Can not find available version of extension "
                     + getDescription(tt.v1, tt.v2, tt.v3)))))
-            .collect(ImmutableList.toImmutableList())));
+            .toList()));
   }
 
   static Map<StackGresExtensionIndexAnyVersion, List<StackGresExtensionMetadata>>
@@ -119,7 +118,7 @@ public interface ExtensionUtil {
                 .orElseThrow(() -> new IllegalArgumentException(
                     "Can not find available version of extension "
                     + getDescription(tt.v1, tt.v2, tt.v3)))))
-            .collect(ImmutableList.toImmutableList()));
+            .toList());
   }
 
   static Map<String, StackGresExtensionPublisher> toPublishersIndex(

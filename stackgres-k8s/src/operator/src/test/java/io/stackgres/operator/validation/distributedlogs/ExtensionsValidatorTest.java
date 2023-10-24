@@ -12,7 +12,6 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.collect.ImmutableList;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
@@ -70,7 +69,7 @@ class ExtensionsValidatorTest {
             .equals(((StackGresClusterExtension) invocation.getArgument(1))
                 .getName()))
         .map(StackGresExtensionMetadata::new)
-        .collect(ImmutableList.toImmutableList());
+        .toList();
   }
 
   @Test

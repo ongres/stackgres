@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 @Path("sgobjectstorages")
 @RequestScoped
 @Authenticated
-public class ObjectStorageResource extends AbstractRestServiceDependency<ObjectStorageDto,
+public class ObjectStorageResource extends AbstractCustomResourceServiceDependency<ObjectStorageDto,
     StackGresObjectStorage> {
 
   @Inject

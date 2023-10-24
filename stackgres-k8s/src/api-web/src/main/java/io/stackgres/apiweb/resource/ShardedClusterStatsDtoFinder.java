@@ -11,7 +11,6 @@ import java.util.concurrent.CompletableFuture;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterStatsDto;
 import io.stackgres.apiweb.transformer.ShardedClusterStatsTransformer;
@@ -72,13 +71,13 @@ public class ShardedClusterStatsDtoFinder
             .map(pod -> Tuple.tuple(cluster, pod)))
         .toList();
 
-    ImmutableList<PodStats> allCoordinatorPodStats = coordinatorPods
+    List<PodStats> allCoordinatorPodStats = coordinatorPods
         .stream()
         .map(t -> CompletableFuture.supplyAsync(() -> t.skip1().concat(getPodStats(t.v2))
             .concat(getPodPersitentVolumeClaim(t.v1, t.v2)), managedExecutor))
         .map(CompletableFuture::join)
         .map(PodStats::fromTuple)
-        .collect(ImmutableList.toImmutableList());
+        .toList();
 
     List<Tuple2<StackGresCluster, Pod>> shardsPods = clusterScanner.getResourcesWithLabels(
         shardedCluster.getMetadata().getNamespace(),
@@ -91,13 +90,13 @@ public class ShardedClusterStatsDtoFinder
             .map(pod -> Tuple.tuple(cluster, pod)))
         .toList();
 
-    ImmutableList<PodStats> allShardsPodStats = shardsPods
+    List<PodStats> allShardsPodStats = shardsPods
         .stream()
         .map(t -> CompletableFuture.supplyAsync(() -> t.skip1().concat(getPodStats(t.v2))
             .concat(getPodPersitentVolumeClaim(t.v1, t.v2)), managedExecutor))
         .map(CompletableFuture::join)
         .map(PodStats::fromTuple)
-        .collect(ImmutableList.toImmutableList());
+        .toList();
 
     return shardedClusterStatsTransformer.toDtoWithAllPodStats(shardedCluster,
         allCoordinatorPodStats, allShardsPodStats);

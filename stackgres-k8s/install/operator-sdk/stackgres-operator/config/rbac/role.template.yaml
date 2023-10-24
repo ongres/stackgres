@@ -115,5 +115,35 @@ $(
     "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
     | yq -y '.rules'
 )
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: webconsole-writer
+rules:
+##
+## Base webconsole writer rules
+##
+$(
+  helm template -n system stackgres-operator \
+    --show-only templates/webapi-writer-cluster-role.yaml \
+    "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
+    | yq -y '.rules'
+)
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: webconsole-reader
+rules:
+##
+## Base webconsole reader rules
+##
+$(
+  helm template -n system stackgres-operator \
+    --show-only templates/webapi-reader-cluster-role.yaml \
+    "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
+    | yq -y '.rules'
+)
 
 #+kubebuilder:scaffold:rules

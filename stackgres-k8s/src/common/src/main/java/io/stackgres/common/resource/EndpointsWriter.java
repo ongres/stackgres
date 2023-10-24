@@ -9,14 +9,11 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.api.model.EndpointsList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.Resource;
 
 @ApplicationScoped
-public class EndpointsWriter
-    extends AbstractResourceWriter<Endpoints, EndpointsList, Resource<Endpoints>> {
+public class EndpointsWriter extends AbstractResourceWriter<Endpoints> {
 
   @Inject
   public EndpointsWriter(KubernetesClient client) {
@@ -24,8 +21,7 @@ public class EndpointsWriter
   }
 
   @Override
-  protected MixedOperation<Endpoints, EndpointsList, Resource<Endpoints>>
-      getResourceEndpoints(KubernetesClient client) {
+  protected MixedOperation<Endpoints, ?, ?> getResourceEndpoints(KubernetesClient client) {
     return client.endpoints();
   }
 
