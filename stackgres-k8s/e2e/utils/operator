@@ -484,6 +484,7 @@ can_install_operator_version() {
   VERSION_1_3_0_RC1="$(get_version_as_number 1.3.0-RC1)"
   VERSION_1_4_0_RC1="$(get_version_as_number 1.4.0-RC1)"
   VERSION_1_5_0_RC1="$(get_version_as_number 1.5.0-RC1)"
+  VERSION_1_6_0_RC1="$(get_version_as_number 1.6.0-RC1)"
   if [ "$VERSION_AS_NUMBER" -lt "$VERSION_0_9_5" ]
   then
     if {
@@ -533,6 +534,14 @@ can_install_operator_version() {
   if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_5_0_RC1" ]
   then
     if [ "$KUBERNETES_VERSION_NUMBER" -gt 125 ] \
+      || [ "$KUBERNETES_VERSION_NUMBER" -lt 118 ]
+    then
+      return 1
+    fi
+  fi
+  if [ "$VERSION_AS_NUMBER" -lt "$VERSION_1_6_0_RC1" ]
+  then
+    if [ "$KUBERNETES_VERSION_NUMBER" -gt 127 ] \
       || [ "$KUBERNETES_VERSION_NUMBER" -lt 118 ]
     then
       return 1

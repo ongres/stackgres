@@ -25,7 +25,7 @@ mkdir -p "target/templates"
 
 # Helm 3.6.0+ required to set the --kube-version
 helm template --namespace '$namespace$' stackgres-operator "target/stackgres-operator" \
-  --kube-version="1.27" \
+  --kube-version="1.28" \
   --set-string adminui.service.type='$adminui-service-type$' \
   --set-string grafana.autoEmbed='true' \
   --set-string qutePreprocess='true' \
