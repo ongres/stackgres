@@ -10,7 +10,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
-import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterReplication;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -20,17 +19,17 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterReplicati
 public class ShardedClusterCoordinator extends ClusterSpec {
 
   @JsonProperty("replication")
-  private StackGresShardedClusterReplication replicationForCoordinator;
+  private ShardedClusterReplication replicationForCoordinator;
 
   @JsonProperty("configurations")
   private ShardedClusterInnerConfigurations configurationsForCoordinator;
 
-  public StackGresShardedClusterReplication getReplicationForCoordinator() {
+  public ShardedClusterReplication getReplicationForCoordinator() {
     return replicationForCoordinator;
   }
 
   public void setReplicationForCoordinator(
-      StackGresShardedClusterReplication replicationForCoordinator) {
+      ShardedClusterReplication replicationForCoordinator) {
     this.replicationForCoordinator = replicationForCoordinator;
   }
 

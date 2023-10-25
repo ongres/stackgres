@@ -27,6 +27,8 @@ public class DbOpsMajorVersionUpgradeStatus {
 
   private List<String> restartedInstances;
 
+  private String phase;
+
   private String failure;
 
   public String getSourcePostgresVersion() {
@@ -75,6 +77,14 @@ public class DbOpsMajorVersionUpgradeStatus {
 
   public void setRestartedInstances(List<String> restartedInstances) {
     this.restartedInstances = restartedInstances;
+  }
+
+  public String getPhase() {
+    return phase;
+  }
+
+  public void setPhase(String phase) {
+    this.phase = phase;
   }
 
   public String getFailure() {

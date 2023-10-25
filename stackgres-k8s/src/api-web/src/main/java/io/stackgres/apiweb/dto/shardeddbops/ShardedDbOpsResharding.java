@@ -8,19 +8,18 @@ package io.stackgres.apiweb.dto.shardeddbops;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsReshardingCitus;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ShardedDbOpsResharding {
 
-  private StackGresShardedDbOpsReshardingCitus citus;
+  private ShardedDbOpsReshardingCitus citus;
 
-  public StackGresShardedDbOpsReshardingCitus getCitus() {
+  public ShardedDbOpsReshardingCitus getCitus() {
     return citus;
   }
 
-  public void setCitus(StackGresShardedDbOpsReshardingCitus citus) {
+  public void setCitus(ShardedDbOpsReshardingCitus citus) {
     this.citus = citus;
   }
 

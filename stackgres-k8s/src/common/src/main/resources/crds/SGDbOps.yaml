@@ -290,6 +290,34 @@ spec:
                     type: string
                     description: |
                       The target postgres version that must have the same major version of the target SGCluster.
+                  postgresExtensions:
+                    type: array
+                    description: |
+                      A major version upgrade can not be performed if a required extension is not present for the target major version of the upgrade.
+                      In those cases you will have to provide the target extension version of the extension for the target major version of postgres.
+                      Beware that in some cases it is not possible to upgrade an extension alongside postgres. This is the case for PostGIS or timescaledb.
+                       In such cases you will have to upgrade the extension before or after the major version upgrade. Please make sure you read the
+                       documentation of each extension in order to understand if it is possible to upgrade it during a major version upgrade of postgres.
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: The name of the extension to deploy.
+                        publisher:
+                          type: string
+                          description: The id of the publisher of the extension to deploy. If not specified `com.ongres` will be used by default.
+                          default: com.ongres
+                        version:
+                          type: string
+                          description: The version of the extension to deploy. If not specified version of `stable` channel will be used by default and if only a version is available that one will be used.
+                        repository:
+                          type: string
+                          description: |
+                            The repository base URL from where to obtain the extension to deploy.
+
+                            **This section is filled by the operator.**
+                      required: ["name"]
                   sgPostgresConfig:
                     type: string
                     description: |
@@ -321,6 +349,40 @@ spec:
                     type: boolean
                     description: |
                       If true does some checks to see if the cluster can perform a major version upgrade without changing any data. Defaults to: `false`.
+                  toInstallPostgresExtensions:
+                    type: array
+                    description: |
+                      The list of Postgres extensions to install.
+                      
+                      **This section is filled by the operator.**
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: The name of the extension to install.
+                        publisher:
+                          type: string
+                          description: The id of the publisher of the extension to install.
+                        version:
+                          type: string
+                          description: The version of the extension to install.
+                        repository:
+                          type: string
+                          description: The repository base URL from where the extension will be installed from.
+                        postgresVersion:
+                          type: string
+                          description: The postgres major version of the extension to install.
+                        build:
+                          type: string
+                          description: The build version of the extension to install.
+                        extraMounts:
+                          type: array
+                          description: The extra mounts of the extension to install.
+                          items:
+                            type: string
+                            description: The extra mount of the installed extension.
+                      required: ["name", "publisher", "version", "repository", "postgresVersion"]
               restart:
                 type: object
                 description: |
@@ -538,6 +600,10 @@ spec:
                       The instances that have been restarted
                     items:
                       type: string
+                  phase:
+                    type: string
+                    description: |
+                      The phase the operation is or was executing)
                   failure:
                     type: string
                     description: |

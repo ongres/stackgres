@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.mutation.shardedcluster;
+package io.stackgres.operator.mutation.dbops;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -12,6 +12,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,14 +24,16 @@ import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtensionBuilder;
-import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
-import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
+import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
-import io.stackgres.operator.common.StackGresShardedClusterReview;
+import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.operator.common.DbOpsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
@@ -42,7 +45,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ExtensionsMutatorTest {
+class DbOpsMajorVersionUpgradeExtensionsMutatorTest {
 
   private static final String POSTGRES_VERSION =
       StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
@@ -74,12 +77,17 @@ class ExtensionsMutatorTest {
               .append(SUPPORTED_BABELFISH_VERSIONS)
               .toList()));
 
-  private StackGresShardedClusterReview review;
+  private DbOpsReview review;
 
   @Mock
   private ExtensionMetadataManager extensionMetadataManager;
 
-  private ExtensionsMutator mutator;
+  @Mock
+  private CustomResourceFinder<StackGresCluster> clusterFinder;
+
+  private DbOpsMajorVersionUpgradeExtensionsMutator mutator;
+
+  private StackGresCluster cluster;
 
   private List<StackGresClusterExtension> extensions;
 
@@ -89,16 +97,16 @@ class ExtensionsMutatorTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    review = AdmissionReviewFixtures.shardedCluster().loadCreate().get();
-    review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
-    review.getRequest().getObject().setStatus(new StackGresShardedClusterStatus());
+    review = AdmissionReviewFixtures.dbOps().loadMajorVersionUpgradeCreate().get();
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .setPostgresVersion(POSTGRES_VERSION);
+    cluster = Fixtures.cluster().loadDefault().get();
 
-    mutator = new ExtensionsMutator(extensionMetadataManager,
+    mutator = new DbOpsMajorVersionUpgradeExtensionsMutator(extensionMetadataManager,
+        clusterFinder,
         ALL_SUPPORTED_POSTGRES_VERSIONS);
 
     extensions = Seq.of(
-        "citus",
-        "citus_columnar",
         "plpgsql",
         "pg_stat_statements",
         "dblink",
@@ -106,8 +114,6 @@ class ExtensionsMutatorTest {
         .map(this::getExtension)
         .toList();
     existingExtensions = Seq.of(
-        "citus",
-        "citus_columnar",
         "plpgsql",
         "pg_stat_statements",
         "dblink",
@@ -115,8 +121,6 @@ class ExtensionsMutatorTest {
         .map(this::getInstalledExtension)
         .toList();
     toInstallExtensions = Seq.of(
-        "citus",
-        "citus_columnar",
         "plpgsql",
         "pg_stat_statements",
         "dblink",
@@ -124,12 +128,11 @@ class ExtensionsMutatorTest {
         .map(this::getInstalledExtensionWithoutBuild)
         .toList();
     lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
-        any(), argThat(this::isClusterAlreadyExistingExtension), anyBoolean()))
+        any(), argThat(extensions::contains), anyBoolean()))
         .then(this::getDefaultExtensionMetadata);
-  }
-
-  private boolean isClusterAlreadyExistingExtension(StackGresClusterExtension extension) {
-    return extension != null && extensions.contains(extension);
+    lenient().when(clusterFinder.findByNameAndNamespace(
+        any(), any()))
+        .thenReturn(Optional.of(cluster));
   }
 
   private Optional<StackGresExtensionMetadata> getDefaultExtensionMetadata(
@@ -144,23 +147,26 @@ class ExtensionsMutatorTest {
   }
 
   @Test
-  void clusterWithoutUserExtensions_shouldAddDefaultExtensions() {
-    review.getRequest().getObject().getSpec().getPostgres().setExtensions(extensions);
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+  void clusterWithoutUserExtensions_shouldNotDoNothing() {
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .setPostgresExtensions(extensions);
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .setToInstallPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
 
-    StackGresShardedCluster result = mutator.mutate(
+    StackGresDbOps result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(toInstallExtensions, result.getStatus().getToInstallPostgresExtensions());
+    assertEquals(review.getRequest().getObject(), result);
   }
 
   @Test
   void clusterWithIncorrectVersion_shouldNotDoNothing() {
-    review.getRequest().getObject().getSpec().getPostgres().setVersion("test");
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresVersion("test");
 
-    StackGresShardedCluster result = mutator.mutate(
+    StackGresDbOps result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
     assertEquals(review.getRequest().getObject(), result);
@@ -168,38 +174,42 @@ class ExtensionsMutatorTest {
 
   @Test
   void clusterWithoutExtensionsAndState_shouldCreateTheStateWithDefaultExtensions() {
-    review.getRequest().getObject().getSpec().getPostgres().setExtensions(extensions);
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .setPostgresExtensions(extensions);
 
-    StackGresShardedCluster result = mutator.mutate(
+    StackGresDbOps result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
-    assertEquals(toInstallExtensions, result.getStatus().getToInstallPostgresExtensions());
+    assertEquals(toInstallExtensions, result.getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions());
   }
 
   @Test
   void clusterWithAnExtension_shouldSetTheVersionAndToInstall() throws Exception {
     StackGresClusterExtension extension = getExtension();
-    review.getRequest().getObject().getSpec().getPostgres().setExtensions(
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
         ImmutableList.<StackGresClusterExtension>builder()
         .addAll(extensions).add(extension).build());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .setToInstallPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
 
-    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(),
         argThat(anExtension -> extension.getName().equals(anExtension.getName())),
         anyBoolean()))
         .thenReturn(Optional.of(getExtensionMetadata()));
 
-    StackGresShardedCluster result = mutator.mutate(
+    StackGresDbOps result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
-    result.getSpec().getPostgres().getExtensions()
+    result.getSpec().getMajorVersionUpgrade().getPostgresExtensions()
         .forEach(anExtension -> assertNotNull(anExtension.getVersion()));
     assertEquals(
         Seq.seq(toInstallExtensions).append(getInstalledExtensionWithoutBuild()).toList(),
-        result.getStatus().getToInstallPostgresExtensions());
+        result.getSpec().getMajorVersionUpgrade().getToInstallPostgresExtensions());
   }
 
   @Test
@@ -208,22 +218,25 @@ class ExtensionsMutatorTest {
         getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
-    review.getRequest().getObject().getSpec().getPostgres().setExtensions(
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
         ImmutableList.<StackGresClusterExtension>builder()
         .addAll(extensions).add(extension).build());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .setToInstallPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .add(installedExtension);
 
-    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(),
         argThat(anExtension -> extension.getName().equals(anExtension.getName())),
         anyBoolean()))
         .thenReturn(Optional.of(getExtensionMetadata()));
 
-    StackGresShardedCluster result = mutator.mutate(
+    StackGresDbOps result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
     assertEquals(review.getRequest().getObject(), result);
@@ -242,26 +255,29 @@ class ExtensionsMutatorTest {
         getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
-    review.getRequest().getObject().getSpec().getPostgres().setExtensions(
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
         ImmutableList.<StackGresClusterExtension>builder()
         .addAll(extensions).add(extension).add(testExtension).build());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .setToInstallPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionTestMetadata = getExtensionMetadata();
     extensionTestMetadata.getExtension().setName("test");
-    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(), eq(testExtension), anyBoolean()))
         .thenReturn(Optional.of(extensionTestMetadata));
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
-    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
-    StackGresShardedCluster result = mutator.mutate(
+    StackGresDbOps result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
     assertEquals(
@@ -271,7 +287,8 @@ class ExtensionsMutatorTest {
             .withName("test")
             .build())
         .toList(),
-        result.getStatus().getToInstallPostgresExtensions());
+        result.getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions());
   }
 
   @Test
@@ -281,19 +298,24 @@ class ExtensionsMutatorTest {
         getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
-    review.getRequest().getObject().getSpec().getPostgres().setExtensions(extensions);
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .setPostgresExtensions(extensions);
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .setToInstallPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .add(installedExtension);
 
-    StackGresShardedCluster result = mutator.mutate(
+    StackGresDbOps result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
-    result.getSpec().getPostgres().getExtensions()
+    result.getSpec().getMajorVersionUpgrade().getPostgresExtensions()
         .forEach(anExtension -> assertNotNull(anExtension.getVersion()));
-    assertEquals(toInstallExtensions, result.getStatus().getToInstallPostgresExtensions());
+    assertEquals(toInstallExtensions, result.getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions());
   }
 
   @Test
@@ -303,30 +325,34 @@ class ExtensionsMutatorTest {
         getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
-    review.getRequest().getObject().getSpec().getPostgres().setExtensions(
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
         ImmutableList.<StackGresClusterExtension>builder()
         .addAll(extensions).add(extension).build());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .setToInstallPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
     final StackGresClusterInstalledExtension installedTestExtension =
         getInstalledExtensionWithoutBuild();
     installedTestExtension.setName("test");
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
-    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(),
         argThat(anExtension -> extension.getName().equals(anExtension.getName())),
         anyBoolean()))
         .thenReturn(Optional.of(getExtensionMetadata()));
 
-    StackGresShardedCluster result = mutator.mutate(
+    StackGresDbOps result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
     assertEquals(
         Seq.seq(toInstallExtensions).append(getInstalledExtensionWithoutBuild()).toList(),
-        result.getStatus().getToInstallPostgresExtensions());
+        result.getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions());
   }
 
   @Test
@@ -336,35 +362,40 @@ class ExtensionsMutatorTest {
         getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
-    review.getRequest().getObject().getSpec().getPostgres().setExtensions(
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
         ImmutableList.<StackGresClusterExtension>builder()
         .addAll(extensions).add(extension).build());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .setToInstallPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
     final StackGresClusterInstalledExtension installedTestExtension =
         getInstalledExtensionWithoutBuild();
     installedTestExtension.setName("test");
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .add(installedTestExtension);
     final StackGresClusterInstalledExtension installedTestExtension2 =
         getInstalledExtensionWithoutBuild();
     installedTestExtension2.setName("test2");
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .add(installedTestExtension2);
 
-    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(),
         argThat(anExtension -> extension.getName().equals(anExtension.getName())),
         anyBoolean()))
         .thenReturn(Optional.of(getExtensionMetadata()));
 
-    StackGresShardedCluster result = mutator.mutate(
+    StackGresDbOps result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
     assertEquals(
         Seq.seq(toInstallExtensions).append(getInstalledExtensionWithoutBuild()).toList(),
-        result.getStatus().getToInstallPostgresExtensions());
+        result.getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions());
   }
 
   @Test
@@ -374,25 +405,28 @@ class ExtensionsMutatorTest {
         getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
-    review.getRequest().getObject().getSpec().getPostgres().setExtensions(
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
         ImmutableList.<StackGresClusterExtension>builder()
         .addAll(extensions).add(extension).build());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .setToInstallPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
     final StackGresClusterInstalledExtension installedTestExtension =
         getInstalledExtensionWithoutBuild();
     installedTestExtension.setName("test");
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
     extensionMetadata.getVersion().setExtraMounts(List.of("test"));
-    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
-    StackGresShardedCluster result = mutator.mutate(
+    StackGresDbOps result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
     assertEquals(
@@ -401,7 +435,8 @@ class ExtensionsMutatorTest {
             .withExtraMounts(List.of("test"))
             .build())
         .toList(),
-        result.getStatus().getToInstallPostgresExtensions());
+        result.getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions());
   }
 
   @Test
@@ -411,30 +446,34 @@ class ExtensionsMutatorTest {
         getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
-    review.getRequest().getObject().getSpec().getPostgres().setExtensions(
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
         ImmutableList.<StackGresClusterExtension>builder()
         .addAll(extensions).add(extension).build());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .setToInstallPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
     final StackGresClusterInstalledExtension installedTestExtension =
         getInstalledExtensionWithoutBuild();
     installedTestExtension.setName("test");
     installedTestExtension.setExtraMounts(List.of("test"));
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
-    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
-    StackGresShardedCluster result = mutator.mutate(
+    StackGresDbOps result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
     assertEquals(
         Seq.seq(toInstallExtensions).append(getInstalledExtensionWithoutBuild()).toList(),
-        result.getStatus().getToInstallPostgresExtensions());
+        result.getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions());
   }
 
   @Test
@@ -444,26 +483,29 @@ class ExtensionsMutatorTest {
         getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
-    review.getRequest().getObject().getSpec().getPostgres().setExtensions(
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
         ImmutableList.<StackGresClusterExtension>builder()
         .addAll(extensions).add(extension).build());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .setToInstallPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
     final StackGresClusterInstalledExtension installedTestExtension =
         getInstalledExtensionWithoutBuild();
     installedTestExtension.setName("test");
     installedTestExtension.setExtraMounts(List.of("test"));
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
     extensionMetadata.getVersion().setExtraMounts(List.of("test"));
-    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
-    StackGresShardedCluster result = mutator.mutate(
+    StackGresDbOps result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
     assertEquals(
@@ -472,7 +514,8 @@ class ExtensionsMutatorTest {
             .withExtraMounts(List.of("test"))
             .build())
         .toList(),
-        result.getStatus().getToInstallPostgresExtensions());
+        result.getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions());
   }
 
   @Test
@@ -482,30 +525,34 @@ class ExtensionsMutatorTest {
         getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
-    review.getRequest().getObject().getSpec().getPostgres().setExtensions(
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
         ImmutableList.<StackGresClusterExtension>builder()
         .addAll(extensions).add(extension).build());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .setToInstallPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
     final StackGresClusterInstalledExtension installedTestExtension =
         getInstalledExtensionWithoutBuild();
     installedTestExtension.setName("test");
     installedTestExtension.setBuild(null);
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
-    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
-    StackGresShardedCluster result = mutator.mutate(
+    StackGresDbOps result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
     assertEquals(
         Seq.seq(toInstallExtensions).append(getInstalledExtensionWithoutBuild()).toList(),
-        result.getStatus().getToInstallPostgresExtensions());
+        result.getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions());
   }
 
   @Test
@@ -515,54 +562,60 @@ class ExtensionsMutatorTest {
         getInstalledExtensionWithoutBuild();
     final StackGresClusterExtension extension = getExtension();
     extension.setVersion(installedExtension.getVersion());
-    review.getRequest().getObject().getSpec().getPostgres().setExtensions(
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
         ImmutableList.<StackGresClusterExtension>builder()
         .addAll(extensions).add(extension).build());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .setToInstallPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
     final StackGresClusterInstalledExtension installedTestExtension =
         getInstalledExtensionWithoutBuild();
     installedTestExtension.setName("test");
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
     extensionMetadata.getTarget().setBuild(null);
-    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
-    StackGresShardedCluster result = mutator.mutate(
+    StackGresDbOps result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
     assertEquals(
         Seq.seq(toInstallExtensions).append(getInstalledExtensionWithoutBuild()).toList(),
-        result.getStatus().getToInstallPostgresExtensions());
+        result.getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions());
   }
 
   @Test
-  void clusterWithMissingExtension_shouldAddDefaultExtensions() throws Exception {
+  void clusterWithMissingExtension_shouldNotDoNothing() throws Exception {
     final StackGresClusterInstalledExtension installedTestExtension =
         getInstalledExtensionWithoutBuild();
     installedTestExtension.setName("test");
     final StackGresClusterExtension testExtension = getExtension();
     testExtension.setName("test");
     testExtension.setVersion(installedTestExtension.getVersion());
-    review.getRequest().getObject().getSpec().getPostgres().setExtensions(
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
         ImmutableList.<StackGresClusterExtension>builder()
         .addAll(extensions).add(testExtension).build());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .setToInstallPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
 
     final StackGresExtensionMetadata extensionTestMetadata = getExtensionMetadata();
     extensionTestMetadata.getExtension().setName("test");
-    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(), eq(testExtension), anyBoolean()))
         .thenReturn(Optional.empty());
 
-    StackGresShardedCluster result = mutator.mutate(
+    StackGresDbOps result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
     assertEquals(review.getRequest().getObject(), result);
@@ -576,27 +629,31 @@ class ExtensionsMutatorTest {
     final StackGresClusterExtension testExtension = getExtension();
     testExtension.setName("test");
     testExtension.setVersion(installedTestExtension.getVersion());
-    review.getRequest().getObject().getSpec().getPostgres().setExtensions(
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setPostgresExtensions(
         ImmutableList.<StackGresClusterExtension>builder()
         .addAll(extensions).add(testExtension).build());
-    review.getRequest().getObject().getStatus().setToInstallPostgresExtensions(new ArrayList<>());
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .setToInstallPostgresExtensions(new ArrayList<>());
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
-    review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
+    review.getRequest().getObject().getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionTestMetadata = getExtensionMetadata();
     extensionTestMetadata.getExtension().setName("test");
-    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(), eq(testExtension), anyBoolean()))
         .thenReturn(Optional.empty());
 
-    StackGresShardedCluster result = mutator.mutate(
+    StackGresDbOps result = mutator.mutate(
         review, JsonUtil.copy(review.getRequest().getObject()));
 
-    result.getSpec().getPostgres().getExtensions()
+    result.getSpec().getMajorVersionUpgrade().getPostgresExtensions()
         .forEach(anExtension -> assertNotNull(anExtension.getVersion()));
-    assertEquals(toInstallExtensions, result.getStatus().getToInstallPostgresExtensions());
+    assertEquals(toInstallExtensions, result.getSpec().getMajorVersionUpgrade()
+        .getToInstallPostgresExtensions());
   }
 
   private StackGresClusterExtension getExtension() {

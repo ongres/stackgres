@@ -26,7 +26,6 @@ import io.stackgres.common.extension.ExtensionUtil;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.common.extension.StackGresExtensionVersion;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
-import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.mutating.Mutator;
 import org.jooq.lambda.Seq;
 
@@ -37,30 +36,43 @@ public abstract class AbstractExtensionsMutator<R extends CustomResource<?, ?>,
 
   @Override
   public R mutate(T review, R resource) {
-    if ((review.getRequest().getOperation() == Operation.CREATE
-        || review.getRequest().getOperation() == Operation.UPDATE)
-        && extensionsChanged(review)) {
-      mutateExtensions(resource);
+    switch (review.getRequest().getOperation()) {
+      case CREATE, UPDATE:
+        final StackGresCluster cluster = getCluster(review);
+        final StackGresCluster oldCluster = getOldCluster(review);
+        if (extensionsChanged(review, cluster, oldCluster)) {
+          mutateExtensions(resource, cluster);
+        }
+        break;
+      default:
+        break;
     }
     return resource;
   }
 
-  protected boolean extensionsChanged(T review) {
-    if (majorVersionOrBuildVersionChanged(review)) {
+  protected boolean extensionsChanged(
+      T review,
+      StackGresCluster cluster,
+      StackGresCluster oldCluster) {
+    if (majorVersionOrBuildVersionChanged(cluster, oldCluster)) {
       return true;
     }
     final R resource = review.getRequest().getObject();
     final R oldResource = review.getRequest().getOldObject();
-    if (oldResource == null) {
+    if (oldResource == null || oldCluster == null) {
       return true;
     }
-    final List<StackGresClusterExtension> extensions = getExtensions(resource);
-    final List<StackGresClusterExtension> oldExtensions = getExtensions(oldResource);
+    final List<StackGresClusterExtension> extensions =
+        getExtensions(resource, cluster);
+    final List<StackGresClusterExtension> oldExtensions =
+        getExtensions(oldResource, oldCluster);
     if (!Objects.equals(extensions, oldExtensions)) {
       return true;
     }
-    final List<ExtensionTuple> missingDefaultExtensions = getDefaultExtensions(resource);
-    final List<ExtensionTuple> oldMissingDefaultExtensions = getDefaultExtensions(oldResource);
+    final List<ExtensionTuple> missingDefaultExtensions =
+        getDefaultExtensions(resource, cluster);
+    final List<ExtensionTuple> oldMissingDefaultExtensions =
+        getDefaultExtensions(oldResource, oldCluster);
     if (!Objects.equals(missingDefaultExtensions, oldMissingDefaultExtensions)) {
       return true;
     }
@@ -74,14 +86,12 @@ public abstract class AbstractExtensionsMutator<R extends CustomResource<?, ?>,
     return false;
   }
 
-  private boolean majorVersionOrBuildVersionChanged(T review) {
-    final R resource = review.getRequest().getObject();
-    final R oldResource = review.getRequest().getOldObject();
-    if (oldResource == null) {
+  private boolean majorVersionOrBuildVersionChanged(
+      StackGresCluster cluster,
+      StackGresCluster oldCluster) {
+    if (oldCluster == null) {
       return true;
     }
-    final StackGresCluster cluster = getCluster(resource);
-    final StackGresCluster oldCluster = getCluster(oldResource);
     String postgresVersion = Optional.of(cluster.getSpec())
         .map(StackGresClusterSpec::getPostgres)
         .map(StackGresClusterPostgres::getVersion)
@@ -111,11 +121,10 @@ public abstract class AbstractExtensionsMutator<R extends CustomResource<?, ?>,
     return false;
   }
 
-  private void mutateExtensions(R resource) {
-    final StackGresCluster cluster = getCluster(resource);
-    List<StackGresClusterExtension> extensions = getExtensions(resource);
+  private void mutateExtensions(R resource, StackGresCluster cluster) {
+    List<StackGresClusterExtension> extensions = getExtensions(resource, cluster);
     List<StackGresClusterInstalledExtension> missingDefaultExtensions =
-        getDefaultExtensions(resource).stream()
+        getDefaultExtensions(resource, cluster).stream()
         .map(t -> t.extensionVersion()
             .map(version -> getExtension(cluster, t.extensionName(), version))
             .orElseGet(() -> getExtension(cluster, t.extensionName())))
@@ -149,11 +158,15 @@ public abstract class AbstractExtensionsMutator<R extends CustomResource<?, ?>,
   protected abstract Optional<List<StackGresClusterInstalledExtension>> getToInstallExtensions(
       R resource);
 
-  protected abstract StackGresCluster getCluster(R resource);
+  protected abstract StackGresCluster getCluster(T review);
 
-  protected abstract List<StackGresClusterExtension> getExtensions(R resource);
+  protected abstract StackGresCluster getOldCluster(T review);
 
-  protected abstract List<ExtensionTuple> getDefaultExtensions(R resource);
+  protected abstract List<StackGresClusterExtension> getExtensions(
+      R resource, StackGresCluster cluster);
+
+  protected abstract List<ExtensionTuple> getDefaultExtensions(
+      R resource, StackGresCluster cluster);
 
   protected void onExtensionToInstall(
       final StackGresClusterExtension extension,
@@ -189,10 +202,14 @@ public abstract class AbstractExtensionsMutator<R extends CustomResource<?, ?>,
       StackGresCluster cluster, StackGresClusterExtension extension) {
     return getExtensionMetadataManager()
         .findExtensionCandidateSameMajorBuild(cluster, extension, false)
-        .or(() -> getExtensionMetadataManager()
-            .findExtensionCandidateAnyVersion(cluster, extension, false)
+        .or(() -> Optional.of(getExtensionMetadataManager()
+            .getExtensionsAnyVersion(cluster, extension, false))
+            .stream()
+            .filter(list -> list.size() == 1)
+            .flatMap(List::stream)
             .filter(foundExtension -> foundExtension
-                .getTarget().getPostgresVersion().contains(".")))
+                .getTarget().getPostgresVersion().contains("."))
+            .findFirst())
         .or(() -> Optional.of(extension.getVersion() == null)
             .filter(hasNoVersion -> hasNoVersion)
             .map(hasNoVersion -> getExtensionMetadataManager()

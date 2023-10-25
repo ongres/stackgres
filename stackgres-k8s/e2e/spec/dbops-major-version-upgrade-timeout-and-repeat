@@ -29,6 +29,9 @@ spec:
   majorVersionUpgrade:
     postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
     sgPostgresConfig: postgresconf-for-major-version-upgrade
+    postgresExtensions:
+    - name: pg_repack
+      version: $TARGET_PG_REPACK_VERSION
 EOF
 
   if kubectl wait --timeout "$((E2E_TIMEOUT * 2))s" -n "$CLUSTER_NAMESPACE" sgdbops "$DBOPS_NAME" \
@@ -79,6 +82,9 @@ spec:
   majorVersionUpgrade:
     postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
     sgPostgresConfig: postgresconf-for-major-version-upgrade
+    postgresExtensions:
+    - name: pg_repack
+      version: $TARGET_PG_REPACK_VERSION
 EOF
 
   check_major_version_upgrade

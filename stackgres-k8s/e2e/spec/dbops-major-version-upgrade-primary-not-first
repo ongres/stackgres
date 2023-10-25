@@ -29,6 +29,9 @@ spec:
   majorVersionUpgrade:
     postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
     sgPostgresConfig: postgresconf-for-major-version-upgrade
+    postgresExtensions:
+    - name: pg_repack
+      version: $TARGET_PG_REPACK_VERSION
 EOF
 
   check_major_version_upgrade

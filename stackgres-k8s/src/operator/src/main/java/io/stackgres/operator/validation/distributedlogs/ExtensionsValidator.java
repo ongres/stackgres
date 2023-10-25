@@ -48,7 +48,8 @@ public class ExtensionsValidator
   }
 
   @Override
-  protected List<ExtensionTuple> getDefaultExtensions(StackGresDistributedLogs resource) {
+  protected List<ExtensionTuple> getDefaultExtensions(
+      StackGresDistributedLogs resource, StackGresCluster cluster) {
     final StackGresVersion operatorVersion = StackGresVersion.getStackGresVersion(
         resource
     );
@@ -59,7 +60,8 @@ public class ExtensionsValidator
   }
 
   @Override
-  protected List<StackGresClusterExtension> getExtensions(StackGresDistributedLogs resource) {
+  protected List<StackGresClusterExtension> getExtensions(
+      StackGresDistributedLogs resource, StackGresCluster cluster) {
     return List.of();
   }
 
@@ -71,17 +73,35 @@ public class ExtensionsValidator
   }
 
   @Override
-  protected StackGresCluster getCluster(StackGresDistributedLogs resource) {
-    return new StackGresClusterBuilder(getStackGresClusterForDistributedLogs(resource))
+  protected StackGresCluster getCluster(StackGresDistributedLogsReview review) {
+    return new StackGresClusterBuilder(
+        getStackGresClusterForDistributedLogs(review.getRequest().getObject()))
         .withNewStatus()
-        .withOs(Optional.ofNullable(resource.getStatus())
+        .withOs(Optional.ofNullable(review.getRequest().getObject().getStatus())
             .map(StackGresDistributedLogsStatus::getOs)
             .orElse(null))
-        .withArch(Optional.ofNullable(resource.getStatus())
+        .withArch(Optional.ofNullable(review.getRequest().getObject().getStatus())
             .map(StackGresDistributedLogsStatus::getArch)
             .orElse(null))
         .endStatus()
         .build();
+  }
+
+  @Override
+  protected StackGresCluster getOldCluster(StackGresDistributedLogsReview review) {
+    return Optional.ofNullable(review.getRequest().getOldObject())
+        .map(cluster -> new StackGresClusterBuilder(
+            getStackGresClusterForDistributedLogs(cluster))
+            .withNewStatus()
+            .withOs(Optional.ofNullable(review.getRequest().getObject().getStatus())
+                .map(StackGresDistributedLogsStatus::getOs)
+                .orElse(null))
+            .withArch(Optional.ofNullable(review.getRequest().getObject().getStatus())
+                .map(StackGresDistributedLogsStatus::getArch)
+                .orElse(null))
+            .endStatus()
+            .build())
+        .orElse(null);
   }
 
   @Override

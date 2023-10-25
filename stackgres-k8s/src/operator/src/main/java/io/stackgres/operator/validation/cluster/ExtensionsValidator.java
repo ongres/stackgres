@@ -45,7 +45,7 @@ public class ExtensionsValidator
 
   @Override
   protected List<ExtensionTuple> getDefaultExtensions(
-      StackGresCluster resource) {
+      StackGresCluster resource, StackGresCluster cluster) {
     String pgVersion = resource.getSpec().getPostgres().getVersion();
     StackGresComponent flavor = StackGresUtil.getPostgresFlavorComponent(resource);
     StackGresVersion stackGresVersion = StackGresVersion.getStackGresVersion(resource);
@@ -53,7 +53,8 @@ public class ExtensionsValidator
   }
 
   @Override
-  protected List<StackGresClusterExtension> getExtensions(StackGresCluster resource) {
+  protected List<StackGresClusterExtension> getExtensions(
+      StackGresCluster resource, StackGresCluster cluster) {
     return Optional.ofNullable(resource.getSpec())
         .map(StackGresClusterSpec::getPostgres)
         .map(StackGresClusterPostgres::getExtensions)
@@ -67,8 +68,13 @@ public class ExtensionsValidator
   }
 
   @Override
-  protected StackGresCluster getCluster(StackGresCluster resource) {
-    return resource;
+  protected StackGresCluster getCluster(StackGresClusterReview review) {
+    return review.getRequest().getObject();
+  }
+
+  @Override
+  protected StackGresCluster getOldCluster(StackGresClusterReview review) {
+    return review.getRequest().getOldObject();
   }
 
   @Override

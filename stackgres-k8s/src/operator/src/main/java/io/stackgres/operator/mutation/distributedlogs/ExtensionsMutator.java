@@ -42,26 +42,35 @@ public class ExtensionsMutator
 
   @Override
   protected Optional<List<StackGresClusterInstalledExtension>> getToInstallExtensions(
-      StackGresDistributedLogs distributedLogs) {
-    return Optional.of(distributedLogs)
+      StackGresDistributedLogs resource) {
+    return Optional.of(resource)
         .map(StackGresDistributedLogs::getSpec)
         .map(StackGresDistributedLogsSpec::getToInstallPostgresExtensions);
   }
 
   @Override
-  protected StackGresCluster getCluster(StackGresDistributedLogs distributedLogs) {
-    return StackGresDistributedLogsUtil.getStackGresClusterForDistributedLogs(distributedLogs);
+  protected StackGresCluster getCluster(StackGresDistributedLogsReview review) {
+    return StackGresDistributedLogsUtil
+        .getStackGresClusterForDistributedLogs(review.getRequest().getObject());
+  }
+
+  @Override
+  protected StackGresCluster getOldCluster(StackGresDistributedLogsReview review) {
+    return Optional.ofNullable(review.getRequest().getOldObject())
+        .map(StackGresDistributedLogsUtil::getStackGresClusterForDistributedLogs)
+        .orElse(null);
   }
 
   @Override
   protected List<StackGresClusterExtension> getExtensions(
-      StackGresDistributedLogs distributedLogs) {
+      StackGresDistributedLogs resource, StackGresCluster cluster) {
     return List.of();
   }
 
   @Override
-  protected List<ExtensionTuple> getDefaultExtensions(StackGresDistributedLogs cluster) {
-    return StackGresUtil.getDefaultDistributedLogsExtensions(cluster);
+  protected List<ExtensionTuple> getDefaultExtensions(
+      StackGresDistributedLogs resource, StackGresCluster cluster) {
+    return StackGresUtil.getDefaultDistributedLogsExtensions(resource);
   }
 
   @Override
