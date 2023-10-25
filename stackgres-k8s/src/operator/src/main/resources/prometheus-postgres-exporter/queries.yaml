@@ -852,11 +852,12 @@ pgbouncer_show_clients:
     _.link,
     _.remote_pid,
     _.tls,
-    _.application_name
+    _.application_name,
+    _.prepared_statements
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show clients'::text)
     _(type text, "user" text, database text, state text, addr text, port integer, local_addr text, local_port integer,
     connect_time timestamp with time zone, request_time timestamp with time zone, wait integer, wait_us integer, close_needed integer,
-    ptr text, link text, remote_pid integer, tls text, application_name text);
+    ptr text, link text, remote_pid integer, tls text, application_name text, prepared_statements integer);
   metrics:
     - type:
         usage: "LABEL"
@@ -912,6 +913,9 @@ pgbouncer_show_clients:
     - application_name:
         usage: "LABEL"
         description: "A string containing the application_name set by the client for this connection, or empty if this was not set"
+    - prepared_statements:
+        usage: "GAUGE"
+        description: "The amount of prepared statements that the client has prepared"
 
 pgbouncer_show_pools:
   master: true
