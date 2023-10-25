@@ -53,7 +53,7 @@ class ShardedDbOpsRequiredResourcesGeneratorTest {
         .getLatest().getLatestVersion());
     cluster.getMetadata().setNamespace(dbOps.getMetadata().getNamespace());
     cluster.getMetadata().setName(dbOps.getSpec().getSgShardedCluster());
-    profile = Fixtures.instanceProfile().loadSizeXs().get();
+    profile = Fixtures.instanceProfile().loadSizeS().get();
   }
 
   @Test

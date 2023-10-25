@@ -10,11 +10,14 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.apiweb.dto.cluster.ClusterInstalledExtension;
+import io.stackgres.apiweb.dto.cluster.ClusterResources;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class DistributedLogsSpec {
+
+  private String profile;
 
   private DistributedLogsPersistentVolume persistentVolume;
 
@@ -22,7 +25,7 @@ public class DistributedLogsSpec {
 
   private DistributedLogsNonProductionOptions nonProductionOptions;
 
-  private DistributedLogsResources resources;
+  private ClusterResources resources;
 
   private DistributedLogsPodScheduling scheduling;
 
@@ -33,6 +36,14 @@ public class DistributedLogsSpec {
   private DistributedLogsSpecMetadata metadata;
 
   private List<ClusterInstalledExtension> toInstallPostgresExtensions;
+
+  public String getProfile() {
+    return profile;
+  }
+
+  public void setProfile(String profile) {
+    this.profile = profile;
+  }
 
   public DistributedLogsPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -51,11 +62,11 @@ public class DistributedLogsSpec {
     this.nonProductionOptions = nonProductionOptions;
   }
 
-  public DistributedLogsResources getResources() {
+  public ClusterResources getResources() {
     return resources;
   }
 
-  public void setResources(DistributedLogsResources resources) {
+  public void setResources(ClusterResources resources) {
     this.resources = resources;
   }
 

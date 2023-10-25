@@ -21,7 +21,6 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HTTPGetActionBuilder;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterEnvVar;
@@ -51,9 +50,6 @@ import io.stackgres.operator.conciliation.factory.distributedlogs.PostgresExtens
 @RunningContainer(StackGresContainer.PATRONI)
 public class Patroni implements ContainerFactory<DistributedLogsContainerContext> {
 
-  private final ResourceFactory<StackGresDistributedLogsContext, ResourceRequirements>
-      requirementsFactory;
-
   private final ResourceFactory<StackGresDistributedLogsContext, List<EnvVar>> envVarFactory;
 
   private final PostgresSocketMount postgresSocket;
@@ -63,15 +59,12 @@ public class Patroni implements ContainerFactory<DistributedLogsContainerContext
 
   @Inject
   public Patroni(
-      ResourceFactory<StackGresDistributedLogsContext, ResourceRequirements>
-          requirementsFactory,
       @FactoryName(DistributedLogsPatroniEnvironmentVariablesFactory.LATEST_PATRONI_ENV_VAR_FACTORY)
       ResourceFactory<StackGresDistributedLogsContext, List<EnvVar>> envVarFactory,
       PostgresSocketMount postgresSocket,
       PostgresExtensionMounts postgresExtensions,
       LocalBinMounts localBinMounts,
       HugePagesMounts hugePagesMounts) {
-    this.requirementsFactory = requirementsFactory;
     this.envVarFactory = envVarFactory;
     this.postgresSocket = postgresSocket;
     this.postgresExtensions = postgresExtensions;
@@ -83,15 +76,11 @@ public class Patroni implements ContainerFactory<DistributedLogsContainerContext
   public Container getContainer(DistributedLogsContainerContext context) {
     final StackGresDistributedLogs cluster = context.getDistributedLogsContext().getSource();
 
-    ResourceRequirements podResources = requirementsFactory
-        .createResource(context.getDistributedLogsContext());
-
     return new ContainerBuilder()
         .withName(StackGresContainer.PATRONI.getName())
         .withImage(StackGresUtil.getPatroniImageName(cluster))
         .withCommand("/bin/sh", "-ex",
             ClusterPath.LOCAL_BIN_START_PATRONI_SH_PATH.path())
-        .withResources(podResources)
         .withImagePullPolicy("IfNotPresent")
         .withPorts(
             new ContainerPortBuilder()

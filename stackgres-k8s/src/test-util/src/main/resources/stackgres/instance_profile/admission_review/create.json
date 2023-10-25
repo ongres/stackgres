@@ -37,7 +37,7 @@
         },
         "creationTimestamp": "2019-10-25T11:22:45Z",
         "generation": 1,
-        "name": "size-xs",
+        "name": "size-s",
         "namespace": "postgresql",
         "uid": "c4bc460a-f719-11e9-b325-0242ac110002"
       },
@@ -126,6 +126,94 @@
           "dbops.set-dbops-running": {
             "cpu": "1",
             "memory": "256Mi"
+          }
+        },
+        "requests": {
+          "cpu": "500m",
+          "memory": "512Mi",
+          "containers": {
+            "cluster-controller": {
+              "cpu": "250m",
+              "memory": "512Mi"
+            },
+            "distributedlogs-controller": {
+              "cpu": "250m",
+              "memory": "512Mi"
+            },
+            "envoy": {
+              "cpu": "250m",
+              "memory": "64Mi"
+            },
+            "fluent-bit": {
+              "cpu": "32m",
+              "memory": "64Mi"
+            },
+            "fluentd": {
+              "cpu": "250m",
+              "memory": "2Gi"
+            },
+            "pgbouncer": {
+              "cpu": "250m",
+              "memory": "64Mi"
+            },
+            "postgres-util": {
+              "cpu": "32m",
+              "memory": "64Mi"
+            },
+            "prometheus-postgres-exporter": {
+              "cpu": "32m",
+              "memory": "256Mi"
+            },
+            "dbops.run-dbops": {
+              "cpu": "1",
+              "memory": "256Mi"
+            },
+            "dbops.set-dbops-result": {
+              "cpu": "1",
+              "memory": "256Mi"
+            },
+            "backup.create-backup": {
+              "cpu": "1",
+              "memory": "256Mi"
+            }
+          },
+          "initContainers": {
+            "cluster-reconciliation-cycle": {
+              "cpu": "500m",
+              "memory": "512Mi"
+            },
+            "distributedlogs-reconciliation-cycle": {
+              "cpu": "500m",
+              "memory": "512Mi"
+            },
+            "major-version-upgrade": {
+              "cpu": "500m",
+              "memory": "512Mi"
+            },
+            "pgbouncer-auth-file": {
+              "cpu": "500m",
+              "memory": "512Mi"
+            },
+            "relocate-binaries": {
+              "cpu": "500m",
+              "memory": "512Mi"
+            },
+            "reset-patroni": {
+              "cpu": "500m",
+              "memory": "512Mi"
+            },
+            "setup-arbitrary-user": {
+              "cpu": "500m",
+              "memory": "512Mi"
+            },
+            "setup-scripts": {
+              "cpu": "500m",
+              "memory": "512Mi"
+            },
+            "dbops.set-dbops-running": {
+              "cpu": "1",
+              "memory": "256Mi"
+            }
           }
         }
       }

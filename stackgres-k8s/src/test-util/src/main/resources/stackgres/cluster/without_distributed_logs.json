@@ -26,7 +26,7 @@
       "sgBackupConfig": "backupconf"
     },
     "prometheusAutobind": true,
-    "sgInstanceProfile": "size-xs",
+    "sgInstanceProfile": "size-s",
     "initialData": {
       "restore": {
         "fromBackup": {

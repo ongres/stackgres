@@ -556,6 +556,7 @@ install_operator_vanilla() {
 }
 
 install_operator_vanilla_from() {
+  local OPERATOR_FROM=true
   before_operator_install_or_upgrade
   helm install stackgres-operator --namespace "$OPERATOR_NAMESPACE" \
     "$@"
@@ -720,7 +721,7 @@ before_operator_install_or_upgrade() {
 after_operator_install_or_upgrade() {
   wait_services_available "$OPERATOR_NAMESPACE" 1 '^stackgres-operator$'
   wait_services_available "$OPERATOR_NAMESPACE" 1 '^stackgres-restapi$'
-  if [ "$EXTENSIONS_CACHE_ENABLED" = true ]
+  if [ "$OPERATOR_FROM" != true ] && [ "$EXTENSIONS_CACHE_ENABLED" = true ]
   then
     wait_services_available "$OPERATOR_NAMESPACE" 1 '^stackgres-operator-extensions-cache$'
   fi

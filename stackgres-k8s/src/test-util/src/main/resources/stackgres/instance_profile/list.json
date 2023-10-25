@@ -7,7 +7,7 @@
       "metadata": {
         "creationTimestamp": "2019-09-30T11:10:03Z",
         "generation": 1,
-        "name": "size-xs",
+        "name": "size-s",
         "namespace": "stackgres",
         "resourceVersion": "214289",
         "selfLink": "/apis/stackgres.io/v1/namespaces/default/sginstanceprofiles/size-s",

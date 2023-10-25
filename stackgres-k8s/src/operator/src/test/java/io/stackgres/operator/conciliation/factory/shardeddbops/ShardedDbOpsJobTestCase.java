@@ -39,7 +39,7 @@ abstract class ShardedDbOpsJobTestCase {
   void setUp() {
     cluster = Fixtures.shardedCluster().loadDefault().get();
 
-    clusterProfile = Fixtures.instanceProfile().loadSizeXs().get();
+    clusterProfile = Fixtures.instanceProfile().loadSizeS().get();
 
     dbOps = getShardedDbOps();
   }

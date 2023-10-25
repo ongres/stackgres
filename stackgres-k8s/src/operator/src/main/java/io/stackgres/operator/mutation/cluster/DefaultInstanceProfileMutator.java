@@ -17,13 +17,13 @@ import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operator.mutation.AbstractDefaultResourceMutator;
 
 @ApplicationScoped
-public class DefaultProfileMutator
+public class DefaultInstanceProfileMutator
     extends AbstractDefaultResourceMutator<StackGresProfile, StackGresCluster,
         StackGresClusterReview>
     implements ClusterMutator {
 
   @Inject
-  public DefaultProfileMutator(
+  public DefaultInstanceProfileMutator(
       DefaultCustomResourceFactory<StackGresProfile> resourceFactory,
       CustomResourceFinder<StackGresProfile> finder,
       CustomResourceScheduler<StackGresProfile> scheduler) {

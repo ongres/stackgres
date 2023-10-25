@@ -17,12 +17,23 @@ public class ClusterResources {
 
   private Boolean enableClusterLimitsRequirements;
 
+  private Boolean disableResourcesRequestsSplitFromTotal;
+
   public Boolean getEnableClusterLimitsRequirements() {
     return enableClusterLimitsRequirements;
   }
 
   public void setEnableClusterLimitsRequirements(Boolean enableClusterLimitsRequirements) {
     this.enableClusterLimitsRequirements = enableClusterLimitsRequirements;
+  }
+
+  public Boolean getDisableResourcesRequestsSplitFromTotal() {
+    return disableResourcesRequestsSplitFromTotal;
+  }
+
+  public void setDisableResourcesRequestsSplitFromTotal(
+      Boolean disableResourcesRequestsSplitFromTotal) {
+    this.disableResourcesRequestsSplitFromTotal = disableResourcesRequestsSplitFromTotal;
   }
 
   @Override

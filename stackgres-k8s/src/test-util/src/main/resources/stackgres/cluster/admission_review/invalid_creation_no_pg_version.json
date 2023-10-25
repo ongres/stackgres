@@ -48,7 +48,7 @@
       },
       "spec": {
         "instances": 1,
-        "sgInstanceProfile": "size-xs",
+        "sgInstanceProfile": "size-s",
         "postgres": {},
         "replication": {
           "mode": "async",

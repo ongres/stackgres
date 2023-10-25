@@ -40,7 +40,6 @@ import io.stackgres.common.StackGresPort;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -148,11 +147,8 @@ public class ClusterPodTemplateSpecFactory
     final Map<String, String> customPodLabels = context.getClusterContext()
         .clusterPodsCustomLabels();
 
-    final boolean isEnabledClusterPodAntiAffinity = Optional.ofNullable(
-        cluster.getSpec().getNonProductionOptions())
-        .map(StackGresClusterNonProduction::getDisableClusterPodAntiAffinity)
-        .map(disableClusterPodAntiAffinity -> !disableClusterPodAntiAffinity)
-        .orElse(true);
+    final boolean isEnabledClusterPodAntiAffinity =
+        !context.getClusterContext().calculateDisableClusterPodAntiAffinity();
 
     var podTemplate = new PodTemplateSpecBuilder()
         .withMetadata(new ObjectMetaBuilder()

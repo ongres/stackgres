@@ -21,9 +21,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class DefaultProfileConfigMutatorTest
+class DefaultInstanceProfileConfigMutatorTest
     extends AbstractDefaultResourceMutatorTest<StackGresProfile, StackGresCluster,
-        StackGresClusterReview, DefaultProfileMutator> {
+        StackGresClusterReview, DefaultInstanceProfileMutator> {
 
   private static final String POSTGRES_VERSION =
       StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
@@ -34,10 +34,10 @@ class DefaultProfileConfigMutatorTest
   }
 
   @Override
-  protected DefaultProfileMutator getDefaultConfigMutator() {
+  protected DefaultInstanceProfileMutator getDefaultConfigMutator() {
     var resourceFactory = new DefaultProfileFactory(new OperatorPropertyContext());
     resourceFactory.init();
-    var mutator = new DefaultProfileMutator(
+    var mutator = new DefaultInstanceProfileMutator(
         resourceFactory, finder, scheduler);
     return mutator;
   }

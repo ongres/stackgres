@@ -93,7 +93,7 @@ abstract class AbstractShardedClusterRequiredResourcesGeneratorTest {
     poolingConfig.getStatus().setPgBouncer(new StackGresPoolingConfigPgBouncerStatus());
     poolingConfig.getStatus().getPgBouncer()
         .setDefaultParameters(PgBouncerDefaultValues.getDefaultValues());
-    instanceProfile = Fixtures.instanceProfile().loadSizeS().get();
+    instanceProfile = Fixtures.instanceProfile().loadSizeM().get();
     instanceProfile.getMetadata().setNamespace(namespace);
     setNamespace(instanceProfile);
     when(configScanner.findResources()).thenReturn(Optional.of(List.of(config)));

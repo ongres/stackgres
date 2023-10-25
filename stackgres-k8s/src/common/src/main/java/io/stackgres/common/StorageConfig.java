@@ -24,7 +24,7 @@ public abstract class StorageConfig {
   /**
    * The request definition for StorageConfig.
    */
-  @Value.Derived
+  @Value.Lazy
   public Map<String, Quantity> getStorage() {
     final ImmutableMap.Builder<String, Quantity> req = ImmutableMap.builder();
     req.put("storage", new Quantity(getSize()));
@@ -34,7 +34,7 @@ public abstract class StorageConfig {
   /**
    * The request definition for StorageConfig.
    */
-  @Value.Derived
+  @Value.Lazy
   public ResourceRequirements getResourceRequirements() {
     ResourceRequirements rr = new ResourceRequirements();
     rr.setRequests(getStorage());

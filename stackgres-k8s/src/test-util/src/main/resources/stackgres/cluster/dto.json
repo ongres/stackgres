@@ -13,7 +13,7 @@
       "mode": "async",
       "role": "ha-read"
     },
-    "sgInstanceProfile": "size-xs",
+    "sgInstanceProfile": "size-s",
     "initialData": {
       "restore": {
         "fromBackup": {

@@ -110,7 +110,7 @@ spec:
   instances: 2
   postgres:
     version: "$E2E_POSTGRES_VERSION"
-  sgInstanceProfile: size-xs
+  sgInstanceProfile: size-s
   metadata:
     annotations:
       allResources:

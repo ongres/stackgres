@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
 import io.fabric8.kubernetes.api.model.ObjectFieldSelector;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterControllerProperty;
@@ -68,85 +69,96 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
         .withName(StackGresContainer.CLUSTER_CONTROLLER.getName())
         .withImage(StackGresController.CLUSTER_CONTROLLER.getImageName())
         .withImagePullPolicy(getDefaultPullPolicy())
-        .withEnv(new EnvVarBuilder()
-                .withName(ClusterControllerProperty.CLUSTER_NAME.getEnvironmentVariableName())
-                .withValue(context
-                    .getClusterContext()
-                    .getCluster().getMetadata().getName())
-                .build(),
+        .withEnv(
             new EnvVarBuilder()
-                .withName(ClusterControllerProperty.CLUSTER_NAMESPACE.getEnvironmentVariableName())
-                .withValue(context
-                    .getClusterContext()
-                    .getCluster().getMetadata().getNamespace())
-                .build(),
+            .withName(ClusterControllerProperty.CLUSTER_NAME.getEnvironmentVariableName())
+            .withValue(context
+                .getClusterContext()
+                .getCluster().getMetadata().getName())
+            .build(),
             new EnvVarBuilder()
-                .withName(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME
-                    .getEnvironmentVariableName())
-                .withValueFrom(new EnvVarSourceBuilder()
-                    .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
-                    .build())
-                .build(),
+            .withName(ClusterControllerProperty.CLUSTER_NAMESPACE.getEnvironmentVariableName())
+            .withValue(context
+                .getClusterContext()
+                .getCluster().getMetadata().getNamespace())
+            .build(),
             new EnvVarBuilder()
-                .withName(ClusterControllerProperty.CLUSTER_CONTROLLER_EXTENSIONS_REPOSITORY_URLS
-                    .getEnvironmentVariableName())
-                .withValue(OperatorProperty.EXTENSIONS_REPOSITORY_URLS
-                    .getString())
-                .build(),
-            new EnvVarBuilder()
-                .withName(ClusterControllerProperty
-                    .CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES
-                    .getEnvironmentVariableName())
-                .withValue(Boolean.TRUE.toString())
-                .build(),
-            new EnvVarBuilder()
-                .withName(ClusterControllerProperty
-                    .CLUSTER_CONTROLLER_RECONCILE_PGBOUNCER
-                    .getEnvironmentVariableName())
-                .withValue(Optional.of(context.getClusterContext().getCluster())
-                    .map(StackGresCluster::getSpec)
-                    .map(StackGresClusterSpec::getPods)
-                    .map(StackGresClusterPods::getDisableConnectionPooling)
-                    .map(getDisableConnectionPooling -> !getDisableConnectionPooling)
-                    .orElse(Boolean.TRUE)
-                    .toString())
-                .build(),
-            new EnvVarBuilder()
-                .withName(ClusterControllerProperty
-                    .CLUSTER_CONTROLLER_RECONCILE_PATRONI
-                    .getEnvironmentVariableName())
-                .withValue(Boolean.TRUE.toString())
-                .build(),
-            new EnvVarBuilder()
-                .withName(ClusterControllerProperty
-                    .CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL
-                    .getEnvironmentVariableName())
-                .withValue(Boolean.TRUE.toString())
-                .build(),
-            new EnvVarBuilder()
-                .withName("CLUSTER_CONTROLLER_LOG_LEVEL")
-                .withValue(System.getenv("OPERATOR_LOG_LEVEL"))
-                .build(),
-            new EnvVarBuilder()
-                .withName("CLUSTER_CONTROLLER_SHOW_STACK_TRACES")
-                .withValue(System.getenv("OPERATOR_SHOW_STACK_TRACES"))
-                .build(),
-            new EnvVarBuilder()
-                .withName("APP_OPTS")
-                .withValue(System.getenv("APP_OPTS"))
-                .build(),
-            new EnvVarBuilder()
-                .withName("JAVA_OPTS")
-                .withValue(System.getenv("JAVA_OPTS"))
-                .build(),
-            new EnvVarBuilder()
-                .withName("DEBUG_CLUSTER_CONTROLLER")
-                .withValue(System.getenv("DEBUG_OPERATOR"))
-                .build(),
-            new EnvVarBuilder()
-                .withName("DEBUG_CLUSTER_CONTROLLER_SUSPEND")
-                .withValue(System.getenv("DEBUG_OPERATOR_SUSPEND"))
+            .withName(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME
+                .getEnvironmentVariableName())
+            .withValueFrom(new EnvVarSourceBuilder()
+                .withFieldRef(new ObjectFieldSelector("v1", "metadata.name"))
                 .build())
+            .build(),
+            new EnvVarBuilder()
+            .withName(ClusterControllerProperty.CLUSTER_CONTROLLER_EXTENSIONS_REPOSITORY_URLS
+                .getEnvironmentVariableName())
+            .withValue(OperatorProperty.EXTENSIONS_REPOSITORY_URLS
+                .getString())
+            .build(),
+            new EnvVarBuilder()
+            .withName(ClusterControllerProperty
+                .CLUSTER_CONTROLLER_SKIP_OVERWRITE_SHARED_LIBRARIES
+                .getEnvironmentVariableName())
+            .withValue(Boolean.TRUE.toString())
+            .build(),
+            new EnvVarBuilder()
+            .withName(ClusterControllerProperty
+                .CLUSTER_CONTROLLER_RECONCILE_PGBOUNCER
+                .getEnvironmentVariableName())
+            .withValue(Optional.of(context.getClusterContext().getCluster())
+                .map(StackGresCluster::getSpec)
+                .map(StackGresClusterSpec::getPods)
+                .map(StackGresClusterPods::getDisableConnectionPooling)
+                .map(getDisableConnectionPooling -> !getDisableConnectionPooling)
+                .orElse(Boolean.TRUE)
+                .toString())
+            .build(),
+            new EnvVarBuilder()
+            .withName(ClusterControllerProperty
+                .CLUSTER_CONTROLLER_RECONCILE_PATRONI
+                .getEnvironmentVariableName())
+            .withValue(Boolean.TRUE.toString())
+            .build(),
+            new EnvVarBuilder()
+            .withName(ClusterControllerProperty
+                .CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL
+                .getEnvironmentVariableName())
+            .withValue(Boolean.TRUE.toString())
+            .build(),
+            new EnvVarBuilder()
+            .withName("CLUSTER_CONTROLLER_LOG_LEVEL")
+            .withValue(System.getenv("OPERATOR_LOG_LEVEL"))
+            .build(),
+            new EnvVarBuilder()
+            .withName("CLUSTER_CONTROLLER_SHOW_STACK_TRACES")
+            .withValue(System.getenv("OPERATOR_SHOW_STACK_TRACES"))
+            .build(),
+            new EnvVarBuilder()
+            .withName("APP_OPTS")
+            .withValue(System.getenv("APP_OPTS"))
+            .build(),
+            new EnvVarBuilder()
+            .withName("JAVA_OPTS")
+            .withValue(System.getenv("JAVA_OPTS"))
+            .build(),
+            new EnvVarBuilder()
+            .withName("DEBUG_CLUSTER_CONTROLLER")
+            .withValue(System.getenv("DEBUG_OPERATOR"))
+            .build(),
+            new EnvVarBuilder()
+            .withName("DEBUG_CLUSTER_CONTROLLER_SUSPEND")
+            .withValue(System.getenv("DEBUG_OPERATOR_SUSPEND"))
+            .build(),
+            new EnvVarBuilder()
+            .withName("MEMORY_REQUEST")
+            .withNewValueFrom()
+            .withNewResourceFieldRef()
+            .withResource("requests.memory")
+            .withDivisor(new Quantity("1"))
+            .withContainerName(StackGresContainer.CLUSTER_CONTROLLER.getName())
+            .endResourceFieldRef()
+            .endValueFrom()
+            .build())
         .withVolumeMounts(userContainerMounts.getVolumeMounts(context))
         .addAllToVolumeMounts(postgresDataMounts.getVolumeMounts(context))
         .addAllToVolumeMounts(postgresSocket.getVolumeMounts(context))

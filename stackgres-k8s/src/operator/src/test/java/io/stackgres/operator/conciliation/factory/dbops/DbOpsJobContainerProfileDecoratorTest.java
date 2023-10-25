@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.factory.dbops;
 
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +26,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgprofile.StackGresProfileContainer;
+import io.stackgres.common.crd.sgprofile.StackGresProfileRequests;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import io.stackgres.operator.conciliation.factory.AbstractProfileDecoratorTestCase;
@@ -60,7 +62,7 @@ class DbOpsJobContainerProfileDecoratorTest extends AbstractProfileDecoratorTest
   void setUp() {
     dbOps = Fixtures.dbOps().loadRestart().get();
     cluster = Fixtures.cluster().loadDefault().get();
-    profile = Fixtures.instanceProfile().loadSizeXs().get();
+    profile = Fixtures.instanceProfile().loadSizeS().get();
 
     final ObjectMeta metadata = dbOps.getMetadata();
     metadata.getAnnotations().put(StackGresContext.VERSION_KEY,
@@ -90,6 +92,27 @@ class DbOpsJobContainerProfileDecoratorTest extends AbstractProfileDecoratorTest
           containerProfile.setCpu(new Random().nextInt(32000) + "m");
           containerProfile.setMemory(new Random().nextInt(32) + "Gi");
           profile.getSpec().getInitContainers().put(
+              KIND.getContainerPrefix() + container.getName(), containerProfile);
+        });
+    profile.getSpec().setRequests(new StackGresProfileRequests());
+    profile.getSpec().getRequests().setCpu(new Random().nextInt(32000) + "m");
+    profile.getSpec().getRequests().setMemory(new Random().nextInt(32) + "Gi");
+    profile.getSpec().getRequests().setContainers(new HashMap<>());
+    profile.getSpec().getRequests().setInitContainers(new HashMap<>());
+    Seq.seq(job.getSpec().getTemplate().getSpec().getContainers())
+        .forEach(container -> {
+          StackGresProfileContainer containerProfile = new StackGresProfileContainer();
+          containerProfile.setCpu(new Random().nextInt(32000) + "m");
+          containerProfile.setMemory(new Random().nextInt(32) + "Gi");
+          profile.getSpec().getRequests().getContainers().put(
+              KIND.getContainerPrefix() + container.getName(), containerProfile);
+        });
+    Seq.seq(job.getSpec().getTemplate().getSpec().getInitContainers())
+        .forEach(container -> {
+          StackGresProfileContainer containerProfile = new StackGresProfileContainer();
+          containerProfile.setCpu(new Random().nextInt(32000) + "m");
+          containerProfile.setMemory(new Random().nextInt(32) + "Gi");
+          profile.getSpec().getRequests().getInitContainers().put(
               KIND.getContainerPrefix() + container.getName(), containerProfile);
         });
     StackGresProfileContainer containerProfile = new StackGresProfileContainer();
@@ -129,13 +152,7 @@ class DbOpsJobContainerProfileDecoratorTest extends AbstractProfileDecoratorTest
   protected void disableResourceRequirements() {
     cluster.getSpec().setNonProductionOptions(new StackGresClusterNonProduction());
     cluster.getSpec().getNonProductionOptions().setDisableClusterResourceRequirements(true);
-  }
-
-  @Override
-  protected void enableRequests() {
-    cluster.getSpec().setNonProductionOptions(new StackGresClusterNonProduction());
-    cluster.getSpec().getNonProductionOptions().setEnableSetClusterCpuRequests(true);
-    cluster.getSpec().getNonProductionOptions().setEnableSetClusterMemoryRequests(true);
+    when(context.calculateDisableClusterResourceRequirements()).thenReturn(true);
   }
 
   @Override

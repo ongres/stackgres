@@ -16,7 +16,7 @@
     "requestKind": null,
     "requestResource": null,
     "requestSubResource": null,
-    "name": "size-xs",
+    "name": "size-s",
     "namespace": "postgresql",
     "operation": "DELETE",
     "userInfo": {

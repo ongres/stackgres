@@ -53,7 +53,7 @@ class DbOpsRequiredResourcesGeneratorTest {
         .getLatest().getLatestVersion());
     cluster.getMetadata().setNamespace(dbOps.getMetadata().getNamespace());
     cluster.getMetadata().setName(dbOps.getSpec().getSgCluster());
-    profile = Fixtures.instanceProfile().loadSizeXs().get();
+    profile = Fixtures.instanceProfile().loadSizeS().get();
   }
 
   @Test

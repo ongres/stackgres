@@ -11,13 +11,13 @@ import io.stackgres.common.fixture.VersionedFixture;
 
 public class InstanceProfileFixture extends VersionedFixture<StackGresProfile> {
 
-  public InstanceProfileFixture loadSizeXs() {
-    fixture = readFromJson(STACKGRES_INSTANCE_PROFILE_SIZE_XS_JSON);
+  public InstanceProfileFixture loadSizeS() {
+    fixture = readFromJson(STACKGRES_INSTANCE_PROFILE_SIZE_S_JSON);
     return this;
   }
 
-  public InstanceProfileFixture loadSizeS() {
-    fixture = readFromJson(STACKGRES_INSTANCE_PROFILE_SIZE_S_JSON);
+  public InstanceProfileFixture loadSizeM() {
+    fixture = readFromJson(STACKGRES_INSTANCE_PROFILE_SIZE_M_JSON);
     return this;
   }
 

@@ -6,25 +6,63 @@
 package io.stackgres.common;
 
 import java.util.Map;
+import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
+import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
+import io.stackgres.common.crd.sgcluster.StackGresClusterProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import org.immutables.value.Value;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 
 public interface ShardedClusterContext extends EnvVarContext<StackGresShardedCluster> {
 
   StackGresShardedCluster getShardedCluster();
 
+  @Value.Lazy
   @Override
   default StackGresShardedCluster getResource() {
     return getShardedCluster();
   }
 
+  @Value.Lazy
   @Override
   default Map<String, String> getEnvironmentVariables() {
     return Seq.of(ShardedClusterEnvVar.values())
         .map(clusterEnvVars -> clusterEnvVars.envVar(getShardedCluster()))
         .toMap(EnvVar::getName, EnvVar::getValue);
+  }
+
+  @Value.Lazy
+  default boolean calculateDisableClusterPodAntiAffinity() {
+    return Optional.ofNullable(getShardedCluster().getSpec().getNonProductionOptions())
+        .map(StackGresClusterNonProduction::getDisableClusterPodAntiAffinity)
+        .orElse(getClusterProfile()
+            .spec().getNonProductionOptions().getDisableClusterPodAntiAffinity());
+  }
+
+  @Value.Lazy
+  default boolean calculateDisablePatroniResourceRequirements() {
+    return Optional.ofNullable(getShardedCluster().getSpec().getNonProductionOptions())
+        .map(StackGresClusterNonProduction::getDisablePatroniResourceRequirements)
+        .orElse(getClusterProfile()
+            .spec().getNonProductionOptions().getDisablePatroniResourceRequirements());
+  }
+
+  @Value.Lazy
+  default boolean calculateDisableClusterResourceRequirements() {
+    return Optional.ofNullable(getShardedCluster().getSpec().getNonProductionOptions())
+        .map(StackGresClusterNonProduction::getDisableClusterResourceRequirements)
+        .orElse(getClusterProfile()
+            .spec().getNonProductionOptions().getDisableClusterResourceRequirements());
+  }
+
+  @Value.Lazy
+  default @NotNull StackGresClusterProfile getClusterProfile() {
+    return Optional.ofNullable(getShardedCluster().getSpec().getProfile())
+        .map(StackGresClusterProfile::fromString)
+        .orElse(StackGresClusterProfile.PRODUCTION);
   }
 
 }

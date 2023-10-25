@@ -37,7 +37,7 @@ class ShardedDbOpsResourceGenerationDiscovererTest
   @BeforeEach
   public void setup() {
     this.resource = Fixtures.shardedDbOps().loadRestart().get();
-    this.profile = Fixtures.instanceProfile().loadSizeXs().get();
+    this.profile = Fixtures.instanceProfile().loadSizeS().get();
     this.cluster = Fixtures.shardedCluster().loadDefault().withLatestPostgresVersion().get();
   }
 

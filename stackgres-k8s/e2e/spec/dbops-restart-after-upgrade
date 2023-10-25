@@ -82,7 +82,7 @@ e2e_test_install() {
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set cluster.create=false \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
-    --set instanceProfiles[0].name=size-xs \
+    --set instanceProfiles[0].name=size-s \
     --set instanceProfiles[0].cpu=125m \
     --set instanceProfiles[0].memory=512Mi \
     --set configurations.objectstorage.create=true \
@@ -100,6 +100,7 @@ e2e_test_install() {
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
     "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
+    --set-string cluster.sgInstanceProfile=size-s \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set prometheusAutobind=true \
     --set configurations.objectstorage.create=false \
@@ -138,6 +139,7 @@ EOF
   create_or_replace_cluster_for_version "$STACKGRES_PREVIOUS_VERSION" \
     "$CLUSTER_1_NAME" "$CLUSTER_NAMESPACE" 1 \
     --set configurations.create=false --set instanceProfiles=false \
+    --set-string cluster.sgInstanceProfile=size-s \
     --set-string cluster.postgres.version="$PREVIOUS_PATRONI_IMAGE_POSTGRES_VERSION" \
     --set prometheusAutobind=true \
     --set configurations.objectstorage.create=false \

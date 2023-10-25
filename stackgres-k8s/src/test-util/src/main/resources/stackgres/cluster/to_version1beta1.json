@@ -11,7 +11,7 @@
   "spec": {
     "instances": 1,
     "postgresVersion": "11.5",
-    "sgInstanceProfile": "size-xs",
+    "sgInstanceProfile": "size-s",
     "initialData": {
       "restore": {
         "fromBackup": "d7e660a9-377c-11ea-b04b-0242ac110004"

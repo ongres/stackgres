@@ -48,7 +48,7 @@ class ProfileReferenceValidatorTest {
   void setUp() throws Exception {
     validator = new ProfileReferenceValidator(profileFinder);
 
-    profileSizeXs = Fixtures.instanceProfile().loadSizeXs().get();
+    profileSizeXs = Fixtures.instanceProfile().loadSizeS().get();
   }
 
   @Test

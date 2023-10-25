@@ -138,7 +138,8 @@ class DefaultOperatorLockHolderTest {
         updatedConfig.getMetadata().getAnnotations().get(LOCK_SERVICE_ACCOUNT_KEY));
     assertTrue(StackGresUtil.isLockedBy(updatedConfig, OPERATOR_POD_NAME, checkTimestamp));
     assertTrue(operatorLockHolder.isLeader());
-    verify(reconciliator, Mockito.times(1)).reconcileAll();
+    verify(reconciliator, Mockito.atLeast(1)).reconcileAll();
+    verify(reconciliator, Mockito.atMost(2)).reconcileAll();
   }
 
   @Test

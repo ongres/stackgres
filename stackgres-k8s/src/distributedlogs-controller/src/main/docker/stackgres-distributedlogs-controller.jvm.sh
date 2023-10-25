@@ -38,6 +38,12 @@ fi
 exec java \
   -XX:SharedArchiveFile="$APP_PATH"/quarkus-run.jsa \
   -XX:MaxRAMPercentage=75.0 \
+  $(
+    if [ "$MEMORY_REQUEST" -gt 0 ]
+    then
+      printf ' -Xmx%s' "$(( $MEMORY_REQUEST - 1048575 ))"
+    fi
+  ) \
   -Djava.net.preferIPv4Stack=true \
   -Djava.awt.headless=true \
   -Djava.util.logging.manager=org.jboss.logmanager.LogManager \

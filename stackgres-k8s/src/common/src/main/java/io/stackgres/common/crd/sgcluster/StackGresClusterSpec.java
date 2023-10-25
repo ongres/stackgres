@@ -20,6 +20,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
+import io.stackgres.common.validation.ValidEnum;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
@@ -29,6 +30,10 @@ import io.sundr.builder.annotations.Buildable;
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterSpec {
+
+  @ValidEnum(enumClass = StackGresClusterProfile.class, allowNulls = true,
+      message = "profile must be production, testing or development")
+  private String profile;
 
   @Valid
   private StackGresClusterPostgres postgres;
@@ -185,6 +190,14 @@ public class StackGresClusterSpec {
         .build();
   }
 
+  public String getProfile() {
+    return profile;
+  }
+
+  public void setProfile(String profile) {
+    this.profile = profile;
+  }
+
   public StackGresClusterPostgres getPostgres() {
     return postgres;
   }
@@ -309,8 +322,9 @@ public class StackGresClusterSpec {
   @Override
   public int hashCode() {
     return Objects.hash(configurations, distributedLogs, initialData, instances, managedSql,
-        metadata, nonProductionOptions, pods, postgres, postgresServices, prometheusAutobind,
-        replicateFrom, replication, sgInstanceProfile, toInstallPostgresExtensions);
+        metadata, nonProductionOptions, pods, postgres, postgresServices, profile,
+        prometheusAutobind, replicateFrom, replication, sgInstanceProfile,
+        toInstallPostgresExtensions);
   }
 
   @Override
@@ -329,8 +343,10 @@ public class StackGresClusterSpec {
         && Objects.equals(managedSql, other.managedSql)
         && Objects.equals(metadata, other.metadata)
         && Objects.equals(nonProductionOptions, other.nonProductionOptions)
-        && Objects.equals(pods, other.pods) && Objects.equals(postgres, other.postgres)
+        && Objects.equals(pods, other.pods)
+        && Objects.equals(postgres, other.postgres)
         && Objects.equals(postgresServices, other.postgresServices)
+        && Objects.equals(profile, other.profile)
         && Objects.equals(prometheusAutobind, other.prometheusAutobind)
         && Objects.equals(replicateFrom, other.replicateFrom)
         && Objects.equals(replication, other.replication)

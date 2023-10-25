@@ -8,14 +8,14 @@
     "causes": [
       {
         "field": "[]",
-        "message": "Invalid value: map[string]interface {}{\"kind\":\"SGInstanceProfile\", \"metadata\":map[string]interface {}{\"creationTimestamp\":\"2020-03-16T16:32:28Z\", \"name\":\"size-xs\", \"namespace\":\"operator-profile-api\", \"generation\":1, \"uid\":\"b9f63eab-67a3-11ea-98cc-0242ac110005\", \"annotations\":map[string]interface {}{\"stackgres.io/operatorVersion\":\"0.9-SNAPSHOT\"}}, \"spec\":map[string]interface {}{\"cpu\":\"500m\", \"memory\":\"\"}, \"apiVersion\":\"stackgres.io/v1\"}: validation failure list:\nspec.memory in body should match '^[0-9]+(\\.[0-9]+)?(Mi|Gi)$'",
+        "message": "Invalid value: map[string]interface {}{\"kind\":\"SGInstanceProfile\", \"metadata\":map[string]interface {}{\"creationTimestamp\":\"2020-03-16T16:32:28Z\", \"name\":\"size-s\", \"namespace\":\"operator-profile-api\", \"generation\":1, \"uid\":\"b9f63eab-67a3-11ea-98cc-0242ac110005\", \"annotations\":map[string]interface {}{\"stackgres.io/operatorVersion\":\"0.9-SNAPSHOT\"}}, \"spec\":map[string]interface {}{\"cpu\":\"500m\", \"memory\":\"\"}, \"apiVersion\":\"stackgres.io/v1\"}: validation failure list:\nspec.memory in body should match '^[0-9]+(\\.[0-9]+)?(Mi|Gi)$'",
         "reason": "FieldValueInvalid"
       }
     ],
     "group": "stackgres.io",
-    "name": "size-xs"
+    "name": "size-s"
   },
-  "message": "SGInstanceProfile.stackgres.io \"size-xs\" is invalid: []: Invalid value: map[string]interface {}{\"apiVersion\":\"stackgres.io/v1\", \"kind\":\"SGInstanceProfile\", \"metadata\":map[string]interface {}{\"generation\":1, \"uid\":\"b9f63eab-67a3-11ea-98cc-0242ac110005\", \"annotations\":map[string]interface {}{\"stackgres.io/operatorVersion\":\"0.9-SNAPSHOT\"}, \"creationTimestamp\":\"2020-03-16T16:32:28Z\", \"name\":\"size-xs\", \"namespace\":\"operator-profile-api\"}, \"spec\":map[string]interface {}{\"cpu\":\"500m\", \"memory\":\"\"}}: validation failure list:\nspec.memory in body should match '^[0-9]+(\\.[0-9]+)?(Mi|Gi)$'",
+  "message": "SGInstanceProfile.stackgres.io \"size-s\" is invalid: []: Invalid value: map[string]interface {}{\"apiVersion\":\"stackgres.io/v1\", \"kind\":\"SGInstanceProfile\", \"metadata\":map[string]interface {}{\"generation\":1, \"uid\":\"b9f63eab-67a3-11ea-98cc-0242ac110005\", \"annotations\":map[string]interface {}{\"stackgres.io/operatorVersion\":\"0.9-SNAPSHOT\"}, \"creationTimestamp\":\"2020-03-16T16:32:28Z\", \"name\":\"size-s\", \"namespace\":\"operator-profile-api\"}, \"spec\":map[string]interface {}{\"cpu\":\"500m\", \"memory\":\"\"}}: validation failure list:\nspec.memory in body should match '^[0-9]+(\\.[0-9]+)?(Mi|Gi)$'",
   "reason": "Invalid",
   "status": "Failure"
 }

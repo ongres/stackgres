@@ -62,7 +62,7 @@ class ShardedBackupRequiredResourcesGeneratorTest {
   @BeforeEach
   void setUp() {
     backup = Fixtures.shardedBackup().loadDefault().get();
-    profile = Fixtures.instanceProfile().loadSizeXs().get();
+    profile = Fixtures.instanceProfile().loadSizeS().get();
     objectStorage = Fixtures.objectStorage().loadDefault().get();
     cluster = Fixtures.shardedCluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL.getLatest()

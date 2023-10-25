@@ -15,6 +15,8 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ClusterSpec {
 
+  private String profile;
+
   private ClusterPostgres postgres;
 
   private Integer instances;
@@ -44,6 +46,14 @@ public class ClusterSpec {
   private ClusterPostgresServices postgresServices;
 
   private ClusterSpecMetadata metadata;
+
+  public String getProfile() {
+    return profile;
+  }
+
+  public void setProfile(String profile) {
+    this.profile = profile;
+  }
 
   public ClusterPostgres getPostgres() {
     return postgres;

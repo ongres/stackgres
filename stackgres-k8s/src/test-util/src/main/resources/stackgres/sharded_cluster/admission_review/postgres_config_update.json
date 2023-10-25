@@ -76,7 +76,7 @@
         },
         "coordinator": {
           "instances": 1,
-          "sgInstanceProfile": "size-xs",
+          "sgInstanceProfile": "size-s",
           "configurations": {
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"
@@ -91,7 +91,7 @@
         "shards": {
           "clusters": 2,
           "instancesPerCluster": 1,
-          "sgInstanceProfile": "size-xs",
+          "sgInstanceProfile": "size-s",
           "configurations": {
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"
@@ -147,7 +147,7 @@
         },
         "coordinator": {
           "instances": 1,
-          "sgInstanceProfile": "size-xs",
+          "sgInstanceProfile": "size-s",
           "configurations": {
             "sgPostgresConfig": "oldpostgresconf",
             "sgPoolingConfig": "pgbouncerconf"
@@ -162,7 +162,7 @@
         "shards": {
           "clusters": 2,
           "instancesPerCluster": 1,
-          "sgInstanceProfile": "size-xs",
+          "sgInstanceProfile": "size-s",
           "configurations": {
             "sgPostgresConfig": "postgresconf",
             "sgPoolingConfig": "pgbouncerconf"

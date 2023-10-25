@@ -17,9 +17,7 @@ import io.fabric8.kubernetes.api.model.batch.v1.CronJobSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.JobTemplateSpec;
 import io.stackgres.common.StackGresGroupKind;
-import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.AbstractContainerProfileDecorator;
@@ -39,10 +37,7 @@ public class BackupCronJobContainerProfileDecorator extends AbstractContainerPro
   @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
       justification = "False positive")
   public HasMetadata decorate(StackGresClusterContext context, HasMetadata resource) {
-    if (Optional.of(context.getSource().getSpec())
-        .map(StackGresClusterSpec::getNonProductionOptions)
-        .map(StackGresClusterNonProduction::getDisableClusterResourceRequirements)
-        .orElse(false)) {
+    if (context.calculateDisableClusterResourceRequirements()) {
       return resource;
     }
 
@@ -56,12 +51,6 @@ public class BackupCronJobContainerProfileDecorator extends AbstractContainerPro
           .map(PodTemplateSpec::getSpec),
           Optional.ofNullable(context.getSource().getSpec().getPods().getResources())
           .map(StackGresClusterResources::getEnableClusterLimitsRequirements)
-          .orElse(false),
-          Optional.ofNullable(context.getSource().getSpec().getNonProductionOptions())
-          .map(StackGresClusterNonProduction::getEnableSetClusterCpuRequests)
-          .orElse(false),
-          Optional.ofNullable(context.getSource().getSpec().getNonProductionOptions())
-          .map(StackGresClusterNonProduction::getEnableSetClusterMemoryRequests)
           .orElse(false));
     }
 

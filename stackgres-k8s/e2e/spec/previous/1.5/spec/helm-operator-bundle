@@ -180,7 +180,7 @@ test_bundle() {
   echo "Creating demo package cluster"
   helm install --namespace "${CLUSTER_NAMESPACE}" "${CLUSTER_NAME}" \
     "${STACKGRES_PACKAGES}/stackgres-cluster-demo.tgz" \
-    --set cluster.sgInstanceProfile=size-xs \
+    --set cluster.sgInstanceProfile=size-s \
     --set cluster.instances=2 \
     --set nonProductionOptions.createMinio=false \
     --set nonProductionOptions.disableClusterPodAntiAffinity=true \
