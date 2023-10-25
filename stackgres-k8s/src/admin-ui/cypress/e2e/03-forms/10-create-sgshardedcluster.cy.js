@@ -1936,61 +1936,57 @@ describe('Create SGShardedCluster', () => {
         cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.replicasService[0].value"]')
             .type('value')
 
-        /*  Note: Disable Overrides' Scheduling tests until bug is solved 
-            https://gitlab.com/ongresinc/stackgres/-/issues/2465
+        // Tests Overrides' Scheduling
+        cy.get('form#createShardedCluster li[data-step="overrides.scheduling"]')
+            .click()
 
-            // Tests Overrides' Scheduling
-            cy.get('form#createShardedCluster li[data-step="overrides.scheduling"]')
-                .click()
+        // Tests Shards Node Selectors
+        cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeSelector[0].label"]')
+            .type('label')
+        cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeSelector[0].value"]')
+            .type('value')
 
-            // Tests Shards Node Selectors
-            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeSelector[0].label"]')
-                .type('key')
-            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeSelector[0].value"]')
-                .type('value')
+        // Tests Shards Node Tolerations
+        cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.tolerations[0].key"]')
+            .type('key')
+        cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.tolerations[0].value"]')
+            .type('value')
+        cy.get('select[data-field="spec.shards.overrides[0].pods.scheduling.tolerations[0].effect"]')
+            .select('NoSchedule')
+        
+        // Tests Overrides' Node Affinity (Required)
+        cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.key"]')
+            .type('key')
+        cy.get('select[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator"]')
+            .select('In')
+        cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.values"]')
+            .type('value')
 
-            // Tests Shards Node Tolerations
-            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.tolerations[0].key"]')
-                .type('key')
-            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.tolerations[0].value"]')
-                .type('value')
-            cy.get('select[data-field="spec.shards.overrides[0].pods.scheduling.tolerations[0].effect"]')
-                .select('NoSchedule')
-            
-            // Tests Overrides' Node Affinity (Required)
-            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.key"]')
-                .type('key')
-            cy.get('select[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator"]')
-                .select('In')
-            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.values"]')
-                .type('value')
+        cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.key"]')
+            .type('key')
+        cy.get('select[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.operator"]')
+            .select('In')
+        cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.values"]')
+            .type('value')
+        
+        // Tests Overrides' Node Affinity (Preferred)
+        cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.key"]')
+            .type('key')
+        cy.get('select[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.operator"]')
+            .select('In')
+        cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.values"]')
+            .type('value')
+        
+        cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.key"]')
+            .type('key')
+        cy.get('select[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.operator"]')
+            .select('In')
+        cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.values"]')
+            .type('value')
 
-            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.key"]')
-                .type('key')
-            cy.get('select[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.operator"]')
-                .select('In')
-            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.values"]')
-                .type('value')
-            
-            // Tests Overrides' Node Affinity (Preferred)
-            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.key"]')
-                .type('key')
-            cy.get('select[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.operator"]')
-                .select('In')
-            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.values"]')
-                .type('value')
-            
-            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.key"]')
-                .type('key')
-            cy.get('select[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.operator"]')
-                .select('In')
-            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.values"]')
-                .type('value')
-
-            cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight"]')
-                .clear()
-                .type('10')
-        */
+        cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight"]')
+            .clear()
+            .type('10')
 
         // Setup get and put mock to check resource is not found and all fields are correctly set
         cy.intercept('GET', '/stackgres/namespaces/' + namespace + '/sgshardedclusters/advanced-' + resourceName)
@@ -2439,11 +2435,8 @@ describe('Create SGShardedCluster', () => {
             .and('nested.include', {"overrides[0].metadata.annotations.clusterPods.annotation": 'value'})
             .and('nested.include', {"overrides[0].metadata.annotations.services.annotation": 'value'})
             .and('nested.include', {"overrides[0].metadata.annotations.primaryService.annotation": 'value'})
-            .and('nested.include', {"overrides[0].metadata.annotations.replicasService.annotation": 'value'})
-        // Note: Disabled until overrides' scheduling bug is fixed 
-        /*  
-        cy.get('@postCluster')
-            .and('nested.include', {"overrides[0].pods.scheduling.nodeSelector.key": 'value'})
+            .and('nested.include', {"overrides[0].metadata.annotations.replicasService.annotation": 'value'}) 
+            .and('nested.include', {"overrides[0].pods.scheduling.nodeSelector.label": 'value'})
             .and('nested.include', {"overrides[0].pods.scheduling.tolerations[0].key": 'key'})
             .and('nested.include', {"overrides[0].pods.scheduling.tolerations[0].value": 'value'})
             .and('nested.include', {"overrides[0].pods.scheduling.tolerations[0].operator": 'Equal'})
@@ -2461,7 +2454,6 @@ describe('Create SGShardedCluster', () => {
             .and('nested.include', {"overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchFields[0].operator": 'In'})
             .and('nested.include', {"overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].preference.matchFields[0].values[0]": 'value'})
             .and('nested.include', {"overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight": '10'})
-        */
     });
     
     it('Updating an advanced SGShardedCluster should be possible', () => {
