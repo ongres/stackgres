@@ -8096,15 +8096,8 @@
                 const vm = this;
 
                 if(el.hasOwnProperty('managedSql')) {
-                    let scriptSource;
-
-                    if (type === 'overrides') {
-                        vm.scriptSource.overrides.push([]);
-                        scriptSource = vm.scriptSource.overrides[vm.scriptSource.overrides.length - 1];
-                    } else {
-                        scriptSource = vm.scriptSource[type];
-                    }
-
+                    let scriptSource = [];
+                    
                     el.managedSql.scripts.forEach( (baseScript, baseIndex) => {
                         scriptSource.push({ base: baseScript.sgScript, entries: [] });
 
@@ -8120,6 +8113,12 @@
                             })
                         }
                     })
+
+                    if (type === 'overrides') {
+                        vm.scriptSource.overrides.push(scriptSource);
+                    } else {
+                        vm.scriptSource[type] = scriptSource;
+                    }
                 } else {
                     el['managedSql'] = {
                         continueOnSGScriptError: false,
@@ -8127,7 +8126,7 @@
                     };
 
                     if(type === 'overrides') {
-                        vm.scriptSource.overrides[vm.overrideIndex] = [];
+                        vm.scriptSource.overrides.push([]);
                     } else {
                         vm.scriptSource[type] = [];
                     }
