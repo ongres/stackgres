@@ -10,6 +10,7 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import com.google.common.base.Predicates;
@@ -22,6 +23,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.common.extension.ExtensionUtil;
+import io.stackgres.common.extension.StackGresExtensionMetadata;
+import io.stackgres.common.extension.StackGresExtensionVersion;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.mutating.Mutator;
@@ -124,7 +127,7 @@ public abstract class AbstractExtensionsMutator<R extends CustomResource<?, ?>,
         .toList();
     final List<StackGresClusterInstalledExtension> toInstallExtensions =
         Seq.seq(extensions)
-        .map(extension -> getToInstallExtension(cluster, extension))
+        .map(extension -> findToInstallExtension(cluster, extension))
         .filter(Optional::isPresent)
         .map(Optional::get)
         .append(missingDefaultExtensions)
@@ -182,18 +185,24 @@ public abstract class AbstractExtensionsMutator<R extends CustomResource<?, ?>,
             cluster, extension, extensionMetadata, false));
   }
 
-  private Optional<StackGresClusterInstalledExtension> getToInstallExtension(
+  private Optional<StackGresClusterInstalledExtension> findToInstallExtension(
       StackGresCluster cluster, StackGresClusterExtension extension) {
     return getExtensionMetadataManager()
         .findExtensionCandidateSameMajorBuild(cluster, extension, false)
+        .or(() -> getExtensionMetadataManager()
+            .findExtensionCandidateAnyVersion(cluster, extension, false)
+            .filter(foundExtension -> foundExtension
+                .getTarget().getPostgresVersion().contains(".")))
         .or(() -> Optional.of(extension.getVersion() == null)
             .filter(hasNoVersion -> hasNoVersion)
             .map(hasNoVersion -> getExtensionMetadataManager()
                 .getExtensionsAnyVersion(cluster, extension, false))
             .filter(Predicates.not(List::isEmpty))
             .filter(allExtensionVersions -> Seq.seq(allExtensionVersions)
-                .groupBy(e -> e.getVersion())
-                .size() > 1)
+                .groupBy(Function.<StackGresExtensionMetadata>identity()
+                    .andThen(StackGresExtensionMetadata::getVersion)
+                    .andThen(StackGresExtensionVersion::getVersion))
+                .size() == 1)
             .map(List::stream)
             .flatMap(Stream::findFirst))
         .map(extensionMetadata -> ExtensionUtil.getInstalledExtension(
