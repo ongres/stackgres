@@ -4,6 +4,17 @@
 			<div class="content grafana">
 				<template v-if="cluster.data.pods.length && cluster.data.pods.filter(p => (p.status == 'Active')).length">
 					<div class="grafanaActions">
+						<select class="plain capitalize" id="dashboardsList" v-model="dashboard">
+							<option disabled value="">
+								Choose dashboard
+							</option>
+							<template v-for="dashboard in dashboardsList">
+								<option :value="dashboard.url" :key="'dashboard-' + dashboard.name">
+									{{ dashboard.name.replaceAll('-',' ') }}
+								</option>
+							</template>
+						</select>
+
 						<select class="plain" id="timeRange" v-model="timeRange" @change="goTo('/' + $route.params.namespace + '/sgcluster/' + cluster.name + '/monitor/' + selectedNode + '/' + timeRange)">
 							<option disabled value=""><strong>Choose time range</strong></option>
 							<option v-for="(time, id) in timeRangeOptions" :value="id">
@@ -41,6 +52,7 @@
 	import router from '../router'
 	import store from '../store'
 	import { mixin } from './mixins/mixin'
+	import axios from 'axios'
 
 
     export default {
@@ -51,7 +63,8 @@
 		data: function() {
 
 			return {
-				grafanaUrl: '',
+				dashboardsList: [],
+				dashboard: '',
 				timeRange: this.$route.params.hasOwnProperty('range') ? this.$route.params.range : '',
 				timeRangeOptions: {
 					'last-5-minutes': { label: 'Last 5 minutes', range: '&from=now-5m&to=now' },
@@ -118,21 +131,6 @@
 								return false;
 							}
 
-							$.get("/grafana")
-							.done(function( data, textStatus, jqXHR ) {
-								
-								if(!data.startsWith('<!DOCTYPE html>')) { // Check "/grafana" isn't just returning web console's HTML content
-									vc.grafanaUrl = data + (data.includes('?') ? '&' : '?') + 'theme=' + vc.theme + '&kiosk&var-instance=';
-								} else {
-									vc.notifyGrafanaError();
-								}
-							})
-							.fail(function( jqXHR, textStatus, errorThrown ) {
-								if(textStatus == 'error') {
-									vc.notifyGrafanaError();
-								}       
-							})
-
 						} else {
 							store.commit('notFound',true)
 						}
@@ -145,6 +143,15 @@
 
 			theme () {
 				return store.state.theme
+			},
+
+			grafanaUrl() {
+				const vc = this;
+				if(this.dashboard.length) {
+					return this.dashboard + (this.dashboard.includes('?') ? '&' : '?') + 'theme=' + this.theme + '&kiosk&var-instance=';
+				} else {
+					return '';
+				}
 			},
 
 		},
@@ -160,6 +167,39 @@
 				},'error')
 				$('#grafana').remove();
 			}
+		},
+
+		mounted() {
+			const vc = this;
+
+			axios
+			.get('/grafana')
+			.then(function(response) {
+				if(!response.data.startsWith('<!DOCTYPE html>')) { // Check "/grafana" isn't just returning web console's HTML content
+					vc.dashboardsList.push({
+						name: 'Current Activity',
+						url: response.data
+					});
+
+					vc.dashboard = response.data;
+
+					axios
+					.get('/grafana-list')
+					.then(function(response) {
+						vc.dashboardsList = vc.dashboardsList.concat(response.data);
+					})
+					.catch(function(err) {
+						console.log(err);
+						vc.checkAuthError(err);
+					});
+				} else {
+					vc.notifyGrafanaError();
+				}
+			})
+			.catch(function(err) {
+				console.log(err);
+				vc.checkAuthError(err);
+			});
 		}
 	}
 </script>
@@ -176,8 +216,11 @@
 	}
 
 	.grafanaActions select {
+		margin-top: 4px;
 		margin-left: 10px;
 		text-align: left;
+		width: auto;
+		min-width: 200px;
 	}
 	
 	#timeRange.active {
