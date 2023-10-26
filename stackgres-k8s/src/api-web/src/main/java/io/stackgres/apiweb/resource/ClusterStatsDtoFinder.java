@@ -11,7 +11,6 @@ import java.util.concurrent.CompletableFuture;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
 import io.stackgres.apiweb.transformer.ClusterStatsTransformer;
@@ -55,14 +54,14 @@ public class ClusterStatsDtoFinder
         cluster.getMetadata().getNamespace(),
         clusterLabelFactory.clusterLabels(cluster));
 
-    ImmutableList<PodStats> allPodStats = pods
+    List<PodStats> allPodStats = pods
         .stream()
         .map(Tuple::tuple)
         .map(t -> CompletableFuture.supplyAsync(() -> t.concat(getPodStats(t.v1))
             .concat(getPodPersitentVolumeClaim(cluster, t.v1)), managedExecutor))
         .map(CompletableFuture::join)
         .map(PodStats::fromTuple)
-        .collect(ImmutableList.toImmutableList());
+        .toList();
 
     return clusterStatsTransformer.toDtoWithAllPodStats(cluster, allPodStats);
   }

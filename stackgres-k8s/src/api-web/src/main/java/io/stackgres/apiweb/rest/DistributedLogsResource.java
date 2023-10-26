@@ -28,7 +28,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 @RequestScoped
 @Authenticated
 public class DistributedLogsResource
-    extends AbstractRestServiceDependency<DistributedLogsDto, StackGresDistributedLogs> {
+    extends AbstractCustomResourceServiceDependency<DistributedLogsDto, StackGresDistributedLogs> {
 
   @Override
   public boolean belongsToCluster(StackGresDistributedLogs resource, StackGresCluster cluster) {

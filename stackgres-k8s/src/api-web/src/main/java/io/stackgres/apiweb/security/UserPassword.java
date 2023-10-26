@@ -9,11 +9,12 @@ import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @JsonInclude(Include.NON_DEFAULT)
 @RegisterForReflection
 public record UserPassword(
-    @JsonProperty(value = "username", required = true) @NotBlank String username,
-    @JsonProperty(value = "password", required = true) @NotBlank String password) {}
+    @NotBlank(message = "username is required and con not be blank")
+    String username,
+    @NotBlank(message = "password is required and con not be blank")
+    String password) {}

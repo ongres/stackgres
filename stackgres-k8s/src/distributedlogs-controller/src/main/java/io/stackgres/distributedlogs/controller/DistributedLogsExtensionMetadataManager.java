@@ -10,7 +10,6 @@ import java.net.URI;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
 import io.stackgres.common.DistributedLogsControllerProperty;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.extension.ExtensionMetadataManager;
@@ -28,7 +27,7 @@ public class DistributedLogsExtensionMetadataManager extends ExtensionMetadataMa
         Seq.of(propertyContext.getStringArray(DistributedLogsControllerProperty
             .DISTRIBUTEDLOGS_CONTROLLER_EXTENSIONS_REPOSITORY_URLS))
             .map(URI::create)
-            .collect(ImmutableList.toImmutableList()));
+            .toList());
   }
 
 }

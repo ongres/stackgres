@@ -18,7 +18,6 @@ import javax.enterprise.context.Dependent;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
@@ -133,18 +132,18 @@ public class DistributedLogsControllerReconciliationCycle
   }
 
   @Override
-  protected ImmutableList<HasMetadata> getRequiredResources(
+  protected List<HasMetadata> getRequiredResources(
       StackGresDistributedLogsContext context) {
     return ResourceGenerator.<StackGresDistributedLogsContext>with(context)
         .of(HasMetadata.class)
         .stream()
-        .collect(ImmutableList.toImmutableList());
+        .toList();
   }
 
   @Override
   protected StackGresDistributedLogsContext getContextWithExistingResourcesOnly(
       StackGresDistributedLogsContext context,
-      ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResourcesOnly) {
+      List<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResourcesOnly) {
     return ImmutableStackGresDistributedLogsContext.copyOf(context)
         .withExistingResources(existingResourcesOnly);
   }
@@ -152,20 +151,20 @@ public class DistributedLogsControllerReconciliationCycle
   @Override
   protected StackGresDistributedLogsContext getContextWithExistingAndRequiredResources(
       StackGresDistributedLogsContext context,
-      ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources,
-      ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources) {
+      List<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources,
+      List<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources) {
     return ImmutableStackGresDistributedLogsContext.copyOf(context)
         .withRequiredResources(requiredResources)
         .withExistingResources(existingResources);
   }
 
   @Override
-  public ImmutableList<StackGresDistributedLogs> getExistingContextResources() {
+  public List<StackGresDistributedLogs> getExistingContextResources() {
     return distributedLogsFinder.findByNameAndNamespace(
         propertyContext.getString(DISTRIBUTEDLOGS_NAME),
         propertyContext.getString(DISTRIBUTEDLOGS_NAMESPACE))
         .stream()
-        .collect(ImmutableList.toImmutableList());
+        .toList();
   }
 
   @Override

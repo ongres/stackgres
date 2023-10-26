@@ -12,7 +12,6 @@ import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
@@ -47,7 +46,7 @@ public class StorageClassResource {
   public List<String> get() {
     return storageClassScanner.findResources().stream()
         .map(sc -> sc.getMetadata().getName())
-        .collect(ImmutableList.toImmutableList());
+        .toList();
   }
 
 }

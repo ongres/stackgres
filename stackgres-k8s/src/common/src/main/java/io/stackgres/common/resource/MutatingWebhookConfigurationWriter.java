@@ -9,16 +9,15 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.admissionregistration.v1.MutatingWebhookConfiguration;
-import io.fabric8.kubernetes.api.model.admissionregistration.v1.MutatingWebhookConfigurationList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 
 @ApplicationScoped
-public class MutatingWebhookConfigurationWriter extends AbstractUnamespacedResourceWriter<
-    MutatingWebhookConfiguration,
-    MutatingWebhookConfigurationList,
-    Resource<MutatingWebhookConfiguration>> {
+public class MutatingWebhookConfigurationWriter
+    extends AbstractUnamespacedResourceWriter<
+        MutatingWebhookConfiguration,
+        Resource<MutatingWebhookConfiguration>> {
 
   @Inject
   public MutatingWebhookConfigurationWriter(KubernetesClient client) {
@@ -28,7 +27,7 @@ public class MutatingWebhookConfigurationWriter extends AbstractUnamespacedResou
   @Override
   protected NonNamespaceOperation<
           MutatingWebhookConfiguration,
-          MutatingWebhookConfigurationList,
+          ?,
           Resource<MutatingWebhookConfiguration>> getResourceEndpoints(KubernetesClient client) {
     return client.admissionRegistration().v1().mutatingWebhookConfigurations();
   }

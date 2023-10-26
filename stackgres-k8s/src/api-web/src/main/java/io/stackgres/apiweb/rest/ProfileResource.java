@@ -26,7 +26,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 @RequestScoped
 @Authenticated
 public class ProfileResource
-    extends AbstractRestServiceDependency<ProfileDto, StackGresProfile> {
+    extends AbstractCustomResourceServiceDependency<ProfileDto, StackGresProfile> {
 
   @Override
   public boolean belongsToCluster(StackGresProfile resource, StackGresCluster cluster) {

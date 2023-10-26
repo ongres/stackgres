@@ -12,7 +12,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Instance;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import org.jooq.lambda.Seq;
@@ -32,17 +31,20 @@ public class PostgresDefaultFactoriesProvider
 
   public List<PostgresConfigurationFactory> buildFactories() {
     return Seq.seq(StackGresComponent.POSTGRESQL.getLatest().streamOrderedMajorVersions())
-        .map(majorVersion -> {
+        .<PostgresConfigurationFactory>map(majorVersion -> {
           DefaultPostgresFactory factory = resourceFactories.get();
           factory.setPostgresVersion(majorVersion);
           factory.init();
           return factory;
-        }).collect(ImmutableList.toImmutableList());
+        })
+        .toList();
   }
 
   public List<DefaultCustomResourceFactory<StackGresPostgresConfig>> getFactories() {
-    return factories.stream()
-        .collect(ImmutableList.toImmutableList());
+    return factories
+        .stream()
+        .map(factory -> (DefaultCustomResourceFactory<StackGresPostgresConfig>) factory)
+        .toList();
   }
 
   public List<PostgresConfigurationFactory> getPostgresFactories() {

@@ -32,7 +32,7 @@ import org.mockito.stubbing.Answer;
 
 abstract class AbstractDependencyCustomResourceTest
     <T extends ResourceDto, R extends CustomResource<?, ?>,
-    S extends AbstractRestServiceDependency<T, R>,
+    S extends AbstractCustomResourceServiceDependency<T, R>,
     N extends AbstractNamespacedRestServiceDependency<T, R>> {
 
   @Mock

@@ -10,31 +10,20 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.jetbrains.annotations.NotNull;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
 
 @ApplicationScoped
-public class PodWriter implements ResourceWriter<Pod> {
-
-  private final KubernetesClient client;
+public class PodWriter
+    extends AbstractResourceWriter<Pod> {
 
   @Inject
   public PodWriter(KubernetesClient client) {
-    this.client = client;
+    super(client);
   }
 
   @Override
-  public Pod create(@NotNull Pod resource) {
-    return client.pods().resource(resource).create();
-  }
-
-  @Override
-  public Pod update(@NotNull Pod resource) {
-    return client.pods().resource(resource).patch();
-  }
-
-  @Override
-  public void delete(@NotNull Pod resource) {
-    client.pods().resource(resource).delete();
+  protected MixedOperation<Pod, ?, ?> getResourceEndpoints(KubernetesClient client) {
+    return client.pods();
   }
 
 }

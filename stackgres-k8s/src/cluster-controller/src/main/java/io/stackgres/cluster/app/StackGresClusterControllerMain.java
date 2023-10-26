@@ -5,13 +5,13 @@
 
 package io.stackgres.cluster.app;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.enterprise.event.Event;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.QuarkusApplication;
 import io.quarkus.runtime.annotations.QuarkusMain;
@@ -67,7 +67,7 @@ public class StackGresClusterControllerMain {
     @Override
     public int run(String... args) throws Exception {
       LOGGER.info("Running StackGres Cluster Controller reconciliation cycle");
-      ImmutableList<StackGresCluster> existingContextResources =
+      List<StackGresCluster> existingContextResources =
           reconciliationCycle.getExistingContextResources();
       final ReconciliationCycleResult<?> result;
       if (existingContextResources.isEmpty()) {
@@ -75,7 +75,7 @@ public class StackGresClusterControllerMain {
             new Exception("Not able to retrieve StackGres Cluster"));
       } else {
         result = reconciliationCycle.reconciliationCycle(existingContextResources
-            .stream().map(Optional::of).collect(ImmutableList.toImmutableList()));
+            .stream().map(Optional::of).toList());
       }
       if (!result.success()) {
         RuntimeException ex = Seq.seq(result.getException())

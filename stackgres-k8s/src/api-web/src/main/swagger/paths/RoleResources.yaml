@@ -1,0 +1,50 @@
+paths:
+  /stackgres/roles:
+    get:
+      tags:
+      - role
+      summary: List roles
+      description: |
+        List roles.
+
+        ### RBAC permissions required
+
+        * roles list
+      security:
+      - JWT: []
+    put:
+      tags:
+      - role
+      summary: Update a role
+      description: |
+        Update a role.
+
+        ### RBAC permissions required
+
+        * role patch
+      security:
+      - JWT: []
+    post:
+      tags:
+      - role
+      summary: Create a role
+      description: |
+        Create a role.
+
+        ### RBAC permissions required
+
+        * role create
+      security:
+      - JWT: []
+    delete:
+      tags:
+      - role
+      summary: Delete a role
+      description: |
+        Delete a role.
+
+        ### RBAC permissions required
+
+        * role delete
+      security:
+      - JWT: []

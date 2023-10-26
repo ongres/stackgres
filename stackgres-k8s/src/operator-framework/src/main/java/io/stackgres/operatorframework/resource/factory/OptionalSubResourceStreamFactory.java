@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 
 @FunctionalInterface
@@ -22,7 +21,7 @@ public interface OptionalSubResourceStreamFactory<T extends KubernetesResource, 
     return streamOptionalResources(context)
         .filter(Optional::isPresent)
         .map(Optional::get)
-        .collect(ImmutableList.toImmutableList());
+        .toList();
   }
 
   @Override

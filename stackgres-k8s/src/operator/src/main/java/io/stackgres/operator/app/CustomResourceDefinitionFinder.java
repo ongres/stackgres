@@ -12,19 +12,23 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
+import io.stackgres.common.resource.AbstractUnamespacedResourceWriter;
 import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.common.resource.ResourceWriter;
 import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped
 public class CustomResourceDefinitionFinder
-    implements ResourceFinder<CustomResourceDefinition>,
-    ResourceWriter<CustomResourceDefinition> {
+    extends AbstractUnamespacedResourceWriter<
+        CustomResourceDefinition, Resource<CustomResourceDefinition>>
+    implements ResourceFinder<CustomResourceDefinition> {
 
   private final KubernetesClient client;
 
   @Inject
   public CustomResourceDefinitionFinder(KubernetesClient client) {
+    super(client);
     this.client = client;
   }
 
@@ -43,24 +47,19 @@ public class CustomResourceDefinitionFinder
   }
 
   @Override
-  public CustomResourceDefinition create(CustomResourceDefinition resource) {
-    return client.apiextensions().v1()
-        .customResourceDefinitions()
-        .resource(resource)
-        .create();
+  public void delete(
+      CustomResourceDefinition resource,
+      boolean dryRun) {
+    throw new UnsupportedOperationException("CustomResourceDefinition deletion is not supported");
   }
 
   @Override
-  public CustomResourceDefinition update(CustomResourceDefinition resource) {
-    return client.apiextensions().v1()
-        .customResourceDefinitions()
-        .withName(resource.getMetadata().getName())
-        .patch(resource);
-  }
-
-  @Override
-  public void delete(CustomResourceDefinition resource) {
-    throw new UnsupportedOperationException("Custom Resource deletion not supported");
+  protected NonNamespaceOperation<
+          CustomResourceDefinition,
+          ?,
+          Resource<CustomResourceDefinition>> getResourceEndpoints(
+      KubernetesClient client) {
+    return client.apiextensions().v1().customResourceDefinitions();
   }
 
 }

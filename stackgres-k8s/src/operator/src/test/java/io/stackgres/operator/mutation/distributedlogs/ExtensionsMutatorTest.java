@@ -10,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.collect.ImmutableList;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
@@ -52,7 +51,7 @@ class ExtensionsMutatorTest {
 
     installedExtensions = Seq.<String>of()
         .map(this::getInstalledExtension)
-        .collect(ImmutableList.toImmutableList());
+        .toList();
   }
 
   @Test

@@ -30,7 +30,8 @@ import org.mockito.stubbing.Answer;
 
 public abstract class AbstractCustomResourceTest
       <T extends ResourceDto, R extends CustomResource<?, ?>,
-      S extends AbstractRestService<T, R>, N extends AbstractNamespacedRestService<T, R>> {
+      S extends AbstractCustomResourceService<T, R>,
+      N extends AbstractNamespacedRestService<T, R>> {
 
   @Mock
   protected CustomResourceScanner<R> scanner;

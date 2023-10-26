@@ -24,7 +24,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 @RequestScoped
 @Authenticated
 public class ShardedDbOpsResource
-    extends AbstractRestService<ShardedDbOpsDto, StackGresShardedDbOps> {
+    extends AbstractCustomResourceService<ShardedDbOpsDto, StackGresShardedDbOps> {
 
   @Operation(
       responses = {

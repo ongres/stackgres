@@ -10,6 +10,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.google.common.collect.ImmutableList;
@@ -105,25 +106,25 @@ class ReconciliationCycleTest {
     @Override
     protected ResourceHandlerContext getContextWithExistingResourcesOnly(
         ResourceHandlerContext context,
-        ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResourcesOnly) {
+        List<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResourcesOnly) {
       return null;
     }
 
     @Override
-    protected ImmutableList<HasMetadata> getRequiredResources(ResourceHandlerContext context) {
-      return ImmutableList.of();
+    protected List<HasMetadata> getRequiredResources(ResourceHandlerContext context) {
+      return List.of();
     }
 
     @Override
     protected ResourceHandlerContext getContextWithExistingAndRequiredResources(
         ResourceHandlerContext context,
-        ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources,
-        ImmutableList<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources) {
+        List<Tuple2<HasMetadata, Optional<HasMetadata>>> requiredResources,
+        List<Tuple2<HasMetadata, Optional<HasMetadata>>> existingResources) {
       return null;
     }
 
     @Override
-    protected ImmutableList<TestCustomResource> getExistingContextResources() {
+    protected List<TestCustomResource> getExistingContextResources() {
       return null;
     }
 

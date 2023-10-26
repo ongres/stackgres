@@ -10,7 +10,6 @@ import java.net.URI;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
 import io.stackgres.apiweb.config.WebApiProperty;
 import io.stackgres.apiweb.config.WebApiPropertyContext;
 import io.stackgres.common.WebClientFactory;
@@ -28,7 +27,7 @@ public class RestApiExtensionMetadataManager extends ExtensionMetadataManager {
         Seq.of(propertyContext.getStringArray(
             WebApiProperty.EXTENSIONS_REPOSITORY_URLS))
             .map(URI::create)
-            .collect(ImmutableList.toImmutableList()));
+            .toList());
   }
 
 }

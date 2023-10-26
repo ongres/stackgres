@@ -710,7 +710,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
                           .entrySet().stream().anyMatch(
                               podLabel -> podLabel.getKey().equals(label.getKey())
                               && podLabel.getValue().equals(label.getValue()))))
-                  .collect(ImmutableList.toImmutableList());
+                  .toList();
             });
 
     lenient().when(pvcScanner
@@ -721,7 +721,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
                   .filter(pvc -> ((Map<String, String>) arguments.getArgument(1))
                       .entrySet().stream().allMatch(label -> pvc.getMetadata().getLabels()
                           .entrySet().stream().anyMatch(label::equals)))
-                  .collect(ImmutableList.toImmutableList());
+                  .toList();
             });
 
     lenient().doAnswer(arguments -> {

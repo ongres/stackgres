@@ -10,7 +10,6 @@ import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.apiweb.dto.secret.SecretDto;
 import io.stackgres.apiweb.transformer.SecretMapper;
@@ -30,13 +29,13 @@ public class SecretDtoScanner implements ResourceScanner<SecretDto> {
   public List<SecretDto> findResources() {
     return client.secrets().list().getItems().stream()
         .map(SecretMapper::map)
-        .collect(ImmutableList.toImmutableList());
+        .toList();
   }
 
   @Override
   public List<SecretDto> findResourcesInNamespace(String namespace) {
     return client.secrets().inNamespace(namespace).list().getItems().stream()
         .map(SecretMapper::map)
-        .collect(ImmutableList.toImmutableList());
+        .toList();
   }
 }

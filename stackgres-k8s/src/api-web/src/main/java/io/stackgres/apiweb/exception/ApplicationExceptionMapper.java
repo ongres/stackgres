@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.exception;
 
 import javax.inject.Inject;
+import javax.validation.ConstraintViolationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
 
@@ -32,6 +33,11 @@ public class ApplicationExceptionMapper
       final StatusParser statusParser = statusParserProvider.getStatusParser();
       KubernetesExceptionMapper mapper = new KubernetesExceptionMapper(statusParser);
       return mapper.toResponse(kce);
+    }
+
+    if (cause instanceof ConstraintViolationException cve) {
+      ConstraintViolationExceptionMapper mapper = new ConstraintViolationExceptionMapper();
+      return mapper.toResponse(cve);
     }
 
     return super.toResponse(e);

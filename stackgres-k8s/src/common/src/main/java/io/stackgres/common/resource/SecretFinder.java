@@ -6,6 +6,7 @@
 package io.stackgres.common.resource;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -44,6 +45,11 @@ public class SecretFinder implements
   @Override
   public List<Secret> findResourcesInNamespace(String namespace) {
     return client.secrets().inNamespace(namespace).list().getItems();
+  }
+
+  @Override
+  public List<Secret> findByLabelsAndNamespace(String namespace, Map<String, String> labels) {
+    return client.secrets().inNamespace(namespace).withLabels(labels).list().getItems();
   }
 
 }

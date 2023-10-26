@@ -65,7 +65,7 @@ import org.jooq.lambda.tuple.Tuple4;
 @RequestScoped
 @Authenticated
 public class ClusterResource
-    extends AbstractRestService<ClusterDto, StackGresCluster> {
+    extends AbstractCustomResourceService<ClusterDto, StackGresCluster> {
 
   public static final String DEFAULT_SCRIPT_KEY = ScriptResource.DEFAULT_SCRIPT_KEY;
 

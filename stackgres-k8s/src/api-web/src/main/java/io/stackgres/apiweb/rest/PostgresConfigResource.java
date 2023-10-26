@@ -26,7 +26,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 @RequestScoped
 @Authenticated
 public class PostgresConfigResource extends
-    AbstractRestServiceDependency<PostgresConfigDto, StackGresPostgresConfig> {
+    AbstractCustomResourceServiceDependency<PostgresConfigDto, StackGresPostgresConfig> {
 
   @Override
   public boolean belongsToCluster(StackGresPostgresConfig resource, StackGresCluster cluster) {

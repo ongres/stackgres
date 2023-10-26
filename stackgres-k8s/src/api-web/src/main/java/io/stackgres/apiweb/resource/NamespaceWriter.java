@@ -10,44 +10,25 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.resource.ResourceWriter;
+import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
+import io.stackgres.common.resource.AbstractUnamespacedResourceWriter;
 
 @ApplicationScoped
-public class NamespaceWriter implements ResourceWriter<Namespace> {
-
-  private final KubernetesClient client;
+public class NamespaceWriter
+    extends AbstractUnamespacedResourceWriter<Namespace, Resource<Namespace>> {
 
   @Inject
   public NamespaceWriter(KubernetesClient client) {
-    this.client = client;
+    super(client);
   }
 
   @Override
-  public Namespace create(Namespace resource) {
-    return client.namespaces()
-        .resource(resource)
-        .create();
-  }
-
-  @Override
-  public Namespace update(Namespace resource) {
-    return client.namespaces()
-        .resource(resource)
-        .patch();
-  }
-
-  @Override
-  public Namespace update(Namespace resource, String patch) {
-    return client.namespaces()
-        .resource(resource)
-        .patch(patch);
-  }
-
-  @Override
-  public void delete(Namespace resource) {
-    client.namespaces()
-        .resource(resource)
-        .delete();
+  protected NonNamespaceOperation<
+      Namespace,
+      ?,
+      Resource<Namespace>> getResourceEndpoints(KubernetesClient client) {
+    return client.namespaces();
   }
 
 }

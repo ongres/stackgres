@@ -19,7 +19,6 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Path;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -68,7 +67,7 @@ import org.jooq.lambda.tuple.Tuple4;
 @RequestScoped
 @Authenticated
 public class ShardedClusterResource
-    extends AbstractRestService<ShardedClusterDto, StackGresShardedCluster> {
+    extends AbstractCustomResourceService<ShardedClusterDto, StackGresShardedCluster> {
 
   public static final String DEFAULT_SCRIPT_KEY = ScriptResource.DEFAULT_SCRIPT_KEY;
 
@@ -358,7 +357,7 @@ public class ShardedClusterResource
           if (t.v1.getScriptSpec().getScripts() != null) {
             script.getSpec().setScripts(t.v1.getScriptSpec().getScripts().stream()
                 .map(scriptTransformer::getCustomResourceScriptEntry)
-                .collect(ImmutableList.toImmutableList()));
+                .toList());
           }
           return Tuple.tuple(t.v2.intValue(), script);
         })

@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import com.google.common.collect.ImmutableList;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.StackGresVersion;
@@ -26,7 +25,7 @@ public enum Components {
   Components(StackGresVersion version, ComponentWrapper[] components) {
     this.version = version;
     this.components = Stream.of(components)
-        .collect(ImmutableList.toImmutableList());
+        .toList();
   }
 
   public StackGresVersion getVersion() {

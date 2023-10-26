@@ -49,7 +49,7 @@ import org.jooq.lambda.tuple.Tuple4;
 @RequestScoped
 @Authenticated
 public class ScriptResource
-    extends AbstractRestServiceDependency<ScriptDto, StackGresScript> {
+    extends AbstractCustomResourceServiceDependency<ScriptDto, StackGresScript> {
 
   public static final String DEFAULT_SCRIPT_KEY = "script";
 
