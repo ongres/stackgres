@@ -38,6 +38,7 @@ import io.stackgres.apiweb.dto.script.ScriptSpec;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterCoordinator;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterDto;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterInfo;
+import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterShard;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterShards;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterSpec;
 import io.stackgres.apiweb.transformer.ScriptTransformer;
@@ -192,17 +193,7 @@ public class ShardedClusterResource
 
   ShardedClusterDto setScripts(ShardedClusterDto resource) {
     final String namespace = resource.getMetadata().getNamespace();
-    Seq.of(Optional.ofNullable(resource.getSpec())
-        .map(ShardedClusterSpec::getCoordinator)
-        .map(ShardedClusterCoordinator::getManagedSql)
-        .map(ClusterManagedSql::getScripts),
-        Optional.ofNullable(resource.getSpec())
-        .map(ShardedClusterSpec::getShards)
-        .map(ShardedClusterShards::getManagedSql)
-        .map(ClusterManagedSql::getScripts))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .flatMap(List::stream)
+    getScriptEntries(resource)
         .forEach(managedScriptEntry -> {
           var script = scriptFinder
               .findByNameAndNamespace(managedScriptEntry.getSgScript(), namespace);
@@ -330,17 +321,7 @@ public class ShardedClusterResource
 
   private List<Tuple2<Integer, StackGresScript>> getScriptsToCreate(ShardedClusterDto resource) {
     return
-        Seq.of(Optional.ofNullable(resource.getSpec())
-            .map(ShardedClusterSpec::getCoordinator)
-            .map(ShardedClusterCoordinator::getManagedSql)
-            .map(ClusterManagedSql::getScripts),
-            Optional.ofNullable(resource.getSpec())
-            .map(ShardedClusterSpec::getShards)
-            .map(ShardedClusterShards::getManagedSql)
-            .map(ClusterManagedSql::getScripts))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .flatMap(List::stream)
+        getScriptEntries(resource)
         .zipWithIndex()
         .filter(t -> t.v1.getScriptSpec() != null)
         .map(t -> {
@@ -367,17 +348,7 @@ public class ShardedClusterResource
 
   private List<ConfigMap> getConfigMapsToCreate(ShardedClusterDto resource) {
     return
-        Seq.of(Optional.ofNullable(resource.getSpec())
-            .map(ShardedClusterSpec::getCoordinator)
-            .map(ShardedClusterCoordinator::getManagedSql)
-            .map(ClusterManagedSql::getScripts),
-            Optional.ofNullable(resource.getSpec())
-            .map(ShardedClusterSpec::getShards)
-            .map(ShardedClusterShards::getManagedSql)
-            .map(ClusterManagedSql::getScripts))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .flatMap(List::stream)
+        getScriptEntries(resource)
         .flatMap(managedScriptEntry -> Seq.seq(
             Optional.ofNullable(managedScriptEntry.getScriptSpec())
             .map(ScriptSpec::getScripts)
@@ -411,17 +382,7 @@ public class ShardedClusterResource
 
   private List<Secret> getSecretsToCreate(ShardedClusterDto resource) {
     return
-        Seq.of(Optional.ofNullable(resource.getSpec())
-            .map(ShardedClusterSpec::getCoordinator)
-            .map(ShardedClusterCoordinator::getManagedSql)
-            .map(ClusterManagedSql::getScripts),
-            Optional.ofNullable(resource.getSpec())
-            .map(ShardedClusterSpec::getShards)
-            .map(ShardedClusterShards::getManagedSql)
-            .map(ClusterManagedSql::getScripts))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .flatMap(List::stream)
+        getScriptEntries(resource)
         .flatMap(managedScriptEntry -> Seq.seq(
             Optional.ofNullable(managedScriptEntry.getScriptSpec())
             .map(ScriptSpec::getScripts)
@@ -477,6 +438,28 @@ public class ShardedClusterResource
 
   private String scriptEntryResourceName(ClusterManagedScriptEntry managedScriptEntry, int index) {
     return ScriptResource.scriptEntryResourceName(managedScriptEntry.getSgScript(), index);
+  }
+
+  private Seq<ClusterManagedScriptEntry> getScriptEntries(ShardedClusterDto resource) {
+    return Seq.of(Optional.ofNullable(resource.getSpec())
+        .map(ShardedClusterSpec::getCoordinator)
+        .map(ShardedClusterCoordinator::getManagedSql)
+        .map(ClusterManagedSql::getScripts),
+        Optional.ofNullable(resource.getSpec())
+        .map(ShardedClusterSpec::getShards)
+        .map(ShardedClusterShards::getManagedSql)
+        .map(ClusterManagedSql::getScripts))
+        .append(Optional.ofNullable(resource.getSpec())
+            .map(ShardedClusterSpec::getShards)
+            .map(ShardedClusterShards::getOverrides)
+            .stream()
+            .flatMap(List::stream)
+            .map(ShardedClusterShard::getManagedSql)
+            .map(ClusterManagedSql::getScripts)
+            .map(Optional::of))
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .flatMap(List::stream);
   }
 
   @Override
