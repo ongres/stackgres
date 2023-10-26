@@ -13,7 +13,6 @@ module.exports = {
         },
         '^/grafana': {
           target: process.env.VUE_APP_GRAFANA_PROXY_URL,
-          pathRewrite: { '^/grafana' : '' },
           changeOrigin: true,
           secure: false,
           logLevel: 'debug'
