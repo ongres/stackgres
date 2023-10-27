@@ -91,10 +91,10 @@
 										</td>
 										<td class="actions">
 											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" target="_blank" class="newTab"></router-link>
-											<router-link v-if="iCan('patch','sgclusters',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name + '/edit'" title="Edit Cluster" data-active=".set.clu" class="editCRD"></router-link>
-											<a v-if="iCan('create','sgclusters',$route.params.namespace)" @click="cloneCRD('SGClusters', $route.params.namespace, cluster.name)" class="cloneCRD" title="Clone Cluster"></a>
+											<router-link v-if="iCan('patch','sgclusters',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name + '/edit'" title="Edit Cluster" data-active=".set.clu" class="editCRD" :class="isSharded(cluster.name) && 'disabled'"></router-link>
+											<a v-if="iCan('create','sgclusters',$route.params.namespace)" @click="cloneCRD('SGClusters', $route.params.namespace, cluster.name)" class="cloneCRD" :class="isSharded(cluster.name) && 'disabled'" title="Clone Cluster"></a>
 											<a @click="setRestartCluster($route.params.namespace, cluster.name)" class="restartCluster" title="Restart Cluster"></a>
-											<a v-if="iCan('delete','sgclusters',$route.params.namespace)" @click="deleteCRD('sgclusters', $route.params.namespace, cluster.name)" title="Delete Cluster" class="deleteCRD"></a>
+											<a v-if="iCan('delete','sgclusters',$route.params.namespace)" @click="deleteCRD('sgclusters', $route.params.namespace, cluster.name)" title="Delete Cluster" class="deleteCRD" :class="isSharded(cluster.name) && 'disabled'"></a>
 										</td>
 									</tr>
 								</template>
@@ -149,7 +149,11 @@
 			}
 		},
 		methods: {
-			
+			isSharded(cluster) {
+				let shards = store.state.sgshardedclusters.filter(cluster => (cluster.data.metadata.namespace == this.$route.params.namespace))		
+				
+				return typeof(shards.find((c) => (c.data.status.clusters.includes(cluster)))) != 'undefined'
+			}
 		}
 	}
 </script>
