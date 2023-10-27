@@ -626,10 +626,28 @@ const routes = [
       componentName: 'SGCluster'
     },
   },
+  { 
+    path: '/:namespace/sgcluster/:name/monitor/:pod/:dashboard', 
+    component: Grafana,
+    name: 'SingleClusterMonitorDashboard',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGCluster'
+    },
+  },
   {
     path: '/:namespace/sgcluster/:name/monitor/:pod/:range', 
     component: Grafana,
     name: 'SingleClusterMonitorRange',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGCluster'
+    },
+  },
+  {
+    path: '/:namespace/sgcluster/:name/monitor/:pod/:dashboard/:range', 
+    component: Grafana,
+    name: 'SingleClusterMonitorDashboardRange',
     meta: {
       conditionalRoute: false,
       componentName: 'SGCluster'
@@ -653,10 +671,28 @@ const routes = [
       componentName: 'SGShardedCluster'
     },
   },
+  { 
+    path: '/:namespace/sgshardedcluster/:name/monitor/:pod/:dashboard', 
+    component: ShardedClusterMonitoring,
+    name: 'SingleShardedClusterMonitorDashboard',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
   {
     path: '/:namespace/sgshardedcluster/:name/monitor/:pod/:range', 
     component: ShardedClusterMonitoring,
     name: 'SingleShardedClusterMonitorRange',
+    meta: {
+      conditionalRoute: false,
+      componentName: 'SGShardedCluster'
+    },
+  },
+  {
+    path: '/:namespace/sgshardedcluster/:name/monitor/:pod/:dashboard/:range', 
+    component: ShardedClusterMonitoring,
+    name: 'SingleShardedClusterMonitorDashboardRange',
     meta: {
       conditionalRoute: false,
       componentName: 'SGShardedCluster'

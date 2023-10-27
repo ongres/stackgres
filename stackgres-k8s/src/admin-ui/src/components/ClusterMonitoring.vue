@@ -4,14 +4,25 @@
 			<div class="content grafana">
 				<template v-if="cluster.data.pods.length && cluster.data.pods.filter(p => (p.status == 'Active')).length">
 					<div class="grafanaActions">
-						<select class="plain" id="timeRange" v-model="timeRange" @change="goTo('/' + $route.params.namespace + '/sgcluster/' + cluster.name + '/monitor/' + selectedNode + '/' + timeRange)">
+						<select class="plain capitalize" id="dashboardsList" v-model="dashboard" @change="goTo(dashboardUrl)">
+							<option disabled value="">
+								Choose dashboard
+							</option>
+							<template v-for="dashboard in dashboardsList">
+								<option :value="dashboard" :key="'dashboard-' + dashboard.name">
+									{{ dashboard.name.replaceAll('-',' ') }}
+								</option>
+							</template>
+						</select>
+
+						<select class="plain" id="timeRange" v-model="timeRange" @change="goTo(dashboardUrl)">
 							<option disabled value=""><strong>Choose time range</strong></option>
 							<option v-for="(time, id) in timeRangeOptions" :value="id">
 								{{ time.label }}
 							</option>
 						</select>
 
-						<select class="plain" v-model="selectedNode" @change="goTo('/' + $route.params.namespace + '/sgcluster/' + cluster.name + '/monitor/' + selectedNode + '/' + timeRange)">
+						<select class="plain" v-model="selectedNode" @change="goTo(dashboardUrl)">
 							<option disabled value=""><strong>Choose node</strong></option>
 							<option v-for="pod in cluster.data.pods" v-if="pod.status == 'Active'" :value="pod.ip">
 								{{ pod.name }}
@@ -41,6 +52,7 @@
 	import router from '../router'
 	import store from '../store'
 	import { mixin } from './mixins/mixin'
+	import axios from 'axios'
 
 
     export default {
@@ -51,7 +63,10 @@
 		data: function() {
 
 			return {
-				grafanaUrl: '',
+				dashboard: {
+					name: this.$route.params.hasOwnProperty('dashboard') ? this.$route.params.dashboard : 'current-activity',
+					url: ''
+				},
 				timeRange: this.$route.params.hasOwnProperty('range') ? this.$route.params.range : '',
 				timeRangeOptions: {
 					'last-5-minutes': { label: 'Last 5 minutes', range: '&from=now-5m&to=now' },
@@ -100,42 +115,34 @@
 
 					// Read Grafana URL
 					if(!vc.$route.params.hasOwnProperty('pod')) {
-						
+
 						let primaryNode = cluster.data.pods.find(p => (p.role == 'primary'));
 
 						if(typeof primaryNode != 'undefined') {
 							if(vc.$route.path.endsWith('/'))
-								router.replace(vc.$route.path + primaryNode.ip)
+								router.replace(vc.$route.path + primaryNode.ip + '/' + vc.dashboard.name)
 							else 
-								router.replace(vc.$route.path + '/' + primaryNode.ip)
+								router.replace(vc.$route.path + '/' + primaryNode.ip + '/' + vc.dashboard.name)
 						}
+					} else if(typeof cluster.data.pods.find(p => (p.ip == vc.$route.params.pod)) != 'undefined') {
+
+						if(vc.$route.params.hasOwnProperty('dashboard') && (typeof vc.dashboardsList.find( d => d.name == vc.$route.params.dashboard) === 'undefined')) {
+							vc.notify('The dashboard specified in the URL could not be found, you\'ve been redirected to the default dashboard (Current Activity)', 'message', 'general');
+							vc.dashboard = {
+								name: 'current-activity',
+								url: ''
+							};
+							vc.goTo(vc.dashboardUrl);
+						}
+						
+						if(vc.$route.params.hasOwnProperty('range') && !vc.timeRangeOptions.hasOwnProperty(vc.$route.params.range)) {
+							vc.notify('The timerange specified in the URL could not be found, you\'ve been redirected to the default timerange (last 1 hour)', 'message', 'general');
+							vc.timeRange = '';
+							vc.goTo(vc.dashboardUrl);
+						}
+
 					} else {
-
-						if(typeof cluster.data.pods.find(p => (p.ip == vc.$route.params.pod)) != 'undefined') {
-
-							if(vc.$route.params.hasOwnProperty('range') && !vc.timeRangeOptions.hasOwnProperty(vc.$route.params.range)) {
-								store.commit('notFound',true)
-								return false;
-							}
-
-							$.get("/grafana")
-							.done(function( data, textStatus, jqXHR ) {
-								
-								if(!data.startsWith('<!DOCTYPE html>')) { // Check "/grafana" isn't just returning web console's HTML content
-									vc.grafanaUrl = data + (data.includes('?') ? '&' : '?') + 'theme=' + vc.theme + '&kiosk&var-instance=';
-								} else {
-									vc.notifyGrafanaError();
-								}
-							})
-							.fail(function( jqXHR, textStatus, errorThrown ) {
-								if(textStatus == 'error') {
-									vc.notifyGrafanaError();
-								}       
-							})
-
-						} else {
-							store.commit('notFound',true)
-						}
+						store.commit('notFound',true)
 					}
 
 				}
@@ -147,20 +154,33 @@
 				return store.state.theme
 			},
 
-		},
-		
-		methods: {
+			grafanaUrl() {
+				const vc = this;
+				if(this.dashboard.url.length) {
+					return this.dashboard.url + (this.dashboard.url.includes('?') ? '&' : '?') + 'theme=' + this.theme + '&kiosk&var-instance=';
+				} else {
+					return '';
+				}
+			},
 
-			notifyGrafanaError() {
-				this.notify({
-					title: '',
-					detail: 'There was a problem when trying to access Grafana\'s dashboard. Please confirm the cluster is functioning properly and that you have correctly setup the operator\'s credentials to view Grafana.',
-					type: 'https://stackgres.io/doc/latest/install/prerequisites/monitoring/#installing-grafana-and-create-basic-dashboards',
-					status: 403
-				},'error')
-				$('#grafana').remove();
+			dashboardUrl() {
+				return '/' + this.$route.params.namespace + '/sgcluster/' + this.$route.params.name + '/monitor/' + this.$route.params.pod + '/' + this.dashboard.name + '/' + this.timeRange;
+			},
+
+			dashboardsList() {
+				const vc = this;
+				
+				if(vc.$route.params.hasOwnProperty('dashboard')) {
+					vc.dashboard = store.state.dashboardsList.find( d => d.name == vc.$route.params.dashboard);
+				} else {
+					let defaultDashboard = store.state.dashboardsList.find( d => d.name == 'current-activity');
+					vc.dashboard = (typeof defaultDashboard !== 'undefined') ? defaultDashboard : store.state.dashboardsList[0];
+				}
+
+				return store.state.dashboardsList
 			}
-		}
+
+		},
 	}
 </script>
 
@@ -176,8 +196,11 @@
 	}
 
 	.grafanaActions select {
+		margin-top: 4px;
 		margin-left: 10px;
 		text-align: left;
+		width: auto;
+		min-width: 200px;
 	}
 	
 	#timeRange.active {
