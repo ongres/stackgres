@@ -10,6 +10,9 @@ import java.util.Objects;
 
 import javax.validation.constraints.NotNull;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+@RegisterForReflection
 public abstract class ClusterDbOpsRestartStatus {
 
   @NotNull
