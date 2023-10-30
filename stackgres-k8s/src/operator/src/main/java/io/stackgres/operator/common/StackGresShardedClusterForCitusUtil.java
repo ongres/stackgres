@@ -171,6 +171,7 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
 
   private static void setClusterSpecFromShardedCluster(
       StackGresShardedCluster cluster, final StackGresClusterSpec spec, int index) {
+    spec.setProfile(cluster.getSpec().getProfile());
     setPostgres(cluster, spec);
     setPostgresSsl(cluster, spec);
     setPostgresExtensions(cluster, spec);

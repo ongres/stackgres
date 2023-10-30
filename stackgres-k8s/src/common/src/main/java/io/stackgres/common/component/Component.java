@@ -320,6 +320,20 @@ public class Component {
       return compare;
     }
 
+    public int compareToBuild(String build) {
+      int indexOfSeparator = build.indexOf('.');
+      if (indexOfSeparator < 1) {
+        throw new IllegalArgumentException(build + " is not a build version");
+      }
+      int buildMajor = Integer.parseInt(build.substring(0, indexOfSeparator));
+      int buildMinor = Integer.parseInt(build.substring(indexOfSeparator + 1));
+      int compare = major.compareTo(buildMajor);
+      if (compare == 0 && minor != null) {
+        compare = minor.compareTo(buildMinor);
+      }
+      return compare;
+    }
+
     @Override
     public int hashCode() {
       final int prime = 31;

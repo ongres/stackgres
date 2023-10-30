@@ -7,6 +7,7 @@ package io.stackgres.operator.mutation.shardedcluster;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -62,6 +63,7 @@ public class ExtensionsMutator
         && review.getRequest().getOperation() != Operation.UPDATE) {
       return resource;
     }
+
     String postgresVersion = Optional.of(resource.getSpec())
         .map(StackGresShardedClusterSpec::getPostgres)
         .map(StackGresClusterPostgres::getVersion)
@@ -73,10 +75,57 @@ public class ExtensionsMutator
         .get(getPostgresFlavorComponent(resource))
         .get(StackGresVersion.getStackGresVersion(resource))
         .contains(postgresVersion)) {
+      getDefaultExtensions(resource, null).stream()
+          .filter(defaultExtension -> Optional.of(resource.getSpec())
+              .map(StackGresShardedClusterSpec::getPostgres)
+              .map(StackGresClusterPostgres::getExtensions)
+              .stream()
+              .flatMap(List::stream)
+              .noneMatch(extension -> extension.getName().equals(defaultExtension.extensionName())
+                  && extension.getVersion() != null))
+          .forEach(defaultExtension -> setDefaultExtension(resource, defaultExtension));
+
       return super.mutate(review, resource);
     }
 
     return resource;
+  }
+
+  private void setDefaultExtension(
+      StackGresShardedCluster resource, ExtensionTuple defaultExtension) {
+    if (resource.getSpec().getPostgres() == null) {
+      resource.getSpec().setPostgres(new StackGresClusterPostgres());
+    }
+    if (resource.getSpec().getPostgres().getExtensions() == null) {
+      resource.getSpec().getPostgres().setExtensions(new ArrayList<>());
+    }
+    var foundExtension = Optional.of(resource.getSpec())
+        .map(StackGresShardedClusterSpec::getPostgres)
+        .map(StackGresClusterPostgres::getExtensions)
+        .stream()
+        .flatMap(List::stream)
+        .filter(extension -> extension.getName()
+            .equals(defaultExtension.extensionName()))
+        .findFirst();
+    final StackGresClusterExtension extension;
+    if (foundExtension.isEmpty()) {
+      extension = new StackGresClusterExtension();
+      resource.getSpec().getPostgres().getExtensions().add(extension);
+    } else {
+      extension = foundExtension.get();
+    }
+    extension.setName(defaultExtension.extensionName());
+    Optional.ofNullable(resource.getStatus())
+        .filter(installedExtension -> foundExtension.isEmpty())
+        .map(StackGresShardedClusterStatus::getToInstallPostgresExtensions)
+        .stream()
+        .flatMap(List::stream)
+        .filter(installedExtension -> installedExtension.getName()
+            .equals(defaultExtension.extensionName()))
+        .map(StackGresClusterInstalledExtension::getVersion)
+        .findFirst()
+        .or(defaultExtension::extensionVersion)
+        .ifPresent(extension::setVersion);
   }
 
   @Override
