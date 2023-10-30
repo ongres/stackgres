@@ -221,8 +221,7 @@ spec:
                 required: [ "version" ]
               instances:
                 type: integer
-                minimum: 1
-                maximum: 16
+                minimum: 0
                 description: |
                   Number of StackGres instances for the cluster. Each instance contains one Postgres server.
                     Out of all of the Postgres servers, one is elected as the primary, the rest remain as read-only replicas.
@@ -341,7 +340,6 @@ spec:
                         instances:
                           type: integer
                           minimum: 1
-                          maximum: 16
                           description: |
                             Number of StackGres instances for this replication group.
                             

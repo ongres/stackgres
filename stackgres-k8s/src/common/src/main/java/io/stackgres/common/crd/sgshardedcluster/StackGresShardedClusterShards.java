@@ -10,7 +10,8 @@ import java.util.Objects;
 
 import javax.validation.Valid;
 import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.Positive;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PositiveOrZero;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -33,10 +34,12 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresShardedClusterShards extends StackGresClusterSpec {
 
-  @Positive(message = "You need at least 1 cluster in the shards")
+  @NotNull
+  @PositiveOrZero(message = "clusters can not be negative")
   private Integer clusters;
 
-  @Positive(message = "You need at least 1 instance in each cluster")
+  @NotNull
+  @PositiveOrZero(message = "instances can not be negative")
   private Integer instancesPerCluster;
 
   @JsonProperty("replication")

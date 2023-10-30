@@ -27,7 +27,7 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresShardedClusterBackupConfiguration {
 
-  @Positive(message = "retention should be greater than zero")
+  @Positive(message = "retention must be greater than zero")
   private Integer retention;
 
   private String cronSchedule;

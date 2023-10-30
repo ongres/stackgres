@@ -9,7 +9,6 @@ import java.util.Objects;
 
 import javax.validation.Valid;
 import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -36,7 +35,7 @@ public class StackGresShardedClusterShard extends StackGresClusterSpec {
   @PositiveOrZero(message = "You need a shard index starting from zero")
   private Integer index;
 
-  @Positive(message = "You need at least 1 instance in each cluster")
+  @PositiveOrZero(message = "instances can not be negative")
   private Integer instancesPerCluster;
 
   @JsonProperty("replication")
