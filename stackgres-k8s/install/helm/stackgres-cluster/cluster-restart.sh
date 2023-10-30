@@ -80,7 +80,7 @@ perform_switchover() {
   echo "Performing switchover from primary pod $1 to read only pod $2"
   [ -n "$2" ] && [ -n "$1" ] \
     && kubectl exec -n "$NAMESPACE" "$1" -c patroni -- \
-      patronictl switchover --master "$1" --candidate "$2" --force
+      patronictl switchover --primary "$1" --candidate "$2" --force
 }
 
 if [ "$REDUCED_IMPACT" = "true" ]

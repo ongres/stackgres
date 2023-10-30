@@ -347,16 +347,16 @@ public interface StackGresUtil {
         .map(Tuple2::v2)
         .findAny()
         .get();
-    long pg15Index = pgComponent
+    long pg14Index = pgComponent
         .streamOrderedMajorVersions()
         .zipWithIndex()
-        .filter(t -> t.v1.equals("15"))
+        .filter(t -> t.v1.equals("14"))
         .map(Tuple2::v2)
         .findAny()
         .get();
     return List.of(
-        pgMajorVersionIndex <= pg15Index
-        ? new ExtensionTuple("citus", "12.0-1")
+        pgMajorVersionIndex <= pg14Index
+        ? new ExtensionTuple("citus", "12.1-1")
             : new ExtensionTuple("citus", "11.3-1"),
         new ExtensionTuple("citus_columnar", "11.3-1"));
   }

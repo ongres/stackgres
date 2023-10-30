@@ -151,7 +151,7 @@ then
   echo "Performing switchover from primary pod $PRIMARY_POD to read only pod $READ_ONLY_POD"
   [ -n "$PRIMARY_POD" ] \
     && kubectl exec -ti -n "$NAMESPACE" "$PRIMARY_POD" -c patroni -- \
-      patronictl switchover --master "$PRIMARY_POD" --candidate "$READ_ONLY_POD" --force
+      patronictl switchover --primary "$PRIMARY_POD" --candidate "$READ_ONLY_POD" --force
 else
   echo "Can not perform switchover, no read only pod found"
 fi

@@ -77,7 +77,7 @@ wait_cluster() {
     wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$RELEASE-0" \
       --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
     wait_until eval '! kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
-      patronictl switchover "$RELEASE" --master "$LEADER" --candidate "$RELEASE-0" --force \
+      patronictl switchover "$RELEASE" --primary "$LEADER" --candidate "$RELEASE-0" --force \
       | grep -q "^Switchover failed"'
     wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$LEADER" \
       --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
@@ -249,7 +249,7 @@ wait_sharded_cluster() {
       wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$RELEASE-0" \
         --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
       wait_until eval '! kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
-        patronictl switchover "$SHARDED_RELEASE" --group "$INDEX" --master "$LEADER" --candidate "$RELEASE-0" --force \
+        patronictl switchover "$SHARDED_RELEASE" --group "$INDEX" --primary "$LEADER" --candidate "$RELEASE-0" --force \
         | grep -q "^Switchover failed"'
       wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$LEADER" \
         --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'

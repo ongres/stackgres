@@ -114,7 +114,7 @@ class ExtensionsValidatorTest {
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
         ErrorType.EXTENSION_NOT_FOUND,
-        "Some extensions were not found: citus 12.0-1 (available 1.0.0),"
+        "Some extensions were not found: citus 12.1-1 (available 1.0.0),"
             + " citus_columnar 11.3-1 (available 1.0.0)");
   }
 
