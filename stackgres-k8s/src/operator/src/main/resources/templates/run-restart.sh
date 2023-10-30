@@ -176,7 +176,7 @@ EOF
       echo "Performing switchover from primary $PRIMARY_INSTANCE to replica $TARGET_INSTANCE..."
 
       kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- \
-        patronictl switchover "$CLUSTER_NAME" --master "$PRIMARY_INSTANCE" --candidate "$TARGET_INSTANCE" --force \
+        patronictl switchover "$CLUSTER_NAME" --primary "$PRIMARY_INSTANCE" --candidate "$TARGET_INSTANCE" --force \
 
       echo "done"
       echo

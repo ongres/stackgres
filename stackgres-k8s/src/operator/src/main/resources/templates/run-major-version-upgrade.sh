@@ -430,7 +430,7 @@ EOF
     create_event "SwitchoverInitiated" "Normal" "Switchover of $CLUSTER_CRD_NAME $CLUSTER_NAME from $PRIMARY_INSTANCE to $TARGET_INSTANCE initiated"
 
     kubectl exec -n "$CLUSTER_NAMESPACE" "$PRIMARY_INSTANCE" -c "$PATRONI_CONTAINER_NAME" -- \
-      patronictl switchover "$CLUSTER_NAME" --master "$PRIMARY_INSTANCE" --candidate "$TARGET_INSTANCE" --force \
+      patronictl switchover "$CLUSTER_NAME" --primary "$PRIMARY_INSTANCE" --candidate "$TARGET_INSTANCE" --force \
 
     echo "done"
 
