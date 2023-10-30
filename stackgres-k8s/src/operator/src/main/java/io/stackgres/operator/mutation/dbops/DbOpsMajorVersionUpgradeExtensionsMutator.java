@@ -66,7 +66,8 @@ public class DbOpsMajorVersionUpgradeExtensionsMutator
     if (review.getRequest().getOperation() != Operation.CREATE) {
       return resource;
     }
-    if (Optional.of(review.getRequest().getObject())
+    if (review.getRequest().getObject().getSpec().getSgCluster() == null
+        || Optional.of(review.getRequest().getObject())
         .map(StackGresDbOps::getSpec)
         .map(StackGresDbOpsSpec::getMajorVersionUpgrade)
         .isEmpty()) {
