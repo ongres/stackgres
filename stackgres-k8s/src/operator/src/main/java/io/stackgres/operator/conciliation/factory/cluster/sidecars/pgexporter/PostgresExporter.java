@@ -89,12 +89,11 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
 
   @Override
   public boolean isActivated(ClusterContainerContext context) {
-    return Optional.of(context.getClusterContext().getCluster())
+    return !Optional.of(context.getClusterContext().getCluster())
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPods)
         .map(StackGresClusterPods::getDisableMetricsExporter)
-        .map(disabled -> !disabled)
-        .orElse(true);
+        .orElse(false);
   }
 
   @Override
