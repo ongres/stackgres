@@ -157,6 +157,10 @@ describe('Create SGCluster', () => {
         cy.get('input[data-field="metadata.name"]')
             .type('advanced-' + resourceName)
         
+        // Test Profile
+        cy.get('select[data-field="spec.profile"]')
+            .select('testing')
+
         // Test postgres version
         cy.get('ul[data-field="spec.postgres.version"] li').first()
             .click()
@@ -980,8 +984,8 @@ describe('Create SGCluster', () => {
         cy.get('form#createCluster li[data-step="non-production"]')
             .click()
 
-        cy.get('input[data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity"]')
-            .click()
+        cy.get('select[data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity"]')
+            .select('Disable')
 
         // Setup get and put mock to check resource is not found and all fields are correctly set
         cy.intercept('GET', '/stackgres/namespaces/' + namespace + '/sgclusters/advanced-' + resourceName)
@@ -1226,7 +1230,7 @@ describe('Create SGCluster', () => {
             .and('nested.include', {"nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight": '10'})
         cy.get('@postCluster')
             .its('request.body.spec.nonProductionOptions.disableClusterPodAntiAffinity')
-            .should('eq', true)
+            .should('eq', 'true')
     });
 
     
@@ -1241,6 +1245,11 @@ describe('Create SGCluster', () => {
         // Test Cluster Name
         cy.get('input[data-field="metadata.name"]')
             .should('be.disabled')
+
+        // Test Profile
+        cy.get('select[data-field="spec.profile"]')
+            .should('have.value', 'testing')    
+            .select('development')
 
         // Test instances
         cy.get('input[data-field="spec.instances"]')
@@ -1738,9 +1747,9 @@ describe('Create SGCluster', () => {
         cy.get('form#createCluster li[data-step="non-production"]')
             .click()
 
-        cy.get('input[data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity"]')
-            .should('be.enabled')
-            .click()
+        cy.get('select[data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity"]')
+            .should('have.value', 'true')    
+            .select('Enable')
 
         // Setup get and put mock to check resource is not found and all fields are correctly set
         cy.intercept('GET', '/stackgres/namespaces/' + namespace + '/sgclusters/advanced-' + resourceName,
@@ -1946,7 +1955,7 @@ describe('Create SGCluster', () => {
             .and('nested.include', {"nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight": '20'})
         cy.get('@putCluster')
             .its('request.body.spec.nonProductionOptions.disableClusterPodAntiAffinity')
-            .should('be.null')
+            .should('eq', 'false')
     }); 
 
     it('Repeater fields should match error responses coming from the API', () => {
