@@ -25,7 +25,7 @@ import jakarta.validation.constraints.Positive;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterBackupConfiguration {
 
-  @Positive(message = "retention should be greater than zero")
+  @Positive(message = "retention must be greater than zero")
   private Integer retention;
 
   private String cronSchedule;

@@ -19,7 +19,8 @@ import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.sundr.builder.annotations.Buildable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -32,10 +33,12 @@ import jakarta.validation.constraints.Positive;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresShardedClusterShards extends StackGresClusterSpec {
 
-  @Positive(message = "You need at least 1 cluster in the shards")
+  @NotNull
+  @PositiveOrZero(message = "clusters can not be negative")
   private Integer clusters;
 
-  @Positive(message = "You need at least 1 instance in each cluster")
+  @NotNull
+  @PositiveOrZero(message = "instances can not be negative")
   private Integer instancesPerCluster;
 
   @JsonProperty("replication")

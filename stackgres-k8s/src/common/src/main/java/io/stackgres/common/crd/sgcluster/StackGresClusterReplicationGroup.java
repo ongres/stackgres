@@ -31,8 +31,9 @@ public class StackGresClusterReplicationGroup {
       message = "role must be ha, ha-read, readonly or none")
   private String role;
 
+  @NotNull
   @Positive(message = "You need at least 1 instance in the replication group")
-  private int instances;
+  private Integer instances;
 
   public String getName() {
     return name;
@@ -50,11 +51,11 @@ public class StackGresClusterReplicationGroup {
     this.role = role;
   }
 
-  public int getInstances() {
+  public Integer getInstances() {
     return instances;
   }
 
-  public void setInstances(int instances) {
+  public void setInstances(Integer instances) {
     this.instances = instances;
   }
 

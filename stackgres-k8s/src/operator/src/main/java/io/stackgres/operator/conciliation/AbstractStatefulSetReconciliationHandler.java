@@ -188,24 +188,31 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
         .findByNameAndNamespace(PatroniUtil.configName(context), namespace);
     final int latestPrimaryIndexFromPatroni =
         PatroniUtil.getLatestPrimaryIndexFromPatroni(patroniConfigEndpoints, objectMapper);
-    startPrimaryIfRemoved(context, requiredSts, appLabel, latestPrimaryIndexFromPatroni, writer);
+    if (desiredReplicas > 0) {
+      startPrimaryIfRemoved(context, requiredSts, appLabel, latestPrimaryIndexFromPatroni, writer);
+    }
 
     var pods = findStatefulSetPods(requiredSts, appLabel);
-    final boolean existsPodWithPrimaryRole =
-        pods.stream().anyMatch(Predicates.and(this::hasRoleLabel, this::isRolePrimary));
-
-    pods.stream()
-        .filter(Predicates.or(Predicates.and(this::hasRoleLabel, this::isRolePrimary),
-            pod -> !existsPodWithPrimaryRole
-                && latestPrimaryIndexFromPatroni == getPodIndex(pod)))
-        .filter(pod -> getPodIndex(pod) > lastReplicaIndex)
-        .filter(pod -> !isNonDisruptable(context, pod))
-        .forEach(pod -> makePrimaryPodNonDisruptable(context, pod));
-
-    long nonDisruptablePodsRemaining =
-        countNonDisruptablePods(context, pods, lastReplicaIndex);
-    int replicas = (int) (desiredReplicas - nonDisruptablePodsRemaining);
-    spec.setReplicas(replicas);
+    if (desiredReplicas > 0) {
+      final boolean existsPodWithPrimaryRole =
+          pods.stream().anyMatch(Predicates.and(this::hasRoleLabel, this::isRolePrimary));
+      pods.stream()
+          .filter(Predicates.or(Predicates.and(this::hasRoleLabel, this::isRolePrimary),
+              pod -> !existsPodWithPrimaryRole
+                  && latestPrimaryIndexFromPatroni == getPodIndex(pod)))
+          .filter(pod -> getPodIndex(pod) > lastReplicaIndex)
+          .filter(pod -> !isNonDisruptable(context, pod))
+          .forEach(pod -> makePrimaryPodNonDisruptable(context, pod));
+      long nonDisruptablePodsRemaining =
+          countNonDisruptablePods(context, pods, lastReplicaIndex);
+      int replicas = Math.max(0, (int) (desiredReplicas - nonDisruptablePodsRemaining));
+      spec.setReplicas(replicas);
+    } else {
+      pods.stream()
+          .filter(pod -> isNonDisruptable(context, pod))
+          .forEach(pod -> makePrimaryPodDisruptable(context, pod));
+      spec.setReplicas(0);
+    }
 
     final var updatedSts = writer.apply(context, requiredSts);
 
@@ -303,6 +310,20 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     handler.patch(context, primaryPod, null);
   }
 
+  private void makePrimaryPodDisruptable(T context, Pod primaryPod) {
+    if (LOGGER.isDebugEnabled()) {
+      final String namespace = primaryPod.getMetadata().getNamespace();
+      final String podName = primaryPod.getMetadata().getName();
+      final String name = podName.substring(0, podName.lastIndexOf("-"));
+      LOGGER.debug("Marking primary Pod {}.{} for StatefulSet {}.{} as disruptible"
+          + " since 0 desired replicas", namespace, podName, namespace, name);
+    }
+    final Map<String, String> primaryPodLabels = primaryPod.getMetadata().getLabels();
+    primaryPodLabels.put(labelFactory.labelMapper().disruptableKey(context),
+        StackGresContext.RIGHT_VALUE);
+    handler.patch(context, primaryPod, null);
+  }
+
   private long countNonDisruptablePods(T context, List<Pod> pods,
       int lastReplicaIndex) {
     return pods.stream()
@@ -349,7 +370,8 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
       final String podName = pod.getMetadata().getName();
       final String name = podName.substring(0, podName.lastIndexOf("-"));
       LOGGER.debug("Fixing non disruptable Pod {}.{} for StatefulSet {}.{} as disruptible"
-          + " since current or latest primary", namespace, podName, namespace, name);
+          + " since current or latest primary",
+          namespace, podName, namespace, name);
     }
     pod.getMetadata().getLabels().put(labelFactory.labelMapper().disruptableKey(context),
         StackGresContext.RIGHT_VALUE);
