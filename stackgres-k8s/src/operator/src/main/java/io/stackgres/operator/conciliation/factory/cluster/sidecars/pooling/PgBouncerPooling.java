@@ -94,14 +94,13 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
 
   @Override
   public boolean isActivated(ClusterContainerContext context) {
-    return Optional.ofNullable(context)
+    return !Optional.ofNullable(context)
         .map(ClusterContainerContext::getClusterContext)
         .map(StackGresClusterContext::getSource)
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPods)
         .map(StackGresClusterPods::getDisableConnectionPooling)
-        .map(disable -> !disable)
-        .orElse(Boolean.TRUE);
+        .orElse(false);
   }
 
   @Override

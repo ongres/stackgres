@@ -10,6 +10,8 @@ import static io.stackgres.common.patroni.StackGresPasswordKeys.PGBOUNCER_ADMIN_
 import static io.stackgres.common.patroni.StackGresPasswordKeys.PGBOUNCER_STATS_PASSWORD_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.PGBOUNCER_STATS_USERNAME;
 
+import java.util.Optional;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -20,7 +22,11 @@ import io.stackgres.common.ClusterPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.StackGresInitContainer;
 import io.stackgres.common.StackGresVolume;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
@@ -39,6 +45,17 @@ public class InitPgBouncerAuthFile implements ContainerFactory<ClusterContainerC
 
   @Inject
   KubectlUtil kubectl;
+
+  @Override
+  public boolean isActivated(ClusterContainerContext context) {
+    return !Optional.ofNullable(context)
+        .map(ClusterContainerContext::getClusterContext)
+        .map(StackGresClusterContext::getSource)
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getPods)
+        .map(StackGresClusterPods::getDisableConnectionPooling)
+        .orElse(false);
+  }
 
   @Override
   public Container getContainer(ClusterContainerContext context) {
