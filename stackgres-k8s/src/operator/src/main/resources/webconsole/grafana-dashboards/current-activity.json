@@ -13,12 +13,6 @@
   "__requires": [
     {
       "type": "panel",
-      "id": "bargauge",
-      "name": "Bar gauge",
-      "version": ""
-    },
-    {
-      "type": "panel",
       "id": "gauge",
       "name": "Gauge",
       "version": ""
@@ -42,8 +36,8 @@
     },
     {
       "type": "panel",
-      "id": "table",
-      "name": "Table",
+      "id": "timeseries",
+      "name": "Time series",
       "version": ""
     }
   ],
@@ -283,7 +277,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "count(pg_current_activity_pid{state='active', instance=~\"${instance}:9187\"})",
+          "expr": "count(pg_stat_activity_count{state='active', instance=~\"${instance}:9187\"})",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -385,7 +379,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "count(pg_current_activity_pid{instance=~\"${instance}:9187\", state=~\"idle|idle in transaction|idle in transaction (aborted)\"})",
+          "expr": "count(pg_stat_activity_count{instance=~\"${instance}:9187\", state=~\"idle|idle in transaction|idle in transaction (aborted)\"})",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -492,7 +486,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "count(pg_current_activity_pid{instance=~\"${instance}:9187\", state=~\"idle in transaction|idle in transaction (aborted)\"})",
+          "expr": "count(pg_stat_activity_count{instance=~\"${instance}:9187\", state=~\"idle in transaction|idle in transaction (aborted)\"})",
           "hide": false,
           "instant": true,
           "interval": "",
@@ -666,188 +660,6 @@
             "mode": "thresholds"
           },
           "mappings": [],
-          "min": 0,
-          "noValue": "0",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 8,
-        "x": 0,
-        "y": 6
-      },
-      "id": 261,
-      "options": {
-        "displayMode": "lcd",
-        "minVizHeight": 10,
-        "minVizWidth": 0,
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showUnfilled": true,
-        "valueMode": "color"
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "exemplar": true,
-          "expr": "count(pg_current_activity_pid{instance=~\"${instance}:9187\", wait_event_type=\"Activity\"})",
-          "instant": false,
-          "interval": "",
-          "legendFormat": "Activity",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "exemplar": true,
-          "expr": "count(pg_current_activity_pid{instance=~\"${instance}:9187\", wait_event_type=\"Client\"})",
-          "hide": false,
-          "instant": false,
-          "interval": "",
-          "legendFormat": "Client",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "exemplar": true,
-          "expr": "count(pg_current_activity_pid{instance=~\"${instance}:9187\", wait_event_type=\"BufferPin\"})",
-          "hide": false,
-          "instant": false,
-          "interval": "",
-          "legendFormat": "BufferPin",
-          "refId": "C"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "exemplar": true,
-          "expr": "count(pg_current_activity_pid{instance=~\"${instance}:9187\", wait_event_type=\"Extension\"})",
-          "hide": false,
-          "instant": false,
-          "interval": "",
-          "legendFormat": "Extension",
-          "refId": "D"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "exemplar": true,
-          "expr": "count(pg_current_activity_pid{instance=~\"${instance}:9187\", wait_event_type=\"IO\"})",
-          "hide": false,
-          "instant": false,
-          "interval": "",
-          "legendFormat": "IO",
-          "refId": "E"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "exemplar": true,
-          "expr": "count(pg_current_activity_pid{instance=~\"${instance}:9187\", wait_event_type=\"IPC\"})",
-          "hide": false,
-          "instant": false,
-          "interval": "",
-          "legendFormat": "IPC",
-          "refId": "F"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "exemplar": true,
-          "expr": "count(pg_current_activity_pid{instance=~\"${instance}:9187\", wait_event_type=\"Lock\"})",
-          "hide": false,
-          "instant": false,
-          "interval": "",
-          "legendFormat": "Lock",
-          "refId": "G"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "exemplar": true,
-          "expr": "count(pg_current_activity_pid{instance=~\"${instance}:9187\", wait_event_type=\"LWLock\"})",
-          "hide": false,
-          "instant": false,
-          "interval": "",
-          "legendFormat": "LWLock",
-          "refId": "H"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "exemplar": true,
-          "expr": "count(pg_current_activity_pid{instance=~\"${instance}:9187\", wait_event_type=\"Timeout\"})",
-          "hide": false,
-          "instant": false,
-          "interval": "",
-          "legendFormat": "Timeout",
-          "refId": "I"
-        }
-      ],
-      "title": "Wait events type",
-      "type": "bargauge"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
           "noValue": "0",
           "thresholds": {
             "mode": "absolute",
@@ -869,7 +681,7 @@
       "gridPos": {
         "h": 7,
         "w": 4,
-        "x": 8,
+        "x": 0,
         "y": 6
       },
       "id": 263,
@@ -937,8 +749,8 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 3,
-        "x": 12,
+        "w": 5,
+        "x": 4,
         "y": 6
       },
       "id": 265,
@@ -1006,8 +818,8 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 3,
-        "x": 15,
+        "w": 5,
+        "x": 9,
         "y": 6
       },
       "id": 267,
@@ -1076,8 +888,8 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 3,
-        "x": 18,
+        "w": 5,
+        "x": 14,
         "y": 6
       },
       "id": 269,
@@ -1145,8 +957,8 @@
       },
       "gridPos": {
         "h": 7,
-        "w": 3,
-        "x": 21,
+        "w": 5,
+        "x": 19,
         "y": 6
       },
       "id": 271,
@@ -1190,15 +1002,37 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
           },
           "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             },
-            "filterable": true,
-            "inspect": false
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
@@ -1215,112 +1049,28 @@
             ]
           }
         },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "cluster_name"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 247
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Backend duration(seconds)"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 221
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "exported_namespace"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 285
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "namespace"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 291
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "pod"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 205
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Query"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 400
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "pid"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 246
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
-        "h": 10,
-        "w": 24,
+        "h": 8,
+        "w": 12,
         "x": 0,
         "y": 13
       },
-      "id": 273,
+      "id": 279,
       "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
+        "legend": {
+          "calcs": [
+            "lastNotNull"
           ],
-          "show": false
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
         },
-        "showHeader": true,
-        "sortBy": []
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
       },
       "targets": [
         {
@@ -1329,282 +1079,227 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "exemplar": false,
-          "expr": "pg_current_activity_pid{instance=~\"${instance}:9187\"}",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
+          "expr": "sum by (datname) (pg_stat_progress_vacuum_heap_blks_total{instance=~\"${instance}:9187\"})",
+          "instant": false,
+          "legendFormat": "Database: {{datname}} - HEAP-BLKS-TOTAL",
+          "range": true,
           "refId": "A"
-        }
-      ],
-      "title": "Activity",
-      "transformations": [
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "Time": true,
-              "__name__": true,
-              "client_type": true,
-              "cluster_name": true,
-              "container": true,
-              "endpoint": true,
-              "exported_namespace": true,
-              "instance": true,
-              "job": true,
-              "namespace": true,
-              "pod": true,
-              "server": true,
-              "wait_event_type": true
-            },
-            "indexByName": {
-              "Time": 0,
-              "Value": 14,
-              "__name__": 1,
-              "application_name": 9,
-              "backend_duration": 12,
-              "backend_type": 3,
-              "client_type": 4,
-              "cluster_name": 16,
-              "container": 17,
-              "datname": 2,
-              "endpoint": 18,
-              "exported_namespace": 19,
-              "instance": 5,
-              "job": 6,
-              "namespace": 20,
-              "pod": 21,
-              "query": 15,
-              "server": 7,
-              "state": 13,
-              "usename": 8,
-              "wait_event": 10,
-              "wait_event_type": 11
-            },
-            "renameByName": {
-              "Value": "pid",
-              "application_name": "Application name",
-              "backend_duration": "Backend duration(seconds)",
-              "backend_type": "Backend Type",
-              "datname": "Database",
-              "exported_namespace": "",
-              "namespace": "Namespace",
-              "query": "Query",
-              "state": "State",
-              "usename": "User",
-              "wait_event": "Wait event",
-              "wait_event_type": ""
-            }
-          }
         },
-        {
-          "id": "convertFieldType",
-          "options": {
-            "conversions": [
-              {
-                "destinationType": "number",
-                "targetField": "Backend duration(seconds)"
-              }
-            ],
-            "fields": {}
-          }
-        }
-      ],
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "description": "Current VACUUM FULL or  CLUSTER progress",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "filterable": true,
-            "inspect": false
-          },
-          "mappings": [],
-          "noValue": "0",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 11,
-        "x": 0,
-        "y": 23
-      },
-      "id": 275,
-      "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
-        "showHeader": true
-      },
-      "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "exemplar": false,
-          "expr": "pg_stat_progress_cluster_pid{instance=~\"${instance}:9187\"}",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Vacuum progress (FULL/CLUSTER)",
-      "transformations": [
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "__name__": true,
-              "cluster_index_relid": true,
-              "datid": true,
-              "instance": true,
-              "job": true,
-              "server": true
-            },
-            "indexByName": {},
-            "renameByName": {
-              "Value": "pid",
-              "command": "Command",
-              "datname": "Database",
-              "heap_blks_scanned": ""
-            }
-          }
-        }
-      ],
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": "auto",
-            "cellOptions": {
-              "type": "auto"
-            },
-            "filterable": true,
-            "inspect": false
-          },
-          "mappings": [],
-          "noValue": "0",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
+          "expr": "sum by (datname) (pg_stat_progress_vacuum_heap_blks_scanned{instance=~\"${instance}:9187\"})",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "Database: {{datname}} - HEAP-BLKS-SCANNED",
+          "range": true,
+          "refId": "B"
         },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 13,
-        "x": 11,
-        "y": 23
-      },
-      "id": 277,
-      "options": {
-        "cellHeight": "sm",
-        "footer": {
-          "countRows": false,
-          "fields": "",
-          "reducer": [
-            "sum"
-          ],
-          "show": false
-        },
-        "showHeader": true
-      },
-      "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "exemplar": false,
-          "expr": "pg_stat_progress_vacuum_pid{instance=~\"${instance}:9187\"}",
-          "format": "table",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "A"
+          "expr": "sum by (datname) (pg_stat_progress_vacuum_heap_blks_vacuumed{instance=~\"${instance}:9187\"})",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "Database: {{datname}} - HEAP-BLKS-VACUUMED",
+          "range": true,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "sum by (datname) (pg_stat_progress_vacuum_index_vacuum_count{instance=~\"${instance}:9187\"})",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "Database: {{datname}} - INDEX-VACUUM-COUNT",
+          "range": true,
+          "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "sum by (datname) (pg_stat_progress_vacuum_max_dead_tuples{instance=~\"${instance}:9187\"})",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "Database: {{datname}} - MAX-DEAD-TUPLES",
+          "range": true,
+          "refId": "E"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "sum by (datname) (pg_stat_progress_vacuum_num_dead_tuples{instance=~\"${instance}:9187\"})",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "Database: {{datname}} - NUM-DEAD-TUPLES",
+          "range": true,
+          "refId": "F"
         }
       ],
       "title": "Vacuum progress",
-      "transformations": [
-        {
-          "id": "organize",
-          "options": {
-            "excludeByName": {
-              "__name__": true,
-              "datid": true,
-              "instance": true,
-              "job": true
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_PROMETHEUS}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             },
-            "indexByName": {},
-            "renameByName": {
-              "Value": "pid",
-              "datid": "",
-              "datname": "Database",
-              "heap_blks_scanned": "",
-              "instance": "",
-              "job": ""
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
           }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 13
+      },
+      "id": 280,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "sum by (datname) (pg_stat_progress_cluster_heap_tuples_scanned{instance=~\"${instance}:9187\"})",
+          "instant": false,
+          "legendFormat": "Database: {{datname}} - HEAP-TUPLES-SCANNED",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "sum by (datname) (pg_stat_progress_cluster_heap_tuples_written{instance=~\"${instance}:9187\"})",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "Database: {{datname}} - HEAP-TUBLES-WRITTEN",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "sum by (datname) (pg_stat_progress_cluster_heap_blks_total{instance=~\"${instance}:9187\"})",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "Database: {{datname}} - HEAP-BLKS-TOTAL",
+          "range": true,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "sum by (datname) (pg_stat_progress_cluster_heap_blks_scanned{instance=~\"${instance}:9187\"})",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "Database: {{datname}} - HEAP-BLKS-SCANNED",
+          "range": true,
+          "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_PROMETHEUS}"
+          },
+          "editorMode": "code",
+          "expr": "pg_stat_progress_cluster_index_rebuild_count{instance=~\"${instance}:9187\"}",
+          "hide": false,
+          "instant": false,
+          "legendFormat": "Database: {{datname}} - INDEX-REBUILD-COUNT",
+          "range": true,
+          "refId": "E"
         }
       ],
-      "type": "table"
+      "title": "Vacuum Cluster progress",
+      "type": "timeseries"
     }
   ],
   "refresh": "",
@@ -1762,7 +1457,7 @@
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {
@@ -1793,6 +1488,6 @@
   "timezone": "utc",
   "title": "CurrentActivity",
   "uid": "000000044",
-  "version": 2,
+  "version": 4,
   "weekStart": ""
 }

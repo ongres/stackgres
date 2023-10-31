@@ -157,19 +157,6 @@ pg_statio_user_tables:
         usage: "COUNTER"
         description: "Number of buffer hits in this table's TOAST table indexes (if any)"
 
-pg_database:
-  master: true
-  query: |
-    SELECT pg_database.datname, pg_database_size(pg_database.datname) as size FROM pg_catalog.pg_database;
-  cache_seconds: 30
-  metrics:
-    - datname:
-        usage: "LABEL"
-        description: "Name of the database"
-    - size_bytes:
-        usage: "GAUGE"
-        description: "Disk space used by the database"
-
 pg_stat_user_indexes:
   master: true
   query: |
@@ -246,6 +233,7 @@ pg_statio_user_indexes:
 
 pg_total_relation_size:
   master: true
+  cache_seconds: 120
   query: |
     SET max_parallel_workers_per_gather = 0;
     WITH databases AS (
@@ -526,6 +514,7 @@ pg_replication_slots:
 
 pg_table_bloat:
   master: true
+  cache_seconds: 1200
   query: |
     SET max_parallel_workers_per_gather = 0;
     WITH databases AS (
@@ -843,92 +832,6 @@ pg_vaccuum_wraparound:
         description: "Percentage"
 
 # CURRENT ACTIVITY
-pg_current_activity:
-  master: true
-  query: |
-    SELECT * FROM dblink(
-        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=postgres',
-        '
-        SELECT
-            coalesce(datname,current_database()) as datname, pid, usename, application_name, backend_type,
-            CASE
-            WHEN client_port IS NULL THEN ''internal''
-            WHEN client_port = -1 THEN ''socket''
-            ELSE ''host'' END AS client_type,
-            state,
-            wait_event,
-            wait_event_type,
-            EXTRACT(EPOCH FROM (clock_timestamp()-backend_start)) AS backend_duration,
-            EXTRACT(EPOCH FROM (clock_timestamp()-query_start)) AS query_duration,
-            EXTRACT(EPOCH FROM (clock_timestamp()-xact_start)) AS xact_duration,
-            EXTRACT(EPOCH FROM (clock_timestamp()-state_change)) AS state_duration,
-        '
-        || CASE WHEN (SELECT setting FROM pg_settings WHERE name = 'server_version_num')::bigint >= 130000 THEN 'leader_pid' ELSE 'NULL::integer AS leader_pid' END || ', '
-        || '
-            backend_xid, backend_xmin,
-        '
-        || CASE WHEN (SELECT setting FROM pg_settings WHERE name = 'server_version_num')::bigint >= 140000 THEN 'query_id' ELSE 'NULL::bigint AS query_id' END || ', '
-        || '
-        query::char(100)
-        FROM pg_stat_activity
-        ')
-        AS (datname text, pid integer, usename text, application_name text, backend_type text, client_type text, state text, wait_event text, wait_event_type text, backend_duration double precision,
-          query_duration double precision, xact_duration double precision, state_duration double precision, leader_pid integer, backend_xid xid, backend_xmin xid, query_id bigint, query text);
-  metrics:
-    - datname:
-        usage: "LABEL"
-        description: "Name of the database"
-    - usename:
-        usage: "LABEL"
-        description: "Name of the user"
-    - application_name:
-        usage: "LABEL"
-        description: "Name of the application"
-    - backend_type:
-        usage: "LABEL"
-        description: "Type of backend"
-    - client_type:
-        usage: "LABEL"
-        description: "Type of client"
-    - state:
-        usage: "LABEL"
-        description: "Current overall state of this backend."
-    - wait_event:
-        usage: "LABEL"
-        description: "Wait event name"
-    - wait_event_type:
-        usage: "LABEL"
-        description: "The type of event for which the backend is waiting, if any; otherwise NULL"
-    - pid:
-        usage: "GAUGE"
-        description: "Process ID of this backend"
-    - leader_pid:
-        usage: "LABEL"
-        description: "Process ID of the parallel group leader, if this process is a parallel query worker. NULL if this process is a parallel group leader or does not participate in parallel query"
-    - backend_duration:
-        usage: "LABEL"
-        description: "Duration of the backend, in seconds"
-    - query_duration:
-        usage: "GAUGE"
-        description: "Duration of the latest query, in seconds"
-    - xact_duration:
-        usage: "GAUGE"
-        description: "Duration of the latest transaction, in seconds"
-    - state_duration:
-        usage: "GAUGE"
-        description: "Duration of the latest state, in seconds"
-    - backend_xid:
-        usage: "GAUGE"
-        description: "Top-level transaction identifier of this backend, if any"
-    - backend_xmin:
-        usage: "GAUGE"
-        description: "The current backend's xmin horizon"
-    - query_id:
-        usage: "GAUGE"
-        description: "Query ID"
-    - query:
-        usage: "LABEL"
-        description: "Query"
 
 pg_stat_current_waiting_query:
   query: |
@@ -952,91 +855,60 @@ pg_stat_current_waiting_query:
 pg_stat_progress_vacuum:
   query: |
     SELECT
-        pid, datid, datname, relid, phase, heap_blks_total, heap_blks_scanned,
+        datname, heap_blks_total, heap_blks_scanned,
         heap_blks_vacuumed , index_vacuum_count , max_dead_tuples , num_dead_tuples
     FROM pg_stat_progress_vacuum;
   master: true
   metrics:
-    - pid:
-        usage: "GAUGE"
-        description: "Process ID of backend."
-    - datid:
-        usage: "LABEL"
-        description: "OID of the database to which this backend is connected"
     - datname:
         usage: "LABEL"
         description: "Name of the database to which this backend is connected"
-    - relid:
-        usage: "LABEL"
-        description: "OID of the table being vacuumed"
-    - phase:
-        usage: "LABEL"
-        description: "Current processing phase of vacuum"
     - heap_blks_total:
-        usage: "LABEL"
+        usage: "GAUGE"
         description: "Total number of heap blocks in the table"
     - heap_blks_scanned:
-        usage: "LABEL"
+        usage: "GAUGE"
         description: "Number of heap blocks scanned"
     - heap_blks_vacuumed:
-        usage: "LABEL"
+        usage: "GAUGE"
         description: "Number of heap blocks vacuumed"
     - index_vacuum_count:
-        usage: "LABEL"
+        usage: "GAUGE"
         description: "Number of completed index vacuum cycles"
     - max_dead_tuples:
-        usage: "LABEL"
+        usage: "GAUGE"
         description: "Number of dead tuples that we can store before needing to perform an index vacuum cycle"
     - num_dead_tuples:
-        usage: "LABEL"
+        usage: "GAUGE"
         description: "Number of dead tuples collected since the last index vacuum cycle"
 
 pg_stat_progress_cluster:
   query: |
     SELECT
-       pid, datid, datname, relid, command, phase, cluster_index_relid,
+       datname,
        heap_tuples_scanned, heap_tuples_written, heap_blks_total,
        heap_blks_scanned, index_rebuild_count
     FROM pg_stat_progress_cluster;
   master: true
   metrics:
-    - pid:
-        usage: "GAUGE"
-        description: "Process ID of backend"
-    - datid:
-        usage: "LABEL"
-        description: "OID of the database to which this backend is connected"
     - datname:
         usage: "LABEL"
         description: "Name of the database to which this backend is connected"
-    - relid:
-        usage: "LABEL"
-        description: "OID of the table being clustered"
-    - command:
-        usage: "LABEL"
-        description: "The command that is running. Either CLUSTER or VACUUM FULL"
-    - phase:
-        usage: "LABEL"
-        description: "Current processing phase"
-    - cluster_index_relid:
-        usage: "LABEL"
-        description: "If the table is being scanned using an index, this is the OID of the index being used; otherwise, it is zero"
     - heap_tuples_scanned:
-        usage: "LABEL"
+        usage: "GAUGE"
         description: "Number of heap tuples scanned. This counter only advances when the phase is seq scanning heap, index scanning heap or writing new heap"
     - heap_tuples_written:
-        usage: "LABEL"
+        usage: "GAUGE"
         description: "Number of heap tuples written. This counter only advances when the phase is seq scanning heap, index scanning heap or writing new heap"
     - heap_blks_total:
-        usage: "LABEL"
+        usage: "GAUGE"
         description: "Total number of heap blocks in the table. This number is reported as of the beginning of seq scanning heap"
     - heap_blks_scanned:
-        usage: "LABEL"
+        usage: "GAUGE"
         description: "Number of heap blocks scanned. This counter only advances when the phase is seq scanning heap"
     - index_rebuild_count:
-        usage: "LABEL"
+        usage: "GAUGE"
         description: "Number of indexes rebuilt. This counter only advances when the phase is rebuilding index"
-
 
 # PGBOUNCER QUERIES
 
@@ -1169,7 +1041,7 @@ pgbouncer_show_pools:
         description: "    Client connections that have forwarded query cancellations to the server and are waiting for the server response"
     - cl_waiting_cancel_req:
         usage: "GAUGE"
-        description: "    Client connections that have not forwarded query cancellations to the server yet"
+        description: "Client connections that have not forwarded query cancellations to the server yet"
     - sv_active:
         usage: "GAUGE"
         description: "Server connections that are linked to a client"
