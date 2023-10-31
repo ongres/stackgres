@@ -155,18 +155,6 @@ pg_statio_user_tables:
         usage: "COUNTER"
         description: "Number of buffer hits in this table's TOAST table indexes (if any)"
 
-pg_database:
-  master: true
-  query: "SELECT pg_database.datname, pg_database_size(pg_database.datname) as size FROM pg_catalog.pg_database"
-  cache_seconds: 30
-  metrics:
-    - datname:
-        usage: "LABEL"
-        description: "Name of the database"
-    - size_bytes:
-        usage: "GAUGE"
-        description: "Disk space used by the database"
-
 pg_stat_user_indexes:
   master: true
   query: |
@@ -238,6 +226,7 @@ pg_statio_user_indexes:
 
 pg_total_relation_size:
   master: true
+  cache_seconds: 600
   query: |
     SET max_parallel_workers_per_gather = 0;
     WITH databases AS (
@@ -517,6 +506,7 @@ pg_replication_slots:
 
 pg_table_bloat:
   master: true
+  cache_seconds: 1200
   query: |
     SET max_parallel_workers_per_gather = 0;
     WITH databases AS (
@@ -832,6 +822,87 @@ pg_vaccuum_wraparound:
         usage: "GAUGE"
         description: "Percentage"
 
+# CURRENT ACTIVITY
+
+pg_stat_current_waiting_query:
+  query: |
+    SELECT
+        datname, wait_event, count(*) AS count
+    FROM pg_stat_activity
+    WHERE state = 'active' AND wait_event IS NOT NULL
+    GROUP BY datname, wait_event;
+  master: true
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Name of the database"
+    - wait_event:
+        usage: "LABEL"
+        description: "Name of the wait event"
+    - count:
+        usage: "GAUGE"
+        description: "# of queries waiting for other process to finish"
+
+pg_stat_progress_vacuum:
+  query: |
+    SELECT
+        datname, heap_blks_total, heap_blks_scanned,
+        heap_blks_vacuumed , index_vacuum_count , max_dead_tuples , num_dead_tuples
+    FROM pg_stat_progress_vacuum
+  master: true
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Name of the database to which this backend is connected"
+    - heap_blks_total:
+        usage: "GAUGE"
+        description: "Total number of heap blocks in the table"
+    - heap_blks_scanned:
+        usage: "GAUGE"
+        description: "Number of heap blocks scanned"
+    - heap_blks_vacuumed:
+        usage: "GAUGE"
+        description: "Number of heap blocks vacuumed"
+    - index_vacuum_count:
+        usage: "GAUGE"
+        description: "Number of completed index vacuum cycles"
+    - max_dead_tuples:
+        usage: "GAUGE"
+        description: "Number of dead tuples that we can store before needing to perform an index vacuum cycle"
+    - num_dead_tuples:
+        usage: "GAUGE"
+        description: "Number of dead tuples collected since the last index vacuum cycle"
+
+pg_stat_progress_cluster:
+  query: |
+    SELECT
+       datname,
+       heap_tuples_scanned, heap_tuples_written, heap_blks_total,
+       heap_blks_scanned, index_rebuild_count
+    FROM pg_stat_progress_cluster
+  master: true
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Name of the database to which this backend is connected"
+    - heap_tuples_scanned:
+        usage: "GAUGE"
+        description: "Number of heap tuples scanned. This counter only advances when the phase is seq scanning heap, index scanning heap or writing new heap"
+    - heap_tuples_written:
+        usage: "GAUGE"
+        description: "Number of heap tuples written. This counter only advances when the phase is seq scanning heap, index scanning heap or writing new heap"
+    - heap_blks_total:
+        usage: "GAUGE"
+        description: "Total number of heap blocks in the table. This number is reported as of the beginning of seq scanning heap"
+    - heap_blks_scanned:
+        usage: "GAUGE"
+        description: "Number of heap blocks scanned. This counter only advances when the phase is seq scanning heap"
+    - index_rebuild_count:
+        usage: "GAUGE"
+        description: "Number of indexes rebuilt. This counter only advances when the phase is rebuilding index"
+
+# PGBOUNCER QUERIES
+
 pgbouncer_show_clients:
   master: true
   query: |
@@ -851,12 +922,12 @@ pgbouncer_show_clients:
     _.ptr,
     _.link,
     _.remote_pid,
-    _.tls
+    _.tls,
     _.application_name
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show clients'::text)
     _(type text, "user" text, database text, state text, addr text, port integer, local_addr text, local_port integer,
     connect_time timestamp with time zone, request_time timestamp with time zone, wait integer, wait_us integer, close_needed integer,
-    ptr text, link text, remote_pid integer, tls text, application_name text) END;
+    ptr text, link text, remote_pid integer, tls text, application_name text);
   metrics:
     - type:
         usage: "LABEL"
@@ -933,8 +1004,7 @@ pgbouncer_show_pools:
     _.maxwait_us,
     _.pool_mode
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show pools'::text)
-    _(database text, "user" text, cl_active_cancel_req integer, cl_waiting_cancel_req integer, cl_waiting integer,
-    cl_cancel_req integer, sv_active integer, sv_active_cancel integer, sv_being_canceled integer, sv_idle integer,
+    _(database text, "user" text, cl_active integer, cl_waiting integer, cl_active_cancel_req integer, cl_waiting_cancel_req integer, sv_active integer, sv_active_cancel integer, sv_being_canceled integer, sv_idle integer,
     sv_used integer, sv_tested integer, sv_login integer, maxwait integer, maxwait_us integer, pool_mode text);
   metrics:
     - database:
@@ -951,19 +1021,19 @@ pgbouncer_show_pools:
         description: "Client connections that have sent queries but have not yet got a server connection"
     - cl_active_cancel_req:
         usage: "GAUGE"
-        description: "    Client connections that have forwarded query cancellations to the server and are waiting for the server response"
+        description: "Client connections that have forwarded query cancellations to the server and are waiting for the server response"
     - cl_waiting_cancel_req:
         usage: "GAUGE"
-        description: "    Client connections that have not forwarded query cancellations to the server yet"
+        description: "Client connections that have not forwarded query cancellations to the server yet"
     - sv_active:
         usage: "GAUGE"
         description: "Server connections that are linked to a client"
     - sv_active_cancel:
         usage: "GAUGE"
-        description: "    Server connections that are currently forwarding a cancel request"
+        description: "Server connections that are currently forwarding a cancel request"
     - sv_being_canceled:
         usage: "GAUGE"
-        description: "    Servers that normally could become idle but are waiting to do so until all in-flight cancel requests have completed that were sent to cancel a query on this server"
+        description: "Servers that normally could become idle but are waiting to do so until all in-flight cancel requests have completed that were sent to cancel a query on this server"
     - sv_idle:
         usage: "GAUGE"
         description: "Server connections that are unused and immediately usable for client queries"
@@ -1199,3 +1269,46 @@ node_filesystem:
     - device_error:
         usage: "GAUGE"
         description: "Whether an error occurred while getting statistics for the given device."
+
+# PG_STAT_STATEMENT
+pg_statements:
+  query: |
+    SELECT
+        pg_database.datname,
+        pg_roles.rolname as usename,
+        pg_stat_statements.queryid,
+        pg_stat_statements.calls as calls_total,
+        pg_stat_statements.total_exec_time / 1000 as total_exec_time,
+        pg_stat_statements.mean_exec_time / 1000  as mean_exec_time,
+        pg_stat_statements.rows as rows_total
+    FROM pg_stat_statements
+    JOIN pg_roles ON (pg_stat_statements.userid = pg_roles.oid)
+    JOIN pg_database ON (pg_stat_statements.dbid = pg_database.oid)
+    WHERE calls > 1
+    ORDER BY
+        pg_stat_statements.total_exec_time - pg_stat_statements.mean_exec_time * pg_stat_statements.calls desc
+    LIMIT 20
+    ;
+  master: true
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Database name"
+    - usename:
+        usage: "LABEL"
+        description: "User name"
+    - queryid:
+        usage: "LABEL"
+        description: "Query ID"
+    - calls_total:
+        usage: "GAUGE"
+        description: "Total calls of the query"
+    - total_exec_time:
+        usage: "GAUGE"
+        description: "Total execute time in milliseconds"
+    - mean_exec_time:
+        usage: "GAUGE"
+        description: "Total mean time in milliseconds"
+    - rows_total:
+        usage: "GAUGE"
+        description: "Total rows returned"
