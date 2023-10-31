@@ -453,9 +453,9 @@ public class ShardedClusterResource
             .map(ShardedClusterShards::getOverrides)
             .stream()
             .flatMap(List::stream)
-            .map(ShardedClusterShard::getManagedSql)
-            .map(ClusterManagedSql::getScripts)
-            .map(Optional::of))
+            .map(override -> Optional.of(override)
+                .map(ShardedClusterShard::getManagedSql)
+                .map(ClusterManagedSql::getScripts)))
         .filter(Optional::isPresent)
         .map(Optional::get)
         .flatMap(List::stream);
