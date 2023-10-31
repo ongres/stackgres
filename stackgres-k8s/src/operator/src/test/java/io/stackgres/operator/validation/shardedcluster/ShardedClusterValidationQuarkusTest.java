@@ -223,7 +223,7 @@ class ShardedClusterValidationQuarkusTest {
       assertThat(body.get("kind").asText(), is("AdmissionReview"));
       assertThat(body.get("response").get("status").get("code").asInt(), is(400));
       assertThat(body.get("response").get("status").get("message").asText(),
-          is("Some extensions were not found: citus 12.0-1, citus_columnar 11.3-1"));
+          is("Some extensions were not found: citus 12.1-1, citus_columnar 11.3-1"));
     } catch (AssertionError ae) {
       throw new AssertionError("Body " + body + " has unexpected values", ae);
     }

@@ -74,6 +74,7 @@ public class ConfigRequiredResourcesGenerator
         WebConsoleSecret.name(config), namespace);
     Optional<Secret> webConsoleAdminSecret = secretFinder.findByNameAndNamespace(
         WebConsoleAdminSecret.name(config), namespace);
+    boolean isGrafanaEmbedded = grafanaIntegrationChecker.isGrafanaEmbedded(config);
     boolean isGrafanaIntegrated = grafanaIntegrationChecker.isGrafanaIntegrated(config);
     boolean isGrafanaIntegrationJobFailed =
         jobFinder.findByNameAndNamespace(WebConsoleGrafanaIntegrationJob.name(config), namespace)
@@ -114,6 +115,7 @@ public class ConfigRequiredResourcesGenerator
         .operatorSecret(operatorSecret)
         .webConsoleSecret(webConsoleSecret)
         .webConsoleAdminSecret(webConsoleAdminSecret)
+        .isGrafanaEmbedded(isGrafanaEmbedded)
         .isGrafanaIntegrated(isGrafanaIntegrated)
         .isGrafanaIntegrationJobFailed(isGrafanaIntegrationJobFailed)
         .grafanaUser(grafanaUser)

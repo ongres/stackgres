@@ -41,3 +41,17 @@ cat "$CRD_PATH/index.txt" \
       tail -n +"$((INCLUDE_LINE + 1))" "$TARGET_PATH/_index.template.md" >> "$TARGET_PATH/_index.md"
     done
     }
+(
+cd "$(dirname "$0")/../stackgres-k8s/install/helm/stackgres-operator"
+helm-docs \
+  -o "generated.md" \
+  -f "values.yaml" \
+  -t "VALUES.html.gotmpl"
+)
+mv "$(dirname "$0")/../stackgres-k8s/install/helm/stackgres-operator/generated.md" \
+  "$(dirname "$0")/generated/stackgres-operator.md"
+TARGET_PATH="$(dirname "$0")/../doc/content/en/04-administration-guide/01-stackgres-installation/02-installation-via-helm/01-operator-parameters"
+INCLUDE_LINE="$(cat "$TARGET_PATH/_index.template.md" | grep -nxF '{{% include "generated/stackgres-operator.md" %}}' | cut -d : -f 1)"
+head -n "$((INCLUDE_LINE - 1))" "$TARGET_PATH/_index.template.md" > "$TARGET_PATH/_index.md"
+cat "$(dirname "$0")/generated/stackgres-operator.md" >> "$TARGET_PATH/_index.md"
+tail -n +"$((INCLUDE_LINE + 1))" "$TARGET_PATH/_index.template.md" >> "$TARGET_PATH/_index.md"

@@ -37,6 +37,7 @@ export default new Vuex.Store({
     sgdbops: [],
     postgresVersions: {},
     applications: [],
+    dashboardsList: [],
     cloneCRD: {},
     timezone: 'local',
     view: 'normal',
@@ -319,6 +320,10 @@ export default new Vuex.Store({
 
     setApplications (state, applications) {
       state.applications = applications;
+    },
+
+    setDashboardsList (state, dashboardsList) {
+      state.dashboardsList = dashboardsList;
     },
 
     toggleTimezone (state) {

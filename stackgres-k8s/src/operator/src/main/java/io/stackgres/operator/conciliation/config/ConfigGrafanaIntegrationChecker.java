@@ -20,7 +20,7 @@ import io.stackgres.common.crd.sgconfig.StackGresConfigStatusGrafana;
 @ApplicationScoped
 public class ConfigGrafanaIntegrationChecker {
 
-  public boolean isGrafanaIntegrated(StackGresConfig config) {
+  public boolean isGrafanaEmbedded(StackGresConfig config) {
     return Optional.of(config.getSpec())
         .map(StackGresConfigSpec::getGrafana)
         .map(StackGresConfigGrafana::getAutoEmbed)
@@ -32,10 +32,20 @@ public class ConfigGrafanaIntegrationChecker {
         .orElse(false)
         && Optional.ofNullable(config.getStatus())
         .map(StackGresConfigStatus::getGrafana)
-        .filter(grafana -> grafana.getUrl() != null
+        .map(grafana -> grafana.getUrls() != null
+          && !grafana.getUrls().isEmpty()
           && grafana.getToken() != null)
-        .map(grafana -> WebUtil.checkUnsecureUri(grafana.getUrl(),
-            Map.of("Authorization", "Bearer " + grafana.getToken())))
+        .orElse(false);
+  }
+
+  public boolean isGrafanaIntegrated(StackGresConfig config) {
+    return isGrafanaEmbedded(config)
+        && Optional.ofNullable(config.getStatus())
+        .map(StackGresConfigStatus::getGrafana)
+        .map(grafana -> grafana.getUrls().stream()
+            .allMatch(url -> url.indexOf(":") >= 0
+              && WebUtil.checkUnsecureUri(url.substring(url.indexOf(":") + 1),
+                  Map.of("Authorization", "Bearer " + grafana.getToken()))))
         .orElse(false);
   }
 

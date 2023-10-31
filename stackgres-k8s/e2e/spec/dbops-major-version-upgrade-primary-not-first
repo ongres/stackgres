@@ -15,7 +15,7 @@ check_major_version_upgrade_with_primary_not_first_is_working() {
   reset_cluster
 
   kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c patroni -- \
-    patronictl switchover "$CLUSTER_NAME" --master "$CLUSTER_NAME-0" --candidate "$CLUSTER_NAME-1" --force
+    patronictl switchover "$CLUSTER_NAME" --primary "$CLUSTER_NAME-0" --candidate "$CLUSTER_NAME-1" --force
 
   cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
@@ -29,6 +29,9 @@ spec:
   majorVersionUpgrade:
     postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
     sgPostgresConfig: postgresconf-for-major-version-upgrade
+    postgresExtensions:
+    - name: pg_repack
+      version: $TARGET_PG_REPACK_VERSION
 EOF
 
   check_major_version_upgrade

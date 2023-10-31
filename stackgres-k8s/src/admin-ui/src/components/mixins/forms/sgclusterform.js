@@ -9,6 +9,7 @@ export const sgclusterform = {
         
 
         return {
+            formHash: (+new Date).toString(),
             previewCRD: {},
             showSummary: false,
             advancedMode: false,
@@ -293,6 +294,7 @@ export const sgclusterform = {
                     }],
                 }
             } );
+            this.formHash = (+new Date).toString();
         },
 
         setScriptSource( baseIndex, index, scriptSource = this.scriptSource, managedSql = this.managedSql ) {
@@ -337,6 +339,7 @@ export const sgclusterform = {
                     }
                 } 
             }
+            this.formHash = (+new Date).toString();
         },
 
         isDefaultScript(scriptName) {

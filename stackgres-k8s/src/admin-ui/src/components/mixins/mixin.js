@@ -608,6 +608,29 @@ export const mixin = {
 
           }
 
+          if(!store.state.dashboardsList.length) {
+
+            /* Get Grafana Dashboards */
+            axios
+			      .get('/grafana-list')
+            .then( function(response) {
+              if( (typeof response.data == 'object') && response.data.length ) {
+                store.commit('setDashboardsList', response.data);
+              } else {
+                vc.notify({
+                  title: '',
+                  detail: 'There was a problem when trying to access the list of Grafana\'s monitoring dashboards available. Please confirm the REST API is functioning properly and that you have correctly setup the operator\'s credentials to access Grafana.',
+                  type: 'https://stackgres.io/doc/latest/install/prerequisites/monitoring/#installing-grafana-and-create-basic-dashboards',
+                  status: 403
+                },'error')
+              }
+            }).catch(function(err) {
+              console.log(err);
+              vc.checkAuthError(err);
+            });
+
+          }
+
           if(!store.state.ready)
             store.commit('setReady',true)
     

@@ -21,6 +21,12 @@ public class ClusterDbOpsMajorVersionUpgradeStatus {
 
   private String sourcePostgresVersion;
 
+  private List<ClusterExtension> sourcePostgresExtensions;
+
+  private String sourceSgPostgresConfig;
+
+  private String sourceBackupPath;
+
   private String targetPostgresVersion;
 
   private String locale;
@@ -34,6 +40,8 @@ public class ClusterDbOpsMajorVersionUpgradeStatus {
   private Boolean clone;
 
   private Boolean check;
+
+  private Boolean rollback;
 
   public List<String> getInitialInstances() {
     return initialInstances;
@@ -57,6 +65,31 @@ public class ClusterDbOpsMajorVersionUpgradeStatus {
 
   public void setSourcePostgresVersion(String sourcePostgresVersion) {
     this.sourcePostgresVersion = sourcePostgresVersion;
+  }
+
+  public List<ClusterExtension> getSourcePostgresExtensions() {
+    return sourcePostgresExtensions;
+  }
+
+  public void setSourcePostgresExtensions(
+      List<ClusterExtension> sourcePostgresExtensions) {
+    this.sourcePostgresExtensions = sourcePostgresExtensions;
+  }
+
+  public String getSourceSgPostgresConfig() {
+    return sourceSgPostgresConfig;
+  }
+
+  public void setSourceSgPostgresConfig(String sourceSgPostgresConfig) {
+    this.sourceSgPostgresConfig = sourceSgPostgresConfig;
+  }
+
+  public String getSourceBackupPath() {
+    return sourceBackupPath;
+  }
+
+  public void setSourceBackupPath(String sourceBackupPath) {
+    this.sourceBackupPath = sourceBackupPath;
   }
 
   public String getTargetPostgresVersion() {
@@ -113,6 +146,14 @@ public class ClusterDbOpsMajorVersionUpgradeStatus {
 
   public void setCheck(Boolean check) {
     this.check = check;
+  }
+
+  public Boolean getRollback() {
+    return rollback;
+  }
+
+  public void setRollback(Boolean rollback) {
+    this.rollback = rollback;
   }
 
   @Override

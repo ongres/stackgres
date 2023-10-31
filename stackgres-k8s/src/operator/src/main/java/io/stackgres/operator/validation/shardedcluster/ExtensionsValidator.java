@@ -58,7 +58,8 @@ public class ExtensionsValidator
 
   @Override
   protected List<ExtensionTuple> getDefaultExtensions(
-      StackGresShardedCluster resource) {
+      StackGresShardedCluster resource,
+      StackGresCluster cluster) {
     String pgVersion = resource.getSpec().getPostgres().getVersion();
     StackGresVersion operatorVersion = StackGresVersion.getStackGresVersion(resource);
     return StackGresUtil.getDefaultShardedClusterExtensions(pgVersion, operatorVersion);
@@ -66,7 +67,8 @@ public class ExtensionsValidator
 
   @Override
   protected List<StackGresClusterExtension> getExtensions(
-      StackGresShardedCluster resource) {
+      StackGresShardedCluster resource,
+      StackGresCluster cluster) {
     return Optional.ofNullable(resource.getSpec())
         .map(StackGresShardedClusterSpec::getPostgres)
         .map(StackGresClusterPostgres::getExtensions)
@@ -81,16 +83,31 @@ public class ExtensionsValidator
   }
 
   @Override
-  protected StackGresCluster getCluster(StackGresShardedCluster resource) {
-    return new StackGresClusterBuilder(getCoordinatorCluster(resource))
+  protected StackGresCluster getCluster(StackGresShardedClusterReview review) {
+    return new StackGresClusterBuilder(getCoordinatorCluster(review.getRequest().getObject()))
         .withStatus(clusterScanner.getResourcesWithLabels(
-            resource.getMetadata().getNamespace(),
-            labelFactory.coordinatorLabels(resource))
+            review.getRequest().getObject().getMetadata().getNamespace(),
+            labelFactory.coordinatorLabels(review.getRequest().getObject()))
             .stream()
             .map(StackGresCluster::getStatus)
             .findAny()
             .orElse(null))
         .build();
+  }
+
+  @Override
+  protected StackGresCluster getOldCluster(StackGresShardedClusterReview review) {
+    return Optional.ofNullable(review.getRequest().getOldObject())
+        .map(cluster -> new StackGresClusterBuilder(getCoordinatorCluster(cluster))
+            .withStatus(clusterScanner.getResourcesWithLabels(
+                review.getRequest().getObject().getMetadata().getNamespace(),
+                labelFactory.coordinatorLabels(review.getRequest().getObject()))
+                .stream()
+                .map(StackGresCluster::getStatus)
+                .findAny()
+                .orElse(null))
+            .build())
+        .orElse(null);
   }
 
   @Override

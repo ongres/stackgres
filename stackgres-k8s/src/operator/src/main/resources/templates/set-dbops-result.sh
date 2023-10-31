@@ -64,11 +64,9 @@ EOF
 }
 
 set_failed() {
-  if [ -z "$FAILURE" ]
-  then
-    create_event "DbOpFailed" "Warning" "Database operation $OP_NAME failed"
-    kubectl patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=merge \
-      -p "$(cat << EOF
+  create_event "DbOpFailed" "Warning" "Database operation $OP_NAME failed"
+  kubectl patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=merge \
+    -p "$(cat << EOF
 {
   "status": {
     "conditions":[
@@ -76,29 +74,34 @@ set_failed() {
       $(eval_in_place "$CONDITION_DBOPS_FALSE_COMPLETED"),
       $(eval_in_place "$CONDITION_DBOPS_FAILED")
     ]
-  }
-}
-EOF
-      )"
-  else
-    create_event "DbOpFailed" "Warning" "Database operation $OP_NAME failed: $FAILURE"
-    kubectl patch "$DBOPS_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --type=merge \
-      -p "$(cat << EOF
-{
-  "status": {
-    "conditions":[
-      $(eval_in_place "$CONDITION_DBOPS_FALSE_RUNNING"),
-      $(eval_in_place "$CONDITION_DBOPS_FALSE_COMPLETED"),
-      $(eval_in_place "$CONDITION_DBOPS_FAILED")
-    ],
+$(
+    if [ -n "$FAILURE" ] || [ -n "$PHASE" ]
+    then
+      cat << OP_EOF
+    ,
     "$OP_NAME": {
-      "failure": $FAILURE
+$(
+    if [ -n "$PHASE" ]
+    then
+      cat << PHASE_EOF
+      "phase": $(printf %s "$PHASE" | to_json_string)$([ -z "$FAILURE" ] || printf ,)
+PHASE_EOF
+    fi
+    if [ -n "$FAILURE" ]
+    then
+      cat << FAILURE_EOF
+      "failure": $(printf %s "$FAILURE" | to_json_string)
+FAILURE_EOF
+    fi
+)
     }
+OP_EOF
+    fi
+)
   }
 }
 EOF
       )"
-  fi
 }
 
 set_result() {
@@ -112,10 +115,11 @@ set_result() {
   kill "$READ_EVENTS_SERVICE_PID" || true
   wait "$READ_EVENTS_SERVICE_PID" 2>/dev/null || true
 
-  EXIT_CODE="$(grep '^EXIT_CODE=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | cut -d = -f 2)"
-  TIMED_OUT="$(grep '^TIMED_OUT=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | cut -d = -f 2)"
-  LOCK_LOST="$(grep '^LOCK_LOST=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | cut -d = -f 2)"
-  FAILURE="$(grep '^FAILURE=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | cut -d = -f 2 | sed 's/^\(.*\)$/"\1"/')"
+  EXIT_CODE="$(grep '^EXIT_CODE=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | tail -n 1 | cut -d = -f 2)"
+  TIMED_OUT="$(grep '^TIMED_OUT=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | tail -n 1 | cut -d = -f 2)"
+  LOCK_LOST="$(grep '^LOCK_LOST=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | tail -n 1 | cut -d = -f 2)"
+  FAILURE="$(grep '^FAILURE=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | tail -n 1 | cut -d = -f 2)"
+  PHASE="$(grep '^PHASE=' "$SHARED_PATH/$KEBAB_OP_NAME.out" | tail -n 1 | cut -d = -f 2)"
   LAST_TRANSITION_TIME="$(date_iso8601)"
 
   if [ "$EXIT_CODE" = 0 ]

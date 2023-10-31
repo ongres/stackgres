@@ -843,3 +843,8 @@ form .sectionTitle {
     background-color: var(--activeBg);
     color: #e3e3e3;
 }
+
+/* Summary */
+.summary ul ul:not(:last-child)::before {
+    z-index: 1;
+}

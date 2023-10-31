@@ -8,12 +8,6 @@ package io.stackgres.apiweb.dto.shardeddbops;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsMajorVersionUpgrade;
-import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsMinorVersionUpgrade;
-import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsResharding;
-import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsRestart;
-import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsSecurityUpgrade;
-import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsSpecScheduling;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -21,7 +15,7 @@ public class ShardedDbOpsSpec {
 
   private String sgShardedCluster;
 
-  private StackGresShardedDbOpsSpecScheduling scheduling;
+  private ShardedDbOpsSpecScheduling scheduling;
 
   private String op;
 
@@ -31,15 +25,15 @@ public class ShardedDbOpsSpec {
 
   private Integer maxRetries;
 
-  private StackGresShardedDbOpsResharding resharding;
+  private ShardedDbOpsResharding resharding;
 
-  private StackGresShardedDbOpsMajorVersionUpgrade majorVersionUpgrade;
+  private ShardedDbOpsMajorVersionUpgrade majorVersionUpgrade;
 
-  private StackGresShardedDbOpsRestart restart;
+  private ShardedDbOpsRestart restart;
 
-  private StackGresShardedDbOpsMinorVersionUpgrade minorVersionUpgrade;
+  private ShardedDbOpsMinorVersionUpgrade minorVersionUpgrade;
 
-  private StackGresShardedDbOpsSecurityUpgrade securityUpgrade;
+  private ShardedDbOpsSecurityUpgrade securityUpgrade;
 
   public String getSgShardedCluster() {
     return sgShardedCluster;
@@ -49,11 +43,11 @@ public class ShardedDbOpsSpec {
     this.sgShardedCluster = sgShardedCluster;
   }
 
-  public StackGresShardedDbOpsSpecScheduling getScheduling() {
+  public ShardedDbOpsSpecScheduling getScheduling() {
     return scheduling;
   }
 
-  public void setScheduling(StackGresShardedDbOpsSpecScheduling scheduling) {
+  public void setScheduling(ShardedDbOpsSpecScheduling scheduling) {
     this.scheduling = scheduling;
   }
 
@@ -89,43 +83,43 @@ public class ShardedDbOpsSpec {
     this.maxRetries = maxRetries;
   }
 
-  public StackGresShardedDbOpsResharding getResharding() {
+  public ShardedDbOpsResharding getResharding() {
     return resharding;
   }
 
-  public void setResharding(StackGresShardedDbOpsResharding resharding) {
+  public void setResharding(ShardedDbOpsResharding resharding) {
     this.resharding = resharding;
   }
 
-  public StackGresShardedDbOpsMajorVersionUpgrade getMajorVersionUpgrade() {
+  public ShardedDbOpsMajorVersionUpgrade getMajorVersionUpgrade() {
     return majorVersionUpgrade;
   }
 
-  public void setMajorVersionUpgrade(StackGresShardedDbOpsMajorVersionUpgrade majorVersionUpgrade) {
+  public void setMajorVersionUpgrade(ShardedDbOpsMajorVersionUpgrade majorVersionUpgrade) {
     this.majorVersionUpgrade = majorVersionUpgrade;
   }
 
-  public StackGresShardedDbOpsRestart getRestart() {
+  public ShardedDbOpsRestart getRestart() {
     return restart;
   }
 
-  public void setRestart(StackGresShardedDbOpsRestart restart) {
+  public void setRestart(ShardedDbOpsRestart restart) {
     this.restart = restart;
   }
 
-  public StackGresShardedDbOpsMinorVersionUpgrade getMinorVersionUpgrade() {
+  public ShardedDbOpsMinorVersionUpgrade getMinorVersionUpgrade() {
     return minorVersionUpgrade;
   }
 
-  public void setMinorVersionUpgrade(StackGresShardedDbOpsMinorVersionUpgrade minorVersionUpgrade) {
+  public void setMinorVersionUpgrade(ShardedDbOpsMinorVersionUpgrade minorVersionUpgrade) {
     this.minorVersionUpgrade = minorVersionUpgrade;
   }
 
-  public StackGresShardedDbOpsSecurityUpgrade getSecurityUpgrade() {
+  public ShardedDbOpsSecurityUpgrade getSecurityUpgrade() {
     return securityUpgrade;
   }
 
-  public void setSecurityUpgrade(StackGresShardedDbOpsSecurityUpgrade securityUpgrade) {
+  public void setSecurityUpgrade(ShardedDbOpsSecurityUpgrade securityUpgrade) {
     this.securityUpgrade = securityUpgrade;
   }
 

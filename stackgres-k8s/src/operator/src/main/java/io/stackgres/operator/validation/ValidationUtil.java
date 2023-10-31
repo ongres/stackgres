@@ -33,7 +33,8 @@ public interface ValidationUtil {
   String SHARDED_BACKUP_VALIDATION_PATH = VALIDATION_PATH + "/sgshardedbackup";
   String SHARDED_DBOPS_VALIDATION_PATH = VALIDATION_PATH + "/sgshardeddbops";
 
-  Map<StackGresComponent, Map<StackGresVersion, List<String>>> SUPPORTED_POSTGRES_VERSIONS =
+  Map<StackGresComponent, Map<StackGresVersion, List<String>>>
+      SUPPORTED_POSTGRES_VERSIONS =
       Stream.of(StackGresComponent.POSTGRESQL, StackGresComponent.BABELFISH)
           .collect(ImmutableMap.toImmutableMap(Function.identity(),
               component -> component.getComponentVersions()
@@ -51,8 +52,9 @@ public interface ValidationUtil {
                   .stream()
                   .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey,
                       entry -> entry.getValue().streamOrderedTagVersions()
-                      .limitWhileClosed(imageVersion -> imageVersion.getBuild().equals("6.27"))
+                      .limitWhileClosed(imageVersion -> imageVersion.compareToBuild("6.23") > 0)
                       .map(ImageVersion::getVersion)
+                      .filter(v -> v.startsWith("14") || v.startsWith("15") || v.startsWith("16"))
                       .grouped(Function.identity())
                       .map(t -> t.v1)
                       .toList()))));

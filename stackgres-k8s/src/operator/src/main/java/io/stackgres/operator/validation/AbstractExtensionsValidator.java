@@ -40,8 +40,10 @@ public abstract class AbstractExtensionsValidator<
   public void validate(T review) throws ValidationFailed {
     switch (review.getRequest().getOperation()) {
       case CREATE, UPDATE:
-        if (extensionsChanged(review)) {
-          validateExtensions(review);
+        final StackGresCluster cluster = getCluster(review);
+        final StackGresCluster oldCluster = getOldCluster(review);
+        if (extensionsChanged(review, cluster, oldCluster)) {
+          validateExtensions(review, cluster);
         }
         break;
       default:
@@ -49,8 +51,11 @@ public abstract class AbstractExtensionsValidator<
     }
   }
 
-  protected boolean extensionsChanged(T review) {
-    if (majorVersionOrBuildVersionChanged(review)) {
+  protected boolean extensionsChanged(
+      T review,
+      StackGresCluster cluster,
+      StackGresCluster oldCluster) {
+    if (majorVersionOrBuildVersionChanged(review, cluster, oldCluster)) {
       return true;
     }
     final R resource = review.getRequest().getObject();
@@ -58,13 +63,17 @@ public abstract class AbstractExtensionsValidator<
     if (oldResource == null) {
       return true;
     }
-    final List<StackGresClusterExtension> extensions = getExtensions(resource);
-    final List<StackGresClusterExtension> oldExtensions = getExtensions(oldResource);
+    final List<StackGresClusterExtension> extensions =
+        getExtensions(resource, cluster);
+    final List<StackGresClusterExtension> oldExtensions =
+        getExtensions(oldResource, oldCluster);
     if (!Objects.equals(extensions, oldExtensions)) {
       return true;
     }
-    final List<ExtensionTuple> missingDefaultExtensions = getDefaultExtensions(resource);
-    final List<ExtensionTuple> oldMissingDefaultExtensions = getDefaultExtensions(oldResource);
+    final List<ExtensionTuple> missingDefaultExtensions =
+        getDefaultExtensions(resource, cluster);
+    final List<ExtensionTuple> oldMissingDefaultExtensions =
+        getDefaultExtensions(oldResource, oldCluster);
     if (!Objects.equals(missingDefaultExtensions, oldMissingDefaultExtensions)) {
       return true;
     }
@@ -78,14 +87,13 @@ public abstract class AbstractExtensionsValidator<
     return false;
   }
 
-  private boolean majorVersionOrBuildVersionChanged(T review) {
-    final R resource = review.getRequest().getObject();
-    final R oldResource = review.getRequest().getOldObject();
-    if (oldResource == null) {
+  private boolean majorVersionOrBuildVersionChanged(
+      T review,
+      StackGresCluster cluster,
+      StackGresCluster oldCluster) {
+    if (review.getRequest().getOldObject() == null) {
       return true;
     }
-    final StackGresCluster cluster = getCluster(resource);
-    final StackGresCluster oldCluster = getCluster(oldResource);
     String postgresVersion = Optional.of(cluster.getSpec())
         .map(StackGresClusterSpec::getPostgres)
         .map(StackGresClusterPostgres::getVersion)
@@ -115,12 +123,15 @@ public abstract class AbstractExtensionsValidator<
     return false;
   }
 
-  protected void validateExtensions(T review) throws ValidationFailed {
+  protected void validateExtensions(
+      T review,
+      StackGresCluster cluster) throws ValidationFailed {
     final R resource = review.getRequest().getObject();
 
-    List<ExtensionTuple> defaultExtensions = getDefaultExtensions(resource);
+    List<ExtensionTuple> defaultExtensions = getDefaultExtensions(resource, cluster);
 
-    List<ExtensionTuple> requiredExtensions = getRequiredExtensions(resource, defaultExtensions);
+    List<ExtensionTuple> requiredExtensions = getRequiredExtensions(
+        resource, cluster, defaultExtensions);
 
     List<ExtensionTuple> toInstallExtensions = getToInstallExtensions(resource)
         .stream()
@@ -133,7 +144,7 @@ public abstract class AbstractExtensionsValidator<
 
     if (!missingExtensions.isEmpty()) {
       Map<String, List<String>> candidateExtensionVersions = getCandidateExtensionVersions(
-          resource, missingExtensions);
+          resource, cluster, missingExtensions);
 
       String errorTypeUri = ErrorType.getErrorTypeUri(ErrorType.EXTENSION_NOT_FOUND);
       String missingExtensionsMessage = getMissingExtensionsMessage(missingExtensions,
@@ -167,9 +178,10 @@ public abstract class AbstractExtensionsValidator<
   }
 
   private Map<String, List<String>> getCandidateExtensionVersions(
-      R resource, List<ExtensionTuple> missingExtensions) {
-    final List<StackGresClusterExtension> requiredExtensions = getExtensions(resource);
-    final StackGresCluster cluster = getCluster(resource);
+      R resource,
+      StackGresCluster cluster,
+      List<ExtensionTuple> missingExtensions) {
+    final List<StackGresClusterExtension> requiredExtensions = getExtensions(resource, cluster);
     return missingExtensions
         .stream()
         .map(missingExtension -> {
@@ -213,8 +225,10 @@ public abstract class AbstractExtensionsValidator<
   }
 
   private List<ExtensionTuple> getRequiredExtensions(
-      R resource, List<ExtensionTuple> defaultExtensions) {
-    return Seq.seq(getExtensions(resource))
+      R resource,
+      StackGresCluster cluster,
+      List<ExtensionTuple> defaultExtensions) {
+    return Seq.seq(getExtensions(resource, cluster))
         .map(extension -> new ExtensionTuple(extension.getName(), extension.getVersion()))
         .filter(extension -> defaultExtensions.stream()
             .map(ExtensionTuple::extensionName).noneMatch(extension.extensionName()::equals))
@@ -222,11 +236,17 @@ public abstract class AbstractExtensionsValidator<
         .toList();
   }
 
-  protected abstract StackGresCluster getCluster(R resource);
+  protected abstract StackGresCluster getCluster(T resource) throws ValidationFailed;
 
-  protected abstract List<StackGresClusterExtension> getExtensions(R resource);
+  protected abstract StackGresCluster getOldCluster(T resource) throws ValidationFailed;
 
-  protected abstract List<ExtensionTuple> getDefaultExtensions(R resource);
+  protected abstract List<StackGresClusterExtension> getExtensions(
+      R resource,
+      StackGresCluster cluster);
+
+  protected abstract List<ExtensionTuple> getDefaultExtensions(
+      R resource,
+      StackGresCluster cluster);
 
   protected abstract Optional<List<StackGresClusterInstalledExtension>> getToInstallExtensions(
       R resource);

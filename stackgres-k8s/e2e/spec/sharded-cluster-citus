@@ -67,7 +67,7 @@ e2e_test() {
 
   run_test "Checking that restoring a sharded backup is working" check_restore_sharded_backup_is_working
 
-  run_test "Checking that restart sharded dbops is working" check_sharded_dbops_resharding_is_working
+  run_test "Checking that resharding sharded dbops is working" check_sharded_dbops_resharding_is_working
 
   run_test "Checking that restart sharded dbops is working" check_sharded_dbops_restart_is_working
 }

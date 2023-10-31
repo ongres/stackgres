@@ -5,6 +5,7 @@
 
 package io.stackgres.common.crd.sgconfig;
 
+import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -21,18 +22,18 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresConfigStatusGrafana {
 
-  private String url;
+  private List<String> urls;
 
   private String token;
 
   private String configHash;
 
-  public String getUrl() {
-    return url;
+  public List<String> getUrls() {
+    return urls;
   }
 
-  public void setUrl(String url) {
-    this.url = url;
+  public void setUrls(List<String> urls) {
+    this.urls = urls;
   }
 
   public String getToken() {
@@ -53,7 +54,7 @@ public class StackGresConfigStatusGrafana {
 
   @Override
   public int hashCode() {
-    return Objects.hash(configHash, token, url);
+    return Objects.hash(configHash, token, urls);
   }
 
   @Override
@@ -66,7 +67,7 @@ public class StackGresConfigStatusGrafana {
     }
     StackGresConfigStatusGrafana other = (StackGresConfigStatusGrafana) obj;
     return Objects.equals(configHash, other.configHash) && Objects.equals(token, other.token)
-        && Objects.equals(url, other.url);
+        && Objects.equals(urls, other.urls);
   }
 
   public String toString() {

@@ -245,7 +245,7 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
                     StackGresUtil.getLockServiceAccount(cluster),
                     getServiceAccountFromUsername(username))
                 )) {
-          if (givenMajorVersionIndex < oldMajorVersionIndex) {
+          if (givenMajorVersionIndex != oldMajorVersionIndex) {
             fail(errorForbiddenUpdateUri,
                 "to upgrade a major Postgres version, please create an SGDbOps operation"
                     + " with \"op: majorVersionUpgrade\" and the target postgres version.");

@@ -26,12 +26,6 @@ mock kubectl kubectl_mock_overwrite
 kubectl_mock_overwrite() {
   mokked
   case "$*" in
-    ("get pod -n $CLUSTER_NAMESPACE $CLUSTER_NAME-1 --template={{ range .spec.containers }}{{ if eq .name \"$PATRONI_CONTAINER_NAME\" }}{{ .image }}{{ end }}{{ end }}")
-    echo 'ongres/patroni:v1.6.5-pg11.8-build-5.1'
-    ;;
-    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-1 -c $PATRONI_CONTAINER_NAME -- patronictl switchover "*)
-    echo "pod/test-0" > "$TEST_TARGET_PATH/primary_pod"
-    ;;
     *)
     not_mokked
     ;;

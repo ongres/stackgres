@@ -25,6 +25,8 @@ public interface StackGresConfigContext extends GenerationContext<StackGresConfi
 
   Optional<Secret> getWebConsoleAdminSecret();
 
+  boolean isGrafanaEmbedded();
+
   boolean isGrafanaIntegrated();
 
   boolean isGrafanaIntegrationJobFailed();

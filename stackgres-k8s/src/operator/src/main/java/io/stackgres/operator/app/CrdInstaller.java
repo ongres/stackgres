@@ -15,6 +15,7 @@ import javax.inject.Inject;
 
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionVersion;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.JSONSchemaProps;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.stackgres.common.CrdLoader;
@@ -87,7 +88,26 @@ public class CrdInstaller {
   public void installCustomResourceDefinitions() {
     LOGGER.info("Installing CRDs");
     crdLoader.scanCrds()
+        .stream()
+        .map(this::fixCrd)
         .forEach(this::installCrd);
+  }
+
+  private CustomResourceDefinition fixCrd(CustomResourceDefinition crd) {
+    crd.getSpec().getVersions()
+        .forEach(crdVersion -> fixOpenApiProps(crdVersion.getSchema().getOpenAPIV3Schema()));
+    return crd;
+  }
+
+  private void fixOpenApiProps(JSONSchemaProps props) {
+    if (props == null) {
+      return;
+    }
+    props.setDependencies(null);
+    props.getDefinitions().values().forEach(this::fixOpenApiProps);
+    if (props.getItems() != null) {
+      fixOpenApiProps(props.getItems().getSchema());
+    }
   }
 
   protected void installCrd(@NotNull CustomResourceDefinition currentCrd) {

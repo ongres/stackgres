@@ -293,11 +293,11 @@ public interface StackGresUtil {
   }
 
   static List<ExtensionTuple> getDefaultClusterExtensions(
-      StackGresVersion stackGresVersion, String pgVersion, String flavor) {
+      StackGresVersion sgVersion, String pgVersion, String flavor) {
     if (Component.compareBuildVersions("6.6",
-        StackGresComponent.PATRONI.getOrThrow(stackGresVersion)
+        StackGresComponent.PATRONI.getOrThrow(sgVersion)
             .getBuildVersion(StackGresComponent.LATEST, Map.of(
-                getPostgresFlavorComponent(flavor).getOrThrow(stackGresVersion),
+                getPostgresFlavorComponent(flavor).getOrThrow(sgVersion),
                 pgVersion))) <= 0) {
       return List.of();
     }
@@ -309,14 +309,14 @@ public interface StackGresUtil {
   }
 
   static List<ExtensionTuple> getDefaultClusterExtensions(
-      String pgVersion, StackGresComponent flavor, StackGresVersion stackGresVersion) {
+      String pgVersion, StackGresComponent flavor, StackGresVersion sgVersion) {
     if (flavor == StackGresComponent.BABELFISH) {
       return List.of();
     }
     if (Component.compareBuildVersions("6.6",
-        StackGresComponent.PATRONI.getOrThrow(stackGresVersion)
+        StackGresComponent.PATRONI.getOrThrow(sgVersion)
             .getBuildVersion(StackGresComponent.LATEST, Map.of(
-                flavor.getOrThrow(stackGresVersion),
+                flavor.getOrThrow(sgVersion),
                 pgVersion))) <= 0) {
       return List.of();
     }
@@ -336,9 +336,28 @@ public interface StackGresUtil {
   }
 
   static List<ExtensionTuple> getDefaultShardedClusterExtensions(
-      String pgVersion, StackGresVersion stackGresVersion) {
+      String pgVersion, StackGresVersion sgVersion) {
+    Component pgComponent = StackGresComponent.POSTGRESQL.getOrThrow(sgVersion);
+    String pgMajorVersion = pgComponent
+        .getMajorVersion(pgVersion);
+    long pgMajorVersionIndex = pgComponent
+        .streamOrderedMajorVersions()
+        .zipWithIndex()
+        .filter(t -> t.v1.equals(pgMajorVersion))
+        .map(Tuple2::v2)
+        .findAny()
+        .get();
+    long pg14Index = pgComponent
+        .streamOrderedMajorVersions()
+        .zipWithIndex()
+        .filter(t -> t.v1.equals("14"))
+        .map(Tuple2::v2)
+        .findAny()
+        .get();
     return List.of(
-        new ExtensionTuple("citus", "12.0-1"),
+        pgMajorVersionIndex <= pg14Index
+        ? new ExtensionTuple("citus", "12.1-1")
+            : new ExtensionTuple("citus", "11.3-1"),
         new ExtensionTuple("citus_columnar", "11.3-1"));
   }
 
@@ -350,9 +369,9 @@ public interface StackGresUtil {
   }
 
   static List<ExtensionTuple> getDefaultDistributedLogsExtensions(
-      String pgVersion, StackGresVersion stackGresVersion) {
+      String pgVersion, StackGresVersion sgVersion) {
     return Seq.seq(getDefaultClusterExtensions(
-        stackGresVersion,
+        sgVersion,
         pgVersion,
         StackGresPostgresFlavor.VANILLA.toString())).append(
             new ExtensionTuple("timescaledb", "1.7.4"))

@@ -56,6 +56,7 @@ import io.stackgres.operator.conciliation.config.StackGresConfigContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple;
 
 @Singleton
 @OperatorVersionBinder
@@ -228,8 +229,8 @@ public class WebConsoleDeployment
                 .build(),
                 new EnvVarBuilder()
                 .withName("GRAFANA_EMBEDDED")
-                .withValue(Optional.of(context.isGrafanaIntegrated())
-                    .filter(isGrafanaIntegrated -> isGrafanaIntegrated)
+                .withValue(Optional.of(context.isGrafanaEmbedded())
+                    .filter(isGrafanaEmbedded -> isGrafanaEmbedded)
                     .map(Object::toString)
                     .orElse(""))
                 .build(),
@@ -447,24 +448,36 @@ public class WebConsoleDeployment
                     .orElse(""))
                 .build(),
                 new EnvVarBuilder()
+                .withName("GRAFANA_DASHBOARD_LIST")
+                .withValue(WebConsoleGrafanaIntegartionConfigMap.getDashboards()
+                    .stream()
+                    .collect(Collectors.joining("\n")))
+                .build(),
+                new EnvVarBuilder()
                 .withName("GRAFANA_EMBEDDED")
-                .withValue(Optional.of(context.isGrafanaIntegrated())
-                    .filter(isGrafanaIntegrated -> isGrafanaIntegrated)
+                .withValue(Optional.of(context.isGrafanaEmbedded())
+                    .filter(isGrafanaEmbedded -> isGrafanaEmbedded)
                     .map(Object::toString)
                     .orElse(""))
                 .build(),
                 new EnvVarBuilder()
-                .withName("GRAFANA_URL_PATH")
+                .withName("GRAFANA_DASHBOARD_URLS")
                 .withValue(
                     Optional.ofNullable(context.getSource().getStatus())
                     .map(StackGresConfigStatus::getGrafana)
-                    .map(StackGresConfigStatusGrafana::getUrl)
-                    .map(url -> Optional.of(url)
-                      .map(URL_PATTERN::matcher)
-                      .filter(Matcher::find)
-                      .map(matcher -> matcher.group(1))
-                      .orElse(url))
-                    .orElse("/"))
+                    .map(StackGresConfigStatusGrafana::getUrls)
+                    .map(urls -> urls.stream()
+                        .filter(url -> url.indexOf(":") >= 0)
+                        .map(url -> Tuple.tuple(
+                            url.substring(0, url.indexOf(":")),
+                            url.substring(url.indexOf(":") + 1)))
+                        .map(url -> url.v1 + ":" + Optional.of(url.v2)
+                            .map(URL_PATTERN::matcher)
+                            .filter(Matcher::find)
+                            .map(matcher -> matcher.group(1))
+                            .orElse(url.v2))
+                        .collect(Collectors.joining(" ")))
+                    .orElse(""))
                 .build(),
                 new EnvVarBuilder()
                 .withName("GRAFANA_SCHEMA")

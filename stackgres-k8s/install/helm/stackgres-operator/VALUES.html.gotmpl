@@ -1,0 +1,31 @@
+<table>
+    <thead>
+        <tr>
+            <th><div style="width:12rem">Key</div></th>
+            <th><div style="width:5rem">Type</div></th>
+            <th><div style="width:5rem">Default</div></th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody><tr style="display:none;">
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>
+
+Workaround for hugo bug not rendering first table row
+<br/>
+        </td>
+      </tr>
+	{{- range .Values }}
+      <tr>
+			<td id="{{ .Key | replace "." "--" }}">{{ .Key }}</td>
+			<td>{{ .Type }}</td>
+			<td>{{ default .Default .AutoDefault }}</td>
+			<td>{{ if .Description }}{{ .Description }}{{ else }}{{ .AutoDescription }}{{ end }}</td>
+      </tr>
+	{{- end }}
+	</tbody>
+</table>

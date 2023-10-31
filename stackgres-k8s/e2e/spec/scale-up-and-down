@@ -117,7 +117,7 @@ check_scaleup() {
 
 check_switchover() {
   if kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 -c patroni -- \
-    patronictl switchover --master "$CLUSTER_NAME"-0 --candidate "$CLUSTER_NAME"-1 --force
+    patronictl switchover --primary "$CLUSTER_NAME"-0 --candidate "$CLUSTER_NAME"-1 --force
   then
     echo "SUCCESS. The switchover has been performed"
   else

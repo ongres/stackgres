@@ -1,15 +1,15 @@
 pg_replication:
   master: true
   query: |
-    select
-    case
-      when pg_last_wal_receive_lsn() = pg_last_wal_replay_lsn() then 0
-      else extract (EPOCH FROM now() - pg_last_xact_replay_timestamp())::integer
-    end as lag,
-    case
-      when pg_is_in_recovery() then 1
-      else 0
-    end as is_replica;
+    SELECT
+    CASE
+      WHEN pg_last_wal_receive_lsn() = pg_last_wal_replay_lsn() THEN 0
+      ELSE extract (EPOCH FROM now() - pg_last_xact_replay_timestamp())::integer
+    END AS lag,
+    CASE
+      WHEN pg_is_in_recovery() THEN 1
+      ELSE 0
+    END AS is_replica;
   metrics:
     - lag:
         usage: "GAUGE"
@@ -34,11 +34,13 @@ pg_stat_user_tables:
       SELECT datname FROM pg_database
       WHERE datname NOT IN ('template0', 'template1')
     )
-    SELECT datname, ss.* FROM databases,
+    SELECT datname, _.* FROM databases,
       LATERAL (SELECT * FROM dblink(
         'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
-        'SELECT schemaname, relname, seq_scan, seq_tup_read, idx_scan, idx_tup_fetch, n_tup_ins, n_tup_upd, n_tup_del, n_tup_hot_upd, n_live_tup, n_dead_tup, n_mod_since_analyze, COALESCE(last_vacuum, ''1970-01-01Z'') as last_vacuum, COALESCE(last_autovacuum, ''1970-01-01Z'') as last_autovacuum, COALESCE(last_analyze, ''1970-01-01Z'') as last_analyze, COALESCE(last_autoanalyze, ''1970-01-01Z'') as last_autoanalyze, vacuum_count, autovacuum_count, analyze_count, autoanalyze_count FROM pg_catalog.pg_stat_user_tables')
-        AS (schemaname name, relname name, seq_scan bigint, seq_tup_read bigint, idx_scan bigint, idx_tup_fetch bigint, n_tup_ins bigint, n_tup_upd bigint, n_tup_del bigint, n_tup_hot_upd bigint, n_live_tup bigint, n_dead_tup bigint, n_mod_since_analyze bigint, last_vacuum timestamp with time zone, last_autovacuum timestamp with time zone, last_analyze timestamp with time zone, last_autoanalyze timestamp with time zone, vacuum_count bigint, autovacuum_count bigint, analyze_count bigint, autoanalyze_count bigint)) AS ss;
+        'SELECT schemaname, relname, seq_scan, seq_tup_read, idx_scan, idx_tup_fetch, n_tup_ins, n_tup_upd, n_tup_del, n_tup_hot_upd, n_live_tup, n_dead_tup, n_mod_since_analyze, '
+          || CASE WHEN (SELECT setting FROM pg_settings WHERE name = 'server_version_num')::bigint >= 130000 THEN 'n_ins_since_vacuum' ELSE 'NULL::bigint AS n_ins_since_vacuum' END || ', '
+          || 'COALESCE(last_vacuum, ''1970-01-01Z'') as last_vacuum, COALESCE(last_autovacuum, ''1970-01-01Z'') as last_autovacuum, COALESCE(last_analyze, ''1970-01-01Z'') as last_analyze, COALESCE(last_autoanalyze, ''1970-01-01Z'') as last_autoanalyze, vacuum_count, autovacuum_count, analyze_count, autoanalyze_count FROM pg_catalog.pg_stat_user_tables')
+        AS (schemaname name, relname name, seq_scan bigint, seq_tup_read bigint, idx_scan bigint, idx_tup_fetch bigint, n_tup_ins bigint, n_tup_upd bigint, n_tup_del bigint, n_tup_hot_upd bigint, n_live_tup bigint, n_dead_tup bigint, n_mod_since_analyze bigint, n_ins_since_vacuum bigint, last_vacuum timestamp with time zone, last_autovacuum timestamp with time zone, last_analyze timestamp with time zone, last_autoanalyze timestamp with time zone, vacuum_count bigint, autovacuum_count bigint, analyze_count bigint, autoanalyze_count bigint)) AS _;
   metrics:
     - datname:
         usage: "LABEL"
@@ -115,11 +117,11 @@ pg_statio_user_tables:
       SELECT datname FROM pg_database
       WHERE datname NOT IN ('template0', 'template1')
     )
-    SELECT datname, ss.* FROM databases,
+    SELECT datname, _.* FROM databases,
       LATERAL (SELECT * FROM dblink(
         'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
         'SELECT schemaname, relname, heap_blks_read, heap_blks_hit, idx_blks_read, idx_blks_hit, toast_blks_read, toast_blks_hit, tidx_blks_read, tidx_blks_hit FROM pg_catalog.pg_statio_user_tables')
-        AS (schemaname name, relname name, heap_blks_read bigint, heap_blks_hit bigint, idx_blks_read bigint, idx_blks_hit bigint, toast_blks_read bigint, toast_blks_hit bigint, tidx_blks_read bigint, tidx_blks_hit bigint)) AS ss;
+        AS (schemaname name, relname name, heap_blks_read bigint, heap_blks_hit bigint, idx_blks_read bigint, idx_blks_hit bigint, toast_blks_read bigint, toast_blks_hit bigint, tidx_blks_read bigint, tidx_blks_hit bigint)) AS _;
   metrics:
     - datname:
         usage: "LABEL"
@@ -155,18 +157,6 @@ pg_statio_user_tables:
         usage: "COUNTER"
         description: "Number of buffer hits in this table's TOAST table indexes (if any)"
 
-pg_database:
-  master: true
-  query: "SELECT pg_database.datname, pg_database_size(pg_database.datname) as size FROM pg_catalog.pg_database"
-  cache_seconds: 30
-  metrics:
-    - datname:
-        usage: "LABEL"
-        description: "Name of the database"
-    - size_bytes:
-        usage: "GAUGE"
-        description: "Disk space used by the database"
-
 pg_stat_user_indexes:
   master: true
   query: |
@@ -175,11 +165,13 @@ pg_stat_user_indexes:
       SELECT datname FROM pg_database
       WHERE datname NOT IN ('template0', 'template1')
     )
-    SELECT datname, ss.* FROM databases,
+    SELECT datname, _.* FROM databases,
       LATERAL (SELECT * FROM dblink(
         'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
-        'SELECT schemaname, relname, indexrelname, idx_scan, idx_tup_read, idx_tup_fetch FROM pg_catalog.pg_stat_user_indexes')
-        AS (schemaname name, relname name, indexrelname name, idx_scan bigint, idx_tup_read bigint, idx_tup_fetch bigint)) AS ss;
+        'SELECT schemaname, relname, indexrelname, idx_scan, '
+          || CASE WHEN (SELECT setting FROM pg_settings WHERE name = 'server_version_num')::bigint >= 160000 THEN 'COALESCE(last_idx_scan, ''1970-01-01Z'')' ELSE '''1970-01-01Z''' END || ' AS last_idx_scan, '
+          || 'idx_tup_read, idx_tup_fetch FROM pg_catalog.pg_stat_user_indexes')
+        AS (schemaname name, relname name, indexrelname name, idx_scan bigint, last_idx_scan timestamp with time zone, idx_tup_read bigint, idx_tup_fetch bigint)) AS _;
   metrics:
     - datname:
         usage: "LABEL"
@@ -196,6 +188,9 @@ pg_stat_user_indexes:
     - idx_scan:
         usage: "COUNTER"
         description: "Number of index scans initiated on this index"
+    - last_idx_scan:
+        usage: "GAUGE"
+        description: "The time of the last scan on this index, based on the most recent transaction stop time"
     - idx_tup_read:
         usage: "COUNTER"
         description: "Number of index entries returned by scans on this index"
@@ -211,11 +206,11 @@ pg_statio_user_indexes:
       SELECT datname FROM pg_database
       WHERE datname NOT IN ('template0', 'template1')
     )
-    SELECT datname, ss.* FROM databases,
+    SELECT datname, _.* FROM databases,
       LATERAL (SELECT * FROM dblink(
         'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
         'SELECT schemaname, relname, indexrelname, idx_blks_read, idx_blks_hit FROM pg_catalog.pg_statio_user_indexes')
-        AS (schemaname name, relname name, indexrelname name, idx_blks_read bigint, idx_blks_hit bigint)) AS ss;
+        AS (schemaname name, relname name, indexrelname name, idx_blks_read bigint, idx_blks_hit bigint)) AS _;
   metrics:
     - datname:
         usage: "LABEL"
@@ -238,17 +233,18 @@ pg_statio_user_indexes:
 
 pg_total_relation_size:
   master: true
+  cache_seconds: 120
   query: |
     SET max_parallel_workers_per_gather = 0;
     WITH databases AS (
       SELECT datname FROM pg_database
       WHERE datname NOT IN ('template0', 'template1')
     )
-    SELECT datname, ss.* FROM databases,
+    SELECT datname, _.* FROM databases,
       LATERAL (SELECT * FROM dblink(
         'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
         'SELECT relnamespace::regnamespace as schemaname, relname as relname, pg_total_relation_size(oid) bytes FROM pg_catalog.pg_class WHERE relkind = ''r''')
-        AS (schemaname name, relname name, bytes bigint)) AS ss;
+        AS (schemaname name, relname name, bytes bigint)) AS _;
   metrics:
     - datname:
         usage: "LABEL"
@@ -307,9 +303,9 @@ pg_blocked:
       LATERAL (SELECT * FROM dblink(
         'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
         'SELECT nspname as schemaname, relkind, relname FROM pg_catalog.pg_class LEFT JOIN pg_catalog.pg_namespace ON (pg_namespace.oid = relnamespace) WHERE pg_class.oid = ' || blocked.relation)
-        AS (schemaname name, relkind char, relname name)) AS ss
+        AS (schemaname name, relkind char, relname name)) AS _
     WHERE NOT blocked.granted AND relation IS NOT NULL
-    GROUP BY locktype, datname, schemaname, reltype, relname
+    GROUP BY locktype, datname, schemaname, reltype, relname;
   metrics:
     - type:
         usage: "LABEL"
@@ -338,7 +334,7 @@ pg_oldest_blocked:
     FROM pg_catalog.pg_stat_activity
     WHERE wait_event_type = 'Lock'
     AND state='active'
-    GROUP BY datname
+    GROUP BY datname;
   metrics:
     - age_seconds:
         usage: "GAUGE"
@@ -369,7 +365,7 @@ pg_long_running_transactions:
     MAX(EXTRACT(EPOCH FROM (clock_timestamp() - xact_start))) AS age_in_seconds
     FROM pg_catalog.pg_stat_activity
     WHERE state is distinct from 'idle' AND (now() - xact_start) > '1 minutes'::interval AND query not like '%VACUUM%'
-    GROUP BY datname
+    GROUP BY datname;
   metrics:
     - datname:
         usage: "LABEL"
@@ -390,7 +386,7 @@ pg_vacuum:
       MAX(EXTRACT(EPOCH FROM (clock_timestamp() - query_start))) AS age_in_seconds
     FROM pg_catalog.pg_stat_activity
     WHERE state = 'active' AND trim(query) ~* '\AVACUUM (?!ANALYZE)'
-    GROUP BY datname
+    GROUP BY datname;
   metrics:
     - datname:
         usage: "LABEL"
@@ -411,7 +407,7 @@ pg_vacuum_analyze:
       MAX(EXTRACT(EPOCH FROM (clock_timestamp() - query_start))) AS age_in_seconds
     FROM pg_catalog.pg_stat_activity
     WHERE state = 'active' AND trim(query) ~* '\AVACUUM ANALYZE'
-    GROUP BY datname
+    GROUP BY datname;
   metrics:
     - datname:
         usage: "LABEL"
@@ -430,7 +426,7 @@ pg_stuck_idle_in_transaction:
       COUNT(*) AS queries
     FROM pg_catalog.pg_stat_activity
     WHERE state = 'idle in transaction' AND (now() - query_start) > '10 minutes'::interval
-    GROUP BY datname
+    GROUP BY datname;
   metrics:
     - datname:
         usage: "LABEL"
@@ -445,7 +441,7 @@ pg_txid:
     SELECT
       CASE WHEN pg_is_in_recovery() THEN 'NaN'::float ELSE txid_current() % (2^52)::bigint END AS current,
       CASE WHEN pg_is_in_recovery() THEN 'NaN'::float ELSE txid_snapshot_xmin(txid_current_snapshot()) % (2^52)::bigint END AS xmin,
-      CASE WHEN pg_is_in_recovery() THEN 'NaN'::float ELSE txid_current() - txid_snapshot_xmin(txid_current_snapshot()) END AS xmin_age
+      CASE WHEN pg_is_in_recovery() THEN 'NaN'::float ELSE txid_current() - txid_snapshot_xmin(txid_current_snapshot()) END AS xmin_age;
   metrics:
     - current:
         usage: "COUNTER"
@@ -459,7 +455,8 @@ pg_txid:
 
 pg_database_datfrozenxid:
   master: true
-  query: "SELECT datname, age(datfrozenxid) AS age FROM pg_catalog.pg_database"
+  query: |
+    SELECT datname, age(datfrozenxid) AS age FROM pg_catalog.pg_database;
   metrics:
     - datname:
         usage: "LABEL"
@@ -475,7 +472,7 @@ pg_wal_position:
            WHEN pg_is_in_recovery()
            THEN (pg_last_wal_receive_lsn() - '0/0') % (2^52)::bigint
            ELSE (pg_current_wal_lsn() - '0/0') % (2^52)::bigint
-           END AS bytes
+           END AS bytes;
   metrics:
     - bytes:
         usage: "COUNTER"
@@ -491,7 +488,7 @@ pg_replication_slots:
            age(catalog_xmin) AS catalog_xmin_age,
            CASE WHEN pg_is_in_recovery() THEN pg_last_wal_receive_lsn() ELSE pg_current_wal_lsn() END - restart_lsn AS restart_lsn_bytes,
            CASE WHEN pg_is_in_recovery() THEN pg_last_wal_receive_lsn() ELSE pg_current_wal_lsn() END - confirmed_flush_lsn AS confirmed_flush_lsn_bytes
-      FROM pg_catalog.pg_replication_slots
+      FROM pg_catalog.pg_replication_slots;
   metrics:
     - slot_name:
         usage: "LABEL"
@@ -517,13 +514,14 @@ pg_replication_slots:
 
 pg_table_bloat:
   master: true
+  cache_seconds: 1200
   query: |
     SET max_parallel_workers_per_gather = 0;
     WITH databases AS (
       SELECT datname FROM pg_database
       WHERE datname NOT IN ('template0', 'template1')
     )
-    SELECT datname, ss.* FROM databases,
+    SELECT datname, _.* FROM databases,
     LATERAL (SELECT * FROM dblink(
         'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
         '-- https://github.com/ioguix/pgsql-bloat-estimation' || E'\n'
@@ -583,7 +581,7 @@ pg_table_bloat:
         || ' ) AS s3' || E'\n'
         || ' where schemaname not in (''information_schema'',''pg_catalog'')' || E'\n'
         || ' ORDER BY schemaname, tablename' || E'\n')
-       As (schemaname character varying, tablename character varying, real_size numeric, extra_size numeric, extra_ratio numeric, fillfactor numeric, bloat_size numeric, bloat_ratio numeric, is_na boolean)) AS ss;
+       As (schemaname character varying, tablename character varying, real_size numeric, extra_size numeric, extra_ratio numeric, fillfactor numeric, bloat_size numeric, bloat_ratio numeric, is_na boolean)) AS _;
   metrics:
     - datname:
         usage: "LABEL"
@@ -624,7 +622,7 @@ pg_index:
       SELECT datname FROM pg_database
       WHERE datname NOT IN ('template0', 'template1')
     )
-    SELECT datname, ss.* FROM databases,
+    SELECT datname, _.* FROM databases,
     LATERAL (SELECT * FROM dblink(
         'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
         '-- https://github.com/ioguix/pgsql-bloat-estimation' || E'\n'
@@ -719,7 +717,7 @@ pg_index:
       || '  ) AS relation_stats' || E'\n'
       || '  WHERE nspname != ''pg_catalog'' ' || E'\n'
       || '  ORDER BY nspname, tblname, idxname;' || E'\n')
-      As (schema_name character varying, tblname character varying, idxname character varying, real_size numeric, extra_size numeric, extra_ratio numeric, fillfactor numeric, bloat_size numeric, bloat_ratio numeric, is_na boolean)) AS ss;
+      As (schema_name character varying, tblname character varying, idxname character varying, real_size numeric, extra_size numeric, extra_ratio numeric, fillfactor numeric, bloat_size numeric, bloat_ratio numeric, is_na boolean)) AS _;
   metrics:
     - datname:
         usage: "LABEL"
@@ -758,10 +756,11 @@ pg_index:
 pg_replication_status:
   master: true
   query: |
-    select application_name,
-    client_addr,
-    state,
-    pg_wal_lsn_diff(pg_stat_replication.sent_lsn, pg_stat_replication.replay_lsn) AS lag_size
+    SELECT
+      application_name,
+      client_addr,
+      state,
+      pg_wal_lsn_diff(pg_stat_replication.sent_lsn, pg_stat_replication.replay_lsn) AS lag_size
     FROM pg_stat_replication;
   metrics:
     - application_name:
@@ -785,7 +784,7 @@ pg_vaccuum_wraparound:
     SELECT datname FROM pg_database
     WHERE datname NOT IN ('template0', 'template1')
     )
-    SELECT datname, ss.* FROM databases,
+    SELECT datname, _.* FROM databases,
     LATERAL (SELECT * FROM dblink(
         'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
         '
@@ -811,7 +810,7 @@ pg_vaccuum_wraparound:
         ORDER BY 5 DESC;
 
         ')
-        AS (full_table_name name, table_size bigint, freeze_age bigint, autovacuum_freeze_max_age bigint, percent integer)) AS ss;
+        AS (full_table_name name, table_size bigint, freeze_age bigint, autovacuum_freeze_max_age bigint, percent integer)) AS _;
   metrics:
     - datname:
         usage: "LABEL"
@@ -831,6 +830,87 @@ pg_vaccuum_wraparound:
     - percent:
         usage: "GAUGE"
         description: "Percentage"
+
+# CURRENT ACTIVITY
+
+pg_stat_current_waiting_query:
+  query: |
+    SELECT
+        datname, wait_event, count(*) AS count
+    FROM pg_stat_activity
+    WHERE state = 'active' AND wait_event IS NOT NULL
+    GROUP BY datname, wait_event;
+  master: true
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Name of the database"
+    - wait_event:
+        usage: "LABEL"
+        description: "Name of the wait event"
+    - count:
+        usage: "GAUGE"
+        description: "# of queries waiting for other process to finish"
+
+pg_stat_progress_vacuum:
+  query: |
+    SELECT
+        datname, heap_blks_total, heap_blks_scanned,
+        heap_blks_vacuumed , index_vacuum_count , max_dead_tuples , num_dead_tuples
+    FROM pg_stat_progress_vacuum;
+  master: true
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Name of the database to which this backend is connected"
+    - heap_blks_total:
+        usage: "GAUGE"
+        description: "Total number of heap blocks in the table"
+    - heap_blks_scanned:
+        usage: "GAUGE"
+        description: "Number of heap blocks scanned"
+    - heap_blks_vacuumed:
+        usage: "GAUGE"
+        description: "Number of heap blocks vacuumed"
+    - index_vacuum_count:
+        usage: "GAUGE"
+        description: "Number of completed index vacuum cycles"
+    - max_dead_tuples:
+        usage: "GAUGE"
+        description: "Number of dead tuples that we can store before needing to perform an index vacuum cycle"
+    - num_dead_tuples:
+        usage: "GAUGE"
+        description: "Number of dead tuples collected since the last index vacuum cycle"
+
+pg_stat_progress_cluster:
+  query: |
+    SELECT
+       datname,
+       heap_tuples_scanned, heap_tuples_written, heap_blks_total,
+       heap_blks_scanned, index_rebuild_count
+    FROM pg_stat_progress_cluster;
+  master: true
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Name of the database to which this backend is connected"
+    - heap_tuples_scanned:
+        usage: "GAUGE"
+        description: "Number of heap tuples scanned. This counter only advances when the phase is seq scanning heap, index scanning heap or writing new heap"
+    - heap_tuples_written:
+        usage: "GAUGE"
+        description: "Number of heap tuples written. This counter only advances when the phase is seq scanning heap, index scanning heap or writing new heap"
+    - heap_blks_total:
+        usage: "GAUGE"
+        description: "Total number of heap blocks in the table. This number is reported as of the beginning of seq scanning heap"
+    - heap_blks_scanned:
+        usage: "GAUGE"
+        description: "Number of heap blocks scanned. This counter only advances when the phase is seq scanning heap"
+    - index_rebuild_count:
+        usage: "GAUGE"
+        description: "Number of indexes rebuilt. This counter only advances when the phase is rebuilding index"
+
+# PGBOUNCER QUERIES
 
 pgbouncer_show_clients:
   master: true
@@ -855,7 +935,7 @@ pgbouncer_show_clients:
     _.application_name,
     _.prepared_statements
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show clients'::text)
-    _(type text, "user" text, database text, state text, addr text, port integer, local_addr text, local_port integer,
+    AS _(type text, "user" text, database text, state text, addr text, port integer, local_addr text, local_port integer,
     connect_time timestamp with time zone, request_time timestamp with time zone, wait integer, wait_us integer, close_needed integer,
     ptr text, link text, remote_pid integer, tls text, application_name text, prepared_statements integer);
   metrics:
@@ -955,19 +1035,22 @@ pgbouncer_show_pools:
         description: "Client connections that have sent queries but have not yet got a server connection"
     - cl_active_cancel_req:
         usage: "GAUGE"
+        description: "Client connections that have forwarded query cancellations to the server and are waiting for the server response"
+    - cl_waiting_cancel_req:
+        usage: "GAUGE"
         description: "    Client connections that have forwarded query cancellations to the server and are waiting for the server response"
     - cl_waiting_cancel_req:
         usage: "GAUGE"
-        description: "    Client connections that have not forwarded query cancellations to the server yet"
+        description: "Client connections that have not forwarded query cancellations to the server yet"
     - sv_active:
         usage: "GAUGE"
         description: "Server connections that are linked to a client"
     - sv_active_cancel:
         usage: "GAUGE"
-        description: "    Server connections that are currently forwarding a cancel request"
+        description: "Server connections that are currently forwarding a cancel request"
     - sv_being_canceled:
         usage: "GAUGE"
-        description: "    Servers that normally could become idle but are waiting to do so until all in-flight cancel requests have completed that were sent to cancel a query on this server"
+        description: "Servers that normally could become idle but are waiting to do so until all in-flight cancel requests have completed that were sent to cancel a query on this server"
     - sv_idle:
         usage: "GAUGE"
         description: "Server connections that are unused and immediately usable for client queries"
@@ -1007,8 +1090,8 @@ pgbouncer_show_databases:
     _.paused,
     _.disabled
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show databases'::text)
-    _(name text, host text, port integer, database text, force_user text, pool_size integer, min_pool_size integer,
-    reserve_pool integer, pool_mode text, max_connections integer, current_connections integer, paused boolean, disabled boolean);
+    AS _(name text, host text, port integer, database text, force_user text, pool_size integer, min_pool_size integer,
+      reserve_pool integer, pool_mode text, max_connections integer, current_connections integer, paused boolean, disabled boolean);
   metrics:
     - name:
         usage: "LABEL"
@@ -1050,46 +1133,6 @@ pgbouncer_show_databases:
         usage: "GAUGE"
         description: "1 if this database is currently paused, else 0"
 
-pgbouncer_show_stats_totals:
-  master: true
-  query: |
-    select _.database,
-    _.xact_count,
-    _.query_count,
-    _.bytes_received,
-    _.bytes_sent,
-    _.xact_time,
-    _.query_time,
-    _.wait_time
-    FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show stats_totals'::text)
-    _(database text, xact_count bigint, query_count bigint, bytes_received bigint, bytes_sent bigint, xact_time bigint,
-    query_time bigint, wait_time bigint);
-  metrics:
-    - database:
-        usage: "LABEL"
-        description: "Database name"
-    - xact_count:
-        usage: "GAUGE"
-        description: "Number of SQL transactions pooled"
-    - query_count:
-        usage: "GAUGE"
-        description: "Number of SQL queries pooled"
-    - bytes_received:
-        usage: "GAUGE"
-        description: "Volume in bytes of network traffic received"
-    - bytes_sent:
-        usage: "GAUGE"
-        description: "Volume in bytes of network traffic sent"
-    - xact_time:
-        usage: "GAUGE"
-        description: "Number of microseconds spent by pgbouncer when connected to PostgreSQL in a transaction"
-    - query_time:
-        usage: "GAUGE"
-        description: "Number of microseconds spent by pgbouncer when actively connected to PostgreSQL"
-    - wait_time:
-        usage: "GAUGE"
-        description: "Time spent by clients waiting for a server, in microseconds"
-
 pgbouncer_show_stats:
   master: true
   query: |
@@ -1109,9 +1152,9 @@ pgbouncer_show_stats:
     _.avg_query_time,
     _.avg_wait_time
     FROM dblink('host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer', 'show stats'::text)
-    _(database text, total_xact_count bigint, total_query_count bigint, total_received bigint, total_sent bigint,total_xact_time bigint, total_query_time bigint,
-    total_wait_time bigint, avg_xact_count bigint, avg_query_count bigint, avg_recv bigint, avg_sent bigint, avg_xact_time bigint, avg_query_time bigint,
-    avg_wait_time bigint);
+    AS _(database text, total_xact_count bigint, total_query_count bigint, total_received bigint, total_sent bigint,total_xact_time bigint, total_query_time bigint,
+      total_wait_time bigint, avg_xact_count bigint, avg_query_count bigint, avg_recv bigint, avg_sent bigint, avg_xact_time bigint, avg_query_time bigint,
+      avg_wait_time bigint);
   metrics:
     - database:
         usage: "LABEL"
@@ -1177,7 +1220,7 @@ node_filesystem:
         CASE WHEN columns[7] <> '-' THEN columns[7] ELSE NULL END AS files_free,
         CASE WHEN columns[8] <> '-' AND columns[8] <> 'timeout' THEN TRUE ELSE FALSE END AS device_error
       FROM (SELECT regexp_split_to_array(line, E'\\s+') AS columns
-          FROM (SELECT df(mountpoint) AS line FROM mounts) AS df) AS df
+          FROM (SELECT df(mountpoint) AS line FROM mounts) AS df) AS df;
   metrics:
     - device:
         usage: "LABEL"
@@ -1203,3 +1246,51 @@ node_filesystem:
     - device_error:
         usage: "GAUGE"
         description: "Whether an error occurred while getting statistics for the given device."
+
+# PG_STAT_STATEMENT
+pg_statements:
+  query: |
+    SELECT * FROM dblink(
+        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=postgres',
+        '
+        SELECT
+            pg_database.datname,
+            pg_roles.rolname as usename,
+            pg_stat_statements.queryid,
+            pg_stat_statements.calls as calls_total,
+        '
+        || CASE WHEN (SELECT setting FROM pg_settings WHERE name = 'server_version_num')::bigint >= 130000 THEN 'pg_stat_statements.total_exec_time' ELSE 'pg_stat_statements.total_time' END || ' / 1000 AS total_exec_time, '
+        || CASE WHEN (SELECT setting FROM pg_settings WHERE name = 'server_version_num')::bigint >= 130000 THEN 'pg_stat_statements.mean_exec_time' ELSE 'pg_stat_statements.mean_time' END || ' / 1000 AS mean_exec_time, '
+        || '
+            pg_stat_statements.rows as rows_total
+        FROM pg_stat_statements
+        JOIN pg_roles ON (pg_stat_statements.userid = pg_roles.oid)
+        JOIN pg_database ON (pg_stat_statements.dbid = pg_database.oid)
+        ')
+        AS (datname text, usename text, queryid bigint, calls_total bigint, total_exec_time double precision, mean_exec_time double precision, rows_total bigint)
+        WHERE calls_total > 1
+        ORDER BY total_exec_time -mean_exec_time * calls_total desc
+        LIMIT 20;
+  master: true
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Database name"
+    - usename:
+        usage: "LABEL"
+        description: "User name"
+    - queryid:
+        usage: "LABEL"
+        description: "Query ID"
+    - calls_total:
+        usage: "GAUGE"
+        description: "Total calls of the query"
+    - total_exec_time:
+        usage: "GAUGE"
+        description: "Total execute time in milliseconds"
+    - mean_exec_time:
+        usage: "GAUGE"
+        description: "Total mean time in milliseconds"
+    - rows_total:
+        usage: "GAUGE"
+        description: "Total rows returned"

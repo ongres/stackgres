@@ -34,6 +34,8 @@ public class StackGresDbOpsMajorVersionUpgradeStatus {
 
   private List<String> restartedInstances;
 
+  private String phase;
+
   private String failure;
 
   public String getSourcePostgresVersion() {
@@ -84,6 +86,14 @@ public class StackGresDbOpsMajorVersionUpgradeStatus {
     this.restartedInstances = restartedInstances;
   }
 
+  public String getPhase() {
+    return phase;
+  }
+
+  public void setPhase(String phase) {
+    this.phase = phase;
+  }
+
   public String getFailure() {
     return failure;
   }
@@ -94,8 +104,8 @@ public class StackGresDbOpsMajorVersionUpgradeStatus {
 
   @Override
   public int hashCode() {
-    return Objects.hash(failure, initialInstances, pendingToRestartInstances, primaryInstance,
-        restartedInstances, sourcePostgresVersion, targetPostgresVersion);
+    return Objects.hash(failure, initialInstances, pendingToRestartInstances, phase,
+        primaryInstance, restartedInstances, sourcePostgresVersion, targetPostgresVersion);
   }
 
   @Override
@@ -110,6 +120,7 @@ public class StackGresDbOpsMajorVersionUpgradeStatus {
     return Objects.equals(failure, other.failure)
         && Objects.equals(initialInstances, other.initialInstances)
         && Objects.equals(pendingToRestartInstances, other.pendingToRestartInstances)
+        && Objects.equals(phase, other.phase)
         && Objects.equals(primaryInstance, other.primaryInstance)
         && Objects.equals(restartedInstances, other.restartedInstances)
         && Objects.equals(sourcePostgresVersion, other.sourcePostgresVersion)

@@ -3,7 +3,7 @@
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(cluster).length > 0"></template>
 
-        <form id="createShardedCluster" class="form" @submit.prevent v-if="!editMode || editReady">
+        <form id="createShardedCluster" class="form" :key="formHash" @submit.prevent v-if="!editMode || editReady">
             <div class="header stickyHeader">
                 <h2>
                     <span>{{ editMode ? 'Edit' :  'Create' }} Sharded Cluster</span>
@@ -21,20 +21,63 @@
                     </li>
                 </template>
             </ul>
+            <template v-if="(currentSection == 'overrides')">
+                <template v-if="shards.overrides.length">
+                    <ul class="tabs">
+                        <template v-for="(override, index) in shards.overrides">
+                            <li :class="['override-' + index, ( (index == overrideIndex) && 'active' )]">
+                                <a @click="overrideIndex = index">
+                                    Override #{{ index }}
+                                    <button
+                                        type="button"
+                                        class="icon delete plain"
+                                        @click="deleteOverride(index)"
+                                    >
+                                    </button>
+                                </a>
+                            </li>
+                        </template>
+                        <a
+                            class="plain floatRight"
+                            @click="(shards.overrides.length < shards.clusters) && pushOverride()"
+                            :disabled="(shards.overrides.length >= shards.clusters)"
+                            :title="
+                                (shards.overrides.length >= shards.clusters) && 
+                                'You cannot set more overrides than the amount of clusters you have defined'
+                            "
+                        >
+                            Add Override
+                        </a>
+                    </ul>
+                </template>
+                <template v-else>
+                    <span class="warning textCenter marginTop">
+                        <br/>
+                        No overrides have been defined yet<br/>
+                        <button id="addOverride" type="button" class="btn border" @click="pushOverride()">
+                            Add Override
+                        </button>
+                        <br/><br/>
+                    </span>
+                </template>
 
-            <div class="stepsContainer">
-                <ul class="steps">
-                    <button type="button" class="btn arrow prev" @click="currentStep[currentSection] = formSteps[currentSection][(currentStepIndex - 1)]" :disabled="( currentStepIndex == 0 )"></button>
+            </template>
             
-                    <template v-for="(step, index) in formSteps[currentSection]"  v-if="( ((index < basicSteps[currentSection]) && !advancedMode) || advancedMode)">
-                        <li @click="currentStep[currentSection] = step; checkValidSteps(_data, 'steps')" :class="[( (currentStep[currentSection] == step) && 'active'), ( (index < basicSteps[currentSection]) && 'basic' ), (errorStep.includes(currentSection + '.' + step) && 'notValid')]" :data-step="currentSection + '.' + step">
-                            {{ step }}
-                        </li>
-                    </template>
+            <template v-if="( (currentSection !== 'overrides') || shards.overrides.length )">
+                <div class="stepsContainer">
+                    <ul class="steps">
+                        <button type="button" class="btn arrow prev" @click="currentStep[currentSection] = formSteps[currentSection][(currentStepIndex - 1)]" :disabled="( currentStepIndex == 0 )"></button>
+                
+                        <template v-for="(step, index) in formSteps[currentSection]"  v-if="( ((index < basicSteps[currentSection]) && !advancedMode) || advancedMode)">
+                            <li @click="currentStep[currentSection] = step; checkValidSteps(_data, 'steps')" :class="[( (currentStep[currentSection] == step) && 'active'), ( (index < basicSteps[currentSection]) && 'basic' ), (errorStep.includes(currentSection + '.' + step) && 'notValid')]" :data-step="currentSection + '.' + step">
+                                {{ step }}
+                            </li>
+                        </template>
 
-                    <button type="button" class="btn arrow next" @click="currentStep[currentSection] = formSteps[currentSection][(currentStepIndex + 1)]" :disabled="(!advancedMode && ( currentStepIndex == 2 ) ) || ( (advancedMode && ( currentStepIndex == (formSteps[currentSection].length - 1) )) )"></button>
-                </ul>
-            </div>
+                        <button type="button" class="btn arrow next" @click="currentStep[currentSection] = formSteps[currentSection][(currentStepIndex + 1)]" :disabled="(!advancedMode && ( currentStepIndex == 2 ) ) || ( (advancedMode && ( currentStepIndex == (formSteps[currentSection].length - 1) )) )"></button>
+                    </ul>
+                </div>
+            </template>
 
             <template v-if="currentSection == 'general'">
                 <fieldset v-if="(currentStep.general == 'cluster')" class="step active" data-fieldset="general.cluster">
@@ -475,7 +518,7 @@
                         <div class="row-50">
                             <div class="col">
                                 <label for="spec.replication.mode">Mode</label>
-                                <select v-model="replication.mode" required data-field="spec.replication.mode" @change="['sync', 'strict-sync'].includes(replication.mode) ? (replication['syncInstances'] = 1) : ((replication.hasOwnProperty('syncInstances') && delete replication.syncInstances) )">    
+                                <select v-model="replication.mode" required data-field="spec.replication.mode" @change="['sync', 'strict-sync'].includes(replication.mode) ? (!replication.hasOwnProperty('syncInstances') && (replication['syncInstances'] = 1) ) : ((replication.hasOwnProperty('syncInstances') && delete replication.syncInstances) )">    
                                     <option selected>async</option>
                                     <option>sync</option>
                                     <option>strict-sync</option>
@@ -727,10 +770,10 @@
                             <div class="col">
                                 <label for="spec.coordinator.sgInstanceProfile">Instance Profile</label>  
                                 <select v-model="coordinator.sgInstanceProfile" class="resourceProfile" data-field="spec.coordinator.sgInstanceProfile" @change="(resourceProfile == 'createNewResource') && createNewResource('sginstanceprofiles')" :set="( (resourceProfile == 'createNewResource') && (resourceProfile = '') )">
-                                    <option selected value="">Default (Cores: 1, RAM: 2GiB)</option>
+                                    <option :value="''">Default (Cores: 1, RAM: 2GiB)</option>
                                     <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace" :value="prof.name">{{ prof.name }} (Cores: {{ prof.data.spec.cpu }}, RAM: {{ prof.data.spec.memory }}B)</option>
                                     <template v-if="iCan('create', 'sginstanceprofiles', $route.params.namespace)">
-                                        <option value="" disabled>– OR –</option>
+                                        <option :value="null" disabled>– OR –</option>
                                         <option value="createNewResource">Create new profile</option>
                                     </template>
                                 </select>
@@ -746,10 +789,10 @@
                             <div class="col">
                                 <label for="spec.coordinator.configurations.sgPostgresConfig">Postgres Configuration</label>
                                 <select v-model="coordinator.configurations.sgPostgresConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig" @change="(coordinator.configurations.sgPostgresConfig == 'createNewResource') && createNewResource('sgpgconfigs')" :set="( (coordinator.configurations.sgPostgresConfig == 'createNewResource') && (coordinator.configurations.sgPostgresConfig = '') )">
-                                    <option value="" selected>Default</option>
+                                    <option :value="''">Default</option>
                                     <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == shortPostgresVersion) )">{{ conf.name }}</option>
                                     <template v-if="iCan('create', 'sgpgconfigs', $route.params.namespace)">
-                                        <option value="" disabled>– OR –</option>
+                                        <option :value="null" disabled>– OR –</option>
                                         <option value="createNewResource">Create new configuration</option>
                                     </template>
                                 </select>
@@ -767,7 +810,7 @@
                                     <label for="spec.coordinator.pods.persistentVolume.size">Volume Size <span class="req">*</span></label>  
                                     <input v-model="coordinator.pods.persistentVolume.size.size" class="size" required data-field="spec.coordinator.pods.persistentVolume.size" type="number">
                                     <select v-model="coordinator.pods.persistentVolume.size.unit" class="unit" required data-field="spec.coordinator.pods.persistentVolume.size" >
-                                        <option disabled value="">Select Unit</option>
+                                        <option disabled :value="''">Select Unit</option>
                                         <option value="Mi">MiB</option>
                                         <option value="Gi">GiB</option>
                                         <option value="Ti">TiB</option>   
@@ -814,10 +857,10 @@
                                     Connection Pooling Configuration
                                 </label>
                                 <select v-model="coordinator.configurations.sgPoolingConfig" class="connectionPoolingConfig" @change="(coordinator.configurations.sgPoolingConfig == 'createNewResource') && createNewResource('sgpoolconfigs')" :set="( (coordinator.configurations.sgPoolingConfig == 'createNewResource') && (coordinator.configurations.sgPoolingConfig = '') )">
-                                    <option value="" selected>Default</option>
+                                    <option :value="''">Default</option>
                                     <option v-for="conf in connPoolConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
                                     <template v-if="iCan('create', 'sgpoolconfigs', $route.params.namespace)">
-                                        <option value="" disabled>– OR –</option>
+                                        <option :value="null" disabled>– OR –</option>
                                         <option value="createNewResource">Create new configuration</option>
                                     </template>
                                 </select>
@@ -1339,7 +1382,12 @@
                             <div class="fieldsetFooter" :class="(!coordinator.pods.hasOwnProperty('customVolumes') || (coordinator.pods.hasOwnProperty('customVolumes') && !coordinator.pods.customVolumes.length) ) && 'topBorder'">
                                 <a 
                                     class="addRow"
-                                    @click="customVolumesType.coordinator.push(null); (!coordinator.pods.hasOwnProperty('customVolumes') && (coordinator.pods['customVolumes'] = []) ); coordinator.pods.customVolumes.push({ name: null});"
+                                    @click="
+                                        customVolumesType.coordinator.push(null);
+                                        (!coordinator.pods.hasOwnProperty('customVolumes') && (coordinator.pods['customVolumes'] = []) );
+                                        coordinator.pods.customVolumes.push({ name: null});
+                                        formHash = (+new Date).toString();
+                                    "
                                 >
                                     Add Volume
                                 </a>
@@ -1607,14 +1655,20 @@
                                                         </div>
                                                     </fieldset>
                                                     <div v-if="!editMode" class="fieldsetFooter" :class="(container.hasOwnProperty('volumeMounts') && !container.volumeMounts.length) && 'topBorder'">
-                                                        <a class="addRow" @click="!container.hasOwnProperty('volumeMounts') && (container['volumeMounts'] = []); container.volumeMounts.push({
-                                                            mountPath: null,
-                                                            mountPropagation: null,
-                                                            name: null,
-                                                            readOnly: false,
-                                                            subPath: null,
-                                                            subPathExpr: null
-                                                        })">
+                                                        <a 
+                                                            class="addRow"
+                                                            @click="
+                                                                !container.hasOwnProperty('volumeMounts') && (container['volumeMounts'] = []);
+                                                                container.volumeMounts.push({
+                                                                    mountPath: null,
+                                                                    mountPropagation: null,
+                                                                    name: null,
+                                                                    readOnly: false,
+                                                                    subPath: null,
+                                                                    subPathExpr: null
+                                                                });
+                                                                formHash = (+new Date).toString();
+                                                            ">
                                                             Add Volume
                                                         </a>
                                                     </div>
@@ -1919,14 +1973,20 @@
                                                         </div>
                                                     </fieldset>
                                                     <div v-if="!editMode" class="fieldsetFooter" :class="(container.hasOwnProperty('volumeMounts') && !container.volumeMounts.length) && 'topBorder'">
-                                                        <a class="addRow" @click="!container.hasOwnProperty('volumeMounts') && (container['volumeMounts'] = []); container.volumeMounts.push({
-                                                            mountPath: null,
-                                                            mountPropagation: null,
-                                                            name: null,
-                                                            readOnly: false,
-                                                            subPath: null,
-                                                            subPathExpr: null
-                                                        })">
+                                                        <a 
+                                                            class="addRow"
+                                                            @click="
+                                                                !container.hasOwnProperty('volumeMounts') && (container['volumeMounts'] = []);
+                                                                container.volumeMounts.push({
+                                                                    mountPath: null,
+                                                                    mountPropagation: null,
+                                                                    name: null,
+                                                                    readOnly: false,
+                                                                    subPath: null,
+                                                                    subPathExpr: null
+                                                                });
+                                                                formHash = (+new Date).toString();
+                                                            ">
                                                             Add Volume
                                                         </a>
                                                     </div>
@@ -1983,11 +2043,11 @@
                         <div class="row-50">
                             <div class="col">
                                 <label for="spec.coordinator.replication.mode">Mode</label>
-                                <select v-model="coordinator.replication.mode" required data-field="spec.coordinator.replication.mode" @change="['sync', 'strict-sync'].includes(coordinator.replication.mode) ? (coordinator.replication['syncInstances'] = 1) : ((coordinator.replication.hasOwnProperty('syncInstances') && delete coordinator.replication.syncInstances) )">    
+                                <select v-model="coordinator.replication.mode" required data-field="spec.coordinator.replication.mode" @change="['sync', 'strict-sync'].includes(coordinator.replication.mode) ? (!coordinator.replication.hasOwnProperty('syncInstances') && (coordinator.replication['syncInstances'] = 1) ) : ((coordinator.replication.hasOwnProperty('syncInstances') && delete coordinator.replication.syncInstances) )">    
                                     <option>async</option>
                                     <option>sync</option>
                                     <option>strict-sync</option>
-                                    <option selected>sync-all</option>
+                                    <option>sync-all</option>
                                     <option>strict-sync-all</option>
                                 </select>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.coordinator.replication.mode')"></span>
@@ -2766,6 +2826,10 @@
                                 <label for="spec.shards.clusters">Number of Clusters <span class="req">*</span></label>
                                 <input type="number" v-model="shards.clusters" required data-field="spec.shards.clusters" min="1" max="16">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.clusters')"></span>
+
+                                <p class="warning" v-if="(shards.hasOwnProperty('overrides') && (shards.clusters < shards.overrides.length))">
+                                    Bear in mind that the number of clusters affects the amount of overrides that can be set. Please check the <a @click="currentSection = 'overrides'; overrideIndex = 0;">Overrides</a> section to make sure you have set them properly.
+                                </p>
                             </div>
                         </div>
                         
@@ -2782,10 +2846,10 @@
                             <div class="col">
                                 <label for="spec.shards.sgInstanceProfile">Instance Profile</label>  
                                 <select v-model="shards.sgInstanceProfile" class="resourceProfile" data-field="spec.shards.sgInstanceProfile" @change="(resourceProfile == 'createNewResource') && createNewResource('sginstanceprofiles')" :set="( (resourceProfile == 'createNewResource') && (resourceProfile = '') )">
-                                    <option selected value="">Default (Cores: 1, RAM: 2GiB)</option>
+                                    <option :value="''">Default (Cores: 1, RAM: 2GiB)</option>
                                     <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace" :value="prof.name">{{ prof.name }} (Cores: {{ prof.data.spec.cpu }}, RAM: {{ prof.data.spec.memory }}B)</option>
                                     <template v-if="iCan('create', 'sginstanceprofiles', $route.params.namespace)">
-                                        <option disabled>– OR –</option>
+                                        <option :value="null" disabled>– OR –</option>
                                         <option value="createNewResource">Create new profile</option>
                                     </template>
                                 </select>
@@ -2801,10 +2865,10 @@
                             <div class="col">
                                 <label for="spec.shards.configurations.sgPostgresConfig">Postgres Configuration</label>
                                 <select v-model="shards.configurations.sgPostgresConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig" @change="(shards.configurations.sgPostgresConfig == 'createNewResource') && createNewResource('sgpgconfigs')" :set="( (shards.configurations.sgPostgresConfig == 'createNewResource') && (shards.configurations.sgPostgresConfig = '') )">
-                                    <option value="" selected>Default</option>
+                                    <option :value="''" selected>Default</option>
                                     <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == shortPostgresVersion) )">{{ conf.name }}</option>
                                     <template v-if="iCan('create', 'sgpgconfigs', $route.params.namespace)">
-                                        <option disabled>– OR –</option>
+                                        <option :value="null" disabled>– OR –</option>
                                         <option value="createNewResource">Create new configuration</option>
                                     </template>
                                 </select>
@@ -2822,7 +2886,7 @@
                                     <label for="spec.shards.pods.persistentVolume.size">Volume Size <span class="req">*</span></label>  
                                     <input v-model="shards.pods.persistentVolume.size.size" class="size" required data-field="spec.shards.pods.persistentVolume.size" type="number">
                                     <select v-model="shards.pods.persistentVolume.size.unit" class="unit" required data-field="spec.shards.pods.persistentVolume.size" >
-                                        <option disabled value="">Select Unit</option>
+                                        <option disabled :value="''">Select Unit</option>
                                         <option value="Mi">MiB</option>
                                         <option value="Gi">GiB</option>
                                         <option value="Ti">TiB</option>   
@@ -2869,10 +2933,10 @@
                                     Connection Pooling Configuration
                                 </label>
                                 <select v-model="shards.configurations.sgPoolingConfig" class="connectionPoolingConfig" @change="(shards.configurations.sgPoolingConfig == 'createNewResource') && createNewResource('sgpoolconfigs')" :set="( (shards.configurations.sgPoolingConfig == 'createNewResource') && (shards.configurations.sgPoolingConfig = '') )">
-                                    <option value="" selected>Default</option>
+                                    <option :value="''">Default</option>
                                     <option v-for="conf in connPoolConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
                                     <template v-if="iCan('create', 'sgpoolconfigs', $route.params.namespace)">
-                                        <option value="" disabled>– OR –</option>
+                                        <option :value="null" disabled>– OR –</option>
                                         <option value="createNewResource">Create new configuration</option>
                                     </template>
                                 </select>
@@ -3394,7 +3458,12 @@
                             <div class="fieldsetFooter" :class="(!shards.pods.hasOwnProperty('customVolumes') || (shards.pods.hasOwnProperty('customVolumes') && !shards.pods.customVolumes.length) ) && 'topBorder'">
                                 <a 
                                     class="addRow"
-                                    @click="customVolumesType.shards.push(null); (!shards.pods.hasOwnProperty('customVolumes') && (shards.pods['customVolumes'] = []) ); shards.pods.customVolumes.push({ name: null});"
+                                    @click="
+                                        customVolumesType.shards.push(null);
+                                        (!shards.pods.hasOwnProperty('customVolumes') && (shards.pods['customVolumes'] = []) );
+                                        shards.pods.customVolumes.push({ name: null});
+                                        formHash = (+new Date).toString();
+                                    "
                                 >
                                     Add Volume
                                 </a>
@@ -3662,14 +3731,21 @@
                                                         </div>
                                                     </fieldset>
                                                     <div v-if="!editMode" class="fieldsetFooter" :class="(container.hasOwnProperty('volumeMounts') && !container.volumeMounts.length) && 'topBorder'">
-                                                        <a class="addRow" @click="!container.hasOwnProperty('volumeMounts') && (container['volumeMounts'] = []); container.volumeMounts.push({
-                                                            mountPath: null,
-                                                            mountPropagation: null,
-                                                            name: null,
-                                                            readOnly: false,
-                                                            subPath: null,
-                                                            subPathExpr: null
-                                                        })">
+                                                        <a
+                                                            class="addRow" 
+                                                            @click="
+                                                                !container.hasOwnProperty('volumeMounts') && (container['volumeMounts'] = []);
+                                                                container.volumeMounts.push({
+                                                                    mountPath: null,
+                                                                    mountPropagation: null,
+                                                                    name: null,
+                                                                    readOnly: false,
+                                                                    subPath: null,
+                                                                    subPathExpr: null
+                                                                });
+                                                                formHash = (+new Date).toString();
+                                                            "
+                                                        >
                                                             Add Volume
                                                         </a>
                                                     </div>
@@ -3974,14 +4050,20 @@
                                                         </div>
                                                     </fieldset>
                                                     <div v-if="!editMode" class="fieldsetFooter" :class="(container.hasOwnProperty('volumeMounts') && !container.volumeMounts.length) && 'topBorder'">
-                                                        <a class="addRow" @click="!container.hasOwnProperty('volumeMounts') && (container['volumeMounts'] = []); container.volumeMounts.push({
-                                                            mountPath: null,
-                                                            mountPropagation: null,
-                                                            name: null,
-                                                            readOnly: false,
-                                                            subPath: null,
-                                                            subPathExpr: null
-                                                        })">
+                                                        <a
+                                                            class="addRow"
+                                                            @click="
+                                                                !container.hasOwnProperty('volumeMounts') && (container['volumeMounts'] = []); container.volumeMounts.push({
+                                                                    mountPath: null,
+                                                                    mountPropagation: null,
+                                                                    name: null,
+                                                                    readOnly: false,
+                                                                    subPath: null,
+                                                                    subPathExpr: null
+                                                                });
+                                                                formHash = (+new Date).toString();
+                                                            "
+                                                        >
                                                             Add Volume
                                                         </a>
                                                     </div>
@@ -4038,8 +4120,8 @@
                         <div class="row-50">
                             <div class="col">
                                 <label for="spec.shards.replication.mode">Mode</label>
-                                <select v-model="shards.replication.mode" required data-field="spec.shards.replication.mode" @change="['sync', 'strict-sync'].includes(shards.replication.mode) ? (shards.replication['syncInstances'] = 1) : ((shards.replication.hasOwnProperty('syncInstances') && delete shards.replication.syncInstances) )">    
-                                    <option selected>async</option>
+                                <select v-model="shards.replication.mode" required data-field="spec.shards.replication.mode" @change="['sync', 'strict-sync'].includes(shards.replication.mode) ? (!shards.replication.hasOwnProperty('syncInstances') && (shards.replication['syncInstances'] = 1) ) : ((shards.replication.hasOwnProperty('syncInstances') && delete shards.replication.syncInstances) )">    
+                                    <option>async</option>
                                     <option>sync</option>
                                     <option>strict-sync</option>
                                     <option>sync-all</option>
@@ -4771,6 +4853,2062 @@
                 </fieldset>
             </template>
 
+            <template v-else-if="( (currentSection == 'overrides') && shards.overrides.length )">
+
+                <fieldset v-if="(currentStep.overrides == 'shards')" class="step active" :data-fieldset="'shards.overrides[' + overrideIndex + '].shards'">
+                    <div class="header">
+                        <h2>Shards Information</h2>
+                    </div>
+
+                    <div class="fields">
+                        <div class="row-50">
+                            <div class="col">
+                                <label for="spec.shards.overrides.index">Cluster Identifier <span class="req">*</span></label>
+                                <select v-model="shards.overrides[overrideIndex].index" required :data-field="'spec.shards.overrides[' + overrideIndex + '].index'">
+                                    <option :value="nullVal" selected>Choose one...</option>
+                                    <template v-for="(n, index) in parseInt(shards.clusters)">
+                                        <option
+                                            :value="index"
+                                            :key="'override-cluster-' + index"
+                                            :disabled="
+                                                (
+                                                    (shards.overrides[overrideIndex].index !== index) &&
+                                                    (typeof shards.overrides.find( ov => ov.index == index) !== 'undefined')
+                                                )
+                                            "
+                                        >
+                                            Cluster #{{ index }}
+                                        </option>
+                                    </template>
+                                </select>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.index')"></span>
+                            </div>
+                        </div>
+                        
+                        <hr/>
+                        
+                        <div class="row-50">
+                            <h3>Instances</h3>
+
+                            <div class="col">
+                                <label for="spec.shards.overrides.instancesPerCluster">Number of Instances per Cluster</label>
+                                <input type="number" v-model="shards.overrides[overrideIndex].instancesPerCluster" :data-field="'spec.shards.overrides[' + overrideIndex + '].instancesPerCluster'" min="1" max="16">
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.instancesPerCluster')"></span>
+                            </div>
+                            <div class="col">
+                                <label for="spec.shards.overrides.sgInstanceProfile">Instance Profile</label>  
+                                <select v-model="shards.overrides[overrideIndex].sgInstanceProfile" class="resourceProfile" :data-field="'spec.shards.overrides[' + overrideIndex + '].sgInstanceProfile'" @change="(resourceProfile == 'createNewResource') && createNewResource('sginstanceprofiles')" :set="( (resourceProfile == 'createNewResource') && (resourceProfile = '') )">
+                                    <option :value="''">Select profile</option>
+                                    <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace" :value="prof.name">{{ prof.name }} (Cores: {{ prof.data.spec.cpu }}, RAM: {{ prof.data.spec.memory }}B)</option>
+                                    <template v-if="iCan('create', 'sginstanceprofiles', $route.params.namespace)">
+                                        <option :value="null">– OR –</option>
+                                        <option value="createNewResource">Create new profile</option>
+                                    </template>
+                                </select>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.sgInstanceProfile')"></span>
+                            </div>
+                        </div>
+
+                        <hr/>
+
+                        <div class="row-50">
+                            <h3>Postgres</h3><br/>
+
+                            <div class="col">
+                                <label for="spec.shards.overrides.configurations.sgPostgresConfig">Postgres Configuration</label>
+                                <select v-model="shards.overrides[overrideIndex].configurations.sgPostgresConfig" class="pgConfig" :data-field="'spec.shards.overrides[' + overrideIndex + '].configurations.sgPostgresConfig'" @change="(shards.overrides[overrideIndex].configurations.sgPostgresConfig == 'createNewResource') && createNewResource('sgpgconfigs')" :set="( (shards.overrides[overrideIndex].configurations.sgPostgresConfig == 'createNewResource') && (shards.overrides[overrideIndex].configurations.sgPostgresConfig = '') )">
+                                    <option :value="''">Select configuration</option>
+                                    <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == shortPostgresVersion) )">{{ conf.name }}</option>
+                                    <template v-if="iCan('create', 'sgpgconfigs', $route.params.namespace)">
+                                        <option :value="null" disabled>– OR –</option>
+                                        <option value="createNewResource">Create new configuration</option>
+                                    </template>
+                                </select>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.configurations.sgPostgresConfig')"></span>
+                            </div>
+                        </div>
+
+                        <hr/>
+
+                        <div class="row-50">
+                            <h3>Pods Storage</h3>
+
+                            <div class="col">
+                                <div class="unit-select">
+                                    <label for="spec.shards.overrides.pods.persistentVolume.size">Volume Size</label>  
+                                    <input v-model="shards.overrides[overrideIndex].pods.persistentVolume.size.size" class="size" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.persistentVolume.size'" type="number">
+                                    <select v-model="shards.overrides[overrideIndex].pods.persistentVolume.size.unit" class="unit" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.persistentVolume.size'" :required="!isNull(shards.overrides[overrideIndex].pods.persistentVolume.size.size)">
+                                        <option :value="''">Select Unit</option>
+                                        <option value="Mi">MiB</option>
+                                        <option value="Gi">GiB</option>
+                                        <option value="Ti">TiB</option>   
+                                    </select>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.persistentVolume.size')"></span>
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <label for="spec.shards.overrides.pods.persistentVolume.storageClass">Storage Class</label>
+                                <select v-model="shards.overrides[overrideIndex].pods.persistentVolume.storageClass" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.persistentVolume.storageClass'" :disabled="!storageClasses.length">
+                                    <option value=""> {{ storageClasses.length ? 'Select Storage Class' : 'No storage classes available' }}</option>
+                                    <option v-for="sClass in storageClasses">{{ sClass }}</option>
+                                </select>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.persistentVolume.storageClass')"></span>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset v-if="(currentStep.overrides == 'sidecars')" class="step active" :data-fieldset="'shards.overrides[' + overrideIndex + '].sidecars'">
+                    <div class="header">
+                        <h2>Sidecars</h2>
+                    </div>
+
+                    <div class="fields">
+                        <div class="row-50">
+                            <h3>Connection Pooling</h3>
+                            <p>To solve the Postgres connection fan-in problem (handling large number of incoming connections) StackGres includes by default a connection pooler fronting every Postgres instance. It is deployed as a sidecar. You may opt-out as well as tune the connection pooler configuration.</p>
+
+                            <div class="col">
+                                <label for="spec.shards.overrides.configurations.sgPoolingConfig">
+                                    Connection Pooling
+                                </label>  
+                                <label for="connPoolingShards" class="switch yes-no">
+                                    Enable
+                                    <input v-model="shards.overrides[overrideIndex].pods.disableConnectionPooling" type="checkbox" id="connPoolingShards" :true-value="false" :false-value="true" data-switch="NO">
+                                </label>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.configurations.sgPoolingConfig')"></span>
+                            </div>
+
+                            <div class="col" v-if="!shards.overrides[overrideIndex].pods.hasOwnProperty('disableConnectionPooling') || !shards.overrides[overrideIndex].pods.disableConnectionPooling">
+                                <label for="connectionPoolingConfigShards">
+                                    Connection Pooling Configuration
+                                </label>
+                                <select v-model="shards.overrides[overrideIndex].configurations.sgPoolingConfig" class="connectionPoolingConfig" @change="(shards.overrides[overrideIndex].configurations.sgPoolingConfig == 'createNewResource') && createNewResource('sgpoolconfigs')" :set="( (shards.overrides[overrideIndex].configurations.sgPoolingConfig == 'createNewResource') && (shards.overrides[overrideIndex].configurations.sgPoolingConfig = '') )">
+                                    <option :value="''">Select configuration</option>
+                                    <option v-for="conf in connPoolConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
+                                    <template v-if="iCan('create', 'sgpoolconfigs', $route.params.namespace)">
+                                        <option :value="null" disabled>– OR –</option>
+                                        <option value="createNewResource">Create new configuration</option>
+                                    </template>
+                                </select>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.configurations.sgPoolingConfig')"></span>
+                            </div>
+                        </div>
+
+                        <hr/>
+
+                        <div class="row-50">
+                            <h3>Postgres Utils</h3>
+                            <p>Sidecar container with Postgres administration tools. Optional (on by default; recommended for troubleshooting).</p>
+
+                            <div class="col">
+                                <label for="spec.shards.overrides.pods.disablePostgresUtil">Postgres Utils</label>  
+                                <label for="postgresUtil" class="switch yes-no">
+                                    Enable
+                                    <input :checked="!shards.overrides[overrideIndex].pods.disablePostgresUtil" type="checkbox" id="postgresUtil" @change="shards.overrides[overrideIndex].pods.disablePostgresUtil = !shards.overrides[overrideIndex].pods.disablePostgresUtil" data-switch="YES">
+                                </label>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.disablePostgresUtil').replace('If set to `true`', 'If disabled')"></span>
+                            </div>
+                        </div>
+
+                        <hr/>
+
+                        <div class="row-50">
+                            <h3>Monitoring</h3>
+                            <p>Enable Prometheus metrics scraping via service monitors. Check the <a href="https://stackgres.io/doc/latest/install/prerequisites/monitoring/" target="_blank">Installation -> Monitoring</a> section for information on how to enable in StackGres Grafana dashboard integration.</p>
+
+                            <div class="col">
+                                <label for="spec.shards.overrides.pods.disableMetricsExporter">Metrics Exporter</label>  
+                                <label for="metricsExporterShards" class="switch yes-no">
+                                    Enable
+                                    <input :checked="!shards.overrides[overrideIndex].pods.disableMetricsExporter" type="checkbox" id="metricsExporterShards" @change="(shards.overrides[overrideIndex].pods.disableMetricsExporter = !shards.overrides[overrideIndex].pods.disableMetricsExporter)" data-switch="YES">
+                                </label>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.disableMetricsExporter').replace('If set to `true`', 'If disabled').replace('Recommended', 'Recommended to be disabled')"></span>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset v-if="(currentStep.overrides == 'scripts')" class="step active" :data-fieldset="'shards.overrides[' + overrideIndex + '].scripts'">
+                    <div class="header">
+                        <h2>Managed SQL</h2>
+                    </div>
+
+                    <p>Use this option to run a set of scripts on your cluster.</p><br/><br/>
+
+                    <div class="fields">
+                        <div class="scriptFieldset repeater">
+                            <div class="header">
+                                <h3 :for="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts'">
+                                    Scripts
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.managedSql.scripts')"></span>
+                                </h3>
+                            </div>
+                            
+                            <fieldset
+                                v-if="shards.overrides[overrideIndex].hasOwnProperty('managedSql')"
+                                v-for="(baseScript, baseIndex) in shards.overrides[overrideIndex].managedSql.scripts"
+                                :data-field="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts[' + baseIndex + ']'"
+                            >
+                                <div class="header">
+                                    <h4>SGScript #{{baseIndex+1 }}</h4>
+                                    <div class="addRow" v-if="(baseScript.sgScript != (name + '-default') )">
+                                        <a class="delete" @click="spliceArray(shards.overrides[overrideIndex].managedSql.scripts, baseIndex), spliceArray(scriptSource.overrides[overrideIndex], baseIndex)">Delete Script</a>
+                                        <template v-if="baseIndex">
+                                            <span class="separator"></span>
+                                            <a @click="moveArrayItem(shards.overrides[overrideIndex].managedSql.scripts, baseIndex, 'up')">Move Up</a>
+                                        </template>
+                                        <template  v-if="( (baseIndex + 1) != shards.overrides[overrideIndex].managedSql.scripts.length)">
+                                            <span class="separator"></span>
+                                            <a @click="moveArrayItem(shards.overrides[overrideIndex].managedSql.scripts, baseIndex, 'down')">Move Down</a>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <div class="row-50 noMargin">
+                                    <div class="col">
+                                        <label :for="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts.scriptSource'">Source</label>
+                                        <select v-model="scriptSource.overrides[overrideIndex][baseIndex].base" :disabled="editMode && isDefaultScript(baseScript.sgScript) && baseScript.hasOwnProperty('scriptSpec')" @change="setBaseScriptSource(baseIndex, scriptSource.overrides[overrideIndex], shards.overrides[overrideIndex].managedSql)" :data-field="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts.scriptSource.shards[' + baseIndex + ']'">
+                                            <option value="" selected>Select source script...</option>
+                                            <option v-for="script in sgscripts" v-if="(script.data.metadata.namespace == $route.params.namespace)">
+                                                {{ script.name }}
+                                            </option>
+                                            <template v-if="iCan('create', 'sgscripts', $route.params.namespace)">
+                                                <option value="" disabled>– OR –</option>
+                                                <option value="createNewScript">Create new script</option>
+                                            </template>
+                                        </select>
+                                        <span class="helpTooltip" :data-tooltip="'Determine the source from which the script should be loaded.'"></span>
+                                    </div>
+                                </div>
+
+                                <template v-if="( ( !editMode &&(scriptSource.overrides[overrideIndex][baseIndex].base == 'createNewScript') ) || (editMode && baseScript.hasOwnProperty('scriptSpec')) )">
+                                    <hr/>
+
+                                    <div class="row-50 noMargin">
+                                        <div class="col">
+                                            <label :for="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts.continueOnError'">Continue on Error</label>  
+                                            <label :for="'continueOnError-' + baseIndex" class="switch yes-no" :data-field="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts[' + baseIndex + '].continueOnError'" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                Enable
+                                                <input type="checkbox" :id="'continueOnError-' + baseIndex" v-model="shards.overrides[overrideIndex].managedSql.scripts[baseIndex].scriptSpec.continueOnError" data-switch="NO" :disabled="isDefaultScript(baseScript.sgScript)">
+                                            </label>
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.continueOnError').replace(/true/g, 'Enabled').replace('false','Disabled')"></span>
+                                        </div>
+                                        <div class="col">
+                                            <label :for="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts.managedVersions'">Managed Versions</label>  
+                                            <label :for="'managedVersions-' + baseIndex" class="switch yes-no" :data-field="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts[' + baseIndex + '].managedVersions'" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                Enable
+                                                <input type="checkbox" :id="'managedVersions-' + baseIndex" v-model="shards.overrides[overrideIndex].managedSql.scripts[baseIndex].scriptSpec.managedVersions" data-switch="NO" :disabled="isDefaultScript(baseScript.sgScript)">
+                                            </label>
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.managedVersions').replace(/true/g, 'Enabled')"></span>
+                                        </div>
+                                    </div>
+                            
+                                    <div class="section">
+                                        <fieldset v-for="(script, index) in baseScript.scriptSpec.scripts">
+                                            <div class="header">
+                                                <h5>Script Entry #{{ index+1 }} <template v-if="script.hasOwnProperty('name') && script.name.length">–</template> <span class="scriptTitle">{{ script.name }}</span></h5>
+                                                <div class="addRow" v-if="!isDefaultScript(baseScript.sgScript)">
+                                                    <a @click="spliceArray(baseScript.scriptSpec.scripts, index) && spliceArray(scriptSource.overrides[overrideIndex][baseIndex].entries, index)">Delete Entry</a>
+                                                    <template v-if="index">
+                                                        <span class="separator"></span>
+                                                        <a @click="moveArrayItem(baseScript.scriptSpec.scripts, index, 'up')">Move Up</a>
+                                                    </template>
+                                                    <template  v-if="( (index + 1) != baseScript.scriptSpec.scripts.length)">
+                                                        <span class="separator"></span>
+                                                        <a @click="moveArrayItem(baseScript.scriptSpec.scripts, index, 'down')">Move Down</a>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="row-50">
+                                                    <div class="col" v-if="script.hasOwnProperty('version') && editMode">
+                                                        <label :for="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts.version'">Version</label>
+                                                        <input type="number" v-model="script.version" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].version'" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.version')"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="row-50">                                                
+                                                    <div class="col">
+                                                        <label :for="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts.name'">Name</label>
+                                                        <input v-model="script.name" placeholder="Type a name..." autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].name'" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.name')"></span>
+                                                    </div>
+
+                                                    <div class="col" v-if="script.hasOwnProperty('database') || !isDefaultScript(baseScript.sgScript)">
+                                                        <label :for="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts.database'">Database</label>
+                                                        <input v-model="script.database" placeholder="Type a database name..." autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].database'" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.database')"></span>
+                                                    </div>
+
+                                                    <div class="col" v-if="script.hasOwnProperty('user') || !isDefaultScript(baseScript.sgScript)">
+                                                        <label :for="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts.user'">User</label>
+                                                        <input v-model="script.user" placeholder="Type a user name..." autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].user'" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.user')"></span>
+                                                    </div>
+                                                    
+                                                    <div class="col" v-if="script.hasOwnProperty('wrapInTransaction') || !isDefaultScript(baseScript.sgScript)">
+                                                        <label :for="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts.wrapInTransaction'">Wrap in Transaction</label>
+                                                        <select v-model="script.wrapInTransaction" :data-field="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].wrapInTransaction'" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                            <option :value="nullVal">NONE</option>
+                                                            <option value="read-committed">READ COMMITTED</option>
+                                                            <option value="repeatable-read">REPEATABLE READ</option>
+                                                            <option value="serializable">SERIALIZABLE</option>
+                                                        </select>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.wrapInTransaction')"></span>
+                                                    </div>
+                                                
+                                                    <div class="col" v-if="script.hasOwnProperty('storeStatusInDatabase') || !isDefaultScript(baseScript.sgScript)">
+                                                        <label :for="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts.storeStatusInDatabase'">Store Status in Databases</label>  
+                                                        <label :for="'storeStatusInDatabase[' + baseIndex + '][' + index + ']'" class="switch yes-no" :data-field="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].storeStatusInDatabase'" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                            Enable
+                                                            <input type="checkbox" :id="'storeStatusInDatabase[' + baseIndex + '][' + index + ']'" v-model="script.storeStatusInDatabase" data-switch="NO" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                        </label>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.storeStatusInDatabase')"></span>
+                                                    </div>
+
+                                                    <div class="col">
+                                                        <label :for="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts.retryOnError'">Retry on Error</label>  
+                                                        <label :for="'retryOnError[' + baseIndex + '][' + index + ']'" class="switch yes-no" :data-field="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].retryOnError'" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                            Enable
+                                                            <input type="checkbox" :id="'retryOnError[' + baseIndex + '][' + index + ']'" v-model="script.retryOnError" data-switch="NO" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                        </label>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.scripts.retryOnError')"></span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="row-100">
+                                                    <div class="col">
+                                                        <label :for="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts.scriptSource'">
+                                                            Source
+                                                            <span class="req">*</span>
+                                                        </label>
+                                                        <select v-model="scriptSource.overrides[overrideIndex][baseIndex].entries[index]" @change="setScriptSource(baseIndex, index, scriptSource.overrides[overrideIndex], shards.overrides.managedSql)" :disabled="isDefaultScript(baseScript.sgScript)" :data-field="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].source'" required>
+                                                            <option value="raw">Raw script</option>
+                                                            <option value="secretKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.secretScript')">From Secret</option>
+                                                            <option value="configMapKeyRef" :selected="editMode && hasProp(script, 'scriptFrom.configMapScript')">From ConfigMap</option>
+                                                        </select>
+                                                        <span class="helpTooltip" :data-tooltip="'Determine the source from which the script should be loaded. Possible values are: \n* Raw Script \n* From Secret \n* From ConfigMap.'"></span>
+                                                    </div>
+                                                    <div class="col">                                                
+                                                        <template  v-if="(!editMode && (scriptSource.overrides[overrideIndex][baseIndex].entries[index] == 'raw') ) || (editMode && script.hasOwnProperty('script') )">
+                                                            <label :for="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts.script'" class="script">
+                                                                Script
+                                                                <span class="req">*</span>
+                                                            </label> 
+                                                            <span class="uploadScript" v-if="!editMode">or <a @click="getScriptFile(baseIndex, index)" class="uploadLink">upload a file</a></span> 
+                                                            <input :id="'scriptFile-'+ baseIndex + '-' + index" type="file" @change="uploadScript" class="hide" :disabled="isDefaultScript(baseScript.sgScript)">
+                                                            <textarea v-model="script.script" placeholder="Type a script..." :data-field="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].script'" :disabled="isDefaultScript(baseScript.sgScript)" required></textarea>
+                                                        </template>
+                                                        <template v-else-if="(scriptSource.overrides[overrideIndex][baseIndex].entries[index] != 'raw')">
+                                                            <div class="header">
+                                                                <h3 :for="'spec.shards.overrides.managedSql.scripts.scriptFrom.properties' + scriptSource.overrides[overrideIndex][baseIndex].entries[index]" class="capitalize">
+                                                                    {{ splitUppercase(scriptSource.overrides[overrideIndex][baseIndex].entries[index]) }}
+                                                                    
+                                                                    <span class="helpTooltip" :class="( (scriptSource.overrides[overrideIndex][baseIndex].entries[index] != 'configMapKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.configMapKeyRef')"></span>
+                                                                    <span class="helpTooltip" :class="( (scriptSource.overrides[overrideIndex][baseIndex].entries[index] != 'secretKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.secretKeyRef')"></span>
+                                                                </h3>
+                                                            </div>
+                                                            
+                                                            <div class="row-50">
+                                                                <div class="col">
+                                                                    <label :for="'spec.shards.overrides.managedSql.scripts.scriptFrom.properties.' + scriptSource.overrides[overrideIndex][baseIndex].entries[index] + '.properties.name'">
+                                                                        Name
+                                                                        <span class="req">*</span>
+                                                                    </label>
+                                                                    <input v-model="script.scriptFrom[scriptSource.overrides[overrideIndex][baseIndex].entries[index]].name" placeholder="Type a name.." autocomplete="off" :disabled="isDefaultScript(baseScript.sgScript)" required>
+                                                                    <span class="helpTooltip" :class="( (scriptSource.overrides[overrideIndex][baseIndex].entries[index] != 'configMapKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.configMapKeyRef.properties.name')"></span>
+                                                                    <span class="helpTooltip" :class="( (scriptSource.overrides[overrideIndex][baseIndex].entries[index] != 'secretKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.secretKeyRef.properties.name')"></span>
+                                                                </div>
+
+                                                                <div class="col">
+                                                                    <label :for="'spec.shards.overrides.managedSql.scripts.scriptFrom.properties.' + scriptSource.overrides[overrideIndex][baseIndex].entries[index] + '.properties.key'">
+                                                                        Key
+                                                                        <span class="req">*</span>
+                                                                    </label>
+                                                                    <input v-model="script.scriptFrom[scriptSource.overrides[overrideIndex][baseIndex].entries[index]].key" placeholder="Type a key.." autocomplete="off" :disabled="isDefaultScript(baseScript.sgScript)" required>
+                                                                    <span class="helpTooltip" :class="( (scriptSource.overrides[overrideIndex][baseIndex].entries[index] != 'configMapKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.configMapKeyRef.properties.key')"></span>
+                                                                    <span class="helpTooltip" :class="( (scriptSource.overrides[overrideIndex][baseIndex].entries[index] != 'secretKeyRef') && 'hidden' )" :data-tooltip="getTooltip('sgscript.spec.scripts.scriptFrom.properties.secretKeyRef.properties.key')"></span>
+                                                                </div>
+                                                            </div>
+
+                                                            <template v-if="editMode && (script.scriptFrom.hasOwnProperty('configMapScript'))">
+                                                                <label :for="'spec.shards.overrides.managedSql.scripts.scriptFrom.properties.' + scriptSource.overrides[overrideIndex][baseIndex].entries[index] + '.properties.configMapScript'" class="script">
+                                                                    Script
+                                                                <span class="req">*</span>
+                                                                </label> 
+                                                                <textarea v-model="script.scriptFrom.configMapScript" placeholder="Type a script..." :data-field="'spec.shards.overrides[' + overrideIndex + '].managedSql.scripts[' + baseIndex + '].scriptSpec.scripts[' + index + '].scriptFrom.configMapScript'" :disabled="isDefaultScript(baseScript.sgScript)" required></textarea>
+                                                            </template>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                        <div class="fieldsetFooter" :class="!baseScript.scriptSpec.scripts.length && 'topBorder'" v-if="!isDefaultScript(baseScript.sgScript)">
+                                            <a class="addRow" @click="pushScript(baseIndex, scriptSource.overrides[overrideIndex], shards.overrides[overrideIndex].managedSql)" >Add Entry</a>
+                                        </div>
+                                    </div>
+                                </template>
+                            </fieldset>
+                            <div class="fieldsetFooter" :class="( !shards.overrides[overrideIndex].hasOwnProperty('managedSql') || !shards.overrides[overrideIndex].managedSql.scripts.length ) && 'topBorder'">
+                                <a
+                                    class="addRow"
+                                    @click="pushScriptSet(scriptSource.overrides[overrideIndex], shards.overrides[overrideIndex].managedSql)">
+                                        Add Script
+                                    </a>
+                            </div>
+                            
+                            <br/><br/>
+                            
+                            <div v-if="shards.overrides[overrideIndex].hasOwnProperty('managedSql') && hasScripts(shards.overrides[overrideIndex].managedSql.scripts, scriptSource.overrides[overrideIndex])" class="row row-50 noMargin">
+                                <div class="col">
+                                    <label :for="'spec.shards.overrides[' + overrideIndex + '].managedSql.continueOnSGScriptError'">Continue on SGScripts Error</label>  
+                                    <label for="continueOnSGScriptError" class="switch yes-no" :data-field="'spec.shards.overrides[' + overrideIndex + '].managedSql.continueOnSGScriptError'">
+                                        Enable
+                                        <input type="checkbox" id="continueOnSGScriptError" v-model="shards.overrides[overrideIndex].managedSql.continueOnSGScriptError" data-switch="NO">
+                                    </label>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.managedSql.continueOnSGScriptError').replace(/true/g, 'Enabled').replace('false','Disabled')"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset v-if="(currentStep.overrides == 'pods')" class="step active" :data-fieldset="'shards.overrides[' + overrideIndex + '].pods'">
+                    <div class="header">
+                        <h2>User-Supplied Pods Sidecars</h2>
+                    </div>
+
+                    <div class="fields">
+                        <div class="header">
+                            <h3 for="spec.shards.overrides.pods.customVolumes">
+                                Custom Volumes
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes')"></span>
+                            </h3>
+                        </div>
+                        <p>List of volumes that can be mounted by custom containers belonging to the pod</p>
+
+                        <br/>
+                        
+                        <div class="repeater">
+                            <fieldset
+                                class="noPaddingBottom"
+                                v-if="(shards.overrides[overrideIndex].pods.hasOwnProperty('customVolumes') && shards.overrides[overrideIndex].pods.customVolumes.length)"
+                                :data-fieldset="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes'"
+                            >
+                                <template v-for="(vol, index) in shards.overrides[overrideIndex].pods.customVolumes">
+                                    <div class="section" :key="index">
+                                        <div class="header">
+                                            <h4>Volume #{{ index + 1 }}{{ !isNull(vol.name) ? (': ' + vol.name) : '' }}</h4>
+                                            <a class="addRow delete" @click="spliceArray(shards.overrides[overrideIndex].pods.customVolumes, index); spliceArray(customVolumesType.overrides[overrideIndex], index)">Delete</a>
+                                        </div>
+                                                        
+                                        <div class="row-50">
+                                            <div class="col">
+                                                <label>Name</label>
+                                                <input :required="(customVolumesType.overrides[overrideIndex][index] !== null)" v-model="vol.name" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes[' + index + '].name'">
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes.name')"></span>
+                                            </div>
+                                            
+                                            <div class="col">
+                                                <label>Type</label>
+                                                <select v-model="customVolumesType.overrides[overrideIndex][index]" @change="initCustomVolume(index, shards.overrides[overrideIndex].pods.customVolumes, customVolumesType.overrides[overrideIndex])" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes[' + index + '].type'">
+                                                    <option :value="null" selected>Choose one...</option>
+                                                    <option value="emptyDir">Empty Directory</option>
+                                                    <option value="configMap">ConfigMap</option>
+                                                    <option value="secret">Secret</option>
+                                                </select>
+                                                <span class="helpTooltip" data-tooltip="Specifies the type of volume to be used"></span>
+                                            </div>
+                                        </div>
+
+                                        <template v-if="(customVolumesType.overrides[overrideIndex][index] == 'emptyDir')">
+                                            <div class="header">
+                                                <h5 for="spec.shards.overrides.pods.customVolumes.emptyDir">
+                                                    Empty Directory
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes.emptyDir')"></span>
+                                                </h5>
+                                            </div>
+                                            <div class="row-50">
+                                                <div class="col">
+                                                    <label>Medium</label>
+                                                    <input v-model="vol.emptyDir.medium" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes[' + index + '].emptyDir.medium'">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes.emptyDir.properties.medium')"></span>
+                                                </div>
+                                                <div class="col">
+                                                    <label>Size Limit</label>
+                                                    <input v-model="vol.emptyDir.sizeLimit" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes[' + index + '].emptyDir.sizeLimit'">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes.emptyDir.properties.sizeLimit')"></span>
+                                                </div>
+                                            </div>
+
+                                        </template>
+                                        <template v-else-if="(customVolumesType.overrides[overrideIndex][index] == 'configMap')">
+                                            <div class="header">
+                                                <h5 for="spec.shards.overrides.pods.customVolumes.configMap">
+                                                    ConfigMap
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes.configMap')"></span>
+                                                </h5>
+                                            </div>
+                                            <div class="row-50">
+                                                <div class="col">
+                                                    <label>Name</label>
+                                                    <input v-model="vol.configMap.name" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes[' + index + '].configMap.name'">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes.configMap.properties.name')"></span>
+                                                </div>
+                                                <div class="col">                    
+                                                    <label :for="'spec.shards.overrides.pods.customVolumes[' + index + '].configMap.optional'">
+                                                        Optional
+                                                    </label>  
+                                                    <label :for="'spec.shards.overrides.pods.customVolumes[' + index + '].configMap.optional'" class="switch yes-no">
+                                                        Enable
+                                                        <input type="checkbox" :id="'spec.shards.overrides.pods.customVolumes[' + index + '].configMap.optional'" v-model="vol.configMap.optional" data-switch="NO" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes[' + index + '].configMap.optional'">
+                                                    </label>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes.configMap.properties.optional')"></span>
+                                                </div>
+                                                <div class="col">
+                                                    <label>Default Mode</label>
+                                                    <input type="number" v-model="vol.configMap.defaultMode" min="0" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes[' + index + '].configMap.defaultMode'">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes.configMap.properties.defaultMode')"></span>
+                                                </div>
+                                            </div>
+
+                                            <br/><br/>
+                                            <div class="header">
+                                                <h6 for="spec.shards.overrides.pods.customVolumes.configMap.items">
+                                                    Items
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes.configMap.properties.items')"></span>
+                                                </h6>
+                                            </div>
+                                            <fieldset
+                                                class="noMargin"
+                                                :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes[' + index + '].configMap.items'"
+                                                v-if="vol.configMap.items.length"
+                                            >
+                                                <template v-for="(item, itemIndex) in vol.configMap.items">
+                                                    <div class="section" :key="itemIndex" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes[' + index + '].configMap.items[' + itemIndex + ']'">
+                                                        <div class="header">
+                                                            <h4>Item #{{ itemIndex + 1 }}</h4>
+                                                            <a class="addRow delete" @click="spliceArray(vol.configMap.items, itemIndex)">Delete</a>
+                                                        </div>
+                                                                        
+                                                        <div class="row-50">
+                                                            <div class="col">
+                                                                <label>Key</label>
+                                                                <input :required="!isNull(vol.name)" v-model="item.key" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes[' + index + '].configMap.items[' + itemIndex + '].key'">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes.configMap.properties.items.items.properties.key')"></span>
+                                                            </div>
+                                                            <div class="col">
+                                                                <label>Mode</label>
+                                                                <input type="number" v-model="item.mode" min="0" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes[' + index + '].configMap.items[' + itemIndex + '].mode'">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes.configMap.properties.items.items.properties.mode')"></span>
+                                                            </div>
+                                                            <div class="col">
+                                                                <label>Path</label>
+                                                                <input :required="!isNull(vol.name)" v-model="item.path" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes[' + index + '].configMap.items[' + itemIndex + '].path'">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes.configMap.properties.items.items.properties.path')"></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                            </fieldset>
+                                            <div class="fieldsetFooter" :class="!vol.configMap.items.length && 'topBorder'">
+                                                <a
+                                                    class="addRow"
+                                                    @click="vol.configMap.items.push({
+                                                        key: null,
+                                                        mode: null,
+                                                        path: null,
+                                                    })"
+                                                >
+                                                    Add Item
+                                                </a>
+                                            </div>
+                                        </template>
+
+                                        <template v-else-if="(customVolumesType.overrides[overrideIndex][index] == 'secret')">
+                                            <div class="header">
+                                                <h5 for="spec.shards.overrides.pods.customVolumes.secret">
+                                                    Secret
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes.secret')"></span>
+                                                </h5>
+                                            </div>
+                                            <div class="row-50">
+                                                <div class="col">
+                                                    <label>Secret Name</label>
+                                                    <input v-model="vol.secret.secretName" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes[' + index + '].secret.secretName'">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes.secret.properties.secretName')"></span>
+                                                </div>
+                                                <div class="col">                    
+                                                    <label :for="'spec.shards.overrides.pods.customVolumes[' + index + '].secret.optional'">
+                                                        Optional
+                                                    </label>  
+                                                    <label :for="'spec.shards.overrides.pods.customVolumes[' + index + '].secret.optional'" class="switch yes-no">
+                                                        Enable
+                                                        <input type="checkbox" :id="'spec.shards.overrides.pods.customVolumes[' + index + '].secret.optional'" v-model="vol.secret.optional" data-switch="NO" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes[' + index + '].secret.optional'">
+                                                    </label>
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes.secret.properties.optional')"></span>
+                                                </div>
+                                                <div class="col">
+                                                    <label>Default Mode</label>
+                                                    <input type="number" v-model="vol.secret.defaultMode" min="0" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes[' + index + '].secret.defaultMode'">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes.secret.properties.defaultMode')"></span>
+                                                </div>
+                                            </div>
+
+                                            <br/><br/>
+                                            <div class="header">
+                                                <h6 for="spec.shards.overrides.pods.customVolumes.secret.items">
+                                                    Items
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes.secret.properties.items')"></span>
+                                                </h6>
+                                            </div>
+                                            <fieldset
+                                                class="noMargin"
+                                                :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes[' + index + '].secret.items'"
+                                                v-if="vol.secret.items.length"
+                                            >
+                                                <template v-for="(item, itemIndex) in vol.secret.items">
+                                                    <div class="section" :key="itemIndex" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes[' + index + '].secret.items[' + itemIndex + ']'">
+                                                        <div class="header">
+                                                            <h4>Item #{{ itemIndex + 1 }}</h4>
+                                                            <a class="addRow delete" @click="spliceArray(vol.secret.items, itemIndex)">Delete</a>
+                                                        </div>
+                                                                        
+                                                        <div class="row-50">
+                                                            <div class="col">
+                                                                <label>Key</label>
+                                                                <input :required="!isNull(vol.name)" v-model="item.key" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes[' + index + '].secret.items[' + itemIndex + '].key'">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes.secret.properties.items.items.properties.key')"></span>
+                                                            </div>
+                                                            <div class="col">
+                                                                <label>Mode</label>
+                                                                <input type="number" v-model="item.mode" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes[' + index + '].secret.items[' + itemIndex + '].mode'">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes.secret.properties.items.items.properties.mode')"></span>
+                                                            </div>
+                                                            <div class="col">
+                                                                <label>Path</label>
+                                                                <input :required="!isNull(vol.name)" v-model="item.path" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customVolumes[' + index + '].secret.items[' + itemIndex + '].path'">
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customVolumes.secret.properties.items.items.properties.path')"></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                            </fieldset>
+                                            <div class="fieldsetFooter" :class="!vol.secret.items.length && 'topBorder'">
+                                                <a
+                                                    class="addRow"
+                                                    @click="vol.secret.items.push({
+                                                        key: '',
+                                                        mode: '',
+                                                        path: '',
+                                                    })"
+                                                >
+                                                    Add Item
+                                                </a>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+                            </fieldset>
+                            <div class="fieldsetFooter" :class="(!shards.overrides[overrideIndex].pods.hasOwnProperty('customVolumes') || (shards.overrides[overrideIndex].pods.hasOwnProperty('customVolumes') && !shards.overrides[overrideIndex].pods.customVolumes.length) ) && 'topBorder'">
+                                <a 
+                                    class="addRow"
+                                    @click="
+                                        customVolumesType.overrides[overrideIndex].push(null);
+                                        (!shards.overrides[overrideIndex].pods.hasOwnProperty('customVolumes') && (shards.overrides[overrideIndex].pods['customVolumes'] = []) );
+                                        shards.overrides[overrideIndex].pods.customVolumes.push({ name: null});
+                                        formHash = (+new Date).toString();
+                                    "
+                                >
+                                    Add Volume
+                                </a>
+                            </div>
+                        </div>
+
+                        <br/><br/><br/>
+
+                        <template v-if="!editMode || (shards.overrides[overrideIndex].pods.hasOwnProperty('customInitContainers') && shards.overrides[overrideIndex].pods.customInitContainers.length)">
+                            <div class="header">
+                                <h3 for="spec.shards.overrides.pods.customInitContainers">
+                                    Custom Init Containers
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers')"></span>
+                                </h3>
+                            </div>
+                            <p>A list of custom application init containers that run within the cluster’s Pods</p>
+
+                            <br/>
+                            
+                            <div class="repeater">
+                                <fieldset
+                                    v-if="shards.overrides[overrideIndex].pods.customInitContainers.length"
+                                    :data-fieldset="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers'"
+                                >
+                                    <template v-for="(container, index) in shards.overrides[overrideIndex].pods.customInitContainers">
+                                        <div class="section" :key="index" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + ']'">
+                                            <div class="header">
+                                                <h4>Init Container #{{ index + 1 }}{{ !isNull(container.name) ? (': ' + container.name) : '' }}</h4>
+                                                <a v-if="!editMode" class="addRow delete" @click="spliceArray(shards.overrides[overrideIndex].pods.customInitContainers, index)">Delete</a>
+                                            </div>
+                                                            
+                                            <div class="row-50">
+                                                <div class="col">
+                                                    <label>Name</label>
+                                                    <input :disabled="editMode" :required="!isNull(container.image) || !isNull(container.imagePullPolicy) || !isNull(container.workingDir)" v-model="container.name" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].name'">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers.name')"></span>
+                                                </div>
+
+                                                <div class="col">
+                                                    <label>Image</label>
+                                                    <input v-model="container.image" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].image'">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers.image')"></span>
+                                                </div>
+
+                                                <div class="col">
+                                                    <label>Image Pull Policy</label>
+                                                    <input :disabled="editMode" v-model="container.imagePullPolicy" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].imagePullPolicy'">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers.imagePullPolicy')"></span>
+                                                </div>
+
+                                                <div class="col">
+                                                    <label>Working Directory</label>
+                                                    <input :disabled="editMode" v-model="container.workingDir" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].workingDir'">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers.workingDir')"></span>
+                                                </div>
+
+                                                <div class="col repeater" v-if="!editMode || container.hasOwnProperty('args')">
+                                                    <fieldset :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].args'">
+                                                        <div class="header" :class="[container.args.length ? 'marginBottom' : 'no-margin' ]">
+                                                            <h5 :for="'spec.shards.overrides.pods.customInitContainers[' + index + '].args'">
+                                                                Arguments
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers.args')"></span> 
+                                                            </h5>
+                                                        </div>
+                                                        <template v-for="(arg, argIndex) in container.args">
+                                                            <div :key="'arg-' + argIndex" class="inputContainer" :class="(container.args.length !== (argIndex + 1)) && 'marginBottom'">
+                                                                <input 
+                                                                    autocomplete="off" 
+                                                                    :disabled="editMode"
+                                                                    :key="'arg-' + argIndex" 
+                                                                    v-model="container.args[argIndex]" 
+                                                                    :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].args[' + argIndex + ']'"
+                                                                >
+                                                                <a v-if="!editMode" class="addRow delete topRight" @click="spliceArray(container.args, argIndex)">Delete</a>
+                                                            </div>
+                                                        </template>
+                                                    </fieldset>
+                                                    <div class="fieldsetFooter" v-if="!editMode">
+                                                        <a class="addRow" @click="container.args.push(null)">Add Argument</a>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col repeater" v-if="!editMode || container.hasOwnProperty('command')">
+                                                    <fieldset :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].command'">
+                                                        <div class="header" :class="[container.command.length ? 'marginBottom' : 'no-margin' ]">
+                                                            <h5 :for="'spec.shards.overrides.pods.customInitContainers[' + index + '].command'">
+                                                                Command
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers.command')"></span> 
+                                                            </h5>
+                                                        </div>
+                                                        <template v-for="(command, commandIndex) in container.command">
+                                                            <div :key="'command-' + commandIndex" class="inputContainer" :class="(container.command.length !== (commandIndex + 1)) && 'marginBottom'">
+                                                                <input 
+                                                                    autocomplete="off" 
+                                                                    :disabled="editMode"
+                                                                    :key="'command-' + commandIndex" 
+                                                                    v-model="container.command[commandIndex]" 
+                                                                    :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].command[' + commandIndex + ']'"
+                                                                >
+                                                                <a v-if="!editMode" class="addRow delete topRight" @click="spliceArray(container.command, commandIndex)">Delete</a>
+                                                            </div>
+                                                        </template>
+                                                    </fieldset>
+                                                    <div class="fieldsetFooter" v-if="!editMode">
+                                                        <a class="addRow" @click="container.command.push(null)">Add Command</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="repeater marginBottom marginTop" v-if="!editMode || container.hasOwnProperty('env')">
+                                                <fieldset :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].env'">
+                                                    <div class="header" :class="!container.env.length && 'noMargin'">
+                                                        <h5 :for="'spec.shards.overrides.pods.customInitContainers[' + index + '].env'">
+                                                            Environment Variables
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers.env')"></span> 
+                                                        </h5>
+                                                    </div>
+                                                    <div class="variable" v-if="container.env.length">
+                                                        <div class="row" v-for="(env, envIndex) in container.env" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].env[' + envIndex + ']'">
+                                                            <label>Name</label>
+                                                            <input :required="!isNull(env.value)" :disabled="editMode" class="label" v-model="env.name" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].env[' + envIndex + '].name'">
+
+                                                            <span class="eqSign"></span>
+
+                                                            <label>Value</label>
+                                                            <input :disabled="editMode" class="labelValue" v-model="env.value" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].env[' + envIndex + '].value'">
+
+                                                            <a v-if="!editMode" class="addRow delete" @click="spliceArray(container.env, envIndex)">Delete</a>
+                                                        </div>
+                                                    </div>
+                                                </fieldset>
+                                                <div class="fieldsetFooter" v-if="!editMode">
+                                                    <a class="addRow" @click="container.env.push({ name: null, value: null})">Add Variable</a>
+                                                </div>
+                                            </div>
+
+                                            <br/>
+                                            
+                                            <template v-if="!editMode || container.hasOwnProperty('ports')">
+                                                <div class="header">
+                                                    <h5>
+                                                        Ports
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers.ports')"></span>
+                                                    </h5>
+                                                </div>
+
+                                                <div class="repeater marginBottom">
+                                                    <fieldset
+                                                        class="noPaddingBottom"
+                                                        :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers.ports'"
+                                                        v-if="container.ports.length"
+                                                    >
+                                                        <div class="section" v-for="(port, portIndex) in container.ports" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].ports[' + portIndex + ']'">
+                                                            <div class="header">
+                                                                <h6>Port #{{ portIndex + 1 }}{{ !isNull(port.name) ? (': ' + port.name) : '' }}</h6>
+                                                                <a v-if="!editMode" class="addRow delete" @click="spliceArray(container.ports, portIndex)">Delete</a>
+                                                            </div>
+
+                                                            <div class="row-50">
+                                                                <div class="col">
+                                                                    <label for="spec.shards.overrides.pods.customInitContainers.ports.name">Name</label>  
+                                                                    <input :disabled="editMode" v-model="port.name" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].ports[' + portIndex + '].name'" autocomplete="off">
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers.ports.items.properties.name')"></span>
+                                                                </div>
+                                                                <div class="col">
+                                                                    <label for="spec.shards.overrides.pods.customInitContainers.ports.hostIP">Host IP</label>  
+                                                                    <input :disabled="editMode" v-model="port.hostIP" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].ports[' + portIndex + '].hostIP'" autocomplete="off">
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers.ports.items.properties.hostIP')"></span>
+                                                                </div>
+                                                                <div class="col">
+                                                                    <label for="spec.shards.overrides.pods.customInitContainers.ports.hostPort">Host Port</label>  
+                                                                    <input :disabled="editMode" type="number" v-model="port.hostPort" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].ports[' + portIndex + '].hostPort'" autocomplete="off">
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers.ports.items.properties.hostPort')"></span>
+                                                                </div>
+                                                                <div class="col">
+                                                                    <label for="spec.shards.overrides.pods.customInitContainers.ports.containerPort">Container Port</label>  
+                                                                    <input :disabled="editMode" type="number" v-model="port.containerPort" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].ports[' + portIndex + '].containerPort'" autocomplete="off">
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers.ports.items.properties.containerPort')"></span>
+                                                                </div>
+                                                                <div class="col">
+                                                                    <label for="spec.shards.overrides.pods.customInitContainers.ports.protocol">Protocol</label>  
+                                                                    <select :disabled="editMode" v-model="port.protocol" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].ports[' + portIndex + '].protocol'">
+                                                                        <option :value="nullVal" selected>Choose one...</option>
+                                                                        <option>TCP</option>
+                                                                        <option>UDP</option>
+                                                                        <option>SCTP</option>
+                                                                    </select>
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers.ports.items.properties.protocol')"></span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </fieldset>
+                                                    <div v-if="!editMode" class="fieldsetFooter" :class="(container.hasOwnProperty('ports') && !container.ports.length) && 'topBorder'">
+                                                        <a class="addRow" @click="!container.hasOwnProperty('ports') && (container['ports'] = []); container.ports.push({
+                                                            name: null,
+                                                            hostIP: null,
+                                                            hostPort: null,
+                                                            containerPort: null,
+                                                            protocol: null
+                                                        })">
+                                                            Add Port
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                <br/>
+                                            </template>
+                                            
+                                            <template v-if="!editMode || container.hasOwnProperty('volumeMounts')">
+                                                <div class="header">
+                                                    <h5>
+                                                        Volume Mounts
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers.volumeMounts')"></span>
+                                                    </h5>
+                                                </div>
+
+                                                <div class="repeater">
+                                                    <fieldset
+                                                        class="noPaddingBottom"
+                                                        :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].volumeMounts'"
+                                                        v-if="container.hasOwnProperty('volumeMounts') && container.volumeMounts.length"
+                                                    >
+                                                        <div class="section" v-for="(mount, mountIndex) in container.volumeMounts" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + ']'">
+                                                            <div class="header">
+                                                                <h6>Mount #{{ mountIndex + 1 }}{{ !isNull(mount.name) ? (': ' + mount.name) : '' }}</h6>
+                                                                <a v-if="!editMode" class="addRow delete" @click="spliceArray(container.volumeMounts, mountIndex)">Delete</a>
+                                                            </div>
+
+                                                            <div class="row-50">
+                                                                <div class="col">
+                                                                    <label for="spec.shards.overrides.pods.customInitContainers.volumeMounts.name">Name</label>  
+                                                                    <input :required="!isNull(mount.mountPath)" :disabled="editMode" v-model="mount.name" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].name'" autocomplete="off">
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers.volumeMounts.items.properties.name')"></span>
+                                                                </div>
+                                                                <div class="col">                    
+                                                                    <label :for="'spec.shards.overrides.pods.customInitContainers[' + index + '].volumeMounts.readOnly'">
+                                                                        Read Only
+                                                                    </label>  
+                                                                    <label :disabled="editMode" :for="'spec.shards.overrides.pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].readOnly'" class="switch yes-no">
+                                                                        Enable
+                                                                        <input :disabled="editMode" type="checkbox" :id="'spec.shards.overrides.pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].readOnly'" v-model="mount.readOnly" data-switch="NO" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].readOnly'">
+                                                                    </label>
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers.volumeMounts.items.properties.readOnly')"></span>
+                                                                </div>
+                                                                <div class="col">
+                                                                    <label for="spec.shards.overrides.pods.customInitContainers.volumeMounts.mountPath">Mount Path</label>  
+                                                                    <input :required="!isNull(mount.name)" :disabled="editMode" v-model="mount.mountPath" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].mountPath'" autocomplete="off">
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers.volumeMounts.items.properties.mountPath')"></span>
+                                                                </div>
+                                                                <div class="col">
+                                                                    <label for="spec.shards.overrides.pods.customInitContainers.volumeMounts.mountPropagation">Mount Propagation</label>  
+                                                                    <input :disabled="editMode" v-model="mount.mountPropagation" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].mountPropagation'" autocomplete="off">
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers.volumeMounts.items.properties.mountPropagation')"></span>
+                                                                </div>
+                                                                <div class="col">
+                                                                    <label for="spec.shards.overrides.pods.customInitContainers.volumeMounts.subPath">Sub Path</label>  
+                                                                    <input :disabled="editMode || (mount.hasOwnProperty('subPathExpr') && !isNull(mount.subPathExpr))" v-model="mount.subPath" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].subPath'" autocomplete="off">
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers.volumeMounts.items.properties.subPath')"></span>
+                                                                </div>
+                                                                <div class="col">
+                                                                    <label for="spec.shards.overrides.pods.customInitContainers.volumeMounts.subPathExpr">Sub Path Expr</label>  
+                                                                    <input :disabled="editMode || (mount.hasOwnProperty('subPath') && !isNull(mount.subPath))" v-model="mount.subPathExpr" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers[' + index + '].volumeMounts[' + mountIndex + '].subPathExpr'" autocomplete="off">
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customInitContainers.volumeMounts.items.properties.subPathExpr')"></span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </fieldset>
+                                                    <div v-if="!editMode" class="fieldsetFooter" :class="(container.hasOwnProperty('volumeMounts') && !container.volumeMounts.length) && 'topBorder'">
+                                                        <a
+                                                            class="addRow"
+                                                            @click="
+                                                                !container.hasOwnProperty('volumeMounts') && (container['volumeMounts'] = []); container.volumeMounts.push({
+                                                                    mountPath: null,
+                                                                    mountPropagation: null,
+                                                                    name: null,
+                                                                    readOnly: false,
+                                                                    subPath: null,
+                                                                    subPathExpr: null
+                                                                });
+                                                                formHash = (+new Date).toString();
+                                                            "
+                                                        >
+                                                            Add Volume
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </fieldset>
+                                <div v-if="!editMode" class="fieldsetFooter" :class="!shards.overrides[overrideIndex].pods.customInitContainers.length && 'topBorder'">
+                                    <a 
+                                        class="addRow"
+                                        @click="shards.overrides[overrideIndex].pods.customInitContainers.push({
+                                            name: null,
+                                            image: null,
+                                            imagePullPolicy: null,
+                                            args: [null],
+                                            command: [null],
+                                            workingDir: null,
+                                            env: [ { name: null, value: null } ],
+                                            ports: [{
+                                                containerPort: null,
+                                                hostIP: null,
+                                                hostPort: null,
+                                                name: null,
+                                                protocol: null
+                                            }],
+                                            volumeMounts: [{
+                                                mountPath: null,
+                                                mountPropagation: null,
+                                                name: null,
+                                                readOnly: false,
+                                                subPath: null,
+                                                subPathExpr: null,
+                                            }]
+                                        })"
+                                    >
+                                        Add Init Container
+                                    </a>
+                                </div>
+                            </div>
+
+                            <br/><br/><br/>
+
+                        </template>
+
+                        <template v-if="!editMode || (shards.overrides[overrideIndex].pods.hasOwnProperty('customContainers') && shards.overrides[overrideIndex].pods.customContainers.length)">
+                            <div class="header">
+                                <h3 for="spec.shards.overrides.pods.customContainers">
+                                    Custom Containers
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers')"></span>
+                                </h3>
+                            </div>
+                            <p>A list of custom application containers that run within the cluster’s Pods</p>
+
+                            <br/>
+                            
+                            <div class="repeater">
+                                <fieldset
+                                    v-if="shards.overrides[overrideIndex].pods.customContainers.length"
+                                    :data-fieldset="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers'"
+                                >
+                                    <template v-for="(container, index) in shards.overrides[overrideIndex].pods.customContainers">
+                                        <div class="section" :key="index" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + ']'">
+                                            <div class="header">
+                                                <h4>Container #{{ index + 1 }}{{ !isNull(container.name) ? (': ' + container.name) : '' }}</h4>
+                                                <a v-if="!editMode" class="addRow delete" @click="spliceArray(shards.overrides[overrideIndex].pods.customContainers, index)">Delete</a>
+                                            </div>
+                                                            
+                                            <div class="row-50">
+                                                <div class="col">
+                                                    <label>Name</label>
+                                                    <input :disabled="editMode" :required="!isNull(container.image) || !isNull(container.imagePullPolicy) || !isNull(container.workingDir)" v-model="container.name" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].name'">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers.name')"></span>
+                                                </div>
+
+                                                <div class="col">
+                                                    <label>Image</label>
+                                                    <input v-model="container.image" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].image'">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers.image')"></span>
+                                                </div>
+
+                                                <div class="col">
+                                                    <label>Image Pull Policy</label>
+                                                    <input :disabled="editMode" v-model="container.imagePullPolicy" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].imagePullPolicy'">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers.imagePullPolicy')"></span>
+                                                </div>
+
+                                                <div class="col">
+                                                    <label>Working Directory</label>
+                                                    <input :disabled="editMode" v-model="container.workingDir" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].workingDir'">
+                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers.workingDir')"></span>
+                                                </div>
+
+                                                <div class="col repeater" v-if="!editMode || container.hasOwnProperty('args')">
+                                                    <fieldset :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].args'">
+                                                        <div class="header" :class="[container.args.length ? 'marginBottom' : 'no-margin' ]">
+                                                            <h5 :for="'spec.shards.overrides.pods.customContainers[' + index + '].args'">
+                                                                Arguments
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers.args')"></span> 
+                                                            </h5>
+                                                        </div>
+                                                        <template v-for="(arg, argIndex) in container.args">
+                                                            <div :key="'arg-' + argIndex" class="inputContainer" :class="(container.args.length !== (argIndex + 1)) && 'marginBottom'">
+                                                                <input 
+                                                                    autocomplete="off" 
+                                                                    :disabled="editMode"
+                                                                    :key="'arg-' + argIndex" 
+                                                                    v-model="container.args[argIndex]" 
+                                                                    :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].args[' + argIndex + ']'"
+                                                                >
+                                                                <a v-if="!editMode" class="addRow delete topRight" @click="spliceArray(container.args, argIndex)">Delete</a>
+                                                            </div>
+                                                        </template>
+                                                    </fieldset>
+                                                    <div class="fieldsetFooter" v-if="!editMode">
+                                                        <a class="addRow" @click="container.args.push(null)">Add Argument</a>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col repeater" v-if="!editMode || container.hasOwnProperty('command')">
+                                                    <fieldset :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].command'">
+                                                        <div class="header" :class="[container.command.length ? 'marginBottom' : 'no-margin' ]">
+                                                            <h5 :for="'spec.shards.overrides.pods.customContainers[' + index + '].command'">
+                                                                Command
+                                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers.command')"></span> 
+                                                            </h5>
+                                                        </div>
+                                                        <template v-for="(command, commandIndex) in container.command">
+                                                            <div :key="'command-' + commandIndex" class="inputContainer" :class="(container.command.length !== (commandIndex + 1)) && 'marginBottom'">
+                                                                <input 
+                                                                    autocomplete="off" 
+                                                                    :disabled="editMode"
+                                                                    :key="'command-' + commandIndex" 
+                                                                    v-model="container.command[commandIndex]" 
+                                                                    :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].command[' + commandIndex + ']'"
+                                                                >
+                                                                <a v-if="!editMode" class="addRow delete topRight" @click="spliceArray(container.command, commandIndex)">Delete</a>
+                                                            </div>
+                                                        </template>
+                                                    </fieldset>
+                                                    <div class="fieldsetFooter" v-if="!editMode">
+                                                        <a class="addRow" @click="container.command.push(null)">Add Command</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="repeater marginBottom marginTop" v-if="!editMode || container.hasOwnProperty('env')">
+                                                <fieldset :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].env'">
+                                                    <div class="header" :class="!container.env.length && 'noMargin'">
+                                                        <h5 :for="'spec.shards.overrides.pods.customContainers[' + index + '].env'">
+                                                            Environment Variables
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers.env')"></span> 
+                                                        </h5>
+                                                    </div>
+                                                    <div class="variable" v-if="container.env.length">
+                                                        <div class="row" v-for="(env, envIndex) in container.env" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].env[' + envIndex + ']'">
+                                                            <label>Name</label>
+                                                            <input :required="!isNull(env.value)" :disabled="editMode" class="label" v-model="env.name" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].env[' + envIndex + '].name'">
+
+                                                            <span class="eqSign"></span>
+
+                                                            <label>Value</label>
+                                                            <input :disabled="editMode" class="labelValue" v-model="env.value" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].env[' + envIndex + '].value'">
+
+                                                            <a v-if="!editMode" class="addRow delete" @click="spliceArray(container.env, envIndex)">Delete</a>
+                                                        </div>
+                                                    </div>
+                                                </fieldset>
+                                                <div class="fieldsetFooter" v-if="!editMode">
+                                                    <a class="addRow" @click="container.env.push({ name: null, value: null})">Add Variable</a>
+                                                </div>
+                                            </div>
+
+                                            <br/>
+                                            
+                                            <template v-if="!editMode || container.hasOwnProperty('ports')">
+                                                <div class="header">
+                                                    <h5>
+                                                        Ports
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers.ports')"></span>
+                                                    </h5>
+                                                </div>
+
+                                                <div class="repeater marginBottom">
+                                                    <fieldset
+                                                        class="noPaddingBottom"
+                                                        :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers.ports'"
+                                                        v-if="container.ports.length"
+                                                    >
+                                                        <div class="section" v-for="(port, portIndex) in container.ports" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].ports[' + portIndex + ']'">
+                                                            <div class="header">
+                                                                <h6>Port #{{ portIndex + 1 }}{{ !isNull(port.name) ? (': ' + port.name) : '' }}</h6>
+                                                                <a v-if="!editMode" class="addRow delete" @click="spliceArray(container.ports, portIndex)">Delete</a>
+                                                            </div>
+
+                                                            <div class="row-50">
+                                                                <div class="col">
+                                                                    <label for="spec.shards.overrides.pods.customContainers.ports.name">Name</label>  
+                                                                    <input :disabled="editMode" v-model="port.name" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].ports[' + portIndex + '].name'" autocomplete="off">
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers.ports.items.properties.name')"></span>
+                                                                </div>
+                                                                <div class="col">
+                                                                    <label for="spec.shards.overrides.pods.customContainers.ports.hostIP">Host IP</label>  
+                                                                    <input :disabled="editMode" v-model="port.hostIP" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].ports[' + portIndex + '].hostIP'" autocomplete="off">
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers.ports.items.properties.hostIP')"></span>
+                                                                </div>
+                                                                <div class="col">
+                                                                    <label for="spec.shards.overrides.pods.customContainers.ports.hostPort">Host Port</label>  
+                                                                    <input :disabled="editMode" type="number" v-model="port.hostPort" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].ports[' + portIndex + '].hostPort'" autocomplete="off">
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers.ports.items.properties.hostPort')"></span>
+                                                                </div>
+                                                                <div class="col">
+                                                                    <label for="spec.shards.overrides.pods.customContainers.ports.containerPort">Container Port</label>  
+                                                                    <input :disabled="editMode" type="number" v-model="port.containerPort" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].ports[' + portIndex + '].containerPort'" autocomplete="off">
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers.ports.items.properties.containerPort')"></span>
+                                                                </div>
+                                                                <div class="col">
+                                                                    <label for="spec.shards.overrides.pods.customContainers.ports.protocol">Protocol</label>  
+                                                                    <select :disabled="editMode" v-model="port.protocol" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].ports[' + portIndex + '].protocol'">
+                                                                        <option :value="nullVal" selected>Choose one...</option>
+                                                                        <option>TCP</option>
+                                                                        <option>UDP</option>
+                                                                        <option>SCTP</option>
+                                                                    </select>
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers.ports.items.properties.protocol')"></span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </fieldset>
+                                                    <div v-if="!editMode" class="fieldsetFooter" :class="(container.hasOwnProperty('ports') && !container.ports.length) && 'topBorder'">
+                                                        <a class="addRow" @click="!container.hasOwnProperty('ports') && (container['ports'] = []); container.ports.push({
+                                                            name: null,
+                                                            hostIP: null,
+                                                            hostPort: null,
+                                                            containerPort: null,
+                                                            protocol: null
+                                                        })">
+                                                            Add Port
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                <br/>
+                                            </template>
+                                            
+                                            <template v-if="!editMode || container.hasOwnProperty('volumeMounts')">
+                                                <div class="header">
+                                                    <h5>
+                                                        Volume Mounts
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers.volumeMounts')"></span>
+                                                    </h5>
+                                                </div>
+
+                                                <div class="repeater">
+                                                    <fieldset
+                                                        class="noPaddingBottom"
+                                                        :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].volumeMounts'"
+                                                        v-if="container.hasOwnProperty('volumeMounts') && container.volumeMounts.length"
+                                                    >
+                                                        <div class="section" v-for="(mount, mountIndex) in container.volumeMounts" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].volumeMounts[' + mountIndex + ']'">
+                                                            <div class="header">
+                                                                <h6>Mount #{{ mountIndex + 1 }}{{ !isNull(mount.name) ? (': ' + mount.name) : '' }}</h6>
+                                                                <a v-if="!editMode" class="addRow delete" @click="spliceArray(container.volumeMounts, mountIndex)">Delete</a>
+                                                            </div>
+
+                                                            <div class="row-50">
+                                                                <div class="col">
+                                                                    <label for="spec.shards.overrides.pods.customContainers.volumeMounts.name">Name</label>  
+                                                                    <input :required="!isNull(mount.mountPath)" :disabled="editMode" v-model="mount.name" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].name'" autocomplete="off">
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers.volumeMounts.items.properties.name')"></span>
+                                                                </div>
+                                                                <div class="col">                    
+                                                                    <label :for="'spec.shards.overrides.pods.customContainers[' + index + '].volumeMounts.readOnly'">
+                                                                        Read Only
+                                                                    </label>  
+                                                                    <label :disabled="editMode" :for="'spec.shards.overrides.pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].readOnly'" class="switch yes-no">
+                                                                        Enable
+                                                                        <input :disabled="editMode" type="checkbox" :id="'spec.shards.overrides.pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].readOnly'" v-model="mount.readOnly" data-switch="NO" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].readOnly'">
+                                                                    </label>
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers.volumeMounts.items.properties.readOnly')"></span>
+                                                                </div>
+                                                                <div class="col">
+                                                                    <label for="spec.shards.overrides.pods.customContainers.volumeMounts.mountPath">Mount Path</label>  
+                                                                    <input :required="!isNull(mount.name)" :disabled="editMode" v-model="mount.mountPath" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].mountPath'" autocomplete="off">
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers.volumeMounts.items.properties.mountPath')"></span>
+                                                                </div>
+                                                                <div class="col">
+                                                                    <label for="spec.shards.overrides.pods.customContainers.volumeMounts.mountPropagation">Mount Propagation</label>  
+                                                                    <input :disabled="editMode" v-model="mount.mountPropagation" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].mountPropagation'" autocomplete="off">
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers.volumeMounts.items.properties.mountPropagation')"></span>
+                                                                </div>
+                                                                <div class="col">
+                                                                    <label for="spec.shards.overrides.pods.customContainers.volumeMounts.subPath">Sub Path</label>  
+                                                                    <input :disabled="editMode || (mount.hasOwnProperty('subPathExpr') && !isNull(mount.subPathExpr))" v-model="mount.subPath" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].subPath'" autocomplete="off">
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers.volumeMounts.items.properties.subPath')"></span>
+                                                                </div>
+                                                                <div class="col">
+                                                                    <label for="spec.shards.overrides.pods.customContainers.volumeMounts.subPathExpr">Sub Path Expr</label>  
+                                                                    <input :disabled="editMode || (mount.hasOwnProperty('subPath') && !isNull(mount.subPath))" v-model="mount.subPathExpr" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers[' + index + '].volumeMounts[' + mountIndex + '].subPathExpr'" autocomplete="off">
+                                                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.customContainers.volumeMounts.items.properties.subPathExpr')"></span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </fieldset>
+                                                    <div v-if="!editMode" class="fieldsetFooter" :class="(container.hasOwnProperty('volumeMounts') && !container.volumeMounts.length) && 'topBorder'">
+                                                        <a
+                                                            class="addRow"
+                                                            @click="
+                                                                !container.hasOwnProperty('volumeMounts') && (container['volumeMounts'] = []); container.volumeMounts.push({
+                                                                    mountPath: null,
+                                                                    mountPropagation: null,
+                                                                    name: null,
+                                                                    readOnly: false,
+                                                                    subPath: null,
+                                                                    subPathExpr: null
+                                                                });
+                                                                formHash = (+new Date).toString();
+                                                            "
+                                                        >
+                                                            Add Volume
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </template>
+                                </fieldset>
+                                <div v-if="!editMode" class="fieldsetFooter" :class="!shards.overrides[overrideIndex].pods.customContainers.length && 'topBorder'">
+                                    <a 
+                                        class="addRow"
+                                        @click="shards.overrides[overrideIndex].pods.customContainers.push({
+                                            name: null,
+                                            image: null,
+                                            imagePullPolicy: null,
+                                            args: [null],
+                                            command: [null],
+                                            workingDir: null,
+                                            env: [ { name: null, value: null } ],
+                                            ports: [{
+                                                containerPort: null,
+                                                hostIP: null,
+                                                hostPort: null,
+                                                name: null,
+                                                protocol: null
+                                            }],
+                                            volumeMounts: [{
+                                                mountPath: null,
+                                                mountPropagation: null,
+                                                name: null,
+                                                readOnly: false,
+                                                subPath: null,
+                                                subPathExpr: null,
+                                            }]
+                                        })"
+                                    >
+                                        Add Container
+                                    </a>
+                                </div>
+                            </div>
+
+                            <br/><br/><br/>
+
+                        </template>
+                    </div>
+                </fieldset>
+
+                <fieldset v-if="(currentStep.overrides == 'pods-replication')" class="step active" :data-fieldset="'shards.overrides[' + overrideIndex + '].pods-replication'">
+                    <div class="header">
+                        <h2>Replication</h2>
+                    </div>
+
+                    <div class="fields">                    
+                        <div class="row-50">
+                            <div class="col">
+                                <label for="spec.shards.overrides.replication.mode">Mode</label>
+                                <select v-model="shards.overrides[overrideIndex].replication.mode" required :data-field="'spec.shards.overrides[' + overrideIndex + '].replication.mode'" @change="['sync', 'strict-sync'].includes(shards.overrides[overrideIndex].replication.mode) ? (shards.overrides[overrideIndex].replication['syncInstances'] = 1) : ((shards.overrides[overrideIndex].replication.hasOwnProperty('syncInstances') && delete shards.overrides[overrideIndex].replication.syncInstances) )">    
+                                    <option>async</option>
+                                    <option>sync</option>
+                                    <option>strict-sync</option>
+                                    <option>sync-all</option>
+                                    <option>strict-sync-all</option>
+                                </select>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.replication.mode')"></span>
+                            </div>
+
+                            <div class="col" v-if="['sync', 'strict-sync'].includes(shards.overrides[overrideIndex].replication.mode)">
+                                <label for="spec.shards.overrides.replication.syncInstances">Sync Instances</label>
+                                <input type="number" min="1" :max="(shards.overrides[overrideIndex].instancesPerCluster - 1)" v-model="shards.overrides[overrideIndex].replication.syncInstances" :data-field="'spec.shards.overrides[' + overrideIndex + '].replication.syncInstances'">
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.replication.syncInstances')"></span>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset v-if="(currentStep.overrides == 'services')" class="step active" :data-fieldset="'shards.overrides[' + overrideIndex + '].services'">
+                    <div class="header">
+                        <h2>Customize generated Kubernetes service</h2>
+                    </div>
+
+                    <div class="fields">                    
+                        <div class="header">
+                            <h3 for="spec.postgresServices.shards.overrides.primaries">
+                                Primaries Service
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.postgresServices.shards.overrides.primaries')"></span>
+                            </h3>
+                        </div>
+                        
+                        <div class="row-50">
+                            <div class="col">
+                                <label for="spec.postgresServices.shards.overrides.primaries.enabled">Service</label>  
+                                <label for="postgresServicesPrimaries" class="switch yes-no" data-field="spec.postgresServices.shards.overrides.primaries.enabled">Enable<input type="checkbox" id="postgresServicesPrimaries" v-model="postgresServices.shards.overrides.primaries.enabled" data-switch="YES"></label>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.postgresServices.shards.overrides.primaries.enabled')"></span>
+                            </div>
+
+                            <div class="col">
+                                <label for="spec.postgresServices.shards.overrides.primaries.type">Type</label>
+                                <select v-model="postgresServices.shards.overrides.primaries.type" required data-field="spec.postgresServices.shards.overrides.primaries.type">    
+                                    <option>ClusterIP</option>
+                                    <option>LoadBalancer</option>
+                                    <option>NodePort</option>
+                                </select>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.postgresServices.shards.overrides.primaries.type')"></span>
+                            </div>
+
+                            <div class="col">
+                                <label>Load Balancer IP</label>
+                                <input 
+                                    v-model="postgresServices.shards.overrides.primaries.loadBalancerIP" 
+                                    autocomplete="off" 
+                                    data-field="spec.postgresServices.shards.overrides.primaries.loadBalancerIP">
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.postgresServices.shards.overrides.primaries.loadBalancerIP')"></span>
+                            </div>
+                        </div>
+
+                        <div class="repeater sidecars">
+                            <div class="header">
+                                <h4 for="spec.postgresServices.shards.overrides.customPorts">
+                                    Custom Ports
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.postgresServices.shards.overrides.customPorts')"></span>
+                                </h4>
+                            </div>
+                            <fieldset
+                                data-field="spec.postgresServices.shards.overrides.customPorts"
+                                v-if="postgresServices.shards.overrides.hasOwnProperty('customPorts') && postgresServices.shards.overrides.customPorts.length"
+                            >
+                                <div class="section" v-for="(port, index) in postgresServices.shards.overrides.customPorts">
+                                    <div class="header">
+                                        <h5>Port #{{ index + 1 }}</h5>
+                                        <a class="addRow delete" @click="spliceArray(postgresServices.shards.overrides.customPorts, index)">Delete</a>
+                                    </div>
+
+                                    <div class="row-50">
+                                        <div class="col">
+                                            <label for="spec.postgresServices.shards.overrides.customPorts.appProtocol">Application Protocol</label>  
+                                            <input v-model="port.appProtocol" :data-field="'spec.postgresServices.shards.overrides.customPorts[' + index + '].appProtocol'" autocomplete="off">
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.postgresServices.shards.overrides.customPorts.appProtocol')"></span>
+                                        </div>
+                                        <div class="col">
+                                            <label for="spec.postgresServices.shards.overrides.customPorts.name">Name</label>  
+                                            <input v-model="port.name" :data-field="'spec.postgresServices.shards.overrides.customPorts[' + index + '].name'" autocomplete="off">
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.postgresServices.shards.overrides.customPorts.name')"></span>
+                                        </div>
+                                        <div class="col">
+                                            <label for="spec.postgresServices.shards.overrides.customPorts.nodePort">Node Port</label>  
+                                            <input type="number" v-model="port.nodePort" :data-field="'spec.postgresServices.shards.overrides.customPorts[' + index + '].nodePort'" autocomplete="off">
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.postgresServices.shards.overrides.customPorts.nodePort')"></span>
+                                        </div>
+                                        <div class="col">
+                                            <label for="spec.postgresServices.shards.overrides.customPorts.port">Port</label>  
+                                            <input 
+                                                type="number"
+                                                v-model="port.port"
+                                                :data-field="'spec.postgresServices.shards.overrides.customPorts[' + index + '].port'"
+                                                :required="(port.appProtocol != null) || (port.name != null) || (port.nodePort != null) || (port.protocol != null) || (port.targetPort != null)"
+                                                autocomplete="off"
+                                            >
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.postgresServices.shards.overrides.customPorts.port')"></span>
+                                        </div>
+                                        <div class="col">
+                                            <label for="spec.postgresServices.shards.overrides.customPorts.protocol">Protocol</label>  
+                                            <select v-model="port.protocol" :data-field="'spec.postgresServices.shards.overrides.customPorts[' + index + '].protocol'">
+                                                <option :value="nullVal" selected>Choose one...</option>
+                                                <option>TCP</option>
+                                                <option>UDP</option>
+                                                <option>SCTP</option>
+                                            </select>
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.postgresServices.shards.overrides.customPorts.protocol')"></span>
+                                        </div>
+                                        <div class="col">
+                                            <label for="spec.postgresServices.shards.overrides.customPorts.targetPort">Target Port</label>  
+                                            <input v-model="port.targetPort" :data-field="'spec.postgresServices.shards.overrides.customPorts[' + index + '].targetPort'" autocomplete="off">
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.postgresServices.shards.overrides.customPorts.targetPort')"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <div class="fieldsetFooter" :class="(postgresServices.shards.overrides.hasOwnProperty('customPorts') && !postgresServices.shards.overrides.customPorts.length) && 'topBorder'">
+                                <a class="addRow" @click="!postgresServices.shards.overrides.hasOwnProperty('customPorts') && (postgresServices.shards['customPorts'] = []); postgresServices.shards.overrides.customPorts.push({
+                                    appProtocol: null,
+                                    name: null,
+                                    nodePort: null,
+                                    port: null,
+                                    protocol: null,
+                                    targetPort: null
+                                })">
+                                    Add Port
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset v-if="(currentStep.overrides == 'metadata')"  class="step active podsMetadata" :data-fieldset="'shards.overrides[' + overrideIndex + '].metadata'">
+                    <div class="header">
+                        <h2>Metadata</h2>
+                    </div>
+
+                    <div class="fields">
+                        <div class="repeater">
+                            <div class="header">
+                                <h3 for="spec.shards.overrides.metadata.labels">
+                                    Labels
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.metadata.labels')"></span> 
+                                </h3>
+                            </div>
+
+                            <fieldset :data-field="'spec.shards.overrides[' + overrideIndex + '].metadata.labels.clusterPods'">
+                                <div class="header" :class="( !hasProp(shards.overrides[overrideIndex], 'metadata.labels.clusterPods') || !shards.overrides[overrideIndex].metadata.labels.clusterPods.length ) && 'noMargin noPadding'">
+                                    <h3 for="spec.shards.overrides.metadata.labels.clusterPods">
+                                        Cluster Pods
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.metadata.labels.clusterPods')"></span> 
+                                    </h3>
+                                </div>
+                                <div class="metadata" v-if="hasProp(shards.overrides[overrideIndex], 'metadata.labels.clusterPods') && shards.overrides[overrideIndex].metadata.labels.clusterPods.length">
+                                    <div class="row" v-for="(field, index) in shards.overrides[overrideIndex].metadata.labels.clusterPods">
+                                        <label>Label</label>
+                                        <input class="label" v-model="field.label" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].metadata.labels.clusterPods[' + index + '].label'">
+
+                                        <span class="eqSign"></span>
+
+                                        <label>Value</label>
+                                        <input class="labelValue" v-model="field.value" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].metadata.labels.clusterPods[' + index + '].value'">
+
+                                        <a class="addRow" @click="spliceArray(shards.overrides[overrideIndex].metadata.labels.clusterPods, index)">Delete</a>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <div class="fieldsetFooter">
+                                <a class="addRow" @click="pushElement(shards.overrides[overrideIndex], 'metadata.labels.clusterPods', { label: '', value: ''})">Add Label</a>
+                            </div>
+                        </div>
+
+                        <br/><hr/><br/>
+
+                        
+                        <div class="header">
+                            <h3 for="spec.shards.overrides.metadata.annotations">
+                                Annotations
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.metadata.annotations')"></span>
+                            </h3>
+                        </div>
+
+                        <div class="repeater">
+                            <fieldset :data-field="'spec.shards.overrides[' + overrideIndex + '].metadata.annotations.allResources'">
+                                <div class="header" :class="(!hasProp(shards.overrides[overrideIndex], 'metadata.annotations.allResources') || !shards.overrides[overrideIndex].metadata.annotations.allResources.length) && 'noMargin noPadding'">
+                                    <h3 for="spec.shards.overrides.metadata.annotations.allResources">
+                                        All Resources
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.metadata.annotations.allResources')"></span>
+                                    </h3>
+                                </div>
+                                <div class="annotation" v-if="(hasProp(shards.overrides[overrideIndex], 'metadata.annotations.allResources') && shards.overrides[overrideIndex].metadata.annotations.allResources.length)">
+                                    <div class="row" v-for="(field, index) in shards.overrides[overrideIndex].metadata.annotations.allResources">
+                                        <label>Annotation</label>
+                                        <input class="annotation" v-model="field.annotation" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].metadata.annotations.allResources[' + index + '].annotation'">
+
+                                        <span class="eqSign"></span>
+
+                                        <label>Value</label>
+                                        <input class="annotationValue" v-model="field.value" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].metadata.annotations.allResources[' + index + '].value'">
+
+                                        <a class="addRow" @click="spliceArray(shards.overrides[overrideIndex].metadata.annotations.allResources, index)">Delete</a>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <div class="fieldsetFooter">
+                                <a class="addRow" @click="pushElement(shards.overrides[overrideIndex], 'metadata.annotations.allResources', { label: '', value: ''})">Add Annotation</a>
+                            </div>
+                        </div>
+                        
+                        <br/><br/>
+
+                        <div class="repeater">
+                            <fieldset :data-field="'spec.shards.overrides[' + overrideIndex + '].metadata.annotations.clusterPods'">
+                                <div class="header" :class="(!hasProp(shards.overrides[overrideIndex], 'metadata.annotations.clusterPods') || !shards.overrides[overrideIndex].metadata.annotations.clusterPods.length) && 'noMargin noPadding'">
+                                    <h3 for="spec.shards.overrides.metadata.annotations.clusterPods">
+                                        Cluster Pods
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.metadata.annotations.clusterPods')"></span>
+                                    </h3>
+                                </div>
+                                <div class="annotation" v-if="(hasProp(shards.overrides[overrideIndex], 'metadata.annotations.clusterPods') && shards.overrides[overrideIndex].metadata.annotations.clusterPods.length)">
+                                    <div class="row" v-for="(field, index) in shards.overrides[overrideIndex].metadata.annotations.clusterPods">
+                                        <label>Annotation</label>
+                                        <input class="annotation" v-model="field.annotation" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].metadata.annotations.clusterPods[' + index + '].annotation'">
+
+                                        <span class="eqSign"></span>
+
+                                        <label>Value</label>
+                                        <input class="annotationValue" v-model="field.value" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].metadata.annotations.clusterPods[' + index + '].value'">
+
+                                        <a class="addRow" @click="spliceArray(shards.overrides[overrideIndex].metadata.annotations.clusterPods, index)">Delete</a>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <div class="fieldsetFooter">
+                                <a class="addRow" @click="pushElement(shards.overrides[overrideIndex], 'metadata.annotations.clusterPods', { label: '', value: ''})">Add Annotation</a>
+                            </div>
+                        </div>
+
+                        <br/><br/>
+
+                        <div class="repeater">
+                            <fieldset :data-field="'spec.shards.overrides[' + overrideIndex + '].metadata.annotations.services'">
+                                <div class="header" :class="(!hasProp(shards.overrides[overrideIndex], 'metadata.annotations.services') || !shards.overrides[overrideIndex].metadata.annotations.services.length) && 'noMargin noPadding'">
+                                    <h3 for="spec.shards.overrides.metadata.annotations.services">
+                                        Services
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.metadata.annotations.services')"></span>
+                                    </h3>
+                                </div>
+                                <div class="annotation" v-if="(hasProp(shards.overrides[overrideIndex], 'metadata.annotations.services') && shards.overrides[overrideIndex].metadata.annotations.services.length)">
+                                    <div class="row" v-for="(field, index) in shards.overrides[overrideIndex].metadata.annotations.services">
+                                        <label>Annotation</label>
+                                        <input class="annotation" v-model="field.annotation" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].metadata.annotations.services[' + index + '].annotation'">
+
+                                        <span class="eqSign"></span>
+
+                                        <label>Value</label>
+                                        <input class="annotationValue" v-model="field.value" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].metadata.annotations.services[' + index + '].value'">
+
+                                        <a class="addRow" @click="spliceArray(shards.overrides[overrideIndex].metadata.annotations.services, index)">Delete</a>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <div class="fieldsetFooter">
+                                <a class="addRow" @click="pushElement(shards.overrides[overrideIndex], 'metadata.annotations.services', { label: '', value: ''})">Add Annotation</a>
+                            </div>
+                        </div>
+
+                        <br/><br/>
+
+                        <div class="repeater">
+                            <fieldset :data-field="'spec.shards.overrides[' + overrideIndex + '].metadata.annotations.primaryService'">
+                                <div class="header" :class="(!hasProp(shards.overrides[overrideIndex], 'metadata.annotations.primaryService') || !shards.overrides[overrideIndex].metadata.annotations.primaryService.length) && 'noMargin noPadding'">
+                                    <h3 for="spec.shards.overrides.metadata.annotations.primaryService">
+                                        Primary Service 
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.metadata.annotations.primaryService')"></span>
+                                    </h3>
+                                </div>
+                                <div class="annotation" v-if="(hasProp(shards.overrides[overrideIndex], 'metadata.annotations.primaryService') && shards.overrides[overrideIndex].metadata.annotations.primaryService.length)">
+                                    <div class="row" v-for="(field, index) in shards.overrides[overrideIndex].metadata.annotations.primaryService">
+                                        <label>Annotation</label>
+                                        <input class="annotation" v-model="field.annotation" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].metadata.annotations.primaryService[' + index + '].annotation'">
+
+                                        <span class="eqSign"></span>
+
+                                        <label>Value</label>
+                                        <input class="annotationValue" v-model="field.value" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].metadata.annotations.primaryService[' + index + '].value'">
+
+                                        <a class="addRow" @click="spliceArray(shards.overrides[overrideIndex].metadata.annotations.primaryService, index)">Delete</a>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <div class="fieldsetFooter">
+                                <a class="addRow" @click="pushElement(shards.overrides[overrideIndex], 'metadata.annotations.primaryService', { label: '', value: ''})">Add Annotation</a>
+                            </div>
+                        </div>
+
+                        <br/><br/>
+
+                        <div class="repeater">
+                            <fieldset :data-field="'spec.shards.overrides[' + overrideIndex + '].metadata.annotations.replicasService'">
+                                <div class="header" :class="(!hasProp(shards.overrides[overrideIndex], 'metadata.annotations.replicasService') || !shards.overrides[overrideIndex].metadata.annotations.replicasService.length) && 'noMargin noPadding'">
+                                    <h3 for="spec.shards.overrides.metadata.annotations.replicasService">
+                                        Replicas Service
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.metadata.annotations.replicasService')"></span>
+                                    </h3>
+                                </div>
+                                <div class="annotation repeater" v-if="(hasProp(shards.overrides[overrideIndex], 'metadata.annotations.replicasService') && shards.overrides[overrideIndex].metadata.annotations.replicasService.length)">
+                                    <div class="row" v-for="(field, index) in shards.overrides[overrideIndex].metadata.annotations.replicasService">
+                                        <label>Annotation</label>
+                                        <input class="annotation" v-model="field.annotation" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].metadata.annotations.replicasService[' + index + '].annotation'">
+
+                                        <span class="eqSign"></span>
+
+                                        <label>Value</label>
+                                        <input class="annotationValue" v-model="field.value" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].metadata.annotations.replicasService[' + index + '].value'">
+
+                                        <a class="addRow" @click="spliceArray(shards.overrides[overrideIndex].metadata.annotations.replicasService, index)">Delete</a>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <div class="fieldsetFooter">
+                                <a class="addRow" @click="pushElement(shards.overrides[overrideIndex], 'metadata.annotations.replicasService', { label: '', value: ''})">Add Annotation</a>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset v-if="(currentStep.overrides == 'scheduling')" class="step active podsMetadata" id="podsSchedulingShards" :data-fieldset="'shards.overrides[' + overrideIndex + '].scheduling'">
+                    <div class="header">
+                        <h2>Pods Scheduling</h2>
+                    </div>
+                    
+                    <div class="fields">
+                        <div class="repeater">
+                            <div class="header">
+                                <h3 for="spec.shards.overrides.pods.scheduling.nodeSelector">
+                                    Node Selectors
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeSelector')"></span>
+                                </h3>
+                            </div>
+                            <fieldset v-if="(hasProp(shards.overrides[overrideIndex], 'pods.scheduling.nodeSelector') && shards.overrides[overrideIndex].pods.scheduling.nodeSelector.length)" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.nodeSelector'">
+                                <div class="scheduling">
+                                    <div class="row" v-for="(field, index) in shards.overrides[overrideIndex].pods.scheduling.nodeSelector">
+                                        <label>Label</label>
+                                        <input class="label" v-model="field.label" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.nodeSelector[' + index + '].label'">
+
+                                        <span class="eqSign"></span>
+
+                                        <label>Value</label>
+                                        <input class="labelValue" v-model="field.value" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.nodeSelector[' + index + '].value'">
+                                        
+                                        <a class="addRow" @click="spliceArray(shards.overrides[overrideIndex].pods.scheduling.nodeSelector, index)">Delete</a>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <div class="fieldsetFooter" :class="( (!hasProp(shards.overrides[overrideIndex], 'pods.scheduling.nodeSelector') || !shards.overrides[overrideIndex].pods.scheduling.nodeSelector.length) && 'topBorder' )">
+                                <a class="addRow" @click="pushElement(shards.overrides[overrideIndex], 'pods.scheduling.nodeSelector', { label: '', value: ''})">Add Node Selector</a>
+                            </div>
+                        </div>
+
+                        <br/><br/>
+                    
+                        <div class="header">
+                            <h3 for="spec.shards.overrides.pods.scheduling.tolerations">
+                                Node Tolerations
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.tolerations')"></span>
+                            </h3>
+                        </div>
+                
+                        <div class="scheduling repeater">
+                            <fieldset v-if="(hasProp(shards.overrides[overrideIndex], 'pods.scheduling.tolerations') && shards.overrides[overrideIndex].pods.scheduling.tolerations.length)" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.tolerations'">
+                                <div class="section" v-for="(field, index) in shards.overrides[overrideIndex].pods.scheduling.tolerations">
+                                    <div class="header">
+                                        <h4 for="spec.shards.overrides.pods.scheduling.tolerations">Toleration #{{ index+1 }}</h4>
+                                        <a class="addRow del" @click="spliceArray(shards.overrides[overrideIndex].pods.scheduling.tolerations, index)">Delete</a>
+                                    </div>
+
+                                    <div class="row-50">
+                                        <div class="col">
+                                            <label :for="'spec.shards.overrides.pods.scheduling.tolerations[' + index + '].key'">Key</label>
+                                            <input v-model="field.key" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.tolerations[' + index + '].key'">
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.tolerations.key')"></span>
+                                        </div>
+                                        
+                                        <div class="col">
+                                            <label :for="'spec.shards.overrides.pods.scheduling.tolerations[' + index + '].operator'">Operator</label>
+                                            <select v-model="field.operator" @change="( (field.operator == 'Exists') ? (delete field.value) : (field.value = '') )" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.tolerations[' + index + '].operator'">
+                                                <option>Equal</option>
+                                                <option>Exists</option>
+                                            </select>
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.tolerations.operator')"></span>
+                                        </div>
+
+                                        <div class="col" v-if="field.operator == 'Equal'">
+                                            <label :for="'spec.shards.overrides.pods.scheduling.tolerations[' + index + '].value'">Value</label>
+                                            <input v-model="field.value" :disabled="(field.operator == 'Exists')" autocomplete="off" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.tolerations[' + index + '].value'">
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.tolerations.value')"></span>
+                                        </div>
+
+                                        <div class="col">
+                                            <label :for="'spec.shards.overrides.pods.scheduling.tolerations[' + index + '].operator'">Effect</label>
+                                            <select v-model="field.effect" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.tolerations[' + index + '].effect'">
+                                                <option :value="nullVal">MatchAll</option>
+                                                <option>NoSchedule</option>
+                                                <option>PreferNoSchedule</option>
+                                                <option>NoExecute</option>
+                                            </select>
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.tolerations.effect')"></span>
+                                        </div>
+
+                                        <div class="col" v-if="field.effect == 'NoExecute'">
+                                            <label :for="'spec.shards.overrides.pods.scheduling.tolerations[' + index + '].tolerationSeconds'">Toleration Seconds</label>
+                                            <input type="number" min="0" v-model="field.tolerationSeconds" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.tolerations[' + index + '].tolerationSeconds'">
+                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.tolerations.tolerationSeconds')"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <div class="fieldsetFooter" :class="( (!hasProp(shards.overrides[overrideIndex], 'pods.scheduling.tolerations') || !shards.overrides[overrideIndex].pods.scheduling.tolerations.length) && 'topBorder')">
+                                <a class="addRow" @click="pushElement(shards.overrides[overrideIndex], 'pods.scheduling.tolerations', { key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null })">Add Toleration</a>
+                            </div>
+                        </div>
+
+                        <br/><br/><br/>
+
+                        <div class="header">
+                            <h3 for="spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution">
+                                Node Affinity: <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution')"></span><br>
+                                <span class="normal">Required During Scheduling Ignored During Execution</span>
+                            </h3>                            
+                        </div>
+
+                        <br/><br/>
+                        
+                        <div class="scheduling repeater">
+                            <div class="header">
+                                <h4 for="spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms">
+                                    Node Selector Terms
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms')"></span>
+                                </h4>
+                            </div>
+                            <fieldset v-if="(hasProp(shards.overrides[overrideIndex], 'pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms') && shards.overrides[overrideIndex].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.length)">
+                                <div class="section" v-for="(requiredAffinityTerm, termIndex) in shards.overrides[overrideIndex].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms">
+                                    <div class="header">
+                                        <h5>Term #{{ termIndex + 1 }}</h5>
+                                        <a class="addRow" @click="spliceArray(shards.overrides[overrideIndex].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms, termIndex)">Delete</a>
+                                    </div>
+                                    <fieldset class="affinityMatch noMargin">
+                                        <div class="header">
+                                            <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions">
+                                                Match Expressions
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions')"></span> 
+                                            </label>
+                                        </div>
+                                        <fieldset v-if="requiredAffinityTerm.matchExpressions.length">
+                                            <div class="section" v-for="(expression, expIndex) in requiredAffinityTerm.matchExpressions">
+                                                <div class="header">
+                                                    <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items">
+                                                        Match Expression #{{ expIndex + 1 }}
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items')"></span> 
+                                                    </label>
+                                                    <a class="addRow" @click="spliceArray(requiredAffinityTerm.matchExpressions, expIndex)">Delete</a>
+                                                </div>
+                                                
+                                                <div class="row-50">
+                                                    <div class="col">
+                                                        <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.key">Key</label>
+                                                        <input v-model="expression.key" autocomplete="off" placeholder="Type a key..." :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.key'">
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.key')"></span> 
+                                                    </div>
+
+                                                    <div class="col">
+                                                        <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator">Operator</label>
+                                                        <select v-model="expression.operator" :required="expression.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(expression.operator) ? delete expression.values : ( !expression.hasOwnProperty('values') && (expression['values'] = ['']) ) )" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator'">
+                                                            <option value="" selected>Select an operator</option>
+                                                            <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
+                                                        </select>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator')"></span> 
+                                                    </div>
+                                                </div>
+
+                                                <fieldset v-if="expression.hasOwnProperty('values') && expression.values.length && !['', 'Exists', 'DoesNotExists'].includes(expression.operator)" :class="(['Gt', 'Lt'].includes(expression.operator)) && 'noRepeater'" class="affinityValues noMargin">
+                                                    <div class="header">
+                                                        <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.values">
+                                                            {{ !['Gt', 'Lt'].includes(expression.operator) ? 'Values' : 'Value' }}
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.values')"></span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="row affinityValues" v-for="(value, valIndex) in expression.values">
+                                                        <label v-if="!['Gt', 'Lt'].includes(expression.operator)">
+                                                            Value #{{ (valIndex + 1) }}
+                                                        </label>
+                                                        <input v-model="expression.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="expression.key.length > 0" :type="['Gt', 'Lt'].includes(expression.operator) && 'number'" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.values'">
+                                                        <a class="addRow" @click="spliceArray(expression.values, valIndex)" v-if="!['Gt', 'Lt'].includes(expression.operator)">Delete</a>
+                                                    </div>
+                                                </fieldset>
+                                                <div class="fieldsetFooter" v-if="['In', 'NotIn'].includes(expression.operator)" :class="!expression.values.length && 'topBorder'">
+                                                    <a class="addRow" @click="expression.values.push('')">Add Value</a>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </fieldset>
+                                    <div class="fieldsetFooter" :class="!requiredAffinityTerm.matchExpressions.length && 'topBorder'">
+                                        <a class="addRow" @click="addNodeSelectorRequirement(requiredAffinityTerm.matchExpressions)">Add Expression</a>
+                                    </div>
+
+                                    <fieldset class="affinityMatch noMargin">
+                                        <div class="header">
+                                            <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields">
+                                                Match Fields
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields')"></span> 
+                                            </label>
+                                        </div>
+                                        <fieldset v-if="requiredAffinityTerm.matchFields.length">
+                                            <div class="section" v-for="(field, fieldIndex) in requiredAffinityTerm.matchFields">
+                                                <div class="header">
+                                                    <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items">
+                                                        Match Field #{{ fieldIndex + 1 }}
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items')"></span> 
+                                                    </label>
+                                                    <a class="addRow" @click="spliceArray(requiredAffinityTerm.matchFields, fieldIndex)">Delete</a>
+                                                </div>
+                                                
+                                                <div class="row-50">
+                                                    <div class="col">
+                                                        <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.key">Key</label>
+                                                        <input v-model="field.key" autocomplete="off" placeholder="Type a key..." :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.key'">
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.key')"></span> 
+                                                    </div>
+
+                                                    <div class="col">
+                                                        <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.operator">Operator</label>
+                                                        <select v-model="field.operator" :required="field.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(field.operator) ? delete field.values : ( !field.hasOwnProperty('values') && (field['values'] = ['']) ) )" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.operator'">
+                                                            <option value="" selected>Select an operator</option>
+                                                            <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
+                                                        </select>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.operator')"></span>
+                                                    </div>
+                                                </div>
+
+                                                <fieldset v-if="field.hasOwnProperty('values') && field.values.length && !['', 'Exists', 'DoesNotExists'].includes(field.operator)" :class="(['Gt', 'Lt'].includes(field.operator)) && 'noRepeater'" class="affinityValues noMargin">
+                                                    <div class="header">
+                                                        <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.values">
+                                                            {{ !['Gt', 'Lt'].includes(field.operator) ? 'Values' : 'Value' }}
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.values')"></span> 
+                                                        </label>
+                                                    </div>
+                                                    <div class="row affinityValues" v-for="(value, valIndex) in field.values">
+                                                        <label v-if="!['Gt', 'Lt'].includes(field.operator)">
+                                                            Value #{{ (valIndex + 1) }}
+                                                        </label>
+                                                        <input v-model="field.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="field.key.length > 0" :type="['Gt', 'Lt'].includes(field.operator) && 'number'" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchFields.items.properties.values'">
+                                                        <a class="addRow" @click="spliceArray(field.values, valIndex)" v-if="!['Gt', 'Lt'].includes(field.operator)">Delete</a>
+                                                    </div>
+                                                </fieldset>
+                                                <div class="fieldsetFooter" v-if="['In', 'NotIn'].includes(field.operator)" :class="!field.values.length && 'topBorder'">
+                                                    <a class="addRow" @click="field.values.push('')">Add Value</a>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </fieldset>
+                                    <div class="fieldsetFooter" :class="!requiredAffinityTerm.matchFields.length && 'topBorder'">
+                                        <a class="addRow" @click="addNodeSelectorRequirement(requiredAffinityTerm.matchFields)">Add Field</a>
+                                    </div>
+                                </div>
+                            </fieldset>
+                            <div class="fieldsetFooter" :class="( (!hasProp(shards.overrides[overrideIndex], 'pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms') || !shards.overrides[overrideIndex].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.length) && 'topBorder' )">
+                                <a class="addRow" @click="addRequiredAffinityTerm(shards.overrides[overrideIndex], 'pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms')">Add Term</a>
+                            </div>
+                        </div>
+
+                        <br/><br/>
+                    
+                        <div class="header">
+                            <h3 for="spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution">
+                                Node Affinity: <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution')"></span><br>
+                                <span class="normal">Preferred During Scheduling Ignored During Execution</span>
+                            </h3>
+                        </div>
+
+                        <br/><br/>
+
+                        <div class="scheduling repeater">
+                            <div class="header">
+                                <h4 for="spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items">
+                                    Node Selector Terms
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items')"></span> 
+                                </h4>
+                            </div>
+                            <fieldset v-if="(hasProp(shards.overrides[overrideIndex], 'pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution') && shards.overrides[overrideIndex].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.length)">
+                                <div class="section" v-for="(preferredAffinityTerm, termIndex) in shards.overrides[overrideIndex].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution">
+                                    <div class="header">
+                                        <h5>Term #{{ termIndex + 1 }}</h5>
+                                        <a class="addRow" @click="spliceArray(shards.overrides[overrideIndex].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution, termIndex)">Delete</a>
+                                    </div>
+                                    <fieldset class="affinityMatch noMargin">
+                                        <div class="header">
+                                            <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions">
+                                                Match Expressions
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions')"></span>
+                                            </label>
+                                        </div>
+                                        <fieldset v-if="preferredAffinityTerm.preference.matchExpressions.length">
+                                            <div class="section" v-for="(expression, expIndex) in preferredAffinityTerm.preference.matchExpressions">
+                                                <div class="header">
+                                                    <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items">
+                                                        Match Expression #{{ expIndex + 1 }}
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items')"></span>
+                                                    </label>
+                                                    <a class="addRow" @click="spliceArray(preferredAffinityTerm.preference.matchExpressions, expIndex)">Delete</a>
+                                                </div>
+
+                                                <div class="row-50">
+                                                    <div class="col">
+                                                        <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.key">Key</label>
+                                                        <input v-model="expression.key" autocomplete="off" placeholder="Type a key..." :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.key'">
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.key')"></span>
+                                                    </div>
+
+                                                    <div class="col">
+                                                        <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.operator">Operator</label>
+                                                        <select v-model="expression.operator" :required="expression.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(expression.operator) ? delete expression.values : ( (!expression.hasOwnProperty('values') || (expression.values.length > 1) ) && (expression['values'] = ['']) ) )" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.operator'">
+                                                            <option value="" selected>Select an operator</option>
+                                                            <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
+                                                        </select>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.operator')"></span>
+                                                    </div>
+                                                </div>
+
+                                                <fieldset v-if="expression.hasOwnProperty('values') && expression.values.length && !['', 'Exists', 'DoesNotExists'].includes(expression.operator)" :class="(['Gt', 'Lt'].includes(expression.operator)) && 'noRepeater'" class="affinityValues noMargin">
+                                                    <div class="header">
+                                                        <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.values">
+                                                            {{ !['Gt', 'Lt'].includes(expression.operator) ? 'Values' : 'Value' }}
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.values')"></span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="row affinityValues" v-for="(value, valIndex) in expression.values">
+                                                        <label v-if="!['Gt', 'Lt'].includes(expression.operator)">
+                                                            Value #{{ (valIndex + 1) }}
+                                                        </label>
+                                                        <input v-model="expression.values[valIndex]" autocomplete="off" placeholder="Type a value..." :preferred="expression.key.length > 0" :type="['Gt', 'Lt'].includes(expression.operator) && 'number'" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.values'">
+                                                        <a class="addRow" @click="spliceArray(expression.values, valIndex)" v-if="!['Gt', 'Lt'].includes(expression.operator)">Delete</a>
+                                                    </div>
+                                                </fieldset>
+                                                <div class="fieldsetFooter" v-if="['In', 'NotIn'].includes(expression.operator)" :class="!expression.values.length && 'topBorder'">
+                                                    <a class="addRow" @click="expression.values.push('')">Add Value</a>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </fieldset>
+                                    <div class="fieldsetFooter" :class="!preferredAffinityTerm.preference.matchExpressions.length && 'topBorder'">
+                                        <a class="addRow" @click="addNodeSelectorRequirement(preferredAffinityTerm.preference.matchExpressions)">Add Expression</a>
+                                    </div>
+
+                                    <fieldset class="affinityMatch noMargin">
+                                        <div class="header">
+                                            <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields">
+                                                Match Fields
+                                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields')"></span>
+                                            </label>
+                                        </div>
+                                        <fieldset v-if="preferredAffinityTerm.preference.matchFields.length">
+                                            <div class="section" v-for="(field, fieldIndex) in preferredAffinityTerm.preference.matchFields">
+                                                <div class="header">
+                                                    <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items">
+                                                        Match Field #{{ fieldIndex + 1 }}
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items')"></span>
+                                                    </label>
+                                                    <a class="addRow" @click="spliceArray(preferredAffinityTerm.preference.matchFields, fieldIndex)">Delete</a>
+                                                </div>
+
+                                                <div class="row-50">
+                                                    <div class="col">
+                                                        <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.key">Key</label>
+                                                        <input v-model="field.key" autocomplete="off" placeholder="Type a key..." :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.key'">
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.key')"></span>
+                                                    </div>
+
+                                                    <div class="col">
+                                                        <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.operator">Operator</label>
+                                                        <select v-model="field.operator" :required="field.key.length > 0" @change="(['Exists', 'DoesNotExists'].includes(field.operator) ? delete field.values : ( (!field.hasOwnProperty('values') || (field.values.length > 1) ) && (field['values'] = ['']) ) )" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.operator'">
+                                                            <option value="" selected>Select an operator</option>
+                                                            <option v-for="op in affinityOperators" :value="op.value">{{ op.label }}</option>
+                                                        </select>
+                                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.operator')"></span>
+                                                    </div>
+                                                </div>
+
+                                                <fieldset v-if="field.hasOwnProperty('values') && field.values.length && !['', 'Exists', 'DoesNotExists'].includes(field.operator)" :class="(['Gt', 'Lt'].includes(field.operator)) && 'noRepeater'" class="affinityValues noMargin">
+                                                    <div class="header">
+                                                        <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.values">
+                                                            {{ !['Gt', 'Lt'].includes(field.operator) ? 'Values' : 'Value' }}
+                                                            <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.values')"></span> 
+                                                        </label>
+                                                    </div>
+                                                    <div class="row affinityValues" v-for="(value, valIndex) in field.values">
+                                                        <label v-if="!['Gt', 'Lt'].includes(field.operator)">
+                                                            Value #{{ (valIndex + 1) }}
+                                                        </label>
+                                                        <input v-model="field.values[valIndex]" autocomplete="off" placeholder="Type a value..." :required="field.key.length > 0" :type="['Gt', 'Lt'].includes(field.operator) && 'number'" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchFields.items.properties.values'">
+                                                        <a class="addRow" @click="spliceArray(field.values, valIndex)" v-if="!['Gt', 'Lt'].includes(field.operator)">Delete</a>
+                                                    </div>
+                                                </fieldset>
+                                                <div class="fieldsetFooter" v-if="['In', 'NotIn'].includes(field.operator)" :class="!field.values.length && 'topBorder'">
+                                                    <a class="addRow" @click="field.values.push('')">Add Value</a>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </fieldset>
+                                    <div class="fieldsetFooter" :class="!preferredAffinityTerm.preference.matchFields.length && 'topBorder'">
+                                        <a class="addRow" @click="addNodeSelectorRequirement(preferredAffinityTerm.preference.matchFields)">Add Field</a>
+                                    </div>
+
+                                    <label for="spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight">Weight</label>
+                                    <input v-model="preferredAffinityTerm.weight" autocomplete="off" type="number" min="1" max="100" class="affinityWeight" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight'">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.weight')"></span>
+                                </div>
+                            </fieldset>
+                            <div class="fieldsetFooter" :class="!preferredAffinity.length && 'topBorder'">
+                                <a class="addRow" @click="addPreferredAffinityTerm(shards.overrides[overrideIndex], 'pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution')">Add Term</a>
+                            </div>
+                        </div>
+
+                        <span class="warning" v-if="editMode">Please, be aware that any changes made to the <code>Pods Scheduling</code> will require a <a href="https://stackgres.io/doc/latest/install/restart/" target="_blank">restart operation</a> on every instance of the cluster</span>
+                    </div>
+                </fieldset>
+            </template>
+
             <div class="clearfix"></div>
 
             <hr/>
@@ -4814,22 +6952,25 @@
             const vc = this;
 
             return {
-                formSections: ['general', 'coordinator', 'shards'],
+                formSections: ['general', 'coordinator', 'shards', 'overrides'],
                 currentSection: 'general',
                 formSteps: {
                     general: ['cluster', 'extensions', 'backups', 'sidecars', 'pods-replication', 'metadata', 'non-production'],
                     coordinator: ['coordinator', 'sidecars', 'scripts', 'pods', 'pods-replication', 'services', 'metadata', 'scheduling'],
-                    shards: ['shards', 'sidecars', 'scripts', 'pods', 'pods-replication', 'services', 'metadata', 'scheduling']
+                    shards: ['shards', 'sidecars', 'scripts', 'pods', 'pods-replication', 'services', 'metadata', 'scheduling'],
+                    overrides: ['shards', 'sidecars', 'scripts', 'pods', 'pods-replication', 'metadata', 'scheduling']
                 },
                 currentStep: {
                     general: 'cluster',
                     coordinator: 'coordinator',
                     shards: 'shards',
+                    overrides: 'shards',
                 },
                 basicSteps: {
                     general: 3,
                     coordinator: 2,
                     shards: 2,
+                    overrides: 2,
                 },
                 editMode: (vc.$route.name === 'EditShardedCluster'),
                 editReady: false,
@@ -5141,6 +7282,7 @@
                             },
                         }
                     },
+                    overrides: [],
                 },
                 scriptSource: {
                     coordinator: [ 
@@ -5149,15 +7291,19 @@
                     shards: [ 
                         { base: '', entries: ['raw'] }
                     ],
+                    overrides: []
                 },
                 currentScriptIndex: {
                     coordinator: { base: 0, entry: 0 },
-                    shards: { base: 0, entry: 0 }
+                    shards: { base: 0, entry: 0 },
+                    overrides: [{ base: 0, entry: 0 }]
                 },
                 customVolumesType: {
                     coordinator: [null], 
-                    shards: [null]
+                    shards: [null],
+                    overrides: [[null]]
                 },
+                overrideIndex: 0,
             }
 
         },
@@ -5171,142 +7317,253 @@
             cluster() {
 
                 var vm = this;
-                var cluster = {};
+                let c = {};
                 
                 if( vm.editMode && !vm.editReady ) {
-                    store.state.sgshardedclusters.forEach(function( c ){
-                        if( (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace) ) {
-                            vm.database = c.data.spec.database;
-                            vm.shardingType = c.data.spec.type;
+                    let cluster = store.state.sgshardedclusters.find(( c ) => (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace));
+                    if( typeof cluster !== 'undefined' ) {
+                        c = JSON.parse(JSON.stringify(cluster));
+                        vm.database = c.data.spec.database;
+                        vm.shardingType = c.data.spec.type;
 
-                            vm.managedBackups = vm.hasProp(c, 'data.spec.configurations.backups') && c.data.spec.configurations.backups.length;
-                            if (vm.managedBackups) {
-                                vm.backups = c.data.spec.configurations.backups;
-                                let cronScheduleSplit = vm.tzCrontab(vm.backups[0].cronSchedule, true).split(' ');
-                                vm.cronSchedule[0].ref = {};
-                                vm.cronSchedule[0].ref.value = vm.backups[0].cronSchedule;
-                                vm.cronSchedule[0].ref.min = cronScheduleSplit[0];
-                                vm.cronSchedule[0].ref.hour = cronScheduleSplit[1];
-                                vm.cronSchedule[0].ref.dom = cronScheduleSplit[2];
-                                vm.cronSchedule[0].ref.month = cronScheduleSplit[3];
-                                vm.cronSchedule[0].ref.dow = cronScheduleSplit[4];
-                                vm.cronSchedule[0].min = cronScheduleSplit[0];
-                                vm.cronSchedule[0].hour = cronScheduleSplit[1];
-                                vm.cronSchedule[0].dom = cronScheduleSplit[2];
-                                vm.cronSchedule[0].month = cronScheduleSplit[3];
-                                vm.cronSchedule[0].dow = cronScheduleSplit[4];
+                        vm.managedBackups = vm.hasProp(c, 'data.spec.configurations.backups') && c.data.spec.configurations.backups.length;
+                        if (vm.managedBackups) {
+                            vm.backups = c.data.spec.configurations.backups;
+                            let cronScheduleSplit = vm.tzCrontab(vm.backups[0].cronSchedule, true).split(' ');
+                            vm.cronSchedule[0].ref = {};
+                            vm.cronSchedule[0].ref.value = vm.backups[0].cronSchedule;
+                            vm.cronSchedule[0].ref.min = cronScheduleSplit[0];
+                            vm.cronSchedule[0].ref.hour = cronScheduleSplit[1];
+                            vm.cronSchedule[0].ref.dom = cronScheduleSplit[2];
+                            vm.cronSchedule[0].ref.month = cronScheduleSplit[3];
+                            vm.cronSchedule[0].ref.dow = cronScheduleSplit[4];
+                            vm.cronSchedule[0].min = cronScheduleSplit[0];
+                            vm.cronSchedule[0].hour = cronScheduleSplit[1];
+                            vm.cronSchedule[0].dom = cronScheduleSplit[2];
+                            vm.cronSchedule[0].month = cronScheduleSplit[3];
+                            vm.cronSchedule[0].dow = cronScheduleSplit[4];
 
-                                if(!c.data.spec.configurations.backups[0].hasOwnProperty('performance')) {
-                                    vm.backups[0].performance = {
-                                        maxNetworkBandwidth: '',
-                                        maxDiskBandwidth: '',
-                                        uploadDiskConcurrency: 1
-                                    }
+                            if(!c.data.spec.configurations.backups[0].hasOwnProperty('performance')) {
+                                vm.backups[0].performance = {
+                                    maxNetworkBandwidth: '',
+                                    maxDiskBandwidth: '',
+                                    uploadDiskConcurrency: 1
                                 }
                             }
+                        }
 
-                            vm.distributedLogs = (typeof c.data.spec.distributedLogs !== 'undefined') ? c.data.spec.distributedLogs.sgDistributedLogs : '';
-                            vm.retention = vm.hasProp(c, 'data.spec.distributedLogs.retention') ? c.data.spec.distributedLogs.retention : ''; 
-                            vm.replication = vm.hasProp(c, 'data.spec.replication') && c.data.spec.replication;
-                            vm.prometheusAutobind =  (typeof c.data.spec.prometheusAutobind !== 'undefined') ? c.data.spec.prometheusAutobind : false;
-                            vm.enableClusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? !c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : true;
-                            vm.babelfishFeatureGates = vm.hasProp(c, 'data.spec.nonProductionOptions.enabledFeatureGates') && c.data.spec.nonProductionOptions.enabledFeatureGates.includes('babelfish-flavor');
-                            
-                            vm.podsMetadata = vm.hasProp(c, 'data.spec.metadata.labels.clusterPods') ? vm.unparseProps(c.data.spec.metadata.labels.clusterPods, 'label') : [];
-                            vm.annotationsAll = vm.hasProp(c, 'data.spec.metadata.annotations.allResources') ? vm.unparseProps(c.data.spec.metadata.annotations.allResources) : [];
-                            vm.annotationsPods = vm.hasProp(c, 'data.spec.metadata.annotations.clusterPods') ? vm.unparseProps(c.data.spec.metadata.annotations.clusterPods) : [];
-                            vm.annotationsServices = vm.hasProp(c, 'data.spec.metadata.annotations.services') ? vm.unparseProps(c.data.spec.metadata.annotations.services) : [];
-                            vm.postgresServicesPrimaryAnnotations = vm.hasProp(c, 'data.spec.metadata.annotations.primaryService') ?  vm.unparseProps(c.data.spec.metadata.annotations.primaryService) : [];
-                            vm.postgresServicesReplicasAnnotations = vm.hasProp(c, 'data.spec.metadata.annotations.replicasService') ?  vm.unparseProps(c.data.spec.metadata.annotations.replicasService) : [];
-                            vm.postgresServices = vm.hasProp(c, 'data.spec.postgresServices') && c.data.spec.postgresServices;
+                        vm.distributedLogs = (typeof c.data.spec.distributedLogs !== 'undefined') ? c.data.spec.distributedLogs.sgDistributedLogs : '';
+                        vm.retention = vm.hasProp(c, 'data.spec.distributedLogs.retention') ? c.data.spec.distributedLogs.retention : ''; 
+                        vm.replication = vm.hasProp(c, 'data.spec.replication') && c.data.spec.replication;
+                        vm.prometheusAutobind =  (typeof c.data.spec.prometheusAutobind !== 'undefined') ? c.data.spec.prometheusAutobind : false;
+                        vm.enableClusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? !c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : true;
+                        vm.babelfishFeatureGates = vm.hasProp(c, 'data.spec.nonProductionOptions.enabledFeatureGates') && c.data.spec.nonProductionOptions.enabledFeatureGates.includes('babelfish-flavor');
+                        
+                        vm.podsMetadata = vm.hasProp(c, 'data.spec.metadata.labels.clusterPods') ? vm.unparseProps(c.data.spec.metadata.labels.clusterPods, 'label') : [];
+                        vm.annotationsAll = vm.hasProp(c, 'data.spec.metadata.annotations.allResources') ? vm.unparseProps(c.data.spec.metadata.annotations.allResources) : [];
+                        vm.annotationsPods = vm.hasProp(c, 'data.spec.metadata.annotations.clusterPods') ? vm.unparseProps(c.data.spec.metadata.annotations.clusterPods) : [];
+                        vm.annotationsServices = vm.hasProp(c, 'data.spec.metadata.annotations.services') ? vm.unparseProps(c.data.spec.metadata.annotations.services) : [];
+                        vm.postgresServicesPrimaryAnnotations = vm.hasProp(c, 'data.spec.metadata.annotations.primaryService') ?  vm.unparseProps(c.data.spec.metadata.annotations.primaryService) : [];
+                        vm.postgresServicesReplicasAnnotations = vm.hasProp(c, 'data.spec.metadata.annotations.replicasService') ?  vm.unparseProps(c.data.spec.metadata.annotations.replicasService) : [];
+                        vm.postgresServices = vm.hasProp(c, 'data.spec.postgresServices') && c.data.spec.postgresServices;
 
-                            vm.flavor = c.data.spec.postgres.hasOwnProperty('flavor') ? c.data.spec.postgres.flavor : 'vanilla' ;
-                            vm.selectedExtensions = vm.hasProp(c, 'data.spec.postgres.extensions') ? c.data.spec.postgres.extensions : [];
+                        vm.flavor = c.data.spec.postgres.hasOwnProperty('flavor') ? c.data.spec.postgres.flavor : 'vanilla' ;
+                        vm.selectedExtensions = vm.hasProp(c, 'data.spec.postgres.extensions') ? c.data.spec.postgres.extensions : [];
 
-                            if (vm.postgresVersion != c.data.spec.postgres.version) {
-                                vm.postgresVersion = c.data.spec.postgres.version;
-                                vm.getFlavorExtensions()
+                        if (vm.postgresVersion != c.data.spec.postgres.version) {
+                            vm.postgresVersion = c.data.spec.postgres.version;
+                            vm.getFlavorExtensions()
+                        }
+
+                        if(c.data.spec.postgres.hasOwnProperty('ssl')) {
+                            vm.ssl = c.data.spec.postgres.ssl
+
+                            if(!vm.ssl.hasOwnProperty('certificateSecretKeySelector')) {
+                                vm.ssl['certificateSecretKeySelector'] = {
+                                    name: '',
+                                    key: ''
+                                };
+                            }
+                            if(!vm.ssl.hasOwnProperty('privateKeySecretKeySelector')) {
+                                vm.ssl['privateKeySecretKeySelector'] = {
+                                    name: '',
+                                    key: ''
+                                }
+                            }
+                        }
+
+                        // Set Coordinator & Shards spec
+                        ['coordinator', 'shards'].forEach( (type) => {
+                            vm[type] = c.data.spec[type];
+
+                            // Volume Size
+                            let volumeSize = {
+                                size: vm[type].pods.persistentVolume.size.match(/\d+/g)[0],
+                                unit: vm[type].pods.persistentVolume.size.match(/[a-zA-Z]+/g)[0],
+                            };
+                            vm[type].pods.persistentVolume.size = volumeSize;
+
+                            if(!vm[type].pods.persistentVolume.hasOwnProperty('storageClass')) {
+                                vm[type].pods.persistentVolume['storageClass'] = '';
                             }
 
-                            if(c.data.spec.postgres.hasOwnProperty('ssl')) {
-                                vm.ssl = c.data.spec.postgres.ssl
+                            // Script Sources
+                            vm.setScriptsSource(c.data.spec[type], type);
 
-                                if(!vm.ssl.hasOwnProperty('certificateSecretKeySelector')) {
-                                    vm.ssl['certificateSecretKeySelector'] = {
-                                        name: '',
-                                        key: ''
+                            // Custom Volumes
+                            vm.customVolumesType[type] = [];
+                            if(vm.hasProp(c, 'data.spec.' + type + '.pods.customVolumes')) {
+                                vm[type].pods.customVolumes.forEach( (v) => {
+                                    if(v.hasOwnProperty('emptyDir')) {
+                                        vm.customVolumesType[type].push('emptyDir');
+                                    } else if(v.hasOwnProperty('configMap')) {
+                                        vm.customVolumesType[type].push('configMap');
+                                    } else if(v.hasOwnProperty('secret')) {
+                                        vm.customVolumesType[type].push('secret');
+                                    }
+                                });
+                            }
+
+                            // Replication
+                            if(!vm.hasProp(c, 'data.spec.' + type + '.replication')) {
+                                vm[type]['replication'] = {
+                                    mode: 'async'
+                                };
+                            }
+
+                            // Metadata
+                            if(vm.hasProp(c, 'data.spec.' + type + '.metadata.labels.clusterPods')) {
+                                vm[type].metadata.labels.clusterPods = vm.unparseProps(c.data.spec[type].metadata.labels.clusterPods, 'label');
+                            }
+
+                            ['allResources', 'clusterPods', 'services', 'primaryService', 'replicasService'].forEach( (annotation) => {
+                                if(vm.hasProp(c, 'data.spec.' + type + '.metadata.annotations.' + annotation)) {
+                                    vm[type].metadata.annotations[annotation] = vm.unparseProps(c.data.spec[type].metadata.annotations[annotation]);
+                                }
+                            })
+
+                            // Scheduling
+                            if(vm.hasProp(c, 'data.spec.' + type + '.pods.scheduling.nodeSelector')) {
+                                vm[type].pods.scheduling.nodeSelector = vm.unparseProps(c.data.spec[type].pods.scheduling.nodeSelector, 'label');
+                            }
+                        });
+
+                        // Overrides
+                        if(vm.hasProp(c, 'data.spec.shards.overrides')) {
+
+                            // Initialize overrideIndex
+                            vm.overrideIndex = 0;
+
+                            let overrides = JSON.parse(JSON.stringify(c.data.spec.shards.overrides));
+
+                            overrides.forEach( (override, index) => {
+
+                                // Set instances per cluster if it doesn't exist
+                                if(!override.hasOwnProperty('instancesPerCluster')) {
+                                    override['instancesPerCluster'] = null;
+                                }
+
+                                // Set instance profile if it doesn't exist
+                                if(!override.hasOwnProperty('sgInstanceProfile')) {
+                                    override['sgInstanceProfile'] = '';
+                                }
+
+                                // If exists, parse persistent volume
+                                if(vm.hasProp(override, 'pods.persistentVolume')) {
+                                    // Volume Size
+                                    let volumeSize = {
+                                        size: override.pods.persistentVolume.size.match(/\d+/g)[0],
+                                        unit: override.pods.persistentVolume.size.match(/[a-zA-Z]+/g)[0],
+                                    };
+                                    override.pods.persistentVolume.size = volumeSize;
+
+                                    if(!override.pods.persistentVolume.hasOwnProperty('storageClass')) {
+                                        override.pods.persistentVolume['storageClass'] = '';
+                                    }
+
+                                } else { // If override has no persistent volume, initialize
+                                    override.pods['persistentVolume'] = {
+                                        size: {
+                                            size: '',
+                                            unit: ''
+                                        },
+                                        storageClass: ''
                                     };
                                 }
-                                if(!vm.ssl.hasOwnProperty('privateKeySecretKeySelector')) {
-                                    vm.ssl['privateKeySecretKeySelector'] = {
-                                        name: '',
-                                        key: ''
+
+                                // If override has no configurations, initialize
+                                if(!override.hasOwnProperty('configurations')) {
+                                    override['configurations'] = {
+                                        sgPostgresConfig: '',
+                                        sgPoolingConfig: '',
+                                    };
+                                } else {
+                                    if(!override.configurations.hasOwnProperty('sgPostgresConfig')) {
+                                        override.configurations['sgPostgresConfig'] = '';
+                                    }
+
+                                    if(!override.configurations.hasOwnProperty('sgPoolingConfig')) {
+                                        override.configurations['sgPoolingConfig'] = '';
                                     }
                                 }
-                            }
 
-                            // Set Coordinator & Shards spec
-                            ['coordinator', 'shards'].forEach( (type) => {
-                                vm[type] = c.data.spec[type];
+                                // Initialize connection pooling if it doesn't exist
+                                if(!vm.hasProp(override, 'pods.disableConnectionPooling')) {
+                                    override.pods['disableConnectionPooling'] = false;
+                                }
 
-                                // Volume Size
-                                let volumeSize = {
-                                   size: vm[type].pods.persistentVolume.size.match(/\d+/g)[0],
-                                   unit: vm[type].pods.persistentVolume.size.match(/[a-zA-Z]+/g)[0],
-                                };
-                                vm[type].pods.persistentVolume.size = volumeSize;
-
-                                // Script Sources
-                                vm.setScriptsSource(c.data.spec[type], type);
+                                // ManagedSQL    
+                                vm.setScriptsSource(override, 'overrides');
 
                                 // Custom Volumes
-                                vm.customVolumesType[type] = [];
-                                if(vm.hasProp(c, 'data.spec.' + type + '.pods.customVolumes')) {
-                                    vm[type].pods.customVolumes.forEach( (v) => {
+                                vm.customVolumesType.overrides[index] = [];
+                                if(vm.hasProp(override, 'pods.customVolumes')) {
+                                    override.pods.customVolumes.forEach( (v) => {
                                         if(v.hasOwnProperty('emptyDir')) {
-                                            vm.customVolumesType[type].push('emptyDir');
+                                            vm.customVolumesType.overrides[index].push('emptyDir');
                                         } else if(v.hasOwnProperty('configMap')) {
-                                            vm.customVolumesType[type].push('configMap');
+                                            vm.customVolumesType.overrides[index].push('configMap');
                                         } else if(v.hasOwnProperty('secret')) {
-                                            vm.customVolumesType[type].push('secret');
+                                            vm.customVolumesType.overrides[index].push('secret');
                                         }
                                     });
                                 }
 
                                 // Replication
-                                if(!vm.hasProp(c, 'data.spec.' + type + '.replication')) {
-                                    vm[type]['replication'] = {
-                                        mode: 'async'
-                                    };
-                                }
+                                override['replication'] = vm.hasProp(override, 'replication') 
+                                    ? override.replication 
+                                    : { mode: 'async'};
 
                                 // Metadata
-                                if(vm.hasProp(c, 'data.spec.' + type + '.metadata.labels.clusterPods')) {
-                                    vm[type].metadata.labels.clusterPods = vm.unparseProps(c.data.spec[type].metadata.labels.clusterPods, 'label');
+                                if(vm.hasProp(override, 'metadata.labels.clusterPods')) {
+                                    override.metadata.labels.clusterPods = vm.unparseProps(override.metadata.labels.clusterPods, 'label');
                                 }
 
                                 ['allResources', 'clusterPods', 'services', 'primaryService', 'replicasService'].forEach( (annotation) => {
-                                    if(vm.hasProp(c, 'data.spec.' + type + '.metadata.annotations.' + annotation)) {
-                                        vm[type].metadata.annotations[annotation] = vm.unparseProps(c.data.spec[type].metadata.annotations[annotation]);
+                                    if(vm.hasProp(override, 'metadata.annotations.' + annotation)) {
+                                        override.metadata.annotations[annotation] = vm.unparseProps(override.metadata.annotations[annotation]);
                                     }
                                 })
 
                                 // Scheduling
-                                if(vm.hasProp(c, 'data.spec.' + type + '.pods.scheduling.nodeSelector')) {
-                                    vm[type].pods.scheduling.nodeSelector = vm.unparseProps(c.data.spec[type].pods.scheduling.nodeSelector, 'label');
+                                if(vm.hasProp(override, 'pods.scheduling.nodeSelector')) {
+                                    override.pods.scheduling.nodeSelector = vm.unparseProps(override.pods.scheduling.nodeSelector, 'label');
                                 }
                             });
 
-                            // Check if Monitoring should be enabled
-                            vm.checkEnableMonitoring(c.data.spec);
-
-                            vm.editReady = vm.advancedMode = true
-                            return false
+                            vm.$set(vm.shards, 'overrides', overrides);
+                        } else {
+                            vm.$set(vm.shards, 'overrides', []);
                         }
-                    });
+
+                        // Check if Monitoring should be enabled
+                        vm.checkEnableMonitoring(c.data.spec);
+
+                        vm.editReady = vm.advancedMode = true
+                    }
                 }
                 
-                return cluster
+                return c
             },
 
             currentStepIndex() {
@@ -5372,7 +7629,7 @@
                     coordinator: this.coordinator.hasOwnProperty('pods') ? vc.cleanUpUserSuppliedSidecars($.extend(true,{},this.coordinator.pods)) : {},
                     shards: this.shards.hasOwnProperty('pods') ? vc.cleanUpUserSuppliedSidecars($.extend(true,{},this.shards.pods)) : {},
                 };
-                
+
                 var cluster = {
                     "metadata": {
                         ...(this.hasProp(previous, 'metadata') && previous.metadata),
@@ -5527,7 +7784,7 @@
                                 ...(this.hasProp(previous, 'spec.coordinator.pods') && previous.spec.coordinator.pods),
                                 "persistentVolume": {
                                     "size": this.coordinator.pods.persistentVolume.size.size+this.coordinator.pods.persistentVolume.size.unit,
-                                    ...( (this.coordinator.pods.persistentVolume.hasOwnProperty('storageClass') && this.coordinator.pods.persistentVolume.storageClass.length) && {
+                                    ...( ( this.coordinator.pods.persistentVolume.hasOwnProperty('storageClass') && this.coordinator.pods.persistentVolume.storageClass.length ) && {
                                         "storageClass": this.coordinator.pods.persistentVolume.storageClass
                                     })
                                 },
@@ -5744,7 +8001,10 @@
                                             }
                                         } || {"labels": null})
                                 }
-                            } || { "metadata": null })
+                            } || { "metadata": null }),
+                            ...( (this.shards.hasOwnProperty('overrides') && this.shards.overrides.length) && {
+                                "overrides": this.cleanupOverrides(structuredClone(this.shards.overrides))
+                            } || { "overrides": null }),
                         },
 
                     }
@@ -5836,29 +8096,40 @@
                 const vm = this;
 
                 if(el.hasOwnProperty('managedSql')) {
-                    vm.scriptSource[type] = [];
+                    let scriptSource = [];
+                    
                     el.managedSql.scripts.forEach( (baseScript, baseIndex) => {
-                        vm.scriptSource[type].push({ base: baseScript.sgScript, entries: [] });
+                        scriptSource.push({ base: baseScript.sgScript, entries: [] });
 
                         if(vm.hasProp(baseScript, 'scriptSpec.scripts')) {
                             baseScript.scriptSpec.scripts.forEach(function(script, index){
                                 if(script.hasOwnProperty('script')) {
-                                    vm.scriptSource[type][baseIndex].entries.push('raw');
+                                    scriptSource[baseIndex].entries.push('raw');
                                 } else if(script.scriptFrom.hasOwnProperty('secretKeyRef')) {
-                                    vm.scriptSource[type][baseIndex].entries.push('secretKeyRef');
+                                    scriptSource[baseIndex].entries.push('secretKeyRef');
                                 } else if(script.scriptFrom.hasOwnProperty('configMapScript')) {
-                                    vm.scriptSource[type][baseIndex].entries.push('configMapKeyRef');
+                                    scriptSource[baseIndex].entries.push('configMapKeyRef');
                                 }
                             })
                         }
                     })
+
+                    if (type === 'overrides') {
+                        vm.scriptSource.overrides.push(scriptSource);
+                    } else {
+                        vm.scriptSource[type] = scriptSource;
+                    }
                 } else {
-                    vm[type]['managedSql'] = {
+                    el['managedSql'] = {
                         continueOnSGScriptError: false,
                         scripts: []
                     };
 
-                    vm.scriptSource[type] = [];
+                    if(type === 'overrides') {
+                        vm.scriptSource.overrides.push([]);
+                    } else {
+                        vm.scriptSource[type] = [];
+                    }
                 }
             },
 
@@ -5887,9 +8158,314 @@
                 if(this.hasProp(this.shards, 'pods.disableMetricsExporter')) {
                     this.shards.pods.disableMetricsExporter = !this.enableMonitoring;
                 }
-            }
-        }
+            },
 
+            pushOverride() {
+
+                this.shards.overrides.push({
+                    index: null,
+                    instancesPerCluster: null,
+                    sgInstanceProfile: '',
+                    replication: {
+                        mode: 'async'
+                    },
+                    configurations: {
+                        sgPostgresConfig: '',
+                        sgPoolingConfig: '',
+                    },
+                    managedSql: {
+                        continueOnSGScriptError: false,
+                        scripts: [ {} ]
+                    },
+                    metadata: {
+                        labels: {
+                            clusterPods: [ { label: '', value: ''} ],
+                        },
+                        annotations: {
+                            allResources: [ { annotation: '', value: ''} ],
+                            clusterPods: [ { annotation: '', value: ''} ],
+                            primaryService: [ { annotation: '', value: ''} ],
+                            replicasService: [ { annotation: '', value: ''} ],
+                            services: [ { annotation: '', value: ''} ],
+                        }
+                    },
+                    pods: {
+                        disableConnectionPooling: false,
+                        disablePostgresUtil: false,
+                        disableMetricsExporter: false,
+                        persistentVolume: {
+                            size: {
+                                size: '',
+                                unit: ''
+                            },
+                            storageClass: ''
+                        },
+                        customVolumes: [{
+                            name: null,
+                        }],
+                        customInitContainers: [{
+                            name: null,
+                            image: null,
+                            imagePullPolicy: null,
+                            args: [null],
+                            command: [null],
+                            workingDir: null,
+                            env: [ { name: null, value: null } ],
+                            ports: [{
+                                containerPort: null,
+                                hostIP: null,
+                                hostPort: null,
+                                name: null,
+                                protocol: null
+                            }],
+                            volumeMounts: [{
+                                mountPath: null,
+                                mountPropagation: null,
+                                name: null,
+                                readOnly: false,
+                                subPath: null,
+                                subPathExpr: null,
+                            }]
+                        }],
+                        customContainers: [{
+                            name: null,
+                            image: null,
+                            imagePullPolicy: null,
+                            args: [null],
+                            command: [null],
+                            workingDir: null,
+                            env: [ { name: null, value: null } ],
+                            ports: [{
+                                containerPort: null,
+                                hostIP: null,
+                                hostPort: null,
+                                name: null,
+                                protocol: null
+                            }],
+                            volumeMounts: [{
+                                mountPath: null,
+                                mountPropagation: null,
+                                name: null,
+                                readOnly: false,
+                                subPath: null,
+                                subPathExpr: null,
+                            }]
+                        }],
+                        scheduling: {
+                            nodeSelector: [ { label: '', value: ''} ],
+                            tolerations: [ { key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null } ],
+                            nodeAffinity: {
+                                requiredDuringSchedulingIgnoredDuringExecution: {
+                                    nodeSelectorTerms: [
+                                        {   
+                                            matchExpressions: [
+                                                { key: '', operator: '', values: [ '' ] }
+                                            ],
+                                            matchFields: [
+                                                { key: '', operator: '', values: [ '' ] }
+                                            ]
+                                        }
+                                    ],
+                                },
+                                preferredDuringSchedulingIgnoredDuringExecution: [
+                                    {
+                                        preference: {
+                                            matchExpressions: [
+                                                { key: '', operator: '', values: [ '' ] }
+                                            ],
+                                            matchFields: [
+                                                { key: '', operator: '', values: [ '' ] }
+                                            ]
+                                        },
+                                        weight:  1
+                                    }
+                                ],
+                            },
+                        }
+                    },
+                });
+
+                this.scriptSource.overrides.push([{ base: '', entries: ['raw'] }]);
+                this.currentScriptIndex.overrides.push({ base: 0, entry: 0 });
+                this.customVolumesType.overrides.push([null]);
+
+                this.overrideIndex = this.shards.overrides.length - 1;
+                this.currentSection = 'overrides';                
+            },
+
+            cleanupOverrides(overrides) {
+                const vc = this;
+
+                overrides.forEach( (override, overrideIndex) => {
+
+                    if([null,''].includes(override.instancesPerCluster)) {
+                        delete override.instancesPerCluster;
+                    }
+
+                    override['sgInstanceProfile'] = ( (override.hasOwnProperty('sgInstanceProfile') && override.sgInstanceProfile.length) ? override.sgInstanceProfile : null );
+                    
+                    if(
+                        vc.hasProp(override, 'configurations.sgPoolingConfig') && override.configurations.sgPoolingConfig.length || 
+                        vc.hasProp(override, 'configurations.sgPostgresConfig') && override.configurations.sgPostgresConfig.length
+                    ) {
+                        override.configurations['sgPoolingConfig'] = vc.hasProp(override, 'configurations.sgPoolingConfig') && override.configurations.sgPoolingConfig.length ? override.configurations.sgPoolingConfig : null;
+                        override.configurations['sgPostgresConfig'] = vc.hasProp(override, 'configurations.sgPostgresConfig') && override.configurations.sgPostgresConfig.length ? override.configurations.sgPostgresConfig : null;
+                    } else {
+                        override.configurations = null;
+                    }
+
+                    if(vc.hasProp(override, 'managedSql.scripts')) {
+                        override.managedSql = vc.hasScripts(override.managedSql.scripts, vc.scriptSource.overrides[overrideIndex]) ? vc.cleanUpScripts($.extend(true,{},override.managedSql)) : null;
+                    }
+                    
+                    if (
+                        ( ![null, ''].includes(override.pods.persistentVolume.size.size) && ![null, ''].includes(override.pods.persistentVolume.size.unit) ) || 
+                        ( override.pods.persistentVolume.hasOwnProperty('storageClass') && override.pods.persistentVolume.storageClass.length )
+                    ) {
+                        if( ![null, ''].includes(override.pods.persistentVolume.size.size) && ![null, ''].includes(override.pods.persistentVolume.size.unit) ) {
+                            override.pods.persistentVolume.size = override.pods.persistentVolume.size.size + override.pods.persistentVolume.size.unit;
+                        } else {
+                            delete override.pods.persistentVolume.size;
+                        }
+
+                        if( override.pods.persistentVolume.hasOwnProperty('storageClass') && !override.pods.persistentVolume.storageClass.length ) {
+                            delete override.pods.persistentVolume.storageClass;
+                        }
+                    } else {
+                        delete override.pods.persistentVolume;
+                    }
+
+                    override.pods.disableConnectionPooling = override.pods.disableConnectionPooling ? true : null;
+                    override.pods.disablePostgresUtil = override.pods.disablePostgresUtil ? true : null;
+                    override.pods.disableMetricsExporter = override.pods.disableMetricsExporter ? true : null;
+                    
+
+                    let userSuppliedSidecars = vc.cleanUpUserSuppliedSidecars($.extend(true, {}, override.pods));
+
+                    override.pods.customVolumes = userSuppliedSidecars.hasOwnProperty('customVolumes')
+                        ? userSuppliedSidecars.customVolumes
+                        : null;
+
+                    override.pods.customInitContainers = userSuppliedSidecars.hasOwnProperty('customInitContainers') && userSuppliedSidecars.customInitContainers.length
+                        ? userSuppliedSidecars.customInitContainers
+                        : null;
+
+                    override.pods.customContainers = userSuppliedSidecars.hasOwnProperty('customContainers') && userSuppliedSidecars.customContainers.length
+                        ? userSuppliedSidecars.customContainers
+                        : null;
+
+                    let requiredAffinity = this.hasProp(override, 'pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms') 
+                        ? vc.cleanNodeAffinity(override.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms)
+                        : [];
+
+                    let preferredAffinity = this.hasProp(override, 'pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution')
+                        ? vc.cleanNodeAffinity(override.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution)
+                        : [];
+
+                    override.pods.scheduling = ( 
+                            (this.hasProp(override, 'pods.scheduling.nodeSelector') && this.hasNodeSelectors(override.pods.scheduling.nodeSelector)) || 
+                            (this.hasProp(override, 'pods.scheduling.tolerations') && this.hasTolerations(override.pods.scheduling.tolerations)) || 
+                            requiredAffinity.length || preferredAffinity.length 
+                        )
+                            ? {
+                                ...( (this.hasProp(override, 'pods.scheduling.nodeSelector') && this.hasNodeSelectors(override.pods.scheduling.nodeSelector)) && {
+                                    "nodeSelector": this.parseProps(override.pods.scheduling.nodeSelector, 'label')
+                                } || {"nodeSelector": null} ),
+                                ...( (this.hasProp(override, 'pods.scheduling.tolerations') && this.hasTolerations(override.pods.scheduling.tolerations)) && {
+                                    "tolerations": override.pods.scheduling.tolerations
+                                } || {"tolerations": null} ),
+                                ...(requiredAffinity.length || preferredAffinity.length ) && {
+                                    "nodeAffinity": {
+                                        ...(requiredAffinity.length && {
+                                            "requiredDuringSchedulingIgnoredDuringExecution": {
+                                                "nodeSelectorTerms": requiredAffinity
+                                            }
+                                        }),
+                                        ...(preferredAffinity.length && {
+                                            "preferredDuringSchedulingIgnoredDuringExecution": preferredAffinity
+                                        })
+                                    }
+                                } || { "nodeAffinity": null }
+                            }
+                            : null;
+                    
+                    override.replication = (
+                            this.hasProp(override, 'replication.mode') &&
+                            (override.replication.mode !== 'async')
+                        )
+                            ? {
+                                "mode": override.replication.mode,
+                                ...(['sync', 'strict-sync'].includes(override.replication.mode) && ({
+                                    "syncInstances": override.replication.syncInstances
+                                }) )
+                            }
+                            : null;
+
+                    override.metadata = (
+                            ( 
+                                this.hasProp(override, 'metadata.labels.clusterPods') && 
+                                !$.isEmptyObject(this.parseProps(override.metadata.labels.clusterPods, 'label'))
+                            ) || 
+                            (
+                                (this.hasProp(override, 'metadata.annotations.allResources') && !$.isEmptyObject(this.parseProps(override.metadata.annotations.allResources)) ) ||
+                                (this.hasProp(override, 'metadata.annotations.clusterPods') && !$.isEmptyObject(this.parseProps(override.metadata.annotations.clusterPods)) ) ||
+                                (this.hasProp(override, 'metadata.annotations.services') && !$.isEmptyObject(this.parseProps(override.metadata.annotations.services)) ) ||
+                                (this.hasProp(override, 'metadata.annotations.primaryService') && !$.isEmptyObject(this.parseProps(override.metadata.annotations.primaryService)) ) ||
+                                (this.hasProp(override, 'metadata.annotations.replicasService') && !$.isEmptyObject(this.parseProps(override.metadata.annotations.replicasService)) )
+                            )
+                        )
+                            ? {
+                                ...( 
+                                    this.hasProp(override, 'metadata.annotations.allResources') ||
+                                    this.hasProp(override, 'metadata.annotations.clusterPods') || 
+                                    this.hasProp(override, 'metadata.annotations.services') ||
+                                    this.hasProp(override, 'metadata.annotations.primaryService') ||
+                                    this.hasProp(override, 'metadata.annotations.replicasService') )
+                                        ? {
+                                            "annotations": {
+                                                ...( (this.hasProp(override, 'metadata.annotations.allResources') && !$.isEmptyObject(this.parseProps(override.metadata.annotations.allResources)) ) && ( {"allResources": this.parseProps(override.metadata.annotations.allResources) }) ),
+                                                ...( (this.hasProp(override, 'metadata.annotations.clusterPods') && !$.isEmptyObject(this.parseProps(override.metadata.annotations.clusterPods)) ) && ( {"clusterPods": this.parseProps(override.metadata.annotations.clusterPods) }) ),
+                                                ...( (this.hasProp(override, 'metadata.annotations.services') && !$.isEmptyObject(this.parseProps(override.metadata.annotations.services)) ) && ( {"services": this.parseProps(override.metadata.annotations.services) }) ),
+                                                ...( (this.hasProp(override, 'metadata.annotations.primaryService') && !$.isEmptyObject(this.parseProps(override.metadata.annotations.primaryService)) ) && ( {"primaryService": this.parseProps(override.metadata.annotations.primaryService) }) ),
+                                                ...( (this.hasProp(override, 'metadata.annotations.replicasService') && !$.isEmptyObject(this.parseProps(override.metadata.annotations.replicasService)) ) && ( {"replicasService": this.parseProps(override.metadata.annotations.replicasService) }) ),
+                                            }
+                                        }
+                                        : {
+                                            "annotations": null
+                                        },
+                                    ...( 
+                                        this.hasProp(override, 'metadata.labels.clusterPods') &&
+                                        !$.isEmptyObject(this.parseProps(override.metadata.labels.clusterPods, 'label')) )
+                                        ? {
+                                            "labels": {
+                                                ...( (this.hasProp(override, 'metadata.labels.clusterPods') && !$.isEmptyObject(this.parseProps(override.metadata.labels.clusterPods, 'label')) ) && {
+                                                    "clusterPods": this.parseProps(override.metadata.labels.clusterPods, 'label')
+                                                })
+                                            }
+                                        }
+                                        : {
+                                            "labels": null
+                                        }
+                            }
+                            : null;
+                });
+
+                return overrides;
+            },
+
+            deleteOverride(index) {
+                const vc = this;
+
+                if( (index == vc.overrideIndex) && (vc.overrideIndex != 0) ) {
+                    vc.overrideIndex -= 1;
+                }
+                
+                vc.spliceArray(vc.scriptSource.overrides, index);
+                vc.spliceArray(vc.customVolumesType.overrides, index);
+                vc.spliceArray(vc.shards.overrides, index);
+                vc.currentStep.overrides = 'shards';
+            }
+        },
     }
 </script>
 

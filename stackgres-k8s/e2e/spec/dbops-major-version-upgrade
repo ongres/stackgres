@@ -87,6 +87,9 @@ spec:
   majorVersionUpgrade:
     postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
     sgPostgresConfig: postgresconf-for-major-version-upgrade
+    postgresExtensions:
+    - name: pg_repack
+      version: $TARGET_PG_REPACK_VERSION
 EOF
 
   wait_until eval '[ "$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
@@ -155,6 +158,9 @@ spec:
     postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
     sgPostgresConfig: postgresconf-for-major-version-upgrade
     check: true
+    postgresExtensions:
+    - name: pg_repack
+      version: $TARGET_PG_REPACK_VERSION
 EOF
 
   check_major_version_upgrade_check
@@ -180,6 +186,9 @@ spec:
     postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
     sgPostgresConfig: postgresconf-for-major-version-upgrade
     check: true
+    postgresExtensions:
+    - name: pg_repack
+      version: $TARGET_PG_REPACK_VERSION
 EOF
 
   assert_dbops_failure "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$E2E_TIMEOUT"

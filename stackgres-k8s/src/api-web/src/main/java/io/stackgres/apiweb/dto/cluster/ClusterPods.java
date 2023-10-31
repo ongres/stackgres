@@ -13,7 +13,6 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CustomContainer;
 import io.stackgres.common.crd.CustomVolume;
-import io.stackgres.common.crd.sgcluster.StackGresClusterResources;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -31,7 +30,7 @@ public class ClusterPods {
 
   private String managementPolicy;
 
-  private StackGresClusterResources resources;
+  private ClusterResources resources;
 
   private ClusterPodScheduling scheduling;
 
@@ -81,11 +80,11 @@ public class ClusterPods {
     this.managementPolicy = managementPolicy;
   }
 
-  public StackGresClusterResources getResources() {
+  public ClusterResources getResources() {
     return resources;
   }
 
-  public void setResources(StackGresClusterResources resources) {
+  public void setResources(ClusterResources resources) {
     this.resources = resources;
   }
 

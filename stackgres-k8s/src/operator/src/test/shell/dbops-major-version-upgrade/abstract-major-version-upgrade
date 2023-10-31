@@ -12,6 +12,7 @@ MAJOR_VERSION_UPGRADE_CONTAINER_NAME=major-version-upgrade
 POSTGRES_VERSION_KEY=stackgres.io/postgresql-version
 SOURCE_VERSION=11.8
 TARGET_VERSION=12.6
+TARGET_EXTENSIONS=[]
 TARGET_POSTGRES_CONFIG=postgresconf-12
 DATA_CHECKSUM=true
 PG_UPGRADE_PATH="/var/lib/postgresql/upgrade"
@@ -107,6 +108,8 @@ kubectl_mock() {
               }
             }'
     ;;
+    ("patch --dry-run $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --type merge -p "*)
+    ;;
     ("replace --raw /apis/$CRD_GROUP/v1/namespaces/$CLUSTER_NAMESPACE/$CLUSTER_CRD_NAME/$CLUSTER_NAME -f"*)
     ;;
     ("get $DBOPS_CRD_NAME -n $CLUSTER_NAMESPACE $DBOPS_NAME --template={{ if .status }}true{{ else }}false{{ end }}")
@@ -190,7 +193,7 @@ kubectl_mock() {
     ;;
     ("patch $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --type=json -p "*"{\"op\":\"replace\",\"path\":\"/spec/instances\",\"value\":1}"*)
     (
-    echo "pod/test-0"
+    cat "$TEST_TARGET_PATH/primary_pod"
     ) > "$TEST_TARGET_PATH/cluster_pods"
     ;;
     ("patch $CLUSTER_CRD_NAME.$CRD_GROUP -n $CLUSTER_NAMESPACE $CLUSTER_NAME --type=json -p "*"{\"op\":\"replace\",\"path\":\"/spec/instances\",\"value\":2}"*)
@@ -219,6 +222,9 @@ kubectl_mock() {
     echo '"true"'
     ;;
     ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- sh -c rm -rf \"$PG_UPGRADE_PATH/$SOURCE_VERSION/data\""*)
+    ;;
+    ("exec -n $CLUSTER_NAMESPACE $CLUSTER_NAME-"*" -c $PATRONI_CONTAINER_NAME -- psql -t -A -c CHECKPOINT -c CHECKPOINT")
+    echo 'en_US.UTF-8'
     ;;
     *)
     not_mokked

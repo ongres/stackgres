@@ -12,7 +12,6 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -187,7 +186,7 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
         .addAll(toInstallExtensions);
 
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(),
         argThat(anExtension -> extension.getName().equals(anExtension.getName())),
         anyBoolean()))
@@ -218,7 +217,7 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
         .add(installedExtension);
 
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(),
         argThat(anExtension -> extension.getName().equals(anExtension.getName())),
         anyBoolean()))
@@ -254,11 +253,11 @@ class ExtensionsMutatorTest {
 
     final StackGresExtensionMetadata extensionTestMetadata = getExtensionMetadata();
     extensionTestMetadata.getExtension().setName("test");
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(), eq(testExtension), anyBoolean()))
         .thenReturn(Optional.of(extensionTestMetadata));
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
@@ -316,7 +315,7 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
         .add(installedTestExtension);
 
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(),
         argThat(anExtension -> extension.getName().equals(anExtension.getName())),
         anyBoolean()))
@@ -354,7 +353,7 @@ class ExtensionsMutatorTest {
     review.getRequest().getObject().getStatus().getToInstallPostgresExtensions()
         .add(installedTestExtension2);
 
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(),
         argThat(anExtension -> extension.getName().equals(anExtension.getName())),
         anyBoolean()))
@@ -389,7 +388,7 @@ class ExtensionsMutatorTest {
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
     extensionMetadata.getVersion().setExtraMounts(List.of("test"));
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
@@ -426,7 +425,7 @@ class ExtensionsMutatorTest {
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
@@ -460,7 +459,7 @@ class ExtensionsMutatorTest {
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
     extensionMetadata.getVersion().setExtraMounts(List.of("test"));
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
@@ -497,7 +496,7 @@ class ExtensionsMutatorTest {
         .add(installedTestExtension);
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
@@ -530,7 +529,7 @@ class ExtensionsMutatorTest {
 
     final StackGresExtensionMetadata extensionMetadata = getExtensionMetadata();
     extensionMetadata.getTarget().setBuild(null);
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(), eq(extension), anyBoolean()))
         .thenReturn(Optional.of(extensionMetadata));
 
@@ -559,7 +558,7 @@ class ExtensionsMutatorTest {
 
     final StackGresExtensionMetadata extensionTestMetadata = getExtensionMetadata();
     extensionTestMetadata.getExtension().setName("test");
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(), eq(testExtension), anyBoolean()))
         .thenReturn(Optional.empty());
 
@@ -588,7 +587,7 @@ class ExtensionsMutatorTest {
 
     final StackGresExtensionMetadata extensionTestMetadata = getExtensionMetadata();
     extensionTestMetadata.getExtension().setName("test");
-    when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
+    lenient().when(extensionMetadataManager.findExtensionCandidateSameMajorBuild(
         any(), eq(testExtension), anyBoolean()))
         .thenReturn(Optional.empty());
 

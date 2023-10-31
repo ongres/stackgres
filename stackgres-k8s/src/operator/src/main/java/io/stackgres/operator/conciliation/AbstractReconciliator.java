@@ -18,6 +18,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.rbac.Role;
+import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
@@ -223,6 +225,13 @@ public abstract class AbstractReconciliator<T extends CustomResource<?, ?>> {
                 var created = handlerDelegator.create(config, resource);
                 deployedResourcesCache.put(resource, created);
               } catch (Exception ex) {
+                if (resource instanceof Role
+                    || resource instanceof RoleBinding) {
+                  if (ex instanceof RuntimeException rex) {
+                    throw rex;
+                  }
+                  throw new RuntimeException(ex);
+                }
                 exceptions.add(ex);
               }
             });

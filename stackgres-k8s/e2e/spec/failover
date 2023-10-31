@@ -48,7 +48,7 @@ EOF
   try_function eval '
     sleep 1
     kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c patroni -- \
-      patronictl failover --master "$CLUSTER_NAME-0" --candidate "$CLUSTER_NAME-1" --force'
+      patronictl failover --primary "$CLUSTER_NAME-0" --candidate "$CLUSTER_NAME-1" --force'
   if "$RESULT"
   then
     echo "SUCCESS. $CLUSTER_NAME-1 has been promoted to primary and $CLUSTER_NAME-0 has been removed abruptly!"
