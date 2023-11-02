@@ -130,7 +130,6 @@ bundle: ## Generate bundle manifests and metadata, then validate generated files
 	$(OPERATOR_SDK) bundle validate ./bundle
 
 .PHONY: bundle-openshift
-bundle-openshift: IMAGE_TAG := $(IMAGE_TAG)-openshift
 bundle-openshift: OPENSHIFT_BUNDLE := true
 bundle-openshift: bundle
 	VERSION="$(VERSION)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat openshift-operator-bundle/manifests/stackgres.clusterserviceversion.template.yaml)")" \
