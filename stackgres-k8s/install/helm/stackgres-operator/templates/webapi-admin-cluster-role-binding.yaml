@@ -2,24 +2,6 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  annotations:
-    "helm.sh/hook": pre-upgrade
-    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
-    "helm.sh/hook-weight": "-100"
-  labels:
-    api.stackgres.io/auth: user
-  name: stackgres-restapi-admin
-subjects:
-- kind: User
-  name: admin
-roleRef:
-  kind: ClusterRole
-  name: stackgres-restapi-admin
-  apiGroup: rbac.authorization.k8s.io
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
   name: stackgres-restapi-admin
 subjects:
 - kind: User
