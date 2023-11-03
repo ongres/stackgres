@@ -186,9 +186,6 @@ spec:
     postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
     sgPostgresConfig: postgresconf-for-major-version-upgrade
     check: true
-    postgresExtensions:
-    - name: pg_repack
-      version: $TARGET_PG_REPACK_VERSION
 EOF
 
   assert_dbops_failure "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$E2E_TIMEOUT"
