@@ -252,4 +252,8 @@ public interface PatroniUtil {
     }
   }
 
+  static String secretName(final String clusterName) {
+    return ResourceUtil.resourceName(clusterName);
+  }
+
 }
