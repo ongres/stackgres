@@ -13,8 +13,10 @@ import javax.annotation.PreDestroy;
 import javax.enterprise.inject.Produces;
 import javax.inject.Singleton;
 
+import com.fasterxml.jackson.databind.SerializationFeature;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +40,8 @@ public class KubernetesClientProducer {
   private synchronized void createClient() {
     if (proxyClient == null) {
       LOGGER.info("Creating proxy instance of Kubernetes client");
+      Serialization.jsonMapper().configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS,
+          false);
       client = new KubernetesClientBuilder().build();
 
       proxyClient = (KubernetesClient) Proxy
