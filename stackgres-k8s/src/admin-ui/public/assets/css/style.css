@@ -280,6 +280,10 @@ pre {
     font-weight: normal;
 }
 
+.bold {
+    font-weight: bold;
+}
+
 .small {
     font-size: 90%;
 }

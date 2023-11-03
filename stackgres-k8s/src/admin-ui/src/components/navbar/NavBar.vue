@@ -1,10 +1,10 @@
 <template>
   <!-- Vue reactivity hack -->
 	<aside id="nav" class="disabled">
-    	<div id="topMenu" v-if="!$route.name.includes('GlobalDashboard')" @click="toggleViewMode()">
+    	<div id="topMenu" v-if="$route.params.hasOwnProperty('namespace')" @click="toggleViewMode()">
 			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 16"><path fill="#FFF" opacity=".75" d="M0 16h24v-2.7H0V16zm0-6.7h24V6.7H0v2.6zM0 0v2.7h24V0H0z"/></svg>
 		</div>
-		<div id="logo" :class="$route.name.includes('GlobalDashboard') && 'hiddenMenu'">
+		<div id="logo" :class="!$route.params.hasOwnProperty('namespace') && 'hiddenMenu'">
 			<router-link to="/" title="Global Dashboard">
 				<svg xmlns="http://www.w3.org/2000/svg" width="29.997" height="25.348"><path d="M0 14.125l6.78 7.769h16.438l6.779-7.769-6.779-7.769H6.78z" fill="#42a8c8"/><path fill="#426d88" d="M6.78 21.894h16.443v3.455H6.78z"/><path d="M6.78 25.348L0 17.574v-3.45l6.78 7.77z" fill="#428bb4"/><path d="M23.218 25.348l6.779-7.769v-3.454l-6.779 7.769z" fill="#16657c"/><g><path d="M28.213 12.882c0-2.882-5.92-5.219-13.215-5.219s-13.21 2.336-13.21 5.219 5.915 5.219 13.21 5.219 13.215-2.337 13.215-5.219z" fill="#39b54a"/><path d="M28.213 12.882c0 2.882-5.92 5.219-13.215 5.219s-13.21-2.336-13.21-5.219v2.873c.91 2.533 6.525 5.219 13.21 5.219s12.3-2.687 13.215-5.219v-2.873z" fill="#009245"/></g><g><path d="M.678 8.302l14.323 8.3 14.323-8.3-14.323-8.3z" fill="#f2c63f"/><path d="M.678 8.302v3.235l14.323 8.3v-3.235z" fill="#f2b136"/><path d="M29.324 8.302L15 16.602v3.235l14.324-8.3z" fill="#f2a130"/></g><g><path d="M3.846 10.368l22.307-3.242-5.657-6.5z" fill="#ff7124"/><path d="M3.846 10.368l22.307-3.242v2.928L3.846 13.295z" fill="#d93d1b"/></g></svg>
 				<h1>
