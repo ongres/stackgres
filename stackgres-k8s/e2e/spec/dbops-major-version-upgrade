@@ -12,7 +12,7 @@ e2e_test() {
 
   run_test "Checking that major version upgrade check is working" check_major_version_upgrade_check_is_working
 
-  run_test "Checking that major version upgrade fail on missing extension version" check_major_version_upgrade_fail_on_missing_extension_version
+  run_test "Checking that major version upgrade creation fails on missing extension version" check_major_version_upgrade_creation_fail_on_missing_extension_version
 }
 
 check_major_version_upgrade_is_working() {
@@ -168,12 +168,15 @@ EOF
   kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
 }
 
-check_major_version_upgrade_fail_on_missing_extension_version() {
+check_major_version_upgrade_creation_fail_on_missing_extension_version() {
   local E2E_MAJOR_SOURCE_POSTGRES_VERSION=14
-  local E2E_MAJOR_TARGET_POSTGRES_VERSION=15.2
+  local E2E_MAJOR_TARGET_POSTGRES_VERSION=15
+  local SOURCE_PG_REPACK_VERSION
+  SOURCE_PG_REPACK_VERSION="$(get_oldest_version_of_extension pg_repack "${E2E_MAJOR_SOURCE_POSTGRES_VERSION%.*}")"
+
   reset_cluster_only_pg_repack
 
-  cat << EOF | kubectl create -f -
+  cat << EOF > "$LOG_PATH"/failing-dbops.yaml
 apiVersion: stackgres.io/v1
 kind: SGDbOps
 metadata:
@@ -188,5 +191,11 @@ spec:
     check: true
 EOF
 
-  assert_dbops_failure "$DBOPS_NAME" "$CLUSTER_NAMESPACE" "$E2E_TIMEOUT"
+  if ! kubectl create -f "$LOG_PATH"/failing-dbops.yaml
+  then
+    echo "SUCCESS. The SGDbOps creation has failed"
+  else
+    echo "FAIL. The SGDbOps creation has not failed"
+    return 1
+  fi
 }
