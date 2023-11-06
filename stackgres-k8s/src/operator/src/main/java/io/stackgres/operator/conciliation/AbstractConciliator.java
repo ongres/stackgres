@@ -117,7 +117,7 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
       return new ReconciliationResult(
           List.of(),
           List.of(),
-          deletions);
+          List.of());
     }
 
     return new ReconciliationResult(

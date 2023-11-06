@@ -37,6 +37,7 @@ public class KubernetesClientProducer {
     return proxyClient;
   }
 
+  @SuppressWarnings("deprecation")
   private synchronized void createClient() {
     if (proxyClient == null) {
       LOGGER.info("Creating proxy instance of Kubernetes client");
