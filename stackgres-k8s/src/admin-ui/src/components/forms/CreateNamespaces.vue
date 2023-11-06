@@ -61,7 +61,7 @@
                 }
                
                 sgApi
-                .createCustomResource('namespaces/' + vc.name)
+                .createCustomResource('/namespaces/' + vc.name)
                 .then(function (response) {
                     vc.notify('Namespace <strong>"' + vc.name + '"</strong> created successfully', 'message','namespaces');
                     vc.fetchAPI('namespaces');
