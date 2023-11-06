@@ -4859,7 +4859,7 @@ td.inlineList li:not(:last-child):after {
 }
 
 .warning li {
-    margin: 10px 0;
+    margin: 10px 0 0 0;
 }
 
 /*Help Tooltips*/
