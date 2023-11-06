@@ -1575,11 +1575,11 @@ set_helm_values_for_developer() {
     --set-string developer.extraOpts[10]=-Dquarkus.log.category."stackgres-extensions-cache".level=DEBUG 
     --set-string developer.extraOpts[11]=-Dquarkus.log.category."io.stackgres.operator.conciliation".level=TRACE 
 EOF
-  if [ "$E2E_MOUNT_LOCAL_FOLDERS" = true ]
+  if [ -n "$E2E_EXTRA_MOUNT_BUILD_PATH" ]
   then
     cat << EOF
     --set-string developer.patches.operator.volumes[0].name=app 
-    --set-string developer.patches.operator.volumes[0].hostPath.path=$(realpath "$PROJECT_PATH"/stackgres-k8s/src/operator/target/quarkus-app) 
+    --set-string developer.patches.operator.volumes[0].hostPath.path=$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/operator/target/quarkus-app) 
     --set-string developer.patches.operator.volumeMounts[0].name=app 
     --set-string developer.patches.operator.volumeMounts[0].mountPath=/app/app 
     --set-string developer.patches.operator.volumeMounts[0].subPath=app 
@@ -1593,7 +1593,7 @@ EOF
     --set-string developer.patches.operator.volumeMounts[3].mountPath=/app/quarkus-run.jar 
     --set-string developer.patches.operator.volumeMounts[3].subPath=quarkus-run.jar 
     --set-string developer.patches.restapi.volumes[0].name=app 
-    --set-string developer.patches.restapi.volumes[0].hostPath.path=$(realpath "$PROJECT_PATH"/stackgres-k8s/src/api-web/target/quarkus-app) 
+    --set-string developer.patches.restapi.volumes[0].hostPath.path=$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/api-web/target/quarkus-app) 
     --set-string developer.patches.restapi.volumeMounts[0].name=app 
     --set-string developer.patches.restapi.volumeMounts[0].mountPath=/app/app 
     --set-string developer.patches.restapi.volumeMounts[0].subPath=app 
@@ -1607,11 +1607,11 @@ EOF
     --set-string developer.patches.restapi.volumeMounts[3].mountPath=/app/quarkus-run.jar 
     --set-string developer.patches.restapi.volumeMounts[3].subPath=quarkus-run.jar 
     --set-string developer.patches.adminui.volumes[0].name=admin 
-    --set-string developer.patches.adminui.volumes[0].hostPath.path=$(realpath "$PROJECT_PATH"/stackgres-k8s/src/admin-ui/target/public) 
+    --set-string developer.patches.adminui.volumes[0].hostPath.path=$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/admin-ui/target/public) 
     --set-string developer.patches.adminui.volumeMounts[0].name=admin 
     --set-string developer.patches.adminui.volumeMounts[0].mountPath=/opt/app-root/src/admin 
     --set-string developer.patches.jobs.volumes[0].name=app 
-    --set-string developer.patches.jobs.volumes[0].hostPath.path=$(realpath "$PROJECT_PATH"/stackgres-k8s/src/jobs/target/quarkus-app) 
+    --set-string developer.patches.jobs.volumes[0].hostPath.path=$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/jobs/target/quarkus-app) 
     --set-string developer.patches.jobs.volumeMounts[0].name=app 
     --set-string developer.patches.jobs.volumeMounts[0].mountPath=/app/app 
     --set-string developer.patches.jobs.volumeMounts[0].subPath=app 
@@ -1625,7 +1625,7 @@ EOF
     --set-string developer.patches.jobs.volumeMounts[3].mountPath=/app/quarkus-run.jar 
     --set-string developer.patches.jobs.volumeMounts[3].subPath=quarkus-run.jar 
     --set-string developer.patches.clusterController.volumes[0].name=app 
-    --set-string developer.patches.clusterController.volumes[0].hostPath.path=$(realpath "$PROJECT_PATH"/stackgres-k8s/src/cluster-controller/target/quarkus-app) 
+    --set-string developer.patches.clusterController.volumes[0].hostPath.path=$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/cluster-controller/target/quarkus-app) 
     --set-string developer.patches.clusterController.volumeMounts[0].name=app 
     --set-string developer.patches.clusterController.volumeMounts[0].mountPath=/app/app 
     --set-string developer.patches.clusterController.volumeMounts[0].subPath=app 
@@ -1639,7 +1639,7 @@ EOF
     --set-string developer.patches.clusterController.volumeMounts[3].mountPath=/app/quarkus-run.jar 
     --set-string developer.patches.clusterController.volumeMounts[3].subPath=quarkus-run.jar 
     --set-string developer.patches.distributedlogsController.volumes[0].name=app 
-    --set-string developer.patches.distributedlogsController.volumes[0].hostPath.path=$(realpath "$PROJECT_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app) 
+    --set-string developer.patches.distributedlogsController.volumes[0].hostPath.path=$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app) 
     --set-string developer.patches.distributedlogsController.volumeMounts[0].name=app 
     --set-string developer.patches.distributedlogsController.volumeMounts[0].mountPath=/app/app 
     --set-string developer.patches.distributedlogsController.volumeMounts[0].subPath=app 
