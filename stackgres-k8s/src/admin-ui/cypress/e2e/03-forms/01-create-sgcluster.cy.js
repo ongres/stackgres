@@ -1230,7 +1230,7 @@ describe('Create SGCluster', () => {
             .and('nested.include', {"nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight": '10'})
         cy.get('@postCluster')
             .its('request.body.spec.nonProductionOptions.disableClusterPodAntiAffinity')
-            .should('eq', 'true')
+            .should('eq', true)
     });
 
     
@@ -1955,7 +1955,7 @@ describe('Create SGCluster', () => {
             .and('nested.include', {"nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight": '20'})
         cy.get('@putCluster')
             .its('request.body.spec.nonProductionOptions.disableClusterPodAntiAffinity')
-            .should('eq', 'false')
+            .should('eq', false)
     }); 
 
     it('Repeater fields should match error responses coming from the API', () => {
