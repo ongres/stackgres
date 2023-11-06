@@ -49,17 +49,17 @@
                         <div class="col">
                             <label for="spec.profile">Profile</label>
                             <select v-model="profile" data-field="spec.profile" class="capitalize">
-                                <option v-for="profile in clusterProfiles" :value="profile">{{ profile }}</option>
+                                <option v-for="profile in clusterProfiles">{{ profile }}</option>
                             </select>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.profile')"></span>
 
                             <div class="warning topAnchor" v-if="profile != 'production'">
                                 By choosing this Profile, the following defaults are overwritten:
                                 <ul>
-                                    <li>Cluster Pod Anti Affinity is set to Disable.</li>
+                                    <li><strong>Cluster Pod Anti Affinity</strong> is set to <strong>Disable</strong>.</li>
                                     <template v-if="profile == 'development'">
-                                        <li>Patroni Resource Requirements is set to Disable.</li>
-                                        <li>Cluster Resource Requirements is set to Disable.</li>
+                                        <li><strong>Patroni Resource Requirements</strong> is set to <strong>Disable</strong>.</li>
+                                        <li><strong>Cluster Resource Requirements</strong> is set to <strong>Disable</strong>.</li>
                                     </template>
                                 </ul>     
                             </div>
@@ -2974,9 +2974,9 @@
                         <div class="col">
                             <label for="spec.nonProductionOptions.disableClusterPodAntiAffinity">Cluster Pod Anti Affinity</label>  
                             <select v-model="clusterPodAntiAffinity" data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity">
-                                <option selected value="null">Default</option>
-                                <option value="false">Enable</option>
-                                <option value="true">Disable</option>
+                                <option selected :value="null">Default</option>
+                                <option :value="false">Enable</option>
+                                <option :value="true">Disable</option>
                             </select>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('Set this property to true','Disable this property')"></span>
                         </div>

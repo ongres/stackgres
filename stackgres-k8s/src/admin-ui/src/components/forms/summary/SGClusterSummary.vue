@@ -1849,7 +1849,7 @@
                         </li>
                     </ul>
 
-                    <ul class="section" v-if="showDefaults || (hasProp(cluster, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') && (cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity != 'null'))">
+                    <ul class="section" v-if="showDefaults || (hasProp(cluster, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') && (cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity != null))">
                         <li>
                             <button class="toggleSummary"></button>
                             <strong class="sectionTitle">Non Production Settings </strong>
@@ -1857,7 +1857,7 @@
                                 <li>
                                     <strong class="label">Cluster Pod Anti Affinity</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('Set this property to true to allow','When disabled, it allows running')"></span>
-                                    <span> : {{ (hasProp(cluster, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') && (cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity != 'null')) ? isEnabled(cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity, true) : 'Default'}}</span>
+                                    <span> : {{ (hasProp(cluster, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') && (cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity != null)) ? isEnabled(cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity, true) : 'Default'}}</span>
                                 </li>
                             </ul>
                         </li>
