@@ -1,8 +1,8 @@
 <template>
   <div id="app">
 		<NavBar></NavBar>
-		<SideBar v-if="!$route.name.includes('GlobalDashboard')"></SideBar>
-    <div id="main" :class="$route.name.includes('GlobalDashboard') ? 'noSidebar' : ''">
+		<SideBar v-if="$route.params.hasOwnProperty('namespace')"></SideBar>
+    <div id="main" :class="!$route.params.hasOwnProperty('namespace') && 'noSidebar'">
       <HeaderSection></HeaderSection>
       <router-view :key="$route.path"></router-view>
     </div>

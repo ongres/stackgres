@@ -20,8 +20,16 @@
                 </template>
             </li>
 
-            <template v-if="$route.meta.hasOwnProperty('componentName')">
+            <template v-if="!$route.params.hasOwnProperty('namespace') && iCan('create', 'namespaces') && ($route.name !== 'CreateNamespace')">
+                <router-link to="/namespaces/new" class="floatRight" data-field="CreateNamespace">
+                    Create Namespace
+                </router-link>
+            </template>
+            <template v-else-if="$route.name === 'CreateNamespace'">
+                Namespaces
+            </template>
 
+            <template v-if="$route.params.hasOwnProperty('namespace') && $route.meta.hasOwnProperty('componentName')">
                 <!--Kind-->
                 <template v-if="($route.name != 'NamespaceOverview') && ($route.name != 'GlobalDashboard')">
                     <li>
@@ -137,7 +145,7 @@
             </template>
         </ul>
 
-        <template v-if="($route.name != 'NamespaceOverview') && ($route.name != 'GlobalDashboard') && $route.meta.hasOwnProperty('componentName')">
+        <template v-if="$route.params.hasOwnProperty('namespace') && $route.meta.hasOwnProperty('componentName')">
             <div class="actions">
                 <!--Docs Links-->
                 <template v-if="currentPath.component == 'BabelfishCompass'">
@@ -146,7 +154,7 @@
                 <template v-else-if="($route.meta.componentName == 'SGDistributedLog') || ($route.meta.componentName == 'SGDbOp')">
                     <a class="documentation" :href="'https://stackgres.io/doc/latest/reference/crd/' + $route.meta.componentName.toLowerCase() + 's'" target="_blank" :title="$route.meta.componentName + 's Documentation'">{{ $route.meta.componentName }}s Documentation</a>
                 </template>
-                <template v-else>
+                <template v-else-if="$route.params.hasOwnProperty('namespace')">
                     <a class="documentation" :href="'https://stackgres.io/doc/latest/reference/crd/' + ($route.meta.customComponentName == 'SGPoolingConfig' ? $route.meta.customComponentName.toLowerCase() : $route.meta.componentName.toLowerCase())" target="_blank" :title="$route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName + ' Documentation': $route.meta.componentName + ' Documentation'">{{ $route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName : $route.meta.componentName }} Documentation</a>
                 </template>
 

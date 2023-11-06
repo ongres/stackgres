@@ -17,10 +17,13 @@
 				</li>
 
 				<li>
-					<ul id="ns-select" tabindex="0" class="set namespaces" :class="openNamespace && 'open'">
+					<ul id="ns-select" tabindex="0" class="crdSubmenu set namespaces" :class="openNamespace && 'open'">
 						<li>
-							<router-link :to="'/'" class="item">
+							<router-link :to="'/'" class="item bold">
 								Stackgres Namespaces
+							</router-link>
+							<router-link to="/namespaces/new" class="addnew" v-if="iCan('create', 'namespaces')">
+								<svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 19 19"><g transform="translate(-573 -706)"><g transform="translate(573 706)" fill="none" stroke="#00adb5" stroke-width="2"><circle cx="9.5" cy="9.5" r="9.5" stroke="none"/><circle cx="9.5" cy="9.5" r="8.5" fill="none"/></g><g transform="translate(-30.5 28.8)"><g transform="translate(609 686)" fill="#00adb5" stroke="#00adb5" stroke-width="1"><rect width="8" height="1.4" rx="0.7" stroke="none"/><rect x="0.5" y="0.5" width="7" height="0.4" rx="0.2" fill="none"/></g><g transform="translate(613.7 682.7) rotate(90)" fill="#00adb5" stroke="#00adb5" stroke-width="1"><rect width="8" height="1.4" rx="0.7" stroke="none"/><rect x="0.5" y="0.5" width="7" height="0.4" rx="0.2" fill="none"/></g></g></g></svg>
 							</router-link>
 						</li>
 						<template v-for="namespace in namespaces">
@@ -570,7 +573,11 @@
 		transition: max-height 0.5s ease-out;
 	}
 
-	#ns-select a {
+	#ns-select.open a.addnew {
+		display: block;
+	}
+
+	#ns-select a:not(.addnew) {
 		padding-left: 50px;
 		display: block;
 		display: block;
@@ -586,6 +593,30 @@
 	#ns-select li:hover {
 		margin-left: -50px;
 		padding-left: 50px;
+	}
+
+	#ns-select li:first-child a {
+		padding: 0 20px;
+		background: rgba(211, 211, 211, .05);
+	}
+
+	#ns-select li:first-child a.item:before, .collapsed #ns-select li a.item:before {
+		display: none;
+	}
+
+	.collapsed #ns-select li:first-child {
+		height: auto;
+	}
+
+	.collapsed #ns-select li:first-child a {
+		padding: 10px 20px;
+		height: 70px;
+	}
+
+	.collapsed #ns-select li a.addnew {
+		right: 0;
+		left: auto;
+		display: block;
 	}
 
 	h3, h4 {

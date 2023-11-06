@@ -4,6 +4,7 @@ import store from '../store'
 import sgApi from '../api/sgApi'
 
 // Form Components
+import CreateNamespace from '../components/forms/CreateNamespaces.vue'
 import CreateCluster from '../components/forms/CreateSGClusters.vue'
 import CreateShardedCluster from '../components/forms/CreateSGShardedClusters.vue'
 import CreateProfile from '../components/forms/CreateSGInstanceProfiles.vue'
@@ -288,13 +289,13 @@ const routes = [
       conditionalRoute: false
     },
   },
-  { 
-    path: '/sgclusters', 
-    component: ClusterOverview,
-    name: 'ClusterOverviewEmpty',
+  {
+    path: '/namespaces/new',
+    component: CreateNamespace,
+    name: 'CreateNamespace',
     meta: {
       conditionalRoute: false,
-      componentName: 'SGCluster'
+      componentName: 'Namespace'
     },
   },
   { 
@@ -349,16 +350,6 @@ const routes = [
     meta: {
       conditionalRoute: false,
       componentName: 'SGCluster'
-    },
-  },
-  { 
-    path: '/sgshardedclusters', 
-    component: ShardedClusterOverview,
-    name: 'ShardedClusterOverviewEmpty',
-    meta: {
-      conditionalRoute: false,
-      componentName: 'SGShardedCluster',
-      kind: 'SGShardedCluster'
     },
   },
   { 

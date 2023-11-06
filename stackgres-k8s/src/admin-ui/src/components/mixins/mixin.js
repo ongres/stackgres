@@ -703,34 +703,34 @@ export const mixin = {
   
       iCan( action = 'any', kind, namespace = '' ) {
         const vc = this;
-          
-          if(namespace.length) { // If filtered by namespace
-  
-            let permissions = store.state.permissions.allowed.namespaced.find(p => (p.namespace == namespace));
-            return (
-              (typeof permissions != 'undefined') &&
-                (
-                  ( (action == 'any') && permissions.resources[kind].length) ||
-                  ( (action != 'any') && permissions.resources[kind].includes(action) 
-                )
+
+        if(namespace.length) { // If filtered by namespace
+
+          let permissions = store.state.permissions.allowed.namespaced.find(p => (p.namespace == namespace));
+          return (
+            (typeof permissions != 'undefined') &&
+              (
+                ( (action == 'any') && permissions.resources[kind].length) ||
+                ( (action != 'any') && permissions.resources[kind].includes(action) 
               )
             )
+          )
 
-          } else if( !['namespaces', 'storageclasses'].includes(kind) && (action != 'any') ) { // For CRDs when no namespace indicated
-            
-            return (store.state.permissions.allowed.namespaced.filter(n => 
-              (n.resources[kind].includes(action)) ).length == store.state.permissions.allowed.namespaced.length
-            );
-
-          } else if(['namespaces', 'storageclasses'].includes(kind)) {
-
-            return store.state.permissions.allowed.unnamespaced[kind].includes(action)
+        } else if( !['namespaces', 'storageclasses'].includes(kind) && (action != 'any') ) { // For CRDs when no namespace indicated
           
-          } else {
-            
-            return !store.state.permissions.forbidden.includes(kind)
-            
-          }
+          return (store.state.permissions.allowed.namespaced.filter(n => 
+            (n.resources[kind].includes(action)) ).length == store.state.permissions.allowed.namespaced.length
+          );
+
+        } else if(['namespaces', 'storageclasses'].includes(kind)) {
+
+          return store.state.permissions.allowed.unnamespaced.hasOwnProperty(kind) && store.state.permissions.allowed.unnamespaced[kind].includes(action);
+        
+        } else {
+          
+          return !store.state.permissions.forbidden.includes(kind)
+          
+        }
   
       },
   
