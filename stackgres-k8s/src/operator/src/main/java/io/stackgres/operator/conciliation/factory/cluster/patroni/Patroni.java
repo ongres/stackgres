@@ -32,7 +32,6 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
@@ -54,7 +53,7 @@ import io.stackgres.operator.conciliation.factory.cluster.ReplicateVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.RestoreVolumeMounts;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V_1_4)
+@OperatorVersionBinder
 @RunningContainer(StackGresContainer.PATRONI)
 public class Patroni implements ContainerFactory<ClusterContainerContext> {
 

@@ -10,16 +10,11 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
-import io.stackgres.common.labels.v14.DistributedLogsLabelMapperV14;
 
 @ApplicationScoped
 public class DistributedLogsLabelMapper implements LabelMapperForCluster<StackGresDistributedLogs> {
-
-  private final DistributedLogsLabelMapperV14 distributedLogsLabelMapperV14 =
-      new DistributedLogsLabelMapperV14();
 
   @Override
   public String appName() {
@@ -43,9 +38,6 @@ public class DistributedLogsLabelMapper implements LabelMapperForCluster<StackGr
 
   @Override
   public String resourceScopeKey(StackGresDistributedLogs resource) {
-    if (useV14(resource)) {
-      return distributedLogsLabelMapperV14.clusterScopeKey(resource);
-    }
     return getKeyPrefix(resource) + StackGresContext.DISTRIBUTED_LOGS_CLUSTER_SCOPE_KEY;
   }
 
@@ -55,11 +47,6 @@ public class DistributedLogsLabelMapper implements LabelMapperForCluster<StackGr
         .map(StackGresDistributedLogs::getStatus)
         .map(StackGresDistributedLogsStatus::getLabelPrefix)
         .orElse(StackGresContext.STACKGRES_KEY_PREFIX);
-  }
-
-  private boolean useV14(StackGresDistributedLogs resource) {
-    return StackGresVersion.getStackGresVersion(resource)
-        .compareTo(StackGresVersion.V_1_4) <= 0;
   }
 
 }

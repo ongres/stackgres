@@ -1,0 +1,58 @@
+configurations:
+  postgresconfig:
+    postgresql.conf:
+      shared_buffers: '32MB'
+  backupconfig:
+    create: false
+cluster:
+  pods:
+    persistentVolume:
+      size: 128Mi
+    managementPolicy: Parallel
+  configurations:
+    sgBackupConfig: null
+  managedSql:
+    scripts:
+    - name: create-sakila-user
+      scriptFrom:
+        secretKeyRef: # read the user from a Secret to maintain credentials in a safe place
+          name: sql-scripts-sakila-user
+          key: create-sakila-user.sql
+    - name: create-sakila-database
+      script: |
+        CREATE DATABASE sakila WITH OWNER sakila;
+    - database: sakila
+      scriptFrom:
+        configMapKeyRef: # read long script from a ConfigMap to avoid have to much data in the helm releasea and the sgcluster CR
+          name: sql-scripts-sakila-schema
+          key: create-sakila-schema.sql
+    - database: sakila
+      script: |
+        CREATE TABLE test_wrap_in_transaction();
+        CREATE DATABASE test;
+      wrapInTransaction: serializable
+    - database: sakila
+      script: |
+        CREATE TABLE test_store_status_in_database();
+        CREATE DATABASE test;
+      wrapInTransaction: serializable
+      storeStatusInDatabase: true
+    - database: sakila
+      script: |
+        START TRANSACTION;
+        CREATE TABLE IF NOT EXISTS retry_on_error AS SELECT 0 AS i;
+        UPDATE retry_on_error SET i = i + 1;
+        COMMIT;
+        DO $$
+          BEGIN
+            IF (SELECT i FROM retry_on_error LIMIT 1) < 2
+            THEN
+              RAISE EXCEPTION 'Retry';
+            END IF;
+          END;
+          $$;
+        CREATE TABLE test_retry_on_error();
+      retryOnError: true
+  prometheusAutobind: false
+nonProductionOptions:
+  disableClusterPodAntiAffinity: true

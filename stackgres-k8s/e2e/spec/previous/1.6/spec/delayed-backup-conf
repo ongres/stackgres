@@ -1,0 +1,53 @@
+#!/bin/sh
+
+. "$SPEC_PATH/abstract/backup"
+
+e2e_test_extra_hash() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/backup")"
+}
+
+e2e_test_install_pods() {
+  echo 1
+}
+
+
+e2e_test() {
+  run_test "add backup configuration manually" add_backup_manually
+}
+
+add_backup_manually(){
+  install_minio
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
+
+  cat << EOF | kubectl apply -f -
+  apiVersion: stackgres.io/v1beta1
+  kind: SGObjectStorage
+  metadata:
+    name: backupconf
+    namespace: $CLUSTER_NAMESPACE
+  spec:
+    type: s3Compatible
+    s3Compatible:
+      bucket: stackgres
+      endpoint: http://$MINIO_NAME:9000
+      enablePathStyleAddressing: true
+      region: k8s
+      awsCredentials:
+        secretKeySelectors:
+          accessKeyId:
+            name: $MINIO_NAME
+            key: accesskey
+          secretAccessKey:
+            name: $MINIO_NAME
+            key: secretkey
+EOF
+
+  kubectl patch sgclusters -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+    --patch '[{"op":"add","path":"/spec/configurations/backups","value": [{"sgObjectStorage": "backupconf", "cronSchedule": "*/1 * * * *"}] }]'
+
+  kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true"
+
+  check_backup 0
+}

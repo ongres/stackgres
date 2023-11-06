@@ -10,15 +10,11 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 
 import io.stackgres.common.StackGresContext;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
-import io.stackgres.common.labels.v14.ClusterLabelMapperV14;
 
 @ApplicationScoped
 public class ClusterLabelMapper implements LabelMapperForCluster<StackGresCluster> {
-
-  private final ClusterLabelMapperV14 clusterLabelMapperV14 = new ClusterLabelMapperV14();
 
   @Override
   public String appName() {
@@ -42,9 +38,6 @@ public class ClusterLabelMapper implements LabelMapperForCluster<StackGresCluste
 
   @Override
   public String resourceScopeKey(StackGresCluster resource) {
-    if (useV14(resource)) {
-      return clusterLabelMapperV14.clusterScopeKey(resource);
-    }
     return getKeyPrefix(resource) + StackGresContext.CLUSTER_SCOPE_KEY;
   }
 
@@ -54,11 +47,6 @@ public class ClusterLabelMapper implements LabelMapperForCluster<StackGresCluste
         .map(StackGresCluster::getStatus)
         .map(StackGresClusterStatus::getLabelPrefix)
         .orElse(StackGresContext.STACKGRES_KEY_PREFIX);
-  }
-
-  private boolean useV14(StackGresCluster resource) {
-    return StackGresVersion.getStackGresVersion(resource)
-        .compareTo(StackGresVersion.V_1_4) <= 0;
   }
 
 }
