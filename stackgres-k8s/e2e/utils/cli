@@ -77,7 +77,13 @@ Options:
   --extensions-repository-url <url> The extensions repository URL
   --cluster-parameters <parameters> Extra helm chart parameters for cluster
   --enable-cluster-resource-requirements Enable cluster resource requirements
-
+  --k8s-cache-path <path> If not specified will be ~/.stackgres/kind-cache
+  --disable-extensions-cache If set will disable extensions cache and use
+                              remote repository directly.
+  --use-current-build     If specified will use the current build instead of
+                           the build inside the operator images.
+                          
+                          This feature may require to restart the k8s cluster.
 EOF
 }
 
@@ -157,6 +163,9 @@ EOF
           --extensions-repository-url
           --cluster-parameters
           --enable-snapshotting
+          --k8s-cache-path
+          --disable-extensions-cache
+          --use-current-build
           " -- "\${COMP_WORDS[\$COMP_CWORD]}"
           ))
         return
@@ -207,6 +216,7 @@ cli() {
       cli_set_parameter_boolean "$@"
       shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       E2E_USE_TEST_CACHE="$VALUE"
+      E2E_USE_TEST_CACHE_PER_TEST="$VALUE"
       ;;
       ('--env')
       cli_set_parameter_value "$@"
@@ -264,10 +274,6 @@ cli() {
       cli_set_parameter_boolean "$@"
       shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       E2E_REUSE_OPERATOR_PODS="$VALUE"
-      if [ "$E2E_REUSE_OPERATOR_PODS" ]
-      then
-        E2E_SKIP_LOAD_OPERATOR=true
-      fi
       ;;
       ('--skip-operator-install')
       cli_set_parameter_boolean "$@"
@@ -367,6 +373,21 @@ cli() {
       shift "$(cli_get_parameter_shifts "$@")"
       EXTENSIONS_REPOSITORY_URL="$VALUE"
       ;;
+      ('--k8s-cache-path')
+      cli_set_parameter_value "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      K8S_CACHE_PATH="$VALUE"
+      ;;
+      ('--disable-extensions-cache')
+      cli_set_parameter_boolean_negation "$@"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
+      EXTENSIONS_CACHE_ENABLED="$VALUE"
+      ;;
+      ('--use-current-build')
+      cli_set_parameter_boolean "$@"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
+      USE_CURRENT_BUILD="$VALUE"
+      ;;
       ('--cluster-parameters')
       cli_set_parameter_value "$@"
       shift "$(cli_get_parameter_shifts "$@")"
@@ -457,6 +478,10 @@ cli() {
     cli_help
     return
   fi
+  if [ "$USE_CURRENT_BUILD" = true ]
+  then
+    E2E_EXTRA_MOUNT_BUILD_PATH="$K8S_CACHE_PATH"/build
+  fi
   if "$DO_BUILD"
   then
     E2E_BUILD_IMAGES=true E2E_PUSH_IMAGES=false "$SHELL" $SHELL_XTRACE "$E2E_PATH/e2e" setup_images
@@ -484,7 +509,9 @@ cli_init_e2e_variables() {
   K8S_REUSE=true
   K8S_EXTRA_PORT=30100:9443:0.0.0.0:tcp
   K8S_USE_INTERNAL_REPOSITORY=true
-  K8S_CACHE_PATH="/tmp/${KIND_NAME:-kind}-cache"
+  K8S_CACHE_PATH=~/".stackgres/${KIND_NAME:-kind}-cache"
+  EXTENSIONS_CACHE_ENABLED=true
+  EXTENSIONS_CACHE_HOST_PATH=/containerd-cache/extensions
   IMAGE_TAG="$(git rev-parse --short=8 HEAD)-jvm"
   E2E_FORCE_IMAGE_PULL=false
   E2E_SKIP_OPERATOR_LOAD=true
@@ -518,10 +545,14 @@ cli_export_e2e_variables() {
     E2E_BUILD_IMAGES \
     E2E_PUSH_IMAGES \
     E2E_USE_TEST_CACHE \
+    E2E_USE_TEST_CACHE_PER_TEST \
     E2E_ENV \
     K8S_REUSE \
     K8S_USE_INTERNAL_REPOSITORY \
     K8S_CACHE_PATH \
+    EXTENSIONS_CACHE_ENABLED \
+    EXTENSIONS_CACHE_HOST_PATH \
+    E2E_EXTRA_MOUNT_BUILD_PATH \
     K8S_EXTRA_PORT \
     E2E_OPERATOR_OPTS \
     E2E_OPERATOR_BUNDLE_SGCONFIG \

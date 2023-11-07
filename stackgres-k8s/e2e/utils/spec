@@ -290,7 +290,10 @@ spec() {
   fi
   echo "$SPEC_FILE" > "$TARGET_PATH/$SPEC_NAME.completed"
   echo "$SPEC_FILE" > "$TARGET_PATH/$SPEC_NAME.success"
-  store_test_result "$SPEC_NAME"
+  if [ "$E2E_USE_TEST_CACHE_PER_TEST" = true ]
+  then
+    store_test_result "$SPEC_NAME"
+  fi
   echo "$SPEC_NAME. SUCCESS. Test took $SPEC_TIME seconds" >> "$TARGET_PATH/logs"/results.log
 }
 
