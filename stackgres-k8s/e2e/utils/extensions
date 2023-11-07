@@ -58,6 +58,14 @@ cache_extensions_index() {
 }
 
 get_latest_version_of_extension() {
+  get_versions_of_extension "$1" "$2" "$3" | head -n 1
+}
+
+get_oldest_version_of_extension() {
+  get_versions_of_extension "$1" "$2" "$3" | tail -n 1
+}
+
+get_versions_of_extension() {
   local EXTENSION_NAME="$1"
   local POSTGRES_VERSION="$2"
   local FLAVOR="${3:-pg}"
@@ -93,7 +101,7 @@ EOF
     echo "Can not find any compatible version of extension $EXTENSION_NAME for postgres $PATRONI_IMAGE_POSTGRES_VERSION build $PATRONI_IMAGE_BUILD_MAJOR_VERSION" >&2
     return 1
   fi
-  echo "$VERSIONS" | head -n 1
+  echo "$VERSIONS"
 }
 
 get_preloaded_extensions() {

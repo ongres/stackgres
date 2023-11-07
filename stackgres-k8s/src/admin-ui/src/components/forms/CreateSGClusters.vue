@@ -40,11 +40,30 @@
                             <label for="metadata.name">Cluster Name <span class="req">*</span></label>
                             <input v-model="name" :disabled="editMode" required data-field="metadata.name" autocomplete="off">
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.metadata.name')"></span>
+                            
+                            <span class="warning topAnchor" v-if="nameColission && !editMode">
+                                There's already a <strong>SGCluster</strong> with the same name on this namespace. Please specify a different name or create the cluster on another namespace
+                            </span>
                         </div>
 
-                        <span class="warning topAnchor" v-if="nameColission && !editMode">
-                            There's already a <strong>SGCluster</strong> with the same name on this namespace. Please specify a different name or create the cluster on another namespace
-                        </span>
+                        <div class="col">
+                            <label for="spec.profile">Profile</label>
+                            <select v-model="profile" data-field="spec.profile" class="capitalize">
+                                <option v-for="profile in clusterProfiles">{{ profile }}</option>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.profile')"></span>
+
+                            <div class="warning topAnchor" v-if="profile != 'production'">
+                                By choosing this Profile, the following defaults are overwritten:
+                                <ul>
+                                    <li><strong>Cluster Pod Anti Affinity</strong> is set to <strong>Disable</strong>.</li>
+                                    <template v-if="profile == 'development'">
+                                        <li><strong>Patroni Resource Requirements</strong> is set to <strong>Disable</strong>.</li>
+                                        <li><strong>Cluster Resource Requirements</strong> is set to <strong>Disable</strong>.</li>
+                                    </template>
+                                </ul>     
+                            </div>
+                        </div>
                     </div>
 
                     <hr/>
@@ -2954,10 +2973,11 @@
                     <div class="row-50">
                         <div class="col">
                             <label for="spec.nonProductionOptions.disableClusterPodAntiAffinity">Cluster Pod Anti Affinity</label>  
-                            <label for="disableClusterPodAntiAffinity" class="switch yes-no">
-                                Enable 
-                                <input type="checkbox" id="disableClusterPodAntiAffinity" v-model="enableClusterPodAntiAffinity" data-switch="NO" data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity">
-                            </label>
+                            <select v-model="clusterPodAntiAffinity" data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity">
+                                <option selected :value="null">Default</option>
+                                <option :value="false">Enable</option>
+                                <option :value="true">Disable</option>
+                            </select>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('Set this property to true','Disable this property')"></span>
                         </div>
                     </div>
@@ -3009,6 +3029,8 @@
                 formSteps: ['cluster', 'extensions', 'backups', 'initialization', 'replicate-from', 'scripts', 'sidecars', 'pods-replication', 'services', 'metadata', 'scheduling', 'non-production'],
                 editMode: (vc.$route.name === 'EditCluster'),
                 editReady: false,
+                clusterProfiles: ['production', 'testing', 'development'],
+                profile: 'production',
                 instances: 1,
                 pgConfig: '',
                 connPooling: true,
@@ -3063,6 +3085,7 @@
                 },
                 postgresServicesPrimaryAnnotations: [ { annotation: '', value: '' } ],
                 postgresServicesReplicasAnnotations: [ { annotation: '', value: '' } ],
+                clusterPodAntiAffinity: null
             }
 
         },
@@ -3096,6 +3119,8 @@
                                 vm.ssl = c.data.spec.postgres.ssl
                             }
                             
+                            vm.profile = c.data.spec.hasOwnProperty('profile') ? c.data.spec.profile : 'production' ;
+                            vm.flavor = c.data.spec.postgres.hasOwnProperty('flavor') ? c.data.spec.postgres.flavor : 'vanilla' ;
                             vm.instances = c.data.spec.instances;
                             vm.resourceProfile = c.data.spec.sgInstanceProfile;
                             vm.pgConfig = c.data.spec.configurations.sgPostgresConfig;
@@ -3134,7 +3159,7 @@
                             vm.replicateFromSource = vm.getReplicationSource(c);
                             vm.replication = vm.hasProp(c, 'data.spec.replication') && c.data.spec.replication;
                             vm.prometheusAutobind =  (typeof c.data.spec.prometheusAutobind !== 'undefined') ? c.data.spec.prometheusAutobind : false;
-                            vm.enableClusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? !c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : true;
+                            vm.clusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : null;
                             vm.metricsExporter = vm.hasProp(c, 'data.spec.pods.disableMetricsExporter') ? !c.data.spec.pods.disableMetricsExporter : true ;
                             vm.enableMonitoring = ( (!vm.hasProp(c, 'data.spec.pods.disableMetricsExporter')) && (typeof c.data.spec.prometheusAutobind !== 'undefined') ) ? true : false;
                             vm.postgresUtil = vm.hasProp(c, 'data.spec.pods.disablePostgresUtil') ? !c.data.spec.pods.disablePostgresUtil : true ;
@@ -3285,6 +3310,7 @@
                     },
                     "spec": {
                         ...(this.hasProp(previous, 'spec') && previous.spec),
+                        "profile": this.profile,
                         "instances": this.instances,
                         ...(this.resourceProfile.length && {"sgInstanceProfile": this.resourceProfile } || {"sgInstanceProfile": null} ),
                         "pods": {
@@ -3400,10 +3426,10 @@
                             }) )
                         },
                         ...(this.prometheusAutobind && ( {"prometheusAutobind": this.prometheusAutobind }) ),
-                        ...((this.hasProp(previous, 'spec.nonProductionOptions') || !this.enableClusterPodAntiAffinity || (this.flavor == 'babelfish' && this.babelfishFeatureGates)) && ( {
+                        ...((this.hasProp(previous, 'spec.nonProductionOptions') || (this.clusterPodAntiAffinity != null) || (this.flavor == 'babelfish' && this.babelfishFeatureGates)) && ( {
                             "nonProductionOptions": { 
                                 ...(this.hasProp(previous, 'spec.nonProductionOptions') && previous.spec.nonProductionOptions),
-                                ...(!this.enableClusterPodAntiAffinity && {"disableClusterPodAntiAffinity": !this.enableClusterPodAntiAffinity} || {"disableClusterPodAntiAffinity": null} ),
+                                ...((this.clusterPodAntiAffinity != null) && {"disableClusterPodAntiAffinity": this.clusterPodAntiAffinity} || {"disableClusterPodAntiAffinity": null} ),
                                 ...((this.flavor == 'babelfish' && this.babelfishFeatureGates) && {"enabledFeatureGates": ['babelfish-flavor'] } || {"enabledFeatureGates": null} )
                                 } 
                             }) ),

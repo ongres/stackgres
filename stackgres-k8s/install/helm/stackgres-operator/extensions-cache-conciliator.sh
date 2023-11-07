@@ -133,7 +133,7 @@ run () {
           "$STATEFULSET_JSON_FILE.lastest" "$STATEFULSET_JSON_FILE" > "$STATEFULSET_JSON_FILE.new"
       done
     fi
-    if test -f /tmp/need-restart
+    if ! any_image_repository_url && test -f /tmp/need-restart
     then
       kubectl delete pod -n "$NAMESPACE" "$STATEFULSET_NAME-0"
     fi

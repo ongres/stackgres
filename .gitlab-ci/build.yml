@@ -8,8 +8,6 @@
   script:
     - |
       sh stackgres-k8s/ci/build/build-gitlab.sh build \
-        --copy stackgres-k8s/ci/build/target/junit-build.hashes.xml \
-        --copy .m2 \
         --extract operator-framework-java-test:'stackgres-k8s/src/operator-framework/target/surefire-reports/TEST-*.xml' \
         --extract common-java-test:'stackgres-k8s/src/common/target/surefire-reports/TEST-*.xml' \
         --extract operator-java-test:'stackgres-k8s/src/operator/target/surefire-reports/TEST-*.xml' \
@@ -76,7 +74,6 @@ build arm64:
   script:
     - |
       sh stackgres-k8s/ci/build/build-gitlab.sh build \
-        --copy stackgres-k8s/src/admin-ui/node_modules \
         admin-ui
   retry: 2
   cache:

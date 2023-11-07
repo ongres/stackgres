@@ -388,7 +388,7 @@ calculate_spec_hashes() {
     grep '^ui-image=' "$PROJECT_PATH/stackgres-k8s/ci/build/target/image-type-hashes" \
       | cut -d = -f 2)"
   local SPEC_PLATFORM
-  SPEC_PLATFORM="$("$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" get_platform)"
+  SPEC_PLATFORM="$("$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" get_platform_tag_suffix)"
   # shellcheck disable=SC2015
   [ -n "$HELM_MODULE_HASH" ] \
     && [ -n "$JVM_IMAGE_MODULE_HASH" ] \
@@ -520,7 +520,7 @@ EOF
   sort "$TARGET_PATH/passed-tests" 2>/dev/null | uniq > "$TARGET_PATH/uniq-passed-tests"
 
   local SPEC_PLATFORM
-  SPEC_PLATFORM="$("$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" get_platform)"
+  SPEC_PLATFORM="$("$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" get_platform_tag_suffix)"
   # shellcheck disable=SC2046
   docker build -f "$TARGET_PATH/Dockerfile.e2e" \
     -t "$E2E_TEST_REGISTRY/$E2E_TEST_REGISTRY_PATH/e2e-test-result$E2E_SUFFIX:$IMAGE_TAG-$SPEC_PLATFORM" \
@@ -557,7 +557,7 @@ FROM registry.access.redhat.com/ubi8-micro:8.8-7
 EOF
 
   local SPEC_PLATFORM
-  SPEC_PLATFORM="$("$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" get_platform)"
+  SPEC_PLATFORM="$("$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" get_platform_tag_suffix)"
   local IMAGE_NAME
   IMAGE_NAME="$(grep "^$SPEC_NAME=" "$TARGET_PATH/test-result-images")"
   IMAGE_NAME="$(printf %s "$IMAGE_NAME" | cut -d = -f 2-)"

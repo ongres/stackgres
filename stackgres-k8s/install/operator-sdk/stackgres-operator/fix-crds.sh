@@ -12,6 +12,14 @@ do
       if .type == "ConversionWebhook" and .conversionCRDs[0] == "'"$CRD_NAME"'"
         then .webhookPath = "/stackgres/conversion/'"$CRD_SINGULAR"'" else . end
       )
-    )' bundle/manifests/stackgres.clusterserviceversion.yaml > bundle/manifests/stackgres.clusterserviceversion.yaml.tmp
-  mv bundle/manifests/stackgres.clusterserviceversion.yaml.tmp bundle/manifests/stackgres.clusterserviceversion.yaml
+    )' bundle/manifests/stackgres.clusterserviceversion.yaml \
+    > bundle/manifests/stackgres.clusterserviceversion.yaml.tmp
+  mv bundle/manifests/stackgres.clusterserviceversion.yaml.tmp \
+    bundle/manifests/stackgres.clusterserviceversion.yaml
 done
+yq -s -y '.[0] as $config | .[1] as $bundle | $bundle | .spec.relatedImages = $config.spec.relatedImages' \
+  config/manifests/bases/stackgres.clusterserviceversion.yaml \
+  bundle/manifests/stackgres.clusterserviceversion.yaml \
+  > bundle/manifests/stackgres.clusterserviceversion.yaml.tmp
+mv bundle/manifests/stackgres.clusterserviceversion.yaml.tmp \
+  bundle/manifests/stackgres.clusterserviceversion.yaml

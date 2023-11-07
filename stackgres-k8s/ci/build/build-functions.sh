@@ -63,8 +63,10 @@ EOF
   MODULE_HASH="$(md5sum "stackgres-k8s/ci/build/target/$MODULE-hash" | cut -d ' ' -f 1)"
   if "$MODULE_PLATFORM_DEPENDENT"
   then
+    MODULE_PLATFORM="${MODULE_PLATFORM:-$(get_platform)}"
+    TAG_MODULE_PLATFORM="$(printf %s "$MODULE_PLATFORM" | tr '/' '-')"
     printf 'registry.gitlab.com/ongresinc/stackgres/build/%s:hash-%s-%s\n' \
-      "$MODULE" "$MODULE_HASH" "${MODULE_PLATFORM:-$(get_platform)}"
+      "$MODULE" "$MODULE_HASH" "$TAG_MODULE_PLATFORM"
   else
     printf 'registry.gitlab.com/ongresinc/stackgres/build/%s:hash-%s\n' \
       "$MODULE" "$MODULE_HASH"
@@ -155,6 +157,7 @@ EOF
    "  > "stackgres-k8s/ci/build/target/$MODULE-build-env"
   # shellcheck disable=SC2046
   docker_run -i $(! test -t 1 || printf %s '-t') --rm \
+    --platform "${BUILD_PLATFORM:-$(get_platform)}" \
     $([ "$SKIP_REMOTE_MANIFEST" = true ] || printf %s '--pull always') \
     --volume "/var/run/docker.sock:/var/run/docker.sock" \
     --volume "${PROJECT_PATH:-$(pwd)}:/project" \
@@ -248,6 +251,7 @@ EOF
   # shellcheck disable=SC2046
   docker_build $DOCKER_BUILD_OPTS -t "$IMAGE_NAME" \
     $([ "$SKIP_REMOTE_MANIFEST" = true ] || printf %s '--pull') \
+    --platform "${BUILD_PLATFORM:-$(get_platform)}" \
     --build-arg "BUILD_UID=${BUILD_UID%:*}" \
     --build-arg "TARGET_IMAGE_NAME=$TARGET_IMAGE_NAME" \
     $(jq -r ".modules[\"$MODULE\"].dockerfile.args
@@ -337,7 +341,8 @@ image_name() {
   else
     MODULE_PLATFORM=
   fi
-  IMAGE_NAME="$(grep "^$MODULE=.*$MODULE_PLATFORM$" stackgres-k8s/ci/build/target/image-hashes)" \
+  TAG_MODULE_PLATFORM="$(printf %s "$MODULE_PLATFORM" | tr '/' '-')"
+  IMAGE_NAME="$(grep "^$MODULE=.*$TAG_MODULE_PLATFORM$" stackgres-k8s/ci/build/target/image-hashes)" \
     || die "Unable to retrieve hash for module $MODULE in stackgres-k8s/ci/build/target/image-hashes" 1
   IMAGE_NAME="$(printf %s "$IMAGE_NAME"| cut -d = -f 2-)"
   [ -n "$IMAGE_NAME" ] \
@@ -352,8 +357,8 @@ build_image() {
   local IMAGE_NAME
   local SOURCE_IMAGE_NAME
   MODULE_TYPE="$(module_type "$MODULE")"
-  SOURCE_IMAGE_NAME="$(source_image_name "$MODULE")"
-  IMAGE_NAME="$(image_name "$MODULE")"
+  SOURCE_IMAGE_NAME="$(source_image_name "$MODULE" "$BUILD_PLATFORM")"
+  IMAGE_NAME="$(image_name "$MODULE" "$BUILD_PLATFORM")"
   echo
   echo "--------------------------------------------------------------------------------------------------------------------------------"
   echo
@@ -628,7 +633,11 @@ retrieve_image_manifest() {
 }
 
 get_platform() {
-  printf '%s-%s' "$(uname | tr '[:upper:]' '[:lower:]')" "$(uname -m)"
+  printf '%s/%s' "$(uname | tr '[:upper:]' '[:lower:]')" "$(uname -m)"
+}
+
+get_platform_tag_suffix() {
+  get_platform | tr '/' '-'
 }
 
 project_hash() {

@@ -38,35 +38,35 @@ UPSTREAM_GIT_PATH=target/"upstream-$UPSTREAM_SUFFIX"
 FORK_GIT_PATH=target/"fork-$UPSTREAM_SUFFIX"
 OPERATOR_BUNDLE_IMAGE_TAG="${STACKGRES_VERSION}$OPERATOR_BUNDLE_IMAGE_TAG_SUFFIX"
 
-if [ -d "$UPSTREAM_GIT_PATH" ] && git -C "$UPSTREAM_GIT_PATH" remote -v | grep -qF "$UPSTREAM_GIT_URL"
+if ! [ -d "$UPSTREAM_GIT_PATH" ] || ! git -C "$UPSTREAM_GIT_PATH" remote -v | tr -s '[:blank:]' ' ' | grep -qF "origin $UPSTREAM_GIT_URL "
 then
-  echo "Resetting Upstream $UPSTREAM_NAME from $UPSTREAM_GIT_URL"
-  git -C "$UPSTREAM_GIT_PATH" fetch
-  git -C "$UPSTREAM_GIT_PATH" reset --hard HEAD
-  git -C "$UPSTREAM_GIT_PATH" checkout main
-  git -C "$UPSTREAM_GIT_PATH" reset --hard origin/main
-else
   echo "Cloning Upstream $UPSTREAM_NAME from $UPSTREAM_GIT_URL"
   rm -rf "$UPSTREAM_GIT_PATH"
   git clone "$UPSTREAM_GIT_URL" "$UPSTREAM_GIT_PATH"
 fi
 
-if [ -d "$FORK_GIT_PATH" ] && git -C "$FORK_GIT_PATH" remote -v | grep -qF "$FORK_GIT_URL"
+echo "Resetting Upstream $UPSTREAM_NAME from $UPSTREAM_GIT_URL"
+git -C "$UPSTREAM_GIT_PATH" fetch
+git -C "$UPSTREAM_GIT_PATH" reset --hard HEAD
+git -C "$UPSTREAM_GIT_PATH" checkout main
+git -C "$UPSTREAM_GIT_PATH" reset --hard origin/main
+
+if ! [ -d "$FORK_GIT_PATH" ] || ! git -C "$FORK_GIT_PATH" remote -v | tr -s '[:blank:]' ' ' | grep -qF "origin $FORK_GIT_URL "
 then
-  echo "Resetting OperatorHub fork for StackGres from $FORK_GIT_URL"
-  if ! git -C "$FORK_GIT_PATH" remote -v | tr -s '[:blank:]' ' ' | grep -qxF "upstream $UPSTREAM_GIT_URL (fetch)"
-  then
-    git -C "$FORK_GIT_PATH" remote add upstream "$UPSTREAM_GIT_URL"
-  fi
-  git -C "$FORK_GIT_PATH" fetch upstream
-  git -C "$FORK_GIT_PATH" reset --hard HEAD
-  git -C "$FORK_GIT_PATH" checkout main
-  git -C "$FORK_GIT_PATH" reset --hard upstream/main
-else
   echo "Cloning OperatorHub fork for StackGres from $FORK_GIT_URL"
   rm -rf "$FORK_GIT_PATH"
   git clone "$FORK_GIT_URL" "$FORK_GIT_PATH"
 fi
+
+echo "Resetting OperatorHub fork for StackGres from $FORK_GIT_URL"
+if ! git -C "$FORK_GIT_PATH" remote -v | tr -s '[:blank:]' ' ' | grep -qF "upstream $UPSTREAM_GIT_URL "
+then
+  git -C "$FORK_GIT_PATH" remote add upstream "$UPSTREAM_GIT_URL"
+fi
+git -C "$FORK_GIT_PATH" fetch upstream
+git -C "$FORK_GIT_PATH" reset --hard HEAD
+git -C "$FORK_GIT_PATH" checkout main
+git -C "$FORK_GIT_PATH" reset --hard upstream/main
 
 if [ "$(git -C "$FORK_GIT_PATH" rev-list --max-parents=0 HEAD)" != "$(git -C "$UPSTREAM_GIT_PATH" rev-list --max-parents=0 HEAD)" ]
 then
@@ -104,6 +104,11 @@ then
     | while read -r IMAGE
       do
         DIGEST="$(docker buildx imagetools inspect "$IMAGE" | grep '^Digest:' | tr -d ' ' | cut -d : -f 2-)"
+        if [ -z "$DIGEST" ]
+        then
+          echo "Digest not found for image $IMAGE"
+          exit 1
+        fi
         IMAGE_NAME="${IMAGE%%:*}"
         IMAGE_NAME="${IMAGE_NAME%%@sha256}"
         echo "Pinning $IMAGE to $IMAGE_NAME@$DIGEST"
@@ -120,8 +125,14 @@ then
   deploy_extra_steps
 fi
 
-mv "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/stackgres.clusterserviceversion.yaml \
-  "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/"${PROJECT_NAME}.clusterserviceversion.yaml"
+if [ "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/stackgres.clusterserviceversion.yaml \
+  != "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/"${PROJECT_NAME}.clusterserviceversion.yaml" ]
+then
+  mv "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/stackgres.clusterserviceversion.yaml \
+    "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/manifests/"${PROJECT_NAME}.clusterserviceversion.yaml"
+  sed -i 's/^  operators\.operatorframework\.io\.bundle\.package\.v1: stackgres$/  operators.operatorframework.io.bundle.package.v1: ${PROJECT_NAME}/' \
+    "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"/metadata/annotations.yaml
+fi
 
 # Pass Red Hat YAML checks
 find "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION" -name '*.yaml' | xargs -I % sh -c 'yq -y . % > %.new && mv %.new %'
@@ -131,9 +142,9 @@ operator-sdk bundle validate "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_
 git -C "$FORK_GIT_PATH" add .
 git -C "$FORK_GIT_PATH" status
 echo "Creating commit"
-git -C "$FORK_GIT_PATH" commit -m "operator $PROJECT_NAME (${STACKGRES_VERSION})"
+git -C "$FORK_GIT_PATH" commit -s -m "operator $PROJECT_NAME (${STACKGRES_VERSION})"
 echo "To push use the following command"
-echo git -C "$PROJECT_PATH"/stackgres-k8s/install/operator-sdk/stackgres-operator/"$FORK_GIT_PATH" push
+echo git -C "$PROJECT_PATH"/stackgres-k8s/install/operator-sdk/stackgres-operator/"$FORK_GIT_PATH" push -f
 echo
 if [ "$UPSTREAM_GIT_URL" != "${UPSTREAM_GIT_URL#https://github.com}" ]
 then
