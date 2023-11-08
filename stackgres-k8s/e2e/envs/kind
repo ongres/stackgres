@@ -255,7 +255,7 @@ INNER_EOF
   then
     mkdir -p "$KIND_CONTAINERD_CACHE_PATH"
     cat << INNER_EOF
-  - hostPath: $KIND_CONTAINERD_CACHE_PATH
+  - hostPath: $(realpath "$KIND_CONTAINERD_CACHE_PATH")
     containerPath: /containerd-cache
 INNER_EOF
   fi
@@ -342,23 +342,23 @@ EOF
 
 copy_to_extra_mount_build_path() {
   mkdir -p "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/operator/target/quarkus-app
-  cp -a "$PROJECT_PATH"/stackgres-k8s/src/operator/target/quarkus-app \
+  cp -a "$PROJECT_PATH"/stackgres-k8s/src/operator/target/quarkus-app/. \
     "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/operator/target/quarkus-app/.
   mkdir -p "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/api-web/target/quarkus-app
-  cp -a "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/api-web/target/quarkus-app \
-    "$PROJECT_PATH"/stackgres-k8s/src/api-web/target/quarkus-app/.
+  cp -a "$PROJECT_PATH"/stackgres-k8s/src/api-web/target/quarkus-app/. \
+    "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/api-web/target/quarkus-app/.
   mkdir -p "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/admin-ui/target/public
-  cp -a "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/admin-ui/target/public \
-    "$PROJECT_PATH"/stackgres-k8s/src/admin-ui/target/public/.
+  cp -a "$PROJECT_PATH"/stackgres-k8s/src/admin-ui/target/public/. \
+    "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/admin-ui/target/public/.
   mkdir -p "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/jobs/target/quarkus-app
-  cp -a "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/jobs/target/quarkus-app \
-    "$PROJECT_PATH"/stackgres-k8s/src/jobs/target/quarkus-app/.
+  cp -a "$PROJECT_PATH"/stackgres-k8s/src/jobs/target/quarkus-app/. \
+    "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/jobs/target/quarkus-app/.
   mkdir -p "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/cluster-controller/target/quarkus-app
-  cp -a "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/cluster-controller/target/quarkus-app \
-    "$PROJECT_PATH"/stackgres-k8s/src/cluster-controller/target/quarkus-app/.
+  cp -a "$PROJECT_PATH"/stackgres-k8s/src/cluster-controller/target/quarkus-app/. \
+    "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/cluster-controller/target/quarkus-app/.
   mkdir -p "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app
-  cp -a "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app \
-    "$PROJECT_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app/.
+  cp -a "$PROJECT_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app/. \
+    "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app/.
 }
 
 setup_metric_server() {

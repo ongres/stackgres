@@ -52,6 +52,7 @@ export EXTENSIONS_CACHE_HOST_PATH="/containerd-cache/extensions"
 export E2E_TEST_REGISTRY="$CI_REGISTRY"
 export E2E_TEST_REGISTRY_PATH="$CI_PROJECT_PATH"
 export E2E_USE_TEST_HASHES=true
+export E2E_USE_TEST_CACHE_PER_TEST=true
 export OPERATOR_CHART_PATH=stackgres-k8s/install/helm/target/packages/stackgres-operator.tgz
 
 run_all_tests_loop() {

@@ -276,29 +276,37 @@ module_list() {
 }
 
 init_hash() {
-  if [ -d stackgres-k8s/ci/build/target/.git ] \
-    && git --git-dir stackgres-k8s/ci/build/target/.git status --porcelain 2>&1 | grep -q .
+  set +e
+  (
+  set -e
+  if [ -d stackgres-k8s/ci/build/target/.git ]
   then
-    rm -rf stackgres-k8s/ci/build/target/.git
-  fi
-  if ! [ -d stackgres-k8s/ci/build/target/.git ]
-  then
-    (
-    set +e
-    (
-    set -e
-    git --git-dir stackgres-k8s/ci/build/target/.git init -q
-    git --git-dir stackgres-k8s/ci/build/target/.git add .
-    git --git-dir stackgres-k8s/ci/build/target/.git \
-      -c user.name=ci -c user.email= commit -q -m "build hash" --no-gpg-sign
-    )
-    EXIT_CODE="$?"
-    if [ "$EXIT_CODE" != 0 ]
+    if ! git --git-dir stackgres-k8s/ci/build/target/.git reset > /dev/null
     then
       rm -rf stackgres-k8s/ci/build/target/.git
     fi
+  fi
+  if ! [ -d stackgres-k8s/ci/build/target/.git ]
+  then
+    if [ -d "$PROJECT_PATH"/.git ]
+    then
+      tar cf - -C "$PROJECT_PATH" .git | tar xf - -C stackgres-k8s/ci/build/target
+    else
+      git --git-dir stackgres-k8s/ci/build/target/.git init > /dev/null
+    fi
+  fi
+  if git --git-dir stackgres-k8s/ci/build/target/.git status --porcelain 2>&1 | grep -q .
+  then
+    git --git-dir stackgres-k8s/ci/build/target/.git add . > /dev/null
+    git --git-dir stackgres-k8s/ci/build/target/.git \
+      -c user.name=ci -c user.email= commit -q -m "build hash" --no-gpg-sign > /dev/null
+  fi
+  )
+  EXIT_CODE="$?"
+  if [ "$EXIT_CODE" != 0 ]
+  then
+    rm -rf stackgres-k8s/ci/build/target/.git
     exit "$EXIT_CODE"
-    )
   fi
 }
 
@@ -386,11 +394,20 @@ build_image() {
   echo
 }
 
+extract_all() {
+  while [ "$#" -ge 1 ]
+  do
+    local MODULE="$1"
+    shift
+    IMAGE_NAME="$(image_name "$MODULE")"
+    copy_from_image "$IMAGE_NAME"
+  done
+}
+
 extract() {
   [ "$#" -ge 2 ] || false
   local MODULE="$1"
   shift
-  MODULE_TYPE="$(module_type "$MODULE")"
   IMAGE_NAME="$(image_name "$MODULE")"
   extract_from_image "$IMAGE_NAME" "$@"
 }
@@ -452,27 +469,7 @@ EOF
     rm -f stackgres-k8s/ci/build/target/*-image-hashes
     for MODULE in $(jq -r '.modules | to_entries[] | .key' stackgres-k8s/ci/build/target/config.json)
     do
-      MODULE_TYPE="$(module_type "$MODULE")"
-      MODULE_PLATFORMS="$(jq -r "
-          (.modules[\"$MODULE\"].platform_dependent | . != null and .) as \$module_platform_dependent
-          | .platforms | if . != null and \$module_platform_dependent then . else [\"$(get_platform)\"] end
-          | join(\" \")" \
-        stackgres-k8s/ci/build/target/config.json)"
-      for MODULE_PLATFORM in $MODULE_PLATFORMS
-      do
-        SOURCE_IMAGE_NAME="$(source_image_name "$MODULE" "$MODULE_PLATFORM")"
-        IMAGE_NAME="$(module_image_name "$MODULE" "$SOURCE_IMAGE_NAME" "$MODULE_PLATFORM")"
-        cat << EOF >> stackgres-k8s/ci/build/target/junit-build.hashes.xml
-    <testcase classname="module $MODULE" name="${IMAGE_NAME##*:hash-}" />
-EOF
-        printf '%s\n' "$IMAGE_NAME" >> "stackgres-k8s/ci/build/target/$MODULE_TYPE-image-hashes"
-        printf '%s=%s\n' "$MODULE" "$IMAGE_NAME" >> stackgres-k8s/ci/build/target/image-hashes
-        if [ "$SOURCE_IMAGE_NAME" != null ]
-        then
-          printf '%s\n' "$SOURCE_IMAGE_NAME" >> stackgres-k8s/ci/build/target/all-images
-        fi
-        printf '%s\n' "$IMAGE_NAME" >> stackgres-k8s/ci/build/target/all-images
-      done
+      generate_image_hash "$MODULE"
     done
 
     rm -rf stackgres-k8s/ci/build/target/image-type-hashes
@@ -495,6 +492,36 @@ EOF
 
     project_hash > stackgres-k8s/ci/build/target/project_hash
   fi
+}
+
+generate_image_hash() {
+  local MODULE="$1"
+  MODULE_TYPE="$(module_type "$MODULE")"
+  MODULE_PLATFORMS="$(jq -r "
+      (.modules[\"$MODULE\"].platform_dependent | . != null and .) as \$module_platform_dependent
+      | .platforms | if . != null and \$module_platform_dependent then . else [\"$(get_platform)\"] end
+      | join(\" \")" \
+    stackgres-k8s/ci/build/target/config.json)"
+  for MODULE_PLATFORM in $MODULE_PLATFORMS
+  do
+    SOURCE_IMAGE_NAME="$(source_image_name "$MODULE" "$MODULE_PLATFORM")"
+    IMAGE_NAME="$(module_image_name "$MODULE" "$SOURCE_IMAGE_NAME" "$MODULE_PLATFORM")"
+    flock stackgres-k8s/ci/build/target/junit-build.hashes.xml \
+      cat << EOF >> stackgres-k8s/ci/build/target/junit-build.hashes.xml
+    <testcase classname="module $MODULE" name="${IMAGE_NAME##*:hash-}" />
+EOF
+    flock "stackgres-k8s/ci/build/target/$MODULE_TYPE-image-hashes" \
+      printf '%s\n' "$IMAGE_NAME" >> "stackgres-k8s/ci/build/target/$MODULE_TYPE-image-hashes"
+    flock stackgres-k8s/ci/build/target/image-hashes \
+      printf '%s=%s\n' "$MODULE" "$IMAGE_NAME" >> stackgres-k8s/ci/build/target/image-hashes
+    if [ "$SOURCE_IMAGE_NAME" != null ]
+    then
+      flock stackgres-k8s/ci/build/target/all-images \
+        printf '%s\n' "$SOURCE_IMAGE_NAME" >> stackgres-k8s/ci/build/target/all-images
+    fi
+    flock stackgres-k8s/ci/build/target/all-images \
+      printf '%s\n' "$IMAGE_NAME" >> stackgres-k8s/ci/build/target/all-images
+  done
 }
 
 show_image_hashes() {

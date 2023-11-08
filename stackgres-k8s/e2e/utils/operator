@@ -31,7 +31,7 @@ export E2E_BUILD_IMAGES="${E2E_BUILD_IMAGES:-true}"
 export E2E_SKIP_OPERATOR_LOAD="${E2E_SKIP_OPERATOR_LOAD:-false}"
 export E2E_WAIT_OPERATOR="${E2E_WAIT_OPERATOR:-true}"
 
-export E2E_INCLUDE_ONLY_POSTGRES_VERSIONS="12.13 12.16 13.9 13.12 14.6 14.9 16.0 ${E2E_POSTGRES_VERSION:-15.2} $E2E_UI_POSTGRES_VERSOIN"
+export E2E_INCLUDE_ONLY_POSTGRES_VERSIONS="12.13 12.16 13.9 13.12 14.6 14.9 15.3 16.0 ${E2E_POSTGRES_VERSION:-15.3} $E2E_UI_POSTGRES_VERSOIN"
 
 export STACKGRES_PREVIOUS_VERSION="${STACKGRES_PREVIOUS_VERSION:-1.5.0}"
 
@@ -46,11 +46,14 @@ generate_operator_namespace() {
 export OPERATOR_NAMESPACE="${OPERATOR_NAMESPACE:-$(generate_operator_namespace)}"
 
 setup_images() {
-  if [ "$E2E_BUILD_IMAGES" = true ] \
-    && (
+  if {
+      [ "$E2E_BUILD_IMAGES" = true ] \
+        || [ "$E2E_BUILD_ONLY_MODULES" = true ] 
+    } \
+    && {
       [ "$E2E_REUSE_OPERATOR_PODS" != true ] \
-      || ! is_operator_installed
-    )
+        || ! is_operator_installed
+    }
   then
     build_all
   fi
@@ -62,31 +65,75 @@ setup_images() {
 }
 
 build_all() {
-  echo "Building all..."
-  "$SHELL" $SHELL_XTRACE "$PROJECT_PATH"/stackgres-k8s/ci/build/build.sh parent-java operator-framework-java test-util-java common-java \
-    operator-java restapi-java jobs-java cluster-controller-java distributedlogs-controller-java admin-ui \
-    operator-jvm-image restapi-jvm-image jobs-jvm-image cluster-controller-jvm-image distributedlogs-controller-jvm-image \
-    admin-ui-image helm-packages helm-templates operator-bundle operator-bundle-image
-  docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)" >/dev/null 2>&1 \
-    || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)"
-  docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)" >/dev/null 2>&1 \
-    || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)"
-  docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name jobs-jvm-image)" >/dev/null 2>&1 \
-    || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name jobs-jvm-image)"
-  docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)" >/dev/null 2>&1 \
-    || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)"
-  docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name distributedlogs-controller-jvm-image)" >/dev/null 2>&1 \
-    || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name distributedlogs-controller-jvm-image)"
-  docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)" >/dev/null 2>&1 \
-    || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)"
-  docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)" >/dev/null 2>&1 \
-    || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)"
-  docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)" "$OPERATOR_IMAGE_NAME"
-  docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)" "$RESTAPI_IMAGE_NAME"
-  docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name jobs-jvm-image)" "$JOBS_IMAGE_NAME"
-  docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)" "$CLUSTER_CONTROLLER_IMAGE_NAME"
-  docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name distributedlogs-controller-jvm-image)" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
-  docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)" "$ADMINUI_IMAGE_NAME"
+  echo "Building project..."
+  "$SHELL" $SHELL_XTRACE "$PROJECT_PATH"/stackgres-k8s/ci/build/build.sh \
+    parent-java \
+    operator-framework-java \
+    test-util-java \
+    common-java \
+    operator-java \
+    restapi-java \
+    jobs-java \
+    cluster-controller-java \
+    distributedlogs-controller-java \
+    admin-ui \
+    helm-packages \
+    helm-templates \
+    operator-bundle \
+    $(
+    if [ "$E2E_BUILD_ONLY_MODULES" != true ]
+    then
+    cat << EOF
+    operator-jvm-image \
+    restapi-jvm-image \
+    jobs-jvm-image \
+    cluster-controller-jvm-image \
+    distributedlogs-controller-jvm-image \
+    admin-ui-image \
+    operator-bundle-image
+EOF
+    fi
+    )
+  if [ -n "$E2E_EXTRA_MOUNT_BUILD_PATH" ]
+  then
+    "$SHELL" $SHELL_XTRACE "$PROJECT_PATH"/stackgres-k8s/ci/build/build-functions.sh extract_all \
+      parent-java \
+      operator-framework-java \
+      test-util-java \
+      common-java \
+      operator-java \
+      restapi-java \
+      jobs-java \
+      cluster-controller-java \
+      distributedlogs-controller-java \
+      admin-ui \
+      helm-packages \
+      helm-templates \
+      operator-bundle
+  fi
+  if [ "$E2E_BUILD_ONLY_MODULES" != true ]
+  then
+    docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)" >/dev/null 2>&1 \
+      || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)"
+    docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)" >/dev/null 2>&1 \
+      || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)"
+    docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name jobs-jvm-image)" >/dev/null 2>&1 \
+      || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name jobs-jvm-image)"
+    docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)" >/dev/null 2>&1 \
+      || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)"
+    docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name distributedlogs-controller-jvm-image)" >/dev/null 2>&1 \
+      || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name distributedlogs-controller-jvm-image)"
+    docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)" >/dev/null 2>&1 \
+      || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)"
+    docker inspect "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)" >/dev/null 2>&1 \
+      || docker pull "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-bundle-image)"
+    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name operator-jvm-image)" "$OPERATOR_IMAGE_NAME"
+    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name restapi-jvm-image)" "$RESTAPI_IMAGE_NAME"
+    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name jobs-jvm-image)" "$JOBS_IMAGE_NAME"
+    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name cluster-controller-jvm-image)" "$CLUSTER_CONTROLLER_IMAGE_NAME"
+    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name distributedlogs-controller-jvm-image)" "$DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME"
+    docker tag "$(sh stackgres-k8s/ci/build/build-functions.sh image_name admin-ui-image)" "$ADMINUI_IMAGE_NAME"
+  fi
 }
 
 create_operator_certificate() {
