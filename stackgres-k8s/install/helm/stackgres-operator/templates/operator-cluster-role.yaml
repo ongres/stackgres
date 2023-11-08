@@ -136,7 +136,7 @@ rules:
   - mutatingwebhookconfigurations
   - validatingwebhookconfigurations
   resourceNames:
-  - stackgres-operator
+  - {{ .Release.Name }}
   verbs:
   - get
   - patch
