@@ -543,9 +543,9 @@
                                         <input v-model="restoreBackup" disabled>
                                     </template>
                                     <template v-else>
-                                        <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup" @change="(restoreBackup == 'createNewResource') ? createNewResource('sgbackups') : (!hasPITR() && (pitr = ''))" :set="( (restoreBackup == 'createNewResource') && (restoreBackup = '') )">
+                                        <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup" @change="(restoreBackup == 'createNewResource') ? createNewResource('sgbackups') : (enablePITR && initDatepicker())" :set="( (restoreBackup == 'createNewResource') && (restoreBackup = '') )">
                                             <option value="">Select a Backup</option>
-                                            <template v-for="backup in sgbackups" v-if="( (backup.data.metadata.namespace == namespace) && (hasProp(backup, 'data.status.process.status')) && (backup.data.status.process.status === 'Completed') && (backup.data.status.backupInformation.postgresVersion.substring(0,2) == shortPostgresVersion) )">
+                                            <template v-for="backup in sgbackups">
                                                 <option :value="backup.name">
                                                     {{ backup.name }} ({{ backup.data.status.process.timing.stored | formatTimestamp('date') }} {{ backup.data.status.process.timing.stored | formatTimestamp('time') }} {{ showTzOffset() }}) [{{ backup.data.metadata.uid.substring(0,4) }}...{{ backup.data.metadata.uid.slice(-4) }}]
                                                 </option>
@@ -565,7 +565,7 @@
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.downloadDiskConcurrency')"></span>
                                 </div>
 
-                                <template v-if="( (!editMode && hasPITR()) || (editMode && pitr.length) )">
+                                <template v-if="( (!editMode && restoreBackup.length) || (editMode && pitr.length) )">
                                     <div class="col">
                                         <label>Point-in-Time Recovery (PITR)</label>  
                                         <label for="enablePITR" class="switch yes-no" @change="initDatepicker()" :disabled="editMode">
@@ -3540,27 +3540,6 @@
 
             }, 
 
-            hasPITR() {
-                const vc = this;
-
-                if(!vc.restoreBackup.length) {
-                    return false
-                } else {
-                    const baseBk = store.state.sgbackups.find( (bk) => (bk.data.metadata.name == vc.restoreBackup) );
-                    const postBk = store.state.sgbackups.find( (bk) => (
-                        (bk.data.spec.sgCluster == baseBk.data.spec.sgCluster) && 
-                        (bk.data.status.process.status == 'Completed') &&
-                        moment(bk.data.status.process.timing.stored).isAfter(moment(baseBk.data.status.process.timing.stored))
-                    ) )
-                    if (typeof postBk == 'undefined') {
-                        return true
-                    } else {
-                        vc.enablePITR = false;
-                        return false
-                    }
-                }
-            },
-
             initDatepicker() {
                 const vc = this;
 
@@ -3568,10 +3547,22 @@
 
                 if(!vc.enablePITR) {
                     $('.daterangepicker').remove();
-                } else if (vc.hasPITR()) { // Initialize PITR datepicker only if there's no backup newer than the chosen one
+                } else { // Initialize PITR datepicker only if there's no backup newer than the chosen one
                     
-                    const baseBk = store.state.sgbackups.find( (bk) => (bk.data.metadata.name == vc.restoreBackup) );
-                    
+                    let baseBkIndex = vc.sgbackups.findIndex( (bk) => (bk.data.metadata.name == vc.restoreBackup) );
+                    let minDate = new Date(vc.sgbackups[baseBkIndex].data.status.process.timing.stored);
+                    let maxDate = (typeof vc.sgbackups[baseBkIndex + 1] !== 'undefined')
+                        ? new Date(vc.sgbackups[baseBkIndex + 1].data.status.process.timing.stored)
+                        : new Date();
+
+                    if(store.state.timezone == 'local') {
+                        minDate = moment(minDate).local();
+                        maxDate = moment(maxDate).local();
+                    } else {
+                        minDate = moment(minDate).utc();
+                        maxDate = moment(maxDate).utc();
+                    }
+
                     // Load datepicker
                     require('daterangepicker');
 
@@ -3581,8 +3572,9 @@
                         "singleDatePicker": true,
                         "timePicker": true,
                         "opens": "right",
-                        "minDate": (store.state.timezone == 'local') ? new Date(new Date(baseBk.data.status.process.timing.stored).getTime()) : moment(new Date(new Date(baseBk.data.status.process.timing.stored).getTime())).utc(),
-                        "maxDate": moment(),
+                        "minDate": minDate,
+                        "maxDate": maxDate,
+                        "startDate": minDate,
                         "timePicker24Hour": true,
                         "timePickerSeconds": true,
                         locale: {
