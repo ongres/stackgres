@@ -4,12 +4,12 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: "{{ .Release.Name }}-update-webapi-admin-clusterrolebinding"
+  name: "{{ .Release.Name }}-delete-webapi-admin-clusterrolebinding"
   labels:
     app: stackgres-operator-init
-    job: update-webapi-admin-clusterrolebinding
+    job: delete-webapi-admin-clusterrolebinding
   annotations:
-    "helm.sh/hook": post-upgrade
+    "helm.sh/hook": pre-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
     "helm.sh/hook-weight": "10"
     {{- with .Values.jobs.annotations }}
@@ -21,7 +21,7 @@ spec:
     metadata:
       labels:
         app: stackgres-operator-init
-        job: update-webapi-admin-clusterrolebinding
+        job: delete-webapi-admin-clusterrolebinding
     spec:
       serviceAccountName: {{ .Release.Name }}-init
       restartPolicy: OnFailure
@@ -39,7 +39,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-      - name: "update-webapi-admin-clusterrolebinding"
+      - name: "delete-webapi-admin-clusterrolebinding"
         image: {{ template "kubectl.image" . }}
         imagePullPolicy: "IfNotPresent"
         {{- with .Values.jobs.resources }}
@@ -51,20 +51,8 @@ spec:
           - "-ecx"
           - |
             kubectl delete clusterrolebinding stackgres-restapi-admin --ignore-not-found
-            cat << 'EOF' | kubectl apply -f -
-            apiVersion: rbac.authorization.k8s.io/v1
-            kind: ClusterRoleBinding
-            metadata:
-              name: stackgres-restapi-admin
-            subjects:
-            - kind: User
-              name: admin
-            roleRef:
-              kind: ClusterRole
-              name: stackgres-restapi-admin
-              apiGroup: rbac.authorization.k8s.io
-            EOF
-{{- else }}
+---
+{{- end }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -76,5 +64,4 @@ roleRef:
   kind: ClusterRole
   name: stackgres-restapi-admin
   apiGroup: rbac.authorization.k8s.io
-{{- end }}
 {{- end }}
