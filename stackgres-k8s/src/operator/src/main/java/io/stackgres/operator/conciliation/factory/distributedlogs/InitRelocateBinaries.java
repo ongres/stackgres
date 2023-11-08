@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs;
 
+import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
+
 import java.util.List;
 
 import javax.inject.Inject;
@@ -50,7 +52,7 @@ public class InitRelocateBinaries implements ContainerFactory<DistributedLogsCon
         .withName(StackGresInitContainer.RELOCATE_BINARIES.getName())
         .withImage(StackGresUtil.getPatroniImageName(
             context.getDistributedLogsContext().getSource()))
-        .withImagePullPolicy("IfNotPresent")
+        .withImagePullPolicy(getDefaultPullPolicy())
         .withCommand("/bin/sh", "-ex",
             ClusterPath.TEMPLATES_PATH.path()
                 + "/" + ClusterPath.LOCAL_BIN_RELOCATE_BINARIES_SH_PATH.filename())

@@ -25,8 +25,4 @@ public interface DbOpsJobFactory {
     return StackGresProperty.SG_CONTAINER_REGISTRY.getString();
   }
 
-  default String getPullPolicy() {
-    return StackGresProperty.SG_IMAGE_PULL_POLICY.getString();
-  }
-
 }

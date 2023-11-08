@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling;
 
+import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -112,7 +114,7 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
         .withCommand("/bin/sh", "-ex",
             ClusterPath.TEMPLATES_PATH.path()
                 + "/" + ClusterPath.LOCAL_BIN_START_PGBOUNCER_SH_PATH.filename())
-        .withImagePullPolicy("IfNotPresent")
+        .withImagePullPolicy(getDefaultPullPolicy())
         .withEnv(
             ClusterPath.PGBOUNCER_CONFIG_FILE_PATH.envVar(),
             ClusterPath.PGBOUNCER_CONFIG_UPDATED_FILE_PATH.envVar())

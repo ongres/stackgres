@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.cluster;
 
+import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -44,7 +46,7 @@ public class InitRelocateBinaries implements ContainerFactory<ClusterContainerCo
     return new ContainerBuilder()
         .withName(StackGresInitContainer.RELOCATE_BINARIES.getName())
         .withImage(patroniImageName)
-        .withImagePullPolicy("IfNotPresent")
+        .withImagePullPolicy(getDefaultPullPolicy())
         .withCommand("/bin/sh", "-ex",
             ClusterPath.TEMPLATES_PATH.path()
                 + "/" + ClusterPath.LOCAL_BIN_RELOCATE_BINARIES_SH_PATH.filename())

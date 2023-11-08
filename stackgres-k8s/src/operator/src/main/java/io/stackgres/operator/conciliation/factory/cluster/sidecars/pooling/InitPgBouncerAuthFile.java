@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling;
 
+import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.PGBOUNCER_ADMIN_PASSWORD_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.PGBOUNCER_ADMIN_USERNAME;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.PGBOUNCER_STATS_PASSWORD_KEY;
@@ -81,7 +82,7 @@ public class InitPgBouncerAuthFile implements ContainerFactory<ClusterContainerC
                 + "printf '%s\\n' \"\\\"" + PGBOUNCER_STATS_USERNAME + "\\\""
                     + " \\\"md5$PGBOUNCER_STATS_MD5\\\"\"\n"
                 + ") > '" + ClusterPath.PGBOUNCER_AUTH_FILE_PATH.path() + "'")
-        .withImagePullPolicy("IfNotPresent")
+        .withImagePullPolicy(getDefaultPullPolicy())
         .addToVolumeMounts(
             new VolumeMountBuilder()
             .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())

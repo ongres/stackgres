@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.factory.dbops;
 
 import static io.stackgres.common.DbOpsUtil.jobName;
+import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
 
 import java.util.Map;
 import java.util.Optional;
@@ -109,7 +110,7 @@ public class DbOpsRestartJob implements DbOpsJobFactory {
             .build())
         .withContainers(new ContainerBuilder()
             .withName("restart")
-            .withImagePullPolicy(getPullPolicy())
+            .withImagePullPolicy(getDefaultPullPolicy())
             .withImage(getImageName())
             .addToEnv(
                 new EnvVarBuilder()
