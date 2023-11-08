@@ -44,6 +44,6 @@ spec:
         size: '5Gi'
 ```
 
-See also [Sharded Cluster Creation section]({{%  relref "04-administration-guide/11-sharded-cluster-creation" %}}).
+See also [Sharded Cluster Creation section]({{%  relref "04-administration-guide/11-sharded-cluster/12-sharded-cluster-creation" %}}).
 
 {{% include "generated/SGShardedCluster.md" %}}
