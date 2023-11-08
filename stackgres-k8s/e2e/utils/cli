@@ -84,6 +84,9 @@ Options:
                            the build inside the operator images.
                           
                           This feature may require to restart the k8s cluster.
+  --local-build           When set will not push, check or pull build images to and from GitHub registry.
+                           Still the build will require base images to be present locally or will try
+                           to pull them from the respective remote repositories.
 EOF
 }
 
@@ -166,6 +169,7 @@ EOF
           --k8s-cache-path
           --disable-extensions-cache
           --use-current-build
+          --local-build
           " -- "\${COMP_WORDS[\$COMP_CWORD]}"
           ))
         return
@@ -388,6 +392,12 @@ cli() {
       shift "$(cli_get_parameter_shifts_for_boolean "$@")"
       USE_CURRENT_BUILD="$VALUE"
       ;;
+      ('--local-build')
+      cli_set_parameter_boolean "$@"
+      shift "$(cli_get_parameter_shifts_for_boolean "$@")"
+      SKIP_PUSH="$VALUE"
+      SKIP_REMOTE_MANIFEST="$VALUE"
+      ;;
       ('--cluster-parameters')
       cli_set_parameter_value "$@"
       shift "$(cli_get_parameter_shifts "$@")"
@@ -480,6 +490,7 @@ cli() {
   fi
   if [ "$USE_CURRENT_BUILD" = true ]
   then
+    E2E_BUILD_ONLY_MODULES=true
     E2E_EXTRA_MOUNT_BUILD_PATH="$K8S_CACHE_PATH"/build
   fi
   if "$DO_BUILD"
@@ -551,8 +562,11 @@ cli_export_e2e_variables() {
     K8S_USE_INTERNAL_REPOSITORY \
     K8S_CACHE_PATH \
     EXTENSIONS_CACHE_ENABLED \
+    SKIP_PUSH \
+    SKIP_REMOTE_MANIFEST \
     EXTENSIONS_CACHE_HOST_PATH \
     E2E_EXTRA_MOUNT_BUILD_PATH \
+    E2E_BUILD_ONLY_MODULES \
     K8S_EXTRA_PORT \
     E2E_OPERATOR_OPTS \
     E2E_OPERATOR_BUNDLE_SGCONFIG \
