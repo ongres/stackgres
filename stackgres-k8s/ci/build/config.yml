@@ -7,8 +7,8 @@
   admin_ui_build_image: &admin_ui_build_image registry.access.redhat.com/ubi8/nodejs-16:1-129.1698060573
   admin_ui_nginx_image: &admin_ui_nginx_image registry.access.redhat.com/ubi8/nginx-120:1-127.1698060561
 platforms:
-  - linux-x86_64
-  - linux-aarch64
+  - linux/x86_64
+  - linux/aarch64
 modules:
   parent-java: &parent-java
     type: java

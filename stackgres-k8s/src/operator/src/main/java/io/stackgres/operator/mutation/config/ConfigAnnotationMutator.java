@@ -21,13 +21,13 @@ public class ConfigAnnotationMutator
     implements ConfigMutator {
 
   // On version removed change this code to use the oldest one
-  private static final long VERSION_1_4 = StackGresVersion.V_1_4.getVersionAsNumber();
+  private static final long VERSION_1_5 = StackGresVersion.V_1_5.getVersionAsNumber();
 
   @Override
   public Map<String, String> getAnnotationsToOverwrite(StackGresConfig resource) {
     final long version = StackGresVersion.getStackGresVersionAsNumber(resource);
-    if (VERSION_1_4 > version) {
-      return Map.of(StackGresContext.VERSION_KEY, StackGresVersion.V_1_4.getVersion());
+    if (VERSION_1_5 > version) {
+      return Map.of(StackGresContext.VERSION_KEY, StackGresVersion.V_1_5.getVersion());
     }
     return Map.of();
   }

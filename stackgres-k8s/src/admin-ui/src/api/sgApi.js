@@ -49,7 +49,7 @@ export default {
     return axios.get(baseURL + endpoint)
   },
 
-  createCustomResource(endpoint, data) {
+  createCustomResource(endpoint, data = null) {
     return axios.post(baseURL + endpoint, data)
   },
 

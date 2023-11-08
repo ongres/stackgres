@@ -250,7 +250,7 @@ spec:
   developer:
     version: $STACKGRES_VERSION
 $(
-  if [ "$E2E_MOUNT_LOCAL_FOLDERS" = true ]
+  if [ -n "$E2E_EXTRA_MOUNT_BUILD_PATH" ]
   then
     cat << INNER_EOF
     patches:
@@ -258,7 +258,7 @@ $(
         volumes:
           - name: app
             hostPath:
-              path: "$(realpath "$PROJECT_PATH"/stackgres-k8s/src/api-web/target/quarkus-app)"
+              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/api-web/target/quarkus-app)"
         volumeMounts:
           - name: app
             mountPath: /app/app
@@ -276,7 +276,7 @@ $(
         volumes:
           - name: admin
             hostPath:
-              path: "$(realpath "$PROJECT_PATH"/stackgres-k8s/src/admin-ui/target/public)"
+              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/admin-ui/target/public)"
         volumeMounts:
           - name: admin
             mountPath: /opt/app-root/src/admin
@@ -284,7 +284,7 @@ $(
         volumes:
           - name: app
             hostPath:
-              path: "$(realpath "$PROJECT_PATH"/stackgres-k8s/src/jobs/target/quarkus-app)"
+              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/jobs/target/quarkus-app)"
         volumeMounts:
           - name: app
             mountPath: /app/app
@@ -302,7 +302,7 @@ $(
         volumes:
           - name: app
             hostPath:
-              path: "$(realpath "$PROJECT_PATH"/stackgres-k8s/src/cluster-controller/target/quarkus-app)"
+              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/cluster-controller/target/quarkus-app)"
         volumeMounts:
           - name: app
             mountPath: /app/app
@@ -320,7 +320,7 @@ $(
         volumes:
           - name: app
             hostPath:
-              path: "$(realpath "$PROJECT_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app)"
+              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app)"
         volumeMounts:
           - name: app
             mountPath: /app/app
@@ -346,12 +346,12 @@ EOF
         $E2E_OPERATOR_BUNDLE_EXTRA_ENV_JSON
         {"name":"SGCONFIG","value":$(yq --arg sgconfig "${E2E_OPERATOR_BUNDLE_SGCONFIG:-{\}}" '($sgconfig | fromjson) * . | tostring' "$LOG_PATH/sgconfig-patch.yaml")}]
 $(
-  if [ "$E2E_MOUNT_LOCAL_FOLDERS" = true ]
+  if [ -n "$E2E_EXTRA_MOUNT_BUILD_PATH" ]
   then
     cat << INNER_EOF
       ,
       "volumes":[
-        {"name":"app","hostPath":{"path":"$(realpath "$PROJECT_PATH"/stackgres-k8s/src/operator/target/quarkus-app)"}}],
+        {"name":"app","hostPath":{"path":"$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/operator/target/quarkus-app)"}}],
       "volumeMounts":[
         {"name":"app","mountPath":"/app/app","subPath":"app"},
         {"name":"app","mountPath":"/app/lib","subPath":"lib"},

@@ -9,7 +9,7 @@ set -e
 # shellcheck disable=SC2015
 { [ "$IS_WEB" = true ] || [ "$IS_WEB" = false ]; } \
   && [ -n "$E2E_JOB" ] && [ -n "$E2E_RUN_ONLY" ] \
-  && [ -n "$CI_JOB_ID" ] && [ -n "$CI_PROJECT_ID" ] && [ -d "$CI_PROJECT_DIR" ] \
+  && [ -n "$CI_JOB_ID" ] && [ -n "$CI_PROJECT_ID" ] \
   && [ -n "$CI_COMMIT_SHORT_SHA" ] && [ -n "$CI_PROJECT_PATH" ] \
   && [ -n "$CI_REGISTRY" ] && [ -n "$CI_REGISTRY_USER" ] && [ -n "$CI_REGISTRY_PASSWORD" ] \
   && true || false
@@ -49,30 +49,10 @@ export KIND_LOG_PATH="/tmp/kind-log$SUFFIX"
 export KIND_LOG_RESOURCES="${KIND_LOG_RESOURCES:-false}"
 export KIND_CONTAINERD_CACHE_PATH="/tmp/kind-cache$SUFFIX"
 export EXTENSIONS_CACHE_HOST_PATH="/containerd-cache/extensions"
-export TEMP_DIR="/tmp/$CI_PROJECT_ID"
 export E2E_TEST_REGISTRY="$CI_REGISTRY"
 export E2E_TEST_REGISTRY_PATH="$CI_PROJECT_PATH"
 export E2E_USE_TEST_HASHES=true
 export OPERATOR_CHART_PATH=stackgres-k8s/install/helm/target/packages/stackgres-operator.tgz
-
-copy_project_to_temp_dir() {
-  echo "Copying project files ..."
-
-  mkdir -p "$TEMP_DIR"
-
-  docker run --rm -i -u 0 -v "$TEMP_DIR:$TEMP_DIR" alpine rm -rf "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
-  cp -r . "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
-
-  echo "done"
-}
-
-clean_up_project_temp_dir() {
-  echo "Cleaning up ..."
-
-  docker run --rm -u 0 -v "$TEMP_DIR:$TEMP_DIR" alpine rm -rf "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
-
-  echo "done"
-}
 
 run_all_tests_loop() {
   docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
@@ -168,12 +148,9 @@ run_all_tests() {
     export E2E_ONLY_INCLUDES="$E2E_TEST"
   fi
 
-  copy_project_to_temp_dir
-
   set +e
 
   (
-  cd "$TEMP_DIR/stackgres-build-$CI_JOB_ID"
   while true
   do
     (
@@ -218,19 +195,11 @@ run_all_tests() {
     sleep 10
   done
 
-  mkdir -p "$CI_PROJECT_DIR/stackgres-k8s/ci/build/target"
   rm -rf stackgres-k8s/ci/build/target/.git
-  cp -r stackgres-k8s/ci/build/target/. "$CI_PROJECT_DIR/stackgres-k8s/ci/build/target/."
-  mkdir -p "$CI_PROJECT_DIR/stackgres-k8s/ci/test/target"
-  cp -r stackgres-k8s/ci/test/target/. "$CI_PROJECT_DIR/stackgres-k8s/ci/test/target/."
-  mkdir -p "$CI_PROJECT_DIR/stackgres-k8s/e2e/target"
-  cp -r stackgres-k8s/e2e/target/. "$CI_PROJECT_DIR/stackgres-k8s/e2e/target/."
 
   exit "$EXIT_CODE"
   )
   EXIT_CODE="$?"
-
-  clean_up_project_temp_dir
 
   sh stackgres-k8s/e2e/e2e add_already_passed_tests_to_report
 

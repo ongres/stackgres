@@ -117,7 +117,7 @@ public abstract class ExtensionMetadataManager {
         .grouped(Tuple3::limit2)
         .map(group -> group.v2
             .map(Tuple3::v3)
-            .min(StackGresExtensionMetadata::compareBuild)
+            .max(StackGresExtensionMetadata::compareBuild)
             .orElseThrow())
         .toUnmodifiableList();
   }

@@ -11,8 +11,6 @@
       docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
       flock "$LOCK_FILE" \
         sh stackgres-k8s/ci/build/build-gitlab.sh build \
-          --copy 'stackgres-k8s/ci/build/target/config.json' \
-          --copy 'stackgres-k8s/ci/build/target/image-hashes' \
           "$IMAGE_MODULE_NAME"
       HASH_IMAGE_NAME="$(sh stackgres-k8s/ci/build/build-functions.sh image_name "$IMAGE_MODULE_NAME")"
       docker pull "$HASH_IMAGE_NAME"

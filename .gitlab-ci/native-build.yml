@@ -12,7 +12,6 @@
       flock "/tmp/stackgres-build$NATIVE_IMAGE_EXTRA_PREFIX-native-executable" \
         timeout -s KILL 3600 \
         sh stackgres-k8s/ci/build/build-gitlab.sh build \
-          --copy .m2 \
           "$MODULE"
   retry:
     max: 2

@@ -6,6 +6,48 @@ description: Details about StackGres versions.
 showToc: true
 ---
 
+## StackGres 1.6.0-rc2
+
+| Component | Versions |
+| ------ | ----------- |
+| PostgreSQL 16 | 16.0 |
+| PostgreSQL 15 | 15.4, 15.3, 15.2, 15.1, 15.0 |
+| PostgreSQL 14 | 14.9, 14.8, 14.7, 14.6, 14.5, 14.4, ~14.2, 14.1, 14.0~ |
+| PostgreSQL 13 | 13.12, 13.11, 13.10, 13.9, 13.8, 13.7, 13.6, 13.5, 13.4, 13.3, 13.2, 13.1, 13.0 |
+| PostgreSQL 12 | 12.16, 12.15, 12.14, 12.13, 12.12, 12.11, 12.10, 12.9, 12.8, 12.7, 12.6, 12.5, 12.4, 12.3, 12.2 and 12.1 |
+| PostgreSQL for Babelfish 15 | 15.3 |
+| PostgreSQL for Babelfish 14 | 14.7, 14.3 |
+| PostgreSQL for Babelfish 13 | 13.9, 13.6 |
+| Patroni | 3.2.0, 3.0.2, 2.1.4 |
+| WAL-G | 2.0.1, 2.0.0, 1.1 |
+| PgBouncer | 1.21.0 |
+| Postgres Exporter | 0.12.1 |
+| Envoy | 1.24.12 |
+| Fluent-Bit | 1.9.9 |
+| Fluentd | 1.15.3 |
+| Babelfish Compass | 2023.10 |
+
+## StackGres 1.6.0-rc1
+
+| Component | Versions |
+| ------ | ----------- |
+| PostgreSQL 16 | 16.0 |
+| PostgreSQL 15 | 15.4, 15.3, 15.2, 15.1, 15.0 |
+| PostgreSQL 14 | 14.9, 14.8, 14.7, 14.6, 14.5, 14.4, ~14.2, 14.1, 14.0~ |
+| PostgreSQL 13 | 13.12, 13.11, 13.10, 13.9, 13.8, 13.7, 13.6, 13.5, 13.4, 13.3, 13.2, 13.1, 13.0 |
+| PostgreSQL 12 | 12.16, 12.15, 12.14, 12.13, 12.12, 12.11, 12.10, 12.9, 12.8, 12.7, 12.6, 12.5, 12.4, 12.3, 12.2 and 12.1 |
+| PostgreSQL for Babelfish 15 | 15.3 |
+| PostgreSQL for Babelfish 14 | 14.7, 14.3 |
+| PostgreSQL for Babelfish 13 | 13.9, 13.6 |
+| Patroni | 3.2.0, 3.0.2, 2.1.4 |
+| WAL-G | 2.0.1, 2.0.0, 1.1 |
+| PgBouncer | 1.21.0 |
+| Postgres Exporter | 0.12.1 |
+| Envoy | 1.24.12 |
+| Fluent-Bit | 1.9.9 |
+| Fluentd | 1.15.3 |
+| Babelfish Compass | 2023.10 |
+
 ## StackGres 1.5.0
 
 | Component | Versions |
