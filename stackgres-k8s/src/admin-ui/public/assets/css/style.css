@@ -5025,6 +5025,10 @@ fieldset .section:last-child {
     margin-bottom: 0;
 }
 
+fieldset .section:not(:last-child) {
+    padding-bottom: 25px;
+}
+
 fieldset .section > .fieldsetFooter:last-child {
     margin-bottom: 20px;
 }
