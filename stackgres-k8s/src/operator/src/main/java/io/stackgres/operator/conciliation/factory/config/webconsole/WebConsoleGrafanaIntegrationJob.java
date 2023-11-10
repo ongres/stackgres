@@ -37,7 +37,6 @@ import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeploy;
 import io.stackgres.common.crd.sgconfig.StackGresConfigGrafana;
-import io.stackgres.common.crd.sgconfig.StackGresConfigImage;
 import io.stackgres.common.crd.sgconfig.StackGresConfigJobs;
 import io.stackgres.common.crd.sgconfig.StackGresConfigServiceAccount;
 import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
@@ -199,11 +198,7 @@ public class WebConsoleGrafanaIntegrationJob
             .withName("integrate-grafana")
             .withImage(kubectl.getImageName(StackGresVersion.LATEST))
             .withCommand("/bin/sh", "-x", "/usr/local/bin/integrate-grafana.sh")
-            .withImagePullPolicy(
-                jobs
-                .map(StackGresConfigJobs::getImage)
-                .map(StackGresConfigImage::getPullPolicy)
-                .orElse("IfNotPresent"))
+            .withImagePullPolicy("IfNotPresent")
             .withEnv(
                 new EnvVarBuilder()
                 .withName("OPERATOR_NAMESPACE")

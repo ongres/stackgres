@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.shardeddbops;
 
+import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -203,7 +205,7 @@ public abstract class AbstractShardedDbOpsJob implements ShardedDbOpsJobFactory 
         .withInitContainers(new ContainerBuilder()
             .withName("set-dbops-running")
             .withImage(getSetResultImage(context))
-            .withImagePullPolicy("IfNotPresent")
+            .withImagePullPolicy(getDefaultPullPolicy())
             .withEnv(ImmutableList.<EnvVar>builder()
                 .addAll(clusterEnvironmentVariables.listResources(context))
                 .add(
@@ -274,7 +276,7 @@ public abstract class AbstractShardedDbOpsJob implements ShardedDbOpsJobFactory 
             new ContainerBuilder()
                 .withName("run-dbops")
                 .withImage(getRunImage(context))
-                .withImagePullPolicy("IfNotPresent")
+                .withImagePullPolicy(getDefaultPullPolicy())
                 .withEnv(ImmutableList.<EnvVar>builder()
                     .addAll(clusterEnvironmentVariables
                         .listResources(context))
@@ -324,7 +326,7 @@ public abstract class AbstractShardedDbOpsJob implements ShardedDbOpsJobFactory 
             new ContainerBuilder()
                 .withName("set-dbops-result")
                 .withImage(kubectl.getImageName(context.getShardedCluster()))
-                .withImagePullPolicy("IfNotPresent")
+                .withImagePullPolicy(getDefaultPullPolicy())
                 .withEnv(ImmutableList.<EnvVar>builder()
                     .addAll(clusterEnvironmentVariables
                         .listResources(context))

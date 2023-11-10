@@ -48,3 +48,18 @@
 false
 {{- end }}
 {{- end }}
+
+{{- define "stackgres.operator.unmodificableWebapiAdminClusterRoleBinding" }}
+{{- if .Release.IsUpgrade }}
+{{- $unmodificableWebapiAdminClusterRoleBinding := false }}
+{{- $webapiAdminClusterRoleBinding := lookup "rbac.authorization.k8s.io/v1" "ClusterRoleBinding" "" "stackgres-restapi-admin" }}
+{{- if $webapiAdminClusterRoleBinding }}
+  {{- if not (eq $webapiAdminClusterRoleBinding.roleRef.name "stackgres-restapi-admin") }}
+    {{- $unmodificableWebapiAdminClusterRoleBinding = true }}
+  {{- end }}
+{{- end }}
+{{- if $unmodificableWebapiAdminClusterRoleBinding }}true{{- else }}false{{- end }}
+{{- else }}
+false
+{{- end }}
+{{- end }}

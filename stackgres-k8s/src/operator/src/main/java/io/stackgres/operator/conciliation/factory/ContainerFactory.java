@@ -8,7 +8,6 @@ package io.stackgres.operator.conciliation.factory;
 import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.Container;
-import io.stackgres.common.StackGresProperty;
 
 public interface ContainerFactory<T extends ContainerContext> {
 
@@ -22,7 +21,4 @@ public interface ContainerFactory<T extends ContainerContext> {
     return Map.of();
   }
 
-  default String getDefaultPullPolicy() {
-    return StackGresProperty.SG_IMAGE_PULL_POLICY.getString();
-  }
 }

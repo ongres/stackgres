@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.envoy.v14;
 
+import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.List;
@@ -151,7 +152,7 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
     container.withName(StackGresVolume.ENVOY.getName())
         .withImage(StackGresComponent.ENVOY.get(context.getClusterContext().getCluster())
             .getLatestImageName())
-        .withImagePullPolicy("IfNotPresent")
+        .withImagePullPolicy(getDefaultPullPolicy())
         .withVolumeMounts(new VolumeMountBuilder()
             .withName(StackGresVolume.ENVOY.getName())
             .withMountPath("/etc/envoy")

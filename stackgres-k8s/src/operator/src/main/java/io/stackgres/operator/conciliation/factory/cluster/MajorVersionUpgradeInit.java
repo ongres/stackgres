@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.cluster;
 
+import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
+
 import java.util.Optional;
 
 import javax.inject.Inject;
@@ -109,7 +111,7 @@ public class MajorVersionUpgradeInit implements ContainerFactory<ClusterContaine
         new ContainerBuilder()
             .withName(StackGresInitContainer.MAJOR_VERSION_UPGRADE.getName())
             .withImage(targetPatroniImageName)
-            .withImagePullPolicy("IfNotPresent")
+            .withImagePullPolicy(getDefaultPullPolicy())
             .withCommand("/bin/sh", "-ex",
                 ClusterPath.TEMPLATES_PATH.path()
                     + "/"

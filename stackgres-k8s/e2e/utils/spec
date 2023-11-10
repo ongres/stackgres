@@ -54,6 +54,10 @@ e2e_test_before_all() {
   true
 }
 
+e2e_test_values() {
+  echo none
+}
+
 e2e_test_install() {
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "$(e2e_test_install_pods)"
 
@@ -312,9 +316,36 @@ run_spec() {
     done
   fi
 
-  for FUNCTION in $E2E_TEST_FUNCTION
+  for SPEC_VALUE in $(e2e_test_values)
   do
-    "$FUNCTION"
+    if [ "$SPEC_VALUE" != none ]
+    then
+      if grep -qxF "$SPEC_NAME.$SPEC_VALUE" "$TARGET_PATH/already-passed-tests"
+      then
+        echo
+        echo "================================================================"
+        echo "Skipping $SPEC_NAME.$SPEC_VALUE tests since it is excluded"
+        echo "================================================================"
+        echo
+        continue
+      fi
+    fi
+    for FUNCTION in $E2E_TEST_FUNCTION
+    do
+      if [ "$SPEC_VALUE" != none ]
+      then
+        echo
+        echo "================================================================"
+        echo "Running $SPEC_NAME.$SPEC_VALUE tests"
+        echo "================================================================"
+        echo
+      fi
+      "$FUNCTION"
+    done
+    if [ "$SPEC_VALUE" != none ]
+    then
+      store_test_result "$SPEC_NAME" "$SPEC_VALUE"
+    fi
   done
 
   cleanup_spec
@@ -448,6 +479,16 @@ calculate_spec_hashes() {
         })"
         SPEC_HASH="$(printf '%s' "$SPEC_HASH" | md5sum | cut -d ' ' -f 1)"
         printf '%s:%s-%s\n' "${SPEC_FILE##*spec/}" "$SPEC_HASH" "$SPEC_PLATFORM"
+        (
+        . "$SPEC_FILE"
+        for SPEC_VALUE in $(e2e_test_values)
+        do
+          if [ "$SPEC_VALUE" != none ]
+          then
+            printf '%s:%s-%s\n' "${SPEC_FILE##*spec/}.$SPEC_VALUE" "$SPEC_HASH" "$SPEC_PLATFORM"
+          fi
+        done
+        )
       done
 }
 
@@ -545,6 +586,7 @@ EOF
 
 store_test_result() {
   local SPEC_NAME="$1"
+  local SPEC_VALUE="$2"
 
   [ -n "$E2E_TEST_REGISTRY" ] \
     && [ -n "$E2E_TEST_REGISTRY_PATH" ] \
@@ -559,7 +601,12 @@ EOF
   local SPEC_PLATFORM
   SPEC_PLATFORM="$("$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" get_platform_tag_suffix)"
   local IMAGE_NAME
-  IMAGE_NAME="$(grep "^$SPEC_NAME=" "$TARGET_PATH/test-result-images")"
+  if [ -z "$SPEC_VALUE" ]
+  then
+    IMAGE_NAME="$(grep "^$SPEC_NAME=" "$TARGET_PATH/test-result-images")"
+   else
+    IMAGE_NAME="$(grep "^$SPEC_NAME.$SPEC_VALUE=" "$TARGET_PATH/test-result-images")"
+  fi
   IMAGE_NAME="$(printf %s "$IMAGE_NAME" | cut -d = -f 2-)"
   # shellcheck disable=SC2046
   docker build -f "$TARGET_PATH/Dockerfile.e2e.$SPEC_NAME" \

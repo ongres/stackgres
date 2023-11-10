@@ -13,17 +13,17 @@ You can use the command below to change the password:
 ```
 NEW_USER=admin
 NEW_PASSWORD=password
-kubectl create secret generic -n stackgres stackgres-restapi  --dry-run=client -o json \
+kubectl create secret generic -n stackgres stackgres-restapi-admin  --dry-run=client -o json \
   --from-literal=k8sUsername="$NEW_USER" \
   --from-literal=password="$(echo -n "${NEW_USER}${NEW_PASSWORD}"| sha256sum | awk '{ print $1 }' )" > password.patch
 
-kubectl patch secret -n stackgres stackgres-restapi -p "$(cat password.patch)" && rm password.patch
+kubectl patch secret -n stackgres stackgres-restapi-admin -p "$(cat password.patch)" && rm password.patch
 ```
 
 Remember to remove the generated password hint from the secret to avoid security flaws:
 
 ```
-kubectl patch secrets --namespace stackgres stackgres-restapi --type json -p '[{"op":"remove","path":"/data/clearPassword"}]'
+kubectl patch secret --namespace stackgres stackgres-restapi-admin --type json -p '[{"op":"remove","path":"/data/clearPassword"}]'
 ```
 
 
