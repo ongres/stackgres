@@ -17,7 +17,7 @@ It is not recommended to expose the web UI to the public internet without protec
 You can forward the port using the following command:
 
 ```
-POD_NAME=$(kubectl get pods --namespace stackgres -l "app=stackgres-restapi" -o jsonpath="{.items[0].metadata.name}")
+POD_NAME=$(kubectl get pods --namespace stackgres -l "stackgres.io/restapi=true" -o jsonpath="{.items[0].metadata.name}")
 kubectl port-forward ${POD_NAME} --address 0.0.0.0 8443:9443 --namespace stackgres
 ```
 
@@ -26,8 +26,8 @@ kubectl port-forward ${POD_NAME} --address 0.0.0.0 8443:9443 --namespace stackgr
 You can connect to `https://localhost:8443/admin/` and log in with the StackGres credentials:
 
 ```
-kubectl get secret -n stackgres stackgres-restapi --template '{{ printf "username = %s\n" (.data.k8sUsername | base64decode) }}'
-kubectl get secret -n stackgres stackgres-restapi --template '{{ printf "password = %s\n" (.data.clearPassword | base64decode) }}'
+kubectl get secret -n stackgres stackgres-restapi-admin --template '{{ printf "username = %s\n" (.data.k8sUsername | base64decode) }}'
+kubectl get secret -n stackgres stackgres-restapi-admin --template '{{ printf "password = %s\n" (.data.clearPassword | base64decode) }}'
 ```
 
 After login, you should see something like the following screenshots:

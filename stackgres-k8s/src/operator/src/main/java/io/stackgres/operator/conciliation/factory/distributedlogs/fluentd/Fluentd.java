@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation.factory.distributedlogs.fluentd;
 
 import static io.stackgres.common.FluentdUtil.PATRONI_LOG_TYPE;
 import static io.stackgres.common.FluentdUtil.POSTGRES_LOG_TYPE;
+import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -90,7 +91,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
         .withName(StackGresContainer.FLUENTD.getName())
         .withImage(StackGresComponent.FLUENTD.get(context.getDistributedLogsContext().getSource())
             .getLatestImageName())
-        .withImagePullPolicy("IfNotPresent")
+        .withImagePullPolicy(getDefaultPullPolicy())
         .withCommand("/bin/sh", "-exc")
         .withArgs(
             """

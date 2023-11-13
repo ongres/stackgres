@@ -1,22 +1,58 @@
 {{- if and .Values.deploy.restapi }}
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+{{- if eq "true" (include "stackgres.operator.unmodificableWebapiAdminClusterRoleBinding" .) }}
+apiVersion: batch/v1
+kind: Job
 metadata:
+  namespace: {{ .Release.Namespace }}
+  name: "{{ .Release.Name }}-delete-webapi-admin-clusterrolebinding"
+  labels:
+    app: stackgres-operator-init
+    job: delete-webapi-admin-clusterrolebinding
   annotations:
     "helm.sh/hook": pre-upgrade
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
-    "helm.sh/hook-weight": "-100"
-  labels:
-    api.stackgres.io/auth: user
-  name: stackgres-restapi-admin
-subjects:
-- kind: User
-  name: admin
-roleRef:
-  kind: ClusterRole
-  name: stackgres-restapi-admin
-  apiGroup: rbac.authorization.k8s.io
+    "helm.sh/hook-weight": "10"
+    {{- with .Values.jobs.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: stackgres-operator-init
+        job: delete-webapi-admin-clusterrolebinding
+    spec:
+      serviceAccountName: {{ .Release.Name }}-init
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 0
+      {{- with .Values.jobs.affinity}}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end}}
+      {{- with .Values.jobs.nodeSelector}}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.jobs.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: "delete-webapi-admin-clusterrolebinding"
+        image: {{ template "kubectl.image" . }}
+        imagePullPolicy: "IfNotPresent"
+        {{- with .Values.jobs.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        command:
+          - "/bin/bash"
+          - "-ecx"
+          - |
+            kubectl delete clusterrolebinding stackgres-restapi-admin --ignore-not-found
 ---
+{{- end }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:

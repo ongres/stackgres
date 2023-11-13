@@ -12,6 +12,8 @@ spec:
     singular: sgpgconfig
     shortNames:
       - sgpgc
+      - sgpostgresconfig
+      - sgpostgresconfigs
   versions:
   - name: v1
     served: true

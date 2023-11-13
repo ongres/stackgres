@@ -59,6 +59,26 @@ paths:
                     A namespace
       security:
       - JWT: []
+  /stackgres/namespaces/{name}:
+    post:
+      tags:
+      - misc
+      summary: List namespaces
+      description: |
+        List namespaces.
+
+        ### RBAC permissions required
+
+        * namespaces create
+      parameters:
+      - name: name
+        description: The name of the namespace to create with a maximum length of 63 characters. 
+        in: path
+        required: true
+        schema:
+          type: string
+      security:
+      - JWT: []
   /stackgres/namespaces/{namespace}/secrets:
     get:
       tags:

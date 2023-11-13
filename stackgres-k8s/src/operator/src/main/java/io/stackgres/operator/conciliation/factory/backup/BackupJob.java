@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.backup;
 
+import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -234,7 +236,7 @@ public class BackupJob
         .withContainers(new ContainerBuilder()
             .withName("create-backup")
             .withImage(kubectl.getImageName(cluster))
-            .withImagePullPolicy("IfNotPresent")
+            .withImagePullPolicy(getDefaultPullPolicy())
             .withEnv(ImmutableList.<EnvVar>builder()
                 .addAll(getClusterEnvVars(context))
                 .add(

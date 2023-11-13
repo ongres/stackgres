@@ -1,3 +1,112 @@
+# :rocket: Release 1.6.0 (2023-11-13)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.6.0 is out! :confetti_ball: :champagne: 
+
+With great pleasure and apologizing for the unexpected long wait, we are proud of this release that brings among
+ other features stability and a much better installation experience thanks to the ability of the operator to
+ reconfigure dynamically without the need of helm, by just modifying the new SGConfig CRD.
+
+Pods resources configuration is quite hard and our approach was not very neat. So we decided to change it by making
+ easy to know the total amount of CPU and memory that will be requested by the Pod using `SGInstanceProfile.spec.requests.cpu`
+ and `SGInstanceProfile.spec.requests.memory` as the total where other sidecars will subtract their respective amounts in order
+ to leave the rest for the postgres (patroni) container. Existing resources will still use the previous method to calculate the
+ requests (we provided the flag `SGCluster.spec.pods.resources.disableResourcesRequestsSplitFromTotal` if you still want to use
+ such method). Limits will still works as expected with `SGInstanceProfile.spec.cpu` and `SGInstanceProfile.spec.memory`
+ targeting the patroni container only.
+
+We could not leave the sharded clusters without backups and 2 day operation so we created a bunch of them in order to deal with
+ restarts, resharding and be able to restore from a backup.
+
+And this is yet not over do not wait any more and try out this new shining release of StackGres to find out many other new features,
+ stability improvements and bug fixes! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Added PostgreSQL 16.1, 15.5, 14.10, 13.13, 12.17
+* Update Patroni to 3.2.0
+* Update PgBouncer to 1.21.0
+* Support for Kubernetes 1.28
+* Support for OpenShift 4.13
+* Updated all base images
+* Dynamic operator configuration with SGConfig CRD
+* Support for sharded backups with SGShardedBackup
+* Support for sharded dbops with SGShardedDbOps for restart and resharding operations
+* Support for Service Binding
+* Support for cluster profile and new calculation for patroni resources
+* Improve reconciliation cycle by avoiding rely on custom comparators to detect changes
+* Move owner reference decorator as part of the reconciliation logic
+* Replaced helm operator with the operator for the operator bundle
+* Added skipRange lower bound for operator bundle
+* Support only amd64 and arm64 archs for operator bundle
+* Avoid check extensions index when extensions did not change
+* Improve log output for fluent-bit container
+* Make sure JVM and native images set a limit when only requests is set
+* Added missing fields to the demo cluster helm chart
+* Added dryRun parameter to all create, update and delete endpoints in StackGres REST API
+* Added endpoint to create namespaces in StackGres REST API
+* Added user management endpoints in StackGres REST API
+* Added Grafana dashboards per section with new queries and reduced cardinality of some metrics
+* Improvements for majorVersionUpgrade SGDbOps process
+* Allow SGShardedCluster to change citus version
+* Added sgpostgresconfig(s) as shortNames for SGPostgresConfig
+* Added sgpoolingconfig(s) as shortNames for SGPoolingConfig
+* Always set latest as the version of resources that can not be upgraded with SGDbOps
+
+## Web Console
+
+* Support for SGShardedCluster overrides
+* Upgrade VueJS to version 2.7.14
+
+## :bug: FIXES
+
+* Major version upgrade fail to show logs and do not complete rollback on error
+* create-backup.sh script fail to update message on error
+* Add "streaming", "in archive recovery" as MemberState.RUNNING used by patroni since 3.0.4
+* Added check for custom resources with too old versions
+* PgBouncer configuration not reloaded
+* Some prometheus queries are broken
+* Container postgres-util is not removed when disabled
+* Init container pgbouncer-auth-file is not removed when disableConnectionPooling is set
+* Sharded cluster REST API does not load or store scripts for overrides
+* Versioned core and contrib extensions are not allowed to change version and unversioned pick random version
+* Skip check on resources that do not require a SGDbOps to upgrade if version less or equals to 1.5
+
+## Web Console
+
+* Disable editing/cloning/deleting coordinator and shards clusters from a SGShardedCluster
+* Improve Distributed Logs location on SGCluster form
+* Operator fails to edit a cluster created from a backup (again)
+* Move Custom sidecars section (pods)  to the existing Sidecars section
+* Allow users to revert non-required dropdown selection
+* Prevent users from selecting label on timeout selects
+* Reuse not found component
+* Avoid overwriting syncInstances value when already set
+* Prevent setting undefined configurations on sgshardedclusters
+* Wrong path on sharded cluster breadcrumbs
+* Wrong init of replication mode on sgshardedcluster edition
+* Ensure proper storageClass init for coordinator and shards on sgshardecluster edition
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.6.0/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.6.0)
+
 # :rocket: Release 1.6.0-rc2 (2023-11-07)
 
 ## :notepad_spiral: NOTES

@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.controller;
 
+import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -43,7 +45,7 @@ public class InitReconciliationCycle implements ContainerFactory<ClusterContaine
     return new ContainerBuilder()
         .withName(StackGresInitContainer.CLUSTER_RECONCILIATION_CYCLE.getName())
         .withImage(StackGresController.CLUSTER_CONTROLLER.getImageName())
-        .withImagePullPolicy("IfNotPresent")
+        .withImagePullPolicy(getDefaultPullPolicy())
         .withEnv(
             new EnvVarBuilder()
             .withName("COMMAND")

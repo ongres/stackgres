@@ -617,12 +617,16 @@ export const mixin = {
               if( (typeof response.data == 'object') && response.data.length ) {
                 store.commit('setDashboardsList', response.data);
               } else {
-                vc.notify({
+                let msg = {
                   title: '',
                   detail: 'There was a problem when trying to access the list of Grafana\'s monitoring dashboards available. Please confirm the REST API is functioning properly and that you have correctly setup the operator\'s credentials to access Grafana.',
                   type: 'https://stackgres.io/doc/latest/install/prerequisites/monitoring/#installing-grafana-and-create-basic-dashboards',
                   status: 403
-                },'error')
+                };
+
+                if(typeof store.state.notifications.messages.find(m => m.message.details === msg.detail) === 'undefined') {
+                  vc.notify(msg,'error');
+                }
               }
             }).catch(function(err) {
               console.log(err);

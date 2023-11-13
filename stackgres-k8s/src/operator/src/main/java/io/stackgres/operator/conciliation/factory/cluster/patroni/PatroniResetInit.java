@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
+import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -95,7 +97,7 @@ public class PatroniResetInit implements ContainerFactory<ClusterContainerContex
         new ContainerBuilder()
             .withName(StackGresInitContainer.RESET_PATRONI.getName())
             .withImage(kubectl.getImageName(clusterContext.getCluster()))
-            .withImagePullPolicy("IfNotPresent")
+            .withImagePullPolicy(getDefaultPullPolicy())
             .withCommand("/bin/sh", "-ex",
                 ClusterPath.TEMPLATES_PATH.path()
                     + "/"

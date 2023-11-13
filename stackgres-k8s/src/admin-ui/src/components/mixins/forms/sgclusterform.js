@@ -199,7 +199,12 @@ export const sgclusterform = {
         },
 
         sgbackups () {
-            return store.state.sgbackups
+            return store.state.sgbackups.filter( backup => ( 
+                (backup.data.metadata.namespace == this.$route.params.namespace) && 
+                (this.hasProp(backup, 'data.status.process.status')) && 
+                (backup.data.status.process.status === 'Completed') && 
+                (backup.data.status.backupInformation.postgresVersion.substring(0,2) == this.shortPostgresVersion)
+            ) )
         },
 
         sgobjectstorages () {
