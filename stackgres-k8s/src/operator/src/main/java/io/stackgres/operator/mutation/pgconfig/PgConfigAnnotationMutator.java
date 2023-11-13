@@ -5,8 +5,12 @@
 
 package io.stackgres.operator.mutation.pgconfig;
 
+import java.util.Map;
+
 import javax.enterprise.context.ApplicationScoped;
 
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.mutation.AbstractAnnotationMutator;
@@ -15,4 +19,16 @@ import io.stackgres.operator.mutation.AbstractAnnotationMutator;
 public class PgConfigAnnotationMutator
     extends AbstractAnnotationMutator<StackGresPostgresConfig, PgConfigReview>
     implements PgConfigMutator {
+
+  private static final long LATEST = StackGresVersion.LATEST.getVersionAsNumber();
+
+  @Override
+  public Map<String, String> getAnnotationsToOverwrite(StackGresPostgresConfig resource) {
+    final long version = StackGresVersion.getStackGresVersionAsNumber(resource);
+    if (LATEST > version) {
+      return Map.of(StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
+    }
+    return Map.of();
+  }
+
 }

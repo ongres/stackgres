@@ -13,15 +13,18 @@ import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionVersion;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.JSONSchemaProps;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.stackgres.common.CrdLoader;
-import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.YamlMapperProvider;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
 import org.jetbrains.annotations.NotNull;
@@ -31,6 +34,9 @@ import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
 public class CrdInstaller {
+
+  private static final long OLDEST = StackGresVersion.OLDEST.getVersionAsNumber();
+  private static final long V_1_5 = StackGresVersion.V_1_5.getVersionAsNumber();
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CrdInstaller.class);
 
@@ -52,7 +58,7 @@ public class CrdInstaller {
   }
 
   public void checkUpgrade() {
-    var resourcesToUpgrade = crdLoader.scanCrds().stream()
+    var resourcesRequiringUpgrade = crdLoader.scanCrds().stream()
         .map(crd -> crdResourceFinder.findByName(crd.getMetadata().getName()))
         .filter(Optional::isPresent)
         .map(Optional::get)
@@ -62,25 +68,30 @@ public class CrdInstaller {
           .list()
           .getItems()
           .stream()
-          .map(cluster -> Tuple.tuple(cluster, Optional.of(cluster)
-                .map(StackGresVersion::getStackGresVersionFromResourceAsNumber)
-                .map(Long.valueOf(StackGresVersion.OLDEST.getVersionAsNumber())::compareTo)
-                .filter(comparison -> comparison > 0)
-                .map(result -> "version at " + cluster.getMetadata().getAnnotations()
-                    .get(StackGresContext.VERSION_KEY))
-                .orElse("")))
-          .filter(t -> !t.v2.isEmpty()))
+          .map(resource -> Tuple.tuple(resource, Optional.of(resource)
+              .map(StackGresVersion::getStackGresVersionFromResourceAsNumber)
+              .filter(version -> version < OLDEST)))
+          .filter(t -> t.v2.isPresent())
+          .map(t -> t.map2(Optional::get))
+          .map(t -> t.concat("version at " + StackGresVersion
+              .getStackGresRawVersionFromResource(t.v1)))
+          .filter(t -> List.of(
+              HasMetadata.getKind(StackGresCluster.class),
+              HasMetadata.getKind(StackGresShardedCluster.class),
+              HasMetadata.getKind(StackGresDistributedLogs.class))
+              .contains(t.v1.getKind())
+              || t.v2.longValue() > V_1_5))
         .toList();
-    if (!resourcesToUpgrade.isEmpty()) {
+    if (!resourcesRequiringUpgrade.isEmpty()) {
       throw new RuntimeException("Can not upgrade due to some resources still at version"
           + " older than \"" + StackGresVersion.OLDEST.getVersion() + "\"."
           + " Please, downgrade to a previous version of the operator and run a SGDbOps of"
           + " type securityUpgrade on all the SGClusters of the following list"
           + " (if any is present):\n"
-          + resourcesToUpgrade.stream()
+          + resourcesRequiringUpgrade.stream()
           .map(t -> t.v1.getKind() + " "
               + t.v1.getMetadata().getNamespace() + "."
-              + t.v1.getMetadata().getName() + ": " + t.v2)
+              + t.v1.getMetadata().getName() + ": " + t.v3)
           .collect(Collectors.joining("\n")));
     }
   }
