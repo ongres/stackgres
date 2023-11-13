@@ -207,11 +207,17 @@ public enum StackGresVersion {
 
   public static long getStackGresVersionFromResourceAsNumber(HasMetadata resource) {
     return Optional.of(resource)
+        .map(StackGresVersion::getStackGresRawVersionFromResource)
+        .map(StackGresVersion::getVersionAsNumber)
+        .orElseGet(StackGresVersion.LATEST::getVersionAsNumber);
+  }
+
+  public static String getStackGresRawVersionFromResource(HasMetadata resource) {
+    return Optional.of(resource)
         .map(HasMetadata::getMetadata)
         .map(ObjectMeta::getAnnotations)
         .map(annotations -> annotations.get(StackGresContext.VERSION_KEY))
-        .map(StackGresVersion::getVersionAsNumber)
-        .orElseGet(StackGresVersion.LATEST::getVersionAsNumber);
+        .orElseGet(StackGresVersion.LATEST::getVersion);
   }
 
 }
