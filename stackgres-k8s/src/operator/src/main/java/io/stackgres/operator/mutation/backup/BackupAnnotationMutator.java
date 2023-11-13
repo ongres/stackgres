@@ -20,14 +20,13 @@ public class BackupAnnotationMutator
     extends AbstractAnnotationMutator<StackGresBackup, BackupReview>
     implements BackupMutator {
 
-  // On version removed change this code to use the oldest one
-  private static final long VERSION_1_4 = StackGresVersion.V_1_4.getVersionAsNumber();
+  private static final long LATEST = StackGresVersion.LATEST.getVersionAsNumber();
 
   @Override
   public Map<String, String> getAnnotationsToOverwrite(StackGresBackup resource) {
     final long version = StackGresVersion.getStackGresVersionAsNumber(resource);
-    if (VERSION_1_4 > version) {
-      return Map.of(StackGresContext.VERSION_KEY, StackGresVersion.V_1_4.getVersion());
+    if (LATEST > version) {
+      return Map.of(StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     }
     return Map.of();
   }
