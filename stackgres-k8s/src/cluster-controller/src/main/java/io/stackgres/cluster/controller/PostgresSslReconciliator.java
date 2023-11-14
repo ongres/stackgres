@@ -5,6 +5,8 @@
 
 package io.stackgres.cluster.controller;
 
+import static io.stackgres.common.ConfigFilesUtil.configChanged;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,11 +14,13 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.Dependent;
@@ -40,9 +44,9 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.postgres.PostgresConnectionManager;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
-import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,34 +124,12 @@ public class PostgresSslReconciliator {
   }
 
   private boolean sslChanged() throws IOException {
-    return Files.list(Path.of(ClusterPath.SSL_PATH.path()))
-        .filter(Predicate.not(Files::isDirectory))
-        .map(file -> Tuple.tuple(
-            file,
-            Path.of(ClusterPath.SSL_COPY_PATH.path())
-            .resolve(Optional.ofNullable(file.getFileName())
-                .map(Object::toString)
-                .orElseThrow())))
-        .anyMatch(t -> !Files.exists(t.v2)
-            || !Seq.of(t.v2)
-            .map(Unchecked.function(Files::readAllLines))
-            .flatMap(List::stream)
-            .zipWithIndex()
-            .allMatch(Unchecked.predicate(line -> Seq
-                .seq(Files.readAllLines(t.v1))
-                .zipWithIndex()
-                .anyMatch(line::equals))));
+    return transformSslFiles(list -> list
+        .anyMatch(Unchecked.predicate(t -> configChanged(t.v1, t.v2))));
   }
 
   private void copySsl() throws IOException {
-    Files.list(Path.of(ClusterPath.SSL_PATH.path()))
-        .filter(Predicate.not(Files::isDirectory))
-        .map(file -> Tuple.tuple(
-            file,
-            Path.of(ClusterPath.SSL_COPY_PATH.path())
-            .resolve(Optional.ofNullable(file.getFileName())
-                .map(Object::toString)
-                .orElseThrow())))
+    forEachSslFile(list -> list
         .forEach(Unchecked.consumer(
             t -> {
               Files.copy(t.v1, t.v2,
@@ -156,7 +138,29 @@ public class PostgresSslReconciliator {
                   Set.of(
                       PosixFilePermission.OWNER_READ,
                       PosixFilePermission.OWNER_WRITE));
-            }));
+            })));
+  }
+
+  private void forEachSslFile(Consumer<Stream<Tuple2<Path, Path>>> consumer)
+      throws IOException {
+    transformSslFiles(list -> {
+      consumer.accept(list);
+      return null;
+    });
+  }
+
+  private <T> T transformSslFiles(Function<Stream<Tuple2<Path, Path>>, T> transformer)
+      throws IOException {
+    try (var list = Files.list(Path.of(ClusterPath.SSL_PATH.path()))) {
+      return transformer.apply(list
+          .filter(Predicate.not(Files::isDirectory))
+          .map(file -> Tuple.tuple(
+              file,
+              Path.of(ClusterPath.SSL_COPY_PATH.path())
+              .resolve(Optional.ofNullable(file.getFileName())
+                  .map(Object::toString)
+                  .orElseThrow()))));
+    }
   }
 
   private boolean testPostgresSsl(ClusterContext context) {

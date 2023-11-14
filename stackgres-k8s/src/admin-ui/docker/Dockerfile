@@ -1,5 +1,4 @@
 ARG BASE_IMAGE
-ARG STACKGRES_VERSION
 
 FROM "$BASE_IMAGE"
   USER root:root
@@ -14,7 +13,9 @@ FROM "$BASE_IMAGE"
   #Expose port, set version and default user
   EXPOSE 8080
 
+  ARG STACKGRES_VERSION
   ENV STACKGRES_VERSION=$STACKGRES_VERSION
-  RUN [ -z "$STACKGRES_VERSION" ] || echo "{\"version\":\"$STACKGRES_VERSION\"}" > /opt/app-root/src/admin/info/sg-info.json
+  RUN [ -n "$STACKGRES_VERSION" ]
+  RUN echo "{\"version\":\"$STACKGRES_VERSION\"}" > /opt/app-root/src/admin/info/sg-info.json
   
   USER nginx:nginx
