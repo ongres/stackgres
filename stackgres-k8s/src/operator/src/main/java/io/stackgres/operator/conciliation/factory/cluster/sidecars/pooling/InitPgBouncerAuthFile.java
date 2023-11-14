@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterPath;
 import io.stackgres.common.KubectlUtil;
 import io.stackgres.common.StackGresInitContainer;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
@@ -81,7 +82,7 @@ public class InitPgBouncerAuthFile implements ContainerFactory<ClusterContainerC
                 + "printf '%s\\n' \"\\\"" + PGBOUNCER_STATS_USERNAME + "\\\""
                     + " \\\"md5$PGBOUNCER_STATS_MD5\\\"\"\n"
                 + ") > '" + ClusterPath.PGBOUNCER_AUTH_FILE_PATH.path() + "'")
-        .withImagePullPolicy("IfNotPresent")
+        .withImagePullPolicy(StackGresUtil.getDefaultPullPolicy())
         .addToVolumeMounts(
             new VolumeMountBuilder()
             .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())

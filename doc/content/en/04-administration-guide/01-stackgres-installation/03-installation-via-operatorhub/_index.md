@@ -88,7 +88,7 @@ Check if the restapi was successfully deployed and is available:
 
 To access StackGres Operator UI from localhost, run the below commands:
 
-    POD_NAME=$(kubectl get pods --namespace stackgres -l "app=stackgres-restapi" -o jsonpath="{.items[0].metadata.name}")
+    POD_NAME=$(kubectl get pods --namespace stackgres -l "stackgres.io/restapi=true" -o jsonpath="{.items[0].metadata.name}")
 
     kubectl port-forward "$POD_NAME" 8443:9443 --namespace stackgres
 
@@ -100,15 +100,15 @@ https://localhost:8443
 
 To get the username, run the command:
 
-    kubectl get secret -n stackgres stackgres-restapi --template '{{ printf "username = %s\n" (.data.k8sUsername | base64decode) }}'
+    kubectl get secret -n stackgres stackgres-restapi-admin --template '{{ printf "username = %s\n" (.data.k8sUsername | base64decode) }}'
 
 To get the generated password, run the command:
 
-    kubectl get secret -n stackgres stackgres-restapi --template '{{ printf "password = %s\n" (.data.clearPassword | base64decode) }}'
+    kubectl get secret -n stackgres stackgres-restapi-admin --template '{{ printf "password = %s\n" (.data.clearPassword | base64decode) }}'
 
 Remember to remove the generated password hint from the secret to avoid security flaws:
 
-    kubectl patch secrets --namespace stackgres stackgres-restapi --type json -p '[{"op":"remove","path":"/data/clearPassword"}]'
+    kubectl patch secret --namespace stackgres stackgres-restapi-admin --type json -p '[{"op":"remove","path":"/data/clearPassword"}]'
 ```
 
 Modify the configuration by patching the stackgres SGConfig

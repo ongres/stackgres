@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.fluentbit;
 
+import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
+
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -102,7 +104,7 @@ public class FluentBit implements
         .withName(StackGresContainer.FLUENT_BIT.getName())
         .withImage(StackGresComponent.FLUENT_BIT.get(context.getClusterContext().getCluster())
             .getLatestImageName())
-        .withImagePullPolicy("IfNotPresent")
+        .withImagePullPolicy(getDefaultPullPolicy())
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)
         .withCommand("/bin/sh", "-ex",

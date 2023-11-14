@@ -20,14 +20,13 @@ public class ShardedBackupAnnotationMutator
     extends AbstractAnnotationMutator<StackGresShardedBackup, ShardedBackupReview>
     implements ShardedBackupMutator {
 
-  // On version removed change this code to use the oldest one
-  private static final long VERSION_1_5 = StackGresVersion.V_1_5.getVersionAsNumber();
+  private static final long LATEST = StackGresVersion.LATEST.getVersionAsNumber();
 
   @Override
   public Map<String, String> getAnnotationsToOverwrite(StackGresShardedBackup resource) {
     final long version = StackGresVersion.getStackGresVersionAsNumber(resource);
-    if (VERSION_1_5 > version) {
-      return Map.of(StackGresContext.VERSION_KEY, StackGresVersion.V_1_5.getVersion());
+    if (LATEST > version) {
+      return Map.of(StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     }
     return Map.of();
   }

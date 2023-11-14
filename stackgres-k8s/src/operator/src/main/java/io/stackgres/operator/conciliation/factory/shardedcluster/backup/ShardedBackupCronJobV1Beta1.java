@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation.factory.shardedcluster.backup;
 
 import static io.stackgres.common.StackGresShardedClusterUtil.getCoordinatorClusterName;
 import static io.stackgres.common.StackGresShardedClusterUtil.getShardClusterName;
+import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -229,7 +230,7 @@ public class ShardedBackupCronJobV1Beta1
             .withContainers(new ContainerBuilder()
                 .withName("create-backup")
                 .withImage(kubectl.getImageName(cluster))
-                .withImagePullPolicy("IfNotPresent")
+                .withImagePullPolicy(getDefaultPullPolicy())
                 .withEnv(ImmutableList.<EnvVar>builder()
                     .addAll(getClusterEnvVars(context))
                     .add(

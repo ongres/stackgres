@@ -133,13 +133,13 @@ By default, those are `admin` and a randomly generated password.
 You can run the command below to get the user and auto-generated password:
 
 ```
-kubectl get secret -n stackgres stackgres-restapi --template '{{ printf "username = %s\npassword = %s\n" (.data.k8sUsername | base64decode) ( .data.clearPassword | base64decode) }}'
+kubectl get secret -n stackgres stackgres-restapi-admin --template '{{ printf "username = %s\npassword = %s\n" (.data.k8sUsername | base64decode) ( .data.clearPassword | base64decode) }}'
 ```
 
 With the credentials in hand, let's connect to the operator web UI. For this, you may forward the HTTPS port of the operator pod:
 
 ```
-POD_NAME=$(kubectl get pods --namespace stackgres -l "app=stackgres-restapi" -o jsonpath="{.items[0].metadata.name}")
+POD_NAME=$(kubectl get pods --namespace stackgres -l "stackgres.io/restapi=true" -o jsonpath="{.items[0].metadata.name}")
 kubectl port-forward "$POD_NAME" 8443:9443 --namespace stackgres
 ```
 

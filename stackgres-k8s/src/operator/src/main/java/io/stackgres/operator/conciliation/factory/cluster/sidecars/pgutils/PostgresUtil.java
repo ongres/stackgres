@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.sidecars.pgutils;
 
+import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.Map;
@@ -64,7 +65,7 @@ public class PostgresUtil implements ContainerFactory<ClusterContainerContext> {
         .withImage(StackGresComponent.POSTGRES_UTIL.get(context.getClusterContext().getCluster())
             .getImageName(
                 context.getClusterContext().getSource().getSpec().getPostgres().getVersion()))
-        .withImagePullPolicy("IfNotPresent")
+        .withImagePullPolicy(getDefaultPullPolicy())
         .withStdin(Boolean.TRUE)
         .withTty(Boolean.TRUE)
         .withCommand("/bin/sh")

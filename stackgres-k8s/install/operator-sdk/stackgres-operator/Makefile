@@ -15,7 +15,10 @@ BUNDLE_BASE_IMAGE ?= scratch
 # To re-generate a bundle for other specific channels without changing the standard setup, you can:
 # - use the CHANNELS as arg of the bundle target (e.g make bundle CHANNELS=candidate,fast,stable)
 # - use environment variables to overwrite this value (e.g export CHANNELS="candidate,fast,stable")
-CHANNELS ?= stable
+CHANNELS := $(shell sh channels.sh $(VERSION) \
+  "stable:^[0-9]\+\.[0-9]\+\.[0-9]\+$$" \
+  "candidate:^[0-9]\+\.[0-9]\+\.[0-9]\+\(-rc[0-9]\+\)\?$$" \
+  "fast:^[0-9]\+\.[0-9]\+\.[0-9]\+\(-\(snapshot\|\(\(alpha\|beta\|rc\)[0-9]\+\)\)\)\?$$")
 ifneq ($(origin CHANNELS), undefined)
 BUNDLE_CHANNELS := --channels=$(CHANNELS)
 endif
@@ -109,6 +112,9 @@ ARCH := $(shell uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
 
 .PHONY: bundle
 bundle: ## Generate bundle manifests and metadata, then validate generated files.
+ifeq ($(CHANNELS),)
+  $(error CHANNELS is not defined)
+endif
 	rm -rf bundle
 	cp -a "$(PROJECT_PATH)/stackgres-k8s/src/common/src/main/resources/crds/." config/crd/bases/.
 	VERSION="$(VERSION)" IMAGE_TAG="$(IMAGE_TAG)" PROJECT_PATH="$(PROJECT_PATH)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/manifests/bases/stackgres.clusterserviceversion.template.yaml)")" \

@@ -2071,7 +2071,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "rate(pg_stat_database_tup_inserted{datname=~\"$datname\", instance=~\"${instance}:9187\"}[5m]) != 0",
+          "expr": "rate(pg_stat_database_tup_inserted{datname=~\"$datname\", instance=~\"${instance}:9187\"}[5m])",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 2,
@@ -3065,6 +3065,7 @@
           "links": [],
           "mappings": [],
           "min": 0,
+          "noValue": "0",
           "thresholds": {
             "mode": "absolute",
             "steps": [

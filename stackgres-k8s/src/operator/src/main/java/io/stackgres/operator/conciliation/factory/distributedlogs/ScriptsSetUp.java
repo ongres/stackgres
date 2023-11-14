@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs;
 
+import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -48,7 +50,7 @@ public class ScriptsSetUp implements ContainerFactory<DistributedLogsContainerCo
         .withName(StackGresInitContainer.SETUP_SCRIPTS.getName())
         .withImage(kubectl
             .getImageName(context.getDistributedLogsContext().getSource()))
-        .withImagePullPolicy("IfNotPresent")
+        .withImagePullPolicy(getDefaultPullPolicy())
         .withCommand("/bin/sh", "-ex",
             ClusterPath.TEMPLATES_PATH.path()
                 + "/" + ClusterPath.LOCAL_BIN_SETUP_SCRIPTS_SH_PATH.filename())

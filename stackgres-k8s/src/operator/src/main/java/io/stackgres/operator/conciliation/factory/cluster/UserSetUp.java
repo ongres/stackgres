@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.cluster;
 
+import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
+
 import java.util.List;
 
 import javax.inject.Inject;
@@ -51,7 +53,7 @@ public class UserSetUp implements ContainerFactory<ClusterContainerContext> {
     return new ContainerBuilder()
         .withName(StackGresInitContainer.SETUP_ARBITRARY_USER.getName())
         .withImage(kubectl.getImageName(context.getClusterContext().getCluster()))
-        .withImagePullPolicy("IfNotPresent")
+        .withImagePullPolicy(getDefaultPullPolicy())
         .withCommand("/bin/sh", "-ex",
             ClusterPath.TEMPLATES_PATH.path()
                 + "/" + ClusterPath.LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH.filename())

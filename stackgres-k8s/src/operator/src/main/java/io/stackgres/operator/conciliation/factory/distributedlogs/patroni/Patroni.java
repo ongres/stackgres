@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
 
+import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
+
 import java.util.List;
 import java.util.Map;
 
@@ -81,7 +83,7 @@ public class Patroni implements ContainerFactory<DistributedLogsContainerContext
         .withImage(StackGresUtil.getPatroniImageName(cluster))
         .withCommand("/bin/sh", "-ex",
             ClusterPath.LOCAL_BIN_START_PATRONI_SH_PATH.path())
-        .withImagePullPolicy("IfNotPresent")
+        .withImagePullPolicy(getDefaultPullPolicy())
         .withPorts(
             new ContainerPortBuilder()
                 .withName(EnvoyUtil.POSTGRES_PORT_NAME)

@@ -1,14 +1,14 @@
 {{- define "kubectl.image" }}
 {{- if semverCompare ">=1.27" .Capabilities.KubeVersion.Version -}}
-{{- printf "%s/ongres/kubectl:v1.28.2-build-6.27" .Values.containerRegistry -}}
+{{- printf "%s/ongres/kubectl:v1.28.2-build-6.29" .Values.containerRegistry -}}
 {{- else if semverCompare ">=1.24" .Capabilities.KubeVersion.Version -}}
-{{- printf "%s/ongres/kubectl:v1.25.14-build-6.27" .Values.containerRegistry -}}
+{{- printf "%s/ongres/kubectl:v1.25.14-build-6.29" .Values.containerRegistry -}}
 {{- else if semverCompare ">=1.21" .Capabilities.KubeVersion.Version -}}
-{{- printf "%s/ongres/kubectl:v1.22.17-build-6.27" .Values.containerRegistry -}}
+{{- printf "%s/ongres/kubectl:v1.22.17-build-6.29" .Values.containerRegistry -}}
 {{- else if semverCompare ">=1.18" .Capabilities.KubeVersion.Version -}}
-{{- printf "%s/ongres/kubectl:v1.19.16-build-6.27" .Values.containerRegistry -}}
+{{- printf "%s/ongres/kubectl:v1.19.16-build-6.29" .Values.containerRegistry -}}
 {{- else -}}
-{{- printf "%s/ongres/kubectl:v1.25.14-build-6.27" .Values.containerRegistry -}}
+{{- printf "%s/ongres/kubectl:v1.25.14-build-6.29" .Values.containerRegistry -}}
 {{- end -}}
 {{- end -}}
 
@@ -44,6 +44,21 @@
   {{- $missingSGConfigCrd = false }}
 {{- end }}
 {{- if $missingSGConfigCrd }}true{{- else }}false{{- end }}
+{{- else }}
+false
+{{- end }}
+{{- end }}
+
+{{- define "stackgres.operator.unmodificableWebapiAdminClusterRoleBinding" }}
+{{- if .Release.IsUpgrade }}
+{{- $unmodificableWebapiAdminClusterRoleBinding := false }}
+{{- $webapiAdminClusterRoleBinding := lookup "rbac.authorization.k8s.io/v1" "ClusterRoleBinding" "" "stackgres-restapi-admin" }}
+{{- if $webapiAdminClusterRoleBinding }}
+  {{- if not (eq $webapiAdminClusterRoleBinding.roleRef.name "stackgres-restapi-admin") }}
+    {{- $unmodificableWebapiAdminClusterRoleBinding = true }}
+  {{- end }}
+{{- end }}
+{{- if $unmodificableWebapiAdminClusterRoleBinding }}true{{- else }}false{{- end }}
 {{- else }}
 false
 {{- end }}

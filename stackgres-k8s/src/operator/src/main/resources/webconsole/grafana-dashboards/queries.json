@@ -583,7 +583,7 @@
             "type": "prometheus",
             "uid": "${DS_PROMETHEUS}"
           },
-          "expr": "pg_long_running_transactions_transactions{instance=~\"${instance}:9187\"}",
+          "expr": "pg_long_running_transactions_count{instance=~\"${instance}:9187\"}",
           "interval": "",
           "legendFormat": "Database: {{datname}}",
           "refId": "A"

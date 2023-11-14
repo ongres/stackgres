@@ -565,4 +565,9 @@ public interface StackGresUtil {
                 .orElseGet(() -> matcher.group("unquoted"))));
   }
 
+  static String getDefaultPullPolicy() {
+    return StackGresProperty.SG_IMAGE_PULL_POLICY.get()
+        .orElse("IfNotPresent");
+  }
+
 }
