@@ -378,36 +378,36 @@ developer:
     # Section to define volumes to be used by the operator container
     operator:
       # -- Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
-      volumes:
+      volumes: []
       # -- Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
-      volumeMounts:
+      volumeMounts: []
     # Section to define volumes to be used by the restapi container
     restapi:
       # -- Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
-      volumes:
+      volumes: []
       # -- Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
-      volumeMounts:
+      volumeMounts: []
     # Section to define volumes to be used by the adminui container
     adminui:
       # -- Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
-      volumes:
+      volumes: []
       # -- Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
-      volumeMounts:
+      volumeMounts: []
     # Section to define volumes to be used by the jobs container
     jobs:
       # -- Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
-      volumes:
+      volumes: []
       # -- Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
-      volumeMounts:
+      volumeMounts: []
     # Section to define volumes to be used by the cluster controller container
     clusterController:
       # -- Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
-      volumes:
+      volumes: []
       # -- Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
-      volumeMounts:
+      volumeMounts: []
     # Section to define volumes to be used by the distributedlogs controller container
     distributedlogsController:
       # -- Pod volumes. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volume-v1-core
-      volumes:
+      volumes: []
       # -- Pod's container volume mounts. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#volumemount-v1-core
-      volumeMounts:
+      volumeMounts: []
