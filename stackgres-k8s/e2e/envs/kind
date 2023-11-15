@@ -334,6 +334,110 @@ EOF
   fi
   echo "...done"
 
+  CSI_DRIVER_HOST_PATH_VERSION=""
+  if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -ge "$(echo "1.26" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  then
+    CSI_DRIVER_HOST_PATH_VERSION=v1.12.0
+    SNAPSHOTTER_VERSION=v6.3.2
+  elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -ge "$(echo "1.24" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  then
+    CSI_DRIVER_HOST_PATH_VERSION=v1.11.0
+    SNAPSHOTTER_VERSION=v6.3.2
+  elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -ge "$(echo "1.22" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  then
+    CSI_DRIVER_HOST_PATH_VERSION=v1.10.0
+    SNAPSHOTTER_VERSION=v6.3.2
+  elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -ge "$(echo "1.21" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  then
+    CSI_DRIVER_HOST_PATH_VERSION=v1.9.0
+    SNAPSHOTTER_VERSION=v6.3.2
+  elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -ge "$(echo "1.20" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  then
+    CSI_DRIVER_HOST_PATH_VERSION=v1.9.0
+    SNAPSHOTTER_VERSION=v3.0.3
+  elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -ge "$(echo "1.19" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  then
+    CSI_DRIVER_HOST_PATH_VERSION=v1.7.3
+    SNAPSHOTTER_VERSION=v3.0.3
+  elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -ge "$(echo "1.18" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  then
+    CSI_DRIVER_HOST_PATH_VERSION=v1.7.2
+    SNAPSHOTTER_VERSION=v3.0.3
+  fi
+  if [ -z "$CSI_DRIVER_HOST_PATH_VERSION" ]
+  then
+    echo "Can not find a valid csi driver host path version"
+    exit 1
+  fi
+  if ! git -C "$TARGET_PATH/csi-driver-host-path/.git" diff origin/"$CSI_DRIVER_HOST_PATH_VERSION"
+  then
+    rm -rf "$TARGET_PATH/csi-driver-host-path"
+    git clone -b "$CSI_DRIVER_HOST_PATH_VERSION" --single-branch \
+      https://github.com/kubernetes-csi/csi-driver-host-path \
+      "$TARGET_PATH/csi-driver-host-path"
+  fi
+  
+  {
+    # Apply VolumeSnapshot CRDs
+    kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml"
+    kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml"
+    kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml"
+    # Create snapshot controller
+    kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml"
+    kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml"
+    CSI_DRIVER_HOST_PATH_PATH="$TARGET_PATH/csi-driver-host-path/deploy/kubernetes-$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)"
+    cat << 'EOF' > "$CSI_DRIVER_HOST_PATH_PATH/kubectlw"
+set -e
+if [ "x$1" = xapply ]
+then
+  if [ "$#" = 3 ] && [ "x$2" = x--kustomize ]
+  then
+    for YAML in "$3"/*.yaml
+    do
+      echo "Mocking $YAML"
+      yq -y -c '
+          .
+            | if (. | type) == "array" then .[] else . end
+            | if (.|has("metadata")) then .metadata.namespace = "kube-system" else . end
+          ' "$YAML"  \
+        | sed 's#namespace: default#namespace: kube-system#' > "$YAML.tmp"
+      mv "$YAML.tmp" "$YAML"
+    done
+    kubectl -n kube-system apply --kustomize "$3"
+  elif [ "$#" = 3 ] && [ "x$2 $3" = 'x-f -' ]
+  then
+      echo "Mocking stdin"
+      yq -y -c '
+          .
+            | if (. | type) == "array" then .[] else . end
+            | if (.|has("metadata")) then .metadata.namespace = "kube-system" else . end
+          '  \
+        | sed 's#namespace: default#namespace: kube-system#' \
+        | kubectl -n kube-system apply -f -
+  else
+    printf '%s\n' "No mock for $*"
+    exit 1
+  fi
+else
+  kubectl -n kube-system "$@"
+fi
+EOF
+    sed -i "s#kubectl#sh $CSI_DRIVER_HOST_PATH_PATH/kubectlw#" \
+      "$CSI_DRIVER_HOST_PATH_PATH"/deploy.sh
+    IMAGE_TAG= bash "$CSI_DRIVER_HOST_PATH_PATH"/deploy.sh
+    kubectl create -f "$TARGET_PATH/csi-driver-host-path/examples/csi-storageclass.yaml"
+    kubectl get storageclass -o name | xargs -I % kubectl annotate % --overwrite storageclass.kubernetes.io/is-default-class=false
+    kubectl annotate storageclass csi-hostpath-sc --overwrite storageclass.kubernetes.io/is-default-class=true
+    kubectl annotate volumesnapshotclass csi-hostpath-snapclass --overwrite snapshot.storage.kubernetes.io/is-default-class="true"
+  }
+
   if [ "$ENABLE_METRIC_SERVER" = true ]
   then
     setup_metric_server
@@ -489,11 +593,13 @@ excluded_namespaces() {
 excluded_customresourcedefinitions() {
   echo ".*\.crd\.projectcalico\.org"
   echo ".*\.operator\.tigera\.io"
+  echo ".*\.snapshot\.storage\.k8s\.io"
 }
 
 excluded_podsecuritypolicies() {
   echo "calico-.*"
   echo "tigera-operator"
+  echo "csi-node-driver"
 }
 
 excluded_clusterroles() {
@@ -506,6 +612,12 @@ excluded_clusterroles() {
   echo "system:.*"
   echo "tigera-operator"
   echo "view"
+  echo "external-provisioner-runner"
+  echo "external-attacher-runner"
+  echo "external-snapshotter-runner"
+  echo "snapshot-controller-runner"
+  echo "external-resizer-runner"
+  echo "external-health-monitor-controller-runner"
 }
 
 excluded_clusterrolebindings() {
@@ -515,6 +627,17 @@ excluded_clusterrolebindings() {
   echo "local-path-provisioner-bind"
   echo "system:.*"
   echo "tigera-operator"
+  echo "csi-hostpathplugin-health-monitor-controller-cluster-role"
+  echo "csi-hostpathplugin-provisioner-cluster-role"
+  echo "csi-hostpathplugin-snapshotter-cluster-role"
+  echo "csi-snapshotter-role"
+  echo "snapshot-controller-role"
+  echo "csi-hostpathplugin-resizer-cluster-role"
+  echo "csi-external-health-monitor-controller-role"
+  echo "csi-attacher-role"
+  echo "csi-hostpathplugin-attacher-cluster-role"
+  echo "csi-provisioner-role"
+  echo "csi-resizer-role"
 }
 
 get_k8s_versions() {
