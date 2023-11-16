@@ -6,6 +6,6 @@ aliases: [ /tutorial/setting-up-env ]
 description: Details about the requirements to set up the StackGres operator.
 ---
 
-Starting from version 1.2.x, StackGres is able to run on any Kubernetes installation from version 1.18 to 1.25.
+Version {{% minor-version %}}+ of StackGres is able to run on any Kubernetes installation from version {{% kubernetes-min-version %}} up to {{% kubernetes-max-version %}}.
 
 {{% children style="li" depth="1"  description="true" %}}
