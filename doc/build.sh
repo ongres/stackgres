@@ -9,6 +9,7 @@ find "$(dirname "$0")/../stackgres-k8s/src/common/src/main/resources/crds" -name
     do
       cp "$FILE" "$(dirname "$0")/data/crds"
     done
+cp "$(dirname "$0")/../stackgres-k8s/install/helm/stackgres-operator/Chart.yaml" "$(dirname "$0")/data/stackgres_operator_Chart.yaml"
 
 STACKGRES_VERSION="${STACKGRES_VERSION:-$(sh stackgres-k8s/ci/build/version.sh)}"
 echo "current_version: \"$STACKGRES_VERSION\"" > "$(dirname "$0")/data/versions.yml"

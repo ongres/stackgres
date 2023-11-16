@@ -138,8 +138,7 @@ pom.xml.tag
 **/helm/*/generated.md
 
 doc/public
-doc/data/crds
-doc/data/versions.yml
+doc/data
 doc/generated
 doc/content/en/06-crd-reference/*/_index.md
 
