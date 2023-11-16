@@ -117,29 +117,39 @@ ifeq ($(CHANNELS),)
 endif
 	rm -rf bundle
 	cp -a "$(PROJECT_PATH)/stackgres-k8s/src/common/src/main/resources/crds/." config/crd/bases/.
-	VERSION="$(VERSION)" IMAGE_TAG="$(IMAGE_TAG)" PROJECT_PATH="$(PROJECT_PATH)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/manifests/bases/stackgres.clusterserviceversion.template.yaml)")" \
+	VERSION="$(VERSION)" IMAGE_TAG="$(IMAGE_TAG)" PROJECT_PATH="$(PROJECT_PATH)" \
+	  sh eval-template.sh config/manifests/bases/stackgres.clusterserviceversion.template.yaml \
 		> config/manifests/bases/stackgres.clusterserviceversion.yaml
-	VERSION="$(VERSION)" OPENSHIFT_BUNDLE="$(OPENSHIFT_BUNDLE)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/operator/operator.template.yaml)")" \
-		> config/operator/operator.yaml
-	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat config/operator/kustomization.template.yaml)\nMAKE_EOF")" \
-		> config/operator/kustomization.yaml
-	VERSION="$(VERSION)" PROJECT_PATH="$(PROJECT_PATH)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/rbac/role.template.yaml)")" \
-		> config/rbac/role.yaml
-	VERSION="$(VERSION)" eval "$$(printf "cat << MAKE_EOF\n$$(cat config/crd/kustomization.template.yaml)\nMAKE_EOF")" \
-		> config/crd/kustomization.yaml
-	VERSION="$(VERSION)" PROJECT_PATH="$(PROJECT_PATH)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat config/webhook/manifests.template.yaml)")" \
-		> config/webhook/manifests.yaml
+	VERSION="$(VERSION)" OPENSHIFT_BUNDLE="$(OPENSHIFT_BUNDLE)" \
+    sh eval-template.sh config/operator/operator.template.yaml \
+    > config/operator/operator.yaml
+	VERSION="$(VERSION)" \
+    sh eval-template.sh config/operator/kustomization.template.yaml \
+    > config/operator/kustomization.yaml
+	VERSION="$(VERSION)" PROJECT_PATH="$(PROJECT_PATH)" \
+    sh eval-template.sh config/rbac/role.template.yaml \
+    > config/rbac/role.yaml
+	VERSION="$(VERSION)" \
+    sh eval-template.sh config/crd/kustomization.template.yaml \
+    > config/crd/kustomization.yaml
+	VERSION="$(VERSION)" PROJECT_PATH="$(PROJECT_PATH)" \
+	sh eval-template.sh config/webhook/manifests.template.yaml \
+	> config/webhook/manifests.yaml
+	VERSION="$(VERSION)" \
+	sh eval-template.sh config/samples/kustomization.template.yaml \
+	> config/samples/kustomization.yaml
 	$(OPERATOR_SDK) generate kustomize manifests -q
 	cd config/operator && $(KUSTOMIZE) edit set image operator=$(IMG)
 	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle $(BUNDLE_GEN_FLAGS)
-	eval "$$(cat fix-crds.sh)"
+	sh fix-crds.sh
 	$(OPERATOR_SDK) bundle validate ./bundle
 
 .PHONY: bundle-openshift
 bundle-openshift: OPENSHIFT_BUNDLE := true
 bundle-openshift: bundle
-	VERSION="$(VERSION)" eval "$$(printf 'cat << MAKE_EOF\n%s\nMAKE_EOF' "$$(cat openshift-operator-bundle/manifests/stackgres.clusterserviceversion.template.yaml)")" \
-		> openshift-operator-bundle/manifests/stackgres.clusterserviceversion.yaml
+	VERSION="$(VERSION)" \
+    sh eval-template.sh openshift-operator-bundle/manifests/stackgres.clusterserviceversion.template.yaml \
+    > openshift-operator-bundle/manifests/stackgres.clusterserviceversion.yaml
 	yq -y -s '.[0] * .[1]' \
 		bundle/manifests/stackgres.clusterserviceversion.yaml \
 		openshift-operator-bundle/manifests/stackgres.clusterserviceversion.yaml \

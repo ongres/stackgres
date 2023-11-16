@@ -1,0 +1,7 @@
+specDescriptors:
+  sgCluster:
+    displayName: Target SGCluster
+statusDescriptors:
+  conditions:
+    x-descriptors:
+    - 'urn:alm:descriptor:io.kubernetes.conditions'

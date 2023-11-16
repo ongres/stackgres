@@ -1,0 +1,8 @@
+apiVersion: stackgres.io/v1
+kind: SGShardedDbOps
+metadata:
+  name: demo-restart-shardedop
+  namespace: demo-db
+spec:
+  sgShardedCluster: demo-db
+  op: restart

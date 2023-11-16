@@ -1,0 +1,8 @@
+apiVersion: stackgres.io/v1
+kind: SGShardedBackup
+metadata:
+  name: demo-shardedbackup
+  namespace: demo-db
+spec:
+  sgShardedCluster: demo-db
+  managedLifecycle: false
