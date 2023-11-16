@@ -139,8 +139,7 @@ pom.xml.tag
 **/helm/stackgres-operator/crds
 
 doc/public
-doc/data/crds
-doc/data/versions.yml
+doc/data
 doc/generated
 doc/content/en/04-administration-guide/01-stackgres-installation/02-installation-via-helm/01-operator-parameters/_index.md
 doc/content/en/06-crd-reference/*/_index.md
