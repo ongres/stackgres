@@ -249,12 +249,12 @@ public class WebConsoleDeployment
                     .collect(Collectors.joining(",")))
                 .build(),
                 new EnvVarBuilder()
-                .withName("AUTHENTICATION_TYPE")
+                .withName("STACKGRES_AUTH_TYPE")
                 .withValue(
                     Optional.of(context.getSource().getSpec())
                     .map(StackGresConfigSpec::getAuthentication)
                     .map(StackGresConfigAuthentication::getType)
-                    .orElse(""))
+                    .orElse("jwt"))
                 .build(),
                 new EnvVarBuilder()
                 .withName("OPERATOR_VERSION")
@@ -269,23 +269,11 @@ public class WebConsoleDeployment
                 .map(ignore ->  List.of(
                     new EnvVarBuilder()
                     .withName("QUARKUS_OIDC_APPLICATION_TYPE")
-                    .withValue(
-                        Optional.of(context.getSource().getSpec())
-                        .map(StackGresConfigSpec::getAuthentication)
-                        .map(StackGresConfigAuthentication::getType)
-                        .map(StackGresAuthenticationType.OIDC.toString()::equals)
-                        .map(Object::toString)
-                        .orElse(""))
+                    .withValue("web-app")
                     .build(),
                     new EnvVarBuilder()
                     .withName("QUARKUS_OIDC_PUBLIC_KEY")
-                    .withValue(
-                        Optional.of(context.getSource().getSpec())
-                        .map(StackGresConfigSpec::getAuthentication)
-                        .map(StackGresConfigAuthentication::getType)
-                        .filter(StackGresAuthenticationType.OIDC.toString()::equals)
-                        .map(type -> "")
-                        .orElse(""))
+                    .withValue("")
                     .build(),
                     new EnvVarBuilder()
                     .withName("QUARKUS_OIDC_AUTH_SERVER_URL")
@@ -311,7 +299,7 @@ public class WebConsoleDeployment
                             .map(StackGresConfigSpec::getAuthentication)
                             .map(StackGresConfigAuthentication::getOidc)
                             .map(StackGresConfigAuthenticationOidc::getTlsVerification))
-                        .orElse(""))
+                        .orElse("required"))
                     .build(),
                     Optional.of(context.getSource().getSpec())
                     .map(StackGresConfigSpec::getAuthentication)
