@@ -27,7 +27,7 @@ While most of the documentation structure should be self-explained, here's a qui
 
 * [Getting Started]({{% relref "03-demo-quickstart" %}}). This section documents the simplest way to get StackGres installed and a cluster up and running.
   A new user should take no more than 10-30 minutes going through this demo section.
-  It documents how to install StackGres from scratch, using `kubectl apply -f $URL`, how to create a simple cluster, how to connect to Postgres, and how to access the web console.
+  It documents how to install StackGres from scratch, using `kubectl create -f $URL`, how to create a simple cluster, how to connect to Postgres, and how to access the web console.
 
 * [Administration Manual]({{% relref "04-administration-guide" %}}). A detailed, throughout guide about the StackGres features, including a production-grade installation and the installation options.
   This section targets cluster administrators and explains the StackGres features, how they work, and how to use them, with all possible options.
