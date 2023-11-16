@@ -23,7 +23,7 @@ We ship some Kubernetes resources files in order to allow installation of the St
  operator with the following command:
 
 ```
-kubectl apply -f {{< download-url >}}/stackgres-operator-demo.yml
+kubectl create -f {{< download-url >}}/stackgres-operator-demo.yml
 ```
 
 This will install all required resources, and add the StackGres operator to a new namespace `stackgres`.
