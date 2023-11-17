@@ -10,8 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.time.Instant;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -20,6 +18,7 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.shardeddbops.ImmutableStackGresShardedDbOpsContext;
 import io.stackgres.operator.conciliation.shardeddbops.StackGresShardedDbOpsContext;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

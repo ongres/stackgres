@@ -10,8 +10,6 @@ import static io.stackgres.common.StackGresShardedClusterUtil.getShardClusterNam
 
 import java.util.stream.Stream;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
@@ -23,6 +21,7 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceGeneratorTest;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 

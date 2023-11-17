@@ -5,8 +5,7 @@
 
 package io.stackgres.apiweb.exception;
 
-import javax.ws.rs.ext.Provider;
-
+import jakarta.ws.rs.ext.Provider;
 import org.jboss.resteasy.spi.ReaderException;
 
 @Provider

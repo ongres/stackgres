@@ -9,12 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.annotation.Nullable;
-import javax.enterprise.context.RequestScoped;
-import javax.inject.Inject;
-import javax.validation.Valid;
-import javax.ws.rs.Path;
-
 import io.fabric8.kubernetes.api.model.rbac.ClusterRole;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.clusterrole.ClusterRoleDto;
@@ -25,6 +19,11 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.annotation.Nullable;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.ws.rs.Path;
 
 @Path("clusterroles")
 @RequestScoped

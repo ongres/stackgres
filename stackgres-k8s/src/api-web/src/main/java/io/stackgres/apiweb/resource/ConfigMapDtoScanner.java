@@ -7,13 +7,12 @@ package io.stackgres.apiweb.resource;
 
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.apiweb.dto.configmap.ConfigMapDto;
 import io.stackgres.apiweb.transformer.ConfigMapMapper;
 import io.stackgres.common.resource.ResourceScanner;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ConfigMapDtoScanner implements ResourceScanner<ConfigMapDto> {

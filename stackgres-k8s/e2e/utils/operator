@@ -110,6 +110,7 @@ EOF
       helm-packages \
       helm-templates \
       operator-bundle
+    k8s_copy_to_extra_mount_build_path
   fi
   if [ "$E2E_BUILD_ONLY_MODULES" != true ]
   then

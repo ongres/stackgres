@@ -5,9 +5,8 @@
 
 package io.stackgres.common.event;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class DistributedLogsEventEmitter extends AbstractEventEmitter<StackGresDistributedLogs> {

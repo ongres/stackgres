@@ -7,8 +7,6 @@ package io.stackgres.operator.validation.pgconfig;
 
 import java.util.Set;
 
-import javax.inject.Singleton;
-
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.common.PgConfigReview;
@@ -16,6 +14,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.Pos
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import jakarta.inject.Singleton;
 
 @Singleton
 @ValidationType(ErrorType.PG_CONFIG_BLOCKLIST)

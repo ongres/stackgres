@@ -8,9 +8,6 @@ package io.stackgres.operator.conciliation.shardeddbops;
 import java.util.List;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -22,6 +19,8 @@ import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

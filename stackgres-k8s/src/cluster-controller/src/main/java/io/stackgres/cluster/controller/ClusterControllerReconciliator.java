@@ -9,10 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.StackGresClusterContext;
@@ -26,6 +22,9 @@ import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
 import io.stackgres.operatorframework.reconciliation.Reconciliator;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Inject;
 import org.jooq.lambda.tuple.Tuple;
 
 @ApplicationScoped

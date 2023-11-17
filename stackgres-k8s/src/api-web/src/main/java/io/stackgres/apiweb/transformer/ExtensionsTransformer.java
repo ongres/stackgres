@@ -8,9 +8,6 @@ package io.stackgres.apiweb.transformer;
 import java.util.Collection;
 import java.util.function.Function;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.apiweb.dto.extension.Extension;
 import io.stackgres.apiweb.dto.extension.ExtensionPublisher;
@@ -22,6 +19,8 @@ import io.stackgres.common.extension.StackGresExtension;
 import io.stackgres.common.extension.StackGresExtensionMetadata;
 import io.stackgres.common.extension.StackGresExtensionPublisher;
 import io.stackgres.common.extension.StackGresExtensionVersion;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
 

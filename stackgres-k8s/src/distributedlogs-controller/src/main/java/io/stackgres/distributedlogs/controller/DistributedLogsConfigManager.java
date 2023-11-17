@@ -11,12 +11,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import com.ongres.process.FluentProcess;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.ConfigFilesUtil;
 import io.stackgres.common.StackGresUtil;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

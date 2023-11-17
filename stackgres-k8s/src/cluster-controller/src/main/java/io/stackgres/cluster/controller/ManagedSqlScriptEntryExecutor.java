@@ -14,13 +14,12 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.stackgres.common.ClusterPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.crd.sgscript.StackGresScriptTransactionIsolationLevel;
 import io.stackgres.common.postgres.PostgresConnectionManager;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

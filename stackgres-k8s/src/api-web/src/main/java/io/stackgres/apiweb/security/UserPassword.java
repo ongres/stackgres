@@ -5,11 +5,10 @@
 
 package io.stackgres.apiweb.security;
 
-import javax.validation.constraints.NotBlank;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import jakarta.validation.constraints.NotBlank;
 
 @JsonInclude(Include.NON_DEFAULT)
 @RegisterForReflection

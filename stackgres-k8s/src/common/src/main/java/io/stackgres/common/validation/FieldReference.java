@@ -10,7 +10,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import javax.validation.Payload;
+import jakarta.validation.Payload;
 
 public interface FieldReference extends Payload {
 

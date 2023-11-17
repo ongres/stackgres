@@ -8,9 +8,6 @@ package io.stackgres.apiweb.resource;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
 import io.stackgres.apiweb.transformer.ClusterStatsTransformer;
@@ -20,6 +17,8 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.PersistentVolumeClaimFinder;
 import io.stackgres.common.resource.PodExecutor;
 import io.stackgres.common.resource.PodFinder;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.eclipse.microprofile.context.ManagedExecutor;
 import org.jooq.lambda.tuple.Tuple;
 

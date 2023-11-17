@@ -8,13 +8,12 @@ package io.stackgres.operator.validation;
 import java.util.Comparator;
 import java.util.Objects;
 
-import javax.enterprise.inject.Instance;
-
 import io.stackgres.common.CdiUtil;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
+import jakarta.enterprise.inject.Instance;
 
 public abstract class AbstractValidationPipeline<T extends AdmissionReview<?>>
     extends io.stackgres.operatorframework.admissionwebhook.validating.ValidationPipeline<T> {

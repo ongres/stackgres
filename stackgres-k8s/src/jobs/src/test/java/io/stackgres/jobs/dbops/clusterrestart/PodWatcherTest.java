@@ -13,8 +13,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
@@ -28,6 +26,7 @@ import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import io.stackgres.testutil.StringUtils;
 import io.vertx.junit5.Timeout;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -122,7 +121,13 @@ class PodWatcherTest {
   @Test
   @Timeout(3)
   void givenNoPodCreated_waitUntilIsRemovedShouldPass() {
-    podWatcher.waitUntilIsRemoved(podName, namespace)
+    var podDeleted = new PodBuilder()
+            .withNewMetadata()
+            .withNamespace(namespace)
+            .withName(podName)
+            .endMetadata()
+            .build();
+    podWatcher.waitUntilIsRemoved(podDeleted)
         .runSubscriptionOn(testExecutor)
         .subscribe().withSubscriber(UniAssertSubscriber.create())
         .awaitItem()
@@ -131,7 +136,7 @@ class PodWatcherTest {
 
   @Test
   void givenPodCreated_waitUntilIsRemovedShouldWaitForThePodToBeRemoved() throws Exception {
-    client.pods().inNamespace(namespace)
+    var podCreated = client.pods().inNamespace(namespace)
         .resource(new PodBuilder()
             .withNewMetadata()
             .withNamespace(namespace)
@@ -140,7 +145,7 @@ class PodWatcherTest {
             .build())
         .create();
 
-    UniAssertSubscriber<Void> subscriber = podWatcher.waitUntilIsRemoved(podName, namespace)
+    UniAssertSubscriber<Void> subscriber = podWatcher.waitUntilIsRemoved(podCreated)
         .runSubscriptionOn(testExecutor)
         .subscribe().withSubscriber(UniAssertSubscriber.create());
 
@@ -262,7 +267,7 @@ class PodWatcherTest {
             .withStatus("true")
             .endCondition()
             .endStatus().build())
-        .replace();
+        .update();
 
     Pod returnedPod = subscriber.awaitItem().assertCompleted().getItem();
 
@@ -309,7 +314,7 @@ class PodWatcherTest {
             .withStatus("true")
             .endCondition()
             .endStatus().build())
-        .replace();
+        .update();
 
     Pod returnedPod = subscriber.awaitItem().assertCompleted().getItem();
 

@@ -8,8 +8,6 @@ package io.stackgres.apiweb.transformer;
 import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Inject;
-
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.apiweb.dto.script.ScriptDto;
 import io.stackgres.apiweb.dto.script.ScriptSpec;
@@ -18,6 +16,7 @@ import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptSpec;
 import io.stackgres.common.crd.sgscript.StackGresScriptStatus;
 import io.stackgres.testutil.StringUtils;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest

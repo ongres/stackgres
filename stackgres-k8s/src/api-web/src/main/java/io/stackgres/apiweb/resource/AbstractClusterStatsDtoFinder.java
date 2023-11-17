@@ -8,8 +8,6 @@ package io.stackgres.apiweb.resource;
 import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ContainerState;
 import io.fabric8.kubernetes.api.model.ContainerStateRunning;
@@ -29,6 +27,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.PersistentVolumeClaimFinder;
 import io.stackgres.common.resource.PodExecutor;
+import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;

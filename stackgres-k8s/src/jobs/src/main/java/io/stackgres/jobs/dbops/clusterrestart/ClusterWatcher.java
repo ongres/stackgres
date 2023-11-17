@@ -11,9 +11,6 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.google.common.base.Joiner;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.smallrye.mutiny.Uni;
@@ -21,7 +18,10 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
+import io.stackgres.jobs.dbops.DbOpsExecutorService;
 import io.stackgres.jobs.dbops.MutinyUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,24 +29,20 @@ import org.slf4j.LoggerFactory;
 public class ClusterWatcher {
   private static final Logger LOGGER = LoggerFactory.getLogger(ClusterWatcher.class);
 
-  private final PatroniApiHandler patroniApiHandler;
-
-  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
-
-  private final ResourceScanner<Pod> podScanner;
-
-  private final CustomResourceFinder<StackGresCluster> clusterFinder;
+  @Inject
+  PatroniApiHandler patroniApiHandler;
 
   @Inject
-  public ClusterWatcher(PatroniApiHandler patroniApiHandler,
-      LabelFactoryForCluster<StackGresCluster> labelFactory,
-      ResourceScanner<Pod> podScanner,
-      CustomResourceFinder<StackGresCluster> clusterFinder) {
-    this.patroniApiHandler = patroniApiHandler;
-    this.labelFactory = labelFactory;
-    this.podScanner = podScanner;
-    this.clusterFinder = clusterFinder;
-  }
+  LabelFactoryForCluster<StackGresCluster> labelFactory;
+
+  @Inject
+  ResourceScanner<Pod> podScanner;
+
+  @Inject
+  CustomResourceFinder<StackGresCluster> clusterFinder;
+
+  @Inject
+  DbOpsExecutorService executorService;
 
   private static boolean isPrimaryReady(List<ClusterMember> members) {
     return members.stream().anyMatch(ClusterWatcher::isPrimaryReady);
@@ -86,7 +82,7 @@ public class ClusterWatcher {
   }
 
   public Uni<StackGresCluster> waitUntilIsReady(String name, String namespace) {
-    return Uni.createFrom().item(() -> findByNameAndNamespace(name, namespace))
+    return executorService.itemAsync(() -> findByNameAndNamespace(name, namespace))
         .call(cluster -> scanClusterPods(cluster)
             .chain(() -> getClusterMembers(cluster))
             .onFailure()
@@ -98,7 +94,7 @@ public class ClusterWatcher {
   }
 
   private Uni<List<Pod>> scanClusterPods(StackGresCluster cluster) {
-    return Uni.createFrom().item(() -> {
+    return executorService.itemAsync(() -> {
       var podsLabels = labelFactory.clusterLabelsWithoutUidAndScope(cluster);
       final String labelsAsString = Joiner.on(",").withKeyValueSeparator(":").join(podsLabels);
       LOGGER.debug("Scanning for pods of cluster {} with labels {}",
@@ -126,7 +122,8 @@ public class ClusterWatcher {
     LOGGER.debug("Looking for cluster members of cluster {}", name);
     return patroniApiHandler.getClusterMembers(name,
         cluster.getMetadata().getNamespace())
-        .onItem().transform(members -> {
+        .onItem()
+        .transform(members -> {
           if (isPrimaryReady(members)) {
             LOGGER.debug("Primary of cluster {} ready", name);
             return members;

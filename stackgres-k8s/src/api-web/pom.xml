@@ -56,23 +56,12 @@
       <artifactId>quarkus-smallrye-health</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.jooq</groupId>
-      <artifactId>jooq</artifactId>
+      <groupId>io.quarkiverse.jooq</groupId>
+      <artifactId>quarkus-jooq</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-configuration2</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.graalvm.nativeimage</groupId>
-      <artifactId>svm</artifactId>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>jakarta.persistence</groupId>
@@ -80,7 +69,12 @@
     </dependency>
     <dependency>
       <groupId>io.swagger.core.v3</groupId>
-      <artifactId>swagger-annotations</artifactId>
+      <artifactId>swagger-annotations-jakarta</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.swagger.core.v3</groupId>
+      <artifactId>swagger-maven-plugin-jakarta</artifactId>
+      <version>${swagger-maven-plugin-jakarta.version}</version>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -186,8 +180,8 @@
         <artifactId>jandex-maven-plugin</artifactId>
       </plugin>
       <plugin>
-        <groupId>io.openapitools.swagger</groupId>
-        <artifactId>swagger-maven-plugin</artifactId>
+        <groupId>io.swagger.core.v3</groupId>
+        <artifactId>swagger-maven-plugin-jakarta</artifactId>
         <configuration>
           <skip>false</skip>
           <resourcePackages>
@@ -195,16 +189,19 @@
             <resourcePackage>io.stackgres.apiweb.dto</resourcePackage>
             <resourcePackage>io.stackgres.apiweb.security</resourcePackage>
           </resourcePackages>
-          <outputDirectory>${basedir}/target/</outputDirectory>
-          <outputFilename>swagger</outputFilename>
-          <outputFormats>JSON,YAML</outputFormats>
+          <outputPath>${basedir}/target/</outputPath>
+          <outputFileName>swagger</outputFileName>
+          <outputFormat>YAML</outputFormat>
           <prettyPrint>true</prettyPrint>
-          <useResourcePackagesChildren>true</useResourcePackagesChildren>
+          <readAllResources>true</readAllResources>
+          <alwaysResolveAppPath>true</alwaysResolveAppPath>
+          <skipResolveAppPath>true</skipResolveAppPath>
         </configuration>
         <executions>
           <execution>
+            <phase>compile</phase>
             <goals>
-              <goal>generate</goal>
+              <goal>resolve</goal>
             </goals>
           </execution>
         </executions>

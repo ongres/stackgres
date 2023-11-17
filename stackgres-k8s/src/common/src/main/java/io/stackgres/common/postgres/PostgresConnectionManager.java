@@ -12,8 +12,8 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.inject.Singleton;
-import javax.validation.constraints.NotNull;
+import jakarta.inject.Singleton;
+import jakarta.validation.constraints.NotNull;
 
 @Singleton
 public class PostgresConnectionManager {

@@ -7,13 +7,12 @@ package io.stackgres.jobs.dbops.lock;
 
 import java.util.function.Consumer;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.quarkus.test.Mock;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceScheduler;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 
 @Mock

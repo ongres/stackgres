@@ -8,9 +8,6 @@ package io.stackgres.operator.validation.dbops;
 import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.StackGresComponent;
@@ -29,6 +26,8 @@ import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.DbOpsReview;
 import io.stackgres.operator.validation.AbstractExtensionsValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
 
 @Singleton

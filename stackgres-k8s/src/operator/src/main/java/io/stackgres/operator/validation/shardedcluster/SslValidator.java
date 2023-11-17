@@ -7,9 +7,6 @@ package io.stackgres.operator.validation.shardedcluster;
 
 import java.util.Optional;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.ErrorType;
@@ -22,6 +19,8 @@ import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 @Singleton
 @ValidationType(ErrorType.INVALID_CR_REFERENCE)

@@ -5,11 +5,10 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs;
 
-import javax.inject.Singleton;
-
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.AbstractPatroniStaticVolumesFactory;
+import jakarta.inject.Singleton;
 
 @Singleton
 @OperatorVersionBinder

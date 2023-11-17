@@ -6,10 +6,6 @@
 package io.stackgres.jobs.dbops.minorversionupgrade;
 
 import java.time.Duration;
-import java.util.Optional;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -21,10 +17,13 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.jobs.dbops.ClusterRestartStateHandler;
 import io.stackgres.jobs.dbops.DatabaseOperation;
 import io.stackgres.jobs.dbops.DatabaseOperationJob;
+import io.stackgres.jobs.dbops.DbOpsExecutorService;
 import io.stackgres.jobs.dbops.MutinyUtil;
 import io.stackgres.jobs.dbops.StateHandler;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.securityupgrade.SecurityUpgradeJob;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,13 +49,25 @@ public class MinorVersionUpgradeJob implements DatabaseOperationJob {
   @Inject
   CustomResourceFinder<StackGresDbOps> dbOpsFinder;
 
+  @Inject
+  DbOpsExecutorService executorService;
+
   @Override
   public Uni<ClusterRestartState> runJob(StackGresDbOps dbOps, StackGresCluster cluster) {
     LOGGER.info("Starting minor version upgrade for SGDbOps {}", dbOps.getMetadata().getName());
 
     return setClusterTargetMinorVersion(dbOps, cluster)
         .chain(() -> restartStateHandler.restartCluster(dbOps))
-        .onFailure().invoke(ex -> reportFailure(dbOps, ex));
+        .onItemOrFailure()
+        .transformToUni((item, ex) -> {
+          if (ex != null) {
+            return executorService.invokeAsync(() -> reportFailure(dbOps, ex))
+                .onItem()
+                .failWith(() -> ex)
+                .map(ignored -> item);
+          }
+          return Uni.createFrom().item(item);
+        });
   }
 
   private Uni<StackGresCluster> setClusterTargetMinorVersion(
@@ -75,15 +86,11 @@ public class MinorVersionUpgradeJob implements DatabaseOperationJob {
   }
 
   private Uni<StackGresCluster> getCluster(StackGresCluster targetCluster) {
-    return Uni.createFrom().<StackGresCluster>emitter(em -> {
+    return executorService.itemAsync(() -> {
       String name = targetCluster.getMetadata().getName();
       String namespace = targetCluster.getMetadata().getNamespace();
-      Optional<StackGresCluster> cluster = clusterFinder.findByNameAndNamespace(name, namespace);
-      if (cluster.isPresent()) {
-        em.complete(cluster.get());
-      } else {
-        em.fail(new IllegalStateException("Could not find SGCluster " + name));
-      }
+      return clusterFinder.findByNameAndNamespace(name, namespace)
+          .orElseThrow(() -> new IllegalStateException("Could not find SGCluster " + name));
     });
   }
 

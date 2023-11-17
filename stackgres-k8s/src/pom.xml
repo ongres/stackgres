@@ -77,19 +77,19 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <!-- Dependencies versions -->
-    <quarkus.version>2.15.3.Final</quarkus.version>
+    <quarkus.version>3.5.1</quarkus.version>
     <jool.version>0.9.15</jool.version>
     <immutables.version>2.9.3</immutables.version>
     <checkstyle.version>10.11.0</checkstyle.version>
     <spotbugs.version>4.7.3</spotbugs.version>
-    <pmd.version>6.49.0</pmd.version>
+    <pmd.version>6.55.0</pmd.version>
     <docker-junit-extension.version>1.2.15</docker-junit-extension.version>
     <fluent-process.version>1.0.1</fluent-process.version>
-    <jooq.version>3.13.4</jooq.version>
     <jetbrains-annotations.version>24.0.1</jetbrains-annotations.version>
+    <quarkus-jooq.version>2.0.0</quarkus-jooq.version>
     <mockito.version>3.0.0</mockito.version>
-    <swagger-annotations.version>2.1.13</swagger-annotations.version>
-    <sundrio.version>0.94.0</sundrio.version>
+    <swagger-annotations-jakarta.version>2.2.15</swagger-annotations-jakarta.version>
+    <sundrio.version>0.101.3</sundrio.version>
     <reflections.version>0.10.2</reflections.version>
     <truth.version>1.1.5</truth.version>
     <jsonassert.version>1.5.1</jsonassert.version>
@@ -100,6 +100,7 @@
     <javapoet.version>1.13.0</javapoet.version>
     <compile-testing.version>0.21.0</compile-testing.version>
     <bouncycastle.version>1.70</bouncycastle.version>
+    <substratevm.version>19.2.1</substratevm.version>
     <!-- Plugins versions -->
     <compiler-plugin.version>3.11.0</compiler-plugin.version>
     <jar-plugin.version>3.3.0</jar-plugin.version>
@@ -115,7 +116,7 @@
     <docker-maven-plugin.version>0.43.0</docker-maven-plugin.version>
     <jandex-maven-plugin.version>3.1.5</jandex-maven-plugin.version>
     <build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
-    <swagger-maven-plugin.version>2.1.6</swagger-maven-plugin.version>
+    <swagger-maven-plugin-jakarta.version>2.2.15</swagger-maven-plugin-jakarta.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
     <checks.location>${maven.multiModuleProjectDirectory}/checks</checks.location>
     <checkstyle.config.location>${checks.location}/checkstyle.xml</checkstyle.config.location>
@@ -144,20 +145,14 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.jooq</groupId>
-        <artifactId>jooq</artifactId>
-        <version>${jooq.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-          </exclusion>
-        </exclusions>
+        <groupId>io.quarkiverse.jooq</groupId>
+        <artifactId>quarkus-jooq</artifactId>
+        <version>${quarkus-jooq.version}</version>
       </dependency>
       <dependency>
         <groupId>io.swagger.core.v3</groupId>
-        <artifactId>swagger-annotations</artifactId>
-        <version>${swagger-annotations.version}</version>
+        <artifactId>swagger-annotations-jakarta</artifactId>
+        <version>${swagger-annotations-jakarta.version}</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
@@ -284,6 +279,12 @@
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
+    <dependency>
+      <groupId>com.oracle.substratevm</groupId>
+      <artifactId>svm</artifactId>
+      <version>${substratevm.version}</version>
+      <scope>provided</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -394,9 +395,9 @@
           </executions>
         </plugin>
         <plugin>
-          <groupId>io.openapitools.swagger</groupId>
-          <artifactId>swagger-maven-plugin</artifactId>
-          <version>${swagger-maven-plugin.version}</version>
+          <groupId>io.swagger.core.v3</groupId>
+          <artifactId>swagger-maven-plugin-jakarta</artifactId>
+          <version>${swagger-maven-plugin-jakarta.version}</version>
           <configuration>
             <skip>true</skip>
           </configuration>

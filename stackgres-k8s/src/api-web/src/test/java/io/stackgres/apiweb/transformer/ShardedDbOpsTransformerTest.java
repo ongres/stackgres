@@ -5,8 +5,6 @@
 
 package io.stackgres.apiweb.transformer;
 
-import javax.inject.Inject;
-
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.apiweb.dto.shardeddbops.ShardedDbOpsDto;
 import io.stackgres.apiweb.dto.shardeddbops.ShardedDbOpsSpec;
@@ -14,6 +12,7 @@ import io.stackgres.apiweb.dto.shardeddbops.ShardedDbOpsStatus;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsSpec;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsStatus;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest

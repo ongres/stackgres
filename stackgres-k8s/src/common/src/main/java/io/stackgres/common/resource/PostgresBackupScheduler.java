@@ -5,10 +5,9 @@
 
 package io.stackgres.common.resource;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigList;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class PostgresBackupScheduler

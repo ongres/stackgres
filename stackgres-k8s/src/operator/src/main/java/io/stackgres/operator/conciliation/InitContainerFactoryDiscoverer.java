@@ -5,12 +5,11 @@
 
 package io.stackgres.operator.conciliation;
 
-import javax.enterprise.inject.Instance;
-
 import io.stackgres.common.CdiUtil;
 import io.stackgres.operator.conciliation.factory.ContainerContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
+import jakarta.enterprise.inject.Instance;
 
 public abstract class InitContainerFactoryDiscoverer<T extends ContainerContext>
     extends ContainerFactoryResourceDiscoverer<T, InitContainer> {

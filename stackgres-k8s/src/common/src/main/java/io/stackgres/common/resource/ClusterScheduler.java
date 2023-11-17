@@ -5,10 +5,9 @@
 
 package io.stackgres.common.resource;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ClusterScheduler extends

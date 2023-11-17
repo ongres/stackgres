@@ -12,16 +12,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -51,6 +46,7 @@ import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.InvalidClusterException;
 import io.stackgres.jobs.dbops.clusterrestart.RestartEvent;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,14 +89,8 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
   @Inject
   ObjectMapper objectMapper;
 
-  private final ExecutorService restartStateHandlerExecutor;
-
-  protected AbstractRestartStateHandler() {
-    this.restartStateHandlerExecutor = Executors.newSingleThreadExecutor(
-        new ThreadFactoryBuilder()
-        .setNameFormat("restart-state-handler-executor-%d")
-        .build());
-  }
+  @Inject
+  DbOpsExecutorService executorService;
 
   @Override
   public Uni<ClusterRestartState> restartCluster(StackGresDbOps dbOps) {
@@ -122,7 +112,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
 
   private Uni<ClusterRestartState> restartCluster(ClusterRestartState clusterRestartState) {
     return Uni.createFrom().voidItem()
-        .emitOn(restartStateHandlerExecutor)
+        .emitOn(executorService.getExecutorService())
         .chain(() -> clusterRestart.restartCluster(clusterRestartState)
           .onItem()
           .call(event -> updateDbOpsStatus(event, clusterRestartState))
@@ -194,9 +184,9 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
       }
 
       setDbOpRestartStatus(dbOps, restartStatus);
-      var newStatus = dbOpsScheduler.update(dbOps);
-      return newStatus;
-    });
+      return dbOps;
+    })
+        .chain(() -> executorService.itemAsync(() -> dbOpsScheduler.update(dbOps)));
   }
 
   protected abstract boolean isSgClusterDbOpsStatusInitialized(StackGresCluster cluster);
@@ -204,13 +194,11 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
   protected abstract boolean isDbOpsStatusInitialized(StackGresDbOps cluster);
 
   protected Uni<List<Pod>> scanClusterPods(StackGresCluster cluster) {
-    return Uni.createFrom().item(() -> {
+    return executorService.itemAsync(() -> {
       String namespace = cluster.getMetadata().getNamespace();
-
-      final Map<String, String> podLabels = labelFactory.clusterLabelsWithoutUidAndScope(cluster);
-
+      final Map<String, String> podLabels =
+          labelFactory.clusterLabelsWithoutUidAndScope(cluster);
       List<Pod> clusterPods = podScanner.findByLabelsAndNamespace(namespace, podLabels);
-
       if (LOGGER.isTraceEnabled()) {
         LOGGER.trace("Retrieved cluster pods with labels {}: {}",
             podLabels.entrySet().stream()
@@ -233,7 +221,6 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
                 .collect(Collectors.joining(",")))
             .collect(Collectors.joining(" ")));
       }
-
       return clusterPods;
     });
   }
@@ -268,17 +255,17 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
           } else {
             return initClusterDbOpsStatusValues(
                 clusterRestartState, tuple.getItem1(), tuple.getItem2())
-                .onItem()
-                .invoke(v -> clusterScheduler.update(tuple.getItem2(),
-                    (currentCluster) -> {
-                      var dbOpsStatus = Optional.ofNullable(tuple.getItem2().getStatus())
-                          .map(StackGresClusterStatus::getDbOps)
-                          .orElse(null);
-                      if (currentCluster.getStatus() == null) {
-                        currentCluster.setStatus(new StackGresClusterStatus());
-                      }
-                      currentCluster.getStatus().setDbOps(dbOpsStatus);
-                    }));
+                .chain(() -> executorService.itemAsync(
+                    () -> clusterScheduler.update(tuple.getItem2(),
+                        (currentCluster) -> {
+                          var dbOpsStatus = Optional.ofNullable(tuple.getItem2().getStatus())
+                              .map(StackGresClusterStatus::getDbOps)
+                              .orElse(null);
+                          if (currentCluster.getStatus() == null) {
+                            currentCluster.setStatus(new StackGresClusterStatus());
+                          }
+                          currentCluster.getStatus().setDbOps(dbOpsStatus);
+                        })));
           }
         });
   }
@@ -290,8 +277,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
       return findSgCluster(clusterRestartState.getClusterName(), clusterRestartState.getNamespace())
           .chain(cluster -> {
             return initDbOpsRestartStatusValues(clusterRestartState, dbOps, cluster)
-                .onItem()
-                .transform(v -> dbOpsScheduler.update(dbOps));
+                .chain(() -> executorService.itemAsync(() -> dbOpsScheduler.update(dbOps)));
           });
     }
   }
@@ -322,13 +308,15 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
   }
 
   private @NotNull Uni<Optional<StatefulSet>> getClusterStatefulSet(StackGresCluster cluster) {
-    return Uni.createFrom().item(() -> statefulSetFinder.findByNameAndNamespace(
-        cluster.getMetadata().getName(), cluster.getMetadata().getNamespace()));
+    return executorService.itemAsync(
+        () -> statefulSetFinder.findByNameAndNamespace(
+            cluster.getMetadata().getName(), cluster.getMetadata().getNamespace()));
   }
 
   private @NotNull Uni<Optional<Endpoints>> getPatroniConfigEndpoints(StackGresCluster cluster) {
-    return Uni.createFrom().item(() -> endpointsFinder.findByNameAndNamespace(
-        PatroniUtil.configName(cluster), cluster.getMetadata().getNamespace()));
+    return executorService.itemAsync(
+        () -> endpointsFinder.findByNameAndNamespace(
+            PatroniUtil.configName(cluster), cluster.getMetadata().getNamespace()));
   }
 
   protected abstract Optional<DbOpsMethodType> getRestartMethod(StackGresDbOps op);
@@ -466,39 +454,40 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
   }
 
   protected Uni<StackGresCluster> findSgCluster(String name, String namespace) {
-    return Uni.createFrom().item(() ->
-        clusterFinder.findByNameAndNamespace(name, namespace))
-        .map(cluster -> cluster
-            .orElseThrow(() -> new IllegalArgumentException(
-                "SGCluster " + name + " not found")));
+    return executorService.itemAsync(
+        () -> clusterFinder.findByNameAndNamespace(name, namespace)
+        .orElseThrow(() -> new IllegalArgumentException(
+            "SGCluster " + name + " not found")));
   }
 
   protected Uni<StackGresCluster> cleanCluster(StackGresCluster cluster) {
     return Uni.createFrom().voidItem()
         .invoke(item -> cleanClusterStatus(cluster))
-        .map(item -> clusterScheduler.update(cluster,
-          (currentCluster) -> {
-            var dbOps = Optional.ofNullable(cluster.getStatus())
-                .map(StackGresClusterStatus::getDbOps)
-                .orElse(null);
-            if (currentCluster.getStatus() == null) {
-              currentCluster.setStatus(new StackGresClusterStatus());
-            }
-            currentCluster.getStatus().setDbOps(dbOps);
-          }));
+        .chain(() -> executorService.itemAsync(
+            () -> clusterScheduler.update(cluster,
+                (currentCluster) -> {
+                  var dbOps = Optional.ofNullable(cluster.getStatus())
+                      .map(StackGresClusterStatus::getDbOps)
+                      .orElse(null);
+                  if (currentCluster.getStatus() == null) {
+                    currentCluster.setStatus(new StackGresClusterStatus());
+                  }
+                  currentCluster.getStatus().setDbOps(dbOps);
+                })));
   }
 
   protected Uni<StackGresDbOps> findDbOps(String name, String namespace) {
-    return Uni.createFrom().item(() ->
-        dbOpsFinder.findByNameAndNamespace(name, namespace))
-        .map(dbOps -> dbOps.orElseThrow(() -> new IllegalArgumentException(
+    return executorService.itemAsync(
+        () -> dbOpsFinder.findByNameAndNamespace(name, namespace)
+        .orElseThrow(() -> new IllegalArgumentException(
             "SGDbOps " + name + " not found")));
   }
 
   protected Uni<?> recordEvent(RestartEvent event, ClusterRestartState restartState) {
     return findDbOps(restartState.getDbOpsName(), restartState.getNamespace())
-        .invoke(dbOps -> eventEmitter.sendEvent(
-            event.getEventType(), event.getMessage(), dbOps));
+        .chain(dbOps -> executorService.invokeAsync(
+            () -> eventEmitter.sendEvent(
+                event.getEventType(), event.getMessage(), dbOps)));
   }
 
 }

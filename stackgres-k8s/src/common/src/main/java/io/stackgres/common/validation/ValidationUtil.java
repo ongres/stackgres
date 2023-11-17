@@ -11,10 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.validation.ConstraintViolation;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.stackgres.common.ClassUtil;
+import jakarta.validation.ConstraintViolation;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;

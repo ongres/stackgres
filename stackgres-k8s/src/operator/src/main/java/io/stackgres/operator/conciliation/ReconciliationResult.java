@@ -8,9 +8,8 @@ package io.stackgres.operator.conciliation;
 import java.util.List;
 import java.util.Objects;
 
-import javax.validation.constraints.NotNull;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import jakarta.validation.constraints.NotNull;
 import org.jooq.lambda.tuple.Tuple2;
 
 public class ReconciliationResult {

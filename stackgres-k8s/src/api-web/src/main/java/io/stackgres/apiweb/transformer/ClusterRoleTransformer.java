@@ -9,13 +9,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRole;
 import io.stackgres.apiweb.dto.clusterrole.ClusterRoleDto;
 import io.stackgres.common.StackGresContext;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ClusterRoleTransformer

@@ -9,9 +9,6 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -21,7 +18,10 @@ import io.stackgres.common.ClusterPendingRestartUtil;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.jobs.dbops.DbOpsExecutorService;
 import io.stackgres.jobs.dbops.MutinyUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +35,9 @@ public class PodWatcher {
 
   @Inject
   ResourceFinder<StatefulSet> statefulSetFinder;
+
+  @Inject
+  DbOpsExecutorService executorService;
 
   public Uni<Pod> waitUntilIsReady(String clusterName, String name, String namespace,
       boolean checkStatefulSetChanges) {
@@ -50,16 +53,16 @@ public class PodWatcher {
         .onItem()
         .transform(updatedPod -> updatedPod
             .orElseThrow(() -> new RuntimeException("Pod " + name + " not found")))
-        .chain(updatedPod -> Uni.createFrom().item(() -> {
+        .chain(updatedPod -> executorService.itemAsync(() -> {
           LOGGER.info("Waiting for pod {} to be ready. Current state {}", name,
               updatedPod.getStatus().getPhase());
           if (!Readiness.getInstance().isReady(updatedPod)) {
             throw Optional.of(checkStatefulSetChanges)
-                .filter(check -> check)
-                .flatMap(check -> getStatefulSetChangedException(
-                    clusterName, name, namespace, updatedPod))
-                .map(RuntimeException.class::cast)
-                .orElse(new RuntimeException("Pod " + name + " not ready"));
+            .filter(check -> check)
+            .flatMap(check -> getStatefulSetChangedException(
+                clusterName, name, namespace, updatedPod))
+            .map(RuntimeException.class::cast)
+            .orElse(new RuntimeException("Pod " + name + " not ready"));
           }
           LOGGER.info("Pod {} ready!", name);
           return updatedPod;
@@ -108,23 +111,24 @@ public class PodWatcher {
         .indefinitely();
   }
 
-  public Uni<Void> waitUntilIsRemoved(String name, String namespace) {
-    return findPod(name, namespace)
+  public Uni<Void> waitUntilIsRemoved(Pod removedPod) {
+    return findPod(removedPod.getMetadata().getName(), removedPod.getMetadata().getNamespace())
         .onItem()
-        .invoke(removedPod -> removedPod
+        .invoke(foundPod -> foundPod
+            .filter(pod -> pod.getMetadata().getUid().equals(removedPod.getMetadata().getUid()))
             .ifPresent(pod -> {
-              throw new RuntimeException("Pod " + name + " not removed");
+              throw new RuntimeException("Pod " + removedPod.getMetadata().getName()
+                  + " with uid " + removedPod.getMetadata().getUid() + " not removed");
             }))
         .onFailure()
         .transform(ex -> MutinyUtil.logOnFailureToRetry(ex,
-            "deleting Pod {}", name))
+            "deleting Pod {}", removedPod.getMetadata().getName()))
         .onFailure()
         .retry()
         .withBackOff(Duration.ofMillis(10), Duration.ofSeconds(5))
         .indefinitely()
         .onItem()
         .<Void>transform(item -> null);
-
   }
 
   public Uni<Pod> waitUntilIsReplaced(Pod pod) {
@@ -154,7 +158,7 @@ public class PodWatcher {
   }
 
   private Uni<Optional<Pod>> findPod(String name, String namespace) {
-    return Uni.createFrom().item(() -> podFinder.findByNameAndNamespace(name, namespace))
+    return executorService.itemAsync(() -> podFinder.findByNameAndNamespace(name, namespace))
         .onItem()
         .invoke(pod -> {
           if (pod.isEmpty()) {

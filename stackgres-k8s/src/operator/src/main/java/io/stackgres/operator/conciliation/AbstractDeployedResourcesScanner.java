@@ -11,8 +11,6 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import javax.ws.rs.core.Response;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -20,6 +18,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import jakarta.ws.rs.core.Response;
 import org.jooq.lambda.Seq;
 
 public abstract class AbstractDeployedResourcesScanner<T extends CustomResource<?, ?>> {

@@ -5,11 +5,10 @@
 
 package io.stackgres.operator.mutation.cluster;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.mutation.AbstractAnnotationMutator;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ClusterAnnotationMutator

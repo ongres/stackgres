@@ -15,10 +15,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Any;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Secret;
@@ -37,6 +33,9 @@ import io.stackgres.operator.conciliation.config.ImmutableStackGresConfigContext
 import io.stackgres.operator.conciliation.config.StackGresConfigContext;
 import io.stackgres.operator.conciliation.factory.config.OperatorSecret;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Any;
+import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

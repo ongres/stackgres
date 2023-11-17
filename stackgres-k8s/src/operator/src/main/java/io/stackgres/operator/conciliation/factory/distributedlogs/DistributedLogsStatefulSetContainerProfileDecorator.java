@@ -12,8 +12,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-import javax.inject.Singleton;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -36,6 +34,7 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.AbstractContainerProfileDecorator;
 import io.stackgres.operator.conciliation.factory.Decorator;
+import jakarta.inject.Singleton;
 
 @Singleton
 @OperatorVersionBinder

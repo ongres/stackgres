@@ -5,10 +5,6 @@
 
 package io.stackgres.distributedlogs.controller;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.DistributedLogsControllerProperty;
@@ -16,6 +12,9 @@ import io.stackgres.common.postgres.PostgresBootstrapReconciliator;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.distributedlogs.common.ClusterBootstrapEventReason;
 import io.stackgres.distributedlogs.configuration.DistributedLogsControllerPropertyContext;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class DistributedLogsControllerPostgresBootstrapReconciliator

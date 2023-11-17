@@ -19,13 +19,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.inject.Inject;
-
 import io.quarkus.test.junit.QuarkusTest;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.StringUtils;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -202,22 +201,27 @@ class LockAcquirerTest {
     AtomicBoolean taskRan = new AtomicBoolean(false);
 
     executorService.execute(
-        () -> lockAcquirer.lockRun(lockRequest, Uni.createFrom().voidItem().invoke(item -> {
-          if (delay > 0) {
-            sleep(delay);
-          }
-          StackGresCluster lastPatch = kubeDb.getCluster(clusterName, clusterNamespace);
-          final Map<String, String> annotations = lastPatch.getMetadata().getAnnotations();
-          assertEquals(lockRequest.getPodName(), annotations.get(LOCK_POD_KEY),
-              "Task ran without Lock!!");
-          assertNotNull(annotations.get(LOCK_TIMEOUT_KEY));
-          taskRan.set(true);
-        })).await().indefinitely());
+        () -> lockAcquirer.lockRun(lockRequest,
+            Uni.createFrom().voidItem().invoke(item -> {
+              if (delay > 0) {
+                sleep(delay);
+              }
+              StackGresCluster lastPatch = kubeDb.getCluster(clusterName, clusterNamespace);
+              final Map<String, String> annotations = lastPatch.getMetadata().getAnnotations();
+              assertEquals(lockRequest.getPodName(), annotations.get(LOCK_POD_KEY),
+                  "Task ran without Lock!!");
+              assertNotNull(annotations.get(LOCK_TIMEOUT_KEY));
+              taskRan.set(true);
+            })).await().indefinitely());
 
     return taskRan;
   }
 
   private void prepareUnlockedCLuster() {
+    StackGresCluster cluster = kubeDb.getCluster(clusterName, clusterNamespace);
+    if (cluster == null) {
+      cluster = this.cluster;
+    }
     cluster.setStatus(null);
     final Map<String, String> annotations = cluster.getMetadata().getAnnotations();
     annotations.remove(LOCK_POD_KEY);
@@ -226,6 +230,10 @@ class LockAcquirerTest {
   }
 
   private void prepareLockedCluster(String lockPod, Long lockTimeout) {
+    StackGresCluster cluster = kubeDb.getCluster(clusterName, clusterNamespace);
+    if (cluster == null) {
+      cluster = this.cluster;
+    }
     cluster.setStatus(null);
     final Map<String, String> annotations = cluster.getMetadata().getAnnotations();
     annotations.put(LOCK_POD_KEY, lockPod);

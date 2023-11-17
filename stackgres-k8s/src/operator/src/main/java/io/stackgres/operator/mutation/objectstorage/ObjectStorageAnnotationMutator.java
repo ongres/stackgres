@@ -7,13 +7,12 @@ package io.stackgres.operator.mutation.objectstorage;
 
 import java.util.Map;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.operator.common.ObjectStorageReview;
 import io.stackgres.operator.mutation.AbstractAnnotationMutator;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ObjectStorageAnnotationMutator

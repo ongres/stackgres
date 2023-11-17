@@ -12,9 +12,6 @@ import static io.stackgres.operatorframework.resource.ResourceUtil.isServiceAcco
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.ErrorType;
@@ -25,6 +22,8 @@ import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 @Singleton
 @ValidationType(ErrorType.FORBIDDEN_CR_UPDATE)

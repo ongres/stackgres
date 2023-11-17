@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.jobs.dbops.DbOpsExecutorService;
 import io.stackgres.jobs.dbops.MutinyUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,12 +23,11 @@ import org.slf4j.LoggerFactory;
 public class ClusterSwitchoverHandler {
   private static final Logger LOGGER = LoggerFactory.getLogger(ClusterSwitchoverHandler.class);
 
-  private final PatroniApiHandler patroniApi;
+  @Inject
+  PatroniApiHandler patroniApi;
 
   @Inject
-  public ClusterSwitchoverHandler(PatroniApiHandler patroniApi) {
-    this.patroniApi = patroniApi;
-  }
+  DbOpsExecutorService executorService;
 
   public Uni<Void> performSwitchover(String leader, String clusterName, String clusterNamespace) {
     return patroniApi.getClusterMembers(clusterName, clusterNamespace)

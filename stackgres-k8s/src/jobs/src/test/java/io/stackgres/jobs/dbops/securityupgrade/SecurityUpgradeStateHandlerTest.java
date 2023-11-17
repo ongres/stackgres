@@ -8,8 +8,6 @@ package io.stackgres.jobs.dbops.securityupgrade;
 import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.quarkus.test.junit.QuarkusTest;
@@ -26,6 +24,7 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.jobs.dbops.AbstractRestartStateHandler;
 import io.stackgres.jobs.dbops.ClusterStateHandlerTest;
 import io.stackgres.jobs.dbops.StateHandler;
+import jakarta.inject.Inject;
 
 @QuarkusTest
 class SecurityUpgradeStateHandlerTest extends ClusterStateHandlerTest {

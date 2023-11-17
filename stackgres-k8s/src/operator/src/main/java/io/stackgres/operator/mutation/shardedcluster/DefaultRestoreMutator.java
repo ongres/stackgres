@@ -5,9 +5,6 @@
 
 package io.stackgres.operator.mutation.shardedcluster;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -15,6 +12,8 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterRestore;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.initialization.DefaultCustomResourceFactory;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class DefaultRestoreMutator implements ShardedClusterMutator {
