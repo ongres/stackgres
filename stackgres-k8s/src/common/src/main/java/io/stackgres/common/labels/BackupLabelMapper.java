@@ -5,10 +5,9 @@
 
 package io.stackgres.common.labels;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class BackupLabelMapper implements LabelMapperForBackup {

@@ -7,13 +7,12 @@ package io.stackgres.operator.common;
 
 import java.net.URI;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.WebClientFactory;
 import io.stackgres.common.extension.ExtensionMetadataManager;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped

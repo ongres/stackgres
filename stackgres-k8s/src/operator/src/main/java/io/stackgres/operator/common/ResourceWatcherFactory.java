@@ -5,15 +5,14 @@
 
 package io.stackgres.operator.common;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.WatcherException;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.resource.AbstractResourceWatcherFactory;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ResourceWatcherFactory extends AbstractResourceWatcherFactory {

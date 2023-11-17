@@ -7,7 +7,7 @@ package io.stackgres.jobs.dbops;
 
 import java.util.Objects;
 
-import javax.enterprise.util.AnnotationLiteral;
+import jakarta.enterprise.util.AnnotationLiteral;
 
 public class DatabaseOperationLiteral extends AnnotationLiteral<DatabaseOperation>
     implements DatabaseOperation {

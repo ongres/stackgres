@@ -7,13 +7,12 @@ package io.stackgres.operator.conciliation.factory.shardedcluster;
 
 import java.util.List;
 
-import javax.inject.Singleton;
-
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.stackgres.common.ShardedClusterContext;
 import io.stackgres.common.ShardedClusterEnvVar;
 import io.stackgres.common.ShardedClusterPath;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
 
 @Singleton

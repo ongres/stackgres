@@ -13,11 +13,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Dependent;
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.runtime.ShutdownEvent;
@@ -34,6 +29,10 @@ import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operatorframework.reconciliation.ReconciliationCycle;
 import io.stackgres.operatorframework.resource.ResourceGenerator;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.helpers.MessageFormatter;
 

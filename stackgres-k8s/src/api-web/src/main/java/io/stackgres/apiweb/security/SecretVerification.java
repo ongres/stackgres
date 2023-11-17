@@ -9,10 +9,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.google.common.base.Strings;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.quarkus.security.AuthenticationFailedException;
@@ -20,6 +16,9 @@ import io.stackgres.apiweb.config.WebApiProperty;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class SecretVerification {

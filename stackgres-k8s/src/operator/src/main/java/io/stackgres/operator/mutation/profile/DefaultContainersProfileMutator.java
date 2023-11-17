@@ -11,8 +11,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import com.google.common.base.Predicates;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.stackgres.common.StackGresContainer;
@@ -25,6 +23,7 @@ import io.stackgres.common.crd.sgprofile.StackGresProfileSpec;
 import io.stackgres.common.resource.ResourceUtil;
 import io.stackgres.operator.common.SgProfileReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class DefaultContainersProfileMutator implements ProfileMutator {

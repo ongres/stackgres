@@ -17,9 +17,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
@@ -66,6 +63,8 @@ import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.shardedcluster.ShardedClusterEnvironmentVariablesFactory;
 import io.stackgres.operator.conciliation.factory.shardedcluster.ShardedClusterEnvironmentVariablesFactoryDiscoverer;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

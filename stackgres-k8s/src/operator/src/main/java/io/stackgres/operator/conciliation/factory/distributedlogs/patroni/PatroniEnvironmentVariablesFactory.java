@@ -7,8 +7,6 @@ package io.stackgres.operator.conciliation.factory.distributedlogs.patroni;
 
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -17,6 +15,7 @@ import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.AbstractPatroniEnvironmentVariablesFactory;
 import io.stackgres.operator.conciliation.factory.FactoryName;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 @FactoryName(DistributedLogsPatroniEnvironmentVariablesFactory.LATEST_PATRONI_ENV_VAR_FACTORY)

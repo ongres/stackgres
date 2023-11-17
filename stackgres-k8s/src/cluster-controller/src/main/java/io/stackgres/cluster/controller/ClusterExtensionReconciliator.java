@@ -5,10 +5,6 @@
 
 package io.stackgres.cluster.controller;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterControllerEventReason;
 import io.stackgres.cluster.common.StackGresClusterContext;
@@ -18,6 +14,9 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.extension.ExtensionEventEmitter;
 import io.stackgres.common.extension.ExtensionManager;
 import io.stackgres.common.extension.ExtensionReconciliator;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;

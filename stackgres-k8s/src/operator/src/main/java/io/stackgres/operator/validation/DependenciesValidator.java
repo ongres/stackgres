@@ -8,8 +8,6 @@ package io.stackgres.operator.validation;
 import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -20,6 +18,7 @@ import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
+import jakarta.inject.Inject;
 
 public abstract class DependenciesValidator<T extends AdmissionReview<?>,
         R extends CustomResource<?, ?>>

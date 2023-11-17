@@ -5,10 +5,9 @@
 
 package io.stackgres.operator.validation.objectstorage;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.operator.validation.AbstractDefaultCustomResourceHolder;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ObjectStorageDefaultCustomResourceHolder

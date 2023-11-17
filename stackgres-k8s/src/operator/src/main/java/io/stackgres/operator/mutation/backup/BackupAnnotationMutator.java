@@ -7,13 +7,12 @@ package io.stackgres.operator.mutation.backup;
 
 import java.util.Map;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operator.mutation.AbstractAnnotationMutator;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class BackupAnnotationMutator

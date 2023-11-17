@@ -6,18 +6,17 @@
 package io.stackgres.jobs.dbops.minorversionupgrade;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 
 import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.ClusterDbOpsRestartStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -36,10 +35,15 @@ import io.stackgres.jobs.dbops.clusterrestart.ImmutablePatroniInformation;
 import io.stackgres.jobs.dbops.clusterrestart.MemberRole;
 import io.stackgres.jobs.dbops.clusterrestart.MemberState;
 import io.stackgres.jobs.dbops.clusterrestart.PatroniApiHandler;
+import io.stackgres.jobs.dbops.lock.LockAcquirer;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 
 @QuarkusTest
 class MinorVersionUpgradeRestartStateHandlerTest extends ClusterStateHandlerTest {
+
+  @InjectMock
+  LockAcquirer lockAcquirer;
 
   @Inject
   @StateHandler("minorVersionUpgrade")
@@ -52,6 +56,8 @@ class MinorVersionUpgradeRestartStateHandlerTest extends ClusterStateHandlerTest
   @BeforeEach
   public void setUp() {
     super.setUp();
+    lenient().when(lockAcquirer.lockRun(any(), any()))
+        .then(invocation -> (Uni<?>) invocation.getArguments()[1]);
     lenient().when(patroniApi.getClusterMembersPatroniInformation(anyString(), anyString()))
         .thenReturn(Uni.createFrom().item(
             List.of(

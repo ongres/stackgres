@@ -15,11 +15,9 @@ import static org.mockito.Mockito.when;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -32,6 +30,7 @@ import io.stackgres.jobs.dbops.JobsStatefulSetWriter;
 import io.stackgres.jobs.dbops.StateHandler;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
 import io.stackgres.testutil.StringUtils;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -110,13 +109,14 @@ class SecurityUpgradeJobTest {
     securityUpgradeJob.runJob(dbOps, cluster).await().indefinitely();
 
     verify(statefulSetReader).findByNameAndNamespace(clusterName, clusterNamespace);
-    verify(statefulSetWriter).delete(oldStatefulSet);
+    verify(statefulSetWriter).deleteWithoutCascading(oldStatefulSet);
   }
 
   @Test
   void upgradeJob_shouldRestartTheCluster() {
 
-    doReturn(Uni.createFrom().voidItem()).when(clusterRestart).restartCluster(any());
+    doReturn(Uni.createFrom().voidItem())
+        .when(clusterRestart).restartCluster(any());
 
     cluster.getMetadata().getAnnotations().put(
         StackGresContext.VERSION_KEY, PREVIOUS_OPERATOR_VERSION);

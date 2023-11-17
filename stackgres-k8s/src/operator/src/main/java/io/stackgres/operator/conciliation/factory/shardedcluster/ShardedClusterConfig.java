@@ -7,15 +7,14 @@ package io.stackgres.operator.conciliation.factory.shardedcluster;
 
 import java.util.stream.Stream;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.labels.LabelFactoryForShardedCluster;
 import io.stackgres.operator.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
 
 @Singleton

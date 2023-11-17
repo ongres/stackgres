@@ -12,9 +12,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBinding;
@@ -25,6 +22,8 @@ import io.stackgres.apiweb.dto.user.UserRoleRef;
 import io.stackgres.apiweb.security.TokenUtils;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class UserTransformer

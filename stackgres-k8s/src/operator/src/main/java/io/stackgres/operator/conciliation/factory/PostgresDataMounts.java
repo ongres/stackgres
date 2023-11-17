@@ -7,13 +7,12 @@ package io.stackgres.operator.conciliation.factory;
 
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterPath;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class PostgresDataMounts implements VolumeMountsProvider<ContainerContext> {

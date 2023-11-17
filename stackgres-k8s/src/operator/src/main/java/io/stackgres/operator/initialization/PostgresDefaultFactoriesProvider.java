@@ -7,13 +7,12 @@ package io.stackgres.operator.initialization;
 
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped

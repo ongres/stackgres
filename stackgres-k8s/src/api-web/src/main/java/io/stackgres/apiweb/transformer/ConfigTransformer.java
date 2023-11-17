@@ -7,9 +7,6 @@ package io.stackgres.apiweb.transformer;
 
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.apiweb.dto.config.ConfigDto;
 import io.stackgres.apiweb.dto.config.ConfigSpec;
@@ -17,6 +14,8 @@ import io.stackgres.apiweb.dto.config.ConfigStatus;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.common.crd.sgconfig.StackGresConfigStatus;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

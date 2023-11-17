@@ -5,9 +5,6 @@
 
 package io.stackgres.operator.mutation.shardedcluster;
 
-import javax.enterprise.context.ApplicationScoped;
-
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -16,12 +13,11 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresS
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresShardsServices;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class DefaultPostgresServicesMutator implements ShardedClusterMutator {
 
-  @SuppressFBWarnings(value = "BC_UNCONFIRMED_CAST_OF_RETURN_VALUE",
-      justification = "False positive")
   @Override
   public StackGresShardedCluster mutate(
       StackGresShardedClusterReview review, StackGresShardedCluster resource) {

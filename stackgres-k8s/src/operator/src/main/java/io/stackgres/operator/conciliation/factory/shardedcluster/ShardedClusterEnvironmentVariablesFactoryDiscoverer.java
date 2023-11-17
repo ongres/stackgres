@@ -7,14 +7,13 @@ package io.stackgres.operator.conciliation.factory.shardedcluster;
 
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-
 import io.stackgres.common.ShardedClusterContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.operator.conciliation.AbstractDiscoverer;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Any;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ShardedClusterEnvironmentVariablesFactoryDiscoverer

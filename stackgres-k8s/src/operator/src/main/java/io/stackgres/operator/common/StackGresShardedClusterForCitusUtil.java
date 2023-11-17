@@ -470,6 +470,12 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
           spec.getPods().getResources().setEnableClusterLimitsRequirements(
               specOverride.getPodsForShards().getResources().getEnableClusterLimitsRequirements());
         }
+        if (specOverride.getPodsForShards().getResources()
+            .getDisableResourcesRequestsSplitFromTotal() != null) {
+          spec.getPods().getResources().setDisableResourcesRequestsSplitFromTotal(
+              specOverride.getPodsForShards().getResources()
+              .getDisableResourcesRequestsSplitFromTotal());
+        }
       }
       if (specOverride.getPodsForShards().getScheduling() != null) {
         spec.getPods().setScheduling(

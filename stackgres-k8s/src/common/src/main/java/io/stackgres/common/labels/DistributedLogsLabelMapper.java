@@ -7,11 +7,10 @@ package io.stackgres.common.labels;
 
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsStatus;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class DistributedLogsLabelMapper implements LabelMapperForCluster<StackGresDistributedLogs> {

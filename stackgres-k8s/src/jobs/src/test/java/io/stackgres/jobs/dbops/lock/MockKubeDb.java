@@ -13,8 +13,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -23,6 +21,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 
@@ -60,7 +59,7 @@ public class MockKubeDb {
       Class<T> customResourceClass) {
     var key = getResourceKey(customResource.getMetadata().getName(),
         customResource.getMetadata().getNamespace(), customResourceClass);
-    return customResourceClass.cast(customResourceMap.get(key));
+    return copy(customResourceClass.cast(customResourceMap.get(key)), customResourceClass);
   }
 
   private <T extends CustomResource<?, ?>> T getCustomResource(String name, String namespace,
@@ -89,10 +88,13 @@ public class MockKubeDb {
 
   private <T extends CustomResource<?, ?>> T addOrReplaceCustomResource(T customResource,
       Class<T> customResourceClass) {
-    final T storedCustomResource = getCustomResource(customResource, customResourceClass);
     final T customResourceCopy = copy(customResource, customResourceClass);
     var customResourceKey = getResourceKey(customResource, customResourceClass);
     if (customResourceMap.containsKey(customResourceKey)) {
+      final T storedCustomResource = getCustomResource(
+          customResource.getMetadata().getName(),
+          customResource.getMetadata().getNamespace(),
+          customResourceClass);
       Optional<Integer> pendingFailures = Optional.ofNullable((Integer) storedCustomResource
           .getMetadata().getAdditionalProperties().get(PENDING_FAILURES));
       if (pendingFailures.orElse(0) > 0) {
@@ -100,8 +102,7 @@ public class MockKubeDb {
             .put(PENDING_FAILURES, pendingFailures.get() - 1);
         throw new RuntimeException("Simulated failure");
       }
-      var oldCustomResource = getCustomResource(customResource, customResourceClass);
-      var oldVersion = oldCustomResource.getMetadata().getResourceVersion();
+      var oldVersion = storedCustomResource.getMetadata().getResourceVersion();
       var newVersion = customResourceCopy.getMetadata().getResourceVersion();
       if (oldVersion.equals(newVersion)) {
         int updatedVersion = Integer.parseInt(oldVersion) + 1;
@@ -176,8 +177,11 @@ public class MockKubeDb {
     watchCustomResource(name, namespace, consumer, StackGresDbOps.class);
   }
 
-  public void introduceReplaceFailures(int i, StackGresCluster cluster) {
-    StackGresCluster storedCluster = getCustomResource(cluster, StackGresCluster.class);
+  public void introduceReplaceFailures(StackGresCluster cluster) {
+    StackGresCluster storedCluster = getCustomResource(
+        cluster.getMetadata().getName(),
+        cluster.getMetadata().getNamespace(),
+        StackGresCluster.class);
     int pendingFailures =
         Optional.ofNullable((Integer) storedCluster
             .getMetadata().getAdditionalProperties().get(PENDING_FAILURES))

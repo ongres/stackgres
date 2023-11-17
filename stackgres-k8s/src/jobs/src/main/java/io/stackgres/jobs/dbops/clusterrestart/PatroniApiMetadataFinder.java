@@ -9,11 +9,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
+import io.stackgres.jobs.dbops.DbOpsExecutorService;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class PatroniApiMetadataFinder {
@@ -21,14 +21,14 @@ public class PatroniApiMetadataFinder {
   private static final String PATRONI_HOST_FORMAT = "%s-rest.%s";
   private static final String RESTAPI_PASSWORD_KEY = "restapi-password";
 
-  private final KubernetesClient client;
+  @Inject
+  KubernetesClient client;
 
   @Inject
-  public PatroniApiMetadataFinder(KubernetesClient client) {
-    this.client = client;
-  }
+  DbOpsExecutorService executorService;
 
-  public PatroniApiMetadata findPatroniRestApi(String clusterName, String namespace) {
+  public PatroniApiMetadata findPatroniRestApi(
+      String clusterName, String namespace) {
     return ImmutablePatroniApiMetadata.builder()
         .host(getPatroniHost(clusterName, namespace))
         .port(getPatroniPort(clusterName, namespace))

@@ -5,14 +5,13 @@
 
 package io.stackgres.operator.mutation.distributedlogs;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsPostgresServices;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class DefaultPostgresServicesMutator implements DistributedLogsMutator {

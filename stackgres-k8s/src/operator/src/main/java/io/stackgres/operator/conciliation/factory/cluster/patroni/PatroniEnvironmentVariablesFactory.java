@@ -14,8 +14,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-import javax.inject.Singleton;
-
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -29,6 +27,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.AbstractPatroniEnvironmentVariablesFactory;
+import jakarta.inject.Singleton;
 
 @Singleton
 public class PatroniEnvironmentVariablesFactory

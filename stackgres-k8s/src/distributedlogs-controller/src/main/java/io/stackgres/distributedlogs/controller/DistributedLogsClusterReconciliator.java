@@ -10,10 +10,6 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.Dependent;
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableList;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -30,6 +26,9 @@ import io.stackgres.distributedlogs.common.DistributedLogsControllerEventReason;
 import io.stackgres.distributedlogs.common.StackGresDistributedLogsContext;
 import io.stackgres.distributedlogs.configuration.DistributedLogsControllerPropertyContext;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;

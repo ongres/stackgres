@@ -8,9 +8,8 @@ package io.stackgres.common.crd.sgcluster;
 import java.util.List;
 import java.util.Objects;
 
-import javax.validation.constraints.NotNull;
-
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import jakarta.validation.constraints.NotNull;
 
 @RegisterForReflection
 public abstract class ClusterDbOpsRestartStatus {

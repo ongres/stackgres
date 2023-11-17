@@ -5,14 +5,13 @@
 
 package io.stackgres.operator.conciliation.factory.shardeddbops;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.stackgres.operator.conciliation.factory.PodSecurityFactory;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.shardeddbops.StackGresShardedDbOpsContext;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ShardedDbOpsPodSecurityFactory extends PodSecurityFactory

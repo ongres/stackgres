@@ -5,16 +5,15 @@
 
 package io.stackgres.apiweb.exception;
 
-import javax.inject.Inject;
-import javax.validation.ConstraintViolationException;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.Provider;
-
 import com.google.common.base.Throwables;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.apiweb.rest.utils.StatusParser;
 import io.stackgres.apiweb.rest.utils.StatusParserProvider;
+import jakarta.inject.Inject;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.Provider;
 import org.jboss.resteasy.spi.ApplicationException;
 
 @Provider

@@ -5,9 +5,6 @@
 
 package io.stackgres.jobs.dbops.clusterrestart;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -18,7 +15,10 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.jobs.dbops.ClusterRestartStateHandler;
 import io.stackgres.jobs.dbops.DatabaseOperation;
 import io.stackgres.jobs.dbops.DatabaseOperationJob;
+import io.stackgres.jobs.dbops.DbOpsExecutorService;
 import io.stackgres.jobs.dbops.StateHandler;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,12 +38,24 @@ public class RestartJob implements DatabaseOperationJob {
   @StateHandler("restart")
   ClusterRestartStateHandler restartStateHandler;
 
+  @Inject
+  DbOpsExecutorService executorService;
+
   @Override
   public Uni<ClusterRestartState> runJob(StackGresDbOps dbOps, StackGresCluster cluster) {
     LOGGER.info("Starting restart for SGDbOps {}", dbOps.getMetadata().getName());
 
     return restartStateHandler.restartCluster(dbOps)
-        .onFailure().invoke(ex -> reportFailure(dbOps, ex));
+        .onItemOrFailure()
+        .transformToUni((item, ex) -> {
+          if (ex != null) {
+            return executorService.invokeAsync(() -> reportFailure(dbOps, ex))
+                .onItem()
+                .failWith(() -> ex)
+                .map(ignored -> item);
+          }
+          return Uni.createFrom().item(item);
+        });
   }
 
   private void reportFailure(StackGresDbOps dbOps, Throwable ex) {

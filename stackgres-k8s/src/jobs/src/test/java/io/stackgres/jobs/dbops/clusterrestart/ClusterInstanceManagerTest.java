@@ -16,15 +16,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.stream.Collectors;
-
-import javax.inject.Inject;
+import java.time.Duration;
+import java.util.Objects;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.junit.mockito.InjectSpy;
 import io.quarkus.test.kubernetes.client.KubernetesTestServer;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
@@ -35,12 +34,13 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.jobs.dbops.lock.FakeClusterScheduler;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
 import io.stackgres.testutil.StringUtils;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
+@WithKubernetesTestServer(setup = StackGresKubernetesMockServerSetup.class)
 @QuarkusTest
-@WithKubernetesTestServer(https = true, setup = StackGresKubernetesMockServerSetup.class)
 class ClusterInstanceManagerTest {
 
   @Inject
@@ -88,7 +88,7 @@ class ClusterInstanceManagerTest {
 
     configureCreationPodWatchers();
 
-    configureNewPodCreated(newPod);
+    configureNewPodCreatedOnClusterEvent(newPod);
 
     final int initialInstances = cluster.getSpec().getInstances();
 
@@ -114,7 +114,7 @@ class ClusterInstanceManagerTest {
     final String newPodName = newPod.getMetadata().getName();
 
     configureCreationPodWatchers();
-    configureNewPodCreated(newPod);
+    configureNewPodCreatedOnClusterEvent(newPod);
 
     Pod createdPod = clusterInstanceManager.increaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
@@ -140,7 +140,7 @@ class ClusterInstanceManagerTest {
     final String newPodName = newPod.getMetadata().getName();
 
     configureCreationPodWatchers();
-    configureNewPodCreated(newPod);
+    configureNewPodCreatedOnClusterEvent(newPod);
 
     Pod createdPod = clusterInstanceManager.increaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
@@ -165,7 +165,7 @@ class ClusterInstanceManagerTest {
     final String newPodName = newPod.getMetadata().getName();
 
     configureCreationPodWatchers();
-    configureNewPodCreated(newPod);
+    configureNewPodCreatedOnClusterEvent(newPod);
 
     Pod createdPod = clusterInstanceManager.increaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
@@ -183,16 +183,14 @@ class ClusterInstanceManagerTest {
   void givenACleanCluster_itShouldWaitForTheRightPodToBeDeleted() {
     podTestUtil.preparePods(cluster, 0, 1, 2);
 
-    Pod replicaToDelete = podTestUtil.buildReplicaPod(cluster, 2);
+    Pod replicaToDelete = podTestUtil.getClusterPods(cluster).get(2);
 
     final int initialInstances = cluster.getSpec().getInstances();
 
-    String podName = replicaToDelete.getMetadata().getName();
-
-    when(podWatcher.waitUntilIsRemoved(podName, namespace))
+    when(podWatcher.waitUntilIsRemoved(replicaToDelete))
         .thenReturn(Uni.createFrom().voidItem());
 
-    configurePodDeleted(replicaToDelete);
+    configurePodDeletedOnClusterEvent(replicaToDelete);
 
     clusterInstanceManager.decreaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
@@ -205,25 +203,23 @@ class ClusterInstanceManagerTest {
     assertEquals(
         initialInstances - 1, actualInstances);
 
-    verify(podWatcher).waitUntilIsRemoved(podName, namespace);
+    verify(podWatcher).waitUntilIsRemoved(replicaToDelete);
   }
 
   @Test
   void givenAClusterWithANonDisruptablePod_decreaseInstancesShouldNotFail() {
 
     podTestUtil.preparePods(cluster, 0, 1, 2);
-    Pod replicaToDelete = podTestUtil.buildReplicaPod(cluster, 2);
+    Pod replicaToDelete = podTestUtil.getClusterPods(cluster).get(2);
 
     configureNonDisruptablePod(0);
 
     final int initialInstances = cluster.getSpec().getInstances();
 
-    String podName = replicaToDelete.getMetadata().getName();
-
-    when(podWatcher.waitUntilIsRemoved(podName, namespace))
+    when(podWatcher.waitUntilIsRemoved(replicaToDelete))
         .thenReturn(Uni.createFrom().voidItem());
 
-    configurePodDeleted(replicaToDelete);
+    configurePodDeletedOnClusterEvent(replicaToDelete);
 
     clusterInstanceManager.decreaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
@@ -236,23 +232,22 @@ class ClusterInstanceManagerTest {
     assertEquals(
         initialInstances - 1, actualInstances);
 
-    verify(podWatcher).waitUntilIsRemoved(podName, namespace);
+    verify(podWatcher).waitUntilIsRemoved(replicaToDelete);
   }
 
   @Test
   void givenAClusterWithAFarNonDisruptablePod_decreaseInstancesShouldNotFail() {
     podTestUtil.preparePods(cluster, 5, 1, 2);
-    Pod replicaToDelete = podTestUtil.buildReplicaPod(cluster, 2);
+    Pod replicaToDelete = podTestUtil.getClusterPods(cluster).get(2);
 
     configureNonDisruptablePod(5);
 
     final int initialInstances = cluster.getSpec().getInstances();
-    String podName = replicaToDelete.getMetadata().getName();
 
-    when(podWatcher.waitUntilIsRemoved(podName, namespace))
+    when(podWatcher.waitUntilIsRemoved(replicaToDelete))
         .thenReturn(Uni.createFrom().voidItem());
 
-    configurePodDeleted(replicaToDelete);
+    configurePodDeletedOnClusterEvent(replicaToDelete);
 
     clusterInstanceManager.decreaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
@@ -265,7 +260,7 @@ class ClusterInstanceManagerTest {
     assertEquals(
         initialInstances - 1, actualInstances);
 
-    verify(podWatcher).waitUntilIsRemoved(podName, namespace);
+    verify(podWatcher).waitUntilIsRemoved(replicaToDelete);
 
   }
 
@@ -275,15 +270,14 @@ class ClusterInstanceManagerTest {
     cluster = kubeDb.addOrReplaceCluster(cluster);
 
     podTestUtil.preparePods(cluster, 0);
-    Pod podToDelete = podTestUtil.buildPrimaryPod(cluster, 0);
+    Pod podToDelete = podTestUtil.getClusterPods(cluster).get(0);
 
     final int initialInstances = cluster.getSpec().getInstances();
-    String podName = podToDelete.getMetadata().getName();
 
-    when(podWatcher.waitUntilIsRemoved(podName, namespace))
+    when(podWatcher.waitUntilIsRemoved(podToDelete))
         .thenReturn(Uni.createFrom().voidItem());
 
-    configurePodDeleted(podToDelete);
+    configurePodDeletedOnClusterEvent(podToDelete);
 
     clusterInstanceManager.decreaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
@@ -296,7 +290,7 @@ class ClusterInstanceManagerTest {
     assertEquals(
         initialInstances - 1, actualInstances);
 
-    verify(podWatcher).waitUntilIsRemoved(podName, namespace);
+    verify(podWatcher).waitUntilIsRemoved(podToDelete);
   }
 
   @Test
@@ -306,15 +300,14 @@ class ClusterInstanceManagerTest {
 
     podTestUtil.preparePods(cluster, 5);
     configureNonDisruptablePod(5);
-    Pod podToDelete = podTestUtil.buildPrimaryPod(cluster, 5);
+    Pod podToDelete = podTestUtil.getClusterPods(cluster).get(0);
 
     final int initialInstances = cluster.getSpec().getInstances();
-    String podName = podToDelete.getMetadata().getName();
 
-    when(podWatcher.waitUntilIsRemoved(podName, namespace))
+    when(podWatcher.waitUntilIsRemoved(podToDelete))
         .thenReturn(Uni.createFrom().voidItem());
 
-    configurePodDeleted(podToDelete);
+    configurePodDeletedOnClusterEvent(podToDelete);
 
     clusterInstanceManager.decreaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
@@ -327,7 +320,7 @@ class ClusterInstanceManagerTest {
     assertEquals(
         initialInstances - 1, actualInstances);
 
-    verify(podWatcher).waitUntilIsRemoved(podName, namespace);
+    verify(podWatcher).waitUntilIsRemoved(podToDelete);
   }
 
   @Test
@@ -338,11 +331,11 @@ class ClusterInstanceManagerTest {
 
     configureCreationPodWatchers();
 
-    configureNewPodCreated(newPod);
+    configureNewPodCreatedOnClusterEvent(newPod);
 
     final int initialInstances = cluster.getSpec().getInstances();
 
-    kubeDb.introduceReplaceFailures(1, cluster);
+    kubeDb.introduceReplaceFailures(cluster);
 
     clusterInstanceManager.increaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
@@ -362,11 +355,11 @@ class ClusterInstanceManagerTest {
 
     configureCreationPodWatchers();
 
-    configureNewPodCreated(newPod);
+    configureNewPodCreatedOnClusterEvent(newPod);
 
     final int initialInstances = cluster.getSpec().getInstances();
 
-    kubeDb.introduceReplaceFailures(1, cluster);
+    kubeDb.introduceReplaceFailures(cluster);
 
     clusterInstanceManager.decreaseClusterInstances(clusterName, namespace)
         .await().indefinitely();
@@ -382,17 +375,17 @@ class ClusterInstanceManagerTest {
     Pod primaryPod = podTestUtil.buildNonDisruptablePrimaryPod(cluster, index);
     mockServer.getClient().pods().inNamespace(namespace)
         .resource(primaryPod)
-        .replace();
+        .update();
   }
 
-  private void configureNewPodCreated(Pod newPod) {
+  private void configureNewPodCreatedOnClusterEvent(Pod newPod) {
     kubeDb.watchCluster(clusterName, namespace, cluster -> mockServer.getClient().pods()
         .inNamespace(namespace)
         .resource(newPod)
-        .createOrReplace());
+        .create());
   }
 
-  private void configurePodDeleted(Pod podToDelete) {
+  private void configurePodDeletedOnClusterEvent(Pod podToDelete) {
     kubeDb.watchCluster(clusterName, namespace, cluster -> mockServer.getClient().pods()
         .inNamespace(namespace)
         .resource(podToDelete)
@@ -403,26 +396,33 @@ class ClusterInstanceManagerTest {
     when(podWatcher.waitUntilIsReady(eq(clusterName), anyString(), eq(namespace), anyBoolean()))
         .thenAnswer(invocation -> {
           final String podName = invocation.getArgument(1);
-          String namespace = invocation.getArgument(2);
-          Pod pod = mockServer.getClient().pods().inNamespace(namespace)
-              .withName(podName).get();
-          int retries = 0;
-          while (pod == null) {
-            Thread.sleep(100);
-            pod = mockServer.getClient().pods().inNamespace(namespace)
-                .withName(podName).get();
-            retries++;
-            if (retries > 10) {
-              fail("Pod " + podName + " not created. Available pods "
-                  + mockServer.getClient().pods().inNamespace(namespace)
-                      .list().getItems()
-                      .stream()
-                      .map(Pod::getMetadata)
-                      .map(ObjectMeta::getName)
-                      .collect(Collectors.toUnmodifiableList()));
+          final String namespace = invocation.getArgument(2);
+          return Uni.createFrom().item(() -> {
+            if (Thread.interrupted()) {
+              Thread.currentThread().interrupt();
             }
-          }
-          return Uni.createFrom().item(pod);
+            Pod pod = mockServer.getClient().pods().inNamespace(namespace)
+                .withName(podName).get();
+            if (pod == null) {
+              throw new RuntimeException("Pod not created");
+            }
+            return pod;
+          })
+              .onFailure(ex -> Objects.equals(
+                  ex.getMessage(), "Pod not created"))
+              .retry()
+              .withBackOff(Duration.ofMillis(100))
+              .atMost(10)
+              .onFailure(ex -> Objects.equals(
+                  ex.getMessage(), "Pod not created"))
+              .invoke(ex -> fail(
+                  "Pod " + podName + " not created. Available pods "
+                  + mockServer.getClient().pods().inNamespace(namespace)
+                  .list().getItems()
+                  .stream()
+                  .map(Pod::getMetadata)
+                  .map(ObjectMeta::getName)
+                  .toList()));
         });
   }
 

@@ -7,16 +7,15 @@ package io.stackgres.jobs.dbops.lock;
 
 import java.time.Duration;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.smallrye.mutiny.Uni;
-import io.smallrye.mutiny.infrastructure.Infrastructure;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
+import io.stackgres.jobs.dbops.DbOpsExecutorService;
 import io.stackgres.jobs.dbops.MutinyUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,8 +30,11 @@ public class LockAcquirer {
   @Inject
   CustomResourceFinder<StackGresCluster> clusterFinder;
 
+  @Inject
+  DbOpsExecutorService executorService;
+
   public Uni<?> lockRun(LockRequest lockRequest, Uni<?> task) {
-    return Uni.createFrom().item(() -> getCluster(lockRequest))
+    return executorService.itemAsync(() -> getCluster(lockRequest))
         .invoke(cluster -> LOGGER.info("Acquiring lock for cluster {}",
             cluster.getMetadata().getName()))
         .invoke(cluster -> acquireLock(lockRequest, cluster))
@@ -49,10 +51,9 @@ public class LockAcquirer {
             task
                 .onFailure()
                 .invoke(ex -> LOGGER.error("Locked task failed", ex))
-                .chain(() -> Uni.createFrom().voidItem())
-                .runSubscriptionOn(Infrastructure.getDefaultWorkerPool()),
+                .chain(() -> Uni.createFrom().voidItem()),
             Uni.createFrom().voidItem()
-                .invoke(() -> refreshLock(lockRequest, cluster))
+                .chain(() -> executorService.invokeAsync(() -> refreshLock(lockRequest, cluster)))
                 .onItem()
                 .delayIt()
                 .by(Duration.ofSeconds(lockRequest.getPollInterval()))
@@ -62,11 +63,10 @@ public class LockAcquirer {
                 .where(ignored -> true)
                 .toUni()
                 .onFailure()
-                .transform(MutinyUtil.logOnFailureToRetry("updating the lock"))
-                .runSubscriptionOn(Infrastructure.getDefaultWorkerPool()))
+                .transform(MutinyUtil.logOnFailureToRetry("updating the lock")))
             .onItemOrFailure()
             .call((result, ex) -> Uni.createFrom().voidItem()
-                .invoke(() -> releaseLock(lockRequest, cluster))
+                .chain(() -> executorService.invokeAsync(() -> releaseLock(lockRequest, cluster)))
                 .invoke(() -> LOGGER.info("Cluster {} lock released",
                     cluster.getMetadata().getName()))
                 .onFailure()

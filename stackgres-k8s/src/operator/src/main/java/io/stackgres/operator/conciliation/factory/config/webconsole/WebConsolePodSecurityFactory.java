@@ -7,9 +7,6 @@ package io.stackgres.operator.conciliation.factory.config.webconsole;
 
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.PodSecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.SecurityContext;
@@ -21,6 +18,8 @@ import io.stackgres.common.crd.sgconfig.StackGresConfigRestapi;
 import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.operator.conciliation.config.StackGresConfigContext;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class WebConsolePodSecurityFactory {

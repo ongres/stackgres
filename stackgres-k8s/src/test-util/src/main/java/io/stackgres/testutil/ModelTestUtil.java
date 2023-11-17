@@ -188,50 +188,6 @@ public class ModelTestUtil {
     public T onValue(Class<?> clazz) {
       return (T) generateRandomValue(clazz);
     }
-
-    static final String[] QUANTITY_UNITS = new String[] {
-        "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "n",
-        "u", "m", "k", "M", "G", "T", "P", "E", "" };
-
-    private Object generateRandomValue(Class<?> valueClass) {
-      if (valueClass.isPrimitive()) {
-        switch (valueClass.getName()) {
-          case "long":
-            return RANDOM.nextLong();
-          case "int":
-            return RANDOM.nextInt();
-          case "boolean":
-            return RANDOM.nextBoolean();
-          case "char":
-            return (char) RANDOM.nextInt();
-          case "float":
-            return RANDOM.nextFloat();
-          case "double":
-            return RANDOM.nextDouble();
-          default:
-            throw new RuntimeException("Unsupported primitive type " + valueClass.getName());
-        }
-      } else if (Quantity.class.isAssignableFrom(valueClass)) {
-        return new Quantity(String.valueOf(RANDOM.nextInt()),
-            QUANTITY_UNITS[RANDOM.nextInt(QUANTITY_UNITS.length)]);
-      } else if (valueClass == String.class || valueClass == Object.class) {
-        return "rnd-" + StringUtils.getRandomString(10).toLowerCase(Locale.US);
-      } else if (valueClass == Boolean.class) {
-        return RANDOM.nextBoolean();
-      } else if (Number.class.isAssignableFrom(valueClass)) {
-        int value = RANDOM.nextInt(10) + 1;
-        if (Integer.class.isAssignableFrom(valueClass)) {
-          return value;
-        } else if (Long.class.isAssignableFrom(valueClass)) {
-          return Integer.toUnsignedLong(value);
-        } else if (BigDecimal.class.isAssignableFrom(valueClass)) {
-          return BigDecimal.valueOf(value);
-        } else if (BigInteger.class.isAssignableFrom(valueClass)) {
-          return BigInteger.valueOf(value);
-        }
-      }
-      throw new IllegalArgumentException("Value class " + valueClass.getName() + " not supported");
-    }
   }
 
   public interface ResourceVisitor<T> {
@@ -330,6 +286,55 @@ public class ModelTestUtil {
     } else {
       return new Field[0];
     }
+  }
+
+  static final String[] QUANTITY_UNITS = new String[] {
+      "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "n",
+      "u", "m", "k", "M", "G", "T", "P", "E", "" };
+
+  @SuppressWarnings("unchecked")
+  public static <T> T generateRandom(Class<?> valueClass) {
+    return (T) generateRandomValue(valueClass);
+  }
+
+  public static Object generateRandomValue(Class<?> valueClass) {
+    if (valueClass.isPrimitive()) {
+      switch (valueClass.getName()) {
+        case "long":
+          return RANDOM.nextLong();
+        case "int":
+          return RANDOM.nextInt();
+        case "boolean":
+          return RANDOM.nextBoolean();
+        case "char":
+          return (char) RANDOM.nextInt();
+        case "float":
+          return RANDOM.nextFloat();
+        case "double":
+          return RANDOM.nextDouble();
+        default:
+          throw new RuntimeException("Unsupported primitive type " + valueClass.getName());
+      }
+    } else if (Quantity.class.isAssignableFrom(valueClass)) {
+      return new Quantity(String.valueOf(RANDOM.nextInt()),
+          QUANTITY_UNITS[RANDOM.nextInt(QUANTITY_UNITS.length)]);
+    } else if (valueClass == String.class || valueClass == Object.class) {
+      return "rnd-" + StringUtils.getRandomString(10).toLowerCase(Locale.US);
+    } else if (valueClass == Boolean.class) {
+      return RANDOM.nextBoolean();
+    } else if (Number.class.isAssignableFrom(valueClass)) {
+      int value = RANDOM.nextInt(10) + 1;
+      if (Integer.class.isAssignableFrom(valueClass)) {
+        return value;
+      } else if (Long.class.isAssignableFrom(valueClass)) {
+        return Integer.toUnsignedLong(value);
+      } else if (BigDecimal.class.isAssignableFrom(valueClass)) {
+        return BigDecimal.valueOf(value);
+      } else if (BigInteger.class.isAssignableFrom(valueClass)) {
+        return BigInteger.valueOf(value);
+      }
+    }
+    throw new IllegalArgumentException("Value class " + valueClass.getName() + " not supported");
   }
 
 }

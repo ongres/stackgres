@@ -10,8 +10,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 
-import javax.inject.Singleton;
-
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -30,6 +28,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
 import io.stackgres.operator.conciliation.factory.AnnotationDecorator;
+import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
 
 @Singleton

@@ -32,8 +32,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import javax.ws.rs.BadRequestException;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -105,6 +103,7 @@ import io.stackgres.common.resource.PodFinder;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.testutil.JsonUtil;
+import jakarta.ws.rs.BadRequestException;
 import org.eclipse.microprofile.context.ManagedExecutor;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
@@ -683,7 +682,7 @@ class ClusterResourceMockedTest extends
   }
 
   private void mockPodExecutor() {
-    when(podExecutor.exec(any(), anyString(), any())).thenReturn(ImmutableList.of(
+    when(podExecutor.exec(any(), anyString(), any(String[].class))).thenReturn(ImmutableList.of(
         "cpuFound:4",
         "cpuQuota:50000",
         "cpuPeriod:100000",

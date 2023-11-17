@@ -10,6 +10,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.ContainerPort;
+import io.fabric8.kubernetes.api.model.ContainerResizePolicy;
 import io.fabric8.kubernetes.api.model.EnvFromSource;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.Lifecycle;
@@ -39,6 +40,7 @@ import io.sundr.builder.annotations.BuildableReference;
         @BuildableReference(io.fabric8.kubernetes.api.model.SecurityContext.class),
         @BuildableReference(io.fabric8.kubernetes.api.model.VolumeDevice.class),
         @BuildableReference(io.fabric8.kubernetes.api.model.VolumeMount.class),
+        @BuildableReference(io.fabric8.kubernetes.api.model.ContainerResizePolicy.class),
     })
 @SuppressFBWarnings(value = "NM_SAME_SIMPLE_NAME_AS_SUPERCLASS",
     justification = "Intentional name shadowing")
@@ -53,14 +55,15 @@ public class CustomContainer extends io.fabric8.kubernetes.api.model.Container {
   public CustomContainer(List<String> args, List<String> command, List<EnvVar> env,
       List<EnvFromSource> envFrom, String image, String imagePullPolicy, Lifecycle lifecycle,
       Probe livenessProbe, String name, List<ContainerPort> ports, Probe readinessProbe,
+      List<ContainerResizePolicy> resizePolicy,
       ResourceRequirements resources, SecurityContext securityContext, Probe startupProbe,
       Boolean stdin, Boolean stdinOnce, String terminationMessagePath,
       String terminationMessagePolicy, Boolean tty, List<VolumeDevice> volumeDevices,
       List<VolumeMount> volumeMounts, String workingDir) {
     super(args, command, env, envFrom, image, imagePullPolicy, lifecycle, livenessProbe, name,
-        ports, readinessProbe, resources, securityContext, startupProbe, stdin, stdinOnce,
-        terminationMessagePath, terminationMessagePolicy, tty, volumeDevices, volumeMounts,
-        workingDir);
+        ports, readinessProbe, resizePolicy, resources, securityContext, startupProbe, stdin,
+        stdinOnce, terminationMessagePath, terminationMessagePolicy, tty, volumeDevices,
+        volumeMounts, workingDir);
   }
 
   @Override
@@ -171,6 +174,16 @@ public class CustomContainer extends io.fabric8.kubernetes.api.model.Container {
   @Override
   public void setReadinessProbe(Probe readinessProbe) {
     super.setReadinessProbe(readinessProbe);
+  }
+
+  @Override
+  public List<ContainerResizePolicy> getResizePolicy() {
+    return super.getResizePolicy();
+  }
+
+  @Override
+  public void setResizePolicy(List<ContainerResizePolicy> resizePolicy) {
+    super.setResizePolicy(resizePolicy);
   }
 
   @Override

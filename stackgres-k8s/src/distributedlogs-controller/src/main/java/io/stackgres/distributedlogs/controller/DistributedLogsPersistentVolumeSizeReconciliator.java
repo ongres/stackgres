@@ -5,15 +5,14 @@
 
 package io.stackgres.distributedlogs.controller;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.common.controller.PersistentVolumeSizeReconciliator;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.distributedlogs.configuration.DistributedLogsControllerPropertyContext;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class DistributedLogsPersistentVolumeSizeReconciliator extends

@@ -5,9 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.distributedlogs;
 
-import javax.inject.Singleton;
-
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import jakarta.inject.Singleton;
 
 @Singleton
 @OperatorVersionBinder

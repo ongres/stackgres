@@ -7,9 +7,8 @@ package io.stackgres.apiweb.rest;
 
 import java.util.List;
 
-import javax.validation.Valid;
-
 import io.stackgres.apiweb.dto.ResourceDto;
+import jakarta.validation.Valid;
 import org.jetbrains.annotations.NotNull;
 
 public interface ValidatedResourceRestService<T extends ResourceDto> {

@@ -9,14 +9,13 @@ import static io.stackgres.operator.conversion.ConversionUtil.VERSION_1;
 
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresReplicationMode;
 import io.stackgres.common.crd.sgcluster.StackGresReplicationRole;
 import io.stackgres.operator.conversion.Conversion;
 import io.stackgres.operator.conversion.Converter;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 @Conversion(StackGresCluster.KIND)

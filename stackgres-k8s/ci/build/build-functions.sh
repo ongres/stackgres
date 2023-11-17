@@ -196,8 +196,23 @@ build_module_image() {
   if [ "$BUILD_IMAGE_NAME" != null ]
   then
     pre_build_in_container "$MODULE" "$BUILD_IMAGE_NAME"
+    if [ "$?" != 0 ]
+    then
+      >&2 echo "Pre build step failed for $MODULE"
+      return 1
+    fi
     build_in_container "$MODULE" "$BUILD_IMAGE_NAME"
+    if [ "$?" != 0 ]
+    then
+      >&2 echo "Build failed for $MODULE"
+      return 1
+    fi
     post_build_in_container "$MODULE" "$BUILD_IMAGE_NAME"
+    if [ "$?" != 0 ]
+    then
+      >&2 echo "Post build step failed for $MODULE"
+      return 1
+    fi
   fi
   MODULE_PATH="$(jq -r ".modules[\"$MODULE\"].path" stackgres-k8s/ci/build/target/config.json)"
   MODULE_DOCKERFILE="$(jq -r ".modules[\"$MODULE\"].dockerfile | if . != null then .path else null end" stackgres-k8s/ci/build/target/config.json)"
@@ -276,6 +291,7 @@ module_list() {
 }
 
 init_hash() {
+  (
   set +e
   (
   set -e
@@ -308,6 +324,7 @@ init_hash() {
     rm -rf stackgres-k8s/ci/build/target/.git
     exit "$EXIT_CODE"
   fi
+  )
 }
 
 module_type() {

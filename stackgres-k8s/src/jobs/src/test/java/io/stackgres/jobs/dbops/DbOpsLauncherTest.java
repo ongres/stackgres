@@ -17,19 +17,18 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.time.Instant;
 
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import io.quarkus.test.junit.mockito.InjectSpy;
 import io.smallrye.mutiny.TimeoutException;
 import io.smallrye.mutiny.Uni;
@@ -48,6 +47,7 @@ import io.stackgres.jobs.dbops.lock.LockRequest;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
 import io.stackgres.jobs.dbops.securityupgrade.SecurityUpgradeJob;
 import io.stackgres.testutil.StringUtils;
+import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -100,6 +100,11 @@ class DbOpsLauncherTest {
     cluster.getMetadata().setNamespace(namespace);
     cluster.getMetadata().setName(randomClusterName);
     cluster = mockKubeDb.addOrReplaceCluster(cluster);
+
+    doNothing().when(databaseOperationEventEmitter).operationStarted(randomDbOpsName, namespace);
+    doNothing().when(databaseOperationEventEmitter).operationFailed(randomDbOpsName, namespace);
+    doNothing().when(databaseOperationEventEmitter).operationCompleted(randomDbOpsName, namespace);
+    doNothing().when(databaseOperationEventEmitter).operationTimedOut(randomDbOpsName, namespace);
   }
 
   private Uni<ClusterRestartState> getClusterRestartStateUni() {
@@ -125,9 +130,6 @@ class DbOpsLauncherTest {
   void givenAValidDbOps_shouldExecuteTheJob() {
     when(securityUpgradeJob.runJob(any(), any()))
         .thenAnswer(invocation -> getClusterRestartStateUni());
-    doNothing().when(databaseOperationEventEmitter).operationStarted(randomDbOpsName, namespace);
-    doNothing().when(databaseOperationEventEmitter).operationCompleted(randomDbOpsName, namespace);
-
     dbOpLauncher.launchDbOp(randomDbOpsName, namespace);
 
     final InOrder inOrder = inOrder(databaseOperationEventEmitter);
@@ -148,7 +150,6 @@ class DbOpsLauncherTest {
     verify(databaseOperationEventEmitter, never()).operationCompleted(randomDbOpsName, namespace);
     verify(databaseOperationEventEmitter, never()).operationFailed(randomDbOpsName, namespace);
     verify(databaseOperationEventEmitter, never()).operationTimedOut(randomDbOpsName, namespace);
-
   }
 
   @Test
@@ -178,8 +179,8 @@ class DbOpsLauncherTest {
     assertThrows(TimeoutException.class, () -> dbOpLauncher.launchDbOp(randomDbOpsName, namespace));
 
     verify(databaseOperationEventEmitter, atMost(1)).operationStarted(randomDbOpsName, namespace);
-    verify(databaseOperationEventEmitter, atMost(1)).operationCompleted(randomDbOpsName, namespace);
-    verify(databaseOperationEventEmitter).operationTimedOut(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationCompleted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, times(1)).operationTimedOut(randomDbOpsName, namespace);
     verify(databaseOperationEventEmitter, never()).operationFailed(randomDbOpsName, namespace);
   }
 
@@ -187,7 +188,6 @@ class DbOpsLauncherTest {
   void givenAValidDbOps_shouldUpdateItsStatusInformation() {
     when(securityUpgradeJob.runJob(any(), any()))
         .thenAnswer(invocation -> getClusterRestartStateUni());
-
     Instant beforeExecute = Instant.now();
 
     dbOpLauncher.launchDbOp(randomDbOpsName, namespace);
@@ -201,25 +201,46 @@ class DbOpsLauncherTest {
       return beforeExecute.isBefore(persistedOpStarted) && afterExecute.isAfter(persistedOpStarted);
     }, "OpStarted should be close to now");
     assertNull(persistedDbOps.getStatus().getOpRetries());
+    verify(databaseOperationEventEmitter, times(1)).operationStarted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, times(1)).operationCompleted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationTimedOut(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationFailed(randomDbOpsName, namespace);
   }
 
   @Test
   void givenANonExistentDbOps_shouldThrowIllegalArgumentException() {
     when(securityUpgradeJob.runJob(any(), any()))
         .thenAnswer(invocation -> getClusterRestartStateUni());
-    assertThrows(IllegalArgumentException.class, () -> dbOpLauncher
-        .launchDbOp(StringUtils.getRandomString(), namespace));
+    String dbOpsName = StringUtils.getRandomString();
+    var ex = assertThrows(IllegalArgumentException.class, () -> dbOpLauncher
+        .launchDbOp(dbOpsName, namespace));
+
+    assertEquals("SGDbOps " + dbOpsName + " does not exists in namespace " + namespace,
+        ex.getMessage());
+
+    verify(databaseOperationEventEmitter, never()).operationStarted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationCompleted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationTimedOut(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationFailed(randomDbOpsName, namespace);
   }
 
   @Test
   void givenAInvalidOp_shouldThrowIllegalStateException() {
     when(securityUpgradeJob.runJob(any(), any()))
         .thenAnswer(invocation -> getClusterRestartStateUni());
-    dbOps.getSpec().setOp(StringUtils.getRandomString());
+    String op = StringUtils.getRandomString();
+    dbOps.getSpec().setOp(op);
 
     dbOps = mockKubeDb.addOrReplaceDbOps(dbOps);
-    assertThrows(IllegalStateException.class, () -> dbOpLauncher
+    var ex = assertThrows(IllegalStateException.class, () -> dbOpLauncher
         .launchDbOp(randomDbOpsName, namespace));
+
+    assertEquals("Implementation of operation " + op + " not found", ex.getMessage());
+
+    verify(databaseOperationEventEmitter, never()).operationStarted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationCompleted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationTimedOut(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationFailed(randomDbOpsName, namespace);
   }
 
   @Test
@@ -245,6 +266,11 @@ class DbOpsLauncherTest {
         .anyMatch(DbOpsStatusCondition.DBOPS_FALSE_COMPLETED::isCondition));
     assertTrue(() -> conditions.stream()
         .anyMatch(DbOpsStatusCondition.DBOPS_FALSE_FAILED::isCondition));
+
+    verify(databaseOperationEventEmitter, times(1)).operationStarted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, times(1)).operationCompleted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationTimedOut(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationFailed(randomDbOpsName, namespace);
   }
 
   @Test
@@ -267,6 +293,11 @@ class DbOpsLauncherTest {
         .anyMatch(DbOpsStatusCondition.DBOPS_COMPLETED::isCondition));
     assertTrue(() -> conditions.stream()
         .anyMatch(DbOpsStatusCondition.DBOPS_FALSE_FAILED::isCondition));
+
+    verify(databaseOperationEventEmitter, times(1)).operationStarted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, times(1)).operationCompleted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationTimedOut(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationFailed(randomDbOpsName, namespace);
   }
 
   @Test
@@ -289,6 +320,11 @@ class DbOpsLauncherTest {
         .anyMatch(DbOpsStatusCondition.DBOPS_FALSE_COMPLETED::isCondition));
     assertTrue(() -> conditions.stream()
         .anyMatch(DbOpsStatusCondition.DBOPS_FAILED::isCondition));
+
+    verify(databaseOperationEventEmitter, times(1)).operationStarted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationCompleted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationTimedOut(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, times(1)).operationFailed(randomDbOpsName, namespace);
   }
 
   @Test
@@ -327,6 +363,11 @@ class DbOpsLauncherTest {
         .anyMatch(DbOpsStatusCondition.DBOPS_FALSE_COMPLETED::isCondition));
     assertTrue(() -> conditions.stream()
         .anyMatch(DbOpsStatusCondition.DBOPS_FALSE_FAILED::isCondition));
+
+    verify(databaseOperationEventEmitter, times(1)).operationStarted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, times(1)).operationCompleted(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationTimedOut(randomDbOpsName, namespace);
+    verify(databaseOperationEventEmitter, never()).operationFailed(randomDbOpsName, namespace);
   }
 
 }

@@ -8,9 +8,6 @@ package io.stackgres.operator.conciliation.factory.shardedcluster.backup;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -23,6 +20,8 @@ import io.stackgres.operator.conciliation.factory.AbstractTemplatesConfigMap;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped

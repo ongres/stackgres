@@ -12,9 +12,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -28,6 +25,8 @@ import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.config.StackGresConfigContext;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pgexporter.PostgresExporter;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Unchecked;
 

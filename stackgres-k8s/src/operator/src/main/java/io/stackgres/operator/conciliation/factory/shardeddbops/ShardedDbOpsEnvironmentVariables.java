@@ -7,13 +7,12 @@ package io.stackgres.operator.conciliation.factory.shardeddbops;
 
 import java.util.stream.Stream;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.stackgres.common.ShardedClusterEnvVar;
 import io.stackgres.common.ShardedClusterPath;
 import io.stackgres.operator.conciliation.shardeddbops.StackGresShardedDbOpsContext;
 import io.stackgres.operatorframework.resource.factory.SubResourceStreamFactory;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.jooq.lambda.Seq;
 
 @ApplicationScoped
