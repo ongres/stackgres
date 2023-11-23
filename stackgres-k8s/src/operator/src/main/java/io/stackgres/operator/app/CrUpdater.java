@@ -78,7 +78,7 @@ public class CrUpdater {
                     client.genericKubernetesResources(context)
                         .resource(currentResource)
                         .lockResourceVersion(currentResource.getMetadata().getResourceVersion())
-                        .replace();
+                        .update();
                   }
                 }), 5));
   }

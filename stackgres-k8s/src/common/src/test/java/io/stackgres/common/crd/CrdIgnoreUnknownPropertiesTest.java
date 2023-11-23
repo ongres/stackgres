@@ -6,7 +6,6 @@
 package io.stackgres.common.crd;
 
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -30,7 +29,6 @@ public class CrdIgnoreUnknownPropertiesTest {
     StackGresProfile.class,
     StackGresPostgresConfig.class,
     StackGresPoolingConfig.class,
-    StackGresBackupConfig.class,
     StackGresBackup.class,
     StackGresDbOps.class,
     StackGresDistributedLogs.class,

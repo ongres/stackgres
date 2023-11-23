@@ -121,6 +121,14 @@ rules:
   - customresourcedefinitions
   verbs:
   - list
+- apiGroups: ["snapshot.storage.k8s.io"]
+  resources:
+  - volumesnapshots
+  verbs:
+  - list
+  - get
+  - watch
+  - create
 {{- if .Values.prometheus.allowAutobind }}
 - apiGroups: ["apiextensions.k8s.io"]
   resources:

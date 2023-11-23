@@ -52,6 +52,11 @@ class SgProfileDependenciesValidatorTest
   }
 
   @Override
+  protected void makeClusterDependant(StackGresCluster cluster, SgProfileReview review) {
+    cluster.getSpec().setSgInstanceProfile(review.getRequest().getName());
+  }
+
+  @Override
   protected void makeClusterNotDependant(StackGresCluster cluster) {
     cluster.getSpec().setSgInstanceProfile(null);
   }

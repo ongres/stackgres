@@ -20,7 +20,6 @@ import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -155,7 +154,6 @@ public class PatroniRole implements
             .withApiGroups(CommonDefinition.GROUP)
             .withResources(
                 HasMetadata.getPlural(StackGresBackup.class),
-                HasMetadata.getPlural(StackGresBackupConfig.class),
                 HasMetadata.getPlural(StackGresObjectStorage.class),
                 HasMetadata.getPlural(StackGresCluster.class),
                 HasMetadata.getPlural(StackGresPostgresConfig.class),

@@ -140,7 +140,7 @@ class PodTemplateSpecFactoryTest {
     when(clusterContext.getConfig()).thenReturn(config);
     when(clusterContainerContext.availableVolumes()).thenReturn(availableVolumes);
     when(clusterContainerContext.getDataVolumeName()).thenReturn("available-volume");
-    assertThrows(IllegalStateException.class,
+    assertThrows(IllegalArgumentException.class,
         () -> podTemplateSpecFactory.getPodTemplateSpec(clusterContainerContext));
   }
 }

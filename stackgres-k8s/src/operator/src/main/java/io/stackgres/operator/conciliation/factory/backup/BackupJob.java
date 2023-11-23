@@ -34,6 +34,7 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.VolumeSnapshotUtil;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
@@ -125,8 +126,7 @@ public class BackupJob
   }
 
   private static boolean isBackupConfigNotConfigured(StackGresBackupContext context) {
-    return context.getObjectStorage().isEmpty()
-        && context.getBackupConfig().isEmpty();
+    return context.getObjectStorage().isEmpty();
   }
 
   private static boolean isBackupJobFinished(StackGresBackupContext context) {
@@ -162,6 +162,7 @@ public class BackupJob
     var crName = context.getConfigCustomResourceName();
     String namespace = backup.getMetadata().getNamespace();
     String name = backup.getMetadata().getName();
+    String uid = backup.getMetadata().getUid();
     String clusterName = backup.getSpec().getSgCluster();
 
     Map<String, String> labels = labelFactory.backupPodLabels(context.getSource());
@@ -248,6 +249,10 @@ public class BackupJob
                     .withValue(name)
                     .build(),
                     new EnvVarBuilder()
+                    .withName("BACKUP_UID")
+                    .withValue(uid)
+                    .build(),
+                    new EnvVarBuilder()
                     .withName("CLUSTER_NAME")
                     .withValue(clusterName)
                     .build(),
@@ -282,6 +287,31 @@ public class BackupJob
                     new EnvVarBuilder()
                     .withName("BACKUP_CRD_APIVERSION")
                     .withValue(HasMetadata.getApiVersion(StackGresBackup.class))
+                    .build(),
+                    new EnvVarBuilder()
+                    .withName("USE_VOLUME_SNAPSHOT")
+                    .withValue(Optional.of(backupConfig)
+                        .map(BackupConfiguration::useVolumeSnapshot)
+                        .map(String::valueOf)
+                        .orElse("false"))
+                    .build(),
+                    new EnvVarBuilder()
+                    .withName("VOLUME_SNAPSHOT_STORAGE_CLASS")
+                    .withValue(Optional.of(backupConfig)
+                        .map(BackupConfiguration::volumeSnapshotStorageClass)
+                        .map(String::valueOf)
+                        .orElse(""))
+                    .build(),
+                    new EnvVarBuilder()
+                    .withName("FAST_VOLUME_SNAPSHOT")
+                    .withValue(Optional.of(backupConfig)
+                        .map(BackupConfiguration::fastVolumeSnapshot)
+                        .map(String::valueOf)
+                        .orElse("false"))
+                    .build(),
+                    new EnvVarBuilder()
+                    .withName("VOLUME_SNAPSHOT_CRD_NAME")
+                    .withValue(VolumeSnapshotUtil.VOLUME_SNAPSHOT_CRD_NAME)
                     .build(),
                     new EnvVarBuilder()
                     .withName("BACKUP_PHASE_RUNNING")

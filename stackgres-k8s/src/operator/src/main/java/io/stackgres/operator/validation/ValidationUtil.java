@@ -22,7 +22,6 @@ public interface ValidationUtil {
   String CLUSTER_VALIDATION_PATH = VALIDATION_PATH + "/sgcluster";
   String PGCONFIG_VALIDATION_PATH = VALIDATION_PATH + "/sgpgconfig";
   String CONNPOOLCONFIG_VALIDATION_PATH = VALIDATION_PATH + "/sgpoolconfig";
-  String BACKUPCONFIG_VALIDATION_PATH = VALIDATION_PATH + "/sgbackupconfig";
   String BACKUP_VALIDATION_PATH = VALIDATION_PATH + "/sgbackup";
   String PROFILE_VALIDATION_PATH = VALIDATION_PATH + "/sginstanceprofile";
   String DISTRIBUTED_LOGS_VALIDATION_PATH = VALIDATION_PATH + "/sgdistributedlogs";

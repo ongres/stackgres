@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimSpecBuilder;
+import io.fabric8.kubernetes.api.model.TypedLocalObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
@@ -25,6 +26,12 @@ import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ImmutableStorageConfig;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StorageConfig;
+import io.stackgres.common.VolumeSnapshotUtil;
+import io.stackgres.common.crd.sgbackup.BackupStatus;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
+import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
+import io.stackgres.common.crd.sgbackup.StackGresBackupVolumeSnapshotStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
@@ -95,7 +102,22 @@ public class ClusterStatefulSet
     final PersistentVolumeClaimSpecBuilder volumeClaimSpec = new PersistentVolumeClaimSpecBuilder()
         .withAccessModes("ReadWriteOnce")
         .withResources(dataStorageConfig.getResourceRequirements())
-        .withStorageClassName(dataStorageConfig.getStorageClass());
+        .withStorageClassName(dataStorageConfig.getStorageClass())
+        .withDataSource(context.getRestoreBackup()
+            .map(StackGresBackup::getStatus)
+            .filter(status -> Optional.of(status)
+                .map(StackGresBackupStatus::getProcess)
+                .map(StackGresBackupProcess::getStatus)
+                .map(BackupStatus.COMPLETED.status()::equals)
+                .orElse(false))
+            .map(StackGresBackupStatus::getVolumeSnapshot)
+            .map(StackGresBackupVolumeSnapshotStatus::getName)
+            .map(volumeSnapshotName -> new TypedLocalObjectReferenceBuilder()
+                .withApiGroup(VolumeSnapshotUtil.VOLUME_SNAPSHOT_GROUP)
+                .withKind(VolumeSnapshotUtil.VOLUME_SNAPSHOT_KIND)
+                .withName(volumeSnapshotName)
+                .build())
+            .orElse(null));
 
     Map<String, Volume> availableVolumes = availableVolumesPairs.entrySet().stream()
         .collect(Collectors.toMap(

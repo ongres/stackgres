@@ -169,8 +169,6 @@ class BackupResourceTest extends AbstractCustomResourceTest
             resource.getStatus().getSgBackupConfig().getStorage().getS3Compatible().getEndpoint());
         assertEquals("stackgres",
             resource.getStatus().getSgBackupConfig().getStorage().getS3Compatible().getBucket());
-        assertNull(resource.getStatus().getSgBackupConfig()
-            .getStorage().getS3Compatible().getPath());
         assertEquals("k8s",
             resource.getStatus().getSgBackupConfig().getStorage().getS3Compatible().getRegion());
         assertNull(resource.getStatus().getSgBackupConfig().getStorage().getS3Compatible()

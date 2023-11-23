@@ -81,9 +81,11 @@
         },
         "configurations": {
           "sgPostgresConfig": "postgresconf",
-          "backupPath": "sgbackups.stackgres.io/default/stackgres/11",
-          "sgBackupConfig": "backupconf",
-          "sgPoolingConfig": "pgbouncerconf"
+          "sgPoolingConfig": "pgbouncerconf",
+          "backups": [{
+            "path": "sgbackups.stackgres.io/default/stackgres/11",
+            "sgObjectStorage": "objstorage"
+          }]
         },
         "pods":{
           "persistentVolume": {

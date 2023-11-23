@@ -250,6 +250,9 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
               .withRetention(backup.getRetention())
               .withCompression(backup.getCompression())
               .withPerformance(backup.getPerformance())
+              .withUseVolumeSnapshot(backup.getUseVolumeSnapshot())
+              .withVolumeSnapshotClass(backup.getVolumeSnapshotClass())
+              .withFastVolumeSnapshot(backup.getFastVolumeSnapshot())
               .build()));
         });
   }

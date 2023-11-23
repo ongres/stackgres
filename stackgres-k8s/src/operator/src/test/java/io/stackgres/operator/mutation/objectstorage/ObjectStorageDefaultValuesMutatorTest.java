@@ -56,7 +56,6 @@ class ObjectStorageDefaultValuesMutatorTest
     AwsS3Storage s3 = new AwsS3Storage();
     s3.setBucket(
         review.getRequest().getObject().getSpec().getS3Compatible().getBucket());
-    s3.setPath(review.getRequest().getObject().getSpec().getS3Compatible().getPath());
     s3.setRegion(
         review.getRequest().getObject().getSpec().getS3Compatible().getRegion());
     s3.setStorageClass(

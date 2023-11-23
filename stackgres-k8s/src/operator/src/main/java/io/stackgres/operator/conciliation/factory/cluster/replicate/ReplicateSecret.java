@@ -68,7 +68,8 @@ public class ReplicateSecret
 
     context.getReplicateStorage().ifPresent(
         backupStorage -> data.putAll(
-            envVarFactory.getSecretEnvVar(namespace, backupStorage)
+            envVarFactory.getSecretEnvVar(namespace, backupStorage,
+                context.getReplicateSecrets())
         ));
 
     return new SecretBuilder()

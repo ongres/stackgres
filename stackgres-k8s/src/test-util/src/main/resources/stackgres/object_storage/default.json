@@ -2,7 +2,7 @@
   "apiVersion": "stackgres.io/v1",
   "kind": "SGObjectStorage",
   "metadata": {
-    "name": "objtorage",
+    "name": "objstorage",
     "namespace": "stackgres"
   },
   "spec": {

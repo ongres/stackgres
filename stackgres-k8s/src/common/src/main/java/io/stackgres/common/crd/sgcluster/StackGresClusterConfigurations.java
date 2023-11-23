@@ -31,12 +31,6 @@ public class StackGresClusterConfigurations {
 
   private String sgPoolingConfig;
 
-  @Deprecated(since = "1.3.0", forRemoval = true)
-  private String sgBackupConfig;
-
-  @Deprecated(since = "1.3.0", forRemoval = true)
-  private String backupPath;
-
   @Valid
   private List<StackGresClusterBackupConfiguration> backups;
 
@@ -53,22 +47,11 @@ public class StackGresClusterConfigurations {
   interface SgPostgresConfig extends FieldReference {
   }
 
-  @ReferencedField("backupPath")
-  interface BackupPath extends FieldReference {
-  }
-
   @JsonIgnore
   @AssertTrue(message = "sgPostgresConfig is required",
       payload = { SgPostgresConfig.class })
   public boolean isSgPostgresConfigPresent() {
     return sgPostgresConfig != null;
-  }
-
-  @JsonIgnore
-  @AssertTrue(message = "backupPath can not be null when sgBackupConfig is set.",
-      payload = { BackupPath.class })
-  public boolean isBackupPathSetWhenSgBackupConfigIsSet() {
-    return sgBackupConfig == null || backupPath != null;
   }
 
   public String getSgPostgresConfig() {
@@ -85,22 +68,6 @@ public class StackGresClusterConfigurations {
 
   public void setSgPoolingConfig(String sgPoolingConfig) {
     this.sgPoolingConfig = sgPoolingConfig;
-  }
-
-  public String getSgBackupConfig() {
-    return sgBackupConfig;
-  }
-
-  public void setSgBackupConfig(String sgBackupConfig) {
-    this.sgBackupConfig = sgBackupConfig;
-  }
-
-  public String getBackupPath() {
-    return backupPath;
-  }
-
-  public void setBackupPath(String backupPath) {
-    this.backupPath = backupPath;
   }
 
   public List<StackGresClusterBackupConfiguration> getBackups() {
@@ -138,8 +105,7 @@ public class StackGresClusterConfigurations {
 
   @Override
   public int hashCode() {
-    return Objects.hash(backupPath, backups, binding, credentials, patroni, sgBackupConfig,
-        sgPoolingConfig, sgPostgresConfig);
+    return Objects.hash(backups, binding, credentials, patroni, sgPoolingConfig, sgPostgresConfig);
   }
 
   @Override
@@ -151,12 +117,10 @@ public class StackGresClusterConfigurations {
       return false;
     }
     StackGresClusterConfigurations other = (StackGresClusterConfigurations) obj;
-    return Objects.equals(backupPath, other.backupPath)
-        && Objects.equals(backups, other.backups)
+    return Objects.equals(backups, other.backups)
         && Objects.equals(binding, other.binding)
         && Objects.equals(credentials, other.credentials)
         && Objects.equals(patroni, other.patroni)
-        && Objects.equals(sgBackupConfig, other.sgBackupConfig)
         && Objects.equals(sgPoolingConfig, other.sgPoolingConfig)
         && Objects.equals(sgPostgresConfig, other.sgPostgresConfig);
   }

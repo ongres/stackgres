@@ -19,13 +19,7 @@ public class ClusterConfigurations {
 
   private String sgPoolingConfig;
 
-  @Deprecated(since = "1.3.0", forRemoval = true)
-  private String sgBackupConfig;
-
-  @Deprecated(since = "1.3.0", forRemoval = true)
-  private String backupPath;
-
-  private List<ClusterBackupsConfiguration> backups;
+  private List<ClusterBackupConfiguration> backups;
 
   private ClusterPatroni patroni;
 
@@ -49,31 +43,11 @@ public class ClusterConfigurations {
     this.sgPoolingConfig = sgPoolingConfig;
   }
 
-  @Deprecated(since = "1.3.0", forRemoval = true)
-  public String getSgBackupConfig() {
-    return sgBackupConfig;
-  }
-
-  @Deprecated(since = "1.3.0", forRemoval = true)
-  public void setSgBackupConfig(String sgBackupConfig) {
-    this.sgBackupConfig = sgBackupConfig;
-  }
-
-  @Deprecated(since = "1.3.0", forRemoval = true)
-  public String getBackupPath() {
-    return backupPath;
-  }
-
-  @Deprecated(since = "1.3.0", forRemoval = true)
-  public void setBackupPath(String backupPath) {
-    this.backupPath = backupPath;
-  }
-
-  public List<ClusterBackupsConfiguration> getBackups() {
+  public List<ClusterBackupConfiguration> getBackups() {
     return backups;
   }
 
-  public void setBackups(List<ClusterBackupsConfiguration> backups) {
+  public void setBackups(List<ClusterBackupConfiguration> backups) {
     this.backups = backups;
   }
 

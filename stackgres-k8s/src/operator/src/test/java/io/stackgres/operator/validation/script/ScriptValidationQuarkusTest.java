@@ -48,7 +48,7 @@ class ScriptValidationQuarkusTest {
               .withData(ImmutableMap.of(
                   configMapKeyRef.getKey(), "SELECT 1"))
               .build();
-          client.configMaps().create(configMap);
+          client.configMaps().resource(configMap).create();
         });
     review.getRequest().getObject().getSpec().getScripts().stream()
         .filter(script -> script.getScriptFrom() != null
@@ -63,7 +63,7 @@ class ScriptValidationQuarkusTest {
               .withData(ImmutableMap.of(
                   configMapKeyRef.getKey(), "SELECT 1"))
               .build();
-          client.secrets().create(configMap);
+          client.secrets().resource(configMap).create();
         });
   }
 

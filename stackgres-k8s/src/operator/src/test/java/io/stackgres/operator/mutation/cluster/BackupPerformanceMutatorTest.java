@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupPerformance;
+import io.stackgres.common.crd.sgbackup.StackGresBaseBackupPerformance;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.operator.common.StackGresClusterReview;

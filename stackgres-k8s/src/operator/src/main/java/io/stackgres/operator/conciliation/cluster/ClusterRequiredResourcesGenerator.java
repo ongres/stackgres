@@ -25,8 +25,9 @@ import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackup.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
+import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
@@ -62,11 +63,14 @@ import io.stackgres.operator.common.Prometheus;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresSslSecret;
+import io.stackgres.operator.conciliation.factory.cluster.backup.BackupEnvVarFactory;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,8 +86,6 @@ public class ClusterRequiredResourcesGenerator
   private final CustomResourceScanner<StackGresConfig> configScanner;
 
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
-
-  private final CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
 
   private final CustomResourceFinder<StackGresObjectStorage> objectStorageFinder;
 
@@ -101,6 +103,8 @@ public class ClusterRequiredResourcesGenerator
 
   private final CustomResourceScanner<StackGresBackup> backupScanner;
 
+  private final BackupEnvVarFactory backupEnvVarFactory;
+
   private final OperatorPropertyContext operatorContext;
 
   private final ResourceGenerationDiscoverer<StackGresClusterContext> discoverer;
@@ -110,7 +114,6 @@ public class ClusterRequiredResourcesGenerator
       Supplier<VersionInfo> kubernetesVersionSupplier,
       CustomResourceScanner<StackGresConfig> configScanner,
       CustomResourceFinder<StackGresCluster> clusterFinder,
-      CustomResourceFinder<StackGresBackupConfig> backupConfigFinder,
       CustomResourceFinder<StackGresObjectStorage> objectStorageFinder,
       CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder,
       CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder,
@@ -119,12 +122,12 @@ public class ClusterRequiredResourcesGenerator
       ResourceFinder<Secret> secretFinder,
       CustomResourceScanner<PrometheusConfig> prometheusScanner,
       CustomResourceScanner<StackGresBackup> backupScanner,
+      BackupEnvVarFactory backupEnvVarFactory,
       OperatorPropertyContext operatorContext,
       ResourceGenerationDiscoverer<StackGresClusterContext> discoverer) {
     this.kubernetesVersionSupplier = kubernetesVersionSupplier;
     this.configScanner = configScanner;
     this.clusterFinder = clusterFinder;
-    this.backupConfigFinder = backupConfigFinder;
     this.objectStorageFinder = objectStorageFinder;
     this.postgresConfigFinder = postgresConfigFinder;
     this.poolingConfigFinder = poolingConfigFinder;
@@ -133,6 +136,7 @@ public class ClusterRequiredResourcesGenerator
     this.secretFinder = secretFinder;
     this.prometheusScanner = prometheusScanner;
     this.backupScanner = backupScanner;
+    this.backupEnvVarFactory = backupEnvVarFactory;
     this.operatorContext = operatorContext;
     this.discoverer = discoverer;
   }
@@ -177,18 +181,16 @@ public class ClusterRequiredResourcesGenerator
         .orElseThrow(() -> new IllegalArgumentException(
             "SGCluster " + clusterNamespace + "." + clusterName + " have a non existent "
                 + StackGresProfile.KIND + " " + spec.getSgInstanceProfile()));
-    final Optional<StackGresBackupConfig> backupConfig = Optional
-        .ofNullable(clusterConfiguration.getSgBackupConfig())
-        .flatMap(backupConfigName -> backupConfigFinder
-            .findByNameAndNamespace(backupConfigName, clusterNamespace));
 
-    final Optional<StackGresObjectStorage> objectStorage = Optional
+    final Optional<StackGresObjectStorage> backupStorageObject = Optional
         .ofNullable(clusterConfiguration.getBackups())
         .map(Collection::stream)
         .flatMap(Stream::findFirst)
         .map(StackGresClusterBackupConfiguration::getSgObjectStorage)
-        .flatMap(objectStorageName -> objectStorageFinder
-            .findByNameAndNamespace(objectStorageName, clusterNamespace));
+        .map(backupObjectStorageName -> objectStorageFinder
+            .findByNameAndNamespace(backupObjectStorageName, clusterNamespace)
+            .orElseThrow(() -> new IllegalArgumentException(
+                "SGObjectStorage " + backupObjectStorageName + " not found")));
 
     final Optional<StackGresPoolingConfig> pooling = Optional
         .ofNullable(clusterConfiguration.getSgPoolingConfig())
@@ -200,7 +202,41 @@ public class ClusterRequiredResourcesGenerator
     Optional<Secret> databaseSecret =
         secretFinder.findByNameAndNamespace(clusterName, clusterNamespace);
 
+    final Map<String, Secret> backupSecrets = backupStorageObject
+        .map(StackGresObjectStorage::getSpec)
+        .stream()
+        .flatMap(backupEnvVarFactory::streamStorageSecretReferences)
+        .map(secretKeySelector -> secretKeySelector.getName())
+        .collect(Collectors.groupingBy(Function.identity()))
+        .keySet()
+        .stream()
+        .map(name -> Tuple.tuple(
+            name,
+            secretFinder
+            .findByNameAndNamespace(name, clusterNamespace)
+            .orElseThrow(() -> new IllegalArgumentException(
+                "Secret " + name + " not found"))))
+        .collect(Collectors.toMap(Tuple2::v1, Tuple2::v2));
+
     final Optional<StackGresBackup> restoreBackup = findRestoreBackup(cluster, clusterNamespace);
+
+    final Map<String, Secret> restoreSecrets = restoreBackup
+        .map(StackGresBackup::getStatus)
+        .map(StackGresBackupStatus::getSgBackupConfig)
+        .map(StackGresBackupConfigSpec::getStorage)
+        .stream()
+        .flatMap(backupEnvVarFactory::streamStorageSecretReferences)
+        .map(secretKeySelector -> secretKeySelector.getName())
+        .collect(Collectors.groupingBy(Function.identity()))
+        .keySet()
+        .stream()
+        .map(name -> Tuple.tuple(
+            name,
+            secretFinder
+            .findByNameAndNamespace(name, clusterNamespace)
+            .orElseThrow(() -> new IllegalArgumentException(
+                "Secret " + name + " not found"))))
+        .collect(Collectors.toMap(Tuple2::v1, Tuple2::v2));
 
     final Credentials credentials = getCredentials(clusterNamespace, spec);
 
@@ -214,7 +250,7 @@ public class ClusterRequiredResourcesGenerator
             .orElseThrow(() -> new IllegalArgumentException("Can not find SGCluster "
                 + sgCluster + " to replicate from"))));
 
-    final Optional<StackGresObjectStorage> replicateObjectStorageConfig =
+    final Optional<StackGresObjectStorage> replicateObjectStorage =
         replicateCluster
         .flatMap(replicateFromCluster -> Optional.of(replicateFromCluster)
             .map(StackGresCluster::getSpec)
@@ -233,6 +269,22 @@ public class ClusterRequiredResourcesGenerator
             .orElseThrow(() -> new IllegalArgumentException("Can not find SGObjectStorage "
                 + sgObjectStorage + " to replicate from")));
 
+    final Map<String, Secret> replicateSecrets = replicateObjectStorage
+        .map(StackGresObjectStorage::getSpec)
+        .stream()
+        .flatMap(backupEnvVarFactory::streamStorageSecretReferences)
+        .map(secretKeySelector -> secretKeySelector.getName())
+        .collect(Collectors.groupingBy(Function.identity()))
+        .keySet()
+        .stream()
+        .map(name -> Tuple.tuple(
+            name,
+            secretFinder
+            .findByNameAndNamespace(name, clusterNamespace)
+            .orElseThrow(() -> new IllegalArgumentException(
+                "Secret " + name + " not found"))))
+        .collect(Collectors.toMap(Tuple2::v1, Tuple2::v2));
+
     final var userPasswordForBinding = getUserPasswordServiceBindingFromSecret(clusterNamespace,
         spec);
 
@@ -244,15 +296,17 @@ public class ClusterRequiredResourcesGenerator
         .source(cluster)
         .postgresConfig(pgConfig)
         .profile(profile)
-        .backupConfig(backupConfig)
-        .objectStorageConfig(objectStorage)
+        .objectStorage(backupStorageObject)
         .poolingConfig(pooling)
+        .backupSecrets(backupSecrets)
         .restoreBackup(restoreBackup)
+        .restoreSecrets(restoreSecrets)
+        .replicateSecrets(replicateSecrets)
         .prometheus(getPrometheus(cluster))
         .clusterBackupNamespaces(clusterBackupNamespaces)
         .databaseSecret(databaseSecret)
         .replicateCluster(replicateCluster)
-        .replicateObjectStorageConfig(replicateObjectStorageConfig)
+        .replicateObjectStorageConfig(replicateObjectStorage)
         .superuserUsername(credentials.superuserUsername)
         .superuserPassword(credentials.superuserPassword)
         .replicationUsername(credentials.replicationUsername)

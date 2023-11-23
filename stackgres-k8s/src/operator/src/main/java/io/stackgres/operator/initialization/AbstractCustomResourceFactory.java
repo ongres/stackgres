@@ -35,7 +35,7 @@ public abstract class AbstractCustomResourceFactory<T>
   public void init() {
     this.defaultValues = getDefaultPropertiesFile();
     this.installedNamespace = context.get(OperatorProperty.OPERATOR_NAMESPACE)
-        .orElseThrow(() -> new IllegalStateException("Operator not configured properly"));
+        .orElseThrow(() -> new IllegalArgumentException("Operator not configured properly"));
   }
 
   protected <S> S buildFromDefaults(Class<S> clazz) {

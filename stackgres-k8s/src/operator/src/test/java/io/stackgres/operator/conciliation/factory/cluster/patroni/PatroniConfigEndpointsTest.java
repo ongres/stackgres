@@ -30,13 +30,13 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StringUtil;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternal;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromStorage;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
 import io.stackgres.common.fixture.Fixtures;
@@ -64,7 +64,7 @@ class PatroniConfigEndpointsTest {
   private StackGresClusterContext context;
   private PatroniConfigEndpoints generator;
   private StackGresCluster cluster;
-  private StackGresBackupConfig backupConfig;
+  private StackGresObjectStorage objectStorage;
   private StackGresPostgresConfig postgresConfig;
 
   @BeforeEach
@@ -76,12 +76,12 @@ class PatroniConfigEndpointsTest {
         .put(StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     cluster.getSpec().setDistributedLogs(null);
     cluster.getSpec().getMetadata().getLabels().setServices(null);
-    backupConfig = Fixtures.backupConfig().loadDefault().get();
+    objectStorage = Fixtures.objectStorage().loadDefault().get();
     postgresConfig = Fixtures.postgresConfig().loadDefault().get();
     postgresConfig.setStatus(new StackGresPostgresConfigStatus());
     setDefaultParameters(postgresConfig);
 
-    lenient().when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
+    lenient().when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
     lenient().when(context.getPostgresConfig()).thenReturn(postgresConfig);
   }
 
@@ -93,7 +93,7 @@ class PatroniConfigEndpointsTest {
 
   @Test
   void getPostgresConfigValues_shouldConfigureBackupParametersIfArePresent() {
-    when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
+    when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
     when(context.getBackupStorage()).thenCallRealMethod();
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
     when(context.getSource()).thenReturn(cluster);
@@ -109,7 +109,7 @@ class PatroniConfigEndpointsTest {
 
   @Test
   void getPostgresRecoveryConfigValues_shouldConfigureBackupParametersIfArePresent() {
-    when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
+    when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
     when(context.getBackupStorage()).thenCallRealMethod();
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
     when(context.getSource()).thenReturn(cluster);
@@ -137,7 +137,7 @@ class PatroniConfigEndpointsTest {
 
   @Test
   void getPostgresConfigValues_shouldConfigurePgParameters() {
-    when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
+    when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
     when(context.getBackupStorage()).thenCallRealMethod();
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
     when(context.getSource()).thenReturn(cluster);
@@ -412,7 +412,7 @@ class PatroniConfigEndpointsTest {
   private Endpoints generateEndpoint() {
     when(context.getSource()).thenReturn(cluster);
     when(context.getCluster()).thenReturn(cluster);
-    when(context.getBackupConfig()).thenReturn(Optional.of(backupConfig));
+    when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
     when(context.getBackupStorage()).thenCallRealMethod();
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
 

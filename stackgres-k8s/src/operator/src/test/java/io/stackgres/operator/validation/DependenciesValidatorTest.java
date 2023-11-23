@@ -72,6 +72,10 @@ public abstract class DependenciesValidatorTest
     T review = getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt();
 
     StackGresClusterList clusterList = Fixtures.clusterList().loadDefault().get();
+    clusterList
+        .getItems()
+        .stream()
+        .forEach(cluster -> makeClusterDependant(cluster, review));
 
     when(resourceScanner.findResources(review.getRequest().getNamespace()))
         .thenReturn(Optional.of(clusterList.getItems()));
@@ -89,6 +93,8 @@ public abstract class DependenciesValidatorTest
   }
 
   protected abstract T getReview_givenAReviewDelete_itShouldFailIfAClusterDependsOnIt();
+
+  protected abstract void makeClusterDependant(StackGresCluster cluster, T review);
 
   @Test
   public void givenAReviewDelete_itShouldNotFailIfNoClusterDependsOnIt() throws ValidationFailed {

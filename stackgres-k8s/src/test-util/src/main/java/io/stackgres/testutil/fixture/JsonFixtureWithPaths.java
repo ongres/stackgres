@@ -387,6 +387,13 @@ public interface JsonFixtureWithPaths {
 
   String STACKGRES_OBJECT_STORAGE_DEFAULT_JSON = "stackgres/object_storage/default.json";
 
+  String STACKGRES_OBJECT_STORAGE_DTO_JSON = "stackgres/object_storage/dto.json";
+
+  String STACKGRES_OBJECT_STORAGE_GOOGLE_IDENTITY_CONFIG_JSON =
+      "stackgres/object_storage/google_identity_config.json";
+
+  String STACKGRES_OBJECT_STORAGE_LIST_JSON = "stackgres/object_storage/list.json";
+
   String STACKGRES_POOLING_CONFIG_ADMISSION_REVIEW_CREATE_JSON =
       "stackgres/pooling_config/admission_review/create.json";
 

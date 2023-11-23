@@ -11,7 +11,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.sundr.builder.annotations.Buildable;
 import jakarta.validation.Valid;
 
@@ -37,6 +36,9 @@ public class StackGresBackupStatus {
   private StackGresBackupInformation backupInformation;
 
   private Boolean tested;
+
+  @Valid
+  private StackGresBackupVolumeSnapshotStatus volumeSnapshot;
 
   public String getInternalName() {
     return internalName;
@@ -86,10 +88,18 @@ public class StackGresBackupStatus {
     this.backupInformation = backupInformation;
   }
 
+  public StackGresBackupVolumeSnapshotStatus getVolumeSnapshot() {
+    return volumeSnapshot;
+  }
+
+  public void setVolumeSnapshot(StackGresBackupVolumeSnapshotStatus volumeSnapshot) {
+    this.volumeSnapshot = volumeSnapshot;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(sgBackupConfig, backupInformation, backupPath, internalName, process,
-        tested);
+    return Objects.hash(backupInformation, backupPath, internalName, process, sgBackupConfig,
+        tested, volumeSnapshot);
   }
 
   @Override
@@ -101,11 +111,13 @@ public class StackGresBackupStatus {
       return false;
     }
     StackGresBackupStatus other = (StackGresBackupStatus) obj;
-    return Objects.equals(sgBackupConfig, other.sgBackupConfig)
-        && Objects.equals(backupInformation, other.backupInformation)
+    return Objects.equals(backupInformation, other.backupInformation)
         && Objects.equals(backupPath, other.backupPath)
         && Objects.equals(internalName, other.internalName)
-        && Objects.equals(process, other.process) && Objects.equals(tested, other.tested);
+        && Objects.equals(process, other.process)
+        && Objects.equals(sgBackupConfig, other.sgBackupConfig)
+        && Objects.equals(tested, other.tested)
+        && Objects.equals(volumeSnapshot, other.volumeSnapshot);
   }
 
   @Override

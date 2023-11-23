@@ -23,7 +23,6 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
@@ -50,8 +49,6 @@ public class BackupRequiredResourcesGenerator
 
   private final CustomResourceFinder<StackGresProfile> profileFinder;
 
-  private final CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
-
   private final CustomResourceScanner<StackGresBackup> backupScanner;
   private final CustomResourceFinder<StackGresObjectStorage> objectStorageFinder;
 
@@ -61,13 +58,11 @@ public class BackupRequiredResourcesGenerator
   public BackupRequiredResourcesGenerator(
       CustomResourceFinder<StackGresCluster> clusterFinder,
       CustomResourceFinder<StackGresProfile> profileFinder,
-      CustomResourceFinder<StackGresBackupConfig> backupConfigFinder,
       CustomResourceScanner<StackGresBackup> backupScanner,
       CustomResourceFinder<StackGresObjectStorage> objectStorageFinder,
       ResourceGenerationDiscoverer<StackGresBackupContext> discoverer) {
     this.clusterFinder = clusterFinder;
     this.profileFinder = profileFinder;
-    this.backupConfigFinder = backupConfigFinder;
     this.backupScanner = backupScanner;
     this.objectStorageFinder = objectStorageFinder;
     this.discoverer = discoverer;
@@ -106,20 +101,17 @@ public class BackupRequiredResourcesGenerator
           .map(StackGresCluster::getSpec)
           .map(StackGresClusterSpec::getConfigurations);
 
-      final Optional<String> sgBackupConfigurationName = specConfiguration
-          .map(StackGresClusterConfigurations::getSgBackupConfig);
-
       final Optional<String> sgObjectStorageName = specConfiguration
           .map(StackGresClusterConfigurations::getBackups)
           .map(Collection::stream)
           .flatMap(Stream::findFirst)
           .map(StackGresClusterBackupConfiguration::getSgObjectStorage);
 
-      if (sgObjectStorageName.isEmpty() && sgBackupConfigurationName.isEmpty()) {
+      if (sgObjectStorageName.isEmpty()) {
         throw new IllegalArgumentException(
             "SGBackup " + backupNamespace + "." + backupName
                 + " target SGCluster " + spec.getSgCluster()
-                + " without a SGObjectStorage or SGBackupConfig");
+                + " without an SGObjectStorage");
       }
 
       sgObjectStorageName.ifPresent(osName -> contextBuilder.objectStorage(
@@ -129,14 +121,6 @@ public class BackupRequiredResourcesGenerator
                       "SGBackup " + backupNamespace + "." + backupName
                           + " target SGCluster " + spec.getSgCluster()
                           + " with a non existent SGObjectStorage " + osName))));
-
-      sgBackupConfigurationName.ifPresent(bcName -> contextBuilder.backupConfig(
-          backupConfigFinder.findByNameAndNamespace(bcName, backupNamespace)
-              .orElseThrow(
-                  () -> new IllegalArgumentException(
-                      "SGBackup " + backupNamespace + "." + backupName
-                          + " target SGCluster " + spec.getSgCluster()
-                          + " with a non existent SGBackupConfig " + bcName))));
     }
 
     return discoverer.generateResources(contextBuilder.build());

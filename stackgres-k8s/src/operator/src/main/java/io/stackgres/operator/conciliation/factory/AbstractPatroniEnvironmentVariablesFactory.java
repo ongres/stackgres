@@ -65,7 +65,7 @@ public abstract class AbstractPatroniEnvironmentVariablesFactory<T>
             .build(),
         new EnvVarBuilder()
             .withName("PATRONI_RESTAPI_CONNECT_ADDRESS")
-            .withValue("${PATRONI_KUBERNETES_POD_IP}:" + EnvoyUtil.PATRONI_ENTRY_PORT)
+            .withValue("${PATRONI_KUBERNETES_POD_IP}:" + EnvoyUtil.PATRONI_PORT)
             .build(),
         new EnvVarBuilder()
             .withName("PATRONI_RESTAPI_USERNAME")

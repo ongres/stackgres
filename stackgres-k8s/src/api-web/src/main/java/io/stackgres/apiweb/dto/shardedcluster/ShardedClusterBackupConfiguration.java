@@ -9,7 +9,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.apiweb.dto.backupconfig.BaseBackupPerformance;
+import io.stackgres.apiweb.dto.backup.BaseBackupPerformance;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
@@ -27,6 +27,12 @@ public class ShardedClusterBackupConfiguration {
   private String sgObjectStorage;
 
   private List<String> paths;
+
+  private Boolean useVolumeSnapshot;
+
+  private String volumeSnapshotClass;
+
+  private Boolean fastVolumeSnapshot;
 
   public Integer getRetention() {
     return retention;
@@ -74,6 +80,30 @@ public class ShardedClusterBackupConfiguration {
 
   public void setPaths(List<String> paths) {
     this.paths = paths;
+  }
+
+  public Boolean getUseVolumeSnapshot() {
+    return useVolumeSnapshot;
+  }
+
+  public void setUseVolumeSnapshot(Boolean useVolumeSnapshot) {
+    this.useVolumeSnapshot = useVolumeSnapshot;
+  }
+
+  public String getVolumeSnapshotClass() {
+    return volumeSnapshotClass;
+  }
+
+  public void setVolumeSnapshotClass(String volumeSnapshotClass) {
+    this.volumeSnapshotClass = volumeSnapshotClass;
+  }
+
+  public Boolean getFastVolumeSnapshot() {
+    return fastVolumeSnapshot;
+  }
+
+  public void setFastVolumeSnapshot(Boolean fastVolumeSnapshot) {
+    this.fastVolumeSnapshot = fastVolumeSnapshot;
   }
 
   @Override

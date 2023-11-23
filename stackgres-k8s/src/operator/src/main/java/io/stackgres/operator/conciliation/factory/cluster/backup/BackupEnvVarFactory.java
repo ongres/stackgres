@@ -11,7 +11,7 @@ import java.util.Optional;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretKeySelector;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
+import io.stackgres.common.crd.sgbackup.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.storages.AwsCredentials;
 import io.stackgres.common.crd.storages.AwsS3CompatibleStorage;
 import io.stackgres.common.crd.storages.AwsS3Storage;
@@ -23,10 +23,8 @@ import io.stackgres.common.crd.storages.BackupStorage;
 import io.stackgres.common.crd.storages.GoogleCloudCredentials;
 import io.stackgres.common.crd.storages.GoogleCloudSecretKeySelector;
 import io.stackgres.common.crd.storages.GoogleCloudStorage;
-import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
@@ -38,23 +36,28 @@ public class BackupEnvVarFactory {
       "aws-s3-compatible-ca.crt";
   public static final String GCS_CREDENTIALS_FILE_NAME = "gcs-credentials.json";
 
-  private final ResourceFinder<Secret> secretFinder;
-
-  @Inject
-  public BackupEnvVarFactory(ResourceFinder<Secret> secretFinder) {
-    this.secretFinder = secretFinder;
-  }
-
   public Map<String, Map<String, String>> getStorageSecretReferences(
       String namespace,
-      StackGresBackupConfigSpec backupConfSpec) {
-    return getStorageSecretReferences(namespace, backupConfSpec.getStorage());
+      StackGresBackupConfigSpec backupConfSpec,
+      Map<String, Secret> secrets) {
+    return getStorageSecretReferences(namespace, backupConfSpec.getStorage(), secrets);
   }
 
-  public Map<String, Map<String, String>> getStorageSecretReferences(
+  private Map<String, Map<String, String>> getStorageSecretReferences(
       String namespace,
-      BackupStorage storage
-  ) {
+      BackupStorage storage,
+      Map<String, Secret> secrets) {
+    return streamStorageSecretReferences(storage)
+        .map(secretKeySelector -> Tuple.tuple(secretKeySelector,
+            getSecret(secrets, secretKeySelector)))
+        .grouped(t -> t.v1.getName())
+        .collect(ImmutableMap.toImmutableMap(
+            t -> t.v1, t -> t.v2
+                .collect(ImmutableMap.toImmutableMap(
+                    tt -> tt.v1.getKey(), tt -> tt.v2))));
+  }
+
+  public Seq<SecretKeySelector> streamStorageSecretReferences(BackupStorage storage) {
     return Seq.of(
             Optional.ofNullable(storage.getS3())
                 .map(AwsS3Storage::getAwsCredentials)
@@ -89,38 +92,38 @@ public class BackupEnvVarFactory {
                 .map(AzureBlobStorageCredentials::getSecretKeySelectors)
                 .map(AzureBlobSecretKeySelector::getAccessKey))
         .filter(Optional::isPresent)
-        .map(Optional::get)
-        .map(secretKeySelector -> Tuple.tuple(secretKeySelector,
-            getSecret(namespace, secretKeySelector)))
-        .grouped(t -> t.v1.getName())
-        .collect(ImmutableMap.toImmutableMap(
-            t -> t.v1, t -> t.v2
-                .collect(ImmutableMap.toImmutableMap(
-                    tt -> tt.v1.getKey(), tt -> tt.v2))));
+        .map(Optional::get);
   }
 
-  public Map<String, String> getSecretEnvVar(String namespace,
-      StackGresBackupConfigSpec backupConfigSpec) {
-    var secrets = getStorageSecretReferences(namespace, backupConfigSpec);
-    return getBackupSecrets(backupConfigSpec.getStorage(), secrets);
+  public Map<String, String> getSecretEnvVar(
+      String namespace,
+      StackGresBackupConfigSpec backupConfigSpec,
+      Map<String, Secret> secrets) {
+    var foundSecrets = getStorageSecretReferences(namespace, backupConfigSpec, secrets);
+    return getBackupSecrets(backupConfigSpec.getStorage(), foundSecrets);
   }
 
-  public Map<String, String> getSecretEnvVar(String namespace, BackupStorage storage) {
-    var secrets = getStorageSecretReferences(namespace, storage);
-    return getBackupSecrets(storage, secrets);
+  public Map<String, String> getSecretEnvVar(
+      String namespace,
+      BackupStorage storage,
+      Map<String, Secret> secrets) {
+    var foundSecrets = getStorageSecretReferences(namespace, storage, secrets);
+    return getBackupSecrets(storage, foundSecrets);
   }
 
-  private String getSecret(String namespace, SecretKeySelector secretKeySelector) {
-    return Optional.of(secretFinder.findByNameAndNamespace(secretKeySelector.getName(), namespace)
-            .orElseThrow(() -> new IllegalStateException(
-                "Secret " + namespace + "." + secretKeySelector.getName()
-                    + " not found")))
+  private String getSecret(
+      Map<String, Secret> secrets,
+      SecretKeySelector secretKeySelector) {
+    return Optional.of(
+        Optional.ofNullable(secrets.get(secretKeySelector.getName()))
+        .orElseThrow(() -> new IllegalArgumentException(
+            "Secret " + secretKeySelector.getName() + " not found")))
         .map(Secret::getData)
         .map(data -> data.get(secretKeySelector.getKey()))
         .map(ResourceUtil::decodeSecret)
-        .orElseThrow(() -> new IllegalStateException(
+        .orElseThrow(() -> new IllegalArgumentException(
             "Key " + secretKeySelector.getKey()
-                + " not found in secret " + namespace + "."
+                + " not found in secret "
                 + secretKeySelector.getName()));
   }
 
@@ -179,10 +182,10 @@ public class BackupEnvVarFactory {
                                                 Map<String, Map<String, String>> secrets) {
     return Tuple.tuple(envvar, Optional.ofNullable(secrets.get(secretKeySelector.getName()))
         .map(secret -> Optional.ofNullable(secret.get(secretKeySelector.getKey()))
-            .orElseThrow(() -> new IllegalStateException(
+            .orElseThrow(() -> new IllegalArgumentException(
                 "Key " + secretKeySelector.getKey() + " in secret "
                     + secretKeySelector.getName() + " not available")))
-        .orElseThrow(() -> new IllegalStateException(
+        .orElseThrow(() -> new IllegalArgumentException(
             "Secret " + secretKeySelector.getName() + " not available")));
   }
 }

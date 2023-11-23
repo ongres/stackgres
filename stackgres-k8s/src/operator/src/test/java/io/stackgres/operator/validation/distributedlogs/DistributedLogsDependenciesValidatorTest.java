@@ -6,6 +6,7 @@
 package io.stackgres.operator.validation.distributedlogs;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogsBuilder;
 import io.stackgres.operator.common.StackGresDistributedLogsReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.DependenciesValidatorTest;
@@ -52,6 +53,16 @@ class DistributedLogsDependenciesValidatorTest extends DependenciesValidatorTest
   protected StackGresDistributedLogsReview
       getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists() {
     return AdmissionReviewFixtures.distributedLogs().loadDelete().get();
+  }
+
+  @Override
+  protected void makeClusterDependant(
+      StackGresCluster cluster,
+      StackGresDistributedLogsReview review) {
+    cluster.getSpec().setDistributedLogs(
+        new StackGresClusterDistributedLogsBuilder()
+        .withSgDistributedLogs(review.getRequest().getName())
+        .build());
   }
 
   @Override

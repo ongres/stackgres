@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.cluster;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -59,8 +60,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -90,8 +92,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     assertException("Superuser username secret missing-test-secret was not found");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -121,8 +124,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     assertException("Superuser password secret missing-test-secret was not found");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -152,8 +156,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     assertException("Replication username secret missing-test-secret was not found");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -183,8 +188,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     assertException("Replication password secret missing-test-secret was not found");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -214,8 +220,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     assertException("Authenticator username secret missing-test-secret was not found");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -245,8 +252,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     assertException("Authenticator password secret missing-test-secret was not found");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -277,8 +285,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
     assertException("Superuser username key PATRONI_SUPERUSER_USERNAME"
         + " was not found in secret test-secret");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -309,8 +318,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
     assertException("Superuser password key PATRONI_SUPERUSER_PASSWORD"
         + " was not found in secret test-secret");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -341,8 +351,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
     assertException("Replication username key PATRONI_REPLICATION_USERNAME"
         + " was not found in secret test-secret");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -373,8 +384,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
     assertException("Replication password key PATRONI_REPLICATION_PASSWORD"
         + " was not found in secret test-secret");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -405,8 +417,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
     assertException("Authenticator username key PATRONI_authenticator_USERNAME"
         + " was not found in secret test-secret");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -437,8 +450,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
     assertException("Authenticator password key PATRONI_authenticator_PASSWORD"
         + " was not found in secret test-secret");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -470,8 +484,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     verify(clusterFinder).findByNameAndNamespace(
         cluster.getSpec().getReplicateFrom().getInstance().getSgCluster(), clusterNamespace);
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -503,10 +518,11 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     verify(clusterFinder).findByNameAndNamespace(
         cluster.getSpec().getReplicateFrom().getInstance().getSgCluster(), clusterNamespace);
-    verify(objectStorageFinder).findByNameAndNamespace(
+    verify(objectStorageFinder, times(2)).findByNameAndNamespace(
         any(), any());
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -538,8 +554,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
         + " for SGCluster test"
         + " to replicate from");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -570,8 +587,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
     assertException("Superuser username key PATRONI_SUPERUSER_USERNAME"
         + " was not found in secret test");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -602,8 +620,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
     assertException("Superuser password key PATRONI_SUPERUSER_PASSWORD"
         + " was not found in secret test");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -634,8 +653,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
     assertException("Replication username key PATRONI_REPLICATION_USERNAME"
         + " was not found in secret test");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -666,8 +686,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
     assertException("Replication password key PATRONI_REPLICATION_PASSWORD"
         + " was not found in secret test");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -698,8 +719,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
     assertException("Authenticator username key PATRONI_authenticator_USERNAME"
         + " was not found in secret test");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -730,8 +752,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
     assertException("Authenticator password key PATRONI_authenticator_PASSWORD"
         + " was not found in secret test");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -763,8 +786,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     verify(clusterFinder).findByNameAndNamespace(
         cluster.getSpec().getReplicateFrom().getInstance().getSgCluster(), clusterNamespace);
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -796,10 +820,11 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     verify(clusterFinder).findByNameAndNamespace(
         cluster.getSpec().getReplicateFrom().getInstance().getSgCluster(), clusterNamespace);
-    verify(objectStorageFinder).findByNameAndNamespace(
+    verify(objectStorageFinder, times(2)).findByNameAndNamespace(
         any(), any());
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -829,10 +854,11 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     generator.getRequiredResources(cluster);
 
-    verify(objectStorageFinder).findByNameAndNamespace(
+    verify(objectStorageFinder, times(2)).findByNameAndNamespace(
         any(), any());
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -862,10 +888,11 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     assertException("Can not find SGObjectStorage test to replicate from");
 
-    verify(objectStorageFinder).findByNameAndNamespace(
+    verify(objectStorageFinder, times(2)).findByNameAndNamespace(
         any(), any());
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -895,8 +922,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -926,8 +954,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     assertException("Superuser username secret missing-test-secret was not found");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -957,8 +986,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     assertException("Superuser password secret missing-test-secret was not found");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -988,8 +1018,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     assertException("Replication username secret missing-test-secret was not found");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -1019,8 +1050,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     assertException("Replication password secret missing-test-secret was not found");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -1050,8 +1082,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     assertException("Authenticator username secret missing-test-secret was not found");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -1081,8 +1114,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     assertException("Authenticator password secret missing-test-secret was not found");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -1113,8 +1147,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
     assertException("Superuser username key PATRONI_SUPERUSER_USERNAME"
         + " was not found in secret test-secret");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -1145,8 +1180,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
     assertException("Superuser password key PATRONI_SUPERUSER_PASSWORD"
         + " was not found in secret test-secret");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -1177,8 +1213,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
     assertException("Replication username key PATRONI_REPLICATION_USERNAME"
         + " was not found in secret test-secret");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -1209,8 +1246,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
     assertException("Replication password key PATRONI_REPLICATION_PASSWORD"
         + " was not found in secret test-secret");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -1241,8 +1279,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
     assertException("Authenticator username key PATRONI_authenticator_USERNAME"
         + " was not found in secret test-secret");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -1273,8 +1312,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
     assertException("Authenticator password key PATRONI_authenticator_PASSWORD"
         + " was not found in secret test-secret");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -1304,8 +1344,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -1335,8 +1376,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
 
     assertException("Patroni REST API password secret missing-test-secret was not found");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -1367,8 +1409,9 @@ class ClusterRequiredResourcesGeneratorForCredentialsTest
     assertException("Patroni REST API password key PATRONI_RESTAPI_PASSWORD"
         + " was not found in secret test-secret");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(

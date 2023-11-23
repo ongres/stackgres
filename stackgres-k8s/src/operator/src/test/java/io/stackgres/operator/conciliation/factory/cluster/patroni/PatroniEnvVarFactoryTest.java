@@ -76,7 +76,7 @@ class PatroniEnvVarFactoryTest {
   @Test
   void patroniRestApiConnectAddressEnvVar_shouldBeReturned() {
     EnvVar envVar = getEnvVar("PATRONI_RESTAPI_CONNECT_ADDRESS");
-    assertValue(envVar, "${PATRONI_KUBERNETES_POD_IP}:" + EnvoyUtil.PATRONI_ENTRY_PORT);
+    assertValue(envVar, "${PATRONI_KUBERNETES_POD_IP}:" + EnvoyUtil.PATRONI_PORT);
   }
 
   @Test

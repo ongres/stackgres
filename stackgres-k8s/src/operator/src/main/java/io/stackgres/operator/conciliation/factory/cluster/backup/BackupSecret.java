@@ -75,7 +75,8 @@ public class BackupSecret
 
     context.getBackupStorage().ifPresent(
         backupStorage -> data.putAll(
-            backupEnvVarFactory.getSecretEnvVar(namespace, backupStorage)
+            backupEnvVarFactory.getSecretEnvVar(namespace, backupStorage,
+                context.getBackupSecrets())
         ));
 
     return Optional.of(new SecretBuilder()

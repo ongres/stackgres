@@ -12,7 +12,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -162,10 +161,6 @@ public enum StackGresVersion {
 
   public static long getStackGresVersionAsNumber(StackGresPoolingConfig poolingConfig) {
     return getStackGresVersionFromResourceAsNumber(poolingConfig);
-  }
-
-  public static long getStackGresVersionAsNumber(StackGresBackupConfig backupConfig) {
-    return getStackGresVersionFromResourceAsNumber(backupConfig);
   }
 
   public static long getStackGresVersionAsNumber(StackGresObjectStorage objectStorage) {

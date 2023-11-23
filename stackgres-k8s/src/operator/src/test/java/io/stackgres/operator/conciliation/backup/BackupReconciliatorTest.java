@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.fixture.Fixtures;
@@ -54,8 +53,6 @@ class BackupReconciliatorTest {
   CustomResourceScheduler<StackGresBackup> backupScheduler;
   @Mock
   CustomResourceFinder<StackGresCluster> clusterFinder;
-  @Mock
-  CustomResourceFinder<StackGresBackupConfig> backupConfigFinder;
   @Mock
   BackupStatusManager statusManager;
 

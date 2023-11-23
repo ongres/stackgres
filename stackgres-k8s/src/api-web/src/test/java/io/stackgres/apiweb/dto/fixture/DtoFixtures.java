@@ -7,10 +7,6 @@ package io.stackgres.apiweb.dto.fixture;
 
 public interface DtoFixtures {
 
-  static BackupConfigDtoFixture backupConfig() {
-    return new BackupConfigDtoFixture();
-  }
-
   static BackupDtoFixture backup() {
     return new BackupDtoFixture();
   }
@@ -37,6 +33,10 @@ public interface DtoFixtures {
 
   static PostgresConfigDtoFixture postgresConfig() {
     return new PostgresConfigDtoFixture();
+  }
+
+  static ObjectStorageDtoFixture objectStorage() {
+    return new ObjectStorageDtoFixture();
   }
 
   static ScriptDtoFixture script() {

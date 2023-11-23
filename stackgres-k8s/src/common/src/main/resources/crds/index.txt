@@ -3,7 +3,6 @@ SGCluster.yaml
 SGInstanceProfile.yaml
 SGPostgresConfig.yaml
 SGPoolingConfig.yaml
-SGBackupConfig.yaml
 SGBackup.yaml
 SGDistributedLogs.yaml
 SGDbOps.yaml

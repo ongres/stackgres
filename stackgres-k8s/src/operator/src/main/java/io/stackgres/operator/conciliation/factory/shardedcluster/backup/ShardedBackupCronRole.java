@@ -20,7 +20,6 @@ import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -112,9 +111,7 @@ public class ShardedBackupCronRole implements ResourceGenerator<StackGresSharded
             .build())
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(CommonDefinition.GROUP)
-            .withResources(
-                HasMetadata.getPlural(StackGresBackupConfig.class),
-                HasMetadata.getPlural(StackGresObjectStorage.class))
+            .withResources(HasMetadata.getPlural(StackGresObjectStorage.class))
             .withVerbs("get")
             .build())
         .build();

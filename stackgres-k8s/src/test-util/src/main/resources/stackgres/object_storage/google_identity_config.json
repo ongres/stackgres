@@ -1,0 +1,15 @@
+{
+  "metadata":{
+    "name":"gcsfetch",
+    "namespace":"ongres"
+  },
+  "spec":{
+    "gcs":{
+      "bucket":"google",
+      "gcpCredentials":{
+        "fetchCredentialsFromMetadataService":true
+      }
+    },
+    "type":"gcs"
+  }
+}

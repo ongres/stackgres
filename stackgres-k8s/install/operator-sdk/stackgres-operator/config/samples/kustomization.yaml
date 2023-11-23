@@ -1,0 +1,16 @@
+## Append samples you want in your CSV to this file as resources ##
+resources:
+- SGConfig.yaml
+- SGCluster.yaml
+- SGInstanceProfile.yaml
+- SGPostgresConfig.yaml
+- SGPoolingConfig.yaml
+- SGBackup.yaml
+- SGDistributedLogs.yaml
+- SGDbOps.yaml
+- SGObjectStorage.yaml
+- SGScript.yaml
+- SGShardedCluster.yaml
+- SGShardedBackup.yaml
+- SGShardedDbOps.yaml
+#+kubebuilder:scaffold:manifestskustomizesamples

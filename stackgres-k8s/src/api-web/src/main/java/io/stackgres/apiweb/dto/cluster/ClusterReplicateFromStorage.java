@@ -8,7 +8,7 @@ package io.stackgres.apiweb.dto.cluster;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.apiweb.dto.backupconfig.BaseBackupPerformance;
+import io.stackgres.apiweb.dto.backup.BaseBackupPerformance;
 import io.stackgres.common.StackGresUtil;
 
 @JsonDeserialize

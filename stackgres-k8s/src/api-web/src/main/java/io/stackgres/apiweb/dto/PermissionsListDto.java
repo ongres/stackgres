@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.stackgres.apiweb.dto.PermissionsListDto.Namespaced;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection

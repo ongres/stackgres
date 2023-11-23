@@ -219,21 +219,21 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
       envoyConfig = (ObjectNode) yamlMapper
           .readTree(Envoy.class.getResource("/envoy/envoy.yaml"));
     } catch (Exception ex) {
-      throw new IllegalStateException("couldn't read envoy config file", ex);
+      throw new IllegalArgumentException("couldn't read envoy config file", ex);
     }
     final ObjectNode envoyConfigLds;
     try {
       envoyConfigLds = (ObjectNode) yamlMapper
           .readTree(Envoy.class.getResource("/envoy/envoy-lds.yaml"));
     } catch (Exception ex) {
-      throw new IllegalStateException("couldn't read envoy config file", ex);
+      throw new IllegalArgumentException("couldn't read envoy config file", ex);
     }
     final ObjectNode envoyConfigCds;
     try {
       envoyConfigCds = (ObjectNode) yamlMapper
           .readTree(Envoy.class.getResource("/envoy/envoy-cds.yaml"));
     } catch (Exception ex) {
-      throw new IllegalStateException("couldn't read envoy config file", ex);
+      throw new IllegalArgumentException("couldn't read envoy config file", ex);
     }
 
     Optional.of(envoyConfig.get("admin").get("address").get("socket_address"))
@@ -312,7 +312,7 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
           "envoy-cds.json",
           objectMapper.writeValueAsString(envoyConfigCds));
     } catch (Exception ex) {
-      throw new IllegalStateException("couldn't parse envoy config file", ex);
+      throw new IllegalArgumentException("couldn't parse envoy config file", ex);
     }
 
     String namespace = stackGresCluster.getMetadata().getNamespace();

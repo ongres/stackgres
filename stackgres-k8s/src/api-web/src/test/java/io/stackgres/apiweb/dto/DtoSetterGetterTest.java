@@ -5,7 +5,6 @@
 
 package io.stackgres.apiweb.dto;
 
-import io.stackgres.apiweb.dto.backupconfig.BackupConfigDto;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.configmap.ConfigMapDto;
 import io.stackgres.apiweb.dto.dbops.DbOpsDto;
@@ -30,7 +29,6 @@ class DtoSetterGetterTest extends SetterGetterTestCase {
       ProfileDto.class,
       PostgresConfigDto.class,
       PoolingConfigDto.class,
-      BackupConfigDto.class,
       ObjectStorageDto.class,
       DbOpsDto.class,
       DistributedLogsDto.class,

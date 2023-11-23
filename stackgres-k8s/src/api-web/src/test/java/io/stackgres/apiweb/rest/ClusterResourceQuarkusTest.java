@@ -25,8 +25,8 @@ import io.quarkus.test.kubernetes.client.KubernetesTestServer;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.restassured.http.ContentType;
 import io.stackgres.apiweb.dto.Metadata;
-import io.stackgres.apiweb.dto.backupconfig.BaseBackupPerformance;
-import io.stackgres.apiweb.dto.cluster.ClusterBackupsConfiguration;
+import io.stackgres.apiweb.dto.backup.BaseBackupPerformance;
+import io.stackgres.apiweb.dto.cluster.ClusterBackupConfiguration;
 import io.stackgres.apiweb.dto.cluster.ClusterConfigurations;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
@@ -327,7 +327,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
     spec.setConfigurations(new ClusterConfigurations());
     spec.getConfigurations().setBackups(new ArrayList<>());
 
-    ClusterBackupsConfiguration clusterBackupsConfiguration = new ClusterBackupsConfiguration();
+    ClusterBackupConfiguration clusterBackupsConfiguration = new ClusterBackupConfiguration();
     clusterBackupsConfiguration.setCompression("brotli");
     clusterBackupsConfiguration.setCronSchedule("100 8 10 10 10");
     clusterBackupsConfiguration.setRetention(10);

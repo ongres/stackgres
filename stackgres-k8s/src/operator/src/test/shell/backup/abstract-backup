@@ -86,16 +86,19 @@ EOF
     ("get $BACKUP_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_NAME -o name")
     return 1
     ;;
-    ("create -f - -o yaml")
+    ("create -f - -o json")
     ;;
     ("get $BACKUP_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_NAME --template={{ .status.sgBackupConfig.storage }}")
     echo test
     ;;
-    ("get pod -n $CLUSTER_NAMESPACE -l ${CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_PRIMARY_ROLE} -o name")
-    echo pod/test-0
+    ("get pod -n $CLUSTER_NAMESPACE -l ${CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_PRIMARY_ROLE} --template "*)
+    echo test-0
     ;;
-    ("get pod -n $CLUSTER_NAMESPACE -l ${CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_REPLICA_ROLE} -o name")
-    echo pod/test-1
+    ("get pod -n $CLUSTER_NAMESPACE -l ${CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_REPLICA_ROLE} --template "*)
+    echo test-1
+    ;;
+    ("get pod -n $CLUSTER_NAMESPACE test-0 --template "*)
+    echo test-0
     ;;
     ("patch $BACKUP_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_NAME --type json --patch "*)
     ;;
@@ -104,7 +107,7 @@ EOF
     ("get $BACKUP_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_NAME --template={{ .status.backupPath }}")
     echo test
     ;;
-    ("exec -i -n $CLUSTER_NAMESPACE pod/test-0 -c $PATRONI_CONTAINER_NAME -- sh -e"*)
+    ("exec -i -n $CLUSTER_NAMESPACE test-0 -c $PATRONI_CONTAINER_NAME -- sh -e"*)
     STDIN="$(cat)"
     case "$STDIN" in
       (*" wal-g backup-push "*)
@@ -117,7 +120,7 @@ EOF
       ;;
     esac
     ;;
-    ("exec -i -n $CLUSTER_NAMESPACE pod/test-1 -c $PATRONI_CONTAINER_NAME -- sh -e"*)
+    ("exec -i -n $CLUSTER_NAMESPACE test-1 -c $PATRONI_CONTAINER_NAME -- sh -e"*)
     STDIN="$(cat)"
     case "$STDIN" in
       (*" for each existing backup"*)
