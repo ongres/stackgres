@@ -7,8 +7,6 @@ package io.stackgres.operator.validation.pgconfig;
 
 import java.util.Map;
 
-import javax.inject.Singleton;
-
 import com.ongres.pgconfig.validator.GucValidator;
 import com.ongres.pgconfig.validator.PgParameter;
 import io.fabric8.kubernetes.api.model.Status;
@@ -22,6 +20,7 @@ import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import jakarta.inject.Singleton;
 
 @Singleton
 @ValidationType(ErrorType.PG_CONFIG_PARAMETER)

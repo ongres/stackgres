@@ -7,9 +7,6 @@ package io.stackgres.jobs.dbops.minorversionupgrade;
 
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -24,10 +21,13 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsMinorVersionUpgradeStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.jobs.dbops.AbstractRestartStateHandler;
+import io.stackgres.jobs.dbops.DbOpsExecutorService;
 import io.stackgres.jobs.dbops.StateHandler;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.PatroniApiHandler;
 import io.stackgres.jobs.dbops.clusterrestart.PatroniInformation;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 @StateHandler("minorVersionUpgrade")
@@ -35,6 +35,9 @@ public class MinorVersionUpgradeRestartStateHandler extends AbstractRestartState
 
   @Inject
   PatroniApiHandler patroniApi;
+
+  @Inject
+  DbOpsExecutorService executorService;
 
   private static String convertToPostgresVersion(Integer serverVersion) {
     int majorVersion = serverVersion / 10000;
@@ -44,16 +47,18 @@ public class MinorVersionUpgradeRestartStateHandler extends AbstractRestartState
   }
 
   private Uni<String> getTargetPostgresVersion(StackGresDbOps dbOps) {
-    return Uni.createFrom().item(dbOps.getSpec().getMinorVersionUpgrade().getPostgresVersion());
+    return executorService.itemAsync(
+        () -> dbOps.getSpec().getMinorVersionUpgrade().getPostgresVersion());
   }
 
   private Uni<String> getSourcePostgresVersion(StackGresCluster cluster) {
     String clusterName = cluster.getMetadata().getName();
     String namespace = cluster.getMetadata().getNamespace();
-    return Uni.createFrom().item(Optional.ofNullable(cluster.getStatus())
-        .map(StackGresClusterStatus::getDbOps)
-        .map(StackGresClusterDbOpsStatus::getMinorVersionUpgrade)
-        .map(StackGresClusterDbOpsMinorVersionUpgradeStatus::getSourcePostgresVersion))
+    return Uni.createFrom()
+        .item(Optional.ofNullable(cluster.getStatus())
+            .map(StackGresClusterStatus::getDbOps)
+            .map(StackGresClusterDbOpsStatus::getMinorVersionUpgrade)
+            .map(StackGresClusterDbOpsMinorVersionUpgradeStatus::getSourcePostgresVersion))
         .chain(sourcePostgresVersion -> {
           if (sourcePostgresVersion.isPresent()) {
             return Uni.createFrom().item(sourcePostgresVersion.get());

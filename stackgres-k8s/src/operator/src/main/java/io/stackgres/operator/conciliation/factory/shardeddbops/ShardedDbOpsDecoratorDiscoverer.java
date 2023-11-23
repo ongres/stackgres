@@ -5,14 +5,13 @@
 
 package io.stackgres.operator.conciliation.factory.shardeddbops;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-
 import io.stackgres.operator.conciliation.factory.AbstractDecoratorDiscoverer;
 import io.stackgres.operator.conciliation.factory.Decorator;
 import io.stackgres.operator.conciliation.shardeddbops.StackGresShardedDbOpsContext;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Any;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ShardedDbOpsDecoratorDiscoverer

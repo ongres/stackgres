@@ -8,13 +8,12 @@ package io.stackgres.operator.conciliation;
 import java.util.List;
 import java.util.function.Predicate;
 
-import javax.enterprise.inject.Instance;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.operator.conciliation.factory.Decorator;
 import io.stackgres.operator.conciliation.factory.DecoratorDiscoverer;
+import jakarta.enterprise.inject.Instance;
 
 public abstract class AbstractResourceDiscoverer<T extends GenerationContext<?>>
     extends AbstractDiscoverer<ResourceGenerator<T>>

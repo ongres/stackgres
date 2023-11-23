@@ -7,13 +7,12 @@ package io.stackgres.apiweb.resource;
 
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.apiweb.dto.event.EventDto;
 import io.stackgres.apiweb.transformer.EventMapper;
 import io.stackgres.common.resource.ResourceScanner;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class EventDtoScanner implements ResourceScanner<EventDto> {

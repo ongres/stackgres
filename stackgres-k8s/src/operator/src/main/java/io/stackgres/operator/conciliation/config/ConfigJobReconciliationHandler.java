@@ -5,9 +5,6 @@
 
 package io.stackgres.operator.conciliation.config;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
@@ -17,6 +14,8 @@ import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operator.conciliation.ReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
 import io.stackgres.operator.conciliation.ReplaceWhenUnprocessableJobReconciliationHandler;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ReconciliationScope(value = StackGresConfig.class, kind = "Job")
 @ApplicationScoped

@@ -13,24 +13,29 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Inject;
-
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ClusterFinder;
+import io.stackgres.common.resource.ConfigScanner;
 import io.stackgres.common.resource.ProfileConfigFinder;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 class DbOpsRequiredResourcesGeneratorTest {
+
+  @InjectMock
+  ConfigScanner configScanner;
 
   @InjectMock
   ClusterFinder clusterFinder;
@@ -41,12 +46,14 @@ class DbOpsRequiredResourcesGeneratorTest {
   @Inject
   DbOpsRequiredResourcesGenerator generator;
 
+  private StackGresConfig config;
   private StackGresDbOps dbOps;
   private StackGresCluster cluster;
   private StackGresProfile profile;
 
   @BeforeEach
   void setUp() {
+    config = Fixtures.config().loadDefault().get();
     dbOps = Fixtures.dbOps().loadRestart().get();
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL
@@ -61,6 +68,9 @@ class DbOpsRequiredResourcesGeneratorTest {
     final String dbOpsNamespace = dbOps.getMetadata().getNamespace();
     final String clusterName = dbOps.getSpec().getSgCluster();
     final String profileName = cluster.getSpec().getSgInstanceProfile();
+
+    when(configScanner.findResources())
+        .thenReturn(Optional.of(List.of(config)));
 
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
@@ -82,6 +92,9 @@ class DbOpsRequiredResourcesGeneratorTest {
     final String dbOpsName = dbOps.getMetadata().getName();
     final String clusterName = dbOps.getSpec().getSgCluster();
 
+    when(configScanner.findResources())
+        .thenReturn(Optional.of(List.of(config)));
+
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.empty());
 
@@ -99,6 +112,9 @@ class DbOpsRequiredResourcesGeneratorTest {
     final String dbOpsName = dbOps.getMetadata().getName();
     final String clusterName = dbOps.getSpec().getSgCluster();
     final String profileName = cluster.getSpec().getSgInstanceProfile();
+
+    when(configScanner.findResources())
+        .thenReturn(Optional.of(List.of(config)));
 
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));

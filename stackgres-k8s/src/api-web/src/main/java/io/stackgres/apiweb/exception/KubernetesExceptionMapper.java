@@ -9,10 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
-
 import com.fasterxml.jackson.core.io.JsonStringEncoder;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusCause;
@@ -20,6 +16,9 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.apiweb.rest.utils.Kubernetes16StatusParser;
 import io.stackgres.apiweb.rest.utils.StatusParser;
 import io.stackgres.common.ErrorType;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.ExceptionMapper;
 import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,7 +101,7 @@ public class KubernetesExceptionMapper implements ExceptionMapper<KubernetesClie
           .entity(response).build();
     }
 
-    if (status.getCode() == javax.ws.rs.core.Response.Status.FORBIDDEN.getStatusCode()) {
+    if (status.getCode() == jakarta.ws.rs.core.Response.Status.FORBIDDEN.getStatusCode()) {
       LOGGER.debug("Kubernetes responded with FORBIDDEN status. Parsing response");
       String type = ErrorType.getErrorTypeUri(ErrorType.FORBIDDEN_AUTHORIZATION);
       String title = ErrorType.FORBIDDEN_AUTHORIZATION.getTitle();

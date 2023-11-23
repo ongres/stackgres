@@ -7,38 +7,37 @@ package io.stackgres.jobs.dbops.clusterrestart;
 
 import java.time.Duration;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.Pod;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.resource.ResourceWriter;
+import io.stackgres.jobs.dbops.DbOpsExecutorService;
 import io.stackgres.jobs.dbops.MutinyUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class PodRestart {
 
-  private final ResourceWriter<Pod> podWriter;
-
-  private final PodWatcher podWatcher;
+  @Inject
+  ResourceWriter<Pod> podWriter;
 
   @Inject
-  public PodRestart(ResourceWriter<Pod> podWriter, PodWatcher podWatcher) {
-    this.podWriter = podWriter;
-    this.podWatcher = podWatcher;
-  }
+  PodWatcher podWatcher;
+
+  @Inject
+  DbOpsExecutorService executorService;
 
   public Uni<Pod> restartPod(String name, Pod pod) {
     String podName = pod.getMetadata().getName();
     String podNamespace = pod.getMetadata().getNamespace();
 
     return podWatcher.waitUntilIsCreated(podName, podNamespace)
-        .onItem()
-        .invoke(podWriter::delete)
-        .chain(podWatcher::waitUntilIsReplaced)
+        .chain(() -> executorService.invokeAsync(() -> podWriter.delete(pod)))
+        .chain(() -> podWatcher.waitUntilIsReplaced(pod))
         .chain(() -> podWatcher.waitUntilIsReady(name, podName, podNamespace, true))
         .onFailure(StatefulSetChangedException.class::isInstance)
-        .retry().indefinitely()
+        .retry()
+        .indefinitely()
         .onFailure()
         .transform(ex -> MutinyUtil.logOnFailureToRetry(ex,
             "restarting pod {}", pod.getMetadata().getName()))

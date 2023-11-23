@@ -7,8 +7,6 @@ package io.stackgres.jobs.dbops.clusterrestart;
 
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.crd.sgcluster.ClusterDbOpsRestartStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -24,6 +22,7 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.jobs.dbops.AbstractRestartStateHandler;
 import io.stackgres.jobs.dbops.StateHandler;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 @StateHandler("restart")

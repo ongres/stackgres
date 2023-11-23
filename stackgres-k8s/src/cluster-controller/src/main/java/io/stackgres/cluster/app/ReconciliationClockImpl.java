@@ -5,11 +5,10 @@
 
 package io.stackgres.cluster.app;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.stackgres.cluster.controller.ClusterControllerReconciliationCycle;
 import io.stackgres.common.app.AbstractReconciliationClock;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ReconciliationClockImpl extends AbstractReconciliationClock {

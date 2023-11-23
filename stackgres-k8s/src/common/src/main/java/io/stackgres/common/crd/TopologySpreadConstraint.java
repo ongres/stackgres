@@ -22,7 +22,8 @@ import io.sundr.builder.annotations.BuildableReference;
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder",
     refs = {
-        @BuildableReference(io.fabric8.kubernetes.api.model.TopologySpreadConstraint.class)
+        @BuildableReference(io.fabric8.kubernetes.api.model.TopologySpreadConstraint.class),
+        @BuildableReference(io.fabric8.kubernetes.api.model.LabelSelector.class),
     })
 @SuppressFBWarnings(value = "NM_SAME_SIMPLE_NAME_AS_SUPERCLASS",
     justification = "Intentional name shadowing")

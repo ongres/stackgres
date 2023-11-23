@@ -12,8 +12,6 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.quarkus.test.junit.mockito.InjectMock;
@@ -43,6 +41,7 @@ import io.stackgres.common.resource.SecretFinder;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
 import io.stackgres.operator.resource.PrometheusScanner;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 
 abstract class AbstractClusterRequiredResourcesGeneratorTest {

@@ -7,9 +7,6 @@ package io.stackgres.cluster.controller;
 
 import java.util.function.Consumer;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.stackgres.cluster.common.ExtensionEventReason;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -17,6 +14,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.extension.ExtensionEventEmitter;
 import io.stackgres.common.resource.CustomResourceFinder;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class ExtensionEventEmitterImpl implements ExtensionEventEmitter {

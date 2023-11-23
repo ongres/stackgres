@@ -8,15 +8,9 @@ package io.stackgres.jobs.dbops.clusterrestart;
 import static java.lang.String.format;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
@@ -24,7 +18,10 @@ import io.stackgres.common.ClusterPendingRestartUtil.RestartReason;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
+import io.stackgres.jobs.dbops.DbOpsExecutorService;
 import io.stackgres.jobs.dbops.MutinyUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,39 +30,28 @@ public class ClusterRestart {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ClusterRestart.class);
 
-  private final PodRestart podRestart;
-
-  private final ClusterSwitchoverHandler switchoverHandler;
-
-  private final ClusterInstanceManager clusterInstanceManager;
-
-  private final ClusterWatcher clusterWatcher;
-
-  private final PostgresRestart postgresRestart;
-
-  private final ExecutorService restartExecutor;
+  @Inject
+  PodRestart podRestart;
 
   @Inject
-  public ClusterRestart(PodRestart podRestart,
-      ClusterSwitchoverHandler switchoverHandler,
-      ClusterInstanceManager clusterInstanceManager,
-      ClusterWatcher clusterWatcher,
-      PostgresRestart postgresRestart) {
-    this.podRestart = podRestart;
-    this.switchoverHandler = switchoverHandler;
-    this.clusterInstanceManager = clusterInstanceManager;
-    this.clusterWatcher = clusterWatcher;
-    this.postgresRestart = postgresRestart;
-    this.restartExecutor = Executors.newSingleThreadExecutor(
-        new ThreadFactoryBuilder()
-        .setNameFormat("restart-executor-%d")
-        .build());
-  }
+  ClusterSwitchoverHandler switchoverHandler;
+
+  @Inject
+  ClusterInstanceManager clusterInstanceManager;
+
+  @Inject
+  ClusterWatcher clusterWatcher;
+
+  @Inject
+  PostgresRestart postgresRestart;
+
+  @Inject
+  DbOpsExecutorService executorService;
 
   public Multi<RestartEvent> restartCluster(ClusterRestartState clusterRestartState) {
     return Multi.createFrom()
         .<RestartEvent>emitter(em -> Uni.createFrom().voidItem()
-            .emitOn(restartExecutor)
+            .emitOn(executorService.getExecutorService())
             .chain(() -> restartCluster(clusterRestartState, em::emit)
                 .onItem()
                 .invoke(em::complete)
@@ -75,7 +61,8 @@ public class ClusterRestart {
             .indefinitely());
   }
 
-  private Uni<Object> restartCluster(ClusterRestartState clusterRestartState,
+  private Uni<Object> restartCluster(
+      ClusterRestartState clusterRestartState,
       Consumer<RestartEvent> em) {
     em.accept(ImmutableRestartEventInstance.builder()
         .message(String.format("Checking if primary instance %s is available",
@@ -123,7 +110,8 @@ public class ClusterRestart {
         });
   }
 
-  private Uni<?> restartPostgres(ClusterRestartState clusterRestartState,
+  private Uni<?> restartPostgres(
+      ClusterRestartState clusterRestartState,
       Consumer<RestartEvent> em) {
     if (clusterRestartState.getRestartedInstances().isEmpty()
         && clusterRestartState.hasToBeRestarted(clusterRestartState.getPrimaryInstance())) {
@@ -136,7 +124,7 @@ public class ClusterRestart {
                 .eventType(RestartEventType.RESTARTING_POSTGRES)
                 .build());
           })
-          .chain((a) -> postgresRestart.restartPostgres(
+          .chain(ignored -> postgresRestart.restartPostgres(
               clusterRestartState.getPrimaryInstance().getMetadata().getName(),
               clusterRestartState.getClusterName(),
               clusterRestartState.getNamespace()))
@@ -152,8 +140,10 @@ public class ClusterRestart {
     return Uni.createFrom().voidItem();
   }
 
-  private void checkPostgresRestart(ClusterRestartState clusterRestartState,
-      Consumer<RestartEvent> em, Throwable failure) {
+  private void checkPostgresRestart(
+      ClusterRestartState clusterRestartState,
+      Consumer<RestartEvent> em,
+      Throwable failure) {
     if (failure == null) {
       em.accept(ImmutableRestartEventInstance.builder()
           .message(String.format("Restart of instance %s completed",
@@ -170,7 +160,8 @@ public class ClusterRestart {
     }
   }
 
-  private Uni<?> increaseClusterInstance(ClusterRestartState clusterRestartState,
+  private Uni<?> increaseClusterInstance(
+      ClusterRestartState clusterRestartState,
       Consumer<RestartEvent> em) {
     if (isReducedImpact(clusterRestartState)
         && hasInstancesNotBeenIncreased(clusterRestartState)) {
@@ -185,7 +176,8 @@ public class ClusterRestart {
           .chain(() -> clusterInstanceManager.increaseClusterInstances(
               clusterRestartState.getClusterName(),
               clusterRestartState.getNamespace()))
-          .onItem().invoke((createdPod) -> {
+          .onItem()
+          .invoke((createdPod) -> {
             em.accept(ImmutableRestartEventInstance.builder()
                 .message(String.format("Instances of cluster increased, Pod %s created",
                     createdPod.getMetadata().getName()))
@@ -198,7 +190,8 @@ public class ClusterRestart {
     return Uni.createFrom().voidItem();
   }
 
-  private Uni<?> restartPodOfReplicas(ClusterRestartState clusterRestartState,
+  private Uni<?> restartPodOfReplicas(
+      ClusterRestartState clusterRestartState,
       Consumer<RestartEvent> em) {
     List<Pod> replicas = clusterRestartState.getInitialInstances().stream()
         .filter(pod -> !clusterRestartState.getPrimaryInstance().equals(pod))
@@ -237,7 +230,8 @@ public class ClusterRestart {
     return restartReplicas;
   }
 
-  private Uni<?> performSwitchover(ClusterRestartState clusterRestartState,
+  private Uni<?> performSwitchover(
+      ClusterRestartState clusterRestartState,
       Consumer<RestartEvent> em) {
     if (!clusterRestartState.isSwitchoverFinalized()
         && clusterRestartState.hasToBeRestarted(clusterRestartState.getPrimaryInstance())) {
@@ -262,7 +256,8 @@ public class ClusterRestart {
     return Uni.createFrom().nullItem();
   }
 
-  private Uni<?> restartPodOfPrimaryInstance(ClusterRestartState clusterRestartState,
+  private Uni<?> restartPodOfPrimaryInstance(
+      ClusterRestartState clusterRestartState,
       Consumer<RestartEvent> em) {
     if (clusterRestartState.hasToBeRestarted(clusterRestartState.getPrimaryInstance())) {
       return Uni.createFrom().voidItem()
@@ -292,7 +287,8 @@ public class ClusterRestart {
     return Uni.createFrom().voidItem();
   }
 
-  private Uni<?> decreaseClusterInstance(ClusterRestartState clusterRestartState,
+  private Uni<?> decreaseClusterInstance(
+      ClusterRestartState clusterRestartState,
       Consumer<RestartEvent> em) {
     if (isReducedImpact(clusterRestartState)
         && hasInstancesNotBeenDecreased(clusterRestartState)) {

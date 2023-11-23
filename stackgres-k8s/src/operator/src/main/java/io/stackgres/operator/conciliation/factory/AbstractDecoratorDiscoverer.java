@@ -8,13 +8,12 @@ package io.stackgres.operator.conciliation.factory;
 import java.util.List;
 import java.util.function.Predicate;
 
-import javax.enterprise.inject.Instance;
-
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.operator.conciliation.AbstractDiscoverer;
 import io.stackgres.operator.conciliation.GenerationContext;
 import io.stackgres.operator.conciliation.KubernetesVersionBinder;
+import jakarta.enterprise.inject.Instance;
 
 public abstract class AbstractDecoratorDiscoverer<T extends GenerationContext<?>>
     extends AbstractDiscoverer<Decorator<T>>

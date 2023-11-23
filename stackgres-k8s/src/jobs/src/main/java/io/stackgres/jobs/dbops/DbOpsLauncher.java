@@ -13,11 +13,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Any;
-import javax.enterprise.inject.Instance;
-import javax.inject.Inject;
-
 import io.smallrye.mutiny.TimeoutException;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
@@ -32,6 +27,10 @@ import io.stackgres.jobs.app.JobsProperty;
 import io.stackgres.jobs.dbops.lock.ImmutableLockRequest;
 import io.stackgres.jobs.dbops.lock.LockAcquirer;
 import io.stackgres.jobs.dbops.lock.LockRequest;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Any;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +57,9 @@ public class DbOpsLauncher {
 
   @Inject
   DatabaseOperationEventEmitter databaseOperationEventEmitter;
+
+  @Inject
+  DbOpsExecutorService executorService;
 
   public void launchDbOp(String dbOpName, String namespace) {
     StackGresDbOps dbOps = dbOpsFinder.findByNameAndNamespace(dbOpName, namespace)
@@ -102,6 +104,7 @@ public class DbOpsLauncher {
             namespace)
             .orElseThrow(() -> new IllegalArgumentException(StackGresCluster.KIND + " "
                 + dbOps.getSpec().getSgCluster() + " does not exists in namespace " + namespace));
+
         var dbOpsUni =
             lockAcquirer.lockRun(lockRequest, Uni.createFrom().voidItem()
                 .invoke(() -> databaseOperationEventEmitter
@@ -110,7 +113,7 @@ public class DbOpsLauncher {
                     .runJob(initializedDbOps, cluster))
                 .invoke(() -> databaseOperationEventEmitter
                     .operationCompleted(dbOpName, namespace)))
-            .runSubscriptionOn(Infrastructure.getDefaultWorkerPool());
+            .runSubscriptionOn(executorService.getExecutorService());
         Optional.ofNullable(initializedDbOps.getSpec().getTimeout())
             .map(Duration::parse)
             .ifPresentOrElse(
@@ -140,7 +143,8 @@ public class DbOpsLauncher {
   }
 
   private void updateToConditions(String dbOpName, String namespace, List<Condition> conditions) {
-    Uni.createFrom().item(() -> dbOpsFinder.findByNameAndNamespace(dbOpName, namespace)
+    Uni.createFrom()
+        .item(() -> dbOpsFinder.findByNameAndNamespace(dbOpName, namespace)
             .orElseThrow())
         .invoke(currentDbOps -> currentDbOps.getStatus().setConditions(conditions))
         .invoke(dbOpsScheduler::update)

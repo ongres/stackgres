@@ -5,9 +5,6 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
@@ -20,6 +17,8 @@ import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operator.conciliation.AbstractStatefulSetReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationHandler;
 import io.stackgres.operator.conciliation.ReconciliationScope;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ReconciliationScope(value = StackGresCluster.class, kind = "StatefulSet")
 @ApplicationScoped

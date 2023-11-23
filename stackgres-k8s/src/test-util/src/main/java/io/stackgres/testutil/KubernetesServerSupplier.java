@@ -122,6 +122,9 @@ public class KubernetesServerSupplier implements Supplier<KubernetesServer> {
       try {
         return method.invoke(client, args);
       } catch (Exception ex) {
+        if (ex instanceof InterruptedException) {
+          Thread.currentThread().interrupt();
+        }
         if (ex.getCause() != null) {
           throw ex.getCause();
         } else {

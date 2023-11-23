@@ -8,10 +8,6 @@ package io.stackgres.operator.validation;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
-import javax.validation.ConstraintViolation;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
@@ -22,11 +18,14 @@ import io.stackgres.common.validation.ValidationUtil;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import io.stackgres.operatorframework.admissionwebhook.validating.Validator;
+import jakarta.annotation.PostConstruct;
+import jakarta.inject.Inject;
+import jakarta.validation.ConstraintViolation;
 
 public abstract class AbstractConstraintValidator<T extends AdmissionReview<?>>
     implements Validator<T> {
 
-  private javax.validation.Validator constraintValidator;
+  private jakarta.validation.Validator constraintValidator;
 
   private String constraintViolationDocumentationUri;
 
@@ -78,7 +77,7 @@ public abstract class AbstractConstraintValidator<T extends AdmissionReview<?>>
   }
 
   @Inject
-  public void setConstraintValidator(javax.validation.Validator constraintValidator) {
+  public void setConstraintValidator(jakarta.validation.Validator constraintValidator) {
     this.constraintValidator = constraintValidator;
   }
 }

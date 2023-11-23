@@ -5,9 +5,6 @@
 
 package io.stackgres.apiweb.rest;
 
-import javax.enterprise.context.RequestScoped;
-import javax.ws.rs.Path;
-
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.config.ConfigDto;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
@@ -15,6 +12,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.ws.rs.Path;
 
 @Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgconfigs")
 @RequestScoped

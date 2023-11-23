@@ -7,14 +7,13 @@ package io.stackgres.operator.initialization;
 
 import java.util.Properties;
 
-import javax.annotation.PostConstruct;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresPropertyContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
+import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class DefaultClusterRestoreFactory

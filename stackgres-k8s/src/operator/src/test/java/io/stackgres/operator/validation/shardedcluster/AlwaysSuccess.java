@@ -5,9 +5,8 @@
 
 package io.stackgres.operator.validation.shardedcluster;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.operator.common.StackGresShardedClusterReview;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class AlwaysSuccess implements ShardedClusterValidator {

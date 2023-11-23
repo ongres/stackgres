@@ -5,10 +5,9 @@
 
 package io.stackgres.operator.common;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.fabric8.kubernetes.api.model.Service;
 import io.stackgres.common.event.AbstractEventEmitter;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class OperatorEventEmitter extends AbstractEventEmitter<Service> {

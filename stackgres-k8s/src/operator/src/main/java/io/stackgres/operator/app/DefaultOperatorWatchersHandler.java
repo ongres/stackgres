@@ -14,9 +14,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsList;
@@ -64,6 +61,8 @@ import io.stackgres.operator.conciliation.shardedbackup.ShardedBackupReconciliat
 import io.stackgres.operator.conciliation.shardedcluster.ShardedClusterReconciliator;
 import io.stackgres.operator.conciliation.shardeddbops.ShardedDbOpsReconciliator;
 import io.stackgres.operatorframework.resource.WatcherMonitor;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped

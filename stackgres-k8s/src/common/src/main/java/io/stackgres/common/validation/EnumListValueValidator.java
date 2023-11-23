@@ -7,8 +7,8 @@ package io.stackgres.common.validation;
 
 import java.util.List;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class EnumListValueValidator implements ConstraintValidator<ValidEnumList, List<String>> {
   private ValidEnumList annotation;

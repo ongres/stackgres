@@ -26,6 +26,7 @@ import io.sundr.builder.annotations.BuildableReference;
     refs = {
         @BuildableReference(io.fabric8.kubernetes.api.model.ServiceSpec.class),
         @BuildableReference(io.fabric8.kubernetes.api.model.ServicePort.class),
+        @BuildableReference(io.fabric8.kubernetes.api.model.SessionAffinityConfig.class),
     })
 @SuppressFBWarnings(value = "NM_SAME_SIMPLE_NAME_AS_SUPERCLASS",
     justification = "Intentional name shadowing")

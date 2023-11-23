@@ -7,8 +7,6 @@ package io.stackgres.operator.conciliation.factory.cluster;
 
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
@@ -17,6 +15,7 @@ import io.stackgres.common.ClusterEnvVar;
 import io.stackgres.common.ClusterPath;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.operator.conciliation.factory.VolumeMountsProvider;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class RestoreVolumeMounts implements VolumeMountsProvider<ClusterContainerContext> {

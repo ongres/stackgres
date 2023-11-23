@@ -13,12 +13,11 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.enterprise.inject.Instance;
-
 import com.google.common.base.Predicates;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.StackGresVersion;
+import jakarta.enterprise.inject.Instance;
 
 public abstract class AbstractDiscoverer<T>
     implements AnnotationFinder {

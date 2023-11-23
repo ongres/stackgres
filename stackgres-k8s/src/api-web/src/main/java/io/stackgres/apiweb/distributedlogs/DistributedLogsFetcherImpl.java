@@ -15,10 +15,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.ws.rs.NotFoundException;
-
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
@@ -31,6 +27,9 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.postgres.PostgresConnectionManager;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.NotFoundException;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.Select;
@@ -58,8 +57,8 @@ public class DistributedLogsFetcherImpl implements DistributedLogsFetcher {
 
   @Override
   public List<ClusterLogEntryDto> logs(DistributedLogsQueryParameters parameters) {
-    try (Connection connection = getConnection(parameters.getCluster());
-        DSLContext context = DSL.using(connection)) {
+    try (Connection connection = getConnection(parameters.getCluster())) {
+      DSLContext context = DSL.using(connection);
       connection.setTransactionIsolation(Connection.TRANSACTION_REPEATABLE_READ);
       connection.setReadOnly(true);
       connection.setAutoCommit(true);

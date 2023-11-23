@@ -8,13 +8,13 @@ package io.stackgres.jobs.dbops.clusterrestart;
 import java.time.Duration;
 import java.util.Optional;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.google.common.base.Predicates;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.RetryUtil;
+import io.stackgres.jobs.dbops.DbOpsExecutorService;
 import io.stackgres.jobs.dbops.MutinyUtil;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,14 +23,13 @@ public class PostgresRestart {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresRestart.class);
 
-  private final PatroniApiHandler patroniApi;
+  @Inject
+  PatroniApiHandler patroniApi;
 
   @Inject
-  public PostgresRestart(PatroniApiHandler patroniApi) {
-    this.patroniApi = patroniApi;
-  }
+  DbOpsExecutorService executorService;
 
-  public Uni<Void> restartPostgres(String memberName, String clusterName, String namespace) {
+  public Uni<Object> restartPostgres(String memberName, String clusterName, String namespace) {
     return restartPostgresWithoutRetry(memberName, clusterName, namespace)
         .onFailure()
         .transform(MutinyUtil.logOnFailureToRetry(
@@ -41,7 +40,7 @@ public class PostgresRestart {
         .atMost(10);
   }
 
-  Uni<Void> restartPostgresWithoutRetry(String memberName, String clusterName, String namespace) {
+  Uni<Object> restartPostgresWithoutRetry(String memberName, String clusterName, String namespace) {
     return patroniApi.getClusterMembers(clusterName, namespace)
         .onItem()
         .transform(members -> members.stream()
@@ -50,11 +49,11 @@ public class PostgresRestart {
         .chain(this::restartOrWaitUntilNoPendingRestart);
   }
 
-  private Uni<Void> restartOrWaitUntilNoPendingRestart(ClusterMember member) {
+  private Uni<Object> restartOrWaitUntilNoPendingRestart(ClusterMember member) {
     return restartOrWaitUntilNoPendingRestart(member, 0, Optional.empty());
   }
 
-  private Uni<Void> restartOrWaitUntilNoPendingRestart(
+  private Uni<Object> restartOrWaitUntilNoPendingRestart(
       ClusterMember member, int retry, Optional<Throwable> restartThrowable) {
     return patroniApi.getClusterMemberPatroniInformation(member)
         .chain(patroniInformation -> {
@@ -77,7 +76,8 @@ public class PostgresRestart {
           }
           if (patroniInformation.isPendingRestart()) {
             if (restartThrowable.isPresent()) {
-              return Uni.createFrom().failure(restartThrowable.orElseThrow());
+              return Uni.createFrom()
+                  .failure(restartThrowable.orElseThrow());
             }
             return patroniApi.restartPostgres(member)
                 .onFailure()

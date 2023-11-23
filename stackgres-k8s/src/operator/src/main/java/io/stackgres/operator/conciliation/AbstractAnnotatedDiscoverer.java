@@ -7,10 +7,9 @@ package io.stackgres.operator.conciliation;
 
 import java.lang.annotation.Annotation;
 
-import javax.enterprise.inject.Instance;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.CdiUtil;
+import jakarta.enterprise.inject.Instance;
 
 public abstract class AbstractAnnotatedDiscoverer<
       T, A extends Annotation>

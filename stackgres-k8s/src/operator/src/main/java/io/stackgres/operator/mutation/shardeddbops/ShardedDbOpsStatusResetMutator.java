@@ -5,11 +5,10 @@
 
 package io.stackgres.operator.mutation.shardeddbops;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.operator.common.ShardedDbOpsReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class ShardedDbOpsStatusResetMutator implements ShardedDbOpsMutator {

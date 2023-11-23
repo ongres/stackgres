@@ -32,6 +32,7 @@ public abstract class AbstractReconciliationHandler<T extends CustomResource<?, 
 
   @Override
   public HasMetadata create(T context, HasMetadata resource) {
+    resource.getMetadata().setManagedFields(null);
     return client.resource(resource)
         .patch(new PatchContext.Builder()
             .withPatchType(PatchType.SERVER_SIDE_APPLY)
@@ -43,6 +44,7 @@ public abstract class AbstractReconciliationHandler<T extends CustomResource<?, 
 
   @Override
   public HasMetadata patch(T context, HasMetadata resource, HasMetadata oldResource) {
+    resource.getMetadata().setManagedFields(null);
     return client.resource(resource)
         .patch(new PatchContext.Builder()
             .withPatchType(PatchType.SERVER_SIDE_APPLY)
@@ -63,7 +65,7 @@ public abstract class AbstractReconciliationHandler<T extends CustomResource<?, 
   public HasMetadata replace(T context, HasMetadata resource) {
     return client.resource(resource)
         .lockResourceVersion(resource.getMetadata().getResourceVersion())
-        .replace();
+        .update();
   }
 
   @Override

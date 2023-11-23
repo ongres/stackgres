@@ -10,9 +10,6 @@ import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.g
 import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
 import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
@@ -30,6 +27,8 @@ import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.validation.AbstractExtensionsValidator;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 @Singleton
 public class ExtensionsValidator

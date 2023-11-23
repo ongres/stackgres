@@ -9,12 +9,11 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.enterprise.inject.Instance;
-
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.StackGresGroupKind;
 import io.stackgres.operator.conciliation.AbstractDiscoverer;
 import io.stackgres.operator.conciliation.GenerationContext;
+import jakarta.enterprise.inject.Instance;
 
 public abstract class AbstractVolumeDiscoverer<T extends GenerationContext<?>>
     extends AbstractDiscoverer<VolumeFactory<T>>

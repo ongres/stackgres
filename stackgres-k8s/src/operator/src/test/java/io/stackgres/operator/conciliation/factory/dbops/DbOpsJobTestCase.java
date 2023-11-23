@@ -10,16 +10,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.time.Instant;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
-
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.dbops.ImmutableStackGresDbOpsContext;
 import io.stackgres.operator.conciliation.dbops.StackGresDbOpsContext;
+import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -29,6 +29,8 @@ abstract class DbOpsJobTestCase {
   @OperatorVersionBinder
   DbOpsJobsGenerator dbOpsJobsGenerator;
 
+  StackGresConfig config;
+
   StackGresCluster cluster;
 
   StackGresDbOps dbOps;
@@ -37,10 +39,9 @@ abstract class DbOpsJobTestCase {
 
   @BeforeEach
   void setUp() {
+    config = Fixtures.config().loadDefault().get();
     cluster = Fixtures.cluster().loadDefault().get();
-
     clusterProfile = Fixtures.instanceProfile().loadSizeS().get();
-
     dbOps = getDbOps();
   }
 
@@ -54,6 +55,7 @@ abstract class DbOpsJobTestCase {
   @Test
   void givenAContextWithASingleDbOpsWithoutRunAt_itShouldGenerateAJob() {
     StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
+        .config(config)
         .source(dbOps)
         .foundCluster(cluster)
         .foundProfile(clusterProfile)
@@ -70,6 +72,7 @@ abstract class DbOpsJobTestCase {
   @Test
   void givenAContextWithADbOpsWithAPastRunAt_shouldGenerateAJob() {
     StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
+        .config(config)
         .source(dbOps)
         .foundCluster(cluster)
         .foundProfile(clusterProfile)
@@ -86,6 +89,7 @@ abstract class DbOpsJobTestCase {
   @Test
   void givenAContextWithADbOpsWithAFutureRunAt_shouldNotGenerateAJob() {
     StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
+        .config(config)
         .source(dbOps)
         .foundCluster(cluster)
         .foundProfile(clusterProfile)
@@ -105,6 +109,7 @@ abstract class DbOpsJobTestCase {
     setSgDbOpsScheduling();
 
     StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
+        .config(config)
         .source(dbOps)
         .foundCluster(cluster)
         .foundProfile(clusterProfile)
@@ -123,6 +128,7 @@ abstract class DbOpsJobTestCase {
     setSgDbOpsScheduling();
 
     StackGresDbOpsContext context = ImmutableStackGresDbOpsContext.builder()
+        .config(config)
         .source(dbOps)
         .foundCluster(cluster)
         .foundProfile(clusterProfile)

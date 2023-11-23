@@ -12,7 +12,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import junit.framework.AssertionFailedError;
 import org.json.JSONException;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -22,8 +21,6 @@ public class JsonUtil {
 
   private static final JsonMapper JSON_MAPPER = createJsonMapper();
 
-  @SuppressFBWarnings(value = "BC_UNCONFIRMED_CAST_OF_RETURN_VALUE",
-      justification = "false positive")
   private static JsonMapper createJsonMapper() {
     return JsonMapper.builder()
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)

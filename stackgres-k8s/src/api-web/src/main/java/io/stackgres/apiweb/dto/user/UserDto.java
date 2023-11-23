@@ -7,9 +7,6 @@ package io.stackgres.apiweb.dto.user;
 
 import java.util.List;
 
-import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.NotBlank;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.fabric8.kubernetes.api.model.rbac.Subject;
@@ -18,6 +15,8 @@ import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotBlank;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)

@@ -49,6 +49,7 @@ public interface KubernetesClientUtil {
             Thread.sleep(calculateExponentialBackoffDelay(10, 600, 10, retry++));
             continue;
           } catch (InterruptedException iex) {
+            Thread.currentThread().interrupt();
             throw new RuntimeException(iex);
           }
         }
@@ -79,6 +80,7 @@ public interface KubernetesClientUtil {
         try {
           Thread.sleep(calculateExponentialBackoffDelay(3000, 30000, 1000, retry));
         } catch (InterruptedException iex) {
+          Thread.currentThread().interrupt();
           throw new RuntimeException(iex);
         }
         if (retry++ > maxRetries) {

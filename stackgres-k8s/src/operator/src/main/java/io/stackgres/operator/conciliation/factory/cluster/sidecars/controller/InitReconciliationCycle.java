@@ -10,8 +10,6 @@ import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
 import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Singleton;
-
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
@@ -34,6 +32,7 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.InitContainer;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
+import jakarta.inject.Singleton;
 
 @Singleton
 @OperatorVersionBinder

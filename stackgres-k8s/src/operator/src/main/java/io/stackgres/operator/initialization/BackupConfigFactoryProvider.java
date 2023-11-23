@@ -7,11 +7,10 @@ package io.stackgres.operator.initialization;
 
 import java.util.List;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableList;
 import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class BackupConfigFactoryProvider

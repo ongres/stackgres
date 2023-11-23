@@ -24,12 +24,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-import javax.inject.Inject;
-
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
-import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.smallrye.mutiny.Multi;
 import io.stackgres.common.ClusterPendingRestartUtil.RestartReasons;
@@ -50,6 +48,7 @@ import io.stackgres.jobs.dbops.clusterrestart.PodTestUtil;
 import io.stackgres.jobs.dbops.clusterrestart.RestartEventType;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
 import io.stackgres.testutil.StringUtils;
+import jakarta.inject.Inject;
 import org.apache.commons.compress.utils.Lists;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
@@ -261,7 +260,7 @@ public abstract class ClusterStateHandlerTest {
     getRestartStateHandler()
         .restartCluster(dbOps)
         .await()
-        .atMost(Duration.ofMillis(50));
+        .atMost(Duration.ofMillis(500));
 
     var storedDbOps = kubeDb.getDbOps(dbOpsName,
         namespace);

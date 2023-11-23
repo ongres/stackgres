@@ -101,7 +101,7 @@ reuse_k8s() {
 
   if [ -n "$E2E_EXTRA_MOUNT_BUILD_PATH" ]
   then
-    copy_to_extra_mount_build_path
+    k8s_copy_to_extra_mount_build_path
   fi
 
   echo "Reusing kind environment $KIND_NAME"
@@ -113,7 +113,7 @@ reset_k8s() {
 
   if [ -n "$E2E_EXTRA_MOUNT_BUILD_PATH" ]
   then
-    copy_to_extra_mount_build_path
+    k8s_copy_to_extra_mount_build_path
     KIND_EXTRA_MOUNTS="$KIND_EXTRA_MOUNTS
       $(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/operator/target/quarkus-app)
       $(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/api-web/target/quarkus-app)
@@ -340,7 +340,17 @@ EOF
   fi
 }
 
-copy_to_extra_mount_build_path() {
+k8s_copy_to_extra_mount_build_path() {
+  if [ -z "$PROJECT_PATH" ]
+  then
+    echo "PROJECT_PATH not set"
+    return 1
+  fi
+  if [ -z "$E2E_EXTRA_MOUNT_BUILD_PATH" ]
+  then
+    echo "E2E_EXTRA_MOUNT_BUILD_PATH not set"
+    return 1
+  fi
   mkdir -p "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/operator/target/quarkus-app
   cp -a "$PROJECT_PATH"/stackgres-k8s/src/operator/target/quarkus-app/. \
     "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/operator/target/quarkus-app/.

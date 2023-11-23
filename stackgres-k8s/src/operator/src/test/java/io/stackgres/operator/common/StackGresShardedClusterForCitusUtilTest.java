@@ -10,6 +10,7 @@ import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.g
 import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.getShardsCluster;
 import static io.stackgres.testutil.ModelTestUtil.createWithRandomData;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +29,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresS
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShards;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.JsonUtil;
+import io.stackgres.testutil.ModelTestUtil;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
@@ -216,7 +218,7 @@ class StackGresShardedClusterForCitusUtilTest {
 
   @Test
   void givedShardedClusterWithMinimalCoordinator_shouldCopyGlobalSettings() {
-    var shardedCluster = createWithRandomData(StackGresShardedCluster.class);
+    var shardedCluster = createShardedCluster();
     shardedCluster.getMetadata().setName(
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
@@ -250,7 +252,7 @@ class StackGresShardedClusterForCitusUtilTest {
 
   @Test
   void givedShardedClusterWithMinimalShards_shouldCopyGlobalSettings() {
-    var shardedCluster = createWithRandomData(StackGresShardedCluster.class);
+    var shardedCluster = createShardedCluster();
     shardedCluster.getMetadata().setName(
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
@@ -284,7 +286,7 @@ class StackGresShardedClusterForCitusUtilTest {
 
   @Test
   void givedShardedClusterWithCoordinator_shouldCopySettings() {
-    var shardedCluster = createWithRandomData(StackGresShardedCluster.class);
+    var shardedCluster = createShardedCluster();
     shardedCluster.getMetadata().setName(
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
@@ -309,7 +311,7 @@ class StackGresShardedClusterForCitusUtilTest {
 
   @Test
   void givedShardedClusterWithShards_shouldCopySettings() {
-    var shardedCluster = createWithRandomData(StackGresShardedCluster.class);
+    var shardedCluster = createShardedCluster();
     shardedCluster.getMetadata().setName(
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
@@ -335,7 +337,7 @@ class StackGresShardedClusterForCitusUtilTest {
 
   @Test
   void givedShardedClusterWithShardsOverrides_shouldCopyOverrideSettings() {
-    var shardedCluster = createWithRandomData(StackGresShardedCluster.class);
+    var shardedCluster = createShardedCluster();
     shardedCluster.getMetadata().setName(
         "sg" + shardedCluster.getMetadata().getName().toLowerCase());
     shardedCluster.getSpec().getReplication().setRole(null);
@@ -594,6 +596,16 @@ class StackGresShardedClusterForCitusUtilTest {
           pod.getPersistentVolume(),
           cluster.getSpec().getPods().getPersistentVolume());
     }
+  }
+
+  private StackGresShardedCluster createShardedCluster() {
+    var shardedCluster = createWithRandomData(StackGresShardedCluster.class);
+    List<String> sgBackups = new ArrayList<String>(
+        shardedCluster.getSpec().getShards().getClusters() + 1);
+    Seq.range(0, shardedCluster.getSpec().getShards().getClusters() + 1)
+        .forEach(index -> sgBackups.add(ModelTestUtil.generateRandom(String.class)));
+    shardedCluster.getStatus().setSgBackups(sgBackups);
+    return shardedCluster;
   }
 
 }
