@@ -49,7 +49,8 @@ EOF
     --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
     --set cluster.configurations.backups.retention=2 \
     --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \
-    --set-string cluster.configurations.backups.sgObjectStorage=backupconf
+    --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
+    --set cluster.postgres.ssl.enabled=true
 
   local BACKUP_NAME_PRE BACKUP_NAME_POST
   BACKUP_NAME_PRE="$(get_sgbackup_name "$CLUSTER_NAME-pre")"

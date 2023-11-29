@@ -189,6 +189,11 @@ public class MajorVersionUpgradeInit implements ContainerFactory<ClusterContaine
                 .withName(StackGresVolume.POSTGRES_CONFIG.getName())
                 .withMountPath(ClusterPath.ETC_POSTGRES_PATH.path())
                 .build())
+            .addToVolumeMounts(
+                new VolumeMountBuilder()
+                .withName(StackGresVolume.POSTGRES_SSL.getName())
+                .withMountPath(ClusterPath.SSL_PATH.path())
+                .build())
             .build();
   }
 
