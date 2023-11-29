@@ -65,7 +65,7 @@ public class DistributedLogsExtensionReconciliator
           DistributedLogsControllerEventReason.DISTRIBUTEDLOGS_CONTROLLER_ERROR,
           message + ": " + ex.getMessage(), cluster, client);
     } catch (Exception rex) {
-      LOGGER.error("Failed sending event while reconciling extension " + extension, rex);
+      LOGGER.error("Failed sending event while reconciling extension {}", extension, rex);
     }
   }
 
@@ -86,7 +86,7 @@ public class DistributedLogsExtensionReconciliator
           DistributedLogsControllerEventReason.DISTRIBUTEDLOGS_CONTROLLER_ERROR,
           message + ": " + ex.getMessage(), cluster, client);
     } catch (Exception rex) {
-      LOGGER.error("Failed sending event while reconciling extension " + extension, rex);
+      LOGGER.error("Failed sending event while reconciling extension {}", extension, rex);
     }
   }
 

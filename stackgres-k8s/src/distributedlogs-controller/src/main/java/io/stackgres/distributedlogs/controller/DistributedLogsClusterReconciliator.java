@@ -196,8 +196,7 @@ public class DistributedLogsClusterReconciliator {
           DistributedLogsControllerEventReason.DISTRIBUTEDLOGS_CONTROLLER_ERROR,
           message + ": " + ex.getMessage(), distributedLogs, client);
     } catch (RuntimeException rex) {
-      LOGGER.error("Failed sending event while reconciling cluster "
-          + cluster.getNamespace() + "." + cluster.getName(), rex);
+      LOGGER.error("Failed sending event while reconciling cluster {}.{}", cluster.getNamespace(), cluster.getName(), rex);
     }
   }
 

@@ -114,7 +114,7 @@ public class PostgresSslReconciliator {
       try {
         PatroniCommandUtil.reloadPatroniConfig();
       } catch (Exception ex) {
-        LOGGER.warn("Was not able to reload Patroni, will try later if needed: " + ex.getMessage());
+        LOGGER.warn("Was not able to reload Patroni, will try later if needed: {}", ex.getMessage(), ex);
       }
       LOGGER.info("SSL config updated");
       eventController.sendEvent(ClusterPatroniConfigEventReason.CLUSTER_PATRONI_CONFIG_UPDATED,

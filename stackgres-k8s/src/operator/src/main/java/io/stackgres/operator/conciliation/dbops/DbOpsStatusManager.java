@@ -83,8 +83,7 @@ public class DbOpsStatusManager
     }
 
     if (isJobFailedAndStatusNotUpdated) {
-      LOGGER.debug("DbOps {} failed since the job failed but status condition"
-          + " is neither completed or failed", getDbOpsId(source));
+      LOGGER.debug("DbOps {} failed since the job failed but status condition is neither completed or failed", getDbOpsId(source));
       updateCondition(getFalseRunning(), source);
       updateCondition(getFalseCompleted(), source);
       updateCondition(getFailedDueToUnexpectedFailure(), source);

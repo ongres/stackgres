@@ -44,7 +44,7 @@ public interface ConversionResource {
 
       String errorMessage = Optional.ofNullable(ex.getMessage()).orElse("null");
 
-      LOGGER.error("Cannot proceed with request " + uid + ", cause: " + errorMessage);
+      LOGGER.error("Cannot proceed with request {}, cause: {}", uid, errorMessage);
 
       Status result = new StatusBuilder()
           .withStatus("Failed")

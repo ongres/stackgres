@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 @DatabaseOperation("minorVersionUpgrade")
 public class MinorVersionUpgradeJob implements DatabaseOperationJob {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(SecurityUpgradeJob.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MinorVersionUpgradeJob.class);
 
   @Inject
   CustomResourceFinder<StackGresCluster> clusterFinder;
