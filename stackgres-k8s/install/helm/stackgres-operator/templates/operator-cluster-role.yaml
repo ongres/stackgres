@@ -56,7 +56,6 @@ rules:
   - sgshardedbackups
   - sgshardeddbops
   - sgconfigs
-  - sgconfigs/status
   verbs:
   - create
   - watch
@@ -67,8 +66,23 @@ rules:
   - delete
 - apiGroups: ["stackgres.io"]
   resources:
+  - sgconfigs/status
   - sgclusters/status
   - sgdistributedlogs/status
+  - sgclusters/finalizers
+  - sgpgconfigs/finalizers
+  - sginstanceprofiles/finalizers
+  - sgpoolconfigs/finalizers
+  - sgbackupconfigs/finalizers
+  - sgbackups/finalizers
+  - sgdistributedlogs/finalizers
+  - sgdbops/finalizers
+  - sgobjectstorages/finalizers
+  - sgscripts/finalizers
+  - sgshardedclusters/finalizers
+  - sgshardedbackups/finalizers
+  - sgshardeddbops/finalizers
+  - sgconfigs/finalizers
   verbs:
   - update
 - apiGroups: ["apiextensions.k8s.io"]
