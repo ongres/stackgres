@@ -108,7 +108,7 @@ public class CrdInstaller {
 
   protected void installCrd(@NotNull CustomResourceDefinition currentCrd) {
     String name = currentCrd.getMetadata().getName();
-    LOGGER.info("Installing CRD " + name);
+    LOGGER.info("Installing CRD {}", name);
     Optional<CustomResourceDefinition> installedCrdOpt = crdResourceFinder
         .findByName(name);
 

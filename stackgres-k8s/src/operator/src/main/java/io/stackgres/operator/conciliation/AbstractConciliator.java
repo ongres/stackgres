@@ -106,9 +106,7 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
             .anyMatch(deployedResourceKey::equals))
         .toList();
     if (!deployedOtherOwnerRequiredResources.isEmpty()) {
-      LOGGER.warn("Following resources are required but already exists in the cluster and are"
-          + " owned by another resource: {}",
-          deployedOtherOwnerRequiredResources.stream()
+      LOGGER.warn("Following resources are required but already exists in the cluster and are owned by another resource: {}", deployedOtherOwnerRequiredResources.stream()
           .map(resourceKey -> resourceKey.kind()
               + " " + resourceKey.namespace()
               + "." + resourceKey.name())
@@ -159,19 +157,13 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
                   throw ex;
                 }
               })) {
-            LOGGER.warn("Proceding to delete following required resource that already exists"
-                + " in the cluster but was not garbage collected due to a bug (see"
-                + " https://github.com/kubernetes/kubernetes/issues/120960): {}",
-                resource.getKind()
+            LOGGER.warn("Proceding to delete following required resource that already exists in the cluster but was not garbage collected due to a bug (see https://github.com/kubernetes/kubernetes/issues/120960): {}", resource.getKind()
                 + " " + resource.getMetadata().getNamespace()
                 + "." + resource.getMetadata().getName());
             try {
               client.resource(resource).delete();
             } catch (KubernetesClientException ex) {
-              LOGGER.warn("Error while trying to remove ungarbaged resource "
-                  + resource.getKind()
-                  + " " + resource.getMetadata().getNamespace()
-                  + "." + resource.getMetadata().getName(), ex);
+              LOGGER.warn("Error while trying to remove ungarbaged resource {} {}.{}", resource.getKind(), resource.getMetadata().getNamespace(), resource.getMetadata().getName(), ex);
             }
           }
         });

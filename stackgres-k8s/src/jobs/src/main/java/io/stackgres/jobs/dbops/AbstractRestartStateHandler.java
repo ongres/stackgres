@@ -53,8 +53,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractRestartStateHandler implements ClusterRestartStateHandler {
 
-  private static final Logger LOGGER = LoggerFactory
-      .getLogger(ClusterRestartStateHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRestartStateHandler.class);
 
   @Inject
   ClusterRestart clusterRestart;
@@ -364,30 +363,30 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
             Function.identity(),
             pod -> getPodRestartReasons(cluster, statefulSet, pod)));
 
-    LOGGER.info("Operation: " + operation.toString());
-    LOGGER.info("Restart method: " + method.toString());
-    LOGGER.info("Only pending restart: " + onlyPendingRestart);
-    LOGGER.info("Found cluster pods: " + clusterPods.stream()
+    LOGGER.info("Operation: {}", operation.toString());
+    LOGGER.info("Restart method: {}", method.toString());
+    LOGGER.info("Only pending restart: {}", onlyPendingRestart);
+    LOGGER.info("Found cluster pods: {}", clusterPods.stream()
         .map(HasMetadata::getMetadata)
         .map(ObjectMeta::getName)
         .collect(Collectors.joining(" ")));
-    LOGGER.info("Primary instance: " + primaryInstance.getMetadata().getName());
-    LOGGER.info("Initial pods: " + initialInstances.stream()
+    LOGGER.info("Primary instance: {}", primaryInstance.getMetadata().getName());
+    LOGGER.info("Initial pods: {}", initialInstances.stream()
         .map(HasMetadata::getMetadata)
         .map(ObjectMeta::getName)
         .collect(Collectors.joining(" ")));
-    LOGGER.info("Already restarted pods: " + restartedInstances.stream()
+    LOGGER.info("Already restarted pods: {}", restartedInstances.stream()
         .map(HasMetadata::getMetadata)
         .map(ObjectMeta::getName)
         .collect(Collectors.joining(" ")));
-    LOGGER.info("Restart reasons: " + podRestartReasonsMap.entrySet().stream()
+    LOGGER.info("Restart reasons: {}", podRestartReasonsMap.entrySet().stream()
         .map(e -> e.getKey().getMetadata().getName() + ":" + e.getValue().getReasons()
             .stream().map(Enum::name).collect(Collectors.joining(",")))
         .collect(Collectors.joining(" ")));
-    LOGGER.info("Switchover initialized: " + Optional.of(restartStatus)
+    LOGGER.info("Switchover initialized: {}", Optional.of(restartStatus)
         .map(DbOpsRestartStatus::getSwitchoverInitiated)
         .orElse("no"));
-    LOGGER.info("Switchover finalized: " + Optional.of(restartStatus)
+    LOGGER.info("Switchover finalized: {}", Optional.of(restartStatus)
         .map(DbOpsRestartStatus::getSwitchoverFinalized)
         .orElse("no"));
 

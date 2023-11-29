@@ -110,7 +110,7 @@ public abstract class AbstractClusterStatsDtoFinder<R, T extends CustomResource<
       LOGGER.debug("An error accurred while retrieving stats for pod {}.{}: {}",
           pod.getMetadata().getNamespace(),
           pod.getMetadata().getName(),
-          ex.getMessage());
+          ex.getMessage(), ex);
       return ImmutableMap.<PatroniStatsScripts, String>of();
     }
   }

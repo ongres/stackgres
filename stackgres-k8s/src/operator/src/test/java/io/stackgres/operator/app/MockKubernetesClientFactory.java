@@ -87,7 +87,7 @@ public class MockKubernetesClientFactory {
       try {
         updateToken();
       } catch (Exception ex) {
-        LOGGER.warn("Error while updating the token {}", ex.getMessage());
+        LOGGER.warn("Error while updating the token {}", ex.getMessage(), ex);
       }
     }
     if (!executor.isShutdown() && !executor.isTerminated()) {

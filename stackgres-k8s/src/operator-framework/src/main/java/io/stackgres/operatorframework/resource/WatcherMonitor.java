@@ -71,7 +71,7 @@ public class WatcherMonitor<T> implements AutoCloseable {
         createWatcher();
         break;
       } catch (Exception ex) {
-        LOGGER.warn("An error occurred while creating watcher " + name, ex);
+        LOGGER.warn("An error occurred while creating watcher {}", name, ex);
         try {
           Thread.sleep(backoffSleepDuration.apply(attempts++).toMillis());
         } catch (InterruptedException iex) {
@@ -104,7 +104,7 @@ public class WatcherMonitor<T> implements AutoCloseable {
         watcher.close();
       }
     } catch (Exception ex) {
-      LOGGER.warn("Error while closing watcher " + name, ex);
+      LOGGER.warn("Error while closing watcher {}", name, ex);
     }
   }
 
@@ -121,7 +121,7 @@ public class WatcherMonitor<T> implements AutoCloseable {
 
     @Override
     public void watcherError(WatcherException ex) {
-      LOGGER.warn("An error occurred in watcher " + name, ex);
+      LOGGER.warn("An error occurred in watcher {}", name, ex);
       onWatcherClosed();
     }
 
