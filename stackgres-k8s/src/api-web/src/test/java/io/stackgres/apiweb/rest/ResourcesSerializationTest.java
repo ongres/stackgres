@@ -70,9 +70,8 @@ class ResourcesSerializationTest {
             Arrays
                 .stream(((ParameterizedType) t.v2.getGenericReturnType()).getActualTypeArguments())
                 .forEach(gt -> {
-                  if (gt instanceof Class
-                      && ((Class<?>) gt).getName().startsWith("io.stackgres.")) {
-                    Class<?> type = (Class<?>) gt;
+                  if (gt instanceof Class type
+                      && type.getName().startsWith("io.stackgres.")) {
                     assertNotNull(type.getAnnotation(RegisterForReflection.class), "class "
                         + type.getName() + " must be annotated with register for reflection");
                   }

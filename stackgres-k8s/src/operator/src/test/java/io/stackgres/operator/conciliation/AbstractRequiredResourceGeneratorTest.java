@@ -152,8 +152,7 @@ public abstract class AbstractRequiredResourceGeneratorTest<T> {
   }
 
   public void assertThatStatefulSetResourceLabelsAreComplaints(HasMetadata resource) {
-    if (resource instanceof StatefulSet) {
-      final StatefulSet statefulSet = (StatefulSet) resource;
+    if (resource instanceof StatefulSet statefulSet) {
       statefulSet.getSpec().getTemplate().getMetadata().getLabels().entrySet().stream()
           .forEach(label -> {
             asserThatLabelIsComplaint(label);
@@ -180,8 +179,8 @@ public abstract class AbstractRequiredResourceGeneratorTest<T> {
   }
 
   public void assertThatCronJobResourceLabelsAreComplaints(HasMetadata resource) {
-    if (resource instanceof CronJob) {
-      ((CronJob) resource).getSpec().getJobTemplate().getMetadata().getLabels().entrySet()
+    if (resource instanceof CronJob job) {
+      job.getSpec().getJobTemplate().getMetadata().getLabels().entrySet()
           .stream().forEach(label -> {
             asserThatLabelIsComplaint(label);
           });
@@ -189,8 +188,8 @@ public abstract class AbstractRequiredResourceGeneratorTest<T> {
   }
 
   public void assertThatJobResourceLabelsAreComplaints(HasMetadata resource) {
-    if (resource instanceof Job) {
-      ((Job) resource).getSpec().getTemplate().getMetadata().getLabels().entrySet().stream()
+    if (resource instanceof Job job) {
+      job.getSpec().getTemplate().getMetadata().getLabels().entrySet().stream()
           .forEach(label -> {
             asserThatLabelIsComplaint(label);
           });
