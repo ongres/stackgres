@@ -41,6 +41,16 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
   }
 
   @Override
+  protected boolean skipDeletion(HasMetadata foundDeployedResource, StackGresCluster config) {
+    if (foundDeployedResource instanceof Pod foundDeployedResourcePod
+        && foundDeployedResourcePod.getMetadata().getName().startsWith(
+            config.getMetadata().getName() + "-")) {
+      return true;
+    }
+    return false;
+  }
+
+  @Override
   @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
       justification = "False positive")
   protected boolean forceChange(HasMetadata requiredResource, StackGresCluster config) {
