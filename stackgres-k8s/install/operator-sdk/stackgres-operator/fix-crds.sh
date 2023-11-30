@@ -7,6 +7,10 @@ do
   cp "config/crd/bases/$(yq -r .spec.names.kind "$CRD").yaml" "$CRD"
   CRD_NAME="$(yq -r '.metadata.name' "$CRD")"
   CRD_SINGULAR="$(yq -r .spec.names.singular "$CRD")"
+  if [ "$CRD_SINGULAR" = SGConfig ]
+  then
+    continue;
+  fi
   yq -y '.spec.webhookdefinitions = (.spec.webhookdefinitions 
     | map(
       if .type == "ConversionWebhook" and .conversionCRDs[0] == "'"$CRD_NAME"'"
