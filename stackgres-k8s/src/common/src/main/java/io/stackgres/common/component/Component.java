@@ -362,14 +362,14 @@ public class Component {
 
   public Optional<String> findLatestImageName() {
     return findImageName(StackGresComponent.LATEST, Seq.seq(this.subComponents)
-        .map(alternativeSubComponents -> alternativeSubComponents.get(0))
+        .map(alternativeSubComponents -> alternativeSubComponents.getFirst())
         .collect(ImmutableMap.toImmutableMap(
             Function.identity(), subComponent -> StackGresComponent.LATEST)));
   }
 
   public String getLatestImageName() {
     return getImageName(StackGresComponent.LATEST, Seq.seq(this.subComponents)
-        .map(alternativeSubComponents -> alternativeSubComponents.get(0))
+        .map(alternativeSubComponents -> alternativeSubComponents.getFirst())
         .collect(ImmutableMap.toImmutableMap(
             Function.identity(), subComponent -> StackGresComponent.LATEST)));
   }

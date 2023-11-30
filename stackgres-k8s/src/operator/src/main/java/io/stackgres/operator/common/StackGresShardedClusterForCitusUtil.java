@@ -243,7 +243,7 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
         .map(StackGresShardedClusterSpec::getConfigurations)
         .map(StackGresShardedClusterConfigurations::getBackups)
         .filter(Predicate.not(List::isEmpty))
-        .map(backups -> backups.get(0))
+        .map(backups -> backups.getFirst())
         .filter(backup -> backup.getPaths() != null)
         .ifPresent(backup -> {
           if (spec.getConfigurations() == null) {

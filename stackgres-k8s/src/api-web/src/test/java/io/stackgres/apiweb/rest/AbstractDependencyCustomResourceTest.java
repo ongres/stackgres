@@ -81,7 +81,7 @@ abstract class AbstractDependencyCustomResourceTest
     List<T> resources = service.list();
 
     assertEquals(customResources.getItems().size(), resources.size());
-    checkDto(resources.get(0));
+    checkDto(resources.getFirst());
   }
 
   @Test

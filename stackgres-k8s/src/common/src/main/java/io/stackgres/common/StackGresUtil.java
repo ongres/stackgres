@@ -266,7 +266,7 @@ public interface StackGresUtil {
     if (status != null && "LoadBalancer".equals(service.getSpec().getType())) {
       List<LoadBalancerIngress> ingress = status.getLoadBalancer().getIngress();
       if (ingress != null && !ingress.isEmpty()) {
-        LoadBalancerIngress loadBalancerIngress = ingress.get(0);
+        LoadBalancerIngress loadBalancerIngress = ingress.getFirst();
         serviceDns = loadBalancerIngress.getHostname() != null
             ? loadBalancerIngress.getHostname()
             : loadBalancerIngress.getIp();

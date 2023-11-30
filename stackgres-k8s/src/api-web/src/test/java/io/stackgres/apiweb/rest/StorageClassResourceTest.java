@@ -46,7 +46,7 @@ class StorageClassResourceTest {
 
     assertEquals(1, storageClasses.size());
 
-    assertEquals("standard", storageClasses.get(0));
+    assertEquals("standard", storageClasses.getFirst());
 
   }
 }
