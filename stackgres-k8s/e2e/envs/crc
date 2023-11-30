@@ -265,6 +265,7 @@ excluded_customresourcedefinitions() {
   echo ".*\.cni\.cncf\.io"
   echo ".*\.monitoring\.coreos\.com"
   echo ".*\.k8s\.io"
+  echo ".*\.x-k8s\.io"
 }
 
 excluded_clusterroles() {
@@ -403,6 +404,7 @@ excluded_clusterrolebindings() {
   echo "cluster-samples-operator-imageconfig-reader"
   echo "local-path-provisioner-bind"
   echo "multus-.*"
+  echo "storage-version-migration-migrator"
 }
 
 create_expandable_storage_class_k8s(){
