@@ -19,7 +19,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
-import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
@@ -193,10 +192,6 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
           config.getMetadata().getNamespace())
           && resource.getMetadata().getOwnerReferences().isEmpty()) {
         resource.getMetadata().setOwnerReferences(ownerReferences);
-        if (resource instanceof StatefulSet statefulSet) {
-          statefulSet.getSpec().getVolumeClaimTemplates()
-              .forEach(vct -> vct.getMetadata().setOwnerReferences(ownerReferences));
-        }
       }
       return resource;
     }

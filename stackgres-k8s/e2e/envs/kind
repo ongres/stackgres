@@ -201,6 +201,7 @@ nodes:
     kind: ClusterConfiguration
     apiServer:
         extraArgs:
+          enable-admission-plugins: NodeRestriction,OwnerReferencesPermissionEnforcement
 $(
   if [ "$KIND_LOG_RESOURCES" = true ]
   then
