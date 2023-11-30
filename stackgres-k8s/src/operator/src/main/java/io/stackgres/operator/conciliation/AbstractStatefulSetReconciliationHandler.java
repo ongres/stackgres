@@ -401,7 +401,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
         .withController(true)
         .build());
     var requiredOwnerReferencesForNonDisruptiblePod = List.of(
-        ResourceUtil.getOwnerReference(context));
+        ResourceUtil.getControllerOwnerReference(context));
 
     return Stream.concat(
         pods.stream()
@@ -410,24 +410,28 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
             requiredOwnerReferences,
             pod.getMetadata().getOwnerReferences()))
         .map(pod -> fixPodOwnerReferences(
-            requiredOwnerReferences, pod)),
+            requiredOwnerReferences, pod,
+            statefulSet.getMetadata().getName())),
         pods.stream()
         .filter(pod -> isNonDisruptable(context, pod))
         .filter(pod -> !Objects.equals(
             requiredOwnerReferencesForNonDisruptiblePod,
             pod.getMetadata().getOwnerReferences()))
         .map(pod -> fixPodOwnerReferences(
-            requiredOwnerReferencesForNonDisruptiblePod, pod)))
+            requiredOwnerReferencesForNonDisruptiblePod, pod,
+            statefulSet.getMetadata().getName())))
         .toList();
   }
 
-  private Pod fixPodOwnerReferences(List<OwnerReference> requiredOwnerReferences, Pod pod) {
+  private Pod fixPodOwnerReferences(
+      List<OwnerReference> requiredOwnerReferences,
+      Pod pod,
+      String stsName) {
     if (LOGGER.isDebugEnabled()) {
       final String namespace = pod.getMetadata().getNamespace();
       final String podName = pod.getMetadata().getName();
-      final String name = podName.substring(0, podName.lastIndexOf("-"));
       LOGGER.debug("Fixing owner references for Pod {}.{} for StatefulSet {}.{} to {}",
-          namespace, podName, namespace, name, requiredOwnerReferences);
+          namespace, podName, namespace, stsName, requiredOwnerReferences);
     }
     pod.getMetadata().setOwnerReferences(requiredOwnerReferences);
     return pod;
@@ -493,7 +497,9 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
         statefulSet, pvcsToFix);
     List<PersistentVolumeClaim> pvcLabelsToPatch = fixPvcsLabels(
         statefulSet, pvcsToFix);
-    Seq.seq(pvcAnnotationsToPatch).append(pvcLabelsToPatch)
+    List<PersistentVolumeClaim> pvcOwnerReferencesToPatch = fixPvcOwnerReferences(
+        context, statefulSet, pvcsToFix);
+    Seq.seq(pvcAnnotationsToPatch).append(pvcLabelsToPatch).append(pvcOwnerReferencesToPatch)
         .grouped(pvc -> pvc.getMetadata().getName()).map(Tuple2::v2).map(Seq::findFirst)
         .map(Optional::get).forEach(pvc -> handler.patch(context, pvc, null));
   }
@@ -599,6 +605,36 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
             .stream().noneMatch(label.v1::equals))
         .append(Seq.seq(requiredPvcLabels))
         .toMap(Tuple2::v1, Tuple2::v2));
+    return pvc;
+  }
+
+  private List<PersistentVolumeClaim> fixPvcOwnerReferences(
+      T context, StatefulSet statefulSet, List<PersistentVolumeClaim> pvcs) {
+    var requiredOwnerReferences = List.of(
+        ResourceUtil.getControllerOwnerReference(context));
+
+    return pvcs.stream()
+        .filter(pvc -> !Objects.equals(
+            requiredOwnerReferences,
+            pvc.getMetadata().getOwnerReferences()))
+        .map(pvc -> fixPvcOwnerReferences(
+            requiredOwnerReferences, pvc,
+            statefulSet.getMetadata().getName()))
+        .toList();
+  }
+
+  private PersistentVolumeClaim fixPvcOwnerReferences(
+      List<OwnerReference> requiredOwnerReferences,
+      PersistentVolumeClaim pvc,
+      String stsName) {
+    if (LOGGER.isDebugEnabled()) {
+      final String namespace = pvc.getMetadata().getNamespace();
+      final String podName = pvc.getMetadata().getName();
+      LOGGER.debug("Fixing owner references for PersistentVolumeClaim {}.{}"
+          + " for StatefulSet {}.{} to {}",
+          namespace, podName, namespace, stsName, requiredOwnerReferences);
+    }
+    pvc.getMetadata().setOwnerReferences(requiredOwnerReferences);
     return pvc;
   }
 
