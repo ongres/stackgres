@@ -55,7 +55,7 @@ public class StorageClassValidator implements DistributedLogsValidator {
   private void checkIfStorageClassExist(String storageClass, String onError)
       throws ValidationFailed {
     if (storageClass != null && !storageClass.isEmpty()
-        && !finder.findByName(storageClass).isPresent()) {
+        && finder.findByName(storageClass).isEmpty()) {
       fail(onError);
     }
   }

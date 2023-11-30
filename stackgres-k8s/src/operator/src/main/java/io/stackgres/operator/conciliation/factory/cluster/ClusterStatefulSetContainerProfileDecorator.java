@@ -114,8 +114,7 @@ public class ClusterStatefulSetContainerProfileDecorator extends AbstractContain
                     .map(Container::getResources)
                     .map(ResourceRequirements::getRequests)
                     .map(requests -> requests.get("cpu")))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+                .flatMap(Optional::stream)
                 .map(Quantity::getNumericalAmount)
                 .reduce(
                     amount,
@@ -141,8 +140,7 @@ public class ClusterStatefulSetContainerProfileDecorator extends AbstractContain
                     .map(Container::getResources)
                     .map(ResourceRequirements::getRequests)
                     .map(requests -> requests.get("memory")))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
+            .flatMap(Optional::stream)
             .map(Quantity::getNumericalAmount)
             .reduce(
                 amount,

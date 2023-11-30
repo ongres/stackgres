@@ -135,8 +135,7 @@ public class DistributedLogsStatefulSet
         .map(availableVolumesPairs::get)
         .filter(Objects::nonNull)
         .map(VolumePair::getSource)
-        .filter(Optional::isPresent)
-        .map(Optional::get);
+        .flatMap(Optional::stream);
 
     return Stream.concat(Stream.of(clusterStatefulSet), volumeDependencies);
   }

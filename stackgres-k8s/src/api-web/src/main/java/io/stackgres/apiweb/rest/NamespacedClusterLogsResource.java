@@ -95,10 +95,9 @@ public class NamespacedClusterLogsResource {
     final Optional<Tuple2<Instant, Integer>> fromTuple;
     final Optional<Tuple2<Instant, Integer>> toTuple;
 
-    if (!Optional.ofNullable(cluster.getSpec())
+    if (Optional.ofNullable(cluster.getSpec())
         .map(ClusterSpec::getDistributedLogs)
-        .map(ClusterDistributedLogs::getSgDistributedLogs)
-        .isPresent()) {
+        .map(ClusterDistributedLogs::getSgDistributedLogs).isEmpty()) {
       throw new BadRequestException(
           "Distributed logs are not configured for specified cluster");
     }

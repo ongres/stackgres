@@ -19,16 +19,14 @@ public interface OptionalSubResourceStreamFactory<T extends KubernetesResource, 
 
   default List<T> listOptionalResources(C context) {
     return streamOptionalResources(context)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
+        .flatMap(Optional::stream)
         .toList();
   }
 
   @Override
   default Stream<T> streamResources(C context) {
     return streamOptionalResources(context)
-        .filter(Optional::isPresent)
-        .map(Optional::get);
+        .flatMap(Optional::stream);
   }
 
 }

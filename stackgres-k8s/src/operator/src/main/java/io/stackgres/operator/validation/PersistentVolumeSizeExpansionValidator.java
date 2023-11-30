@@ -140,8 +140,7 @@ public abstract class PersistentVolumeSizeExpansionValidator<T extends Admission
                     // Since is very likely that all the storage classes are the same
                     // we should look only for the different ones to avoid unneeded requests
                     .map(getStorageClassFinder()::findByName)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get);
+                    .flatMap(Optional::stream);
               })
               .toList();
         });

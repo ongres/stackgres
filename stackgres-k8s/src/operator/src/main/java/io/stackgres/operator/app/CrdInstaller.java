@@ -59,8 +59,7 @@ public class CrdInstaller {
   public void checkUpgrade() {
     var resourcesRequiringUpgrade = crdLoader.scanCrds().stream()
         .map(crd -> crdResourceFinder.findByName(crd.getMetadata().getName()))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
+        .flatMap(Optional::stream)
         .flatMap(crd -> client
           .genericKubernetesResources(CustomResourceDefinitionContext.fromCrd(crd))
           .inAnyNamespace()

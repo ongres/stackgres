@@ -222,7 +222,7 @@ public class ItHelper {
     Optional<Integer> secondPointIndex = firstPointIndex
         .map(index -> host.indexOf('.', index + 1))
         .filter(index -> index >= 0);
-    if (!firstPointIndex.isPresent()) {
+    if (firstPointIndex.isEmpty()) {
       return host;
     }
     String namespace = host.substring(firstPointIndex.get() + 1,
