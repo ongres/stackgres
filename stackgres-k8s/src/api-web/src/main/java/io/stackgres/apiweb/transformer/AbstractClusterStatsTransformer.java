@@ -283,24 +283,21 @@ public abstract class AbstractClusterStatsTransformer<
     stats.setCpuRequested(allPodStats
         .stream()
         .map(PodStatsUtil::getPodCpuRequested)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
+        .flatMap(Optional::stream)
         .reduce(BigInteger::add)
         .map(ResourceUtil::asMillicpusWithUnit)
         .orElse(null));
     stats.setMemoryRequested(allPodStats
         .stream()
         .map(PodStatsUtil::getPodMemoryRequested)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
+        .flatMap(Optional::stream)
         .reduce(BigInteger::add)
         .map(ResourceUtil::asBytesWithUnit)
         .orElse(null));
     stats.setDiskRequested(allPodStats
         .stream()
         .map(PodStatsUtil::getPodDiskRequested)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
+        .flatMap(Optional::stream)
         .reduce(BigInteger::add)
         .map(ResourceUtil::asBytesWithUnit)
         .orElse(null));

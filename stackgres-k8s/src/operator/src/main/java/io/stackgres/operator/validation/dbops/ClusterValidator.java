@@ -44,7 +44,7 @@ public class ClusterValidator implements DbOpsValidator {
     Optional<StackGresCluster> clusterOpt = clusterFinder
         .findByNameAndNamespace(cluster, namespace);
 
-    if (!clusterOpt.isPresent()) {
+    if (clusterOpt.isEmpty()) {
       fail(onError);
     }
   }

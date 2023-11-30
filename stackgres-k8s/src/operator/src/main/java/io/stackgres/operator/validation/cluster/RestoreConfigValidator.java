@@ -140,7 +140,7 @@ public class RestoreConfigValidator
           .ofNullable(review.getRequest().getOldObject().getSpec().getInitialData())
           .map(StackGresClusterInitialData::getRestore);
 
-      if (!initRestoreOpt.isPresent() && oldRestoreOpt.isPresent()) {
+      if (initRestoreOpt.isEmpty() && oldRestoreOpt.isPresent()) {
         fail(errorConstraintViolationUri, "Cannot update SGCluster's restore configuration");
       }
     }

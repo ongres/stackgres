@@ -676,8 +676,7 @@ public class ClusterRequiredResourcesGenerator
         .map(backup -> backup
             .map(StackGresBackup::getMetadata)
             .map(ObjectMeta::getNamespace))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
+        .flatMap(Optional::stream)
         .filter(Predicate.not(clusterNamespace::equals))
         .collect(Collectors.groupingBy(Function.identity()))
         .keySet();

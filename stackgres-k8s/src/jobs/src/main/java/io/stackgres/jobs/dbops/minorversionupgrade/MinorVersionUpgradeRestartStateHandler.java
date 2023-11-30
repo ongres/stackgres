@@ -66,8 +66,7 @@ public class MinorVersionUpgradeRestartStateHandler extends AbstractRestartState
             return patroniApi.getClusterMembersPatroniInformation(clusterName, namespace)
                 .onItem().transform(patronis -> patronis.stream()
                     .map(PatroniInformation::getServerVersion)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
+                    .flatMap(Optional::stream)
                     .min(Integer::compareTo)
                     .map(MinorVersionUpgradeRestartStateHandler::convertToPostgresVersion)
                     .orElseThrow());

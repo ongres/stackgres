@@ -69,8 +69,8 @@ public class SslValidator implements ClusterValidator {
     Optional<Secret> secret = secretFinder
         .findByNameAndNamespace(secretKeySelector.getName(), namespace);
 
-    if (!secret.filter(s -> s.getData()
-        .containsKey(secretKeySelector.getKey())).isPresent()) {
+    if (secret.filter(s -> s.getData()
+        .containsKey(secretKeySelector.getKey())).isEmpty()) {
       fail(onError);
     }
   }

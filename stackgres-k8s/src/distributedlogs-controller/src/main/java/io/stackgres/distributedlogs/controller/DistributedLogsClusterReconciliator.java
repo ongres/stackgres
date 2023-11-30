@@ -166,7 +166,7 @@ public class DistributedLogsClusterReconciliator {
         .findAny();
     final StackGresDistributedLogsStatusDatabase distributedLogsDatabase =
         foundDistributedLogsDatabase.orElseGet(() -> new StackGresDistributedLogsStatusDatabase());
-    if (!foundDistributedLogsDatabase.isPresent()) {
+    if (foundDistributedLogsDatabase.isEmpty()) {
       distributedLogs.getStatus().getDatabases().add(distributedLogsDatabase);
     }
 

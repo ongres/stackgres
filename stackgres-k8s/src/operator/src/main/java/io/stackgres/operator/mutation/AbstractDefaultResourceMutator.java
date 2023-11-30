@@ -55,7 +55,7 @@ public abstract class AbstractDefaultResourceMutator<C extends CustomResource<?,
     setValueSection(resource);
     if (isTargetPropertyEmpty(resource)) {
       if (!Optional.ofNullable(review.getRequest().getDryRun()).orElse(false)
-          && !finder.findByNameAndNamespace(defaultResourceName, targetNamespace).isPresent()) {
+          && finder.findByNameAndNamespace(defaultResourceName, targetNamespace).isEmpty()) {
         defaultResource.getMetadata().setNamespace(targetNamespace);
         scheduler.create(defaultResource);
       }
