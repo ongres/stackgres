@@ -118,10 +118,10 @@ class RbacResourceTest {
 
   private void assertNamespacedResources(List<Namespaced> actualNamespaced) {
     assertEquals(expectedNamespaces().size(), actualNamespaced.size());
-    assertEquals(expectedNamespaces().iterator().next(),
-        actualNamespaced.iterator().next().namespace());
+    assertEquals(expectedNamespaces().getFirst(),
+        actualNamespaced.getFirst().namespace());
 
-    Map<String, List<String>> resources = actualNamespaced.iterator().next().resources();
+    Map<String, List<String>> resources = actualNamespaced.getFirst().resources();
     for (Map.Entry<String, List<String>> resource : resources.entrySet()) {
       assertNamespacedResource(resource.getKey());
     }

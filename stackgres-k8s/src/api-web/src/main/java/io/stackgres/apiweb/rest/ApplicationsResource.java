@@ -111,7 +111,7 @@ public class ApplicationsResource {
 
     String reportName = Optional.ofNullable(formDataMap.get("reportName"))
         .filter(m -> !m.isEmpty())
-        .map(m -> m.get(0))
+        .map(m -> m.getFirst())
         .map(Unchecked.function(InputPart::getBodyAsString))
         .orElseThrow(() -> new WebApplicationException("reportName is required",
             Response.Status.BAD_REQUEST));

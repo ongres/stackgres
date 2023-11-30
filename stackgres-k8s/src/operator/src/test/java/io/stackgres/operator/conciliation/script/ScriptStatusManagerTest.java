@@ -71,7 +71,7 @@ class ScriptStatusManagerTest {
     when(configMapFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(configMap));
     expectedScript.getStatus().getScripts().get(0).setHash(
-        generateScriptEntryHash(expectedScripts.get(0), "CREATE DATABASE IF NOT EXISTS test;"));
+        generateScriptEntryHash(expectedScripts.getFirst(), "CREATE DATABASE IF NOT EXISTS test;"));
     expectedScript.getStatus().getScripts().get(1).setHash(
         generateScriptEntryHash(expectedScripts.get(1), "CREATE USER test;"));
     expectedScript.getStatus().getScripts().get(2).setHash(
@@ -93,13 +93,13 @@ class ScriptStatusManagerTest {
     when(configMapFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(configMap));
     script.getStatus().getScripts().get(0).setHash(
-        generateScriptEntryHash(scripts.get(0), "CREATE DATABASE IF NOT EXISTS test;"));
+        generateScriptEntryHash(scripts.getFirst(), "CREATE DATABASE IF NOT EXISTS test;"));
     script.getStatus().getScripts().get(1).setHash(
         generateScriptEntryHash(scripts.get(1), "CREATE USER test;"));
     script.getStatus().getScripts().get(2).setHash(
         generateScriptEntryHash(scripts.get(2), "CREATE TABLE test();"));
     expectedScript.getStatus().getScripts().get(0).setHash(
-        generateScriptEntryHash(expectedScripts.get(0), "CREATE DATABASE IF NOT EXISTS test;"));
+        generateScriptEntryHash(expectedScripts.getFirst(), "CREATE DATABASE IF NOT EXISTS test;"));
     expectedScript.getStatus().getScripts().get(1).setHash(
         generateScriptEntryHash(expectedScripts.get(1), "CREATE USER test;"));
     expectedScript.getStatus().getScripts().get(2).setHash(
@@ -126,7 +126,7 @@ class ScriptStatusManagerTest {
             .build()));
     script.getSpec().getScripts().get(0).setScript("CREATE DATABASE test2;");
     script.getStatus().getScripts().get(0).setHash(
-        generateScriptEntryHash(scripts.get(0), "CREATE DATABASE IF NOT EXISTS test;"));
+        generateScriptEntryHash(scripts.getFirst(), "CREATE DATABASE IF NOT EXISTS test;"));
     script.getStatus().getScripts().get(1).setHash(
         generateScriptEntryHash(scripts.get(1), "CREATE USER test;"));
     script.getStatus().getScripts().get(2).setHash(
@@ -136,7 +136,7 @@ class ScriptStatusManagerTest {
     expectedScript.getSpec().getScripts().get(1).setVersion(1);
     expectedScript.getSpec().getScripts().get(2).setVersion(1);
     expectedScript.getStatus().getScripts().get(0).setHash(
-        generateScriptEntryHash(expectedScripts.get(0), "CREATE DATABASE test2;"));
+        generateScriptEntryHash(expectedScripts.getFirst(), "CREATE DATABASE test2;"));
     expectedScript.getStatus().getScripts().get(1).setHash(
         generateScriptEntryHash(expectedScripts.get(1), "CREATE USER test2;"));
     expectedScript.getStatus().getScripts().get(2).setHash(

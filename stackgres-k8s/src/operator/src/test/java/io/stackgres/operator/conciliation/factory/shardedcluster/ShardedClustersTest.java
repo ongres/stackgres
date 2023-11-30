@@ -67,7 +67,7 @@ public class ShardedClustersTest {
     var clusters = shardedClusters.generateResource(context).toList();
     assertEquals(3, clusters.size());
     assertEquals(labelFactory.coordinatorLabels(shardedCluster),
-        clusters.get(0).getMetadata().getLabels());
+        clusters.getFirst().getMetadata().getLabels());
     assertEquals(labelFactory.shardsLabels(shardedCluster),
         clusters.get(1).getMetadata().getLabels());
     assertEquals(labelFactory.shardsLabels(shardedCluster),

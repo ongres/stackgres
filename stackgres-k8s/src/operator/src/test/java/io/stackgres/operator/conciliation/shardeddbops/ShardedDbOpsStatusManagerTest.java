@@ -244,7 +244,7 @@ class ShardedDbOpsStatusManagerTest {
         .collect(Collectors.toList());
     Assertions.assertEquals(1, foundConditions.size(),
         "Found more than one condition with type " + expectedCondition.getType());
-    var condition = foundConditions.get(0);
+    var condition = foundConditions.getFirst();
     Assertions.assertEquals(expectedCondition.getStatus(), condition.getStatus(),
         "Condition with type " + expectedCondition.getType() + " has not expected status");
     Assertions.assertEquals(expectedCondition.getReason(), condition.getReason(),

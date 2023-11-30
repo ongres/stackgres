@@ -116,7 +116,7 @@ public class ShardedBackupCronJob
         .map(StackGresShardedClusterSpec::getConfigurations)
         .map(StackGresShardedClusterConfigurations::getBackups)
         .filter(Predicate.not(List::isEmpty))
-        .map(backups -> backups.get(0));
+        .map(backups -> backups.getFirst());
     if (backupConfig
         .map(StackGresShardedClusterBackupConfiguration::getCronSchedule)
         .isEmpty()) {

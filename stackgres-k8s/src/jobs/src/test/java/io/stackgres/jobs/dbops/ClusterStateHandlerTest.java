@@ -287,10 +287,10 @@ public abstract class ClusterStateHandlerTest {
         .atMost(Duration.ofMillis(500));
 
     assertEquals(1, storedCluster.size());
-    assertNull(storedCluster.get(0).getStatus().getDbOps());
+    assertNull(storedCluster.getFirst().getStatus().getDbOps());
     assertEquals(1, storedDbOps.size());
     assertEquals(pods.stream().map(Pod::getMetadata).map(ObjectMeta::getName).toList(),
-        getDbOpsRestartStatus(storedDbOps.get(0)).getInitialInstances());
+        getDbOpsRestartStatus(storedDbOps.getFirst()).getInitialInstances());
   }
 
   protected abstract void initializeClusterStatus(StackGresDbOps dbOps, StackGresCluster cluster,
@@ -399,11 +399,11 @@ public abstract class ClusterStateHandlerTest {
             .items(
                 ImmutableRestartEventForTest.builder()
                 .eventType(RestartEventType.RESTARTING_POSTGRES)
-                .pod(pods.get(0))
+                .pod(pods.getFirst())
                 .build(),
                 ImmutableRestartEventForTest.builder()
                 .eventType(RestartEventType.POSTGRES_RESTARTED)
-                .pod(pods.get(0))
+                .pod(pods.getFirst())
                 .build(),
                 ImmutableRestartEventForTest.builder()
                 .eventType(RestartEventType.INCREASING_INSTANCES)
@@ -430,19 +430,19 @@ public abstract class ClusterStateHandlerTest {
                 .build(),
                 ImmutableRestartEventForTest.builder()
                 .eventType(RestartEventType.SWITCHOVER_INITIATED)
-                .pod(pods.get(0))
+                .pod(pods.getFirst())
                 .build(),
                 ImmutableRestartEventForTest.builder()
                 .eventType(RestartEventType.SWITCHOVER_FINALIZED)
-                .pod(pods.get(0))
+                .pod(pods.getFirst())
                 .build(),
                 ImmutableRestartEventForTest.builder()
                 .eventType(RestartEventType.RESTARTING_POD)
-                .pod(pods.get(0))
+                .pod(pods.getFirst())
                 .build(),
                 ImmutableRestartEventForTest.builder()
                 .eventType(RestartEventType.POD_RESTARTED)
-                .pod(pods.get(0))
+                .pod(pods.getFirst())
                 .build(),
                 ImmutableRestartEventForTest.builder()
                 .eventType(RestartEventType.DECREASING_INSTANCES)
@@ -514,7 +514,7 @@ public abstract class ClusterStateHandlerTest {
                 .build(),
                 ImmutableRestartEventForTest.builder()
                 .eventType(RestartEventType.POD_RESTARTED)
-                .pod(pods.get(0))
+                .pod(pods.getFirst())
                 .build(),
                 ImmutableRestartEventForTest.builder()
                 .eventType(RestartEventType.DECREASING_INSTANCES)

@@ -86,7 +86,7 @@ class PostgresRestartTest {
   void restartPostgres_shouldNotFail() {
     when(patroniApiHandler.getClusterMembers(clusterName, namespace))
         .thenReturn(Uni.createFrom().item(clusterMembers));
-    when(patroniApiHandler.getClusterMemberPatroniInformation(clusterMembers.get(0)))
+    when(patroniApiHandler.getClusterMemberPatroniInformation(clusterMembers.getFirst()))
         .thenReturn(Uni.createFrom().item(patroniInformation));
 
     postgresRestart.restartPostgres(memberName, clusterName, namespace)
@@ -102,7 +102,7 @@ class PostgresRestartTest {
   void restartPostgresWhenNotPendingRestart_shouldNotFail() {
     when(patroniApiHandler.getClusterMembers(clusterName, namespace))
         .thenReturn(Uni.createFrom().item(clusterMembers));
-    when(patroniApiHandler.getClusterMemberPatroniInformation(clusterMembers.get(0)))
+    when(patroniApiHandler.getClusterMemberPatroniInformation(clusterMembers.getFirst()))
         .thenReturn(Uni.createFrom().item(ImmutablePatroniInformation
             .copyOf(patroniInformation)
             .withIsPendingRestart(false)));
@@ -120,7 +120,7 @@ class PostgresRestartTest {
   void restartPostgresWhenStarting_shouldNotFail() {
     when(patroniApiHandler.getClusterMembers(clusterName, namespace))
         .thenReturn(Uni.createFrom().item(clusterMembers));
-    when(patroniApiHandler.getClusterMemberPatroniInformation(clusterMembers.get(0)))
+    when(patroniApiHandler.getClusterMemberPatroniInformation(clusterMembers.getFirst()))
         .thenReturn(Uni.createFrom().item(ImmutablePatroniInformation
             .copyOf(patroniInformation)
             .withState(MemberState.STARTING)))
@@ -141,7 +141,7 @@ class PostgresRestartTest {
   void restartPostgresWhenAlreadyRestarting_shouldNotFail() {
     when(patroniApiHandler.getClusterMembers(clusterName, namespace))
         .thenReturn(Uni.createFrom().item(clusterMembers));
-    when(patroniApiHandler.getClusterMemberPatroniInformation(clusterMembers.get(0)))
+    when(patroniApiHandler.getClusterMemberPatroniInformation(clusterMembers.getFirst()))
         .thenReturn(Uni.createFrom().item(ImmutablePatroniInformation
             .copyOf(patroniInformation)
             .withState(MemberState.RESTARTING)))
@@ -162,9 +162,9 @@ class PostgresRestartTest {
   void restartPostgresWhenAlreadyRestarting_shouldFail() {
     when(patroniApiHandler.getClusterMembers(clusterName, namespace))
         .thenReturn(Uni.createFrom().item(clusterMembers));
-    when(patroniApiHandler.getClusterMemberPatroniInformation(clusterMembers.get(0)))
+    when(patroniApiHandler.getClusterMemberPatroniInformation(clusterMembers.getFirst()))
         .thenReturn(Uni.createFrom().item(patroniInformation));
-    when(patroniApiHandler.restartPostgres(clusterMembers.get(0)))
+    when(patroniApiHandler.restartPostgres(clusterMembers.getFirst()))
         .thenReturn(Uni.createFrom()
             .failure(() -> new RuntimeException("status 503: null")));
 
@@ -182,7 +182,7 @@ class PostgresRestartTest {
   void givenANonExistentMember_shouldFail() {
     when(patroniApiHandler.getClusterMembers(clusterName, namespace))
         .thenReturn(Uni.createFrom().item(clusterMembers));
-    when(patroniApiHandler.getClusterMemberPatroniInformation(clusterMembers.get(0)))
+    when(patroniApiHandler.getClusterMemberPatroniInformation(clusterMembers.getFirst()))
         .thenReturn(Uni.createFrom().item(patroniInformation));
 
     assertThrows(Exception.class, () -> postgresRestart
