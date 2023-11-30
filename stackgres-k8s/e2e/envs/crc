@@ -3,7 +3,7 @@
 #
 # Follow those steps to install and start crc in Ubuntu 20.04:
 # 
-#     sudo wget https://developers.redhat.com/content-gateway/file/pub/openshift-v4/clients/crc/1.39.0/crc-linux-amd64.tar.xz -O - | sudo tar xf --strip-components=1 -C /usr/local/bin/ -f - crc
+#     sudo wget https://developers.redhat.com/content-gateway/file/pub/openshift-v4/clients/crc/2.29.0/crc-linux-amd64.tar.xz -O - | sudo tar xf --strip-components=1 -C /usr/local/bin/ -f - crc
 #     sudo chmod a+x /usr/local/bin/crc
 #     sudo apt install qemu-kvm libvirt-daemon libvirt-daemon-system network-manager
 #     crc config set skip-check-daemon-systemd-unit true
@@ -229,13 +229,14 @@ crc_start_debug_node() {
 }
 
 crc_run_on_node() {
-  local NODE PID
+  local NODE POD PID
   NODE="$(kubectl get node -o name)"
   NODE="$(printf '%s' "$NODE" | head -n 1)"
 
-  PID="$(kubectl exec "${NODE#node/}-debug" -- sh -c \
+  POD="$(kubectl get pod -o name | cut -d / -f 2 | grep "^${NODE#node/}-debug" | head -n 1)"
+  PID="$(kubectl exec "$POD" -- sh -c \
     'for FILE in /proc/[0-9]*; do cat "$FILE/cmdline" 2>/dev/null | tr "\0" " " | grep -q "^\([^ ]*/\)\?kubelet " && echo "${FILE##*/}" && exit; done')"
-  kubectl exec -i "${NODE#node/}-debug" -- \
+  kubectl exec -i "$POD" -- \
     nsenter --target "$PID" --mount --uts --ipc --net --pid "$@"
 }
 
@@ -337,6 +338,7 @@ excluded_clusterroles() {
   echo "cloud-controller-manager"
   echo "machine-api-operator-ext-remediation"
   echo "local-path-provisioner-role"
+  echo "multus-.*"
 }
 
 excluded_clusterrolebindings() {
@@ -400,6 +402,7 @@ excluded_clusterrolebindings() {
   echo "cloud-controller-manager"
   echo "cluster-samples-operator-imageconfig-reader"
   echo "local-path-provisioner-bind"
+  echo "multus-.*"
 }
 
 create_expandable_storage_class_k8s(){
