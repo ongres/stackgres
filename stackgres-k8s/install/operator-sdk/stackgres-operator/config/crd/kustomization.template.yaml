@@ -23,6 +23,6 @@ $(
     }' "config/crd/bases/$CRD" > "config/crd/bases/$CRD.tmp"
     mv "config/crd/bases/$CRD.tmp" "config/crd/bases/$CRD"
   done
-	grep -vxF SGBackupConfig.yaml config/crd/bases/index.txt | grep -v '^$' | sed 's#^#- bases/#'
+	cat config/crd/bases/index.txt | grep -v '^$' | sed 's#^#- bases/#'
 )
 #+kubebuilder:scaffold:crdkustomizeresource
