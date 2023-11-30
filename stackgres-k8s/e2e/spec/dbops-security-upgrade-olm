@@ -225,6 +225,7 @@ rules:
   - stackgres.io
   resources:
   - sgclusters/finalizers
+  - sgdistributedlogs/finalizers
   verbs:
   - update
 EOF
