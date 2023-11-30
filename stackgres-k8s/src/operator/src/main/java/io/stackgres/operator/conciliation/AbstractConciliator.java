@@ -197,7 +197,7 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
     }
   }
 
-  protected boolean skipDeletion(HasMetadata requiredResource, T config) {
+  protected boolean skipDeletion(HasMetadata foundDeployedResource, T config) {
     return false;
   }
 
