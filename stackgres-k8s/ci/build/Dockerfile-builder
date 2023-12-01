@@ -3,12 +3,11 @@
 #
 # Build the image with:
 #
-# docker build -f stackgres-k8s/ci/build/Dockerfile-builder -t registry.gitlab.com/ongresinc/stackgres/build-amd64:1.6 stackgres-k8s/ci/build/
+# docker build -f stackgres-k8s/ci/build/Dockerfile-builder -t registry.gitlab.com/ongresinc/stackgres/build-amd64:1.7 stackgres-k8s/ci/build/
 #
 ###
 
-FROM quay.io/quarkus/ubi-quarkus-mandrel-builder-image:22.3-java17
+FROM quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21.0.1
   USER root
-  RUN microdnf --nodocs install python3-pip jq util-linux findutils
+  RUN microdnf --nodocs install python3-pip jq util-linux findutils && microdnf clean all
   RUN pip3 install yamllint yq
-  RUN microdnf clean all

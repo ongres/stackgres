@@ -1,11 +1,11 @@
 .images:
   ci_image: &ci_image registry.gitlab.com/ongresinc/stackgres/ci:1.23
-  jdk_build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.6
-  jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi8/openjdk-17:1.17-4
-  ubi8_micro_image: &ubi8_micro_image registry.access.redhat.com/ubi8-micro:8.8-7.1696517612
-  ubi9_minimal_image: &ubi9_minimal_image registry.access.redhat.com/ubi9-minimal:9.3-1361
-  admin_ui_build_image: &admin_ui_build_image registry.access.redhat.com/ubi8/nodejs-16:1-129.1698060573
-  admin_ui_nginx_image: &admin_ui_nginx_image registry.access.redhat.com/ubi8/nginx-120:1-127.1698060561
+  jdk_build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.7
+  jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi8/openjdk-21-runtime:1.18-2
+  ubi8_micro_image: &ubi8_micro_image registry.access.redhat.com/ubi8-micro:8.9-4
+  ubi9_minimal_image: &ubi9_minimal_image registry.access.redhat.com/ubi9-minimal:9.3-1361.1699548032
+  admin_ui_build_image: &admin_ui_build_image registry.access.redhat.com/ubi8/nodejs-16:1-139
+  admin_ui_nginx_image: &admin_ui_nginx_image registry.access.redhat.com/ubi8/nginx-120:1-137
 platforms:
   - linux/x86_64
   - linux/aarch64
