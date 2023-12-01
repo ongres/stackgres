@@ -290,6 +290,7 @@ e2e_test_uninstall() {
 
   e2e_cleanup
 
+  kubectl create namespace "$OPERATOR_NAMESPACE"
   install_operator_only
   wait_pods_running "$OPERATOR_NAMESPACE" 2
 }
@@ -361,7 +362,17 @@ check_operator_upgrade() {
   local POD_OPERATOR_IMAGE
   POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app="$PREVIOUS_RELEASE_NAME" \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
-    | head -n 1 | grep '/operator:')"
+    | head -n 1)"
+  if printf %s "$POD_OPERATOR_IMAGE" | grep -q '/operator:'
+  then
+    POD_OPERATOR_IMAGE="$(printf %s "$POD_OPERATOR_IMAGE" | grep '/operator:')"
+  else
+    if [ "$(docker manifest inspect -v "$POD_OPERATOR_IMAGE" | jq -r '.[0].Descriptor.digest')" \
+      = "$(docker manifest inspect -v "$EXPECTED_PREVIOUS_OPERATOR_IMAGE" | jq -r '.[0].Descriptor.digest')" ]
+    then
+      POD_OPERATOR_IMAGE="$EXPECTED_PREVIOUS_OPERATOR_IMAGE"
+    fi
+  fi
   if ! printf %s "$POD_OPERATOR_IMAGE" | grep -q '^[^/]\+\.[^/]\+/'
   then
     POD_OPERATOR_IMAGE="docker.io/$POD_OPERATOR_IMAGE"
@@ -378,9 +389,26 @@ check_operator_upgrade() {
     return 1
   fi
   local POD_RESTAPI_IMAGE
-  POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-restapi \
+  POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l "$(
+    if [ "$STACKGRES_PREVIOUS_VERSION" = 1.5.0 ]
+    then
+      printf %s app=stackgres-restapi
+    else
+      printf %s app=StackGresConfig,stackgres.io/restapi=true
+    fi
+    )" \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
-    | head -n 1 | grep '/restapi:')"
+    | head -n 1)"
+  if printf %s "$POD_RESTAPI_IMAGE" | grep -q '/restapi:'
+  then
+    POD_RESTAPI_IMAGE="$(printf %s "$POD_RESTAPI_IMAGE" | grep '/restapi:')"
+  else
+    if [ "$(docker manifest inspect -v "$POD_RESTAPI_IMAGE" | jq -r '.[0].Descriptor.digest')" \
+      = "$(docker manifest inspect -v "$EXPECTED_PREVIOUS_RESTAPI_IMAGE" | jq -r '.[0].Descriptor.digest')" ]
+    then
+      POD_RESTAPI_IMAGE="$EXPECTED_PREVIOUS_RESTAPI_IMAGE"
+    fi
+  fi
   if ! printf %s "$POD_RESTAPI_IMAGE" | grep -q '^[^/]\+\.[^/]\+/'
   then
     POD_RESTAPI_IMAGE="docker.io/$POD_RESTAPI_IMAGE"

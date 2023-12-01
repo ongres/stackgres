@@ -7,12 +7,16 @@ do
   cp "config/crd/bases/$(yq -r .spec.names.kind "$CRD").yaml" "$CRD"
   CRD_NAME="$(yq -r '.metadata.name' "$CRD")"
   CRD_SINGULAR="$(yq -r .spec.names.singular "$CRD")"
-  if [ "$CRD_SINGULAR" = SGConfig ]
+  if [ "$CRD_SINGULAR" = sgconfig ]
   then
     yq -y '.spec.webhookdefinitions = (.spec.webhookdefinitions 
       | map(select((.type == "ConversionWebhook" and .conversionCRDs[0] == "'"$CRD_NAME"'") | not))
       )' bundle/manifests/stackgres.clusterserviceversion.yaml \
       > bundle/manifests/stackgres.clusterserviceversion.yaml.tmp
+    mv bundle/manifests/stackgres.clusterserviceversion.yaml.tmp \
+      bundle/manifests/stackgres.clusterserviceversion.yaml
+    yq -y 'del(.spec.conversion)' "$CRD" > "$CRD".tmp
+    mv "$CRD".tmp "$CRD"
   else
     yq -y '.spec.webhookdefinitions = (.spec.webhookdefinitions 
       | map(
@@ -21,9 +25,9 @@ do
         )
       )' bundle/manifests/stackgres.clusterserviceversion.yaml \
       > bundle/manifests/stackgres.clusterserviceversion.yaml.tmp
+    mv bundle/manifests/stackgres.clusterserviceversion.yaml.tmp \
+      bundle/manifests/stackgres.clusterserviceversion.yaml
   fi
-  mv bundle/manifests/stackgres.clusterserviceversion.yaml.tmp \
-    bundle/manifests/stackgres.clusterserviceversion.yaml
 done
 yq -s -y '.[0] as $config | .[1] as $bundle | $bundle | .spec.relatedImages = $config.spec.relatedImages' \
   config/manifests/bases/stackgres.clusterserviceversion.yaml \
