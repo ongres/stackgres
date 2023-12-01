@@ -106,11 +106,15 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
             .anyMatch(deployedResourceKey::equals))
         .toList();
     if (!deployedOtherOwnerRequiredResources.isEmpty()) {
-      LOGGER.warn("Following resources are required but already exists in the cluster and are owned by another resource: {}", deployedOtherOwnerRequiredResources.stream()
-          .map(resourceKey -> resourceKey.kind()
-              + " " + resourceKey.namespace()
-              + "." + resourceKey.name())
-          .collect(Collectors.joining(", ")));
+      if (LOGGER.isWarnEnabled()) {
+        LOGGER.warn(
+            "Following resources are required but already exists in the cluster and are owned by another resource: {}",
+            deployedOtherOwnerRequiredResources.stream()
+                .map(resourceKey -> resourceKey.kind()
+                    + " " + resourceKey.namespace()
+                    + "." + resourceKey.name())
+                .collect(Collectors.joining(", ")));
+      }
       // Workaround for https://github.com/kubernetes/kubernetes/issues/120960
       cleanupNonGarbageCollectedResources(
           deployedResourcesSnapshot, deployedOtherOwnerRequiredResources);
@@ -163,7 +167,9 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
             try {
               client.resource(resource).delete();
             } catch (KubernetesClientException ex) {
-              LOGGER.warn("Error while trying to remove ungarbaged resource {} {}.{}", resource.getKind(), resource.getMetadata().getNamespace(), resource.getMetadata().getName(), ex);
+              LOGGER.warn("Error while trying to remove ungarbaged resource {} {}.{}",
+                  resource.getKind(), resource.getMetadata().getNamespace(),
+                  resource.getMetadata().getName(), ex);
             }
           }
         });

@@ -85,7 +85,6 @@
     <pmd.version>6.55.0</pmd.version>
     <docker-junit-extension.version>1.2.15</docker-junit-extension.version>
     <fluent-process.version>1.0.1</fluent-process.version>
-    <jetbrains-annotations.version>24.1.0</jetbrains-annotations.version>
     <quarkus-jooq.version>2.0.0</quarkus-jooq.version>
     <mockito.version>3.0.0</mockito.version>
     <swagger-annotations-jakarta.version>2.2.19</swagger-annotations-jakarta.version>
@@ -268,7 +267,6 @@
     <dependency>
       <groupId>org.jetbrains</groupId>
       <artifactId>annotations</artifactId>
-      <version>${jetbrains-annotations.version}</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
@@ -448,6 +446,8 @@
           <artifactId>maven-pmd-plugin</artifactId>
           <version>${pmd-plugin.version}</version>
           <configuration>
+            <!-- Disable PMD: Unsupported targetJdk value '21' -->
+            <skip>true</skip>
             <failurePriority>3</failurePriority>
             <failOnViolation>true</failOnViolation>
             <printFailingErrors>true</printFailingErrors>

@@ -56,12 +56,12 @@ public class CustomContainer extends io.fabric8.kubernetes.api.model.Container {
       List<EnvFromSource> envFrom, String image, String imagePullPolicy, Lifecycle lifecycle,
       Probe livenessProbe, String name, List<ContainerPort> ports, Probe readinessProbe,
       List<ContainerResizePolicy> resizePolicy,
-      ResourceRequirements resources, SecurityContext securityContext, Probe startupProbe,
+      ResourceRequirements resources, String restartPolicy, SecurityContext securityContext, Probe startupProbe,
       Boolean stdin, Boolean stdinOnce, String terminationMessagePath,
       String terminationMessagePolicy, Boolean tty, List<VolumeDevice> volumeDevices,
       List<VolumeMount> volumeMounts, String workingDir) {
     super(args, command, env, envFrom, image, imagePullPolicy, lifecycle, livenessProbe, name,
-        ports, readinessProbe, resizePolicy, resources, securityContext, startupProbe, stdin,
+        ports, readinessProbe, resizePolicy, resources, restartPolicy, securityContext, startupProbe, stdin,
         stdinOnce, terminationMessagePath, terminationMessagePolicy, tty, volumeDevices,
         volumeMounts, workingDir);
   }

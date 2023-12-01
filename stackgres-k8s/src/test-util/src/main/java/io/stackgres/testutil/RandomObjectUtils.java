@@ -21,7 +21,7 @@ import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.Quantity;
 
-public class RandomObjectUtils {
+public final class RandomObjectUtils {
 
   public static final Random RANDOM = new Random(7);
 
