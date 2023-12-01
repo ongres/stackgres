@@ -87,7 +87,7 @@
     <fluent-process.version>1.0.1</fluent-process.version>
     <quarkus-jooq.version>2.0.0</quarkus-jooq.version>
     <mockito.version>3.0.0</mockito.version>
-    <swagger-annotations-jakarta.version>2.2.19</swagger-annotations-jakarta.version>
+    <swagger-annotations-jakarta.version>2.2.15</swagger-annotations-jakarta.version>
     <sundrio.version>0.101.3</sundrio.version>
     <reflections.version>0.10.2</reflections.version>
     <truth.version>1.1.5</truth.version>
@@ -99,7 +99,6 @@
     <javapoet.version>1.13.0</javapoet.version>
     <compile-testing.version>0.21.0</compile-testing.version>
     <bouncycastle.version>1.70</bouncycastle.version>
-    <substratevm.version>19.2.1</substratevm.version>
     <!-- Plugins versions -->
     <compiler-plugin.version>3.11.0</compiler-plugin.version>
     <jar-plugin.version>3.3.0</jar-plugin.version>
@@ -115,7 +114,7 @@
     <docker-maven-plugin.version>0.43.0</docker-maven-plugin.version>
     <jandex-maven-plugin.version>3.1.6</jandex-maven-plugin.version>
     <build-helper-maven-plugin.version>3.5.0</build-helper-maven-plugin.version>
-    <swagger-maven-plugin-jakarta.version>2.2.19</swagger-maven-plugin-jakarta.version>
+    <swagger-maven-plugin-jakarta.version>2.2.15</swagger-maven-plugin-jakarta.version>
     <!-- Checkstyle, SpotBugs and PMD properties -->
     <checks.location>${maven.multiModuleProjectDirectory}/checks</checks.location>
     <checkstyle.config.location>${checks.location}/checkstyle.xml</checkstyle.config.location>
@@ -277,12 +276,6 @@
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
-    <dependency>
-      <groupId>com.oracle.substratevm</groupId>
-      <artifactId>svm</artifactId>
-      <version>${substratevm.version}</version>
-      <scope>provided</scope>
-    </dependency>
   </dependencies>
 
   <build>
@@ -391,6 +384,14 @@
               </goals>
             </execution>
           </executions>
+          <!--  Remove on the next update of jandex -->
+          <dependencies>
+            <dependency>
+              <groupId>org.codehaus.plexus</groupId>
+              <artifactId>plexus-utils</artifactId>
+              <version>4.0.0</version>
+            </dependency>
+          </dependencies>
         </plugin>
         <plugin>
           <groupId>io.swagger.core.v3</groupId>

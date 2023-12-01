@@ -19,7 +19,7 @@
   retry: 2
 
 .build image multi archs:
-  image: docker:20.10.12
+  image: docker:24.0.7
   stage: image build multi archs
   timeout: 1 hour
   script:
