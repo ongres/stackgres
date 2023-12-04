@@ -31,11 +31,13 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
@@ -54,6 +56,14 @@ public class ApplicationsResource {
       content = {@Content(
           mediaType = MediaType.APPLICATION_JSON,
           schema = @Schema(type = SchemaType.OBJECT))})
+  @Tag(name = "applications")
+  @Operation(summary = "List StackGres applications", description = """
+      List of the available StackGres applications.
+
+      ### RBAC permissions required
+
+      None
+      """)
   @CommonApiResponses
   @GET
   public Map<String, List<ApplicationDto>> getAllApplications() {
@@ -73,6 +83,14 @@ public class ApplicationsResource {
       content = {@Content(
           mediaType = MediaType.APPLICATION_JSON,
           schema = @Schema(type = SchemaType.OBJECT))})
+  @Tag(name = "applications")
+  @Operation(summary = "Get StackGres application", description = """
+      Get a StackGres application info.
+
+      ### RBAC permissions required
+
+      None
+      """)
   @CommonApiResponses
   @GET
   @Path("{publisher}/{name}")
@@ -93,6 +111,19 @@ public class ApplicationsResource {
           mediaType = MediaType.APPLICATION_JSON,
           schema = @Schema(type = SchemaType.OBJECT))})
   @RequestBody(content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA))
+  @Tag(name = "applications")
+  @Operation(summary = "Run Babelfish Compass application", description = """
+      Run Babelfish Compass application.
+
+      The payload must be a valid MS SQL Server script that will be checked by \
+      [Babelfish Compass](https://github.com/babelfish-for-postgresql/babelfish_compass).
+
+      ### RBAC permissions required
+
+      * jobs create, delete
+      * pods list, get
+      * pods/exec create
+      """)
   @CommonApiResponses
   @POST
   @Path("com.ongres/babelfish-compass")
@@ -130,8 +161,6 @@ public class ApplicationsResource {
     return bbfCompass.run(reportName, List.copyOf(cmFiles));
   }
 
-  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
-      justification = "False positive")
   private BabelfishCompass getBabelfishCompassApp() {
     BabelfishCompass bbfCompass = null;
     for (SgApplication app : applications) {

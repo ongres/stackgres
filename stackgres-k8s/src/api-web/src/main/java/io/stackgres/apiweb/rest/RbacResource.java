@@ -53,9 +53,11 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import org.eclipse.microprofile.jwt.Claim;
+import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,6 +85,14 @@ public class RbacResource {
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = SubjectAccessReviewStatus.class))})
+  @Tag(name = "auth")
+  @Operation(summary = "Can-i <verb> over <resource>", description = """
+      Check if an user can do specified `<verb>` on specified `<resource>`.
+
+      ### RBAC permissions required
+
+      None
+      """)
   @CommonApiResponses
   @GET
   @Path("can-i/{verb}/{resource}")
@@ -123,6 +133,14 @@ public class RbacResource {
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = PermissionsListDto.class))})
+  @Tag(name = "auth")
+  @Operation(summary = "Can-i list", description = """
+      Return a list of namespaced and unnamespaced permissions a user has granted.
+
+      ### RBAC permissions required
+
+      None
+      """)
   @CommonApiResponses
   @GET
   @Path("can-i")
