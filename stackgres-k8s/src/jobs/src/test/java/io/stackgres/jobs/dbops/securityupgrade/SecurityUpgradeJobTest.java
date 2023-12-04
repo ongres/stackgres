@@ -12,6 +12,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -28,7 +29,6 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.StatefulSetFinder;
 import io.stackgres.jobs.app.JobsProperty;
 import io.stackgres.jobs.dbops.DatabaseOperation;
-import io.stackgres.jobs.dbops.JobsStatefulSetWriter;
 import io.stackgres.jobs.dbops.StateHandler;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
 import io.stackgres.testutil.StringUtils;
@@ -52,29 +52,27 @@ class SecurityUpgradeJobTest {
   SecurityUpgradeStateHandler clusterRestart;
 
   @InjectMock
-  StatefulSetFinder statefulSetReader;
-  @InjectMock
-  JobsStatefulSetWriter statefulSetWriter;
+  StatefulSetFinder statefulSetFinder;
 
   private StackGresCluster cluster;
   private StackGresDbOps dbOps;
   private String clusterName;
   private String clusterNamespace;
-  private StatefulSet oldStatefulSet;
+  private StatefulSet statefulSet;
 
   @BeforeEach
   void setUp() {
     cluster = Fixtures.cluster().loadDefault().get();
-    oldStatefulSet = Fixtures.statefulSet().load0_9_5().get();
+    statefulSet = Fixtures.statefulSet().load0_9_5().get();
     cluster.getMetadata().setName("test-" + clusterNr.incrementAndGet());
     clusterName = StringUtils.getRandomClusterName();
     clusterNamespace = StringUtils.getRandomNamespace();
     cluster.getMetadata().setName(clusterName);
     cluster.getMetadata().setNamespace(clusterNamespace);
-    oldStatefulSet.getMetadata().setName(clusterName);
-    oldStatefulSet.getMetadata().setNamespace(clusterNamespace);
-    when(statefulSetReader.findByNameAndNamespace(clusterName, clusterNamespace))
-        .thenReturn(Optional.of(oldStatefulSet));
+    statefulSet.getMetadata().setName(clusterName);
+    statefulSet.getMetadata().setNamespace(clusterNamespace);
+    when(statefulSetFinder.findByNameAndNamespace(clusterName, clusterNamespace))
+        .thenReturn(Optional.of(statefulSet));
 
     dbOps = Fixtures.dbOps().loadSecurityUpgrade().get();
     dbOps.getMetadata().setNamespace(clusterNamespace);
@@ -90,47 +88,55 @@ class SecurityUpgradeJobTest {
 
   @Test
   void upgradeJob_shouldUpdateTheOperatorVersionOfTheTargetCluster() {
-
     final String expectedOperatorVersion = JobsProperty.OPERATOR_VERSION.getString();
     cluster.getMetadata().getAnnotations().put(
         StackGresContext.VERSION_KEY, PREVIOUS_OPERATOR_VERSION);
     cluster = kubeDb.addOrReplaceCluster(cluster);
+    kubeDb.watchCluster(clusterName, clusterNamespace, cluster -> {
+      statefulSet.getMetadata().setAnnotations(Map.of(
+          StackGresContext.VERSION_KEY,
+          cluster.getMetadata().getAnnotations().get(StackGresContext.VERSION_KEY)));
+    });
     securityUpgradeJob.runJob(dbOps, cluster).await().indefinitely();
     var storedClusterVersion = kubeDb.getCluster(clusterName, clusterNamespace)
         .getMetadata().getAnnotations()
         .get(StackGresContext.VERSION_KEY);
     assertEquals(expectedOperatorVersion, storedClusterVersion);
-
   }
 
   @Test
-  void upgradeJob_shouldDeleteTheExistentStatefulSet() {
-
+  void upgradeJob_shouldWaitForTheStatefulSetToBeUpgraded() {
     cluster = kubeDb.addOrReplaceCluster(cluster);
+    kubeDb.watchCluster(clusterName, clusterNamespace, cluster -> {
+      statefulSet.getMetadata().setAnnotations(Map.of(
+          StackGresContext.VERSION_KEY,
+          cluster.getMetadata().getAnnotations().get(StackGresContext.VERSION_KEY)));
+    });
     securityUpgradeJob.runJob(dbOps, cluster).await().indefinitely();
 
-    verify(statefulSetReader).findByNameAndNamespace(clusterName, clusterNamespace);
-    verify(statefulSetWriter).delete(oldStatefulSet);
+    verify(statefulSetFinder).findByNameAndNamespace(clusterName, clusterNamespace);
   }
 
   @Test
   void upgradeJob_shouldRestartTheCluster() {
-
     doReturn(Uni.createFrom().voidItem()).when(clusterRestart).restartCluster(any());
 
     cluster.getMetadata().getAnnotations().put(
         StackGresContext.VERSION_KEY, PREVIOUS_OPERATOR_VERSION);
     cluster = kubeDb.addOrReplaceCluster(cluster);
+    kubeDb.watchCluster(clusterName, clusterNamespace, cluster -> {
+      statefulSet.getMetadata().setAnnotations(Map.of(
+          StackGresContext.VERSION_KEY,
+          cluster.getMetadata().getAnnotations().get(StackGresContext.VERSION_KEY)));
+    });
 
     securityUpgradeJob.runJob(dbOps, cluster).await().indefinitely();
 
     verify(clusterRestart).restartCluster(any());
-
   }
 
   @Test
   void givenAFailureToRestartTheCluster_itShouldReportTheFailure() {
-
     final String errorMessage = "restart failure";
     doReturn(Uni.createFrom().failure(new RuntimeException(errorMessage)))
         .when(clusterRestart).restartCluster(any());
@@ -138,6 +144,11 @@ class SecurityUpgradeJobTest {
     cluster.getMetadata().getAnnotations().put(
         StackGresContext.VERSION_KEY, PREVIOUS_OPERATOR_VERSION);
     cluster = kubeDb.addOrReplaceCluster(cluster);
+    kubeDb.watchCluster(clusterName, clusterNamespace, cluster -> {
+      statefulSet.getMetadata().setAnnotations(Map.of(
+          StackGresContext.VERSION_KEY,
+          cluster.getMetadata().getAnnotations().get(StackGresContext.VERSION_KEY)));
+    });
     dbOps = kubeDb.addOrReplaceDbOps(dbOps);
 
     assertThrows(RuntimeException.class,
@@ -150,6 +161,5 @@ class SecurityUpgradeJobTest {
 
     assertEquals(errorMessage, kubeDb.getDbOps(clusterName, clusterNamespace)
         .getStatus().getSecurityUpgrade().getFailure());
-
   }
 }

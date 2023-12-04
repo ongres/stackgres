@@ -32,6 +32,12 @@ e2e_test() {
   run_test "Check that operator can be installed from outside" check_operator_install_outside
   run_test "Check that operator can be installed with load balancer" check_operator_install_load_balancer
   run_test "Check that operator can be installed with the '--wait' option" check_operator_install_with_wait
+  run_test "Check that operator can be installed with toleration properties" check_operator_helm_tolerations
+  run_test "Check that operator can be installed with serviceAcctount annotations properties" check_operator_helm_service_account_annotations
+  run_test "Check that operator can be installed with service annotations properties" check_operator_helm_service_annotations
+  run_test "Check that operator can be installed with affinity properties" check_operator_helm_affinity
+  run_test "Check that operator can be installed with nodeSelector properties" check_operator_helm_node_selector
+  run_test "Check that operator can be installed with annotations properties" check_operator_helm_annotations
 }
 
 check_operator_install() {
@@ -236,4 +242,105 @@ check_operator_upgrade_with_cluster_using_1_4_0_and_1_5_0() {
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
+
+check_operator_helm_tolerations() {
+  EFFECT="$(random_string)"
+  KEY="$(random_string)"
+  VALUE="$(random_string)"
+  check_operator_specific_property "--set operator.tolerations[0].effect=$EFFECT \
+  --set operator.tolerations[0].key=$KEY \
+  --set operator.tolerations[0].operator=Equal \
+  --set operator.tolerations[0].value=$VALUE" "Deployment" "stackgres-operator" "spec.template.spec.tolerations" \
+  '[
+  {
+    "effect": "'$EFFECT'",
+    "key": "'$KEY'",
+    "operator": "Equal",
+    "value": "'$VALUE'"
+  }
+]'
+}
+
+check_operator_helm_affinity() {
+  KEY="$(random_string)"
+  VALUE_1="$(random_string)"
+  VALUE_2="$(random_string)"
+  
+  check_operator_specific_property "--set operator.affinity.nodeSelector.key=$KEY \
+  --set operator.affinity.nodeSelector.operator== \
+  --set operator.affinity.nodeSelector.values[0]=$VALUE_1 \
+  --set operator.affinity.nodeSelector.values[1]=$VALUE_2" "Deployment" "stackgres-operator" "spec.template.spec.affinity" \
+    '{
+      "nodeSelector": {
+        "key": "'$KEY'",
+        "operator": "=",
+        "values": [
+          "'$VALUE_1'",
+          "'$VALUE_2'"
+        ]
+      }
+    }'
+}
+
+check_operator_helm_node_selector() {
+  KEY="$(random_string)"
+  VALUE_1="$(random_string)"
+  VALUE_2="$(random_string)"
+  
+  check_operator_specific_property "--set operator.nodeSelector.key=$KEY \
+  --set operator.nodeSelector.operator== \
+  --set operator.nodeSelector.values[0]=$VALUE_1 \
+  --set operator.nodeSelector.values[1]=$VALUE_2" "Deployment" "stackgres-operator" "spec.template.spec.nodeSelector" \
+    '{
+      "key": "'$KEY'",
+      "operator": "=",
+      "values": [
+        "'$VALUE_1'",
+        "'$VALUE_2'"
+      ]
+    }'
+}
+
+check_operator_helm_annotations() {
+  KEY="$(random_string)"
+  VALUE="$(random_string)"
+  
+  check_operator_specific_property "--set operator.annotations.$KEY=$VALUE" "Deployment" "stackgres-operator" "metadata.annotations.$KEY" "$VALUE"
+}
+
+check_operator_helm_service_account_annotations() {
+  KEY="$(random_string)"
+  VALUE="$(random_string)"
+  
+  check_operator_specific_property "--set operator.serviceAccount.annotations.$KEY=$VALUE" "ServiceAccount" "stackgres-operator" "metadata.annotations.$KEY" "$VALUE"
+}
+
+check_operator_helm_service_annotations() {
+  KEY="$(random_string)"
+  VALUE="$(random_string)"
+  
+  check_operator_specific_property "--set operator.service.annotations.$KEY=$VALUE" "Service" "stackgres-operator" "metadata.annotations.$KEY" "$VALUE"
+}
+
+check_operator_specific_property() {
+  local PARAMETERS="$1"
+  local KIND="$2"
+  local NAMES="$3"
+  local KEY="$4"
+  local EXPECTED_VALUE="$5"
+  EXPECTED_VALUE="$(printf %s "$EXPECTED_VALUE" | yq -r .)"
+  
+  for NAME in $NAMES; do
+    ACTUAL_VALUE="$(helm template -n "$OPERATOR_NAMESPACE" stackgres-operator "$OPERATOR_CHART_PATH" \
+        $PARAMETERS | yq -r 'select( select(.kind == "'$KIND'").metadata.name == "'$NAME'")'.$KEY)"  
+
+    if [ -z "$ACTUAL_VALUE" ] || [ "$ACTUAL_VALUE" != "$EXPECTED_VALUE" ] || [ "$ACTUAL_VALUE" == "null" ]
+    then
+      echo "FAILURE! Property $KEY has no value $EXPECTED_VALUE (was $ACTUAL_VALUE) on $NAME $KIND"
+      return 1
+    else
+      echo "SUCCESS! Property $KEY has value $EXPECTED_VALUE on $NAME $KIND"
+    fi
+  done;
+}
 

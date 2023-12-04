@@ -7,6 +7,7 @@ resources:
 - bases/SGInstanceProfile.yaml
 - bases/SGPostgresConfig.yaml
 - bases/SGPoolingConfig.yaml
+- bases/SGBackupConfig.yaml
 - bases/SGBackup.yaml
 - bases/SGDistributedLogs.yaml
 - bases/SGDbOps.yaml
