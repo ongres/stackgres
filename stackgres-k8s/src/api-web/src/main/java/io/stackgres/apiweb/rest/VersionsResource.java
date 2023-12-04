@@ -12,27 +12,25 @@ import java.util.Map;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 
 @Path("version")
 @RequestScoped
 @Authenticated
 public class VersionsResource {
 
-  @Operation(responses = {
-      @ApiResponse(responseCode = "200", description = "OK",
-          content = {@Content(
-              mediaType = MediaType.APPLICATION_JSON,
-              schema = @Schema(type = "object"))})
-  })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = MediaType.APPLICATION_JSON,
+          schema = @Schema(type = SchemaType.OBJECT))})
   @CommonApiResponses
   @GET
   @Path("postgresql")

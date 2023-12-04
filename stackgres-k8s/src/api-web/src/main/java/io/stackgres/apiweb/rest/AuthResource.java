@@ -16,10 +16,6 @@ import io.stackgres.apiweb.security.SecretVerification;
 import io.stackgres.apiweb.security.TokenResponse;
 import io.stackgres.apiweb.security.TokenUtils;
 import io.stackgres.apiweb.security.UserPassword;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -31,6 +27,9 @@ import jakarta.ws.rs.core.CacheControl;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,13 +48,10 @@ public class AuthResource {
   @Inject
   AuthConfig config;
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = {@Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = TokenResponse.class))})
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = TokenResponse.class))})
   @CommonApiResponses
   @POST
   @Path("login")
@@ -81,11 +77,8 @@ public class AuthResource {
     }
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK"),
-          @ApiResponse(responseCode = "307", description = "Redirect")
-      })
+  @APIResponse(responseCode = "200", description = "OK")
+  @APIResponse(responseCode = "307", description = "Redirect")
   @CommonApiResponses
   @GET
   @Path("external")
@@ -96,10 +89,7 @@ public class AuthResource {
         .build();
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK"),
-      })
+  @APIResponse(responseCode = "200", description = "OK")
   @CommonApiResponses
   @GET
   @Path("type")

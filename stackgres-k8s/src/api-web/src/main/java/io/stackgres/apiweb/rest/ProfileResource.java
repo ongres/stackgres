@@ -12,14 +12,13 @@ import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.profile.ProfileDto;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.ws.rs.Path;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 
 @Path("sginstanceprofiles")
 @RequestScoped
@@ -32,50 +31,37 @@ public class ProfileResource
     return cluster.getMetadata().getNamespace().equals(
         resource.getMetadata().getNamespace())
         && Objects.equals(cluster.getSpec().getSgInstanceProfile(),
-        resource.getMetadata().getName());
+            resource.getMetadata().getName());
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = {@Content(
-                  mediaType = "application/json",
-                  array = @ArraySchema(
-                      schema = @Schema(implementation = ProfileDto.class)))})
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(type = SchemaType.ARRAY, implementation = ProfileDto.class))})
   @Override
   public List<ProfileDto> list() {
     return super.list();
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = ProfileDto.class)) })
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = ProfileDto.class))})
   @Override
   public ProfileDto create(ProfileDto resource, @Nullable Boolean dryRun) {
     return super.create(resource, dryRun);
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
-      })
+  @APIResponse(responseCode = "200", description = "OK")
   @Override
   public void delete(ProfileDto resource, @Nullable Boolean dryRun) {
     super.delete(resource, dryRun);
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = ProfileDto.class)) })
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = ProfileDto.class))})
   @Override
   public ProfileDto update(ProfileDto resource, @Nullable Boolean dryRun) {
     return super.update(resource, dryRun);

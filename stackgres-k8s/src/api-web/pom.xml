@@ -4,13 +4,15 @@
   ~ SPDX-License-Identifier: AGPL-3.0-or-later
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
   <parent>
     <artifactId>stackgres-parent</artifactId>
     <groupId>io.stackgres</groupId>
     <version>1.7.0-SNAPSHOT</version>
   </parent>
-  <modelVersion>4.0.0</modelVersion>
 
   <artifactId>stackgres-restapi</artifactId>
   <packaging>jar</packaging>
@@ -68,17 +70,17 @@
       <artifactId>jakarta.persistence-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>io.swagger.core.v3</groupId>
-      <artifactId>swagger-annotations-jakarta</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.swagger.core.v3</groupId>
-      <artifactId>swagger-maven-plugin-jakarta</artifactId>
-      <version>${swagger-maven-plugin-jakarta.version}</version>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-openapi</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-rest-client</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.sundr</groupId>
+      <artifactId>builder-annotations</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>io.stackgres</groupId>
@@ -118,6 +120,16 @@
       <groupId>com.ongres</groupId>
       <artifactId>docker-junit-extension</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.jooq</groupId>
+          <artifactId>jool-java-8</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>net.java.dev.jna</groupId>
+          <artifactId>jna</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -144,6 +156,12 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-test-keycloak-server</artifactId>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>net.java.dev.jna</groupId>
+          <artifactId>jna</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 
@@ -178,33 +196,6 @@
       <plugin>
         <groupId>io.smallrye</groupId>
         <artifactId>jandex-maven-plugin</artifactId>
-      </plugin>
-      <plugin>
-        <groupId>io.swagger.core.v3</groupId>
-        <artifactId>swagger-maven-plugin-jakarta</artifactId>
-        <configuration>
-          <skip>false</skip>
-          <resourcePackages>
-            <resourcePackage>io.stackgres.apiweb.rest</resourcePackage>
-            <resourcePackage>io.stackgres.apiweb.dto</resourcePackage>
-            <resourcePackage>io.stackgres.apiweb.security</resourcePackage>
-          </resourcePackages>
-          <outputPath>${basedir}/target/</outputPath>
-          <outputFileName>swagger</outputFileName>
-          <outputFormat>YAML</outputFormat>
-          <prettyPrint>true</prettyPrint>
-          <readAllResources>true</readAllResources>
-          <alwaysResolveAppPath>true</alwaysResolveAppPath>
-          <skipResolveAppPath>true</skipResolveAppPath>
-        </configuration>
-        <executions>
-          <execution>
-            <phase>compile</phase>
-            <goals>
-              <goal>resolve</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>

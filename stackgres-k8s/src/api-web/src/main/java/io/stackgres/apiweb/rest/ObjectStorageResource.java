@@ -24,22 +24,21 @@ import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Path;
-import org.jetbrains.annotations.NotNull;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 
 @Path("sgobjectstorages")
 @RequestScoped
 @Authenticated
-public class ObjectStorageResource extends AbstractCustomResourceServiceDependency<ObjectStorageDto,
-    StackGresObjectStorage> {
+public class ObjectStorageResource
+    extends AbstractCustomResourceServiceDependency<ObjectStorageDto, StackGresObjectStorage> {
 
   @Inject
   ResourceFinder<Secret> secretFinder;
@@ -47,29 +46,21 @@ public class ObjectStorageResource extends AbstractCustomResourceServiceDependen
   @Inject
   ResourceWriter<Secret> secretWriter;
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = {@Content(
-                  mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(
-                      implementation = ObjectStorageDto.class
-                  )))})
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(type = SchemaType.ARRAY, implementation = ObjectStorageDto.class))})
   @Override
-  public @NotNull List<ObjectStorageDto> list() {
+  public @Nonnull List<ObjectStorageDto> list() {
     return super.list();
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = ObjectStorageDto.class)) })
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = ObjectStorageDto.class))})
   @Override
-  public ObjectStorageDto create(@NotNull ObjectStorageDto resource, @Nullable Boolean dryRun) {
+  public ObjectStorageDto create(@Nonnull ObjectStorageDto resource, @Nullable Boolean dryRun) {
     setSecretKeySelectors(resource);
     if (!Optional.ofNullable(dryRun).orElse(false)) {
       createOrUpdateSecret(resource);
@@ -77,15 +68,12 @@ public class ObjectStorageResource extends AbstractCustomResourceServiceDependen
     return super.create(resource, dryRun);
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = ObjectStorageDto.class)) })
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = ObjectStorageDto.class))})
   @Override
-  public ObjectStorageDto update(@NotNull ObjectStorageDto resource, @Nullable Boolean dryRun) {
+  public ObjectStorageDto update(@Nonnull ObjectStorageDto resource, @Nullable Boolean dryRun) {
     setSecretKeySelectors(resource);
     if (!Optional.ofNullable(dryRun).orElse(false)) {
       createOrUpdateSecret(resource);
@@ -93,12 +81,9 @@ public class ObjectStorageResource extends AbstractCustomResourceServiceDependen
     return super.update(resource, dryRun);
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
-      })
+  @APIResponse(responseCode = "200", description = "OK")
   @Override
-  public void delete(@NotNull ObjectStorageDto resource, @Nullable Boolean dryRun) {
+  public void delete(@Nonnull ObjectStorageDto resource, @Nullable Boolean dryRun) {
     setSecretKeySelectors(resource);
     super.delete(resource, dryRun);
   }
@@ -119,8 +104,7 @@ public class ObjectStorageResource extends AbstractCustomResourceServiceDependen
         .map(StackGresClusterConfigurations::getBackups)
         .map(backupConfigurations -> backupConfigurations.stream()
             .map(StackGresClusterBackupConfiguration::getSgObjectStorage)
-            .anyMatch(ref -> Objects.equals(ref, storageName))
-        )
+            .anyMatch(ref -> Objects.equals(ref, storageName)))
         .orElse(false);
   }
 
@@ -150,7 +134,7 @@ public class ObjectStorageResource extends AbstractCustomResourceServiceDependen
               .withNamespace(namespace)
               .withName(name)
               .withOwnerReferences(finder.findByNameAndNamespace(
-                      resource.getMetadata().getName(), resource.getMetadata().getNamespace())
+                  resource.getMetadata().getName(), resource.getMetadata().getNamespace())
                   .map(ResourceUtil::getOwnerReference)
                   .map(ImmutableList::of)
                   .orElse(ImmutableList.of()))

@@ -12,23 +12,23 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import io.stackgres.apiweb.exception.ErrorResponse;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 
-@ApiResponse(responseCode = "400", description = "Bad Request",
+@APIResponse(responseCode = "400", description = "Bad Request",
     content = {@Content(
         mediaType = "application/json",
         schema = @Schema(implementation = ErrorResponse.class))})
-@ApiResponse(responseCode = "401", description = "Unauthorized",
+@APIResponse(responseCode = "401", description = "Unauthorized",
     content = {@Content(
         mediaType = "application/json",
         schema = @Schema(implementation = ErrorResponse.class))})
-@ApiResponse(responseCode = "403", description = "Forbidden",
+@APIResponse(responseCode = "403", description = "Forbidden",
     content = {@Content(
         mediaType = "application/json",
         schema = @Schema(implementation = ErrorResponse.class))})
-@ApiResponse(responseCode = "500", description = "Internal Server Error",
+@APIResponse(responseCode = "500", description = "Internal Server Error",
     content = {@Content(
         mediaType = "application/json",
         schema = @Schema(implementation = ErrorResponse.class))})

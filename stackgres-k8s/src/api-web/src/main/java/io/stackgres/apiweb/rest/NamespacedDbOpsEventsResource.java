@@ -20,16 +20,15 @@ import io.stackgres.apiweb.dto.event.EventDto;
 import io.stackgres.apiweb.dto.event.ObjectReference;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.ResourceScanner;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.jooq.lambda.Seq;
 
 @Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgdbops")
@@ -50,13 +49,10 @@ public class NamespacedDbOpsEventsResource {
     this.podScanner = podScanner;
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(implementation = EventDto.class))) })
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(type = SchemaType.ARRAY, implementation = EventDto.class))})
   @Path("/{name}/events")
   @GET
   public List<EventDto> list(@PathParam("namespace") String namespace,
@@ -64,20 +60,20 @@ public class NamespacedDbOpsEventsResource {
     Map<String, List<ObjectMeta>> relatedResources = new HashMap<>();
     relatedResources.put("Job",
         Seq.seq(jobScanner.findResourcesInNamespace(namespace))
-        .filter(job -> job.getMetadata().getOwnerReferences().stream()
-            .anyMatch(resourceReference -> Objects
-                .equals(resourceReference.getKind(), StackGresDbOps.KIND)
-                && Objects.equals(resourceReference.getName(), name)))
-        .map(Job::getMetadata)
-        .toList());
+            .filter(job -> job.getMetadata().getOwnerReferences().stream()
+                .anyMatch(resourceReference -> Objects
+                    .equals(resourceReference.getKind(), StackGresDbOps.KIND)
+                    && Objects.equals(resourceReference.getName(), name)))
+            .map(Job::getMetadata)
+            .toList());
     relatedResources.put("Pod",
         Seq.seq(podScanner.findResourcesInNamespace(namespace))
-        .filter(pod -> pod.getMetadata().getOwnerReferences().stream()
-            .anyMatch(resourceReference -> Objects.equals(resourceReference.getKind(), "Job")
-                && relatedResources.get("Job").stream().anyMatch(jobMetadata -> Objects
-                    .equals(jobMetadata.getName(), resourceReference.getName()))))
-        .map(Pod::getMetadata)
-        .toList());
+            .filter(pod -> pod.getMetadata().getOwnerReferences().stream()
+                .anyMatch(resourceReference -> Objects.equals(resourceReference.getKind(), "Job")
+                    && relatedResources.get("Job").stream().anyMatch(jobMetadata -> Objects
+                        .equals(jobMetadata.getName(), resourceReference.getName()))))
+            .map(Pod::getMetadata)
+            .toList());
     return Seq.seq(scanner.findResourcesInNamespace(namespace))
         .filter(event -> isDbOpsEvent(event, namespace, name, relatedResources))
         .sorted(this::orderByLastTimestamp)

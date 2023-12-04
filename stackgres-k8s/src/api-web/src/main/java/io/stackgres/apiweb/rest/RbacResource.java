@@ -44,10 +44,6 @@ import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -57,6 +53,9 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import org.eclipse.microprofile.jwt.Claim;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,13 +79,10 @@ public class RbacResource {
   @Inject
   KubernetesClientProvider kubernetesClientProvider;
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = {@Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = SubjectAccessReviewStatus.class))})
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = SubjectAccessReviewStatus.class))})
   @CommonApiResponses
   @GET
   @Path("can-i/{verb}/{resource}")
@@ -123,13 +119,10 @@ public class RbacResource {
     }
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = {@Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = PermissionsListDto.class))})
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = PermissionsListDto.class))})
   @CommonApiResponses
   @GET
   @Path("can-i")

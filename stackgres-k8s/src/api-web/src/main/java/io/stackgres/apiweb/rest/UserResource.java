@@ -29,11 +29,6 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.common.resource.ResourceWriter;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.RequestScoped;
@@ -45,6 +40,10 @@ import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 
 @Path("users")
 @RequestScoped
@@ -94,14 +93,10 @@ public class UserResource {
     this.namespace = WebApiProperty.RESTAPI_NAMESPACE.getString();
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = {@Content(
-                  mediaType = "application/json",
-                  array = @ArraySchema(
-                      schema = @Schema(implementation = UserDto.class))) })
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(type = SchemaType.ARRAY, implementation = UserDto.class))})
   @GET
   @CommonApiResponses
   public List<UserDto> list() {
@@ -118,13 +113,10 @@ public class UserResource {
         .toList();
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = UserDto.class)) })
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = UserDto.class))})
   @POST
   @CommonApiResponses
   public UserDto create(@Valid UserDto resource, @Nullable Boolean dryRun) {
@@ -152,10 +144,7 @@ public class UserResource {
         roleBindings, clusterRoleBindings);
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
-      })
+  @APIResponse(responseCode = "200", description = "OK")
   @DELETE
   @CommonApiResponses
   public void delete(@Valid UserDto resource, @Nullable Boolean dryRun) {
@@ -185,13 +174,10 @@ public class UserResource {
     }
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = UserDto.class)) })
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = UserDto.class))})
   @PUT
   @CommonApiResponses
   public UserDto update(@Valid UserDto resource, @Nullable Boolean dryRun) {
@@ -314,8 +300,8 @@ public class UserResource {
           } else {
             roleBinding.setSubjects(new ArrayList<>(
                 roleBinding.getSubjects().stream()
-                .filter(userSubject::equals)
-                .toList()));
+                    .filter(userSubject::equals)
+                    .toList()));
             roleBindingWriter.update(roleBinding);
           }
         });
@@ -331,8 +317,8 @@ public class UserResource {
         && roleBinding.getRoleRef().getApiGroup().equals("rbac.authorization.k8s.io")
         && roleBinding.getRoleRef().getName().equals(userRoleRef.getName())
         && Optional.ofNullable(roleBinding.getSubjects()).stream()
-        .flatMap(List::stream)
-        .anyMatch(userSubject::equals);
+            .flatMap(List::stream)
+            .anyMatch(userSubject::equals);
   }
 
   private RoleRef getRoleRef(UserRoleRef userRoleRef) {
@@ -398,8 +384,8 @@ public class UserResource {
           } else {
             clusterRoleBinding.setSubjects(new ArrayList<>(
                 clusterRoleBinding.getSubjects().stream()
-                .filter(userSubject::equals)
-                .toList()));
+                    .filter(userSubject::equals)
+                    .toList()));
             clusterRoleBindingWriter.update(clusterRoleBinding);
           }
         });
@@ -413,8 +399,8 @@ public class UserResource {
         && clusterRoleBinding.getRoleRef().getApiGroup().equals("rbac.authorization.k8s.io")
         && clusterRoleBinding.getRoleRef().getName().equals(userRoleRef.getName())
         && Optional.ofNullable(clusterRoleBinding.getSubjects()).stream()
-        .flatMap(List::stream)
-        .anyMatch(userSubject::equals);
+            .flatMap(List::stream)
+            .anyMatch(userSubject::equals);
   }
 
   private RoleRef getClusterRoleRef(UserRoleRef userRoleRef) {

@@ -12,15 +12,14 @@ import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.role.RoleDto;
 import io.stackgres.common.StackGresContext;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Path;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 
 @Path("roles")
 @RequestScoped
@@ -28,14 +27,10 @@ import jakarta.ws.rs.Path;
 public class RoleResource
     extends AbstractResourceService<RoleDto, Role> {
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = {@Content(
-                  mediaType = "application/json",
-                  array = @ArraySchema(
-                      schema = @Schema(implementation = RoleDto.class))) })
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(type = SchemaType.ARRAY, implementation = RoleDto.class))})
   @Override
   public List<RoleDto> list() {
     return scanner
@@ -46,34 +41,25 @@ public class RoleResource
         .toList();
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = RoleDto.class)) })
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = RoleDto.class))})
   @Override
   public RoleDto create(@Valid RoleDto resource, @Nullable Boolean dryRun) {
     return super.create(resource, dryRun);
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
-      })
+  @APIResponse(responseCode = "200", description = "OK")
   @Override
   public void delete(@Valid RoleDto resource, @Nullable Boolean dryRun) {
     super.delete(resource, dryRun);
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = RoleDto.class)) })
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = RoleDto.class))})
   @Override
   public RoleDto update(@Valid RoleDto resource, @Nullable Boolean dryRun) {
     return super.update(resource, dryRun);

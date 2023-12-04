@@ -17,13 +17,12 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.resource.ResourceFinder;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Path;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 
 @Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgobjectstorages")
 @RequestScoped
@@ -53,18 +52,14 @@ public class NamespacedObjectStorageResource
         .map(StackGresClusterConfigurations::getBackups)
         .map(backupConfigurations -> backupConfigurations.stream()
             .map(StackGresClusterBackupConfiguration::getSgObjectStorage)
-            .anyMatch(ref -> Objects.equals(ref, objectStorageName))
-        )
+            .anyMatch(ref -> Objects.equals(ref, objectStorageName)))
         .orElse(false);
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = {@Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = ObjectStorageDto.class))})
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = ObjectStorageDto.class))})
   @Override
   public ObjectStorageDto get(String namespace, String name) {
     return super.get(namespace, name);
