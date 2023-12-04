@@ -27,9 +27,11 @@ import jakarta.ws.rs.core.CacheControl;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +54,14 @@ public class AuthResource {
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = TokenResponse.class))})
+  @Tag(name = "auth")
+  @Operation(summary = "Login", description = """
+      Log in a user and returns a JWT token.
+
+      ### RBAC permissions required
+
+      None
+      """)
   @CommonApiResponses
   @POST
   @Path("login")
@@ -79,6 +89,14 @@ public class AuthResource {
 
   @APIResponse(responseCode = "200", description = "OK")
   @APIResponse(responseCode = "307", description = "Redirect")
+  @Tag(name = "auth")
+  @Operation(summary = "External authentication URL", description = """
+      Return the URL for external authentication.
+
+      ### RBAC permissions required
+
+      None
+      """)
   @CommonApiResponses
   @GET
   @Path("external")
@@ -90,6 +108,14 @@ public class AuthResource {
   }
 
   @APIResponse(responseCode = "200", description = "OK")
+  @Tag(name = "auth")
+  @Operation(summary = "Type of authentication", description = """
+      Return the configured auth mechanism type.
+
+      ### RBAC permissions required
+
+      None
+      """)
   @CommonApiResponses
   @GET
   @Path("type")
