@@ -7,11 +7,19 @@ package io.stackgres.operator.conciliation.factory.cluster;
 
 import javax.inject.Singleton;
 
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
+import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.AbstractClusterAnnotationDecorator;
 
 @Singleton
 @OperatorVersionBinder
-public class ClusterAnnotationDecorator extends AbstractClusterAnnotationDecorator {
+public class ClusterAnnotationDecorator
+    extends AbstractClusterAnnotationDecorator<StackGresClusterContext> {
 
+  @Override
+  protected StackGresCluster getCluster(StackGresClusterContext context) {
+    return context.getCluster();
+  }
 
 }

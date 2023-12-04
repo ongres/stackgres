@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.factory.dbops;
 import static io.stackgres.common.DbOpsUtil.jobName;
 import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -19,11 +20,18 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.PodSecurityContext;
 import io.fabric8.kubernetes.api.model.TolerationBuilder;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
+import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloper;
+import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperContainerPatches;
+import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloperPatches;
+import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpecScheduling;
@@ -192,7 +200,30 @@ public class DbOpsMinorVersionUpgradeJob implements DbOpsJobFactory {
                     .withName("LOCK_TIMEOUT_KEY")
                     .withValue(StackGresContext.LOCK_TIMEOUT_KEY)
                     .build())
+            .addAllToVolumeMounts(context.getConfig()
+                .map(StackGresConfig::getSpec)
+                .map(StackGresConfigSpec::getDeveloper)
+                .map(StackGresConfigDeveloper::getPatches)
+                .map(StackGresConfigDeveloperPatches::getJobs)
+                .map(StackGresConfigDeveloperContainerPatches::getVolumeMounts)
+                .stream()
+                .flatMap(List::stream)
+                .map(VolumeMount.class::cast)
+                .toList())
             .build())
+        .addAllToVolumes(Seq.seq(
+            context.getConfig()
+            .map(StackGresConfig::getSpec)
+            .map(StackGresConfigSpec::getDeveloper)
+            .map(StackGresConfigDeveloper::getPatches)
+            .map(StackGresConfigDeveloperPatches::getJobs)
+            .map(StackGresConfigDeveloperContainerPatches::getVolumes)
+            .stream()
+            .flatMap(List::stream)
+            .map(Volume.class::cast))
+            .grouped(volume -> volume.getName())
+            .flatMap(t -> t.v2.limit(1))
+            .toList())
         .endSpec()
         .endTemplate()
         .endSpec()
