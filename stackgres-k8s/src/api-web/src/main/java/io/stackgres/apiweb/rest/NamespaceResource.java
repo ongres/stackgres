@@ -13,17 +13,16 @@ import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.common.resource.ResourceWriter;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 
 @Path("namespaces")
 @RequestScoped
@@ -42,13 +41,10 @@ public class NamespaceResource {
     this.namespaceWriter = namespaceWriter;
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(type = "string"))) })
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(type = SchemaType.ARRAY))})
   @CommonApiResponses
   @GET
   public List<String> get() {
@@ -57,23 +53,20 @@ public class NamespaceResource {
         .toList();
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(type = "string"))) })
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(type = SchemaType.STRING))})
   @CommonApiResponses
   @Path("{name}")
   @POST
   public void create(@PathParam("name") String name) {
     namespaceWriter.create(
         new NamespaceBuilder()
-        .withNewMetadata()
-        .withName(name)
-        .endMetadata()
-        .build());
+            .withNewMetadata()
+            .withName(name)
+            .endMetadata()
+            .build());
   }
 
 }

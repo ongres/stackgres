@@ -30,15 +30,14 @@ import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Path;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
@@ -71,22 +70,18 @@ public class ScriptResource
     return cluster.getMetadata().getNamespace().equals(
         resource.getMetadata().getNamespace())
         && Optional.of(cluster.getSpec())
-        .map(StackGresClusterSpec::getManagedSql)
-        .map(StackGresClusterManagedSql::getScripts)
-        .stream()
-        .flatMap(List::stream)
-        .map(StackGresClusterManagedScriptEntry::getSgScript)
-        .anyMatch(sgScript -> Objects.equals(sgScript, resource.getMetadata().getName()));
+            .map(StackGresClusterSpec::getManagedSql)
+            .map(StackGresClusterManagedSql::getScripts)
+            .stream()
+            .flatMap(List::stream)
+            .map(StackGresClusterManagedScriptEntry::getSgScript)
+            .anyMatch(sgScript -> Objects.equals(sgScript, resource.getMetadata().getName()));
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  array = @ArraySchema(
-                      schema = @Schema(implementation = ScriptDto.class))) })
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(type = SchemaType.ARRAY, implementation = ScriptDto.class))})
   @Override
   public List<ScriptDto> list() {
     return Seq.seq(super.list())
@@ -94,13 +89,10 @@ public class ScriptResource
         .toList();
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = ScriptDto.class)) })
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = ScriptDto.class))})
   @Override
   public ScriptDto create(ScriptDto resource, @Nullable Boolean dryRun) {
     List<Secret> secretsToCreate = getSecretsToCreate(resource);
@@ -111,22 +103,16 @@ public class ScriptResource
     return super.create(resource, dryRun);
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
-      })
+  @APIResponse(responseCode = "200", description = "OK")
   @Override
   public void delete(ScriptDto resource, @Nullable Boolean dryRun) {
     super.delete(resource, dryRun);
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = ScriptDto.class)) })
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = ScriptDto.class))})
   @Override
   public ScriptDto update(ScriptDto resource, @Nullable Boolean dryRun) {
     List<Secret> secretsToCreate = getSecretsToCreate(resource);
@@ -225,18 +211,19 @@ public class ScriptResource
         .toList();
   }
 
-  private Tuple2<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector,
-      Consumer<ConfigMapKeySelector>>> extractConfigMapInfo(
-      ScriptDto resource, ScriptEntry scriptEntry, int index) {
-    return Tuple.<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector,
-        Consumer<ConfigMapKeySelector>>>tuple(
-        scriptEntryResourceName(resource, index),
-        Tuple.<String, Consumer<String>, ConfigMapKeySelector,
-            Consumer<ConfigMapKeySelector>>tuple(
-            scriptEntry.getScriptFrom().getConfigMapScript(),
-            scriptEntry.getScriptFrom()::setConfigMapScript,
-            scriptEntry.getScriptFrom().getConfigMapKeyRef(),
-            scriptEntry.getScriptFrom()::setConfigMapKeyRef));
+  private
+      Tuple2<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector, Consumer<ConfigMapKeySelector>>>
+      extractConfigMapInfo(
+          ScriptDto resource, ScriptEntry scriptEntry, int index) {
+    return Tuple
+        .<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector, Consumer<ConfigMapKeySelector>>>tuple(
+            scriptEntryResourceName(resource, index),
+            Tuple
+                .<String, Consumer<String>, ConfigMapKeySelector, Consumer<ConfigMapKeySelector>>tuple(
+                    scriptEntry.getScriptFrom().getConfigMapScript(),
+                    scriptEntry.getScriptFrom()::setConfigMapScript,
+                    scriptEntry.getScriptFrom().getConfigMapKeyRef(),
+                    scriptEntry.getScriptFrom()::setConfigMapKeyRef));
   }
 
   private String scriptEntryResourceName(ScriptDto resource, int index) {

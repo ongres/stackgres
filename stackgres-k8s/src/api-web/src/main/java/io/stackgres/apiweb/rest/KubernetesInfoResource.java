@@ -8,15 +8,15 @@ package io.stackgres.apiweb.rest;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 
 @Path("kubernetes-cluster-info")
 @RequestScoped
@@ -29,13 +29,10 @@ public class KubernetesInfoResource {
   /**
    * Return kubernetes cluster info.
    */
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = {@Content(
-                  mediaType = "application/json",
-                  schema = @Schema(type = "string"))})
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(type = SchemaType.STRING))})
   @CommonApiResponses
   @GET
   public Response info() {

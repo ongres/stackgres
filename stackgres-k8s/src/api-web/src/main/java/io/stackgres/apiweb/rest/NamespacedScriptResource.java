@@ -16,14 +16,13 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgscript.StackGresScript;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.Path;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 
 @Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgscripts")
 @RequestScoped
@@ -43,21 +42,18 @@ public class NamespacedScriptResource
     return cluster.getMetadata().getNamespace().equals(
         resource.getMetadata().getNamespace())
         && Optional.of(cluster.getSpec())
-        .map(StackGresClusterSpec::getManagedSql)
-        .map(StackGresClusterManagedSql::getScripts)
-        .stream()
-        .flatMap(List::stream)
-        .map(StackGresClusterManagedScriptEntry::getSgScript)
-        .anyMatch(sgScript -> Objects.equals(sgScript, resource.getMetadata().getName()));
+            .map(StackGresClusterSpec::getManagedSql)
+            .map(StackGresClusterManagedSql::getScripts)
+            .stream()
+            .flatMap(List::stream)
+            .map(StackGresClusterManagedScriptEntry::getSgScript)
+            .anyMatch(sgScript -> Objects.equals(sgScript, resource.getMetadata().getName()));
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = {@Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = ScriptDto.class))})
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = ScriptDto.class))})
   @Override
   public ScriptDto get(String namespace, String name) {
     return Optional.of(super.get(namespace, name))

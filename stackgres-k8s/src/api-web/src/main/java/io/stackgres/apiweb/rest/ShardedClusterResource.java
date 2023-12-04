@@ -22,7 +22,6 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.quarkus.security.Authenticated;
-import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterManagedScriptEntry;
 import io.stackgres.apiweb.dto.cluster.ClusterManagedSql;
 import io.stackgres.apiweb.dto.script.ScriptDto;
@@ -49,15 +48,14 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Path;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
@@ -103,13 +101,10 @@ public class ShardedClusterResource
     this.serviceFinder = serviceFinder;
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = {@Content(
-                  mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(implementation = ClusterDto.class)))})
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(type = SchemaType.ARRAY, implementation = ShardedClusterDto.class))})
   @Override
   public List<ShardedClusterDto> list() {
     return Seq.seq(super.list())
@@ -119,13 +114,10 @@ public class ShardedClusterResource
         .toList();
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = ShardedClusterDto.class)) })
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = ShardedClusterDto.class))})
   @Override
   public ShardedClusterDto create(ShardedClusterDto resource, @Nullable Boolean dryRun) {
     if (!Optional.ofNullable(dryRun).orElse(false)) {
@@ -134,13 +126,10 @@ public class ShardedClusterResource
     return super.create(resource, dryRun);
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = ShardedClusterDto.class)) })
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = ShardedClusterDto.class))})
   @Override
   public ShardedClusterDto update(ShardedClusterDto resource, @Nullable Boolean dryRun) {
     if (!Optional.ofNullable(dryRun).orElse(false)) {
@@ -149,10 +138,7 @@ public class ShardedClusterResource
     return super.update(resource, dryRun);
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
-      })
+  @APIResponse(responseCode = "200", description = "OK")
   @Override
   public void delete(ShardedClusterDto resource, @Nullable Boolean dryRun) {
     super.delete(resource, dryRun);
@@ -210,17 +196,17 @@ public class ShardedClusterResource
         .map(ShardedClusterCoordinator::getManagedSql)
         .map(ClusterManagedSql::getScripts),
         Optional.ofNullable(resource.getSpec())
-        .map(ShardedClusterSpec::getShards)
-        .map(ShardedClusterShards::getManagedSql)
-        .map(ClusterManagedSql::getScripts))
+            .map(ShardedClusterSpec::getShards)
+            .map(ShardedClusterShards::getManagedSql)
+            .map(ClusterManagedSql::getScripts))
         .filter(Optional::isPresent)
         .map(Optional::get)
         .flatMap(List::stream)
         .flatMap(managedScriptEntry -> Seq.seq(
             Optional.ofNullable(managedScriptEntry.getScriptSpec())
-            .map(ScriptSpec::getScripts)
-            .stream()
-            .flatMap(List::stream))
+                .map(ScriptSpec::getScripts)
+                .stream()
+                .flatMap(List::stream))
             .zipWithIndex()
             .map(Tuple.tuple(managedScriptEntry)::concat))
         .filter(t -> t.v2.getScriptFrom() != null
@@ -318,8 +304,7 @@ public class ShardedClusterResource
   }
 
   private List<Tuple2<Integer, StackGresScript>> getScriptsToCreate(ShardedClusterDto resource) {
-    return
-        getScriptEntries(resource)
+    return getScriptEntries(resource)
         .zipWithIndex()
         .filter(t -> t.v1.getScriptSpec() != null)
         .map(t -> {
@@ -345,13 +330,12 @@ public class ShardedClusterResource
   }
 
   private List<ConfigMap> getConfigMapsToCreate(ShardedClusterDto resource) {
-    return
-        getScriptEntries(resource)
+    return getScriptEntries(resource)
         .flatMap(managedScriptEntry -> Seq.seq(
             Optional.ofNullable(managedScriptEntry.getScriptSpec())
-            .map(ScriptSpec::getScripts)
-            .stream()
-            .flatMap(List::stream))
+                .map(ScriptSpec::getScripts)
+                .stream()
+                .flatMap(List::stream))
             .zipWithIndex()
             .map(Tuple.tuple(managedScriptEntry)::concat))
         .filter(t -> t.v2.getScriptFrom() != null)
@@ -379,13 +363,12 @@ public class ShardedClusterResource
   }
 
   private List<Secret> getSecretsToCreate(ShardedClusterDto resource) {
-    return
-        getScriptEntries(resource)
+    return getScriptEntries(resource)
         .flatMap(managedScriptEntry -> Seq.seq(
             Optional.ofNullable(managedScriptEntry.getScriptSpec())
-            .map(ScriptSpec::getScripts)
-            .stream()
-            .flatMap(List::stream))
+                .map(ScriptSpec::getScripts)
+                .stream()
+                .flatMap(List::stream))
             .zipWithIndex()
             .map(Tuple.tuple(managedScriptEntry)::concat))
         .filter(t -> t.v2.getScriptFrom() != null)
@@ -413,20 +396,21 @@ public class ShardedClusterResource
         .toList();
   }
 
-  private Tuple2<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector,
-      Consumer<ConfigMapKeySelector>>> extractConfigMapInfo(
-      ClusterManagedScriptEntry managedScriptEntry,
-      ScriptEntry scriptEntry,
-      int index) {
-    return Tuple.<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector,
-        Consumer<ConfigMapKeySelector>>>tuple(
-        scriptEntryResourceName(managedScriptEntry, index),
-        Tuple.<String, Consumer<String>, ConfigMapKeySelector,
-            Consumer<ConfigMapKeySelector>>tuple(
-            scriptEntry.getScriptFrom().getConfigMapScript(),
-            scriptEntry.getScriptFrom()::setConfigMapScript,
-            scriptEntry.getScriptFrom().getConfigMapKeyRef(),
-            scriptEntry.getScriptFrom()::setConfigMapKeyRef));
+  private
+      Tuple2<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector, Consumer<ConfigMapKeySelector>>>
+      extractConfigMapInfo(
+          ClusterManagedScriptEntry managedScriptEntry,
+          ScriptEntry scriptEntry,
+          int index) {
+    return Tuple
+        .<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector, Consumer<ConfigMapKeySelector>>>tuple(
+            scriptEntryResourceName(managedScriptEntry, index),
+            Tuple
+                .<String, Consumer<String>, ConfigMapKeySelector, Consumer<ConfigMapKeySelector>>tuple(
+                    scriptEntry.getScriptFrom().getConfigMapScript(),
+                    scriptEntry.getScriptFrom()::setConfigMapScript,
+                    scriptEntry.getScriptFrom().getConfigMapKeyRef(),
+                    scriptEntry.getScriptFrom()::setConfigMapKeyRef));
   }
 
   private String scriptResourceName(ShardedClusterDto cluster,
@@ -444,9 +428,9 @@ public class ShardedClusterResource
         .map(ShardedClusterCoordinator::getManagedSql)
         .map(ClusterManagedSql::getScripts),
         Optional.ofNullable(resource.getSpec())
-        .map(ShardedClusterSpec::getShards)
-        .map(ShardedClusterShards::getManagedSql)
-        .map(ClusterManagedSql::getScripts))
+            .map(ShardedClusterSpec::getShards)
+            .map(ShardedClusterShards::getManagedSql)
+            .map(ClusterManagedSql::getScripts))
         .append(Optional.ofNullable(resource.getSpec())
             .map(ShardedClusterSpec::getShards)
             .map(ShardedClusterShards::getOverrides)

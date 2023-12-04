@@ -20,11 +20,6 @@ import io.stackgres.apiweb.application.bbfcompass.FileUpload;
 import io.stackgres.apiweb.dto.ApplicationDto;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.common.StringUtil;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
@@ -36,6 +31,11 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
@@ -50,12 +50,10 @@ public class ApplicationsResource {
   @Inject
   Instance<SgApplication> applications;
 
-  @Operation(responses = {
-      @ApiResponse(responseCode = "200", description = "OK",
-          content = {@Content(
-              mediaType = MediaType.APPLICATION_JSON,
-              schema = @Schema(type = "object"))})
-  })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = MediaType.APPLICATION_JSON,
+          schema = @Schema(type = SchemaType.OBJECT))})
   @CommonApiResponses
   @GET
   public Map<String, List<ApplicationDto>> getAllApplications() {
@@ -71,12 +69,10 @@ public class ApplicationsResource {
     return Map.of("applications", List.copyOf(appsDto));
   }
 
-  @Operation(responses = {
-      @ApiResponse(responseCode = "200", description = "OK",
-          content = {@Content(
-              mediaType = MediaType.APPLICATION_JSON,
-              schema = @Schema(type = "object"))})
-  })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = MediaType.APPLICATION_JSON,
+          schema = @Schema(type = SchemaType.OBJECT))})
   @CommonApiResponses
   @GET
   @Path("{publisher}/{name}")
@@ -92,12 +88,10 @@ public class ApplicationsResource {
     throw new NotFoundException("Application %s/%s not found".formatted(publisher, name));
   }
 
-  @Operation(responses = {
-      @ApiResponse(responseCode = "200", description = "OK",
-          content = {@Content(
-              mediaType = MediaType.APPLICATION_JSON,
-              schema = @Schema(type = "object"))})
-  })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = MediaType.APPLICATION_JSON,
+          schema = @Schema(type = SchemaType.OBJECT))})
   @RequestBody(content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA))
   @CommonApiResponses
   @POST

@@ -13,12 +13,11 @@ import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsDto;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.ws.rs.Path;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 
 @Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgdistributedlogs")
 @RequestScoped
@@ -35,13 +34,10 @@ public class NamespacedDistributedLogsResource
             Optional.of(resource.getMetadata().getName()));
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = {@Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = DistributedLogsDto.class))})
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = DistributedLogsDto.class))})
   @Override
   public DistributedLogsDto get(String namespace, String name) {
     return super.get(namespace, name);

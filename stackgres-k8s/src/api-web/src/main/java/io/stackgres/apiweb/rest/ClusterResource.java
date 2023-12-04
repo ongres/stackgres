@@ -46,15 +46,14 @@ import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Path;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
@@ -103,13 +102,10 @@ public class ClusterResource
     this.serviceFinder = serviceFinder;
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = {@Content(
-                  mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(implementation = ClusterDto.class)))})
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(type = SchemaType.ARRAY,implementation = ClusterDto.class))})
   @Override
   public List<ClusterDto> list() {
     return Seq.seq(clusterScanner.getResources())
@@ -119,36 +115,27 @@ public class ClusterResource
         .toList();
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = ClusterDto.class)) })
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = ClusterDto.class))})
   @Override
   public ClusterDto create(ClusterDto resource, @Nullable Boolean dryRun) {
     createOrUpdateScripts(resource);
     return super.create(resource, dryRun);
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK",
-              content = { @Content(
-                  mediaType = "application/json",
-                  schema = @Schema(implementation = ClusterDto.class)) })
-      })
+  @APIResponse(responseCode = "200", description = "OK",
+      content = {@Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = ClusterDto.class))})
   @Override
   public ClusterDto update(ClusterDto resource, @Nullable Boolean dryRun) {
     createOrUpdateScripts(resource);
     return super.update(resource, dryRun);
   }
 
-  @Operation(
-      responses = {
-          @ApiResponse(responseCode = "200", description = "OK")
-      })
+  @APIResponse(responseCode = "200", description = "OK")
   @Override
   public void delete(ClusterDto resource, @Nullable Boolean dryRun) {
     super.delete(resource, dryRun);
@@ -207,9 +194,9 @@ public class ClusterResource
         .flatMap(List::stream))
         .flatMap(managedScriptEntry -> Seq.seq(
             Optional.ofNullable(managedScriptEntry.getScriptSpec())
-            .map(ScriptSpec::getScripts)
-            .stream()
-            .flatMap(List::stream))
+                .map(ScriptSpec::getScripts)
+                .stream()
+                .flatMap(List::stream))
             .zipWithIndex()
             .map(Tuple.tuple(managedScriptEntry)::concat))
         .filter(t -> t.v2.getScriptFrom() != null
@@ -344,9 +331,9 @@ public class ClusterResource
         .flatMap(List::stream))
         .flatMap(managedScriptEntry -> Seq.seq(
             Optional.ofNullable(managedScriptEntry.getScriptSpec())
-            .map(ScriptSpec::getScripts)
-            .stream()
-            .flatMap(List::stream))
+                .map(ScriptSpec::getScripts)
+                .stream()
+                .flatMap(List::stream))
             .zipWithIndex()
             .map(Tuple.tuple(managedScriptEntry)::concat))
         .filter(t -> t.v2.getScriptFrom() != null)
@@ -382,9 +369,9 @@ public class ClusterResource
         .flatMap(List::stream))
         .flatMap(managedScriptEntry -> Seq.seq(
             Optional.ofNullable(managedScriptEntry.getScriptSpec())
-            .map(ScriptSpec::getScripts)
-            .stream()
-            .flatMap(List::stream))
+                .map(ScriptSpec::getScripts)
+                .stream()
+                .flatMap(List::stream))
             .zipWithIndex()
             .map(Tuple.tuple(managedScriptEntry)::concat))
         .filter(t -> t.v2.getScriptFrom() != null)
@@ -412,20 +399,21 @@ public class ClusterResource
         .toList();
   }
 
-  private Tuple2<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector,
-      Consumer<ConfigMapKeySelector>>> extractConfigMapInfo(
-      ClusterManagedScriptEntry managedScriptEntry,
-      ScriptEntry scriptEntry,
-      int index) {
-    return Tuple.<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector,
-        Consumer<ConfigMapKeySelector>>>tuple(
-        scriptEntryResourceName(managedScriptEntry, index),
-        Tuple.<String, Consumer<String>, ConfigMapKeySelector,
-            Consumer<ConfigMapKeySelector>>tuple(
-            scriptEntry.getScriptFrom().getConfigMapScript(),
-            scriptEntry.getScriptFrom()::setConfigMapScript,
-            scriptEntry.getScriptFrom().getConfigMapKeyRef(),
-            scriptEntry.getScriptFrom()::setConfigMapKeyRef));
+  private
+      Tuple2<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector, Consumer<ConfigMapKeySelector>>>
+      extractConfigMapInfo(
+          ClusterManagedScriptEntry managedScriptEntry,
+          ScriptEntry scriptEntry,
+          int index) {
+    return Tuple
+        .<String, Tuple4<String, Consumer<String>, ConfigMapKeySelector, Consumer<ConfigMapKeySelector>>>tuple(
+            scriptEntryResourceName(managedScriptEntry, index),
+            Tuple
+                .<String, Consumer<String>, ConfigMapKeySelector, Consumer<ConfigMapKeySelector>>tuple(
+                    scriptEntry.getScriptFrom().getConfigMapScript(),
+                    scriptEntry.getScriptFrom()::setConfigMapScript,
+                    scriptEntry.getScriptFrom().getConfigMapKeyRef(),
+                    scriptEntry.getScriptFrom()::setConfigMapKeyRef));
   }
 
   private String scriptResourceName(ClusterDto cluster,
