@@ -203,8 +203,13 @@ public abstract class ExtensionManager {
               Paths.get(ClusterPath.PG_RELOCATED_LIB_PATH.path(context))
                   .resolve(libFile.getFileName())))
           .forEach(
-              Unchecked.consumer(t -> fileSystemHandler
-                  .createOrReplaceSymbolicLink(t.v2, t.v1)));
+              Unchecked.consumer(t -> {
+                Path targetParent = t.v2.getParent();
+                if (targetParent != null) {
+                  fileSystemHandler.createDirectories(targetParent);
+                }
+                fileSystemHandler.createOrReplaceSymbolicLink(t.v2, t.v1);
+              }));
       fileSystemHandler.createOrReplaceFile(
           Paths.get(ClusterPath.PG_RELOCATED_LIB_PATH.path(context))
           .resolve(packageName + LINKS_CREATED_SUFFIX));
