@@ -28,10 +28,10 @@ public class KubernetesServerSupplier implements Supplier<KubernetesServer> {
   @Override
   public synchronized KubernetesServer get() {
     if (server == null) {
-      KubernetesServer server = new KubernetesServer(true, true);
-      server.before();
-      server = new WrappedKubernetesServer(server);
-      this.server = server;
+      KubernetesServer k8sServer = new KubernetesServer(true, true);
+      k8sServer.before();
+      k8sServer = new WrappedKubernetesServer(k8sServer);
+      this.server = k8sServer;
     }
     return server;
   }
@@ -45,62 +45,76 @@ public class KubernetesServerSupplier implements Supplier<KubernetesServer> {
       this.server = server;
       this.client = (NamespacedKubernetesClient) Proxy
           .newProxyInstance(NamespacedKubernetesClient.class.getClassLoader(),
-              new Class[] { NamespacedKubernetesClient.class },
+              new Class<?>[] { NamespacedKubernetesClient.class },
               new KubernetesClientInvocationHandler(server.getClient()));
     }
 
+    @Override
     public Statement apply(Statement base, Description description) {
       return server.apply(base, description);
     }
 
+    @Override
     public int hashCode() {
       return server.hashCode();
     }
 
+    @Override
     public void before() {
       server.before();
     }
 
+    @Override
     public void after() {
       server.after();
     }
 
+    @Override
     public NamespacedKubernetesClient getClient() {
       return client;
     }
 
+    @Override
     public MockServerExpectation expect() {
       return server.expect();
     }
 
+    @Override
     public <T> void expectAndReturnAsJson(String path, int code, T body) {
       server.expectAndReturnAsJson(path, code, body);
     }
 
+    @Override
     public <T> void expectAndReturnAsJson(String method, String path, int code, T body) {
       server.expectAndReturnAsJson(method, path, code, body);
     }
 
+    @Override
     public void expectAndReturnAsString(String path, int code, String body) {
       server.expectAndReturnAsString(path, code, body);
     }
 
+    @Override
     public void expectAndReturnAsString(String method, String path, int code, String body) {
       server.expectAndReturnAsString(method, path, code, body);
     }
 
+    @Override
     public KubernetesMockServer getKubernetesMockServer() {
       return server.getKubernetesMockServer();
     }
 
+    @Override
     public RecordedRequest getLastRequest() throws InterruptedException {
       return server.getLastRequest();
     }
 
+    @Override
     public boolean equals(Object obj) {
       return server.equals(obj);
     }
 
+    @Override
     public String toString() {
       return server.toString();
     }

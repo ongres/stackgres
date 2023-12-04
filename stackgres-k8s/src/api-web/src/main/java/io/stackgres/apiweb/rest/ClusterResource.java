@@ -105,7 +105,7 @@ public class ClusterResource
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
           mediaType = "application/json",
-          schema = @Schema(type = SchemaType.ARRAY,implementation = ClusterDto.class))})
+          schema = @Schema(type = SchemaType.ARRAY, implementation = ClusterDto.class))})
   @Override
   public List<ClusterDto> list() {
     return Seq.seq(clusterScanner.getResources())
