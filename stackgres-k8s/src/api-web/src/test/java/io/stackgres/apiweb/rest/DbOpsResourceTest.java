@@ -12,6 +12,8 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.stackgres.apiweb.dto.dbops.DbOpsDto;
 import io.stackgres.apiweb.dto.fixture.DtoFixtures;
+import io.stackgres.apiweb.rest.sgdbops.DbOpsResource;
+import io.stackgres.apiweb.rest.sgdbops.NamespacedDbOpsResource;
 import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
 import io.stackgres.apiweb.transformer.DbOpsTransformer;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;

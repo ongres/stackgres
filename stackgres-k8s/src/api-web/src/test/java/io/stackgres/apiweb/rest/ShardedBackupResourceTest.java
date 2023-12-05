@@ -13,6 +13,8 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.dto.shardedbackup.ShardedBackupDto;
+import io.stackgres.apiweb.rest.sgshardedbackup.NamespacedShardedBackupResource;
+import io.stackgres.apiweb.rest.sgshardedbackup.ShardedBackupResource;
 import io.stackgres.apiweb.transformer.AbstractResourceTransformer;
 import io.stackgres.apiweb.transformer.ShardedBackupTransformer;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;

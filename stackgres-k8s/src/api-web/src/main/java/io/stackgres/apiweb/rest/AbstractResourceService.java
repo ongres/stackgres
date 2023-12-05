@@ -34,16 +34,16 @@ public abstract class AbstractResourceService
     implements ValidatedResourceRestService<T> {
 
   @Inject
-  ResourceScanner<R> scanner;
+  protected  ResourceScanner<R> scanner;
 
   @Inject
-  ResourceFinder<R> finder;
+  protected  ResourceFinder<R> finder;
 
   @Inject
-  ResourceWriter<R> writer;
+  protected  ResourceWriter<R> writer;
 
   @Inject
-  ResourceTransformer<T, R> transformer;
+  protected  ResourceTransformer<T, R> transformer;
 
   /**
    * Looks for all resources of type {@code <R>} that are installed in the kubernetes cluster.

@@ -22,6 +22,7 @@ import java.util.Objects;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.stackgres.apiweb.dto.extension.Extension;
 import io.stackgres.apiweb.dto.extension.ExtensionsDto;
+import io.stackgres.apiweb.rest.misc.ExtensionsResource;
 import io.stackgres.apiweb.transformer.ExtensionsTransformer;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;

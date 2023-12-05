@@ -15,6 +15,8 @@ import com.google.common.collect.ImmutableSet;
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigDto;
+import io.stackgres.apiweb.rest.sgpoolconfig.ConnectionPoolingConfigResource;
+import io.stackgres.apiweb.rest.sgpoolconfig.NamespacedConnectionPoolingConfigResource;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.apiweb.transformer.PoolingConfigTransformer;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;

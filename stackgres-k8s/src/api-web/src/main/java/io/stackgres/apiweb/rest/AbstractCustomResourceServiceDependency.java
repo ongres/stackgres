@@ -36,19 +36,19 @@ public abstract class AbstractCustomResourceServiceDependency
     implements ResourceRestService<T> {
 
   @Inject
-  CustomResourceScanner<R> scanner;
+  protected CustomResourceScanner<R> scanner;
 
   @Inject
-  CustomResourceFinder<R> finder;
+  protected CustomResourceFinder<R> finder;
 
   @Inject
-  CustomResourceScheduler<R> scheduler;
+  protected CustomResourceScheduler<R> scheduler;
 
   @Inject
-  CustomResourceScanner<StackGresCluster> clusterScanner;
+  protected CustomResourceScanner<StackGresCluster> clusterScanner;
 
   @Inject
-  DependencyResourceTransformer<T, R> transformer;
+  protected DependencyResourceTransformer<T, R> transformer;
 
   public abstract boolean belongsToCluster(R resource, StackGresCluster cluster);
 

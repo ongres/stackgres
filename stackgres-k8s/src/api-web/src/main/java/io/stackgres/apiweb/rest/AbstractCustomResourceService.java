@@ -36,13 +36,13 @@ public abstract class AbstractCustomResourceService
   CustomResourceScanner<R> scanner;
 
   @Inject
-  CustomResourceFinder<R> finder;
+  public CustomResourceFinder<R> finder;
 
   @Inject
   CustomResourceScheduler<R> scheduler;
 
   @Inject
-  ResourceTransformer<T, R> transformer;
+  public ResourceTransformer<T, R> transformer;
 
   /**
    * Looks for all resources of type {@code <R>} that are installed in the kubernetes cluster.

@@ -12,6 +12,7 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.api.model.storage.StorageClassList;
+import io.stackgres.apiweb.rest.misc.StorageClassResource;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceScanner;
 import org.junit.jupiter.api.BeforeEach;
