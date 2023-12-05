@@ -1,0 +1,7 @@
+specDescriptors:
+  sgShardedCluster:
+    displayName: Target SGShardedCluster
+statusDescriptors:
+  conditions:
+    x-descriptors:
+    - 'urn:alm:descriptor:io.kubernetes.conditions'

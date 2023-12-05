@@ -25,6 +25,14 @@ spec:
   customresourcedefinitions:
     owned:
 $(
+  for CRD in $(grep -vxF SGBackupConfig.yaml config/crd/bases/index.txt)
+  do
+    if ! yq -r '.[].kind' config/crd/bases/crd-descriptors.yaml | grep -qxF "${CRD%.yaml}"
+    then
+      >&2 echo "Can not find ${CRD%.yaml} in config/crd/bases/crd-descriptors.yaml"
+      exit 1
+    fi
+  done
   yq -r '.[].kind' config/crd/bases/crd-descriptors.yaml \
     | while read KIND
       do

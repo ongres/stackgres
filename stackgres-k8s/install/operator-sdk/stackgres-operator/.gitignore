@@ -3,6 +3,7 @@ bundle*
 config/manifests/bases/stackgres.clusterserviceversion.yaml
 config/operator/kustomization.yaml
 config/crd/kustomization.yaml
+config/samples/kustomization.yaml
 config/crd/bases/*
 !config/crd/bases/crd-descriptors.yaml
 !config/crd/bases/*.descriptors.yaml

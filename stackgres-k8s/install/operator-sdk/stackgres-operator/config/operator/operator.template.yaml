@@ -114,7 +114,16 @@ fi
               fieldRef:
                 fieldPath: status.podIP
           - name: OPERATOR_VERSION
-            value: "${VERSION}"
+            value: "${STACKGRES_VERSION}"
+$(
+if [ "$OPENSHIFT_BUNDLE" = true ]
+then
+  cat << EOF
+          - name: USE_ARBITRARY_USER
+            value: "true"
+EOF
+fi
+)
         ports:
         - containerPort: 8080
           name: "http"
