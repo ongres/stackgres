@@ -268,7 +268,7 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(1)).createOrReplaceFile(
         eq(Paths.get(ClusterPath.PG_RELOCATED_LIB_PATH.path(context(cluster)))
             .resolve(extensionPackageName + ExtensionManager.LINKS_CREATED_SUFFIX)));
-    verify(fileSystemHandler, times(17)).createDirectories(any());
+    verify(fileSystemHandler, times(18)).createDirectories(any());
     verify(fileSystemHandler, times(1)).createDirectories(
         eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr")));
@@ -301,6 +301,8 @@ public class ExtensionManagerTest {
     verify(fileSystemHandler, times(3)).createDirectories(
         eq(Paths.get(ClusterPath.PG_EXTENSIONS_PATH.path(context(cluster)))
             .resolve("usr/share/postgresql/12/extension")));
+    verify(fileSystemHandler, times(1)).createDirectories(
+        eq(Paths.get(ClusterPath.PG_RELOCATED_LIB_PATH.path(context(cluster)))));
     verify(fileSystemHandler, times(3)).createOrReplaceSymbolicLink(any(), any());
     verify(fileSystemHandler, times(1)).createOrReplaceSymbolicLink(
         eq(Paths.get(ClusterPath.PG_EXTENSIONS_LIB64_PATH.path(context(cluster)))

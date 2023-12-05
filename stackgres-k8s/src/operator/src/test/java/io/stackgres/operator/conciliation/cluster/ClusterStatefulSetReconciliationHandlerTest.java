@@ -31,14 +31,12 @@ import java.util.Random;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.OwnerReference;
-import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -56,6 +54,7 @@ import io.stackgres.common.labels.ClusterLabelMapper;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.StringUtils;
 import org.jooq.lambda.Seq;
@@ -482,7 +481,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
     setUpUpscale(2, false, 0, PrimaryPosition.FIRST);
 
     deployedStatefulSet.getMetadata().setUid(StringUtils.getRandomString());
-    final List<OwnerReference> requiredOwnerReferences = getOwnerReferences(deployedStatefulSet);
+    final List<OwnerReference> requiredOwnerReferences = List.of(
+        ResourceUtil.getControllerOwnerReference(deployedStatefulSet));
 
     when(defaultHandler.patch(any(), any(StatefulSet.class), any()))
         .thenReturn(deployedStatefulSet);
@@ -777,7 +777,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
         .withLabels(ImmutableMap.<String, String>builder()
             .putAll(podLabels)
             .build())
-        .withOwnerReferences(getOwnerReferences(requiredStatefulSet))
+        .withOwnerReferences(ResourceUtil.getControllerOwnerReference(requiredStatefulSet))
         .endMetadata()
         .withNewSpec()
         .withNodeSelector(
@@ -800,19 +800,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
         .withLabels(ImmutableMap.<String, String>builder()
             .putAll(pvcMetadata.getLabels())
             .build())
-        .withOwnerReferences(getOwnerReferences(requiredStatefulSet))
+        .withOwnerReferences(ResourceUtil.getControllerOwnerReference(cluster))
         .endMetadata()
-        .build());
-  }
-
-  private ImmutableList<OwnerReference> getOwnerReferences(HasMetadata resource) {
-    return ImmutableList.of(new OwnerReferenceBuilder()
-        .withApiVersion(resource.getApiVersion())
-        .withKind(resource.getKind())
-        .withName(resource.getMetadata().getName())
-        .withUid(resource.getMetadata().getUid())
-        .withBlockOwnerDeletion(true)
-        .withController(true)
         .build());
   }
 

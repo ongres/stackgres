@@ -7,7 +7,10 @@ package io.stackgres.jobs.dbops.securityupgrade;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.StackGresContext;
@@ -19,7 +22,6 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsStatus;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.jobs.dbops.ClusterRestartStateHandler;
 import io.stackgres.jobs.dbops.DatabaseOperation;
 import io.stackgres.jobs.dbops.DatabaseOperationJob;
@@ -48,9 +50,6 @@ public class SecurityUpgradeJob implements DatabaseOperationJob {
   ResourceFinder<StatefulSet> statefulSetFinder;
 
   @Inject
-  ResourceWriter<StatefulSet> statefulSetWriter;
-
-  @Inject
   @StateHandler("securityUpgrade")
   ClusterRestartStateHandler restartStateHandler;
 
@@ -67,30 +66,19 @@ public class SecurityUpgradeJob implements DatabaseOperationJob {
   public Uni<ClusterRestartState> runJob(StackGresDbOps dbOps, StackGresCluster cluster) {
     LOGGER.info("Starting security upgrade for SGDbOps {}", dbOps.getMetadata().getName());
 
-    return pauseReconciliationAndUpgradeCluster(cluster)
-        .chain(this::upgradeSts)
-        .chain(this::resumeReconciliation)
+    return upgradeCluster(cluster)
+        .call(() -> waitStatefulSetUpgrade(cluster))
         .chain(() -> restartStateHandler.restartCluster(dbOps))
-        .onItemOrFailure()
-        .transformToUni((item, ex) -> {
-          if (ex != null) {
-            return executorService.invokeAsync(() -> reportFailure(dbOps, ex))
-                .onItem()
-                .failWith(() -> ex)
-                .map(ignored -> item);
-          }
-          return Uni.createFrom().item(item);
-        });
+        .onFailure().call(ex -> reportFailure(dbOps, ex));
   }
 
-  private Uni<StackGresCluster> pauseReconciliationAndUpgradeCluster(
+  private Uni<StackGresCluster> upgradeCluster(
       StackGresCluster targetCluster) {
     return getCluster(targetCluster)
-        .map(cluster -> {
-          markClusterAsIgnored(cluster);
+        .chain(cluster -> executorService.itemAsync(() -> {
           upgradeOperatorVersion(cluster);
           return clusterScheduler.update(cluster);
-        })
+        }))
         .onFailure()
         .transform(MutinyUtil.logOnFailureToRetry("updating version of SGCluster"))
         .onFailure()
@@ -99,61 +87,60 @@ public class SecurityUpgradeJob implements DatabaseOperationJob {
         .indefinitely();
   }
 
-  private Uni<StackGresCluster> upgradeSts(StackGresCluster cluster) {
-    return getSts(cluster)
-        .chain(this::deleteSts)
-        .map(ignored -> cluster)
-        .onFailure()
-        .transform(MutinyUtil.logOnFailureToRetry("updating the StatefulSet"))
-        .onFailure()
-        .retry()
-        .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
-        .atMost(10);
-  }
-
-  private Uni<StackGresCluster> resumeReconciliation(StackGresCluster targetCluster) {
-    return getCluster(targetCluster)
-        .map(cluster -> {
-          removeIgnoredMark(cluster);
-          return clusterScheduler.update(cluster);
-        })
-        .onFailure()
-        .transform(MutinyUtil.logOnFailureToRetry("updating SGCluster"))
-        .onFailure()
-        .retry()
-        .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
-        .indefinitely();
-  }
-
   private Uni<StackGresCluster> getCluster(StackGresCluster targetCluster) {
-    return executorService.itemAsync(() -> {
+    return Uni.createFrom().<StackGresCluster>emitter(em -> {
       String name = targetCluster.getMetadata().getName();
       String namespace = targetCluster.getMetadata().getNamespace();
-      return clusterFinder.findByNameAndNamespace(name, namespace)
-          .orElseThrow(() -> new IllegalStateException("Could not find SGCluster " + name));
+      Optional<StackGresCluster> cluster = clusterFinder.findByNameAndNamespace(name, namespace);
+      if (cluster.isPresent()) {
+        em.complete(cluster.get());
+      } else {
+        em.fail(new IllegalStateException("Could not find SGCluster " + name));
+      }
     });
   }
 
-  private Uni<StatefulSet> getSts(StackGresCluster targetCluster) {
+  private Uni<Void> waitStatefulSetUpgrade(
+      StackGresCluster targetCluster) {
+    return isClusterStatefulSetUpgraded(targetCluster)
+        .onFailure()
+        .transform(MutinyUtil.logOnFailureToRetry("waiting updated version of StatefulSet"))
+        .onFailure()
+        .retry()
+        .withBackOff(Duration.ofMillis(5), Duration.ofSeconds(5))
+        .indefinitely()
+        .replaceWithVoid();
+  }
+
+  private Uni<StatefulSet> isClusterStatefulSetUpgraded(StackGresCluster targetCluster) {
     return executorService.itemAsync(() -> {
       String name = targetCluster.getMetadata().getName();
       String namespace = targetCluster.getMetadata().getNamespace();
-      return statefulSetFinder.findByNameAndNamespace(name, namespace)
-          .orElseThrow(() -> new IllegalStateException(
-              "Could not find StatefulSet of SGCluster " + name));
+      Optional<StatefulSet> statefulSet = statefulSetFinder.findByNameAndNamespace(name, namespace);
+      String version = statefulSet
+          .map(StatefulSet::getMetadata)
+          .map(ObjectMeta::getAnnotations)
+          .map(annotations -> annotations.get(StackGresContext.VERSION_KEY))
+          .orElse(null);
+      if (statefulSet.isPresent()) {
+        if (Objects.equals(version, StackGresProperty.OPERATOR_VERSION.getString())) {
+          return statefulSet.get();
+        } else {
+          throw new IllegalStateException(
+              "StatefulSet " + name + " still at version " + version);
+        }
+      }
+      throw new IllegalStateException("StatefulSet " + name + " not found");
     });
   }
 
-  private Uni<Void> deleteSts(StatefulSet sts) {
-    return executorService.invokeAsync(() -> statefulSetWriter.deleteWithoutCascading(sts));
-  }
-
-  private void reportFailure(StackGresDbOps dbOps, Throwable ex) {
+  private Uni<Void> reportFailure(StackGresDbOps dbOps, Throwable ex) {
     String message = ex.getMessage();
     String dbOpsName = dbOps.getMetadata().getName();
     String namespace = dbOps.getMetadata().getNamespace();
 
-    dbOpsFinder.findByNameAndNamespace(dbOpsName, namespace)
+    return executorService.invokeAsync(() -> dbOpsFinder
+        .findByNameAndNamespace(dbOpsName, namespace)
         .ifPresent(savedDbOps -> {
           if (savedDbOps.getStatus() == null) {
             savedDbOps.setStatus(new StackGresDbOpsStatus());
@@ -166,7 +153,7 @@ public class SecurityUpgradeJob implements DatabaseOperationJob {
           savedDbOps.getStatus().getSecurityUpgrade().setFailure(message);
 
           dbOpsScheduler.update(savedDbOps);
-        });
+        }));
   }
 
   private StackGresCluster upgradeOperatorVersion(StackGresCluster targetCluster) {
@@ -176,13 +163,4 @@ public class SecurityUpgradeJob implements DatabaseOperationJob {
     return targetCluster;
   }
 
-  private void markClusterAsIgnored(StackGresCluster cluster) {
-    final Map<String, String> clusterAnnotations = cluster.getMetadata().getAnnotations();
-    clusterAnnotations.put(StackGresContext.RECONCILIATION_PAUSE_KEY, StackGresContext.RIGHT_VALUE);
-  }
-
-  private void removeIgnoredMark(StackGresCluster cluster) {
-    final Map<String, String> clusterAnnotations = cluster.getMetadata().getAnnotations();
-    clusterAnnotations.remove(StackGresContext.RECONCILIATION_PAUSE_KEY);
-  }
 }

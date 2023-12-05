@@ -55,6 +55,7 @@ class DbOpsRequiredResourcesGeneratorTest {
   void setUp() {
     config = Fixtures.config().loadDefault().get();
     dbOps = Fixtures.dbOps().loadRestart().get();
+    config = Fixtures.config().loadDefault().get();
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(StackGresComponent.POSTGRESQL
         .getLatest().getLatestVersion());

@@ -171,7 +171,7 @@ public abstract class ClusterStateHandlerTest {
     getRestartStateHandler()
         .restartCluster(dbOps)
         .await()
-        .atMost(Duration.ofMillis(50));
+        .atMost(Duration.ofMillis(500));
     var storedDbOps = kubeDb.getDbOps(dbOpsName, namespace);
 
     List<String> expectedInitialInstances = pods.stream().map(Pod::getMetadata)
@@ -223,7 +223,7 @@ public abstract class ClusterStateHandlerTest {
     getRestartStateHandler()
         .restartCluster(dbOps)
         .await()
-        .atMost(Duration.ofMillis(50));
+        .atMost(Duration.ofMillis(500));
 
     verifyClusterInitializedStatus(pods,
         Seq.seq(storedDbOps).findFirst().get(),
@@ -284,7 +284,7 @@ public abstract class ClusterStateHandlerTest {
     getRestartStateHandler()
         .restartCluster(dbOps)
         .await()
-        .atMost(Duration.ofMillis(150));
+        .atMost(Duration.ofMillis(500));
 
     assertEquals(1, storedCluster.size());
     assertNull(storedCluster.get(0).getStatus().getDbOps());
@@ -338,7 +338,7 @@ public abstract class ClusterStateHandlerTest {
 
     var clusterRestartState = getRestartStateHandler().restartCluster(dbOps)
         .await()
-        .atMost(Duration.ofMillis(1000));
+        .atMost(Duration.ofMillis(500));
 
     assertEqualsRestartState(expectedClusterState, clusterRestartState);
   }
@@ -379,7 +379,7 @@ public abstract class ClusterStateHandlerTest {
 
     var clusterRestartState = getRestartStateHandler().restartCluster(dbOps)
         .await()
-        .atMost(Duration.ofMillis(50));
+        .atMost(Duration.ofMillis(500));
 
     assertEqualsRestartState(expectedClusterState, clusterRestartState);
   }
@@ -455,7 +455,7 @@ public abstract class ClusterStateHandlerTest {
     kubeDb.watchDbOps(dbOpsName, namespace, storedDbOps::add);
 
     getRestartStateHandler().restartCluster(dbOps)
-        .await().atMost(Duration.ofMillis(1000));
+        .await().atMost(Duration.ofMillis(500));
 
     verifyDbOpsRestartStatus(pods, Seq.seq(storedDbOps).findLast().get());
 
