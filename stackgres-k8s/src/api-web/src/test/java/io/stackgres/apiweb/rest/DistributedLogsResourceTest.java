@@ -13,6 +13,8 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsDto;
 import io.stackgres.apiweb.dto.fixture.DtoFixtures;
+import io.stackgres.apiweb.rest.sgdistributedlogs.DistributedLogsResource;
+import io.stackgres.apiweb.rest.sgdistributedlogs.NamespacedDistributedLogsResource;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.apiweb.transformer.DistributedLogsTransformer;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;

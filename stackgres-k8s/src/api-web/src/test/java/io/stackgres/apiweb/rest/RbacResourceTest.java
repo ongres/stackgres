@@ -25,6 +25,8 @@ import io.quarkus.security.identity.SecurityIdentity;
 import io.stackgres.apiweb.app.KubernetesClientProvider;
 import io.stackgres.apiweb.dto.PermissionsListDto;
 import io.stackgres.apiweb.dto.PermissionsListDto.Namespaced;
+import io.stackgres.apiweb.rest.auth.RbacResource;
+import io.stackgres.apiweb.rest.misc.NamespaceResource;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

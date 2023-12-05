@@ -37,20 +37,20 @@ then
   exit 1
 fi
 
-PATHS_PATHS="$(ls -1 "$PATHS_PATH"/*.yaml | tr '\n' ' ')"
-echo "Merging paths from $INFO_PATH $PATHS_PATHS"
-cp "$MERGED_SWAGGER_YAML_FILE" "$MERGED_SWAGGER_YAML_FILE.tmp"
-PATHS_FILES="$(echo "$PATHS_PATHS" | tr ' ' '\n' | jq -R '[.,inputs]')"
-yq -s --argjson debug "$DEBUG" --argjson file_names "$PATHS_FILES" "$(cat << 'EOF'
-  to_entries | . as $files
-    | reduce $files[] as $file ({};
-      . as $accumulator
-        | if $file.key > 1 and $file.value.paths == null then error("Field .paths not specified for " + $file_names[$file.key]) else . end
-        | (if $debug then [ "Merged paths file", $file_names[$file.key] ] | debug else . end) | $accumulator * $file.value
-      )
-EOF
-  )" "$MERGED_SWAGGER_YAML_FILE.tmp" "$INFO_PATH" $PATHS_PATHS > "$MERGED_SWAGGER_YAML_FILE"
-rm "$MERGED_SWAGGER_YAML_FILE.tmp"
+# PATHS_PATHS="$(ls -1 "$PATHS_PATH"/*.yaml | tr '\n' ' ')"
+# echo "Merging paths from $INFO_PATH $PATHS_PATHS"
+# cp "$MERGED_SWAGGER_YAML_FILE" "$MERGED_SWAGGER_YAML_FILE.tmp"
+# PATHS_FILES="$(echo "$PATHS_PATHS" | tr ' ' '\n' | jq -R '[.,inputs]')"
+# yq -s --argjson debug "$DEBUG" --argjson file_names "$PATHS_FILES" "$(cat << 'EOF'
+#   to_entries | . as $files
+#     | reduce $files[] as $file ({};
+#       . as $accumulator
+#         | if $file.key > 1 and $file.value.paths == null then error("Field .paths not specified for " + $file_names[$file.key]) else . end
+#         | (if $debug then [ "Merged paths file", $file_names[$file.key] ] | debug else . end) | $accumulator * $file.value
+#       )
+# EOF
+#   )" "$MERGED_SWAGGER_YAML_FILE.tmp" "$INFO_PATH" $PATHS_PATHS > "$MERGED_SWAGGER_YAML_FILE"
+# rm "$MERGED_SWAGGER_YAML_FILE.tmp"
 
 SCHEMAS_PATHS="$(ls -1 "$SCHEMAS_PATH"/*.yaml | tr '\n' ' ')"
 CRD_PATHS="$(ls -1 "$CRDS_PATH"/*.yaml | tr '\n' ' ')"
