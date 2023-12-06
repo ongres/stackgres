@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.application.SgApplication;
 import io.stackgres.apiweb.application.bbfcompass.BabelfishCompass;

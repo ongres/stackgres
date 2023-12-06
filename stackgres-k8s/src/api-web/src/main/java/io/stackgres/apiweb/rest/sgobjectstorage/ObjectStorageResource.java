@@ -122,9 +122,8 @@ public class ObjectStorageResource
   @Tag(name = "sgobjectstorage")
   @Operation(summary = "Delete a sgobjectstorages", description = """
       Delete a sgobjectstorages.
-       If a secret named as the sgbackupconfig with `-secrets` suffix is found, it will be
-       deleted also.
-
+       If a secret named as the sgbackupconfig with `-secrets` suffix is found,
+       it will be deleted also.
 
       ### RBAC permissions required
 
