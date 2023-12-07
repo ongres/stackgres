@@ -66,6 +66,8 @@ EOF
   BACKUP_PITR_DATE="$(date +%Y-%m-%dT%H:%M:%SZ --utc)"
   sleep 2
 
+  create_more_mock_data
+
   kubectl create ns "$CLUSTER_NAMESPACE"
 }
 
@@ -88,7 +90,6 @@ e2e_test() {
   run_test "Check that backup can be copied across namespaces" check_backup_can_be_copied_from_another_namespace
   run_test "Check that backup can be restored" check_backup_can_be_restored
   run_test "Check that volume snapshot backup can be restored" check_volume_snapshot_backup_can_be_restored
-  exit 1
   run_test "Check that backup is compatible with cluster" check_backup_pg_version
   run_test "Check that restore using PITR" check_restore_using_pitr
   run_test "Check that after deleting original backup the backup is not deleted if a copy exists" \
@@ -161,10 +162,32 @@ check_backup_can_be_copied_from_another_namespace() {
   wait_until eval 'kubectl get volumesnapshot -n "$CLUSTER_NAMESPACE" "$BACKUP_VOLUME_SNAPSHOT_NAME" --template "{{ .status.readyToUse }}" | grep -qxF true'
 }
 
+check_backup_can_be_restored() {
+  if kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    --template '{{ .status.volumeSnapshot.name }}' | grep -qxF "<no value>"
+  then
+    echo "SUCCESS: backup not performed using volume snapshot"
+  else
+    echo "FAIL: backup performed using volume snapshot"
+    return 1
+  fi
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set cluster.initialData.restore.fromBackup.name="$BACKUP_NAME" \
+    --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
+
+  check_init_data_after_restore
+
+  check_replica_data_after_restore
+
+  check_replication_after_restore
+}
+
 check_volume_snapshot_backup_can_be_restored() {
   local CLUSTER_NAME="$CLUSTER_SNAPSHOT_NAME"
-
-  create_more_mock_data
 
   if kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_VOLUME_SNAPSHOT_NAME" \
     --template '{{ .status.volumeSnapshot.name }}' | grep -qxF "$BACKUP_VOLUME_SNAPSHOT_NAME"
@@ -190,32 +213,6 @@ check_volume_snapshot_backup_can_be_restored() {
   check_replication_after_restore
 
   remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
-}
-
-check_backup_can_be_restored() {
-  create_more_mock_data
-
-  if kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
-    --template '{{ .status.volumeSnapshot.name }}' | grep -qxF "<no value>"
-  then
-    echo "SUCCESS: backup not performed using volume snapshot"
-  else
-    echo "FAIL: backup performed using volume snapshot"
-    return 1
-  fi
-
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
-    --set cluster.initialData.restore.fromBackup.name="$BACKUP_NAME" \
-    --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION"
-
-  wait_pods_running "$CLUSTER_NAMESPACE" 2
-  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
-
-  check_init_data_after_restore
-
-  check_replica_data_after_restore
-
-  check_replication_after_restore
 }
 
 check_init_data_after_restore() {
