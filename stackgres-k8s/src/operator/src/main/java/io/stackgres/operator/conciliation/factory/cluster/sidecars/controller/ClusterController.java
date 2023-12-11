@@ -169,9 +169,13 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
                 .withMountPath(ClusterPath.PGBOUNCER_CONFIG_PATH.path())
                 .build(),
             new VolumeMountBuilder()
-                .withName(StackGresVolume.PGBOUNCER.getName())
+                .withName(StackGresVolume.PGBOUNCER_DYNAMIC_CONFIG.getName())
                 .withMountPath(ClusterPath.PGBOUNCER_CONFIG_UPDATED_FILE_PATH.path())
-                .withReadOnly(true)
+                .build(),
+            new VolumeMountBuilder()
+                .withName(StackGresVolume.PGBOUNCER_DYNAMIC_CONFIG.getName())
+                .withMountPath(ClusterPath.PGBOUNCER_AUTH_PATH.path())
+                .withSubPath(ClusterPath.PGBOUNCER_AUTH_PATH.filename())
                 .build(),
             new VolumeMountBuilder()
                 .withName(StackGresVolume.PATRONI_CONFIG.getName())
