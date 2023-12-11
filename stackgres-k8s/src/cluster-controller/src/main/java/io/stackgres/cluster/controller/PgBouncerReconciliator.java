@@ -44,10 +44,10 @@ public class PgBouncerReconciliator {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PgBouncerReconciliator.class);
   private static final Path PGBOUNCER_CONFIG_PATH =
+      Paths.get(ClusterPath.PGBOUNCER_CONFIG_FILE_PATH.path());
+  private static final Path LAST_PGBOUNCER_CONFIG_PATH =
       Paths.get(ClusterPath.PGBOUNCER_CONFIG_UPDATED_FILE_PATH.path()
           + "/" + ClusterPath.PGBOUNCER_CONFIG_FILE_PATH.filename());
-  private static final Path LAST_PGBOUNCER_CONFIG_PATH =
-      Paths.get(ClusterPath.PGBOUNCER_CONFIG_FILE_PATH.path());
   private static final Path PGBOUNCER_AUTH_PATH =
       Paths.get(ClusterPath.PGBOUNCER_AUTH_FILE_PATH.path());
   private static final Path LAST_PGBOUNCER_AUTH_PATH =
