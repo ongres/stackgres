@@ -84,7 +84,7 @@ public class InitPgBouncerAuthFile implements ContainerFactory<ClusterContainerC
         .withImagePullPolicy(StackGresUtil.getDefaultPullPolicy())
         .addToVolumeMounts(
             new VolumeMountBuilder()
-            .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())
+            .withName(StackGresVolume.PGBOUNCER_DYNAMIC_CONFIG.getName())
             .withMountPath(ClusterPath.PGBOUNCER_CONFIG_PATH.path())
             .build(),
             new VolumeMountBuilder()
