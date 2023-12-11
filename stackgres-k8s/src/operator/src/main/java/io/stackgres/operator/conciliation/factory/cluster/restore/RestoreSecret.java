@@ -31,6 +31,7 @@ import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.backup.BackupEnvVarFactory;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
@@ -101,7 +102,7 @@ public class RestoreSecret
         .withLabels(labelFactory.genericLabels(cluster))
         .endMetadata()
         .withType("Opaque")
-        .withStringData(StackGresUtil.addMd5Sum(data))
+        .withData(ResourceUtil.encodeSecret(StackGresUtil.addMd5Sum(data)))
         .build();
   }
 
