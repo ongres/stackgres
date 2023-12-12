@@ -16,20 +16,16 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Optional;
 
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
-import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfigurationBuilder;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
-import io.stackgres.common.resource.BackupConfigFinder;
 import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.common.resource.ObjectStorageFinder;
 import io.stackgres.common.resource.ProfileConfigFinder;
@@ -48,16 +44,12 @@ class BackupRequiredResourcesGeneratorTest {
   ProfileConfigFinder profileFinder;
 
   @InjectMock
-  BackupConfigFinder backupConfigFinder;
-
-  @InjectMock
   ObjectStorageFinder objectStorageFinder;
 
   @Inject
   BackupRequiredResourcesGenerator generator;
 
   private StackGresBackup backup;
-  private StackGresBackupConfig backupConfig;
   private StackGresObjectStorage objectStorage;
   private StackGresCluster cluster;
   private StackGresProfile profile;
@@ -71,20 +63,20 @@ class BackupRequiredResourcesGeneratorTest {
     cluster.getMetadata().setNamespace(backup.getMetadata().getNamespace());
     cluster.getMetadata().setName(backup.getSpec().getSgCluster());
     profile = Fixtures.instanceProfile().loadSizeS().get();
-    backupConfig = Fixtures.backupConfig().loadDefault().get();
-    backupConfig.getMetadata().setNamespace(backup.getMetadata().getNamespace());
     objectStorage = Fixtures.objectStorage().loadDefault().get();
   }
 
   @Test
-  @DisplayName("Given a SGCluster with valid SGBackupConfig should not fail")
-  void testValidClusterBackupConfigConfiguration() {
+  @DisplayName("Given a SGCluster with valid SGObjectStorage should not fail")
+  void testValidClusterObjectStorage() {
     final String backupNamespace = backup.getMetadata().getNamespace();
     final String clusterName = backup.getSpec().getSgCluster();
     final String profileName = cluster.getSpec().getSgInstanceProfile();
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfigurations clusterConfiguration = clusterSpec.getConfigurations();
-    final String backupConfigName = clusterConfiguration.getSgBackupConfig();
+    final String objectStorageName = cluster.getSpec()
+        .getConfigurations()
+        .getBackups()
+        .get(0)
+        .getSgObjectStorage();
 
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
@@ -92,8 +84,8 @@ class BackupRequiredResourcesGeneratorTest {
     when(profileFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(profile));
 
-    when(backupConfigFinder.findByNameAndNamespace(backupConfigName, backupNamespace))
-        .thenReturn(Optional.of(this.backupConfig));
+    when(objectStorageFinder.findByNameAndNamespace(
+        objectStorageName, backupNamespace)).thenReturn(Optional.of(objectStorage));
 
     generator.getRequiredResources(backup);
 
@@ -101,8 +93,8 @@ class BackupRequiredResourcesGeneratorTest {
     verify(clusterFinder).findByNameAndNamespace(eq(clusterName), eq(backupNamespace));
     verify(profileFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(profileFinder).findByNameAndNamespace(eq(profileName), eq(backupNamespace));
-    verify(backupConfigFinder, times(1)).findByNameAndNamespace(any(), any());
-    verify(backupConfigFinder).findByNameAndNamespace(eq(backupConfigName), eq(backupNamespace));
+    verify(objectStorageFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(objectStorageFinder).findByNameAndNamespace(eq(objectStorageName), eq(backupNamespace));
   }
 
   @Test
@@ -110,9 +102,11 @@ class BackupRequiredResourcesGeneratorTest {
     final String backupNamespace = backup.getMetadata().getNamespace();
     final String clusterName = "test." + backup.getSpec().getSgCluster();
     final String profileName = cluster.getSpec().getSgInstanceProfile();
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfigurations clusterConfiguration = clusterSpec.getConfigurations();
-    final String backupConfigName = clusterConfiguration.getSgBackupConfig();
+    final String objectStorageName = cluster.getSpec()
+        .getConfigurations()
+        .getBackups()
+        .get(0)
+        .getSgObjectStorage();
 
     backup.getSpec().setSgCluster(clusterName);
 
@@ -122,8 +116,8 @@ class BackupRequiredResourcesGeneratorTest {
     when(profileFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(profile));
 
-    when(backupConfigFinder.findByNameAndNamespace(backupConfigName, backupNamespace))
-        .thenReturn(Optional.of(this.backupConfig));
+    when(objectStorageFinder.findByNameAndNamespace(
+        objectStorageName, backupNamespace)).thenReturn(Optional.empty());
 
     generator.getRequiredResources(backup);
 
@@ -135,20 +129,18 @@ class BackupRequiredResourcesGeneratorTest {
     verify(profileFinder).findByNameAndNamespace(
         eq(profileName),
         eq(StackGresUtil.getNamespaceFromRelativeId(clusterName, backupNamespace)));
-    verify(backupConfigFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(objectStorageFinder, times(0)).findByNameAndNamespace(any(), any());
   }
 
   @DisplayName("Given a SGCluster with a valid SGObjectStorage should not fail")
   void testValidObjectStorageConfiguration() {
     final String backupNamespace = backup.getMetadata().getNamespace();
     final String clusterName = backup.getSpec().getSgCluster();
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfigurations clusterConfiguration = clusterSpec.getConfigurations();
-    clusterConfiguration.setSgBackupConfig(null);
-    var backupConfiguration = new StackGresClusterBackupConfiguration();
-    clusterConfiguration.setBackups(
-        List.of(backupConfiguration));
-    backupConfiguration.setSgObjectStorage(objectStorage.getMetadata().getName());
+    cluster.getSpec()
+        .getConfigurations()
+        .setBackups(List.of(new StackGresClusterBackupConfigurationBuilder()
+            .withSgObjectStorage(objectStorage.getMetadata().getName())
+            .build()));
 
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
@@ -162,7 +154,7 @@ class BackupRequiredResourcesGeneratorTest {
     verify(clusterFinder).findByNameAndNamespace(
         eq(StackGresUtil.getNameFromRelativeId(clusterName)),
         eq(StackGresUtil.getNamespaceFromRelativeId(clusterName, backupNamespace)));
-    verify(backupConfigFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(objectStorageFinder, times(0)).findByNameAndNamespace(any(), any());
   }
 
   @Test
@@ -179,39 +171,7 @@ class BackupRequiredResourcesGeneratorTest {
     verify(clusterFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(clusterFinder).findByNameAndNamespace(eq(clusterName), eq(backupNamespace));
     verify(profileFinder, times(0)).findByNameAndNamespace(any(), any());
-    verify(backupConfigFinder, times(0)).findByNameAndNamespace(any(), any());
-  }
-
-  @Test
-  @DisplayName("Given a Cluster with invalid backup config, generated resources should fail")
-  void testSgClusterInvalidBackupConfig() {
-    final String backupNamespace = backup.getMetadata().getNamespace();
-    final String backupName = backup.getMetadata().getName();
-    final String clusterName = backup.getSpec().getSgCluster();
-    final String profileName = cluster.getSpec().getSgInstanceProfile();
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfigurations clusterConfiguration = clusterSpec.getConfigurations();
-    final String backupConfigName = clusterConfiguration.getSgBackupConfig();
-
-    when(clusterFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(cluster));
-
-    when(profileFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(profile));
-
-    when(backupConfigFinder.findByNameAndNamespace(backupConfigName, backupNamespace))
-        .thenReturn(Optional.empty());
-
-    assertException("SGBackup " + backupNamespace + "." + backupName
-        + " target SGCluster " + clusterName
-        + " with a non existent SGBackupConfig " + backupConfigName);
-
-    verify(clusterFinder, times(1)).findByNameAndNamespace(any(), any());
-    verify(clusterFinder).findByNameAndNamespace(eq(clusterName), eq(backupNamespace));
-    verify(profileFinder, times(1)).findByNameAndNamespace(any(), any());
-    verify(profileFinder).findByNameAndNamespace(eq(profileName), eq(backupNamespace));
-    verify(backupConfigFinder, times(1)).findByNameAndNamespace(any(), any());
-    verify(backupConfigFinder).findByNameAndNamespace(eq(backupConfigName), eq(backupNamespace));
+    verify(objectStorageFinder, times(0)).findByNameAndNamespace(any(), any());
   }
 
   @Test
@@ -221,13 +181,12 @@ class BackupRequiredResourcesGeneratorTest {
     final String backupName = backup.getMetadata().getName();
     final String clusterName = backup.getSpec().getSgCluster();
     final String profileName = cluster.getSpec().getSgInstanceProfile();
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfigurations clusterConfiguration = clusterSpec.getConfigurations();
-    clusterConfiguration.setSgBackupConfig(null);
-    var backupConfiguration = new StackGresClusterBackupConfiguration();
-    clusterConfiguration.setBackups(
-        List.of(backupConfiguration));
-    backupConfiguration.setSgObjectStorage(objectStorage.getMetadata().getName());
+    cluster.getSpec()
+        .getConfigurations()
+        .setBackups(
+            List.of(new StackGresClusterBackupConfigurationBuilder()
+                .withSgObjectStorage(objectStorage.getMetadata().getName())
+                .build()));
 
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
@@ -253,14 +212,12 @@ class BackupRequiredResourcesGeneratorTest {
 
   @Test
   @DisplayName("Given a SGCluster with no backup configuration should fail")
-  void testSgClusterWithoutBackupConfiguration() {
+  void testSgClusterWithoutObjectStorage() {
     final String backupNamespace = backup.getMetadata().getNamespace();
     final String backupName = backup.getMetadata().getName();
     final String clusterName = backup.getSpec().getSgCluster();
     final String profileName = cluster.getSpec().getSgInstanceProfile();
-    final StackGresClusterSpec clusterSpec = cluster.getSpec();
-    final StackGresClusterConfigurations clusterConfiguration = clusterSpec.getConfigurations();
-    clusterConfiguration.setSgBackupConfig(null);
+    cluster.getSpec().getConfigurations().setBackups(null);
 
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
@@ -270,14 +227,14 @@ class BackupRequiredResourcesGeneratorTest {
 
     assertException("SGBackup " + backupNamespace + "." + backupName
         + " target SGCluster " + clusterName
-        + " without a SGObjectStorage or SGBackupConfig");
+        + " without an SGObjectStorage");
 
     verify(clusterFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(clusterFinder).findByNameAndNamespace(eq(clusterName), eq(backupNamespace));
     verify(profileFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(profileFinder).findByNameAndNamespace(eq(profileName), eq(backupNamespace));
     verify(objectStorageFinder, times(0)).findByNameAndNamespace(any(), any());
-    verify(backupConfigFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(objectStorageFinder, times(0)).findByNameAndNamespace(any(), any());
   }
 
   @Test
@@ -286,13 +243,17 @@ class BackupRequiredResourcesGeneratorTest {
     final String backupName = backup.getMetadata().getName();
     final String clusterName = backup.getSpec().getSgCluster();
     final String profileName = cluster.getSpec().getSgInstanceProfile();
-    final String backupConfigName = cluster.getSpec().getConfigurations().getSgBackupConfig();
+    final String objectStorageName = cluster.getSpec()
+        .getConfigurations()
+        .getBackups()
+        .get(0)
+        .getSgObjectStorage();
 
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
 
-    when(backupConfigFinder.findByNameAndNamespace(backupConfigName, backupNamespace))
-        .thenReturn(Optional.of(this.backupConfig));
+    when(objectStorageFinder.findByNameAndNamespace(
+        objectStorageName, backupNamespace)).thenReturn(Optional.of(objectStorage));
 
     assertException("SGBackup " + backupNamespace + "." + backupName
         + " target SGCluster " + clusterName
@@ -302,8 +263,7 @@ class BackupRequiredResourcesGeneratorTest {
     verify(clusterFinder).findByNameAndNamespace(eq(clusterName), eq(backupNamespace));
     verify(profileFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(profileFinder).findByNameAndNamespace(eq(profileName), eq(backupNamespace));
-    verify(objectStorageFinder, times(0)).findByNameAndNamespace(any(), any());
-    verify(backupConfigFinder, times(1)).findByNameAndNamespace(any(), any());
+    verify(objectStorageFinder, times(1)).findByNameAndNamespace(any(), any());
   }
 
   private void assertException(String message) {

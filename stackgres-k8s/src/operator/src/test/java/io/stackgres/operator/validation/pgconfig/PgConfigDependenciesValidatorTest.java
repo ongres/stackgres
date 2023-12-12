@@ -52,6 +52,11 @@ class PgConfigDependenciesValidatorTest
   }
 
   @Override
+  protected void makeClusterDependant(StackGresCluster cluster, PgConfigReview review) {
+    cluster.getSpec().getConfigurations().setSgPostgresConfig(review.getRequest().getName());
+  }
+
+  @Override
   protected void makeClusterNotDependant(StackGresCluster cluster) {
     cluster.getSpec().getConfigurations().setSgPostgresConfig(null);
   }

@@ -58,7 +58,7 @@ public abstract class AbstractAnnotationMutator
     String operatorVersion = StackGresProperty.OPERATOR_VERSION.getString();
     Objects.requireNonNull(operatorVersion, "stackgres.operatorVersion must not be null");
     if (operatorVersion.isBlank()) {
-      throw new IllegalStateException("stackgres.operatorVersion must not be empty");
+      throw new IllegalArgumentException("stackgres.operatorVersion must not be empty");
     }
 
     String operatorVersionKey = StackGresContext.VERSION_KEY;

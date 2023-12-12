@@ -107,7 +107,7 @@ public class ClusterEndpointsReconciliationHandler
             .endMetadata()
             .build())
             .lockResourceVersion(foundResource.getMetadata().getResourceVersion())
-            .replace())
+            .update())
         .orElseGet(() -> client.endpoints().resource((Endpoints) resource).create()));
   }
 

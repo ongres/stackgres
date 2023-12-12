@@ -12,8 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -144,9 +144,10 @@ class PatroniConfigMapTest {
     cluster.getSpec().getPostgres().setFlavor(StackGresPostgresFlavor.BABELFISH.toString());
 
     ConfigMap configMap = generator.buildSource(context);
-    List<LinkedHashMap> kubernetesPorts = JsonUtil.fromJson(
-        configMap.getData().get("PATRONI_KUBERNETES_PORTS"), ArrayList.class);
-    Optional<LinkedHashMap> babelfishEndpointPort = kubernetesPorts.stream()
+    @SuppressWarnings("unchecked")
+    List<Map<String, String>> kubernetesPorts = JsonUtil.fromJson(
+        configMap.getData().get("PATRONI_KUBERNETES_PORTS"), List.class);
+    Optional<Map<String, String>> babelfishEndpointPort = kubernetesPorts.stream()
         .filter(ep -> StackGresPostgresFlavor.BABELFISH.toString().equals(ep.get("name")))
         .findFirst();
 
@@ -194,9 +195,10 @@ class PatroniConfigMapTest {
     cluster.getSpec().getPostgresServices().getPrimary().setCustomPorts(List.of(csPort));
 
     ConfigMap configMap = generator.buildSource(context);
-    List<LinkedHashMap> kubernetesPorts = JsonUtil.fromJson(
+    @SuppressWarnings("unchecked")
+    List<Map<String, String>> kubernetesPorts = JsonUtil.fromJson(
         configMap.getData().get("PATRONI_KUBERNETES_PORTS"), ArrayList.class);
-    Optional<LinkedHashMap> customPortIntValue = kubernetesPorts.stream()
+    Optional<Map<String, String>> customPortIntValue = kubernetesPorts.stream()
         .filter(ep -> "custom-".concat(csPort.getName()).equals(ep.get("name").toString()))
         .findFirst();
     assertTrue(customPortIntValue.isPresent());
@@ -229,9 +231,10 @@ class PatroniConfigMapTest {
     cluster.getSpec().getPostgresServices().getPrimary().setCustomPorts(List.of(csPort));
 
     ConfigMap configMap = generator.buildSource(context);
-    List<LinkedHashMap> kubernetesPorts = JsonUtil.fromJson(
+    @SuppressWarnings("unchecked")
+    List<Map<String, String>> kubernetesPorts = JsonUtil.fromJson(
         configMap.getData().get("PATRONI_KUBERNETES_PORTS"), ArrayList.class);
-    Optional<LinkedHashMap> customPortIntValue = kubernetesPorts.stream()
+    Optional<Map<String, String>> customPortIntValue = kubernetesPorts.stream()
         .filter(ep -> "custom-".concat(csPort.getName()).equals(ep.get("name").toString()))
         .findFirst();
     assertTrue(customPortIntValue.isPresent());

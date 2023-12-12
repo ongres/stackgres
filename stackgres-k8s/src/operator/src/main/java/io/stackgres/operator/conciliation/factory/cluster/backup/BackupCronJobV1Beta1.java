@@ -37,6 +37,7 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.VolumeSnapshotUtil;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -233,6 +234,31 @@ public class BackupCronJobV1Beta1
                         .withValue(HasMetadata.getApiVersion(StackGresBackup.class))
                         .build(),
                         new EnvVarBuilder()
+                        .withName("USE_VOLUME_SNAPSHOT")
+                        .withValue(Optional.of(backupConfig)
+                            .map(BackupConfiguration::useVolumeSnapshot)
+                            .map(String::valueOf)
+                            .orElse("false"))
+                        .build(),
+                        new EnvVarBuilder()
+                        .withName("VOLUME_SNAPSHOT_STORAGE_CLASS")
+                        .withValue(Optional.of(backupConfig)
+                            .map(BackupConfiguration::volumeSnapshotStorageClass)
+                            .map(String::valueOf)
+                            .orElse(""))
+                        .build(),
+                        new EnvVarBuilder()
+                        .withName("FAST_VOLUME_SNAPSHOT")
+                        .withValue(Optional.of(backupConfig)
+                            .map(BackupConfiguration::fastVolumeSnapshot)
+                            .map(String::valueOf)
+                            .orElse("false"))
+                        .build(),
+                        new EnvVarBuilder()
+                        .withName("VOLUME_SNAPSHOT_CRD_NAME")
+                        .withValue(VolumeSnapshotUtil.VOLUME_SNAPSHOT_CRD_NAME)
+                        .build(),
+                        new EnvVarBuilder()
                         .withName("BACKUP_PHASE_RUNNING")
                         .withValue(BackupStatus.RUNNING.status())
                         .build(),
@@ -387,7 +413,7 @@ public class BackupCronJobV1Beta1
 
   @NotNull
   private String getStorageTemplatePath(StackGresClusterContext context) {
-    return context.getObjectStorageConfig().isPresent() ? "spec" : "spec.storage";
+    return context.getObjectStorage().isPresent() ? "spec" : "spec.storage";
   }
 
   private List<EnvVar> getClusterEnvVars(StackGresClusterContext context) {

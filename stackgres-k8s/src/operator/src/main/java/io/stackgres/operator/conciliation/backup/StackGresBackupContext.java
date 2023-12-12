@@ -16,8 +16,6 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -60,8 +58,6 @@ public interface StackGresBackupContext extends GenerationContext<StackGresBacku
                     .orElse("<unknown>")));
   }
 
-  Optional<StackGresBackupConfig> getBackupConfig();
-
   Set<String> getClusterBackupNamespaces();
 
   Optional<StackGresObjectStorage> getObjectStorage();
@@ -73,71 +69,45 @@ public interface StackGresBackupContext extends GenerationContext<StackGresBacku
   }
 
   default String getConfigCrdName() {
-    if (getObjectStorage().isPresent()) {
-      return HasMetadata.getFullResourceName(StackGresObjectStorage.class);
-    } else {
-      return HasMetadata.getFullResourceName(StackGresBackupConfig.class);
-    }
+    return HasMetadata.getFullResourceName(StackGresObjectStorage.class);
   }
 
   default String getConfigCustomResourceName() {
     return getObjectStorage()
         .map(HasMetadata::getMetadata)
         .map(ObjectMeta::getName)
-        .or(() -> getBackupConfig()
-            .map(HasMetadata::getMetadata)
-            .map(ObjectMeta::getName)
-        ).orElseThrow();
+        .orElseThrow();
   }
 
   default BackupConfiguration getBackupConfiguration() {
-    if (getObjectStorage().isPresent()) {
-      return Optional.of(getCluster())
-          .map(StackGresCluster::getSpec)
-          .map(StackGresClusterSpec::getConfigurations)
-          .map(StackGresClusterConfigurations::getBackups)
-          .map(Collection::stream)
-          .flatMap(Stream::findFirst)
-          .map(bc -> new BackupConfiguration(
-              bc.getRetention(),
-              bc.getCronSchedule(),
-              bc.getCompression(),
-              bc.getPath(),
-              Optional.ofNullable(bc.getPerformance())
-                  .map(bp -> new BackupPerformance(
-                      bp.getMaxNetworkBandwidth(),
-                      bp.getMaxDiskBandwidth(),
-                      bp.getUploadDiskConcurrency(),
-                      bp.getUploadConcurrency(),
-                      bp.getDownloadConcurrency()))
-                  .orElse(null)
-          )).orElseThrow();
-    } else {
-      String path = getSource().getStatus().getBackupPath();
-      return getBackupConfig()
-          .map(StackGresBackupConfig::getSpec)
-          .map(StackGresBackupConfigSpec::getBaseBackups)
-          .map(bc -> new BackupConfiguration(
-              bc.getRetention(),
-              bc.getCronSchedule(),
-              bc.getCompression(),
-              path,
-              Optional.ofNullable(bc.getPerformance())
-                  .map(bp -> new BackupPerformance(
-                      bp.getMaxNetworkBandwidth(),
-                      bp.getMaxDiskBandwidth(),
-                      bp.getUploadDiskConcurrency(),
-                      bp.getUploadConcurrency(),
-                      bp.getDownloadConcurrency()
-                  )).orElse(null)
-          )).orElseThrow();
-    }
+    return Optional.of(getCluster())
+        .map(StackGresCluster::getSpec)
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getBackups)
+        .map(Collection::stream)
+        .flatMap(Stream::findFirst)
+        .map(bc -> new BackupConfiguration(
+            bc.getRetention(),
+            bc.getCronSchedule(),
+            bc.getCompression(),
+            bc.getPath(),
+            Optional.ofNullable(bc.getPerformance())
+            .map(bp -> new BackupPerformance(
+                bp.getMaxNetworkBandwidth(),
+                bp.getMaxDiskBandwidth(),
+                bp.getUploadDiskConcurrency(),
+                bp.getUploadConcurrency(),
+                bp.getDownloadConcurrency()))
+            .orElse(null),
+            Optional.ofNullable(bc.getUseVolumeSnapshot())
+            .orElse(false),
+            bc.getVolumeSnapshotClass(),
+            bc.getFastVolumeSnapshot()))
+        .orElseThrow();
   }
 
   default BackupStorage getBackupStorage() {
     return getObjectStorage().map(CustomResource::getSpec)
-        .or(() -> getBackupConfig().map(StackGresBackupConfig::getSpec)
-            .map(StackGresBackupConfigSpec::getStorage))
         .orElseThrow();
   }
 

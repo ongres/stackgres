@@ -8,8 +8,8 @@ package io.stackgres.operator.conciliation.backup;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceGeneratorTest;
@@ -31,14 +31,14 @@ public class BackupResourceGenerationDiscovererTest
 
   private StackGresProfile profile;
 
-  private StackGresBackupConfig backupConfig;
+  private StackGresObjectStorage objectStorage;
 
   @BeforeEach
   public void setup() {
     this.resource = Fixtures.backup().loadDefault().get();
     this.cluster = Fixtures.cluster().loadDefault().withLatestPostgresVersion().get();
     this.profile = Fixtures.instanceProfile().loadSizeS().get();
-    this.backupConfig = Fixtures.backupConfig().loadDefault().get();
+    this.objectStorage = Fixtures.objectStorage().loadDefault().get();
   }
 
   @Override
@@ -67,7 +67,7 @@ public class BackupResourceGenerationDiscovererTest
         .source(resource)
         .foundCluster(cluster)
         .foundProfile(profile)
-        .backupConfig(backupConfig)
+        .objectStorage(objectStorage)
         .build();
   }
 

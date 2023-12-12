@@ -60,8 +60,7 @@ public class DbOpsMajorVersionUpgradeMutator implements DbOpsMutator {
     var configurations = Optional.of(cluster)
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getConfigurations);
-    return configurations.map(StackGresClusterConfigurations::getSgBackupConfig).isPresent()
-        || configurations.map(StackGresClusterConfigurations::getBackups)
+    return configurations.map(StackGresClusterConfigurations::getBackups)
         .filter(Predicates.not(List::isEmpty))
         .isPresent();
   }

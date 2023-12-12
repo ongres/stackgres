@@ -17,11 +17,11 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigList;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorageList;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigList;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
@@ -69,8 +69,6 @@ class ClusterValidationQuarkusTest {
     spec.setDistributedLogs(null);
     spec.setInitialData(null);
     spec.getPostgres().setVersion("12.16");
-    spec.getConfigurations().setSgBackupConfig(null);
-    spec.getConfigurations().setBackupPath(null);
 
     return review;
   }
@@ -110,19 +108,19 @@ class ClusterValidationQuarkusTest {
     poolConfig.getMetadata().setNamespace("test");
     client.resources(StackGresPoolingConfig.class, StackGresPoolingConfigList.class)
         .inNamespace(poolConfig.getMetadata().getNamespace())
-        .withName(poolConfig.getMetadata().getName())
-        .createOrReplace(poolConfig);
+        .resource(poolConfig)
+        .createOrReplace();
 
-    StackGresBackupConfigList bkconfList = client
-        .resources(StackGresBackupConfig.class, StackGresBackupConfigList.class)
+    StackGresObjectStorageList bkconfList = client
+        .resources(StackGresObjectStorage.class, StackGresObjectStorageList.class)
         .list();
     client.resourceList(bkconfList).delete();
-    var backupConfig = Fixtures.backupConfig().loadDefault().get();
-    backupConfig.getMetadata().setNamespace("test");
-    client.resources(StackGresBackupConfig.class, StackGresBackupConfigList.class)
-        .inNamespace(backupConfig.getMetadata().getNamespace())
-        .withName(backupConfig.getMetadata().getName())
-        .createOrReplace(backupConfig);
+    var objectStorage = Fixtures.objectStorage().loadDefault().get();
+    objectStorage.getMetadata().setNamespace("test");
+    client.resources(StackGresObjectStorage.class, StackGresObjectStorageList.class)
+        .inNamespace(objectStorage.getMetadata().getNamespace())
+        .resource(objectStorage)
+        .createOrReplace();
 
     StackGresPostgresConfigList pgconfList = client
         .resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)
@@ -132,8 +130,8 @@ class ClusterValidationQuarkusTest {
     pgConfig.getMetadata().setNamespace("test");
     client.resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)
         .inNamespace(pgConfig.getMetadata().getNamespace())
-        .withName(pgConfig.getMetadata().getName())
-        .createOrReplace(pgConfig);
+        .resource(pgConfig)
+        .createOrReplace();
 
     StackGresProfileList instanceList =
         client.resources(StackGresProfile.class, StackGresProfileList.class)
@@ -143,8 +141,8 @@ class ClusterValidationQuarkusTest {
     instanceConfig.getMetadata().setNamespace("test");
     client.resources(StackGresProfile.class, StackGresProfileList.class)
         .inNamespace(instanceConfig.getMetadata().getNamespace())
-        .withName(instanceConfig.getMetadata().getName())
-        .createOrReplace(instanceConfig);
+        .resource(instanceConfig)
+        .createOrReplace();
 
     StorageClassList storageList = client.storage().v1().storageClasses().list();
     client.resourceList(storageList).delete();
@@ -159,10 +157,10 @@ class ClusterValidationQuarkusTest {
             .list();
     client.resourceList(poolconfList).delete();
 
-    StackGresBackupConfigList bkconfList = client
-        .resources(StackGresBackupConfig.class, StackGresBackupConfigList.class)
+    StackGresObjectStorageList objectStorageList = client
+        .resources(StackGresObjectStorage.class, StackGresObjectStorageList.class)
         .list();
-    client.resourceList(bkconfList).delete();
+    client.resourceList(objectStorageList).delete();
 
     StackGresPostgresConfigList pgconfList = client
         .resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)

@@ -80,13 +80,12 @@ reconcile_backups() {
   do_backup
   echo "Backup completed"
 
+
   echo "Extracting pg_controldata"
   extract_controldata
-  if [ "$?" = 0 ]
+  if [ "$?" != 0 ]
   then
-    echo "Extraction of pg_controldata completed"
-  else
-    echo "Extraction of pg_controldata failed"
+    echo "WARNING: Failed extracting pg_controldata"
   fi
 
   echo "Retain backups"
@@ -255,7 +254,7 @@ BACKUP_STATUS_YAML_EOF
   if ! kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o name >/dev/null 2>&1
   then
     echo "Creating backup CR"
-    cat << EOF | kubectl create -f - -o yaml
+    if ! cat << EOF | kubectl create -f - -o json > /tmp/backup-create 2>&1
 apiVersion: $BACKUP_CRD_APIVERSION
 kind: $BACKUP_CRD_KIND
 metadata:
@@ -271,17 +270,28 @@ spec:
   managedLifecycle: true
 $BACKUP_STATUS_YAML
 EOF
+    then
+      cat /tmp/backup-create
+      exit 1
+    fi
+    cat /tmp/backup-create
+    BACKUP_UID="$(jq -r .metadata.uid /tmp/backup-create)"
   else
     if ! kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --template="{{ .status.process.status }}" \
       | grep -q "^$BACKUP_PHASE_COMPLETED$"
     then
       DRY_RUN_CLIENT=$(kubectl version --client=true -o json | jq -r 'if (.clientVersion.minor | tonumber) < 18 then "true" else "client" end')
       echo "Updating backup CR"
-      kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o yaml --type merge --patch "$(
+      if ! kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o json --type merge --patch "$(
         (
           kubectl get "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o yaml
           echo "$BACKUP_STATUS_YAML"
-        ) | kubectl create --dry-run="$DRY_RUN_CLIENT" -f - -o json)"
+        ) | kubectl create --dry-run="$DRY_RUN_CLIENT" -f - -o json)" > /tmp/backup-update 2>&1
+      then
+        cat /tmp/backup-update
+        exit 1
+      fi
+      cat /tmp/backup-update
     else
       BACKUP_ALREADY_COMPLETED=true
     fi
@@ -289,8 +299,11 @@ EOF
 }
 
 get_primary_and_replica_pods() {
-  kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_PRIMARY_ROLE}" -o name > /tmp/current-primary
-  kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_REPLICA_ROLE}" -o name | head -n 1 > /tmp/current-replica-or-primary
+  kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_PRIMARY_ROLE}" \
+    --template '{{ range .items }}{{ printf "%s\n" .metadata.name }}{{ end }}' > /tmp/current-primary
+  kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${CLUSTER_LABELS},${PATRONI_ROLE_KEY}=${PATRONI_REPLICA_ROLE}" \
+    --template '{{ range .items }}{{ printf "%s\n" .metadata.name }}{{ end }}' \
+    | head -n 1 > /tmp/current-replica-or-primary
   if [ ! -s /tmp/current-primary ]
   then
     kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
@@ -301,6 +314,8 @@ get_primary_and_replica_pods() {
     echo "Unable to find primary, backup aborted" >> /tmp/backup-push
     exit 1
   fi
+  kubectl get pod -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" \
+    --template "{{ range .spec.volumes }}{{ if eq .name \"${CLUSTER_NAME}-data\" }}{{ .persistentVolumeClaim.claimName }}{{ end }}{{ end }}" > /tmp/current-primary-pvc
 
   if [ ! -s /tmp/current-replica-or-primary ]
   then
@@ -314,6 +329,287 @@ get_primary_and_replica_pods() {
 }
 
 do_backup() {
+  if [ -f /tmp/backup-create ]
+  then
+    BACKUP_IS_PERMANENT=false
+  else
+    BACKUP_IS_PERMANENT="$(jq '.spec | if (has("managedLifecycle") | not) or .managedLifecycle then false else true end' /tmp/backup-update)"
+  fi
+
+  if [ "$USE_VOLUME_SNAPSHOT" = true ]
+  then
+    echo "Performing full backup targeting VolumeSnapshot"
+    BACKUP_START_TIME="$(date_iso8601)"
+    mkfifo /tmp/backup-psql
+    sh -c 'echo $$ > /tmp/backup-tail-pid; exec tail -f /tmp/backup-psql' \
+      | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
+        -- psql -v ON_ERROR_STOP=1 -t -A > /tmp/backup-psql-out 2>&1 &
+    echo $! > /tmp/backup-psql-pid
+
+    cat << EOF >> /tmp/backup-psql
+SELECT 'Backup bootstrap';
+EOF
+    until grep -qxF 'Backup bootstrap' /tmp/backup-psql-out \
+      || ! kill -0 "$(cat /tmp/backup-psql-pid)"
+    do
+      sleep 1
+    done
+    head -n 1 /tmp/backup-psql-out > /tmp/backup-bootstrap
+    truncate -s 0 /tmp/backup-psql-out
+    if ! kill -0 "$(cat /tmp/backup-psql-pid)"
+    then
+      kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+        {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed:\n'; cat /tmp/backup-bootstrap; } | to_json_string)"'}
+        ]'
+      kill "$(cat /tmp/backup-tail-pid)" || true
+      exit 1
+    fi
+    cat /tmp/backup-bootstrap > /tmp/backup-push
+    cat /tmp/backup-bootstrap
+
+    cat << EOF >> /tmp/backup-psql
+SET client_min_messages TO WARNING;
+SELECT
+  (SELECT system_identifier FROM pg_control_system()),
+  current_setting('server_version_num')::int,
+  pg_is_in_recovery(),
+  CASE WHEN pg_is_in_recovery() THEN upper(
+    lpad(to_hex((SELECT timeline_id FROM pg_control_checkpoint()))::text, 8, '0')
+    || lpad(to_hex(lsn_high)::text, 8, '0')
+    || lpad(to_hex(lsn_low - 1
+      / (SELECT bytes_per_wal_segment::bigint FROM pg_control_init()))::text, 8, '0'))
+  ELSE (pg_walfile_name_offset(lsn)).file_name END,
+  (lsn_high << 32) | lsn_low
+FROM (SELECT 
+  lsn,
+  ('x' || lower(lpad(substring(lsn::text from '^[^/]+'), 8, '0')))::bit(32)::bigint AS lsn_high,
+  ('x' || lower(lpad(substring(lsn::text from '[^/]+$'), 8, '0')))::bit(32)::bigint AS lsn_low
+  FROM pg_backup_start(label => '$BACKUP_NAME', fast => $FAST_VOLUME_SNAPSHOT) AS lsn) AS lsn;
+SELECT 'Backup started';
+EOF
+    until grep -qxF 'Backup started' /tmp/backup-psql-out \
+      || ! kill -0 "$(cat /tmp/backup-psql-pid)"
+    do
+      sleep 1
+    done
+    cat /tmp/backup-psql-out
+    head -n 2 /tmp/backup-psql-out | tail -n 1 > /tmp/backup-start
+    truncate -s 0 /tmp/backup-psql-out
+    if ! kill -0 "$(cat /tmp/backup-psql-pid)"
+    then
+      kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+        {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed:\n'; cat /tmp/backup-start; } | to_json_string)"'}
+        ]'
+      kill "$(cat /tmp/backup-tail-pid)" || true
+      exit 1
+    fi
+    cat /tmp/backup-start > /tmp/backup-push
+
+    if ! cat << EOF | kubectl create -f - > /tmp/backup-snapshot 2>&1
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshot
+metadata:
+  namespace: $CLUSTER_NAMESPACE
+  name: $BACKUP_NAME
+  ownerReferences:
+  - apiVersion: $BACKUP_CRD_APIVERSION
+    kind: $BACKUP_CRD_KIND
+    name: $BACKUP_NAME
+    uid: $BACKUP_UID
+spec:
+  volumeSnapshotClassName: $([ "x$VOLUME_SNAPSHOT_STORAGE_CLASS" = x ] && printf null || printf %s "$VOLUME_SNAPSHOT_STORAGE_CLASS")
+  source:
+    persistentVolumeClaimName: $(cat /tmp/current-primary-pvc)
+EOF
+    then
+      kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+        {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed:\n'; cat /tmp/backup-snapshot; } | to_json_string)"'}
+        ]'
+      kill "$(cat /tmp/backup-tail-pid)" || true
+      exit 1
+    fi
+    cat /tmp/backup-snapshot >> /tmp/backup-push
+    cat /tmp/backup-snapshot
+    
+    while true
+    do
+      if ! kubectl get "$VOLUME_SNAPSHOT_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o json > /tmp/backup-volumesnapshot 2>&1
+      then
+        kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+          {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed:\n'; cat /tmp/backup-volumesnapshot; } | to_json_string)"'}
+          ]'
+        kill "$(cat /tmp/backup-tail-pid)" || true
+        exit 1
+      fi
+      if [ "$(jq .status.readyToUse /tmp/backup-volumesnapshot)" = true ]
+      then
+        break
+      fi
+      if [ "x$(jq -r 'if .status.error != null then .status.error else "" end' /tmp/backup-volumesnapshot)" != x ]
+      then
+        kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+          {"op":"replace","path":"/status/process/failure","value":'"$(jq .status.error /tmp/backup-volumesnapshot)"'}
+          ]'
+        kill "$(cat /tmp/backup-tail-pid)" || true
+        exit 1
+      fi
+      sleep 1
+    done
+
+    cat << EOF >> /tmp/backup-psql
+SET client_min_messages TO WARNING;
+SELECT
+  (lsn_high << 32) | lsn_low,
+  CASE WHEN labelfile IS NULL OR labelfile = '' THEN '' ELSE regexp_replace(encode(labelfile::bytea, 'base64'), '[\n\r]+', '', 'g' ) END,
+  CASE WHEN spcmapfile IS NULL OR spcmapfile = '' THEN '' ELSE regexp_replace(encode(spcmapfile::bytea, 'base64'), '[\n\r]+', '', 'g' ) END
+FROM (SELECT 
+  lsn,
+  ('x' || lower(lpad(substring(lsn::text from '^[^/]+'), 8, '0')))::bit(32)::bigint AS lsn_high,
+  ('x' || lower(lpad(substring(lsn::text from '[^/]+$'), 8, '0')))::bit(32)::bigint AS lsn_low,
+  labelfile,
+  spcmapfile
+  FROM pg_backup_stop(wait_for_archive => true)) AS lsn;
+SELECT 'Backup stopped';
+EOF
+    until grep -qxF 'Backup stopped' /tmp/backup-psql-out \
+      || ! kill -0 "$(cat /tmp/backup-psql-pid)"
+    do
+      sleep 1
+    done
+    cat /tmp/backup-psql-out
+    head -n 2 /tmp/backup-psql-out | tail -n 1 > /tmp/backup-stop
+    truncate -s 0 /tmp/backup-psql-out
+    if ! kill -0 "$(cat /tmp/backup-psql-pid)"
+    then
+      kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+        {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed:\n'; cat /tmp/backup-stop; } | to_json_string)"'}
+        ]'
+      kill "$(cat /tmp/backup-tail-pid)" || true
+      exit 1
+    fi
+    cat /tmp/backup-stop >> /tmp/backup-push
+
+    kill "$(cat /tmp/backup-tail-pid)" || true
+    BACKUP_END_TIME="$(date_iso8601)"
+
+    CURRENT_BACKUP_NAME="base_$(cut -d '|' -f 4 /tmp/backup-start)"
+    VOLUME_SNAPSHOT_RESTORE_SIZE="$(jq '.status.restoreSize | . as $v|[splits("[eEinumkKMGTP]+")][0]|. as $ta|tonumber as $a|$v[($ta|length):($v|length)] as $f
+      | if $f == "" then $a
+        elif $f == "Ki" then $a * 1024
+        elif $f == "Mi" then $a * 1024 * 1024
+        elif $f == "Gi" then $a * 1024 * 1024 * 1024
+        elif $f == "Ti" then $a * 1024 * 1024 * 1024 * 1024
+        elif $f == "Pi" then $a * 1024 * 1024 * 1024 * 1024 * 1024
+        elif $f == "Ei" then $a * 1024 * 1024 * 1024 * 1024 * 1024 * 1024
+        elif $f == "m" then $a / 1000
+        else . end' /tmp/backup-volumesnapshot)"
+    if ! echo true | jq -c '{
+        LSN: $LSN,
+        PgVersion: $PgVersion,
+        FinishLSN: $FinishLSN,
+        SystemIdentifier: $SystemIdentifier,
+        UncompressedSize: $UncompressedSize,
+        CompressedSize: $CompressedSize,
+        Spec: null,
+        Version: 2,
+        StartTime: $StartTime,
+        FinishTime: $FinishTime,
+        DateFmt: "%Y-%m-%dT%H:%M:%S.%fZ",
+        Hostname: $Hostname,
+        DataDir: $DataDir,
+        IsPermanent: $IsPermanent
+      }' \
+        --argjson LSN "$(cut -d '|' -f 5 /tmp/backup-start)" \
+        --argjson PgVersion "$(cut -d '|' -f 2 /tmp/backup-start)" \
+        --argjson FinishLSN "$(cut -d '|' -f 1 /tmp/backup-stop)" \
+        --argjson SystemIdentifier "$(cut -d '|' -f 1 /tmp/backup-start)" \
+        --argjson UncompressedSize "$VOLUME_SNAPSHOT_RESTORE_SIZE" \
+        --argjson CompressedSize "$VOLUME_SNAPSHOT_RESTORE_SIZE" \
+        --arg StartTime "$BACKUP_START_TIME" \
+        --arg FinishTime "$BACKUP_END_TIME" \
+        --arg Hostname "$(cat /tmp/current-primary)" \
+        --arg DataDir "$PG_DATA_PATH" \
+        --argjson IsPermanent "$BACKUP_IS_PERMANENT" > "/tmp/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json" 2>&1
+    then
+      kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+        {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed:\n'; cat "/tmp/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json"; } | to_json_string)"'}
+        ]'
+      exit 1
+    fi
+    cat "/tmp/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json"
+    cat "/tmp/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json" >> /tmp/backup-push
+
+    if ! echo true | jq -c '{
+        start_time: $start_time,
+        finish_time: $finish_time,
+        date_fmt: "%Y-%m-%dT%H:%M:%S.%fZ",
+        hostname: $hostname,
+        data_dir: $data_dir,
+        pg_version: $pg_version,
+        start_lsn: $start_lsn,
+        finish_lsn: $finish_lsn,
+        is_permanent: $is_permanent,
+        system_identifier: $system_identifier,
+        uncompressed_size: $uncompressed_size,
+        compressed_size: $compressed_size,
+        user_data: "volume-snapshot"
+      }' \
+        --argjson start_lsn "$(cut -d '|' -f 5 /tmp/backup-start)" \
+        --argjson pg_version "$(cut -d '|' -f 2 /tmp/backup-start)" \
+        --argjson finish_lsn "$(cut -d '|' -f 1 /tmp/backup-stop)" \
+        --argjson system_identifier "$(cut -d '|' -f 1 /tmp/backup-start)" \
+        --argjson uncompressed_size "$VOLUME_SNAPSHOT_RESTORE_SIZE" \
+        --argjson compressed_size "$VOLUME_SNAPSHOT_RESTORE_SIZE" \
+        --arg start_time "$BACKUP_START_TIME" \
+        --arg finish_time "$BACKUP_END_TIME" \
+        --arg hostname "$(cat /tmp/current-primary)" \
+        --arg data_dir "$PG_DATA_PATH" \
+        --argjson is_permanent "$BACKUP_IS_PERMANENT" > "/tmp/${CURRENT_BACKUP_NAME}_metadata.json"  2>&1
+    then
+      kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+        {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed:\n'; cat "/tmp/${CURRENT_BACKUP_NAME}_metadata.json"; } | to_json_string)"'}
+        ]'
+      exit 1
+    fi
+    cat "/tmp/${CURRENT_BACKUP_NAME}_metadata.json"
+    cat "/tmp/${CURRENT_BACKUP_NAME}_metadata.json" >> /tmp/backup-push
+
+    if ! cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
+      -- sh -e $SHELL_XTRACE > /tmp/backup-push-volume-snapshot 2>&1
+cat << 'INNER_EOF' > /tmp/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json
+$(cat /tmp/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json)
+INNER_EOF
+cat << 'INNER_EOF' > /tmp/${CURRENT_BACKUP_NAME}_metadata.json
+$(cat /tmp/${CURRENT_BACKUP_NAME}_metadata.json)
+INNER_EOF
+cat << 'INNER_EOF' > /tmp/${CURRENT_BACKUP_NAME}_files_metadata.json
+{"Files":{}}
+INNER_EOF
+exec-with-env "$BACKUP_ENV" \
+  -- wal-g st put --no-compress "/tmp/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json" "basebackups_005/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json"
+exec-with-env "$BACKUP_ENV" \
+  -- wal-g st put --no-compress "/tmp/${CURRENT_BACKUP_NAME}_metadata.json" "basebackups_005/${CURRENT_BACKUP_NAME}/metadata.json"
+exec-with-env "$BACKUP_ENV" \
+  -- wal-g st put --no-compress "/tmp/${CURRENT_BACKUP_NAME}_files_metadata.json" "basebackups_005/${CURRENT_BACKUP_NAME}/files_metadata.json"
+rm \
+  "/tmp/${CURRENT_BACKUP_NAME}_backup_stop_sentinel.json" \
+  "/tmp/${CURRENT_BACKUP_NAME}_metadata.json" \
+  "/tmp/${CURRENT_BACKUP_NAME}_files_metadata.json"
+EOF
+    then
+      kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch '[
+        {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed:\n'; cat /tmp/backup-push-volume-snapshot; } | to_json_string)"'}
+        ]'
+      exit 1
+    fi
+    cat /tmp/backup-push-volume-snapshot
+    cat /tmp/backup-push-volume-snapshot >> /tmp/backup-push
+
+    return
+  fi
+
+  echo "Performing full backup targeting SGStorageObject"
+
   if ! cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
     -- sh -e $SHELL_XTRACE > /tmp/backup-push 2>&1
 exec-with-env "$BACKUP_ENV" \\
@@ -348,17 +644,29 @@ extract_controldata() {
 pg_controldata --pgdata="$PG_DATA_PATH"
 EOF
   then
-    cat /tmp/pg_controldata | awk -F ':' '{ printf "%s: %s\n", $1, $2 }' | awk '{ $2=$2;print }'| awk -F ': ' '
-          BEGIN { print "\n            {"}
-          {
-            if (NR > 1)
-              printf ",\n             \"%s\": \"%s\"", $1, $2
-            else
-              printf "             \"%s\": \"%s\"", $1, $2
-          }
-          END { print "\n            }" }' > /tmp/json_controldata
+    cat /tmp/pg_controldata \
+      | {
+        FIRST=true
+        printf '{\n'
+        while read LINE
+        do
+          KEY="${LINE%%:*}"
+          VALUE="${LINE#*:}"
+          VALUE="$(printf %s "$VALUE" | tr -s ' ')"
+          VALUE="${VALUE# }"
+          if [ "$FIRST" = true ]
+          then
+            FIRST=false
+          else
+            printf ',\n'
+          fi
+          printf '"%s": "%s"' "$KEY" "$VALUE"
+        done
+        printf '\n}\n'
+        } > /tmp/pg_controldata.json
   else
-    echo '{}' > /tmp/json_controldata
+    cat /tmp/pg_controldata
+    echo '{}' > /tmp/pg_controldata.json
     return 1
   fi
 }
@@ -469,12 +777,12 @@ EOF
 
 set_backup_completed() {
   EXISTING_BACKUP_IS_PERMANENT="$(grep "^is_permanent:" /tmp/current-backup | cut -d : -f 2-)"
-  IS_BACKUP_SUBJECT_TO_RETENTION_POLICY=""
+  IS_BACKUP_MANAGED_LIFECYCLE=""
   if [ "$EXISTING_BACKUP_IS_PERMANENT" = "true" ]
   then
-    IS_BACKUP_SUBJECT_TO_RETENTION_POLICY="false"
+    IS_BACKUP_MANAGED_LIFECYCLE="false"
   else
-    IS_BACKUP_SUBJECT_TO_RETENTION_POLICY="true"
+    IS_BACKUP_MANAGED_LIFECYCLE="true"
   fi
 
   TIMELINE="$(grep "^wal_file_name:" /tmp/current-backup)" # Read file name from current-backup
@@ -482,36 +790,52 @@ set_backup_completed() {
   TIMELINE="$(expr substr "$TIMELINE" 1 8)" # Get the first 8 digits
   TIMELINE="$(printf "%d" "0x$TIMELINE")" # Convert hex to decimal
 
-  BACKUP_PATCH='[
-    {"op":"replace","path":"/status/internalName","value":"'"$CURRENT_BACKUP_NAME"'"},
-    {"op":"replace","path":"/status/process/failure","value":""},
-    {"op":"replace","path":"/status/process/managedLifecycle","value":'$IS_BACKUP_SUBJECT_TO_RETENTION_POLICY'},
-    {"op":"replace","path":"/status/process/timing","value":{
-        "stored":"'"$(grep "^time:" /tmp/current-backup | cut -d : -f 2-)"'",
-        "start":"'"$(grep "^start_time:" /tmp/current-backup | cut -d : -f 2-)"'",
-        "end":"'"$(grep "^finish_time:" /tmp/current-backup | cut -d : -f 2-)"'"
-      }
-    },
-    {"op":"replace","path":"/status/backupInformation","value":{
-        "startWalFile":"'"$(grep "^wal_file_name:" /tmp/current-backup | cut -d : -f 2-)"'",
-        "timeline":"'"$TIMELINE"'",
-        "hostname":"'"$(grep "^hostname:" /tmp/current-backup | cut -d : -f 2-)"'",
-        "sourcePod":"'"$(grep "^hostname:" /tmp/current-backup | cut -d : -f 2-)"'",
-        "pgData":"'"$(grep "^data_dir:" /tmp/current-backup | cut -d : -f 2-)"'",
-        "postgresVersion":"'"$(grep "^pg_version:" /tmp/current-backup | cut -d : -f 2-)"'",
-        "systemIdentifier":"'"$(grep "^system_identifier:" /tmp/current-backup | cut -d : -f 2-)"'",
-        "lsn":{
-          "start":"'"$(grep "^start_lsn:" /tmp/current-backup | cut -d : -f 2-)"'",
-          "end":"'"$(grep "^finish_lsn:" /tmp/current-backup | cut -d : -f 2-)"'"
-        },
-        "size":{
-          "uncompressed":'"$(grep "^uncompressed_size:" /tmp/current-backup | cut -d : -f 2-)"',
-          "compressed":'"$(grep "^compressed_size:" /tmp/current-backup | cut -d : -f 2-)"'
-        },
-        "controlData": '"$(cat /tmp/json_controldata)"'
-      }
+  BACKUP_PATCH="$(cat << EOF
+[
+  {"op":"replace","path":"/status/internalName","value":"$CURRENT_BACKUP_NAME"},
+  {"op":"replace","path":"/status/process/failure","value":""},
+  {"op":"replace","path":"/status/process/managedLifecycle","value":$IS_BACKUP_MANAGED_LIFECYCLE},
+  {"op":"replace","path":"/status/process/timing","value":{
+      "stored":"$(grep "^time:" /tmp/current-backup | cut -d : -f 2-)",
+      "start":"$(grep "^start_time:" /tmp/current-backup | cut -d : -f 2-)",
+      "end":"$(grep "^finish_time:" /tmp/current-backup | cut -d : -f 2-)"
     }
-  ]'
+  },
+  {"op":"replace","path":"/status/backupInformation","value":{
+      "startWalFile":"$(grep "^wal_file_name:" /tmp/current-backup | cut -d : -f 2-)",
+      "timeline":"$TIMELINE",
+      "hostname":"$(grep "^hostname:" /tmp/current-backup | cut -d : -f 2-)",
+      "sourcePod":"$(grep "^hostname:" /tmp/current-backup | cut -d : -f 2-)",
+      "pgData":"$(grep "^data_dir:" /tmp/current-backup | cut -d : -f 2-)",
+      "postgresVersion":"$(grep "^pg_version:" /tmp/current-backup | cut -d : -f 2-)",
+      "systemIdentifier":"$(grep "^system_identifier:" /tmp/current-backup | cut -d : -f 2-)",
+      "lsn":{
+        "start":"$(grep "^start_lsn:" /tmp/current-backup | cut -d : -f 2-)",
+        "end":"$(grep "^finish_lsn:" /tmp/current-backup | cut -d : -f 2-)"
+      },
+      "size":{
+        "uncompressed":$(grep "^uncompressed_size:" /tmp/current-backup | cut -d : -f 2-),
+        "compressed":$(grep "^compressed_size:" /tmp/current-backup | cut -d : -f 2-)
+      },
+      "controlData": $(cat /tmp/pg_controldata.json)
+    }
+  },
+$(
+if [ "$USE_VOLUME_SNAPSHOT" = true ]
+then
+  cat << INNER_EOF
+  {"op":"replace","path":"/status/volumeSnapshot","value":{
+      "name":"$BACKUP_NAME",
+      "backupLabel":"$(cut -d '|' -f 2 /tmp/backup-stop)",
+      "tablespaceMap":"$(cut -d '|' -f 3 /tmp/backup-stop)"
+    }
+  }
+INNER_EOF
+fi
+)
+]
+EOF
+    )"
   RETRY=0
   until kubectl patch "$BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" --type json --patch "$BACKUP_PATCH"
   do
@@ -569,16 +893,16 @@ reconcile_backup_crs() {
     then
       EXISTING_BACKUP_IS_PERMANENT="$(grep "\"backup_name\":\"$BACKUP_NAME\"" /tmp/existing-backups \
         | tr -d '{}"' | tr ',' '\n' | grep "^is_permanent:" | cut -d : -f 2-)"
-      IS_BACKUP_SUBJECT_TO_RETENTION_POLICY=""
+      IS_BACKUP_MANAGED_LIFECYCLE=""
       if [ "$EXISTING_BACKUP_IS_PERMANENT" = "true" ]
       then
-        IS_BACKUP_SUBJECT_TO_RETENTION_POLICY="false"
+        IS_BACKUP_MANAGED_LIFECYCLE="false"
       else
-        IS_BACKUP_SUBJECT_TO_RETENTION_POLICY="true"
+        IS_BACKUP_MANAGED_LIFECYCLE="true"
       fi
-      echo "Updating backup CR $BACKUP_CR_NAME .status.process.managedLifecycle to $IS_BACKUP_SUBJECT_TO_RETENTION_POLICY since was updated in the backup"
+      echo "Updating backup CR $BACKUP_CR_NAME .status.process.managedLifecycle to $IS_BACKUP_MANAGED_LIFECYCLE since was updated in the backup"
       kubectl patch "$BACKUP_CRD_NAME" -n "$BACKUP_CR_NAMESPACE" "$BACKUP_CR_NAME" --type json --patch '[
-        {"op":"replace","path":"/status/process/managedLifecycle","value":'$IS_BACKUP_SUBJECT_TO_RETENTION_POLICY'}
+        {"op":"replace","path":"/status/process/managedLifecycle","value":'$IS_BACKUP_MANAGED_LIFECYCLE'}
         ]'
     fi
   done

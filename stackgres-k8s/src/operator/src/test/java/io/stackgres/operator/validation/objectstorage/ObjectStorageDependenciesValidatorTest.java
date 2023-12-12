@@ -5,7 +5,10 @@
 
 package io.stackgres.operator.validation.objectstorage;
 
+import java.util.List;
+
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfigurationBuilder;
 import io.stackgres.operator.common.ObjectStorageReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.validation.DependenciesValidatorTest;
@@ -45,6 +48,14 @@ class ObjectStorageDependenciesValidatorTest
   @Override
   protected ObjectStorageReview getReview_givenAReviewDelete_itShouldNotFailIfNoClusterExists() {
     return AdmissionReviewFixtures.objectStorage().loadDelete().get();
+  }
+
+  @Override
+  protected void makeClusterDependant(StackGresCluster cluster, ObjectStorageReview review) {
+    cluster.getSpec().getConfigurations().setBackups(List.of(
+        new StackGresClusterBackupConfigurationBuilder()
+        .withSgObjectStorage(review.getRequest().getName())
+        .build()));
   }
 
   @Override

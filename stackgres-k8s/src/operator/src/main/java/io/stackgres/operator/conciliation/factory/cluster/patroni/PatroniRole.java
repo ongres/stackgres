@@ -8,9 +8,17 @@ package io.stackgres.operator.conciliation.factory.cluster.patroni;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.Event;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.rbac.PolicyRuleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
@@ -22,7 +30,6 @@ import io.stackgres.common.ClusterContext;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -90,58 +97,53 @@ public class PatroniRole implements
         .withLabels(labels)
         .endMetadata()
         .addToRules(new PolicyRuleBuilder()
-            .withApiGroups("")
-            .withResources("endpoints")
+            .withApiGroups(HasMetadata.getGroup(Endpoints.class))
+            .withResources(HasMetadata.getPlural(Endpoints.class))
             .withVerbs("get", "list", "patch", "update", "watch")
             .build())
         .addToRules(new PolicyRuleBuilder()
-            .withApiGroups("")
-            .withResources("configmaps")
+            .withApiGroups(HasMetadata.getGroup(ConfigMap.class))
+            .withResources(HasMetadata.getPlural(ConfigMap.class))
             .withVerbs("create", "get", "list", "patch", "update", "watch")
             .build())
         .addToRules(new PolicyRuleBuilder()
-            .withApiGroups("")
-            .withResources("endpoints/restricted")
+            .withApiGroups(HasMetadata.getGroup(Endpoints.class))
+            .withResources(HasMetadata.getPlural(Endpoints.class) + "/restricted")
             .withVerbs("create")
             .build())
         .addToRules(new PolicyRuleBuilder()
-            .withApiGroups("")
-            .withResources("secrets")
+            .withApiGroups(HasMetadata.getGroup(Secret.class))
+            .withResources(HasMetadata.getPlural(Secret.class))
             .withVerbs("get")
             .build())
         .addToRules(new PolicyRuleBuilder()
-            .withApiGroups("")
-            .withResources("pods")
+            .withApiGroups(HasMetadata.getGroup(Pod.class))
+            .withResources(HasMetadata.getPlural(Pod.class))
             .withVerbs("get", "list", "patch", "update", "watch")
             .build())
         .addToRules(new PolicyRuleBuilder()
-            .withApiGroups("")
-            .withResources("pods/exec")
+            .withApiGroups(HasMetadata.getGroup(Pod.class))
+            .withResources(HasMetadata.getPlural(Pod.class) + "/exec")
             .withVerbs("create")
             .build())
         .addToRules(new PolicyRuleBuilder()
-            .withApiGroups("batch")
-            .withResources("cronjobs")
-            .withVerbs("get", "patch")
-            .build())
-        .addToRules(new PolicyRuleBuilder()
-            .withApiGroups("")
-            .withResources("services")
+            .withApiGroups(HasMetadata.getGroup(Service.class))
+            .withResources(HasMetadata.getPlural(Service.class))
             .withVerbs("create")
             .build())
         .addToRules(new PolicyRuleBuilder()
-            .withApiGroups("")
-            .withResources("events")
+            .withApiGroups(HasMetadata.getGroup(Event.class))
+            .withResources(HasMetadata.getPlural(Event.class))
             .withVerbs("get", "list", "create", "patch", "update")
             .build())
         .addToRules(new PolicyRuleBuilder()
-            .withApiGroups("")
-            .withResources("persistentvolumeclaims")
+            .withApiGroups(HasMetadata.getGroup(PersistentVolumeClaim.class))
+            .withResources(HasMetadata.getPlural(PersistentVolumeClaim.class))
             .withVerbs("get", "list", "patch", "update")
             .build())
         .addToRules(new PolicyRuleBuilder()
-            .withApiGroups("apps")
-            .withResources("statefulsets")
+            .withApiGroups(HasMetadata.getGroup(StatefulSet.class))
+            .withResources(HasMetadata.getPlural(StatefulSet.class))
             .withVerbs("get")
             .build())
         .addToRules(new PolicyRuleBuilder()
@@ -152,7 +154,6 @@ public class PatroniRole implements
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(CommonDefinition.GROUP)
             .withResources(
-                HasMetadata.getPlural(StackGresBackupConfig.class),
                 HasMetadata.getPlural(StackGresCluster.class),
                 HasMetadata.getPlural(StackGresPostgresConfig.class),
                 HasMetadata.getPlural(StackGresObjectStorage.class),

@@ -7,6 +7,7 @@ package io.stackgres.operator.mutation.dbops;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -63,22 +64,20 @@ class DbOpsMajorVersionUpgradeMutatorTest {
   }
 
   @Test
-  void majorVersionUpgradeWithoutBackupPath_shouldSetNothing() {
-    cluster.getSpec().getConfigurations().setSgBackupConfig(null);
-    cluster.getSpec().getConfigurations().setBackupPath(null);
+  void majorVersionUpgradeWithoutBackupPath_shouldSetTheBackupPath() {
     when(clusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
 
     review.getRequest().getObject().getSpec().getMajorVersionUpgrade().setBackupPath(null);
     final StackGresDbOps actualDbOps = mutate(review);
 
+    assertNotNull(actualDbOps.getSpec().getMajorVersionUpgrade().getBackupPath());
+    actualDbOps.getSpec().getMajorVersionUpgrade().setBackupPath(null);
     assertEquals(review.getRequest().getObject(), actualDbOps);
   }
 
   @Test
   void majorVersionUpgradeWithBackupsButWithoutBackupPath_shouldSetIt() {
-    cluster.getSpec().getConfigurations().setSgBackupConfig(null);
-    cluster.getSpec().getConfigurations().setBackupPath(null);
     cluster.getSpec().getConfigurations().setBackups(new ArrayList<>());
     cluster.getSpec().getConfigurations().getBackups()
         .add(new StackGresClusterBackupConfiguration());
@@ -110,8 +109,6 @@ class DbOpsMajorVersionUpgradeMutatorTest {
 
   @Test
   void majorVersionUpgradeWithBackupsAndWithBackupPath_shouldDoNothing() {
-    cluster.getSpec().getConfigurations().setSgBackupConfig(null);
-    cluster.getSpec().getConfigurations().setBackupPath(null);
     cluster.getSpec().getConfigurations().setBackups(new ArrayList<>());
     cluster.getSpec().getConfigurations().getBackups()
         .add(new StackGresClusterBackupConfiguration());

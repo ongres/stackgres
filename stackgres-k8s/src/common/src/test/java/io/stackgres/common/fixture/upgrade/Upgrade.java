@@ -7,10 +7,6 @@ package io.stackgres.common.fixture.upgrade;
 
 public interface Upgrade {
 
-  default BackupConfigFixture backupConfig() {
-    return new BackupConfigFixture();
-  }
-
   default ClusterFixture cluster() {
     return new ClusterFixture();
   }

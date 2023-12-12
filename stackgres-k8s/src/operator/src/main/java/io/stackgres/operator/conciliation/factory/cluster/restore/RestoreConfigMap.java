@@ -6,10 +6,12 @@
 package io.stackgres.operator.conciliation.factory.cluster.restore;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import com.google.common.base.Predicates;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
@@ -22,11 +24,14 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackup.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
+import io.stackgres.common.crd.sgbackup.StackGresBackupVolumeSnapshotStatus;
+import io.stackgres.common.crd.sgbackup.StackGresBaseBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -94,6 +99,22 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
             backup.getMetadata().getResourceVersion());
         data.put("RESTORE_BACKUP_ID",
             backup.getStatus().getInternalName());
+        data.put("RESTORE_VOLUME_SNAPSHOT",
+            Optional.of(backup.getStatus())
+            .map(StackGresBackupStatus::getVolumeSnapshot)
+            .map(ignored -> Boolean.TRUE)
+            .map(String::valueOf)
+            .orElse(Boolean.FALSE.toString()));
+        data.put("RESTORE_BACKUP_LABEL",
+            Optional.of(backup.getStatus())
+            .map(StackGresBackupStatus::getVolumeSnapshot)
+            .map(StackGresBackupVolumeSnapshotStatus::getBackupLabel)
+            .orElse(""));
+        data.put("RESTORE_TABLESPACE_MAP",
+            Optional.of(backup.getStatus())
+            .map(StackGresBackupStatus::getVolumeSnapshot)
+            .map(StackGresBackupVolumeSnapshotStatus::getTablespaceMap)
+            .orElse(""));
 
         data.putAll(getBackupEnvVars(context,
             Optional.of(backup)
@@ -141,14 +162,23 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
               backupConfig.getBaseBackups().getCompression(),
               path,
               Optional.of(backupConfig.getBaseBackups())
-                  .map(StackGresBaseBackupConfig::getPerformance)
-                  .map(p -> new BackupPerformance(
-                      p.getMaxNetworkBandwidth(),
-                      p.getMaxDiskBandwidth(),
-                      p.getUploadDiskConcurrency(),
-                      p.getUploadConcurrency(),
-                      p.getDownloadConcurrency()
-                  )).orElse(null)
+              .map(StackGresBaseBackupConfig::getPerformance)
+              .map(p -> new BackupPerformance(
+                  p.getMaxNetworkBandwidth(),
+                  p.getMaxDiskBandwidth(),
+                  p.getUploadDiskConcurrency(),
+                  p.getUploadConcurrency(),
+                  p.getDownloadConcurrency()))
+              .orElse(null),
+              Optional.of(context.getCluster().getSpec())
+              .map(StackGresClusterSpec::getConfigurations)
+              .map(StackGresClusterConfigurations::getBackups)
+              .filter(Predicates.not(List::isEmpty))
+              .map(backups -> backups.get(0))
+              .map(StackGresClusterBackupConfiguration::getUseVolumeSnapshot)
+              .orElse(false),
+              null,
+              null
           ))
       );
     }

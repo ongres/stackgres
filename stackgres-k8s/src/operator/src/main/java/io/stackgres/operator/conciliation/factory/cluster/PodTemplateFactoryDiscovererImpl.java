@@ -29,7 +29,7 @@ public class PodTemplateFactoryDiscovererImpl
     var podTemplateFactories = hub.get(context.getClusterContext().getVersion());
 
     if (podTemplateFactories.size() != 1) {
-      throw new IllegalStateException(
+      throw new IllegalArgumentException(
           "It should be a single pod template factory per StackGres Version");
     }
     return podTemplateFactories.get(0);

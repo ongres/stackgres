@@ -132,7 +132,7 @@ public class ClusterPodTemplateSpecFactory
 
     claimedVolumes.forEach(rv -> {
       if (!context.availableVolumes().containsKey(rv) && !context.getDataVolumeName().equals(rv)) {
-        throw new IllegalStateException("Volume " + rv + " is required but not available");
+        throw new IllegalArgumentException("Volume " + rv + " is required but not available");
       }
     });
 

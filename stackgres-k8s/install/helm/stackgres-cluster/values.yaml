@@ -169,6 +169,9 @@ cluster:
         #maxDiskBandwidth:
     # sgObjectStorage: objectstorage
     # path: "demo/mypath"
+      useVolumeSnapshot: false
+    # volumeSnapshotClass:
+    # fastVolumeSnapshot: true
   distributedLogs:
     sgDistributedLogs: distributedlogs
     retention: 7 days

@@ -11,10 +11,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.Event;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.Namespace;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReview;
 import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReviewBuilder;
 import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReviewStatus;
+import io.fabric8.kubernetes.api.model.rbac.ClusterRole;
+import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBinding;
+import io.fabric8.kubernetes.api.model.rbac.Role;
+import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
+import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -23,7 +33,6 @@ import io.stackgres.apiweb.dto.PermissionsListDto;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -32,7 +41,9 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -167,24 +178,23 @@ public class RbacResource {
 
   protected List<String> getResourcesUnnamespaced() {
     return List.of(
-        "namespaces",
-        "storageclasses.storage.k8s.io",
-        "clusterroles.rbac.authorization.k8s.io",
-        "clusterrolebindings.rbac.authorization.k8s.io");
+        HasMetadata.getFullResourceName(Namespace.class),
+        HasMetadata.getFullResourceName(StorageClass.class),
+        HasMetadata.getFullResourceName(ClusterRole.class),
+        HasMetadata.getFullResourceName(ClusterRoleBinding.class));
   }
 
   protected List<String> getResourcesNamespaced() {
     return List.of(
-        "pods",
-        "secrets",
-        "configmaps",
-        "events",
-        "pods/exec",
-        "roles.rbac.authorization.k8s.io",
-        "rolebindings.rbac.authorization.k8s.io",
+        HasMetadata.getFullResourceName(Secret.class),
+        HasMetadata.getFullResourceName(ConfigMap.class),
+        HasMetadata.getFullResourceName(Event.class),
+        HasMetadata.getFullResourceName(Pod.class),
+        HasMetadata.getFullResourceName(Pod.class) + "/exec",
+        HasMetadata.getFullResourceName(Role.class),
+        HasMetadata.getFullResourceName(RoleBinding.class),
         HasMetadata.getFullResourceName(StackGresScript.class),
         HasMetadata.getFullResourceName(StackGresObjectStorage.class),
-        HasMetadata.getFullResourceName(StackGresBackupConfig.class),
         HasMetadata.getFullResourceName(StackGresBackup.class),
         HasMetadata.getFullResourceName(StackGresCluster.class),
         HasMetadata.getFullResourceName(StackGresDistributedLogs.class),
@@ -192,7 +202,9 @@ public class RbacResource {
         HasMetadata.getFullResourceName(StackGresDbOps.class),
         HasMetadata.getFullResourceName(StackGresPostgresConfig.class),
         HasMetadata.getFullResourceName(StackGresPoolingConfig.class),
-        HasMetadata.getFullResourceName(StackGresShardedCluster.class));
+        HasMetadata.getFullResourceName(StackGresShardedCluster.class),
+        HasMetadata.getFullResourceName(StackGresShardedBackup.class),
+        HasMetadata.getFullResourceName(StackGresShardedDbOps.class));
   }
 
   private List<String> getVerbs() {

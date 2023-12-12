@@ -1,0 +1,20 @@
+{
+  "metadata": {
+    "name": "objstorage",
+    "namespace": "stackgres",
+    "uid": "93bc7621-0236-11ea-a1d5-0242ac110003"
+  },
+  "spec": {
+    "s3Compatible": {
+      "endpoint": "http://minio.stackgres:9000",
+      "enablePathStyleAddressing": true,
+      "bucket": "stackgres",
+      "region": "k8s",
+      "awsCredentials": {
+        "accessKeyId": "test",
+        "secretAccessKey": "test"
+      }
+    },
+    "type": "s3Compatible"
+  }
+}

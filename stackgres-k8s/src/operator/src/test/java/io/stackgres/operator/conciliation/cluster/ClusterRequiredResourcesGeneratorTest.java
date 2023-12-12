@@ -42,8 +42,9 @@ class ClusterRequiredResourcesGeneratorTest extends AbstractClusterRequiredResou
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -58,17 +59,17 @@ class ClusterRequiredResourcesGeneratorTest extends AbstractClusterRequiredResou
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    cluster.getSpec().getConfigurations().setSgBackupConfig(null);
     mockPgConfig();
     mockPoolingConfig();
     mockProfile();
+    unmockBackupConfig();
     when(backupFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(backup));
     mockSecrets();
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder, never()).findByNameAndNamespace(any(), any());
+    verify(objectStorageFinder, never()).findByNameAndNamespace(any(), any());
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -94,8 +95,9 @@ class ClusterRequiredResourcesGeneratorTest extends AbstractClusterRequiredResou
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder, never()).findByNameAndNamespace(any(), any());
@@ -122,8 +124,9 @@ class ClusterRequiredResourcesGeneratorTest extends AbstractClusterRequiredResou
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -155,8 +158,9 @@ class ClusterRequiredResourcesGeneratorTest extends AbstractClusterRequiredResou
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(
@@ -182,7 +186,7 @@ class ClusterRequiredResourcesGeneratorTest extends AbstractClusterRequiredResou
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(profileConfigFinder, never()).findByNameAndNamespace(any(), any());
-    verify(backupConfigFinder, never()).findByNameAndNamespace(any(), any());
+    verify(objectStorageFinder, never()).findByNameAndNamespace(any(), any());
     verify(poolingConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(backupFinder, never()).findByNameAndNamespace(any(), any());
   }
@@ -204,18 +208,19 @@ class ClusterRequiredResourcesGeneratorTest extends AbstractClusterRequiredResou
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(resourceProfile, clusterNamespace);
-    verify(backupConfigFinder, never()).findByNameAndNamespace(any(), any());
+    verify(objectStorageFinder, never()).findByNameAndNamespace(any(), any());
     verify(poolingConfigFinder, never()).findByNameAndNamespace(any(), any());
     verify(backupFinder, never()).findByNameAndNamespace(any(), any());
   }
 
   @Test
-  void givenClusterWithNoBackupConfig_shouldNotFail() {
+  void givenClusterWithNoBackupConfig_shouldFail() {
     final ObjectMeta metadata = cluster.getMetadata();
     final String clusterNamespace = metadata.getNamespace();
 
-    when(backupConfigFinder.findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace))
+    when(objectStorageFinder.findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace))
         .thenReturn(Optional.empty());
     mockPgConfig();
     mockPoolingConfig();
@@ -224,17 +229,18 @@ class ClusterRequiredResourcesGeneratorTest extends AbstractClusterRequiredResou
         .thenReturn(Optional.of(backup));
     mockSecrets();
 
-    generator.getRequiredResources(cluster);
+    assertException("SGObjectStorage "
+        + cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage()
+        + " not found");
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(any(), any());
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
-    verify(poolingConfigFinder).findByNameAndNamespace(
+    verify(poolingConfigFinder, never()).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPoolingConfig(), clusterNamespace);
     verify(profileConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getSgInstanceProfile(), clusterNamespace);
-    verify(backupFinder).findByNameAndNamespace(any(), any());
+    verify(backupFinder, never()).findByNameAndNamespace(any(), any());
   }
 
   @Test
@@ -254,8 +260,9 @@ class ClusterRequiredResourcesGeneratorTest extends AbstractClusterRequiredResou
 
     generator.getRequiredResources(cluster);
 
-    verify(backupConfigFinder).findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(), clusterNamespace);
+    verify(objectStorageFinder).findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
+        clusterNamespace);
     verify(postgresConfigFinder).findByNameAndNamespace(
         cluster.getSpec().getConfigurations().getSgPostgresConfig(), clusterNamespace);
     verify(poolingConfigFinder).findByNameAndNamespace(

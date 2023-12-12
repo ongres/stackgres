@@ -11,7 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupPerformance;
+import io.stackgres.common.crd.sgbackup.StackGresBaseBackupPerformance;
 import io.sundr.builder.annotations.Buildable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -40,6 +40,12 @@ public class StackGresClusterBackupConfiguration {
 
   @NotNull
   private String path;
+
+  private Boolean useVolumeSnapshot;
+
+  private String volumeSnapshotClass;
+
+  private Boolean fastVolumeSnapshot;
 
   public Integer getRetention() {
     return retention;
@@ -89,6 +95,36 @@ public class StackGresClusterBackupConfiguration {
     this.path = path;
   }
 
+  public Boolean getUseVolumeSnapshot() {
+    return useVolumeSnapshot;
+  }
+
+  public void setUseVolumeSnapshot(Boolean useVolumeSnapshot) {
+    this.useVolumeSnapshot = useVolumeSnapshot;
+  }
+
+  public String getVolumeSnapshotClass() {
+    return volumeSnapshotClass;
+  }
+
+  public void setVolumeSnapshotClass(String volumeSnapshotClass) {
+    this.volumeSnapshotClass = volumeSnapshotClass;
+  }
+
+  public Boolean getFastVolumeSnapshot() {
+    return fastVolumeSnapshot;
+  }
+
+  public void setFastVolumeSnapshot(Boolean fastVolumeSnapshot) {
+    this.fastVolumeSnapshot = fastVolumeSnapshot;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(compression, cronSchedule, fastVolumeSnapshot, path, performance, retention,
+        sgObjectStorage, useVolumeSnapshot, volumeSnapshotClass);
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (this == obj) {
@@ -98,18 +134,15 @@ public class StackGresClusterBackupConfiguration {
       return false;
     }
     StackGresClusterBackupConfiguration other = (StackGresClusterBackupConfiguration) obj;
-    return Objects.equals(path, other.path)
-        && Objects.equals(compression, other.compression)
+    return Objects.equals(compression, other.compression)
         && Objects.equals(cronSchedule, other.cronSchedule)
-        && Objects.equals(sgObjectStorage, other.sgObjectStorage)
+        && Objects.equals(fastVolumeSnapshot, other.fastVolumeSnapshot)
+        && Objects.equals(path, other.path)
         && Objects.equals(performance, other.performance)
-        && Objects.equals(retention, other.retention);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(path, compression, cronSchedule, sgObjectStorage, performance,
-        retention);
+        && Objects.equals(retention, other.retention)
+        && Objects.equals(sgObjectStorage, other.sgObjectStorage)
+        && Objects.equals(useVolumeSnapshot, other.useVolumeSnapshot)
+        && Objects.equals(volumeSnapshotClass, other.volumeSnapshotClass);
   }
 
   @Override

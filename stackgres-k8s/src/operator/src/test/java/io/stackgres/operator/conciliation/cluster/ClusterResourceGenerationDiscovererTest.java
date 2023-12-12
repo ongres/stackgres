@@ -7,15 +7,16 @@ package io.stackgres.operator.conciliation.cluster;
 
 import static java.util.Optional.ofNullable;
 
+import java.util.Map;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -38,7 +39,7 @@ class ClusterResourceGenerationDiscovererTest
   private StackGresCluster resource;
   private StackGresPostgresConfig pgConfig;
   private StackGresProfile profile;
-  private Optional<StackGresBackupConfig> backupConfig;
+  private Optional<StackGresObjectStorage> objectStorage;
   private Optional<StackGresPoolingConfig> pooling;
   private Optional<Secret> secret;
 
@@ -48,7 +49,7 @@ class ClusterResourceGenerationDiscovererTest
     this.resource = Fixtures.cluster().loadDefault().withLatestPostgresVersion().get();
     this.pgConfig = Fixtures.postgresConfig().loadDefault().get();
     this.profile = Fixtures.instanceProfile().loadSizeM().get();
-    this.backupConfig = ofNullable(null);
+    this.objectStorage = ofNullable(Fixtures.objectStorage().loadDefault().get());
     this.pooling = ofNullable(Fixtures.poolingConfig().loadDefault().get());
     this.secret = ofNullable(Fixtures.secret().loadMinio().get());
   }
@@ -66,7 +67,8 @@ class ClusterResourceGenerationDiscovererTest
         .source(resource)
         .postgresConfig(pgConfig)
         .profile(profile)
-        .backupConfig(backupConfig)
+        .objectStorage(objectStorage)
+        .backupSecrets(Map.of("minio", secret.get()))
         .poolingConfig(pooling)
         .prometheus(new Prometheus(false, null))
         .databaseSecret(secret)

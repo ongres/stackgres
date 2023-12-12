@@ -49,7 +49,7 @@ public class DefaultCoordinatorPostgresDelegator implements ShardedClusterMutato
       StackGresShardedClusterReview review, StackGresShardedCluster resource) {
     return getMutator(review)
         .map(mutator -> mutator.mutate(review, resource))
-        .orElseThrow(IllegalStateException::new);
+        .orElseThrow(IllegalArgumentException::new);
   }
 
   private Optional<DefaultCoordinatorPostgresMutator> getMutator(

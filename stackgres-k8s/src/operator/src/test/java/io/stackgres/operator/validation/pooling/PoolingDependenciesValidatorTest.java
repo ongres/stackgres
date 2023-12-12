@@ -52,6 +52,11 @@ class PoolingDependenciesValidatorTest
   }
 
   @Override
+  protected void makeClusterDependant(StackGresCluster cluster, PoolingReview review) {
+    cluster.getSpec().getConfigurations().setSgPoolingConfig(review.getRequest().getName());
+  }
+
+  @Override
   protected void makeClusterNotDependant(StackGresCluster cluster) {
     cluster.getSpec().getConfigurations().setSgPoolingConfig(null);
   }

@@ -47,7 +47,7 @@ public class DefaultPostgresDelegator implements ClusterMutator {
   public StackGresCluster mutate(StackGresClusterReview review, StackGresCluster resource) {
     return getMutator(review)
         .map(mutator -> mutator.mutate(review, resource))
-        .orElseThrow(IllegalStateException::new);
+        .orElseThrow(IllegalArgumentException::new);
   }
 
   private Optional<DefaultPostgresMutator> getMutator(StackGresClusterReview review) {

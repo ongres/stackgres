@@ -250,6 +250,9 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
               .withRetention(backup.getRetention())
               .withCompression(backup.getCompression())
               .withPerformance(backup.getPerformance())
+              .withUseVolumeSnapshot(backup.getUseVolumeSnapshot())
+              .withVolumeSnapshotClass(backup.getVolumeSnapshotClass())
+              .withFastVolumeSnapshot(backup.getFastVolumeSnapshot())
               .build()));
         });
   }
@@ -271,17 +274,29 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
     spec.getConfigurations().getCredentials().getUsers()
         .setSuperuser(new StackGresClusterUserSecretKeyRef());
     spec.getConfigurations().getCredentials().getUsers().getSuperuser()
+        .setUsername(new SecretKeySelector(
+            StackGresPasswordKeys.SUPERUSER_USERNAME_KEY,
+            cluster.getMetadata().getName()));
+    spec.getConfigurations().getCredentials().getUsers().getSuperuser()
         .setPassword(new SecretKeySelector(
             StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY,
             cluster.getMetadata().getName()));
     spec.getConfigurations().getCredentials().getUsers()
         .setReplication(new StackGresClusterUserSecretKeyRef());
     spec.getConfigurations().getCredentials().getUsers().getReplication()
+        .setUsername(new SecretKeySelector(
+            StackGresPasswordKeys.REPLICATION_USERNAME_KEY,
+            cluster.getMetadata().getName()));
+    spec.getConfigurations().getCredentials().getUsers().getReplication()
         .setPassword(new SecretKeySelector(
             StackGresPasswordKeys.REPLICATION_PASSWORD_KEY,
             cluster.getMetadata().getName()));
     spec.getConfigurations().getCredentials().getUsers()
         .setAuthenticator(new StackGresClusterUserSecretKeyRef());
+    spec.getConfigurations().getCredentials().getUsers().getAuthenticator()
+        .setUsername(new SecretKeySelector(
+            StackGresPasswordKeys.AUTHENTICATOR_USERNAME_KEY,
+            cluster.getMetadata().getName()));
     spec.getConfigurations().getCredentials().getUsers().getAuthenticator()
         .setPassword(new SecretKeySelector(
             StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_KEY,

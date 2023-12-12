@@ -773,20 +773,6 @@ spec:
                       If not set, a default configuration will be used. Disabling connection pooling altogether is possible if the disableConnectionPooling property of the pods object is set to true.
 
                       **Changing this field may require a restart.**
-                  sgBackupConfig:
-                    type: string
-                    description: |
-                      **Deprecated**: use instead `.spec.configurations.backups[].sgObjectStorage`
-
-                      Name of the [SGBackupConfig](https://stackgres.io/doc/latest/reference/crd/sgbackupconfig) to use for the cluster. It defines the backups policy, storage and retention, among others, applied to the cluster. When not set, backup configuration will not be used.
-                  backupPath:
-                    type: string
-                    description: |
-                      **Deprecated**: use instead `.spec.configurations.backups[].path`
-
-                      The path were the backup is stored. If not set this field is filled up by the operator.
-
-                      When provided will indicate were the backups and WAL files will be stored.
                   backups:
                     type: array
                     description: |
@@ -866,6 +852,26 @@ spec:
                             The path were the backup is stored. If not set this field is filled up by the operator.
 
                             When provided will indicate were the backups and WAL files will be stored.
+                        useVolumeSnapshot:
+                          type: boolean
+                          description: |
+                            If specified SGBackup will use VolumeSnapshot to create backups.
+                            
+                            This functionality still require to store WAL files in an SGObjectStorage but could result in much faster backups and restore of those backups.
+                            
+                            See also https://kubernetes.io/docs/concepts/storage/volume-snapshots/
+                        volumeSnapshotClass:
+                          type: string
+                          description: |
+                            The name of the VolumeSnaphostClass to use to create the VolumeSnapshot for backups.
+                            
+                            See also https://kubernetes.io/docs/concepts/storage/volume-snapshots/
+                        fastVolumeSnapshot:
+                          type: boolean
+                          description: |
+                            If specified SGBackup will create a backup forcing a fast start (by setting parameter `fast` to `true` when calling `pg_backup_start`) that will reduce the time the backups may take at the expense of more IO usage.
+                            
+                            See also https://www.postgresql.org/docs/current/continuous-archiving.html#BACKUP-LOWLEVEL-BASE-BACKUP
                       required: ["sgObjectStorage"]
                   patroni:
                     type: object

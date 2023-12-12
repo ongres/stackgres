@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.rbac.PolicyRuleBuilder;
@@ -18,9 +19,9 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.SubjectBuilder;
+import io.stackgres.common.VolumeSnapshotUtil;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.labels.LabelFactoryForCluster;
@@ -84,32 +85,41 @@ public class BackupCronRole implements ResourceGenerator<StackGresClusterContext
         .withNamespace(cluster.getMetadata().getNamespace())
         .withLabels(labels)
         .endMetadata()
-        .addToRules(new PolicyRuleBuilder()
-            .withApiGroups("")
-            .withResources("pods")
+        .addToRules(
+            new PolicyRuleBuilder()
+            .withApiGroups(HasMetadata.getGroup(Pod.class))
+            .withResources(HasMetadata.getPlural(Pod.class))
             .withVerbs("get", "list")
             .build())
-        .addToRules(new PolicyRuleBuilder()
-            .withApiGroups("")
-            .withResources("pods/exec")
+        .addToRules(
+            new PolicyRuleBuilder()
+            .withApiGroups(HasMetadata.getGroup(Pod.class))
+            .withResources(HasMetadata.getPlural(Pod.class) + "/exec")
             .withVerbs("create")
             .build())
-        .addToRules(new PolicyRuleBuilder()
+        .addToRules(
+            new PolicyRuleBuilder()
             .withApiGroups(CommonDefinition.GROUP)
             .withResources(HasMetadata.getPlural(StackGresCluster.class))
             .withVerbs("get", "patch")
             .build())
-        .addToRules(new PolicyRuleBuilder()
+        .addToRules(
+            new PolicyRuleBuilder()
             .withApiGroups(CommonDefinition.GROUP)
             .withResources(HasMetadata.getPlural(StackGresBackup.class))
             .withVerbs("list", "get", "create", "patch", "update", "delete")
             .build())
-        .addToRules(new PolicyRuleBuilder()
+        .addToRules(
+            new PolicyRuleBuilder()
             .withApiGroups(CommonDefinition.GROUP)
-            .withResources(
-                HasMetadata.getPlural(StackGresBackupConfig.class),
-                HasMetadata.getPlural(StackGresObjectStorage.class)
-            ).withVerbs("get")
+            .withResources(HasMetadata.getPlural(StackGresObjectStorage.class))
+            .withVerbs("get")
+            .build())
+        .addToRules(
+            new PolicyRuleBuilder()
+            .withApiGroups(VolumeSnapshotUtil.VOLUME_SNAPSHOT_GROUP)
+            .withResources(VolumeSnapshotUtil.VOLUME_SNAPSHOT_CRD_PLURAL)
+            .withVerbs("create", "get", "list", "watch")
             .build())
         .build();
   }

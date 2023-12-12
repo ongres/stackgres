@@ -19,9 +19,9 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigList;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorageList;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigList;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
@@ -99,15 +99,16 @@ class ShardedClusterValidationQuarkusTest {
     client.resourceList(poolconfList.getItems()).delete();
     var poolConfig = Fixtures.poolingConfig().loadDefault().get();
     poolConfig.getMetadata().setNamespace("test");
-    client.resource(poolConfig).createOrReplace();
+    client.resource(poolConfig)
+        .createOrReplace();
 
-    StackGresBackupConfigList bkconfList = client
-        .resources(StackGresBackupConfig.class, StackGresBackupConfigList.class)
+    StackGresObjectStorageList bkconfList = client
+        .resources(StackGresObjectStorage.class, StackGresObjectStorageList.class)
         .list();
     client.resourceList(bkconfList.getItems()).delete();
-    var backupConfig = Fixtures.backupConfig().loadDefault().get();
-    backupConfig.getMetadata().setNamespace("test");
-    client.resource(backupConfig).createOrReplace();
+    var objectStorage = Fixtures.objectStorage().loadDefault().get();
+    objectStorage.getMetadata().setNamespace("test");
+    client.resource(objectStorage).createOrReplace();
 
     StackGresPostgresConfigList pgconfList = client
         .resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)
@@ -149,10 +150,10 @@ class ShardedClusterValidationQuarkusTest {
             .list();
     client.resourceList(poolconfList).delete();
 
-    StackGresBackupConfigList bkconfList = client
-        .resources(StackGresBackupConfig.class, StackGresBackupConfigList.class)
+    StackGresObjectStorageList objectStorageList = client
+        .resources(StackGresObjectStorage.class, StackGresObjectStorageList.class)
         .list();
-    client.resourceList(bkconfList).delete();
+    client.resourceList(objectStorageList).delete();
 
     StackGresPostgresConfigList pgconfList = client
         .resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)

@@ -1,14 +1,37 @@
-export SHELL_XTRACE=$(! echo $- | grep -q x || echo " -x")
+export SHELL_XTRACE=$(! echo $- | grep -q x || printf %s -x)
 export HOME="$PG_BASE_PATH"
 export PATRONI_POSTGRESQL_LISTEN="$(eval "echo $PATRONI_POSTGRESQL_LISTEN")"
 export PATRONI_POSTGRESQL_CONNECT_ADDRESS="$(eval "echo $PATRONI_POSTGRESQL_CONNECT_ADDRESS")"
 export PATRONI_RESTAPI_CONNECT_ADDRESS="$(eval "echo $PATRONI_RESTAPI_CONNECT_ADDRESS")"
 
-if [ -n "$RECOVERY_FROM_BACKUP" ] \
-  || [ -n "$REPLICATE_FROM_BACKUP" ]
+if [ -n "$RECOVERY_FROM_BACKUP" ]
 then
+  cat << 'PREPARE_RECOVERY_FROM_BACKUP_EOF' > "$PATRONI_CONFIG_PATH/prepare-recovery-from-backup"
+#!/bin/sh
+
+set -e
+
+if [ "x$SHELL_XTRACE" = x-x ]
+then
+  set -x
+fi
+
+if [ "$RESTORE_VOLUME_SNAPSHOT" = true ] \
+  && [ -d "$PG_DATA_PATH" ] \
+  && ! [ -d "$PG_DATA_PATH".backup ] \
+  && ! [ -f "$PG_DATA_PATH".backup/backup_label ]
+then
+  mv "$PG_DATA_PATH" "$PG_DATA_PATH".backup
+fi
+PREPARE_RECOVERY_FROM_BACKUP_EOF
+  chmod 700 "$PATRONI_CONFIG_PATH/prepare-recovery-from-backup"
+
+  exec-with-env "${RESTORE_ENV}" -- "$PATRONI_CONFIG_PATH/prepare-recovery-from-backup"
+
   cat << 'RECOVERY_FROM_BACKUP_EOF' > "$PATRONI_CONFIG_PATH/recovery-from-backup"
 #!/bin/sh
+
+set -e
 
 if [ "x$SHELL_XTRACE" = x-x ]
 then
@@ -21,7 +44,22 @@ then
   exit 1
 fi
 
-wal-g backup-fetch "$PG_DATA_PATH" "$RESTORE_BACKUP_ID"
+if [ "$RESTORE_VOLUME_SNAPSHOT" = true ]
+then
+  if [ -d "$PG_DATA_PATH".backup ]
+  then
+    mv "$PG_DATA_PATH".backup "$PG_DATA_PATH"
+  fi
+  printf %s "$RESTORE_BACKUP_LABEL" | base64 -d > "$PG_DATA_PATH"/backup_label
+  chmod 600 "$PG_DATA_PATH"/backup_label
+  if [ "x$RESTORE_TABLESPACE_MAP" != x ]
+  then
+    printf %s "$RESTORE_TABLESPACE_MAP" | base64 -d > "$PG_DATA_PATH"/tablespace_map
+    chmod 600 "$PG_DATA_PATH"/tablespace_map
+  fi
+else
+  wal-g backup-fetch "$PG_DATA_PATH" "$RESTORE_BACKUP_ID"
+fi
 RECOVERY_FROM_BACKUP_EOF
   chmod 700 "$PATRONI_CONFIG_PATH/recovery-from-backup"
 fi

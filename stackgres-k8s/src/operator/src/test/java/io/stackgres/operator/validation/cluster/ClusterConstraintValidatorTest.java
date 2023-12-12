@@ -16,7 +16,6 @@ import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.Toleration;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodScheduling;
@@ -666,21 +665,8 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   }
 
   @Test
-  void givenNullBackupPathWhenSgBackupConfigNotNull_shouldFail() {
-    StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getConfigurations().setBackupPath(null);
-
-    checkErrorCause(StackGresClusterConfigurations.class,
-        "spec.configurations.backupPath",
-        "isBackupPathSetWhenSgBackupConfigIsSet",
-        review, AssertTrue.class);
-  }
-
-  @Test
   void givenNullBackupPathOnBackups_shouldFail() {
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getConfigurations().setSgBackupConfig(null);
-    review.getRequest().getObject().getSpec().getConfigurations().setBackupPath(null);
     review.getRequest().getObject().getSpec().getConfigurations().setBackups(new ArrayList<>());
     review.getRequest().getObject().getSpec().getConfigurations().getBackups()
         .add(new StackGresClusterBackupConfiguration());
@@ -695,8 +681,6 @@ class ClusterConstraintValidatorTest extends ConstraintValidationTest<StackGresC
   @Test
   void givenNullObjectStorageOnBackups_shouldFail() {
     StackGresClusterReview review = getValidReview();
-    review.getRequest().getObject().getSpec().getConfigurations().setSgBackupConfig(null);
-    review.getRequest().getObject().getSpec().getConfigurations().setBackupPath(null);
     review.getRequest().getObject().getSpec().getConfigurations().setBackups(new ArrayList<>());
     review.getRequest().getObject().getSpec().getConfigurations().getBackups()
         .add(new StackGresClusterBackupConfiguration());

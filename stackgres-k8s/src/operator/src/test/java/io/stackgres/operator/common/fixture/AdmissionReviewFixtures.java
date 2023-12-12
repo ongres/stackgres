@@ -7,10 +7,6 @@ package io.stackgres.operator.common.fixture;
 
 public interface AdmissionReviewFixtures {
 
-  static BackupConfigReviewFixture backupConfig() {
-    return new BackupConfigReviewFixture();
-  }
-
   static BackupReviewFixture backup() {
     return new BackupReviewFixture();
   }

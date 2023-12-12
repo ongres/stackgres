@@ -11,7 +11,7 @@ mock kubectl kubectl_mock_overwrite
 kubectl_mock_overwrite() {
   mokked
   case "$*" in
-    ("exec -i -n $CLUSTER_NAMESPACE pod/test-0 -c $PATRONI_CONTAINER_NAME -- sh -e"*)
+    ("exec -i -n $CLUSTER_NAMESPACE test-0 -c $PATRONI_CONTAINER_NAME -- sh -e"*)
     STDIN="$(cat)"
     case "$STDIN" in
       (*" wal-g backup-push "*)

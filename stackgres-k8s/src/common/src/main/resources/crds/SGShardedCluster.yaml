@@ -535,6 +535,26 @@ spec:
                             When provided will indicate were the backups and WAL files will be stored.
                             
                             The first path indicate the coordinator path and the other paths indicate the shards paths
+                        useVolumeSnapshot:
+                          type: boolean
+                          description: |
+                            If specified SGBackup will use VolumeSnapshot to create backups.
+                            
+                            This functionality still require to store WAL files in an SGObjectStorage but could result in much faster backups and restore of those backups.
+                            
+                            See also https://kubernetes.io/docs/concepts/storage/volume-snapshots/
+                        volumeSnapshotClass:
+                          type: string
+                          description: |
+                            The name of the VolumeSnaphostClass to use to create the VolumeSnapshot for backups.
+                            
+                            See also https://kubernetes.io/docs/concepts/storage/volume-snapshots/
+                        fastVolumeSnapshot:
+                          type: boolean
+                          description: |
+                            If specified SGBackup will create a backup forcing a fast start (by setting parameter `fast` to `true` when calling `pg_backup_start`) that will reduce the time the backups may take at the expense of more IO usage.
+                            
+                            See also https://www.postgresql.org/docs/current/continuous-archiving.html#BACKUP-LOWLEVEL-BASE-BACKUP
                       required: ["sgObjectStorage"]
                   credentials:
                     type: object

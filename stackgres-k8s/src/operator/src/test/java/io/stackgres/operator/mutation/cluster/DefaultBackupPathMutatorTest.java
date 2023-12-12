@@ -53,7 +53,6 @@ class DefaultBackupPathMutatorTest {
     final StackGresCluster cluster = review.getRequest().getObject();
     cluster.getMetadata().setAnnotations(
         Map.of(StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion()));
-    cluster.getSpec().getConfigurations().setBackupPath(null);
     var backupConfiguration = new StackGresClusterBackupConfiguration();
     backupConfiguration.setSgObjectStorage("backupconf");
     cluster.getSpec().getConfigurations().setBackups(List.of(backupConfiguration));
@@ -75,8 +74,6 @@ class DefaultBackupPathMutatorTest {
 
   @Test
   void clusterWithBackupsPath_shouldSetNothing() {
-    review.getRequest().getObject().getSpec().getConfigurations().setSgBackupConfig(null);
-    review.getRequest().getObject().getSpec().getConfigurations().setBackupPath(null);
     review.getRequest().getObject().getSpec().getConfigurations().setBackups(new ArrayList<>());
     review.getRequest().getObject().getSpec().getConfigurations().getBackups()
         .add(new StackGresClusterBackupConfiguration());

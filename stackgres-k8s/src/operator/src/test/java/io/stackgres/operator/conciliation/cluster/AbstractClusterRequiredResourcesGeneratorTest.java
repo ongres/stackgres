@@ -14,14 +14,14 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
-import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.InjectMock;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
+import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
@@ -29,7 +29,6 @@ import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigPgBouncerStatus;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfigStatus;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.fixture.Fixtures;
-import io.stackgres.common.resource.BackupConfigFinder;
 import io.stackgres.common.resource.BackupFinder;
 import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.common.resource.ConfigScanner;
@@ -56,9 +55,6 @@ abstract class AbstractClusterRequiredResourcesGeneratorTest {
   ObjectStorageFinder objectStorageFinder;
 
   @InjectMock
-  BackupConfigFinder backupConfigFinder;
-
-  @InjectMock
   PostgresConfigFinder postgresConfigFinder;
 
   @InjectMock
@@ -81,7 +77,7 @@ abstract class AbstractClusterRequiredResourcesGeneratorTest {
 
   StackGresConfig config;
   StackGresCluster cluster;
-  StackGresBackupConfig backupConfig;
+  StackGresObjectStorage objectStorage;
   StackGresPostgresConfig postgresConfig;
   StackGresPoolingConfig poolingConfig;
   StackGresProfile instanceProfile;
@@ -98,8 +94,8 @@ abstract class AbstractClusterRequiredResourcesGeneratorTest {
     cluster.getMetadata().getAnnotations().put(
         StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     final String namespace = cluster.getMetadata().getNamespace();
-    backupConfig = Fixtures.backupConfig().loadDefault().get();
-    setNamespace(backupConfig);
+    objectStorage = Fixtures.objectStorage().loadDefault().get();
+    setNamespace(objectStorage);
     postgresConfig = Fixtures.postgresConfig().loadDefault().get();
     postgresConfig.getSpec()
         .setPostgresVersion(StackGresComponent.POSTGRESQL
@@ -158,14 +154,13 @@ abstract class AbstractClusterRequiredResourcesGeneratorTest {
 
   void unmockBackupConfig() {
     cluster.getSpec().getConfigurations().setBackups(null);
-    cluster.getSpec().getConfigurations().setSgBackupConfig(null);
   }
 
   void mockBackupConfig() {
-    when(backupConfigFinder.findByNameAndNamespace(
-        cluster.getSpec().getConfigurations().getSgBackupConfig(),
+    when(objectStorageFinder.findByNameAndNamespace(
+        cluster.getSpec().getConfigurations().getBackups().get(0).getSgObjectStorage(),
         cluster.getMetadata().getNamespace()))
-        .thenReturn(Optional.of(this.backupConfig));
+        .thenReturn(Optional.of(this.objectStorage));
   }
 
   void mockSecrets() {

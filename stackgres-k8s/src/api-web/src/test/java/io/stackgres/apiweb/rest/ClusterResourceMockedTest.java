@@ -882,8 +882,6 @@ class ClusterResourceMockedTest extends
 
       if (dtoSpecConfigurations != null) {
         assertNotNull(resourceSpecConfiguration);
-        assertEquals(dtoSpecConfigurations.getSgBackupConfig(),
-            resourceSpecConfiguration.getSgBackupConfig());
         assertEquals(dtoSpecConfigurations.getSgPoolingConfig(),
             resourceSpecConfiguration.getSgPoolingConfig());
         assertEquals(dtoSpecConfigurations.getSgPostgresConfig(),

@@ -8,9 +8,9 @@ package io.stackgres.operator.mutation.backup;
 import java.util.Optional;
 
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackup.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigSpec;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBaseBackupConfig;
+import io.stackgres.common.crd.sgbackup.StackGresBaseBackupConfig;
 import io.stackgres.operator.common.BackupReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import jakarta.enterprise.context.ApplicationScoped;

@@ -5,7 +5,6 @@
 
 package io.stackgres.common.crd;
 
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -29,7 +28,6 @@ class CrdSetterGetterTest extends SetterGetterTestCase {
       StackGresProfile.class,
       StackGresPostgresConfig.class,
       StackGresPoolingConfig.class,
-      StackGresBackupConfig.class,
       StackGresObjectStorage.class,
       StackGresDbOps.class,
       StackGresDistributedLogs.class,

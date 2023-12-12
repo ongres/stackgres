@@ -18,13 +18,10 @@ import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.fabric8.kubernetes.api.model.Secret;
-import io.stackgres.apiweb.dto.backupconfig.BackupConfigDto;
 import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.dto.objectstorage.ObjectStorageDto;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.apiweb.transformer.ObjectStorageTransformer;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfig;
-import io.stackgres.common.crd.sgbackupconfig.StackGresBackupConfigList;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorageList;
 import io.stackgres.common.fixture.Fixtures;
@@ -48,22 +45,6 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
   @Mock
   private ResourceWriter<Secret> secretWriter;
 
-  private static ObjectStorageDto convertBackupConfigDtoToStorageObjectDto(
-      BackupConfigDto backupConfigDto) {
-    var resourceDto = new ObjectStorageDto();
-    resourceDto.setMetadata(backupConfigDto.getMetadata());
-    resourceDto.setSpec(backupConfigDto.getSpec().getStorage());
-    return resourceDto;
-  }
-
-  private static StackGresObjectStorage convertBackupConfigToStorageObject(
-      StackGresBackupConfig backupConfig) {
-    var resourceDto = new StackGresObjectStorage();
-    resourceDto.setMetadata(backupConfig.getMetadata());
-    resourceDto.setSpec(backupConfig.getSpec().getStorage());
-    return resourceDto;
-  }
-
   @BeforeEach
   @Override
   void setUp() {
@@ -72,13 +53,12 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
 
   @Override
   protected DefaultKubernetesResourceList<StackGresObjectStorage> getCustomResourceList() {
-    StackGresBackupConfigList stackGresBackupConfigList = Fixtures.backupConfigList()
+    StackGresObjectStorageList objectStorageList = Fixtures.objectStorageList()
         .loadDefault().get();
 
     final StackGresObjectStorageList stackGresObjectStorageList = new StackGresObjectStorageList();
-    stackGresObjectStorageList.setMetadata(stackGresBackupConfigList.getMetadata());
-    stackGresObjectStorageList.setItems(stackGresBackupConfigList.getItems().stream()
-        .map(StorageObjectResourceTest::convertBackupConfigToStorageObject)
+    stackGresObjectStorageList.setMetadata(objectStorageList.getMetadata());
+    stackGresObjectStorageList.setItems(objectStorageList.getItems().stream()
         .collect(Collectors.toList()));
 
     return stackGresObjectStorageList;
@@ -86,11 +66,7 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
 
   @Override
   protected ObjectStorageDto getResourceDto() {
-    final BackupConfigDto backupConfigDto = DtoFixtures.backupConfig().loadDefault().get();
-    final ObjectStorageDto objectStorageDto = new ObjectStorageDto();
-    objectStorageDto.setMetadata(backupConfigDto.getMetadata());
-    objectStorageDto.setSpec(backupConfigDto.getSpec().getStorage());
-    return objectStorageDto;
+    return DtoFixtures.objectStorage().loadDefault().get();
   }
 
   @Override
@@ -127,7 +103,7 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
 
   @Override
   protected String getResourceName() {
-    return "backupconf";
+    return "objstorage";
   }
 
   @Test
@@ -144,10 +120,8 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
 
   @Test
   void createBackupConfigWithGoogleIdentity_shouldNotFail() {
-    final BackupConfigDto backupConfigDto = DtoFixtures.backupConfig()
+    resourceDto = DtoFixtures.objectStorage()
         .loadGoogleIdentityConfig().get();
-
-    this.resourceDto = convertBackupConfigDtoToStorageObjectDto(backupConfigDto);
 
     doAnswer(invocation -> {
       return transformer.toCustomResource(resourceDto, null);
@@ -160,7 +134,7 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
   protected void checkDto(ObjectStorageDto resource) {
     assertNotNull(resource.getMetadata());
     assertEquals("stackgres", resource.getMetadata().getNamespace());
-    assertEquals("backupconf", resource.getMetadata().getName());
+    assertEquals("objstorage", resource.getMetadata().getName());
     assertEquals("93bc7621-0236-11ea-a1d5-0242ac110003", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
     assertNull(resource.getSpec().getAzureBlob());
@@ -200,7 +174,7 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
   protected void checkCustomResource(StackGresObjectStorage resource, Operation operation) {
     Assertions.assertNotNull(resource.getMetadata());
     assertEquals("stackgres", resource.getMetadata().getNamespace());
-    assertEquals("backupconf", resource.getMetadata().getName());
+    assertEquals("objstorage", resource.getMetadata().getName());
     assertEquals("93bc7621-0236-11ea-a1d5-0242ac110003", resource.getMetadata().getUid());
     assertNotNull(resource.getSpec());
     assertNull(resource.getSpec().getAzureBlob());
@@ -213,22 +187,21 @@ class StorageObjectResourceTest extends AbstractDependencyCustomResourceTest
     assertNotNull(resource.getSpec().getS3Compatible().getAwsCredentials());
     assertNotNull(resource.getSpec().getS3Compatible().getAwsCredentials()
         .getSecretKeySelectors().getAccessKeyId());
-    assertEquals("backupconf-secrets", resource.getSpec().getS3Compatible()
+    assertEquals("objstorage-secrets", resource.getSpec().getS3Compatible()
         .getAwsCredentials().getSecretKeySelectors().getAccessKeyId().getName());
-    assertEquals(BackupConfigResourceUtil.S3COMPATIBLE_ACCESS_KEY,
+    assertEquals(BackupStorageDtoUtil.S3COMPATIBLE_ACCESS_KEY,
         resource.getSpec().getS3Compatible().getAwsCredentials()
             .getSecretKeySelectors().getAccessKeyId().getKey());
     assertNotNull(resource.getSpec().getS3Compatible().getAwsCredentials()
         .getSecretKeySelectors().getSecretAccessKey());
-    assertEquals("backupconf-secrets", resource.getSpec().getS3Compatible()
+    assertEquals("objstorage-secrets", resource.getSpec().getS3Compatible()
         .getAwsCredentials().getSecretKeySelectors().getSecretAccessKey().getName());
-    assertEquals(BackupConfigResourceUtil.S3COMPATIBLE_SECRET_KEY,
+    assertEquals(BackupStorageDtoUtil.S3COMPATIBLE_SECRET_KEY,
         resource.getSpec().getS3Compatible().getAwsCredentials()
             .getSecretKeySelectors().getSecretAccessKey().getKey());
     assertEquals("http://minio.stackgres:9000",
         resource.getSpec().getS3Compatible().getEndpoint());
     assertEquals("stackgres", resource.getSpec().getS3Compatible().getBucket());
-    assertNull(resource.getSpec().getS3Compatible().getPath());
     assertEquals("s3://stackgres", resource.getSpec().getS3Compatible().getPrefix());
     assertEquals("k8s", resource.getSpec().getS3Compatible().getRegion());
     assertNull(resource.getSpec().getS3Compatible().getStorageClass());
