@@ -38,6 +38,8 @@ e2e_test_install() {
 e2e_test() {
   run_test "Check that a created cluster can be accessed directly through the API" check_cluster_directly
 
+  run_test "Check that the named queries endpoints are working correctly" test_named_queries_endpoints
+
   run_test "Check that a created cluster is included in the response" check_cluster_in_list
 
   run_test "Check that the stats endpoint are returning the primary stats" test_cluster_stats_are_loaded
@@ -47,8 +49,6 @@ e2e_test() {
   run_test "Check that the component versions are annotated" test_cluster_component_versions_are_annotated
 
   run_test "Check that the number of pods match with the primary and replicas" test_cluster_pod_count
-
-  run_test "Check that the named queries endpoints are working correctly" test_named_queries_endpoints
 
   run_test "Check that a cluster was removed after its deletion in the API" check_cluster_removed
 
@@ -125,8 +125,8 @@ check_cluster_directly() {
 test_named_queries_endpoints() {
   # top_pg_stat_statements query
   if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgcluster/$CLUSTER_NAME/query?named=top_pg_stat_statements" \
-      | jq -r '.[0] | has("fields")' \
-      | grep -qxF true
+      | jq -r '(.[0] | has("fields")) and ((. | length) == 1 or (.[1] | length) == (.[0].fields | length))' \
+      | grep -qxF "true"
     then
       echo "Named query top_pg_stat_statements worked"
     else
@@ -136,8 +136,8 @@ test_named_queries_endpoints() {
 
   # top_pg_stat_activity query
   if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgcluster/$CLUSTER_NAME/query?named=top_pg_stat_activity" \
-      | jq -r '.[0] | has("fields")' \
-      | grep -qxF true
+      | jq -r '(.[0] | has("fields")) and ((. | length) == 1 or (.[1] | length) == (.[0].fields | length))' \
+      | grep -qxF "true"
     then
       echo "Named query top_pg_stat_activity worked"
     else
@@ -147,8 +147,8 @@ test_named_queries_endpoints() {
 
   # top_pg_locks query
   if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgcluster/$CLUSTER_NAME/query?named=top_pg_locks" \
-      | jq -r '.[0] | has("fields")' \
-      | grep -qxF true
+      | jq -r '(.[0] | has("fields")) and ((. | length) == 1 or (.[1] | length) == (.[0].fields | length))' \
+      | grep -qxF "true"
     then
       echo "Named query top_pg_locks worked"
     else

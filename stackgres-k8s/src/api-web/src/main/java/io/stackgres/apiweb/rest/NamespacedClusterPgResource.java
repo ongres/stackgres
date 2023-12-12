@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.pgstat.PostgresStatDto;
@@ -76,6 +77,8 @@ public class NamespacedClusterPgResource {
   @CommonApiResponses
   @Path("{name}/query")
   @GET
+  @SuppressFBWarnings(value = "SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING",
+      justification = "False positive")
   public List<Object> statements(
       @PathParam("namespace") String namespace,
       @PathParam("name") String name,
@@ -108,23 +111,21 @@ public class NamespacedClusterPgResource {
             .get(StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY);
 
     try (
+        @SuppressWarnings("unchecked")
         final Connection connection = postgresConnectionManager.getConnection(
             host,
             port,
             StackGresPasswordKeys.SUPERUSER_DATABASE,
             username,
             password);
-
         final CloseableDSLContext context =
           new DefaultCloseableDSLContext(
               new DefaultConnectionProvider(connection), SQLDialect.POSTGRES
           );
 
-        final PreparedStatement preparedStatement =
-            connection.prepareStatement(
-                queryGenerator.generateQuery(context, named, sort, dir, limit));
-
-        final ResultSet resultSet = preparedStatement.executeQuery()
+        PreparedStatement statement = connection.prepareStatement(
+            queryGenerator.generateQuery(context, named, sort, dir, limit));
+        ResultSet resultSet = statement.executeQuery();
     ) {
 
       final List<Object> dtos = new ArrayList<>();
