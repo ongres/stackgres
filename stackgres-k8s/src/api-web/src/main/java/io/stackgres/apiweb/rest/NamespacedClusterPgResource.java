@@ -14,6 +14,7 @@ import java.util.List;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.pgstat.PostgresStatDto;
+import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.apiweb.rest.utils.NamespacedClusterPgResourceQueryGenerator;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
@@ -23,8 +24,14 @@ import io.stackgres.common.postgres.PostgresConnectionManager;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.QueryParam;
@@ -58,7 +65,16 @@ public class NamespacedClusterPgResource {
     this.queryGenerator = queryGenerator;
   }
 
+  @Operation(
+      responses = {
+          @ApiResponse(responseCode = "200", description = "OK",
+          content = { @Content(
+              mediaType = "application/json",
+              array = @ArraySchema(schema = @Schema(type = "object"))) })
+      })
+  @CommonApiResponses
   @Path("{name}/query")
+  @GET
   public List<Object> statements(
       @PathParam("namespace") String namespace,
       @PathParam("name") String name,
@@ -80,7 +96,8 @@ public class NamespacedClusterPgResource {
                     String.format("Could not find SGCluster with name %s and namespace %s",
                             name, namespace)));
 
-    final String host = PatroniUtil.readWriteName(stackGresCluster);
+    final String serviceName = PatroniUtil.readWriteName(stackGresCluster);
+    final String host = String.format("%s.%s", serviceName, namespace);
     final int port = EnvoyUtil.PG_PORT;
     final String username = ResourceUtil
             .decodeSecret(secret.getData())
