@@ -17,23 +17,23 @@ import io.stackgres.common.crd.JsonObject;
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class StackGresClusterPatroniInitialConfig extends JsonObject {
+public class StackGresClusterPatroniConfig extends JsonObject {
 
   private static final long serialVersionUID = 1L;
 
-  public StackGresClusterPatroniInitialConfig() {
+  public StackGresClusterPatroniConfig() {
     super();
   }
 
-  public StackGresClusterPatroniInitialConfig(int initialCapacity, float loadFactor) {
+  public StackGresClusterPatroniConfig(int initialCapacity, float loadFactor) {
     super(initialCapacity, loadFactor);
   }
 
-  public StackGresClusterPatroniInitialConfig(int initialCapacity) {
+  public StackGresClusterPatroniConfig(int initialCapacity) {
     super(initialCapacity);
   }
 
-  public StackGresClusterPatroniInitialConfig(Map<? extends String, ? extends Object> m) {
+  public StackGresClusterPatroniConfig(Map<? extends String, ? extends Object> m) {
     super(m);
   }
 

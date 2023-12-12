@@ -26,8 +26,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterCredentials;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialDataBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniCredentials;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniInitialConfig;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServicesBuilder;
@@ -293,9 +293,13 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
     if (spec.getConfigurations() == null) {
       spec.setConfigurations(new StackGresClusterConfigurations());
     }
-    spec.getConfigurations().setPatroni(new StackGresClusterPatroni());
-    spec.getConfigurations().getPatroni()
-        .setInitialConfig(new StackGresClusterPatroniInitialConfig());
+    if (spec.getConfigurations().getPatroni() == null) {
+      spec.getConfigurations().setPatroni(new StackGresClusterPatroni());
+    }
+    if (spec.getConfigurations().getPatroni().getInitialConfig() == null) {
+      spec.getConfigurations().getPatroni()
+          .setInitialConfig(new StackGresClusterPatroniConfig());
+    }
     spec.getConfigurations().getPatroni().getInitialConfig()
         .put("scope", cluster.getMetadata().getName());
     var citus = new HashMap<String, Object>(2);

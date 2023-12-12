@@ -1050,6 +1050,51 @@ spec:
                           If not set, a default configuration will be used. Disabling connection pooling altogether is possible if the disableConnectionPooling property of the pods object is set to true.
 
                           **Changing this field may require a restart.**
+                      patroni: &patroni
+                        type: object
+                        description: Allow to specify Patroni configuration that will extend the generated one
+                        properties:
+                          dynamicConfig:
+                            type: object
+                            description: |
+                              Allow to specify Patroni dynamic configuration that will overwrite the generated one. See https://patroni.readthedocs.io/en/latest/dynamic_configuration.html
+                              
+                              The following configuration fields will be ignored:
+                              
+                              * synchronous_mode
+                              * synchronous_mode_strict
+                              * failsafe_mode
+                              * postgresql
+                              * standby_cluster
+                            "x-kubernetes-preserve-unknown-fields": true
+                          initialConfig:
+                            type: object
+                            description: |
+                              Allow to specify Patroni configuration that will overwrite the generated one. See https://patroni.readthedocs.io/en/latest/yaml_configuration.html
+                              
+                              The following configuration fields will be ignored:
+                              
+                              * name
+                              * namespace
+                              * scope
+                              * log
+                              * bootstrap
+                              * consul
+                              * citus
+                              * etcd
+                              * etcdv3
+                              * zookeeper
+                              * exhibitor
+                              * kubernetes
+                              * raft
+                              * postgresql
+                              * restapi
+                              * ctl
+                              * watchdog
+                              * tags
+    
+                              **This field can only be set on creation.**
+                            "x-kubernetes-preserve-unknown-fields": true
                   replication:
                     type: object
                     description: |
@@ -1404,6 +1449,7 @@ spec:
                           If not set, a default configuration will be used. Disabling connection pooling altogether is possible if the disableConnectionPooling property of the pods object is set to true.
 
                           **Changing this field may require a restart.**
+                      patroni: *patroni
                   replication: *replication
                   metadata:
                     type: object
