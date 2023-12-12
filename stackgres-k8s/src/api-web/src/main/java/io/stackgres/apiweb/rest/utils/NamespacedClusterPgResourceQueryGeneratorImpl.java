@@ -6,7 +6,6 @@
 package io.stackgres.apiweb.rest.utils;
 
 import java.sql.ResultSet;
-import java.util.Objects;
 
 import io.stackgres.apiweb.rest.NamespacedClusterPgResource;
 import jakarta.enterprise.context.ApplicationScoped;
