@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.rest.utils;
 
 import java.sql.ResultSet;
+import java.util.Objects;
 
 import io.stackgres.apiweb.rest.NamespacedClusterPgResource;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -25,9 +26,12 @@ public class NamespacedClusterPgResourceQueryGeneratorImpl
                               final String sort,
                               final String dir,
                               final Integer limit) {
-    final Field<String> orderByOf =
-                DSL.when(DSL.field(dir).eq(ASC), String.format("%s %s", sort, ASC))
-                        .otherwise(String.format("%s %s", sort, DESC));
+    Field<String> orderByOf = DSL.noField(String.class);
+    if (sort != null && dir != null) {
+      orderByOf =
+          DSL.when(DSL.field(dir).eq(ASC), String.format("%s %s", sort, ASC))
+              .otherwise(String.format("%s %s", sort, DESC));
+    }
 
     switch (table) {
       case NamespacedClusterPgResource.TOP_PG_STAT_STATEMENTS -> {
