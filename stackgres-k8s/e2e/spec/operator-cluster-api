@@ -126,7 +126,7 @@ test_named_queries_endpoints() {
   # top_pg_stat_statements query
   if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgcluster/$CLUSTER_NAME/query?named=top_pg_stat_statements" \
       | jq -r '.[0] | has("fields")' \
-      | grep -qxF "^true$"
+      | grep -qxF true
     then
       echo "Named query top_pg_stat_statements worked"
     else
@@ -137,7 +137,7 @@ test_named_queries_endpoints() {
   # top_pg_stat_activity query
   if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgcluster/$CLUSTER_NAME/query?named=top_pg_stat_activity" \
       | jq -r '.[0] | has("fields")' \
-      | grep -qxF "^true$"
+      | grep -qxF true
     then
       echo "Named query top_pg_stat_activity worked"
     else
@@ -148,7 +148,7 @@ test_named_queries_endpoints() {
   # top_pg_locks query
   if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgcluster/$CLUSTER_NAME/query?named=top_pg_locks" \
       | jq -r '.[0] | has("fields")' \
-      | grep -qxF "^true$"
+      | grep -qxF true
     then
       echo "Named query top_pg_locks worked"
     else
