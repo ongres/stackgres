@@ -69,6 +69,11 @@ public class DeployedResourcesCache {
           deployedResource.getMetadata().getNamespace(),
           deployedResource.getMetadata().getName());
     }
+    if (requiredResource.getMetadata() != null
+        && requiredResource.getMetadata().getManagedFields() != null
+        && requiredResource.getMetadata().getManagedFields().isEmpty()) {
+      requiredResource.getMetadata().setManagedFields(null);
+    }
     cache.put(key,
         DeployedResource.create(
             requiredResource,

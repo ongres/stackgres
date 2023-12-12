@@ -90,6 +90,7 @@ class ClusterConciliatorTest {
         .sorted(shuffle())
         .findFirst()
         .get();
+    deletedResource.v1.getMetadata().setManagedFields(null);
     lastRequiredResources.remove(deletedResource.v2.intValue());
     deployedResources.remove(deletedResource.v2.intValue());
     foundDeployedResources.remove(deletedResource.v2.intValue());
@@ -682,6 +683,7 @@ class ClusterConciliatorTest {
       List<HasMetadata> foundDeployed) {
     deployedResourcesCache = new DeployedResourcesCache(
         new OperatorPropertyContext(), JsonUtil.jsonMapper());
+    required.forEach(resource -> resource.getMetadata().setManagedFields(null));
     deployed.stream()
         .filter(this::hasControllerOwnerReference)
         .forEach(resource -> deployedResourcesCache
