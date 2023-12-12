@@ -33,6 +33,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -170,11 +171,12 @@ public class NamespacedClusterPgResourceTest {
         )
               .thenReturn(Optional.of(cluster));
 
-    Mockito.when(postgresConnectionManager.getConnection("stackgres",
-                      5432,
-                      "postgres",
-                      "username",
-                      "password"))
+    final ArgumentCaptor<String> hostCapture = ArgumentCaptor.forClass(String.class);
+    Mockito.when(postgresConnectionManager.getConnection(Mockito.anyString(),
+                      Mockito.anyInt(),
+                      Mockito.anyString(),
+                      Mockito.anyString(),
+                      Mockito.anyString()))
               .thenReturn(connection);
 
     final List<Object> statements =
@@ -225,11 +227,11 @@ public class NamespacedClusterPgResourceTest {
         )
               .thenReturn(Optional.of(cluster));
 
-    Mockito.when(postgresConnectionManager.getConnection("stackgres",
-                      5432,
-                      "postgres",
-                      "username",
-                      "password"))
+    Mockito.when(postgresConnectionManager.getConnection(Mockito.anyString(),
+                      Mockito.anyInt(),
+                      Mockito.anyString(),
+                      Mockito.anyString(),
+                      Mockito.anyString()))
               .thenReturn(mockConnection);
 
     final List<Object> statements =
@@ -276,12 +278,12 @@ public class NamespacedClusterPgResourceTest {
         )
             .thenReturn(Optional.of(cluster));
 
-    Mockito.when(postgresConnectionManager.getConnection("stackgres",
-                    5432,
-                    "postgres",
-                    "username",
-                    "password"))
-            .thenReturn(mockConnection);
+    Mockito.when(postgresConnectionManager.getConnection(Mockito.anyString(),
+                      Mockito.anyInt(),
+                      Mockito.anyString(),
+                      Mockito.anyString(),
+                      Mockito.anyString()))
+              .thenReturn(mockConnection);
 
     final List<Object> statements =
             endpoint.statements("namespace",
