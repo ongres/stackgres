@@ -30,7 +30,7 @@ try_check_wal_archive() {
   local NODE="${1:-0}"
   local CURRENT_WAL_FILE
   CURRENT_WAL_FILE="$(rotate_wal_file "$1")"
-  wait_until timeout -s KILL "$((E2E_TIMEOUT / 20))" \
+  timeout -s KILL "$((E2E_TIMEOUT / 20))" \
     kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-"$NODE" -c patroni -- \
     exec-with-env backup -- wal-g wal-fetch "$CURRENT_WAL_FILE" "/tmp/$CURRENT_WAL_FILE"
 }
