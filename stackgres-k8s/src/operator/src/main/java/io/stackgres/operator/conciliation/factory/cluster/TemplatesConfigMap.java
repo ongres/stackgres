@@ -22,6 +22,7 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.AbstractTemplatesConfigMap;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
+import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -29,7 +30,8 @@ import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder
-public class TemplatesConfigMap extends AbstractTemplatesConfigMap<StackGresClusterContext> {
+public class TemplatesConfigMap extends AbstractTemplatesConfigMap
+    implements VolumeFactory<StackGresClusterContext> {
 
   private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
