@@ -14,7 +14,6 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.apiweb.dto.pgstat.PostgresStatDto;
 import io.stackgres.apiweb.rest.utils.NamespacedClusterPgResourceQueryGenerator;
-import io.stackgres.apiweb.rest.utils.NamespacedClusterPgResourceQueryGeneratorImpl;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.postgres.PostgresConnectionManager;
@@ -50,7 +49,7 @@ public class NamespacedClusterPgResourceTest {
   private CustomResourceFinder<StackGresCluster> customResourceFinder;
 
   private final NamespacedClusterPgResourceQueryGenerator queryGenerator =
-          new NamespacedClusterPgResourceQueryGeneratorImpl();
+          new NamespacedClusterPgResourceQueryGenerator();
 
   private NamespacedClusterPgResource endpoint;
 
@@ -336,6 +335,7 @@ public class NamespacedClusterPgResourceTest {
       return mock;
     };
   }
+
   private MockConnection getMockConnection() {
     return new MockConnection(getMockDataProvider());
   }

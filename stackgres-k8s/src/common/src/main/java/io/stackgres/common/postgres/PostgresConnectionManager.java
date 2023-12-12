@@ -17,6 +17,8 @@ import jakarta.validation.constraints.NotNull;
 
 @Singleton
 public class PostgresConnectionManager {
+
+  @SuppressWarnings("unchecked")
   public Connection getConnection(
       @NotNull String host,
       @NotNull int port,
