@@ -43,7 +43,7 @@ public class ShardedDbOpsMinorVersionUpgradeValidator implements ShardedDbOpsVal
   @Inject
   public ShardedDbOpsMinorVersionUpgradeValidator(
       CustomResourceFinder<StackGresShardedCluster> clusterFinder) {
-    this(clusterFinder, ValidationUtil.SUPPORTED_SHARDED_CLUSTER_POSTGRES_VERSIONS);
+    this(clusterFinder, ValidationUtil.SUPPORTED_POSTGRES_VERSIONS);
   }
 
   public ShardedDbOpsMinorVersionUpgradeValidator(
