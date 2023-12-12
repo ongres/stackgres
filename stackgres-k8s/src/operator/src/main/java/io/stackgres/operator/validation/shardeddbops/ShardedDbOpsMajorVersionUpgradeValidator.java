@@ -51,7 +51,7 @@ public class ShardedDbOpsMajorVersionUpgradeValidator implements ShardedDbOpsVal
       CustomResourceFinder<StackGresShardedCluster> clusterFinder,
       CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder) {
     this(clusterFinder, postgresConfigFinder,
-        ValidationUtil.SUPPORTED_SHARDED_CLUSTER_POSTGRES_VERSIONS);
+        ValidationUtil.SUPPORTED_POSTGRES_VERSIONS);
   }
 
   public ShardedDbOpsMajorVersionUpgradeValidator(
