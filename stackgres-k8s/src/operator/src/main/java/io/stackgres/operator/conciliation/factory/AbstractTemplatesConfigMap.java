@@ -16,8 +16,7 @@ import io.stackgres.common.ClusterPath;
 import io.stackgres.common.ShardedClusterPath;
 import org.jooq.lambda.Unchecked;
 
-public abstract class AbstractTemplatesConfigMap<T>
-    implements VolumeFactory<T> {
+public abstract class AbstractTemplatesConfigMap {
 
   public static final List<ClusterPath> CLUSTER_TEMPLATE_PATHS = List.of(
       ClusterPath.LOCAL_BIN_SHELL_UTILS_PATH,
