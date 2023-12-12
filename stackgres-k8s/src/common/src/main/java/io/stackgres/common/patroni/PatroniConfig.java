@@ -5,14 +5,13 @@
 
 package io.stackgres.common.patroni;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.sundr.builder.annotations.Buildable;
@@ -36,11 +35,20 @@ public class PatroniConfig {
   @JsonProperty("maximum_lag_on_failover")
   private Integer maximumLagOnFailover;
 
-  @JsonProperty("check_timeline")
-  private Boolean checkTimeline;
+  @JsonProperty("maximum_lag_on_sync_node")
+  private Integer maximumLagOnSyncNode;
+
+  @JsonProperty("max_timelines_history")
+  private Integer maxTimelinesHistory;
+
+  @JsonProperty("primary_start_timeout")
+  private Integer primaryStartTimeout;
 
   @JsonProperty("master_start_timeout")
   private Integer masterStartTimeout;
+
+  @JsonProperty("primary_stop_timeout")
+  private Integer primaryStopTimeout;
 
   @JsonProperty("synchronous_mode")
   private Boolean synchronousMode;
@@ -48,13 +56,24 @@ public class PatroniConfig {
   @JsonProperty("synchronous_mode_strict")
   private Boolean synchronousModeStrict;
 
-  @JsonProperty("synchronous_node_count")
-  private Integer synchronousNodeCount;
+  @JsonProperty("failsafe_mode")
+  private Boolean failsafeMode;
 
   private PostgreSql postgresql;
 
   @JsonProperty("standby_cluster")
   private StandbyCluster standbyCluster;
+
+  @JsonProperty("check_timeline")
+  private Boolean checkTimeline;
+
+  @JsonProperty("synchronous_node_count")
+  private Integer synchronousNodeCount;
+
+  private Map<String, Slot> slots;
+
+  @JsonProperty("ignore_slots")
+  private List<IgnoredSlot> ignoreSlots;
 
   public Integer getTtl() {
     return ttl;
@@ -88,12 +107,28 @@ public class PatroniConfig {
     this.maximumLagOnFailover = maximumLagOnFailover;
   }
 
-  public Boolean getCheckTimeline() {
-    return checkTimeline;
+  public Integer getMaximumLagOnSyncNode() {
+    return maximumLagOnSyncNode;
   }
 
-  public void setCheckTimeline(Boolean checkTimeline) {
-    this.checkTimeline = checkTimeline;
+  public void setMaximumLagOnSyncNode(Integer maximumLagOnSyncNode) {
+    this.maximumLagOnSyncNode = maximumLagOnSyncNode;
+  }
+
+  public Integer getMaxTimelinesHistory() {
+    return maxTimelinesHistory;
+  }
+
+  public void setMaxTimelinesHistory(Integer maxTimelinesHistory) {
+    this.maxTimelinesHistory = maxTimelinesHistory;
+  }
+
+  public Integer getPrimaryStartTimeout() {
+    return primaryStartTimeout;
+  }
+
+  public void setPrimaryStartTimeout(Integer primaryStartTimeout) {
+    this.primaryStartTimeout = primaryStartTimeout;
   }
 
   public Integer getMasterStartTimeout() {
@@ -102,6 +137,14 @@ public class PatroniConfig {
 
   public void setMasterStartTimeout(Integer masterStartTimeout) {
     this.masterStartTimeout = masterStartTimeout;
+  }
+
+  public Integer getPrimaryStopTimeout() {
+    return primaryStopTimeout;
+  }
+
+  public void setPrimaryStopTimeout(Integer primaryStopTimeout) {
+    this.primaryStopTimeout = primaryStopTimeout;
   }
 
   public Boolean getSynchronousMode() {
@@ -120,12 +163,12 @@ public class PatroniConfig {
     this.synchronousModeStrict = synchronousModeStrict;
   }
 
-  public Integer getSynchronousNodeCount() {
-    return synchronousNodeCount;
+  public Boolean getFailsafeMode() {
+    return failsafeMode;
   }
 
-  public void setSynchronousNodeCount(Integer synchronousNodeCount) {
-    this.synchronousNodeCount = synchronousNodeCount;
+  public void setFailsafeMode(Boolean failsafeMode) {
+    this.failsafeMode = failsafeMode;
   }
 
   public PostgreSql getPostgresql() {
@@ -144,88 +187,44 @@ public class PatroniConfig {
     this.standbyCluster = standbyCluster;
   }
 
-  @JsonDeserialize
-  @JsonIgnoreProperties(ignoreUnknown = true)
-  @JsonInclude(Include.NON_EMPTY)
-  @RegisterForReflection
-  public static class PostgreSql {
+  public Boolean getCheckTimeline() {
+    return checkTimeline;
+  }
 
-    @JsonProperty("use_slots")
-    private Boolean useSlots;
+  public void setCheckTimeline(Boolean checkTimeline) {
+    this.checkTimeline = checkTimeline;
+  }
 
-    @JsonProperty("use_pg_rewind")
-    private Boolean usePgRewind;
+  public Integer getSynchronousNodeCount() {
+    return synchronousNodeCount;
+  }
 
-    @JsonProperty("parameters")
-    private Map<String, String> parameters;
+  public void setSynchronousNodeCount(Integer synchronousNodeCount) {
+    this.synchronousNodeCount = synchronousNodeCount;
+  }
 
-    @JsonProperty("recovery_conf")
-    private Map<String, String> recoveryConf;
+  public Map<String, Slot> getSlots() {
+    return slots;
+  }
 
-    public Boolean getUseSlots() {
-      return useSlots;
-    }
+  public void setSlots(Map<String, Slot> slots) {
+    this.slots = slots;
+  }
 
-    public void setUseSlots(Boolean useSlots) {
-      this.useSlots = useSlots;
-    }
+  public List<IgnoredSlot> getIgnoreSlots() {
+    return ignoreSlots;
+  }
 
-    public Boolean getUsePgRewind() {
-      return usePgRewind;
-    }
-
-    public void setUsePgRewind(Boolean usePgRewind) {
-      this.usePgRewind = usePgRewind;
-    }
-
-    public Map<String, String> getParameters() {
-      return parameters;
-    }
-
-    public void setParameters(Map<String, String> parameters) {
-      this.parameters = parameters;
-    }
-
-    public Map<String, String> getRecoveryConf() {
-      return recoveryConf;
-    }
-
-    public void setRecoveryConf(Map<String, String> recoveryConf) {
-      this.recoveryConf = recoveryConf;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(parameters, recoveryConf, usePgRewind, useSlots);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if (this == obj) {
-        return true;
-      }
-      if (!(obj instanceof PostgreSql)) {
-        return false;
-      }
-      PostgreSql other = (PostgreSql) obj;
-      return Objects.equals(parameters, other.parameters)
-          && Objects.equals(recoveryConf, other.recoveryConf)
-          && Objects.equals(usePgRewind, other.usePgRewind)
-          && Objects.equals(useSlots, other.useSlots);
-    }
-
-    @Override
-    public String toString() {
-      return StackGresUtil.toPrettyYaml(this);
-    }
-
+  public void setIgnoreSlots(List<IgnoredSlot> ignoreSlots) {
+    this.ignoreSlots = ignoreSlots;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(checkTimeline, loopWait, masterStartTimeout, maximumLagOnFailover,
-        postgresql, retryTimeout, standbyCluster, synchronousMode, synchronousModeStrict,
-        synchronousNodeCount, ttl);
+    return Objects.hash(checkTimeline, failsafeMode, ignoreSlots, loopWait, masterStartTimeout,
+        maxTimelinesHistory, maximumLagOnFailover, maximumLagOnSyncNode, postgresql,
+        primaryStartTimeout, primaryStopTimeout, retryTimeout, slots, standbyCluster,
+        synchronousMode, synchronousModeStrict, synchronousNodeCount, ttl);
   }
 
   @Override
@@ -238,11 +237,18 @@ public class PatroniConfig {
     }
     PatroniConfig other = (PatroniConfig) obj;
     return Objects.equals(checkTimeline, other.checkTimeline)
+        && Objects.equals(failsafeMode, other.failsafeMode)
+        && Objects.equals(ignoreSlots, other.ignoreSlots)
         && Objects.equals(loopWait, other.loopWait)
         && Objects.equals(masterStartTimeout, other.masterStartTimeout)
+        && Objects.equals(maxTimelinesHistory, other.maxTimelinesHistory)
         && Objects.equals(maximumLagOnFailover, other.maximumLagOnFailover)
+        && Objects.equals(maximumLagOnSyncNode, other.maximumLagOnSyncNode)
         && Objects.equals(postgresql, other.postgresql)
+        && Objects.equals(primaryStartTimeout, other.primaryStartTimeout)
+        && Objects.equals(primaryStopTimeout, other.primaryStopTimeout)
         && Objects.equals(retryTimeout, other.retryTimeout)
+        && Objects.equals(slots, other.slots)
         && Objects.equals(standbyCluster, other.standbyCluster)
         && Objects.equals(synchronousMode, other.synchronousMode)
         && Objects.equals(synchronousModeStrict, other.synchronousModeStrict)

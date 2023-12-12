@@ -15,7 +15,17 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ClusterPatroni {
 
+  private Map<String, Object> dynamicConfig;
+
   private Map<String, Object> initialConfig;
+
+  public Map<String, Object> getDynamicConfig() {
+    return dynamicConfig;
+  }
+
+  public void setDynamicConfig(Map<String, Object> dynamicConfig) {
+    this.dynamicConfig = dynamicConfig;
+  }
 
   public Map<String, Object> getInitialConfig() {
     return initialConfig;
