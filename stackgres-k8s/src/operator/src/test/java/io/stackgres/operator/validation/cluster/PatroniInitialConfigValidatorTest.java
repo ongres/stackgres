@@ -6,7 +6,7 @@
 package io.stackgres.operator.validation.cluster;
 
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniInitialConfig;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.operator.utils.ValidationUtils;
@@ -39,7 +39,7 @@ class PatroniInitialConfigValidatorTest {
     review.getRequest().getObject().getSpec().getConfigurations()
         .setPatroni(new StackGresClusterPatroni());
     review.getRequest().getObject().getSpec().getConfigurations()
-        .getPatroni().setInitialConfig(new StackGresClusterPatroniInitialConfig());
+        .getPatroni().setInitialConfig(new StackGresClusterPatroniConfig());
     review.getRequest().getObject().getSpec().getConfigurations()
         .getPatroni().getInitialConfig().put("scope", "test");
 

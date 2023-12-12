@@ -18,6 +18,7 @@ import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniConfig;
+import io.stackgres.common.patroni.PostgreSql;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
@@ -51,7 +52,7 @@ public class PatroniConfigEndpoints
     patroniConf.setTtl(30);
     patroniConf.setLoopWait(10);
     patroniConf.setRetryTimeout(10);
-    patroniConf.setPostgresql(new PatroniConfig.PostgreSql());
+    patroniConf.setPostgresql(new PostgreSql());
     patroniConf.getPostgresql().setUsePgRewind(true);
     patroniConf.getPostgresql().setParameters(getPostgresConfigValues(context));
 

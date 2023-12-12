@@ -12,7 +12,7 @@ import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniInitialConfig;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operator.validation.ValidationType;
@@ -32,13 +32,13 @@ public class PatroniInitialConfigValidator implements ClusterValidator {
     if (review.getRequest().getOperation() == Operation.UPDATE) {
       StackGresCluster cluster = review.getRequest().getObject();
 
-      Optional<StackGresClusterPatroniInitialConfig> patroniInitialConfig =
+      Optional<StackGresClusterPatroniConfig> patroniInitialConfig =
           Optional.of(cluster.getSpec())
           .map(StackGresClusterSpec::getConfigurations)
           .map(StackGresClusterConfigurations::getPatroni)
           .map(StackGresClusterPatroni::getInitialConfig);
 
-      Optional<StackGresClusterPatroniInitialConfig> oldPatroniInitialConfig = Optional
+      Optional<StackGresClusterPatroniConfig> oldPatroniInitialConfig = Optional
           .ofNullable(review.getRequest().getOldObject().getSpec().getConfigurations())
           .map(StackGresClusterConfigurations::getPatroni)
           .map(StackGresClusterPatroni::getInitialConfig);
