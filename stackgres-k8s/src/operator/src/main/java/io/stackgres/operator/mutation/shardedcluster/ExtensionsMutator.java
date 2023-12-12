@@ -45,7 +45,7 @@ public class ExtensionsMutator
   public ExtensionsMutator(
       ExtensionMetadataManager extensionMetadataManager) {
     this(extensionMetadataManager,
-        ValidationUtil.SUPPORTED_SHARDED_CLUSTER_POSTGRES_VERSIONS);
+        ValidationUtil.SUPPORTED_POSTGRES_VERSIONS);
   }
 
   public ExtensionsMutator(
