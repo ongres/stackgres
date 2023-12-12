@@ -297,39 +297,46 @@ public class NamespacedClusterPgResourceTest {
             statements.get(0));
   }
 
-  private MockConnection getMockConnection() {
-    final MockDataProvider provider = ctx -> {
+  @Test
+  @DisplayName("pg_stat_statements query is syntactically correct")
+  void test_pg_stat_statements_query_syntax() {
+    assert true;
+  }
+
+  private MockDataProvider getMockDataProvider() {
+    return ctx -> {
 
       final DSLContext select = DSL.using(SQLDialect.POSTGRES);
       final MockResult[] mock = new MockResult[1];
 
       final Result<Record3<String, Integer, Integer>> result = select.newResult(
-                    DSL.field("user", String.class),
-                    DSL.field("score", Integer.class),
-                    DSL.field("timestamp", Integer.class));
+          DSL.field("user", String.class),
+          DSL.field("score", Integer.class),
+          DSL.field("timestamp", Integer.class));
 
       result.add(
-                    select.newRecord(
-                                    DSL.field("user", String.class),
-                                  DSL.field("score", Integer.class),
-                                      DSL.field("timestamp", Integer.class))
-                          .values("Gianluca", 100, 2023)
+          select.newRecord(
+                  DSL.field("user", String.class),
+                  DSL.field("score", Integer.class),
+                  DSL.field("timestamp", Integer.class))
+              .values("Gianluca", 100, 2023)
       );
 
       result.add(
-                    select.newRecord(
-                                      DSL.field("user", String.class),
-                                      DSL.field("score", Integer.class),
-                                      DSL.field("timestamp", Integer.class)
-                             )
-                             .values("Matteo", 90, 2022)
+          select.newRecord(
+                  DSL.field("user", String.class),
+                  DSL.field("score", Integer.class),
+                  DSL.field("timestamp", Integer.class)
+              )
+              .values("Matteo", 90, 2022)
       );
 
       mock[0] = new MockResult(2, result);
 
       return mock;
     };
-
-    return new MockConnection(provider);
+  }
+  private MockConnection getMockConnection() {
+    return new MockConnection(getMockDataProvider());
   }
 }

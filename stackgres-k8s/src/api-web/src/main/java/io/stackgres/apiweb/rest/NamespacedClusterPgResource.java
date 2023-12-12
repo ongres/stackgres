@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.rest;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -107,20 +108,23 @@ public class NamespacedClusterPgResource {
             .get(StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY);
 
     try (
-        Connection connection = postgresConnectionManager.getConnection(
+        final Connection connection = postgresConnectionManager.getConnection(
             host,
             port,
             StackGresPasswordKeys.SUPERUSER_DATABASE,
             username,
             password);
 
-        CloseableDSLContext context =
+        final CloseableDSLContext context =
           new DefaultCloseableDSLContext(
               new DefaultConnectionProvider(connection), SQLDialect.POSTGRES
           );
 
-        ResultSet resultSet =
-            queryGenerator.generateQuery(context, named, sort, dir, limit)
+        final PreparedStatement preparedStatement =
+            connection.prepareStatement(
+                queryGenerator.generateQuery(context, named, sort, dir, limit));
+
+        final ResultSet resultSet = preparedStatement.executeQuery()
     ) {
 
       final List<Object> dtos = new ArrayList<>();
