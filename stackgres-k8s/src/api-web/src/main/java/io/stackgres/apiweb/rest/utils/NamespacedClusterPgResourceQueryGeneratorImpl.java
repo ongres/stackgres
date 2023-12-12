@@ -20,7 +20,7 @@ public class NamespacedClusterPgResourceQueryGeneratorImpl
   private static final String DESC = "desc";
 
   @Override
-  public ResultSet generateQuery(final DSLContext context,
+  public String generateQuery(final DSLContext context,
                               final String table,
                               final String sort,
                               final String dir,
@@ -45,7 +45,7 @@ public class NamespacedClusterPgResourceQueryGeneratorImpl
                             .on(DSL.field("pg_database.oid").eq(DSL.field("pg_roles.oid")))
                       .orderBy(orderByOf)
                       .limit(limit)
-                      .fetchResultSet();
+                      .getSQL();
       }
 
       case NamespacedClusterPgResource.TOP_PG_STAT_ACTIVITY -> {
@@ -54,7 +54,7 @@ public class NamespacedClusterPgResourceQueryGeneratorImpl
                     .from(DSL.table("pg_stat_activity"))
                     .orderBy(orderByOf)
                     .limit(limit)
-                    .fetchResultSet();
+                    .getSQL();
       }
       case NamespacedClusterPgResource.TOP_PG_LOCKS -> {
         return  context
@@ -63,7 +63,7 @@ public class NamespacedClusterPgResourceQueryGeneratorImpl
                 .innerJoin(DSL.table("pg_database")).on(DSL.field("database").eq(DSL.field("oid")))
                 .orderBy(orderByOf)
                 .limit(limit)
-                .fetchResultSet();
+                .getSQL();
       }
       default ->
               throw new IllegalArgumentException(
