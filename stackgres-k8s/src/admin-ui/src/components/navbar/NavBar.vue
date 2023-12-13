@@ -573,4 +573,12 @@
 		margin-bottom: 25px;
 		font-size: 14px;
 	}
+
+	#login {
+		margin-bottom: 0;
+	}
+
+	#login .warning {
+		display: block;
+	}
 </style>
