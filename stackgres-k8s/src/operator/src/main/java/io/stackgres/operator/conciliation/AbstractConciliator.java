@@ -61,6 +61,10 @@ public abstract class AbstractConciliator<T extends CustomResource<?, ?>> {
     List<HasMetadata> requiredResources = requiredResourceGenerator.getRequiredResources(config)
         .stream()
         .map(ownerReferenceMapper)
+        .map(resource -> {
+          resource.getMetadata().setManagedFields(null);
+          return resource;
+        })
         .toList();
 
     DeployedResourcesSnapshot deployedResourcesSnapshot =
