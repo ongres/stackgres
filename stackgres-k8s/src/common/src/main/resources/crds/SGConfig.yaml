@@ -310,6 +310,20 @@ spec:
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                     description: Operator Installation Jobs affinity. See https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#affinity-v1-core
+                  serviceAccount:
+                    type: object
+                    description: Section to configure Jobs ServiceAccount
+                    properties:
+                      annotations:
+                        type: object
+                        x-kubernetes-preserve-unknown-fields: true
+                        description: Jobs ServiceAccount annotations
+                      repoCredentials:
+                        type: array
+                        description: Repositories credentials Secret names
+                        items:
+                          type: string
+                          description: Repository credentials Secret name
               deploy:
                 type: object
                 description: Section to configure deployment aspects.
@@ -380,26 +394,6 @@ spec:
                     description: |
                       The duration in days of the generated RSA key pair for the Web Console / REST API after which it will expire and be regenerated.
                       If not specified it will be set to 730 (2 years) by default.
-                  key:
-                    type: string
-                    description: |
-                      The private RSA key used to create the Operator Webhooks certificate issued by the
-                        Kubernetes cluster CA.
-                  crt:
-                    type: string
-                    description: The Operator Webhooks certificate issued by Kubernetes cluster CA.
-                  jwtRsaKey:
-                    type: string
-                    description: The private RSA key used to generate JWTs used in REST API authentication.
-                  jwtRsaPub:
-                    type: string
-                    description: The public RSA key used to verify JWTs used in REST API authentication.
-                  webKey:
-                    type: string
-                    description: The private RSA key used to create the Web Console / REST API certificate
-                  webCrt:
-                    type: string
-                    description: The Web Console / REST API certificate
                   certManager:
                     type: object
                     description: Section to configure cert-manager integration to generate Operator certificates
