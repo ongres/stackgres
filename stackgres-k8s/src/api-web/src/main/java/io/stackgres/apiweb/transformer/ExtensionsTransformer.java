@@ -71,9 +71,10 @@ public class ExtensionsTransformer {
     extension.setRepository(source.getRepository());
     transformation.setVersions(
         Seq.seq(extensionMetadataManager.getExtensionsAnyVersion(cluster, extension, false))
-            .map(StackGresExtensionMetadata::getVersion)
-            .map(StackGresExtensionVersion::getVersion)
-            .grouped(Function.identity())
+            .grouped(Function.<StackGresExtensionMetadata>identity()
+                .andThen(StackGresExtensionMetadata::getVersion)
+                .andThen(StackGresExtensionVersion::getVersion))
+            .sorted(t -> t.v2.sorted().findFirst().orElseThrow())
             .map(Tuple2::v1)
             .toList());
     return transformation;

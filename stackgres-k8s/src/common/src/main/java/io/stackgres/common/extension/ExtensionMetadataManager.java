@@ -12,6 +12,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,7 +117,7 @@ public abstract class ExtensionMetadataManager {
         .grouped(Tuple3::limit2)
         .map(group -> group.v2
             .map(Tuple3::v3)
-            .max(StackGresExtensionMetadata::compareBuild)
+            .max(Comparator.comparing(StackGresExtensionMetadata::getBuild))
             .orElseThrow())
         .toUnmodifiableList();
   }

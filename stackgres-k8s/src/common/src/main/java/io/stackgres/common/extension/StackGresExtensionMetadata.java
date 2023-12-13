@@ -6,24 +6,19 @@
 package io.stackgres.common.extension;
 
 import java.util.Objects;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInstalledExtension;
 
-public class StackGresExtensionMetadata {
-
-  private static final Pattern BUILD_PATTERN = Pattern.compile(
-      "^(?<major>[0-9]+)\\.(?<minor>[0-9]+)(?:-dev)?$");
+public class StackGresExtensionMetadata
+    implements Comparable<StackGresExtensionMetadata> {
 
   private final StackGresExtension extension;
   private final StackGresExtensionVersion version;
   private final StackGresExtensionVersionTarget target;
   private final StackGresExtensionPublisher publisher;
-  private final Integer majorBuild;
-  private final Integer minorBuild;
+  private final StackGresExtensionMetadataBuild build;
 
   public StackGresExtensionMetadata(StackGresExtension extension,
       StackGresExtensionVersion version, StackGresExtensionVersionTarget target,
@@ -33,17 +28,7 @@ public class StackGresExtensionMetadata {
     this.version = version;
     this.target = target;
     this.publisher = publisher;
-    Optional<Matcher> matcher = Optional.ofNullable(target.getBuild())
-        .map(BUILD_PATTERN::matcher)
-        .filter(Matcher::find);
-    this.majorBuild = matcher
-        .map(m -> m.group("major"))
-        .map(Integer::parseInt)
-        .orElse(0);
-    this.minorBuild = matcher
-        .map(m -> m.group("minor"))
-        .map(Integer::parseInt)
-        .orElse(0);
+    this.build = new StackGresExtensionMetadataBuild(target.getBuild());
   }
 
   public StackGresExtensionMetadata(StackGresClusterInstalledExtension installedExtension) {
@@ -60,17 +45,7 @@ public class StackGresExtensionMetadata {
     this.target.setOs(ExtensionUtil.DEFAULT_OS);
     this.target.setArch(ExtensionUtil.DEFAULT_ARCH);
     this.publisher = new StackGresExtensionPublisher();
-    Optional<Matcher> matcher = Optional.ofNullable(installedExtension.getBuild())
-        .map(BUILD_PATTERN::matcher)
-        .filter(Matcher::find);
-    this.majorBuild = matcher
-        .map(m -> m.group("major"))
-        .map(Integer::parseInt)
-        .orElse(0);
-    this.minorBuild = matcher
-        .map(m -> m.group("minor"))
-        .map(Integer::parseInt)
-        .orElse(0);
+    this.build = new StackGresExtensionMetadataBuild(installedExtension.getBuild());
   }
 
   public StackGresExtension getExtension() {
@@ -81,12 +56,17 @@ public class StackGresExtensionMetadata {
     return version;
   }
 
+  @JsonIgnore
+  public StackGresExtensionMetadataBuild getBuild() {
+    return build;
+  }
+
   public int getMajorBuild() {
-    return majorBuild;
+    return build.getMajorBuild();
   }
 
   public int getMinorBuild() {
-    return minorBuild;
+    return build.getMinorBuild();
   }
 
   public StackGresExtensionVersionTarget getTarget() {
@@ -121,13 +101,28 @@ public class StackGresExtensionMetadata {
     return StackGresUtil.toPrettyYaml(this);
   }
 
-  public static int compareBuild(StackGresExtensionMetadata left,
-      StackGresExtensionMetadata right) {
-    int compare = left.majorBuild.compareTo(right.majorBuild);
+  @Override
+  public int compareTo(StackGresExtensionMetadata o) {
+    int compare = build.compareTo(o.build);
     if (compare == 0) {
-      compare = left.minorBuild.compareTo(right.minorBuild);
+      String[] versionParts = version.getVersion().split("\\.");
+      String[] otherVersionParts = o.version.getVersion().split("\\.");
+      for (int i = 0; i < versionParts.length && i < otherVersionParts.length; i++) {
+        int versionPartNumber = getNumberFromVersionPart(versionParts[i]);
+        int otherVersionPartNumber = getNumberFromVersionPart(otherVersionParts[i]);
+        if (versionPartNumber != otherVersionPartNumber) {
+          return versionPartNumber - otherVersionPartNumber;
+        }
+      }
     }
     return compare;
   }
 
+  private int getNumberFromVersionPart(String versionPart) {
+    try {
+      return Integer.parseInt(versionPart);
+    } catch (NumberFormatException ex) {
+      return 0;
+    }
+  }
 }
