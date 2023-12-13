@@ -112,17 +112,16 @@ public class NamespacedClusterPgResource {
 
     try (
         @SuppressWarnings("unchecked")
-        final Connection connection = postgresConnectionManager.getConnection(
+        Connection connection = postgresConnectionManager.getConnection(
             host,
             port,
             StackGresPasswordKeys.SUPERUSER_DATABASE,
             username,
             password);
-        final CloseableDSLContext context =
+        CloseableDSLContext context =
           new DefaultCloseableDSLContext(
               new DefaultConnectionProvider(connection), SQLDialect.POSTGRES
           );
-
         PreparedStatement statement = connection.prepareStatement(
             queryGenerator.generateQuery(context, named, sort, dir, limit));
         ResultSet resultSet = statement.executeQuery();
