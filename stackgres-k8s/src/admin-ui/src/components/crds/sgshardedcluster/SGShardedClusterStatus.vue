@@ -185,38 +185,52 @@
 						<template v-for="(cluster, index) in sgclusters">
 							<tr v-for="pod in cluster.status.pods">
 								<td>
-									{{ pod.name }}
+									<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + getClusterName(pod.name)" title="Cluster Details" class="noColor">
+										{{ pod.name }}
+									</router-link>
 								</td>
 								<td class="tag" :class="pod.role">
-									<span>
-										{{ pod.role }}
-									</span>
+									<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + getClusterName(pod.name)" title="Cluster Details" class="noColor">
+										<span>
+											{{ pod.role }}
+										</span>
+									</router-link>
 								</td>
 								<td class="tag" :class="pod.status">
-									<span>
-										{{ pod.status }}
-									</span>
+									<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + getClusterName(pod.name)" title="Cluster Details" class="noColor">
+										<span>
+											{{ pod.status }}
+										</span>
+									</router-link>
 								</td>
 								<td>
-									{{ pod.cpuRequested }} 
-									<template v-if="(pod.status !== 'Pending') && ( pod.hasOwnProperty('cpuPsiAvg60') || pod.hasOwnProperty('averageLoad1m') )">
-										(avg. load {{ pod.hasOwnProperty('cpuPsiAvg60') ? pod.cpuPsiAvg60 : pod.averageLoad1m }})
-									</template>
+									<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + getClusterName(pod.name)" title="Cluster Details" class="noColor">
+										{{ pod.cpuRequested }} 
+										<template v-if="(pod.status !== 'Pending') && ( pod.hasOwnProperty('cpuPsiAvg60') || pod.hasOwnProperty('averageLoad1m') )">
+											(avg. load {{ pod.hasOwnProperty('cpuPsiAvg60') ? pod.cpuPsiAvg60 : pod.averageLoad1m }})
+										</template>
+									</router-link>
 								</td>
 								<td class="textRight">
-									{{ pod.hasOwnProperty('memoryPsiAvg60') ? pod.memoryPsiAvg60 : pod.memoryRequested }}
+									<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + getClusterName(pod.name)" title="Cluster Details" class="noColor">
+										{{ pod.hasOwnProperty('memoryPsiAvg60') ? pod.memoryPsiAvg60 : pod.memoryRequested }}
+									</router-link>
 								</td>
 								<td class="textRight">
-									<template v-if="pod.hasOwnProperty('diskUsed')">
-										{{ pod.diskUsed }}
-									</template>
-									<template v-else>
-										-
-									</template>
-									 / {{ pod.diskRequested }} <span v-if="pod.hasOwnProperty('diskPsiAvg60')">(psi avg. {{ pod.diskPsiAvg60 }})</span>
+									<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + getClusterName(pod.name)" title="Cluster Details" class="noColor">
+										<template v-if="pod.hasOwnProperty('diskUsed')">
+											{{ pod.diskUsed }}
+										</template>
+										<template v-else>
+											-
+										</template>
+										/ {{ pod.diskRequested }} <span v-if="pod.hasOwnProperty('diskPsiAvg60')">(psi avg. {{ pod.diskPsiAvg60 }})</span>
+									</router-link>
 								</td>
 								<td class="textRight">
-									{{ pod.containersReady }} / {{ pod.containers }}
+									<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + getClusterName(pod.name)" title="Cluster Details" class="noColor">
+										{{ pod.containersReady }} / {{ pod.containers }}
+									</router-link>
 								</td>
 							</tr>
 						</template>
@@ -288,6 +302,10 @@
 				}
 
 			},
+
+			getClusterName(pod) {
+				return pod.substring(0, pod.lastIndexOf('-'))
+			}
 		}
 	}
 </script>
@@ -295,6 +313,7 @@
 <style scoped>
 	table.podStatus td {
 		position: relative;
+		padding: 0;
 	}
 
 	.podStatus .helpTooltip.alert {
@@ -314,5 +333,12 @@
 
 	td.tag span:not(.helpTooltip) {
 		width: 90px;
+	}
+
+	.podStatus .noColor {
+		width: 100%;
+		display: inline-block;
+		padding: 10px;
+		height: 100%;
 	}
 </style>	
