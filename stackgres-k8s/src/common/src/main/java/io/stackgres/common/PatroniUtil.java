@@ -24,7 +24,7 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniInitialConfig;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.patroni.PatroniConfig;
@@ -174,13 +174,13 @@ public interface PatroniUtil {
         .map(StackGresClusterSpec::getConfigurations)
         .map(StackGresClusterConfigurations::getPatroni)
         .map(StackGresClusterPatroni::getInitialConfig)
-        .map(StackGresClusterPatroniInitialConfig::getScope)
+        .map(StackGresClusterPatroniConfig::getScope)
         .map(scope -> Optional.of(cluster)
             .map(StackGresCluster::getSpec)
             .map(StackGresClusterSpec::getConfigurations)
             .map(StackGresClusterConfigurations::getPatroni)
             .map(StackGresClusterPatroni::getInitialConfig)
-            .flatMap(StackGresClusterPatroniInitialConfig::getCitusGroup)
+            .flatMap(StackGresClusterPatroniConfig::getCitusGroup)
             .map(group -> scope + "-" + group)
             .orElse(scope))
         .orElse(cluster.getMetadata().getName());
@@ -250,6 +250,10 @@ public interface PatroniUtil {
           .warn("Unable to parse patroni history to indentify previous primary instance", ex);
       return 0;
     }
+  }
+
+  static String secretName(final String clusterName) {
+    return ResourceUtil.resourceName(clusterName);
   }
 
 }

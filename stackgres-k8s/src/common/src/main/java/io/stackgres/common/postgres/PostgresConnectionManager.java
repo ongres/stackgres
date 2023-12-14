@@ -18,31 +18,21 @@ import jakarta.validation.constraints.NotNull;
 @Singleton
 public class PostgresConnectionManager {
 
+  @SuppressWarnings("unchecked")
   public Connection getConnection(
       @NotNull String host,
       @NotNull int port,
       @NotNull String database,
       @NotNull String username,
-      @NotNull String password) throws SQLException {
-    Properties properties = new Properties();
-    properties.setProperty("user", username);
-    properties.setProperty("password", password);
-    return DriverManager.getConnection(
-        "jdbc:postgresql://" + host + ":" + port + "/" + database, properties);
-  }
-
-  @SafeVarargs
-  public final Connection getConnection(
-      @NotNull String host,
-      @NotNull int port,
-      @NotNull String database,
-      @NotNull String username,
       @NotNull String password,
-      Map.Entry<String, String>...extraProperties) throws SQLException {
+      @SuppressWarnings("uncheked") Map.Entry<String, String>...extraProperties)
+          throws SQLException {
     Properties properties = new Properties();
-    Arrays.stream(extraProperties)
-        .forEach(extraProperty -> properties.put(
-            extraProperty.getKey(), extraProperty.getValue()));
+    if (extraProperties != null) {
+      Arrays.stream(extraProperties)
+              .forEach(extraProperty -> properties.put(
+                      extraProperty.getKey(), extraProperty.getValue()));
+    }
     properties.setProperty("user", username);
     properties.setProperty("password", password);
     return DriverManager.getConnection(

@@ -245,3 +245,30 @@ paths:
           type: string
       security:
       - JWT: []
+  /stackgres/namespaces/{namespace}/sgclusters/{name}/version/postgresql:
+    get:
+      tags:
+      - sgcluster
+      summary: Get versions available for an already existing sgcluster
+      description: |
+        Get versions available for an already existing sgcluster taking into account the version
+         set.
+
+        ### RBAC permissions required
+
+        * sgcluster get
+      parameters:
+      - name: namespace
+        description: The namespace to retrieve the resources from
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: name
+        description: The name of the resource the retrieved events are related with
+        in: path
+        required: true
+        schema:
+          type: string
+      security:
+      - JWT: []

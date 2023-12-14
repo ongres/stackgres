@@ -66,6 +66,20 @@ fi
 
 cat << 'PATRONI_CONFIG_EOF' | exec-with-env "${PATRONI_ENV}" -- sh -e $SHELL_XTRACE
 cat << EOF > "$PATRONI_CONFIG_FILE_PATH"
+
+#Custom initial config
+$PATRONI_INITIAL_CONFIG
+
+#Reset ignored sections
+consul: null
+etcd: null
+etcdv3: null
+zookeeper: null
+exhibitor: null
+kubernetes: null
+raft: null
+ctl: null
+
 scope: ${PATRONI_SCOPE}
 name: ${PATRONI_NAME}
 
@@ -133,6 +147,7 @@ restapi:
   connect_address: '${PATRONI_KUBERNETES_POD_IP}:8008'
   listen: 0.0.0.0:8008
 postgresql:
+  use_slots: true
   use_pg_rewind: true
   remove_data_directory_on_rewind_failure: true
   use_unix_socket: true
@@ -209,9 +224,6 @@ fi
 watchdog:
   mode: off
 tags: {}
-
-#Custom initial config
-$PATRONI_INITIAL_CONFIG
 EOF
 PATRONI_CONFIG_EOF
 chmod 600 "$PATRONI_CONFIG_FILE_PATH"

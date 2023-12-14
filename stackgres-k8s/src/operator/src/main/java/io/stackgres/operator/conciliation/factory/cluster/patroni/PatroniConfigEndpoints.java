@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
-import static io.stackgres.common.PatroniUtil.REPLICATION_SERVICE_PORT;
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
 import java.util.HashMap;
@@ -13,6 +12,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.ongres.pgconfig.validator.GucValidator;
@@ -26,8 +26,10 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
@@ -38,6 +40,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniConfig;
+import io.stackgres.common.patroni.PostgreSql;
 import io.stackgres.common.patroni.StandbyCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
@@ -48,6 +51,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.Pos
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.Unchecked;
 
 @Singleton
 @OperatorVersionBinder
@@ -84,10 +88,24 @@ public class PatroniConfigEndpoints
 
   protected PatroniConfig getPatroniConfig(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getCluster();
-    PatroniConfig patroniConf = new PatroniConfig();
-    patroniConf.setTtl(30);
-    patroniConf.setLoopWait(10);
-    patroniConf.setRetryTimeout(10);
+    PatroniConfig patroniConf = Optional.of(context.getCluster().getSpec())
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getPatroni)
+        .map(StackGresClusterPatroni::getDynamicConfig)
+        .<JsonNode>map(objectMapper::valueToTree)
+        .map(Unchecked.function(config -> objectMapper.treeToValue(config, PatroniConfig.class)))
+        .orElseGet(PatroniConfig::new);
+    if (patroniConf.getTtl() == null) {
+      patroniConf.setTtl(30);
+    }
+    if (patroniConf.getLoopWait() == null) {
+      patroniConf.setLoopWait(10);
+    }
+    if (patroniConf.getRetryTimeout() == null) {
+      patroniConf.setRetryTimeout(10);
+    }
+    patroniConf.setFailsafeMode(null);
+    patroniConf.setStandbyCluster(null);
     if (getPostgresFlavorComponent(cluster) != StackGresComponent.BABELFISH) {
       patroniConf.setCheckTimeline(true);
     }
@@ -153,7 +171,8 @@ public class PatroniConfigEndpoints
                   .map(StackGresClusterStatus::getOs)
                   .isEmpty()) {
             patroniConf.getStandbyCluster().setHost(PatroniServices.readWriteName(context));
-            patroniConf.getStandbyCluster().setPort(String.valueOf(REPLICATION_SERVICE_PORT));
+            patroniConf.getStandbyCluster().setPort(
+                String.valueOf(PatroniUtil.REPLICATION_SERVICE_PORT));
           }
           patroniConf.getStandbyCluster().setRestoreCommand("exec-with-env '"
               + ClusterEnvVar.REPLICATE_ENV.value(context.getSource()) + "'"
@@ -177,7 +196,7 @@ public class PatroniConfigEndpoints
               .toList());
         });
 
-    patroniConf.setPostgresql(new PatroniConfig.PostgreSql());
+    patroniConf.setPostgresql(new PostgreSql());
     patroniConf.getPostgresql().setUsePgRewind(true);
     patroniConf.getPostgresql().setUseSlots(true);
     patroniConf.getPostgresql().setParameters(getPostgresConfigValues(context));

@@ -31,7 +31,7 @@ import io.stackgres.common.crd.CustomContainer;
 import io.stackgres.common.crd.CustomServicePort;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
-import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniInitialConfig;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
@@ -69,7 +69,7 @@ class PatroniConfigMapTest {
         .put(StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     cluster.getSpec().getConfigurations().setPatroni(new StackGresClusterPatroni());
     cluster.getSpec().getConfigurations().getPatroni()
-        .setInitialConfig(new StackGresClusterPatroniInitialConfig());
+        .setInitialConfig(new StackGresClusterPatroniConfig());
   }
 
   @Test

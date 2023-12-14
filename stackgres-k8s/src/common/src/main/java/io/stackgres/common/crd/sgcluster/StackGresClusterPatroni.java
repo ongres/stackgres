@@ -17,19 +17,29 @@ import io.stackgres.common.StackGresUtil;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StackGresClusterPatroni {
 
-  private StackGresClusterPatroniInitialConfig initialConfig;
+  private StackGresClusterPatroniConfig dynamicConfig;
 
-  public StackGresClusterPatroniInitialConfig getInitialConfig() {
+  private StackGresClusterPatroniConfig initialConfig;
+
+  public StackGresClusterPatroniConfig getDynamicConfig() {
+    return dynamicConfig;
+  }
+
+  public void setDynamicConfig(StackGresClusterPatroniConfig dynamicConfig) {
+    this.dynamicConfig = dynamicConfig;
+  }
+
+  public StackGresClusterPatroniConfig getInitialConfig() {
     return initialConfig;
   }
 
-  public void setInitialConfig(StackGresClusterPatroniInitialConfig initialConfig) {
+  public void setInitialConfig(StackGresClusterPatroniConfig initialConfig) {
     this.initialConfig = initialConfig;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(initialConfig);
+    return Objects.hash(dynamicConfig, initialConfig);
   }
 
   @Override
@@ -41,7 +51,8 @@ public class StackGresClusterPatroni {
       return false;
     }
     StackGresClusterPatroni other = (StackGresClusterPatroni) obj;
-    return Objects.equals(initialConfig, other.initialConfig);
+    return Objects.equals(dynamicConfig, other.dynamicConfig)
+        && Objects.equals(initialConfig, other.initialConfig);
   }
 
   public String toString() {

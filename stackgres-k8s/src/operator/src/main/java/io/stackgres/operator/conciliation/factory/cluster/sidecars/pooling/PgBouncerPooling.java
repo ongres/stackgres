@@ -82,7 +82,7 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
 
   public static String configName(StackGresClusterContext clusterContext) {
     String name = clusterContext.getSource().getMetadata().getName();
-    return StackGresVolume.PGBOUNCER.getResourceName(name);
+    return StackGresVolume.PGBOUNCER_CONFIG.getResourceName(name);
   }
 
   @Override
@@ -124,10 +124,12 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
             new VolumeMountBuilder()
                 .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())
                 .withMountPath(ClusterPath.PGBOUNCER_CONFIG_PATH.path())
+                .withReadOnly(true)
                 .build(),
             new VolumeMountBuilder()
-                .withName(StackGresVolume.PGBOUNCER.getName())
-                .withMountPath(ClusterPath.PGBOUNCER_CONFIG_UPDATED_FILE_PATH.path())
+                .withName(StackGresVolume.PGBOUNCER_DYNAMIC_CONFIG.getName())
+                .withMountPath(ClusterPath.PGBOUNCER_AUTH_PATH.path())
+                .withSubPath(ClusterPath.PGBOUNCER_AUTH_PATH.filename())
                 .withReadOnly(true)
                 .build())
         .build();
@@ -150,7 +152,7 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
 
   private Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
-        .withName(StackGresVolume.PGBOUNCER.getName())
+        .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withName(configName(context))
             .withDefaultMode(0440)
@@ -187,7 +189,7 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
 
   private Volume buildAuthFileVolume() {
     return new VolumeBuilder()
-        .withName(StackGresVolume.PGBOUNCER_CONFIG.getName())
+        .withName(StackGresVolume.PGBOUNCER_DYNAMIC_CONFIG.getName())
         .withEmptyDir(new EmptyDirVolumeSourceBuilder()
             .build())
         .build();

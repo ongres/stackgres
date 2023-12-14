@@ -38,6 +38,8 @@ e2e_test_install() {
 e2e_test() {
   run_test "Check that a created cluster can be accessed directly through the API" check_cluster_directly
 
+  run_test "Check that the named queries endpoints are working correctly" test_named_queries_endpoints
+
   run_test "Check that a created cluster is included in the response" check_cluster_in_list
 
   run_test "Check that the stats endpoint are returning the primary stats" test_cluster_stats_are_loaded
@@ -117,6 +119,41 @@ check_cluster_directly() {
   else
     echo "Cluster $CLUSTER_NAME was not found bye the api"
     return 1
+  fi
+}
+
+test_named_queries_endpoints() {
+  # top_pg_stat_statements query
+  if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgcluster/$CLUSTER_NAME/query?named=top_pg_stat_statements" \
+      | jq -r '(.[0] | has("fields")) and ((. | length) == 1 or (.[1] | length) == (.[0].fields | length))' \
+      | grep -qxF "true"
+    then
+      echo "Named query top_pg_stat_statements worked"
+    else
+      echo "Named query top_pg_stat_statements didn't worked"
+      return 1
+  fi
+
+  # top_pg_stat_activity query
+  if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgcluster/$CLUSTER_NAME/query?named=top_pg_stat_activity" \
+      | jq -r '(.[0] | has("fields")) and ((. | length) == 1 or (.[1] | length) == (.[0].fields | length))' \
+      | grep -qxF "true"
+    then
+      echo "Named query top_pg_stat_activity worked"
+    else
+      echo "Named query top_pg_stat_activity didn't worked"
+      return 1
+  fi
+
+  # top_pg_locks query
+  if run_curl -r "stackgres/namespaces/$CLUSTER_NAMESPACE/sgcluster/$CLUSTER_NAME/query?named=top_pg_locks" \
+      | jq -r '(.[0] | has("fields")) and ((. | length) == 1 or (.[1] | length) == (.[0].fields | length))' \
+      | grep -qxF "true"
+    then
+      echo "Named query top_pg_locks worked"
+    else
+      echo "Named query top_pg_locks didn't worked"
+      return 1
   fi
 }
 
