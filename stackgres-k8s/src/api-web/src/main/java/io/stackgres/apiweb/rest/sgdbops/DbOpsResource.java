@@ -9,6 +9,7 @@ import java.util.List;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.dbops.DbOpsDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractCustomResourceService;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import jakarta.annotation.Nullable;
@@ -24,6 +25,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("sgdbops")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgdbops")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class DbOpsResource
     extends AbstractCustomResourceService<DbOpsDto, StackGresDbOps> {
 
@@ -31,7 +49,6 @@ public class DbOpsResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = DbOpsDto.class))})
-  @Tag(name = "sgdbops")
   @Operation(summary = "List sgdbops", description = """
       List sgdbops.
 
@@ -48,7 +65,6 @@ public class DbOpsResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = DbOpsDto.class))})
-  @Tag(name = "sgdbops")
   @Operation(summary = "Create a sgdbops", description = """
       Create a sgdbops.
 
@@ -62,7 +78,6 @@ public class DbOpsResource
   }
 
   @APIResponse(responseCode = "200", description = "OK")
-  @Tag(name = "sgdbops")
   @Operation(summary = "Delete a sgdbops", description = """
       Delete a sgdbops.
 
@@ -79,7 +94,6 @@ public class DbOpsResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = DbOpsDto.class))})
-  @Tag(name = "sgdbops")
   @Operation(summary = "Update a sgdbops", description = """
       Update a sgdbops.
 

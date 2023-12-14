@@ -10,6 +10,7 @@ import java.util.Optional;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractNamespacedRestService;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -26,6 +27,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgshardedclusters")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgshardedcluster")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class NamespacedShardedClusterResource
     extends AbstractNamespacedRestService<ShardedClusterDto, StackGresShardedCluster> {
 
@@ -46,7 +64,6 @@ public class NamespacedShardedClusterResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ClusterDto.class))})
-  @Tag(name = "sgshardedcluster")
   @Operation(summary = "Get a sgshardedclusters", description = """
       Get a sgshardedclusters.
 

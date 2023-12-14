@@ -7,6 +7,7 @@ package io.stackgres.apiweb.rest.sgconfig;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.config.ConfigDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractNamespacedRestService;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import jakarta.enterprise.context.RequestScoped;
@@ -20,6 +21,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgconfigs")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgconfig")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class NamespacedConfigResource
     extends AbstractNamespacedRestService<ConfigDto, StackGresConfig> {
 
@@ -27,7 +45,6 @@ public class NamespacedConfigResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ConfigDto.class))})
-  @Tag(name = "sgconfig")
   @Operation(summary = "Get a sgconfigs", description = """
       Get a sgconfigs.
 

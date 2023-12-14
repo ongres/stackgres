@@ -7,6 +7,7 @@ package io.stackgres.apiweb.rest.cluster;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractNamespacedRestService;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
@@ -23,6 +24,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgclusters")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgcluster")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class NamespacedClusterResource
     extends AbstractNamespacedRestService<ClusterDto, StackGresCluster> {
 
@@ -41,7 +59,6 @@ public class NamespacedClusterResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ClusterDto.class))})
-  @Tag(name = "sgcluster")
   @Operation(summary = "Get a sgcluster", description = """
       Get a sgcluster and read values from the referenced secrets and configmaps.
 

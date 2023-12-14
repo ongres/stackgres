@@ -8,7 +8,6 @@ package io.stackgres.apiweb.rest;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.ResourceDto;
-import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.apiweb.transformer.ResourceTransformer;
 import io.stackgres.common.resource.CustomResourceFinder;
 import jakarta.inject.Inject;
@@ -46,7 +45,6 @@ public abstract class AbstractNamespacedRestService
    */
   @GET
   @Path("{name}")
-  @CommonApiResponses
   @Override
   public T get(@PathParam("namespace") String namespace, @PathParam("name") String name) {
     return finder.findByNameAndNamespace(name, namespace)

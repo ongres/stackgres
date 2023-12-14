@@ -31,6 +31,7 @@ import io.stackgres.apiweb.dto.script.ScriptDto;
 import io.stackgres.apiweb.dto.script.ScriptEntry;
 import io.stackgres.apiweb.dto.script.ScriptFrom;
 import io.stackgres.apiweb.dto.script.ScriptSpec;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractCustomResourceService;
 import io.stackgres.apiweb.rest.sgscripts.ScriptResource;
 import io.stackgres.apiweb.transformer.ScriptTransformer;
@@ -66,6 +67,23 @@ import org.jooq.lambda.tuple.Tuple4;
 @Path("sgclusters")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgcluster")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class ClusterResource
     extends AbstractCustomResourceService<ClusterDto, StackGresCluster> {
 
@@ -110,7 +128,6 @@ public class ClusterResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = ClusterDto.class))})
-  @Tag(name = "sgcluster")
   @Operation(summary = "List sgclusters", description = """
       List sgclusters and read values from the referenced secrets and configmaps.
 
@@ -135,7 +152,6 @@ public class ClusterResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ClusterDto.class))})
-  @Tag(name = "sgcluster")
   @Operation(summary = "Create a sgcluster", description = """
       Create a sgcluster.
       If values for some script configmap or secret is provided respectively a secret or
@@ -158,7 +174,6 @@ public class ClusterResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ClusterDto.class))})
-  @Tag(name = "sgcluster")
   @Operation(summary = "Update a sgcluster", description = """
       Update a sgcluster.
 
@@ -175,7 +190,6 @@ public class ClusterResource
   }
 
   @APIResponse(responseCode = "200", description = "OK")
-  @Tag(name = "sgcluster")
   @Operation(summary = "Delete a sgcluster", description = """
       Delete a sgcluster.
 

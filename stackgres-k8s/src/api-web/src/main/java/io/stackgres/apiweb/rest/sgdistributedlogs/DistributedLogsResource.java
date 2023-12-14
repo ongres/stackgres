@@ -11,6 +11,7 @@ import java.util.Optional;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.distributedlogs.DistributedLogsDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractCustomResourceServiceDependency;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
@@ -28,6 +29,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("sgdistributedlogs")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgdistributedlogs")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class DistributedLogsResource
     extends AbstractCustomResourceServiceDependency<DistributedLogsDto, StackGresDistributedLogs> {
 
@@ -44,7 +62,6 @@ public class DistributedLogsResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = DistributedLogsDto.class))})
-  @Tag(name = "sgdistributedlogs")
   @Operation(summary = "List sgdistributedlogs", description = """
       List sgdistributedlogs.
 
@@ -61,7 +78,6 @@ public class DistributedLogsResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = DistributedLogsDto.class))})
-  @Tag(name = "sgdistributedlogs")
   @Operation(summary = "Create a sgdistributedlogs", description = """
       Create a sgdistributedlogs.
 
@@ -75,7 +91,6 @@ public class DistributedLogsResource
   }
 
   @APIResponse(responseCode = "200", description = "OK")
-  @Tag(name = "sgdistributedlogs")
   @Operation(summary = "Delete a sgdistributedlogs", description = """
       Delete a sgdistributedlogs.
 
@@ -92,7 +107,6 @@ public class DistributedLogsResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = DistributedLogsDto.class))})
-  @Tag(name = "sgdistributedlogs")
   @Operation(summary = "Update a sgdistributedlogs", description = """
       Update a sgdistributedlogs.
 

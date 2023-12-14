@@ -17,7 +17,7 @@ import io.stackgres.apiweb.application.SgApplication;
 import io.stackgres.apiweb.application.bbfcompass.BabelfishCompass;
 import io.stackgres.apiweb.application.bbfcompass.FileUpload;
 import io.stackgres.apiweb.dto.ApplicationDto;
-import io.stackgres.apiweb.rest.utils.CommonApiResponses;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.common.StringUtil;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.enterprise.inject.Instance;
@@ -46,6 +46,23 @@ import org.jooq.lambda.Unchecked;
 @Path("applications")
 @RequestScoped
 @Authenticated
+@Tag(name = "applications")
+@APIResponse(responseCode = "400", description = "Bad Request",
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
 public class ApplicationsResource {
 
   @Inject
@@ -55,7 +72,6 @@ public class ApplicationsResource {
       content = {@Content(
           mediaType = MediaType.APPLICATION_JSON,
           schema = @Schema(type = SchemaType.OBJECT))})
-  @Tag(name = "applications")
   @Operation(summary = "List StackGres applications", description = """
       List of the available StackGres applications.
 
@@ -63,7 +79,6 @@ public class ApplicationsResource {
 
       None
       """)
-  @CommonApiResponses
   @GET
   public Map<String, List<ApplicationDto>> getAllApplications() {
     var appsDto = new ArrayList<ApplicationDto>();
@@ -81,8 +96,7 @@ public class ApplicationsResource {
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
           mediaType = MediaType.APPLICATION_JSON,
-          schema = @Schema(type = SchemaType.OBJECT))})
-  @Tag(name = "applications")
+          schema = @Schema(type = SchemaType.OBJECT, implementation = ApplicationDto.class))})
   @Operation(summary = "Get StackGres application", description = """
       Get a StackGres application info.
 
@@ -90,7 +104,6 @@ public class ApplicationsResource {
 
       None
       """)
-  @CommonApiResponses
   @GET
   @Path("{publisher}/{name}")
   public ApplicationDto getApplication(@PathParam String publisher, @PathParam String name) {
@@ -110,7 +123,6 @@ public class ApplicationsResource {
           mediaType = MediaType.APPLICATION_JSON,
           schema = @Schema(type = SchemaType.OBJECT))})
   @RequestBody(content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA))
-  @Tag(name = "applications")
   @Operation(summary = "Run Babelfish Compass application", description = """
       Run Babelfish Compass application.
 
@@ -123,7 +135,6 @@ public class ApplicationsResource {
       * pods list, get
       * pods/exec create
       """)
-  @CommonApiResponses
   @POST
   @Path("com.ongres/babelfish-compass")
   @Consumes(MediaType.MULTIPART_FORM_DATA)

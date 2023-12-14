@@ -10,6 +10,7 @@ import java.util.Objects;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.pooling.PoolingConfigDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractCustomResourceServiceDependency;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
@@ -26,6 +27,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("sgpoolconfigs")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgpoolconfig")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class ConnectionPoolingConfigResource extends
     AbstractCustomResourceServiceDependency<PoolingConfigDto, StackGresPoolingConfig> {
 
@@ -41,7 +59,6 @@ public class ConnectionPoolingConfigResource extends
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = PoolingConfigDto.class))})
-  @Tag(name = "sgpoolconfig")
   @Operation(summary = "List sgpoolconfigs", description = """
       List sgpoolconfigs.
 
@@ -58,7 +75,6 @@ public class ConnectionPoolingConfigResource extends
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = PoolingConfigDto.class))})
-  @Tag(name = "sgpoolconfig")
   @Operation(summary = "Create a sgpoolconfig", description = """
       Create a sgpoolconfig.
 
@@ -72,7 +88,6 @@ public class ConnectionPoolingConfigResource extends
   }
 
   @APIResponse(responseCode = "200", description = "OK")
-  @Tag(name = "sgpoolconfig")
   @Operation(summary = "Delete a sgpoolconfig", description = """
       Delete a sgpoolconfig.
 
@@ -89,7 +104,6 @@ public class ConnectionPoolingConfigResource extends
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = PoolingConfigDto.class))})
-  @Tag(name = "sgpoolconfig")
   @Operation(summary = "Update a sgpoolconfig", description = """
       Update a sgpoolconfig.
 

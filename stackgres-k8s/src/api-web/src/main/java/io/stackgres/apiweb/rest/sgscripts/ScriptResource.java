@@ -20,6 +20,7 @@ import io.stackgres.apiweb.dto.script.ScriptDto;
 import io.stackgres.apiweb.dto.script.ScriptEntry;
 import io.stackgres.apiweb.dto.script.ScriptFrom;
 import io.stackgres.apiweb.dto.script.ScriptSpec;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractCustomResourceServiceDependency;
 import io.stackgres.common.crd.ConfigMapKeySelector;
 import io.stackgres.common.crd.SecretKeySelector;
@@ -49,6 +50,23 @@ import org.jooq.lambda.tuple.Tuple4;
 @Path("sgscripts")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgscripts")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class ScriptResource
     extends AbstractCustomResourceServiceDependency<ScriptDto, StackGresScript> {
 
@@ -85,7 +103,6 @@ public class ScriptResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = ScriptDto.class))})
-  @Tag(name = "sgscripts")
   @Operation(summary = "List sgscripts", description = """
       List sgscripts.
 
@@ -106,7 +123,6 @@ public class ScriptResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ScriptDto.class))})
-  @Tag(name = "sgscripts")
   @Operation(summary = "Create a sgscripts", description = """
       Create a sgscripts.
 
@@ -127,7 +143,6 @@ public class ScriptResource
   }
 
   @APIResponse(responseCode = "200", description = "OK")
-  @Tag(name = "sgscripts")
   @Operation(summary = "Delete a sgscripts", description = """
       Delete a sgscripts.
 
@@ -144,7 +159,6 @@ public class ScriptResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ScriptDto.class))})
-  @Tag(name = "sgscripts")
   @Operation(summary = "Update a sgscripts", description = """
       Update a sgscripts.
 

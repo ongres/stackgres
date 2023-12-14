@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.objectstorage.ObjectStorageDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractCustomResourceServiceDependency;
 import io.stackgres.apiweb.rest.BackupStorageDtoUtil;
 import io.stackgres.common.crd.SecretKeySelector;
@@ -41,6 +42,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("sgobjectstorages")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgobjectstorage")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class ObjectStorageResource
     extends AbstractCustomResourceServiceDependency<ObjectStorageDto, StackGresObjectStorage> {
 
@@ -54,7 +72,6 @@ public class ObjectStorageResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = ObjectStorageDto.class))})
-  @Tag(name = "sgobjectstorage")
   @Operation(summary = "List sgobjectstorages", description = """
       List sgobjectstorages and read values from the referenced secrets.
 
@@ -72,7 +89,6 @@ public class ObjectStorageResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ObjectStorageDto.class))})
-  @Tag(name = "sgobjectstorage")
   @Operation(summary = "Create a sgobjectstorages", description = """
       Create a sgobjectstorages.
        If values are provided referenced secrets are created/patched or a secret named as
@@ -97,7 +113,6 @@ public class ObjectStorageResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ObjectStorageDto.class))})
-  @Tag(name = "sgobjectstorage")
   @Operation(summary = "Update a sgobjectstorages", description = """
       Update a sgobjectstorages.
        If values are provided referenced secrets are created/patched or a secret named as
@@ -119,7 +134,6 @@ public class ObjectStorageResource
   }
 
   @APIResponse(responseCode = "200", description = "OK")
-  @Tag(name = "sgobjectstorage")
   @Operation(summary = "Delete a sgobjectstorages", description = """
       Delete a sgobjectstorages.
        If a secret named as the sgbackupconfig with `-secrets` suffix is found,

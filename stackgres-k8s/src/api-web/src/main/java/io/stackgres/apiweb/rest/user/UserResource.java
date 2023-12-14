@@ -23,7 +23,7 @@ import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.config.WebApiProperty;
 import io.stackgres.apiweb.dto.user.UserDto;
 import io.stackgres.apiweb.dto.user.UserRoleRef;
-import io.stackgres.apiweb.rest.utils.CommonApiResponses;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.transformer.UserTransformer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.resource.ResourceFinder;
@@ -50,6 +50,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("users")
 @RequestScoped
 @Authenticated
+@Tag(name = "user")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class UserResource {
 
   private String namespace;
@@ -99,7 +116,6 @@ public class UserResource {
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = UserDto.class))})
-  @Tag(name = "user")
   @Operation(summary = "List users", description = """
       List users.
 
@@ -110,7 +126,6 @@ public class UserResource {
       * clusterrolebinding list
       """)
   @GET
-  @CommonApiResponses
   public List<UserDto> list() {
     var roleBindings = roleBindingScanner.findByLabels(
         Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
@@ -129,7 +144,6 @@ public class UserResource {
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = UserDto.class))})
-  @Tag(name = "user")
   @Operation(summary = "Create a user", description = """
       Create a user.
 
@@ -144,7 +158,6 @@ public class UserResource {
       * clusterrolebinding update
       """)
   @POST
-  @CommonApiResponses
   public UserDto create(@Valid UserDto resource, @Nullable Boolean dryRun) {
     if (resource.getMetadata() != null) {
       resource.getMetadata().setNamespace(namespace);
@@ -171,7 +184,6 @@ public class UserResource {
   }
 
   @APIResponse(responseCode = "200", description = "OK")
-  @Tag(name = "user")
   @Operation(summary = "Delete a user", description = """
       Delete a user.
 
@@ -186,7 +198,6 @@ public class UserResource {
       * clusterrolebinding delete
       """)
   @DELETE
-  @CommonApiResponses
   public void delete(@Valid UserDto resource, @Nullable Boolean dryRun) {
     if (resource.getMetadata() != null) {
       resource.getMetadata().setNamespace(namespace);
@@ -218,7 +229,6 @@ public class UserResource {
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = UserDto.class))})
-  @Tag(name = "user")
   @Operation(summary = "Update a user", description = """
       Update a user.
 
@@ -236,7 +246,6 @@ public class UserResource {
       * clusterrolebinding delete
       """)
   @PUT
-  @CommonApiResponses
   public UserDto update(@Valid UserDto resource, @Nullable Boolean dryRun) {
     if (resource.getMetadata() != null) {
       resource.getMetadata().setNamespace(namespace);

@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.event.EventDto;
 import io.stackgres.apiweb.dto.event.ObjectReference;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -41,6 +42,23 @@ import org.jooq.lambda.Seq;
 @Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgclusters")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgcluster")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class NamespacedClusterEventsResource {
 
   private final ResourceScanner<EventDto> scanner;
@@ -57,7 +75,6 @@ public class NamespacedClusterEventsResource {
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = EventDto.class))})
-  @Tag(name = "sgcluster")
   @Operation(summary = "Get events related to an sgcluster", description = """
       Get events related to an sgcluster including `StatefulSet`, `Pod`s and `SGDbOps`.
 
@@ -66,7 +83,6 @@ public class NamespacedClusterEventsResource {
       * events list
       * sgdbops list
       """)
-  @CommonApiResponses
   @GET
   @Path("{name}/events")
   public List<EventDto> list(@PathParam("namespace") String namespace,

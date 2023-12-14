@@ -9,6 +9,7 @@ import java.util.List;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.config.ConfigDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractCustomResourceService;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import jakarta.annotation.Nullable;
@@ -25,13 +26,29 @@ import org.jetbrains.annotations.NotNull;
 @Path("sgconfigs")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgconfig")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class ConfigResource extends AbstractCustomResourceService<ConfigDto, StackGresConfig> {
 
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = ConfigDto.class))})
-  @Tag(name = "sgconfig")
   @Operation(summary = "List sgconfigs", description = """
       List sgconfigs and read values from the referenced secrets.
 
@@ -48,7 +65,6 @@ public class ConfigResource extends AbstractCustomResourceService<ConfigDto, Sta
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ConfigDto.class))})
-  @Tag(name = "sgconfig")
   @Operation(summary = "Create a sgconfigs", description = """
         Create a sgconfigs.
 
@@ -65,7 +81,6 @@ public class ConfigResource extends AbstractCustomResourceService<ConfigDto, Sta
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ConfigDto.class))})
-  @Tag(name = "sgconfig")
   @Operation(summary = "Update a sgconfigs", description = """
       Update a sgconfigs.
 
@@ -79,7 +94,6 @@ public class ConfigResource extends AbstractCustomResourceService<ConfigDto, Sta
   }
 
   @APIResponse(responseCode = "200", description = "OK")
-  @Tag(name = "sgconfig")
   @Operation(summary = "Delete a sgconfigs", description = """
       Delete a sgconfigs.
 

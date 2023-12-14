@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.event.EventDto;
 import io.stackgres.apiweb.dto.event.ObjectReference;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.ResourceScanner;
 import jakarta.enterprise.context.RequestScoped;
@@ -36,6 +37,23 @@ import org.jooq.lambda.Seq;
 @Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgdbops")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgdbops")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class NamespacedDbOpsEventsResource {
 
   private final ResourceScanner<EventDto> scanner;
@@ -55,7 +73,6 @@ public class NamespacedDbOpsEventsResource {
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = EventDto.class))})
-  @Tag(name = "sgdbops")
   @Operation(summary = "Get events related to a sgdbops", description = """
       Get events related to a sgdbops including `Pod`s and `Job`s.
 

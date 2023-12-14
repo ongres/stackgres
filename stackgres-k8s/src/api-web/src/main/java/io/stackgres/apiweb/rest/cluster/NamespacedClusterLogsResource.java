@@ -21,6 +21,7 @@ import io.stackgres.apiweb.dto.cluster.ClusterDistributedLogs;
 import io.stackgres.apiweb.dto.cluster.ClusterDto;
 import io.stackgres.apiweb.dto.cluster.ClusterLogEntryDto;
 import io.stackgres.apiweb.dto.cluster.ClusterSpec;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.common.resource.CustomResourceFinder;
 import jakarta.enterprise.context.RequestScoped;
@@ -43,6 +44,23 @@ import org.jooq.lambda.tuple.Tuple2;
 @Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgclusters")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgcluster")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class NamespacedClusterLogsResource {
 
   private final CustomResourceFinder<ClusterDto> clusterFinder;
@@ -62,7 +80,6 @@ public class NamespacedClusterLogsResource {
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = ClusterLogEntryDto.class))})
-  @Tag(name = "sgcluster")
   @Operation(summary = "Get a sgcluster's logs", description = """
       Get a sgcluster's logs.
 
@@ -71,7 +88,6 @@ public class NamespacedClusterLogsResource {
       * sgclusters get
       * pod list
       """)
-  @CommonApiResponses
   @GET
   @Path("{name}/logs")
   public List<ClusterLogEntryDto> logs(

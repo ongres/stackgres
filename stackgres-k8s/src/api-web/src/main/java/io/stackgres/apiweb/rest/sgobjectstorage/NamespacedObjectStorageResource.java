@@ -11,6 +11,7 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.objectstorage.ObjectStorageDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractNamespacedRestServiceDependency;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
@@ -30,6 +31,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgobjectstorages")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgobjectstorage")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class NamespacedObjectStorageResource
     extends AbstractNamespacedRestServiceDependency<ObjectStorageDto, StackGresObjectStorage> {
 
@@ -63,7 +81,6 @@ public class NamespacedObjectStorageResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ObjectStorageDto.class))})
-  @Tag(name = "sgobjectstorage")
   @Operation(summary = "Get a sgobjectstorages", description = """
       Get a sgobjectstorages and read values from the referenced secrets.
 

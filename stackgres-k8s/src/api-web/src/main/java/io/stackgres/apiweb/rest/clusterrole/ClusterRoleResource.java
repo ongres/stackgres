@@ -12,6 +12,7 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRole;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.clusterrole.ClusterRoleDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractResourceService;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.resource.ResourceScanner;
@@ -30,6 +31,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("clusterroles")
 @RequestScoped
 @Authenticated
+@Tag(name = "clusterrole")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class ClusterRoleResource
     extends AbstractResourceService<ClusterRoleDto, ClusterRole> {
 
@@ -44,7 +62,6 @@ public class ClusterRoleResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = ClusterRoleDto.class))})
-  @Tag(name = "clusterrole")
   @Operation(summary = "List clusterroles", description = """
       List clusterroles.
 
@@ -66,7 +83,6 @@ public class ClusterRoleResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ClusterRoleDto.class))})
-  @Tag(name = "clusterrole")
   @Operation(summary = "Create a cluster role", description = """
       Create a cluster role.
 
@@ -80,7 +96,6 @@ public class ClusterRoleResource
   }
 
   @APIResponse(responseCode = "200", description = "OK")
-  @Tag(name = "clusterrole")
   @Operation(summary = "Delete a cluster role", description = """
       Delete a cluster role.
 
@@ -97,7 +112,6 @@ public class ClusterRoleResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ClusterRoleDto.class))})
-  @Tag(name = "clusterrole")
   @Operation(summary = "Update a cluster role", description = """
       Update a cluster role.
 

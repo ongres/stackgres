@@ -9,6 +9,7 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.quarkus.security.Authenticated;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.common.resource.ResourceScanner;
 import jakarta.enterprise.context.RequestScoped;
@@ -25,6 +26,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("storageclasses")
 @RequestScoped
 @Authenticated
+@Tag(name = "misc")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class StorageClassResource {
 
   private ResourceScanner<StorageClass> storageClassScanner;
@@ -38,7 +56,6 @@ public class StorageClassResource {
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.STRING))})
-  @Tag(name = "misc")
   @Operation(summary = "List storageclasss", description = """
       List storageclasss.
 
@@ -46,7 +63,6 @@ public class StorageClassResource {
 
       * storageclasss list
       """)
-  @CommonApiResponses
   @GET
   public List<String> get() {
     return storageClassScanner.findResources().stream()
