@@ -5,7 +5,7 @@
 
 package io.stackgres.apiweb.rest.utils;
 
-import io.stackgres.apiweb.rest.NamespacedClusterPgResource;
+import io.stackgres.apiweb.rest.cluster.NamespacedClusterPgResource;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.jooq.DSLContext;
 import org.jooq.Select;

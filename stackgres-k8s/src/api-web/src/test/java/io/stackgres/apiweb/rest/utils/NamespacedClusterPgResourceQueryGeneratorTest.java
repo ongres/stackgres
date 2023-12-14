@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.util.Properties;
 import java.util.stream.Stream;
 
-import io.stackgres.apiweb.rest.NamespacedClusterPgResource;
+import io.stackgres.apiweb.rest.cluster.NamespacedClusterPgResource;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DefaultDSLContext;
