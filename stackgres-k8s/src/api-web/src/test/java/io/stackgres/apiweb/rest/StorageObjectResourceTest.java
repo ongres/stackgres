@@ -20,7 +20,6 @@ import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.dto.objectstorage.ObjectStorageDto;
-import io.stackgres.apiweb.rest.sgbackupconfig.BackupConfigResourceUtil;
 import io.stackgres.apiweb.rest.sgobjectstorage.NamespacedObjectStorageResource;
 import io.stackgres.apiweb.rest.sgobjectstorage.ObjectStorageResource;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;

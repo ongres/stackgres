@@ -13,6 +13,7 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.apiweb.dto.pgstat.PostgresStatDto;
+import io.stackgres.apiweb.rest.cluster.NamespacedClusterPgResource;
 import io.stackgres.apiweb.rest.utils.NamespacedClusterPgResourceQueryGenerator;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
