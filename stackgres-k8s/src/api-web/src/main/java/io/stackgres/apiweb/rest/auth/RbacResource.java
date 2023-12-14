@@ -30,8 +30,8 @@ import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.stackgres.apiweb.app.KubernetesClientProvider;
 import io.stackgres.apiweb.dto.PermissionsListDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.misc.NamespaceResource;
-import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -65,9 +65,29 @@ import org.slf4j.LoggerFactory;
 @Path("auth/rbac")
 @RequestScoped
 @Authenticated
+@Tag(name = "auth")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class RbacResource {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RbacResource.class);
+
+  private static final List<String> NAMESPACED_RESOURCES =  getResourcesUnnamespaced();
+  private static final List<String> UNNAMESPACED_RESOURCES = getResourcesUnnamespaced();
 
   @Inject
   SecurityIdentity identity;
@@ -86,7 +106,6 @@ public class RbacResource {
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = SubjectAccessReviewStatus.class))})
-  @Tag(name = "auth")
   @Operation(summary = "Can-i <verb> over <resource>", description = """
       Check if an user can do specified `<verb>` on specified `<resource>`.
 
@@ -94,7 +113,6 @@ public class RbacResource {
 
       None
       """)
-  @CommonApiResponses
   @GET
   @Path("can-i/{verb}/{resource}")
   public Response verb(@PathParam("verb") String verb, @PathParam("resource") String resource,
@@ -134,7 +152,6 @@ public class RbacResource {
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = PermissionsListDto.class))})
-  @Tag(name = "auth")
   @Operation(summary = "Can-i list", description = """
       Return a list of namespaced and unnamespaced permissions a user has granted.
 
@@ -142,7 +159,6 @@ public class RbacResource {
 
       None
       """)
-  @CommonApiResponses
   @GET
   @Path("can-i")
   public Response caniList() {
@@ -160,7 +176,7 @@ public class RbacResource {
       KubernetesClient client, String user) {
     Map<String, List<String>> resourceUnamespace = new HashMap<>();
 
-    for (String rsUnnamespaced : getResourcesUnnamespaced()) {
+    for (String rsUnnamespaced : UNNAMESPACED_RESOURCES) {
       String[] resource = rsUnnamespaced.split("\\.", 2);
       List<String> allowed = accessReview(client, user, null, resource[0],
           resource.length == 2 ? resource[1] : "", getVerbs());
@@ -176,7 +192,7 @@ public class RbacResource {
 
     for (String ns : namespaces.get()) {
       Map<String, List<String>> resourceNamespace = new HashMap<>();
-      for (String rsNamespaced : getResourcesNamespaced()) {
+      for (String rsNamespaced : NAMESPACED_RESOURCES) {
         String[] resource = rsNamespaced.split("\\.", 2);
         List<String> allowed = accessReview(client, user, ns, resource[0],
             resource.length == 2 ? resource[1] : "", getVerbs());
@@ -188,7 +204,7 @@ public class RbacResource {
     return listNamespaced;
   }
 
-  public List<String> getResourcesUnnamespaced() {
+  public static final List<String> getResourcesUnnamespaced() {
     return List.of(
         HasMetadata.getFullResourceName(Namespace.class),
         HasMetadata.getFullResourceName(StorageClass.class),
@@ -196,7 +212,7 @@ public class RbacResource {
         HasMetadata.getFullResourceName(ClusterRoleBinding.class));
   }
 
-  public List<String> getResourcesNamespaced() {
+  public static final List<String> getResourcesNamespaced() {
     return List.of(
         HasMetadata.getFullResourceName(Secret.class),
         HasMetadata.getFullResourceName(ConfigMap.class),

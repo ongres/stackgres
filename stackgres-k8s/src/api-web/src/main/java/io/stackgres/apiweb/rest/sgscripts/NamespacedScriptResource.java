@@ -11,6 +11,7 @@ import java.util.Optional;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.script.ScriptDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractNamespacedRestServiceDependency;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
@@ -30,6 +31,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgscripts")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgscripts")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class NamespacedScriptResource
     extends AbstractNamespacedRestServiceDependency<ScriptDto, StackGresScript> {
 
@@ -57,7 +75,6 @@ public class NamespacedScriptResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ScriptDto.class))})
-  @Tag(name = "sgscripts")
   @Operation(summary = "Get a sgscripts", description = """
       Get a sgscripts.
 

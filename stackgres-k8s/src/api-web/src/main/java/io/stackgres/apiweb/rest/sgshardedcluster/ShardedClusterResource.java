@@ -34,6 +34,7 @@ import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterInfo;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterShard;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterShards;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterSpec;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractCustomResourceService;
 import io.stackgres.apiweb.rest.sgscripts.ScriptResource;
 import io.stackgres.apiweb.transformer.ScriptTransformer;
@@ -68,6 +69,23 @@ import org.jooq.lambda.tuple.Tuple4;
 @Path("sgshardedclusters")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgshardedcluster")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class ShardedClusterResource
     extends AbstractCustomResourceService<ShardedClusterDto, StackGresShardedCluster> {
 
@@ -109,7 +127,6 @@ public class ShardedClusterResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = ShardedClusterDto.class))})
-  @Tag(name = "sgshardedcluster")
   @Operation(summary = "List sgshardedclusters", description = """
       List sgshardedclusters.
 
@@ -132,7 +149,6 @@ public class ShardedClusterResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ShardedClusterDto.class))})
-  @Tag(name = "sgshardedcluster")
   @Operation(summary = "Create a sgshardedclusters", description = """
       Create a sgshardedclusters.
 
@@ -154,7 +170,6 @@ public class ShardedClusterResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ShardedClusterDto.class))})
-  @Tag(name = "sgshardedcluster")
   @Operation(summary = "Update a sgshardedclusters", description = """
       Update a sgshardedclusters.
 
@@ -173,7 +188,6 @@ public class ShardedClusterResource
   }
 
   @APIResponse(responseCode = "200", description = "OK")
-  @Tag(name = "sgshardedcluster")
   @Operation(summary = "Delete a sgshardedclusters", description = """
       Delete a sgshardedclusters.
 

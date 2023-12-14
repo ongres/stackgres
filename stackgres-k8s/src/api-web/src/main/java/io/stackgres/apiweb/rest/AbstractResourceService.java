@@ -11,7 +11,6 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.ResourceDto;
-import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.apiweb.transformer.ResourceTransformer;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
@@ -52,7 +51,6 @@ public abstract class AbstractResourceService
    * @throws RuntimeException if no custom resource of type {@code <R>} is defined
    */
   @GET
-  @CommonApiResponses
   @Override
   public List<T> list() {
     return Seq.seq(scanner.findResources())
@@ -66,7 +64,6 @@ public abstract class AbstractResourceService
    * @param resource the resource to create
    */
   @POST
-  @CommonApiResponses
   @Override
   public T create(@Valid @NotNull T resource, @Nullable @QueryParam("dryRun") Boolean dryRun) {
     return transformer.toDto(
@@ -80,7 +77,6 @@ public abstract class AbstractResourceService
    * @param resource the resource to delete
    */
   @DELETE
-  @CommonApiResponses
   @Override
   public void delete(@Valid @NotNull T resource, @Nullable @QueryParam("dryRun") Boolean dryRun) {
     writer.delete(transformer.toCustomResource(resource, null),
@@ -93,7 +89,6 @@ public abstract class AbstractResourceService
    * @param resource the resource to delete
    */
   @PUT
-  @CommonApiResponses
   @Override
   public T update(@Valid @NotNull T resource, @Nullable @QueryParam("dryRun") Boolean dryRun) {
     R transformedResource = transformer.toCustomResource(

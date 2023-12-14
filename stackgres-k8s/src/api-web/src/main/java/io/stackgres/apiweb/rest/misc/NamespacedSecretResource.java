@@ -9,6 +9,7 @@ import java.util.List;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.secret.SecretDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.common.resource.ResourceScanner;
 import jakarta.enterprise.context.RequestScoped;
@@ -25,6 +26,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 @Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/secrets")
 @RequestScoped
+@Tag(name = "misc")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class NamespacedSecretResource {
 
   private final ResourceScanner<SecretDto> scanner;
@@ -38,7 +56,6 @@ public class NamespacedSecretResource {
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = SecretDto.class))})
-  @Tag(name = "misc")
   @Operation(summary = "List secrets", description = """
       List secrets.
 
@@ -46,7 +63,6 @@ public class NamespacedSecretResource {
 
       * secrets list
       """)
-  @CommonApiResponses
   @Authenticated
   @GET
   public List<SecretDto> list(@PathParam("namespace") String namespace) {

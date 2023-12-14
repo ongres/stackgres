@@ -10,6 +10,7 @@ import java.util.Objects;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.profile.ProfileDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractCustomResourceServiceDependency;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
@@ -26,6 +27,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("sginstanceprofiles")
 @RequestScoped
 @Authenticated
+@Tag(name = "sginstanceprofile")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class ProfileResource
     extends AbstractCustomResourceServiceDependency<ProfileDto, StackGresProfile> {
 
@@ -41,7 +59,6 @@ public class ProfileResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = ProfileDto.class))})
-  @Tag(name = "sginstanceprofile")
   @Operation(summary = "List sginstanceprofiles", description = """
       List sginstanceprofiles.
 
@@ -58,7 +75,6 @@ public class ProfileResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ProfileDto.class))})
-  @Tag(name = "sginstanceprofile")
   @Operation(summary = "Create a sginstanceprofile", description = """
       Create a sginstanceprofile.
 
@@ -72,7 +88,6 @@ public class ProfileResource
   }
 
   @APIResponse(responseCode = "200", description = "OK")
-  @Tag(name = "sginstanceprofile")
   @Operation(summary = "Delete a sginstanceprofile", description = """
       Delete a sginstanceprofile.
 
@@ -89,7 +104,6 @@ public class ProfileResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ProfileDto.class))})
-  @Tag(name = "sginstanceprofile")
   @Operation(summary = "Update a sginstanceprofile", description = """
       Update a sginstanceprofile.
 

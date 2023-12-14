@@ -11,6 +11,7 @@ import java.util.Map;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.role.RoleDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractResourceService;
 import io.stackgres.common.StackGresContext;
 import jakarta.annotation.Nullable;
@@ -27,6 +28,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("roles")
 @RequestScoped
 @Authenticated
+@Tag(name = "role")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class RoleResource
     extends AbstractResourceService<RoleDto, Role> {
 
@@ -34,7 +52,6 @@ public class RoleResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = RoleDto.class))})
-  @Tag(name = "role")
   @Operation(summary = "List roles", description = """
       List roles.
 
@@ -56,7 +73,6 @@ public class RoleResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = RoleDto.class))})
-  @Tag(name = "role")
   @Operation(summary = "Create a role", description = """
       Create a role.
 
@@ -70,7 +86,6 @@ public class RoleResource
   }
 
   @APIResponse(responseCode = "200", description = "OK")
-  @Tag(name = "role")
   @Operation(summary = "Delete a role", description = """
       Delete a role.
 
@@ -87,7 +102,6 @@ public class RoleResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = RoleDto.class))})
-  @Tag(name = "role")
   @Operation(summary = "Update a role", description = """
       Update a role.
 

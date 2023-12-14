@@ -10,7 +10,6 @@ import java.util.List;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.ResourceDto;
-import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.apiweb.transformer.DependencyResourceTransformer;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -49,7 +48,6 @@ public abstract class AbstractNamespacedRestServiceDependency
    */
   @GET
   @Path("{name}")
-  @CommonApiResponses
   @Override
   public T get(@PathParam("namespace") String namespace, @PathParam("name") String name) {
     List<StackGresCluster> clusters = clusterScanner.getResources();

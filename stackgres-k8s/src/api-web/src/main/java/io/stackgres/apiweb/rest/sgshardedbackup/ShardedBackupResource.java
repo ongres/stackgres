@@ -9,6 +9,7 @@ import java.util.List;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.shardedbackup.ShardedBackupDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractCustomResourceService;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import jakarta.annotation.Nullable;
@@ -24,6 +25,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("sgshardedbackups")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgshardedbackup")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class ShardedBackupResource
     extends AbstractCustomResourceService<ShardedBackupDto, StackGresShardedBackup> {
 
@@ -31,7 +49,6 @@ public class ShardedBackupResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = ShardedBackupDto.class))})
-  @Tag(name = "sgshardedbackup")
   @Operation(summary = "List sgshardedbackups", description = """
       List sgshardedbackups.
 
@@ -48,7 +65,6 @@ public class ShardedBackupResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ShardedBackupDto.class))})
-  @Tag(name = "sgshardedbackup")
   @Operation(summary = "Create a sgshardedbackup", description = """
       Create a sgshardedbackup.
 
@@ -62,7 +78,6 @@ public class ShardedBackupResource
   }
 
   @APIResponse(responseCode = "200", description = "OK")
-  @Tag(name = "sgshardedbackup")
   @Operation(summary = "Delete a sgshardedbackup", description = """
       Delete a sgshardedbackup.
 
@@ -79,7 +94,6 @@ public class ShardedBackupResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ShardedBackupDto.class))})
-  @Tag(name = "sgshardedbackup")
   @Operation(summary = "Update a sgshardedbackup", description = """
       Update a sgshardedbackup.
 

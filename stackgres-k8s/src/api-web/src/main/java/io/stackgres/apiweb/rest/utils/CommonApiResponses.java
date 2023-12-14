@@ -33,7 +33,7 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
         mediaType = "application/json",
         schema = @Schema(implementation = ErrorResponse.class))})
 @Inherited
-@Target({ElementType.METHOD})
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CommonApiResponses {
 

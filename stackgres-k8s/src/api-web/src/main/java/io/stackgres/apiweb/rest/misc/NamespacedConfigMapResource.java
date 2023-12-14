@@ -9,6 +9,7 @@ import java.util.List;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.configmap.ConfigMapDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.common.resource.ResourceScanner;
 import jakarta.enterprise.context.RequestScoped;
@@ -26,6 +27,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/configmaps")
 @RequestScoped
 @Authenticated
+@Tag(name = "misc")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class NamespacedConfigMapResource {
 
   private ResourceScanner<ConfigMapDto> scanner;
@@ -39,7 +57,6 @@ public class NamespacedConfigMapResource {
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = ConfigMapDto.class))})
-  @Tag(name = "misc")
   @Operation(summary = "List configmaps", description = """
       List configmaps.
 
@@ -47,7 +64,6 @@ public class NamespacedConfigMapResource {
 
       * configmaps list
       """)
-  @CommonApiResponses
   @GET
   public List<ConfigMapDto> list(@PathParam("namespace") String namespace) {
     return scanner.findResourcesInNamespace(namespace);

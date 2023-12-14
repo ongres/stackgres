@@ -9,18 +9,15 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import jakarta.validation.constraints.NotBlank;
 
 @JsonInclude(Include.NON_DEFAULT)
 @RegisterForReflection
 public class TokenResponse {
 
   @JsonProperty(value = "access_token", required = true)
-  @NotBlank
   private String accessToken;
 
   @JsonProperty(value = "token_type", required = true)
-  @NotBlank
   private String tokenType;
 
   @JsonProperty(value = "expires_in", required = true)

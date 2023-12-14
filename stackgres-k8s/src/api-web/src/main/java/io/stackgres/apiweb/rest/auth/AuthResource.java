@@ -10,7 +10,7 @@ import java.util.Map;
 
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.AuthenticationFailedException;
-import io.stackgres.apiweb.rest.utils.CommonApiResponses;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.security.AuthConfig;
 import io.stackgres.apiweb.security.SecretVerification;
 import io.stackgres.apiweb.security.TokenResponse;
@@ -37,9 +37,28 @@ import org.slf4j.LoggerFactory;
 
 @Path("auth")
 @RequestScoped
+@Tag(name = "auth")
+@APIResponse(responseCode = "400", description = "Bad Request",
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
 public class AuthResource {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AuthResource.class);
+
+  private static final CacheControl NO_CACHE = noCache();
 
   @Inject
   SecretVerification verify;
@@ -53,8 +72,8 @@ public class AuthResource {
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
           mediaType = "application/json",
-          schema = @Schema(implementation = TokenResponse.class))})
-  @Tag(name = "auth")
+          schema = @Schema(implementation = TokenResponse.class,
+              description = "The JWT bearer token that is needed to authenticate a user request."))})
   @Operation(summary = "Login", description = """
       Log in a user and returns a JWT token.
 
@@ -62,7 +81,6 @@ public class AuthResource {
 
       None
       """)
-  @CommonApiResponses
   @POST
   @Path("login")
   public Response login(@Valid UserPassword credentials) {
@@ -78,18 +96,17 @@ public class AuthResource {
       tokenResponse.setExpiresIn(duration);
 
       return Response.ok(tokenResponse)
-          .cacheControl(noCache())
+          .cacheControl(NO_CACHE)
           .build();
     } catch (AuthenticationFailedException e) {
       return Response.status(Status.FORBIDDEN)
-          .cacheControl(noCache())
+          .cacheControl(NO_CACHE)
           .build();
     }
   }
 
   @APIResponse(responseCode = "200", description = "OK")
   @APIResponse(responseCode = "307", description = "Redirect")
-  @Tag(name = "auth")
   @Operation(summary = "External authentication URL", description = """
       Return the URL for external authentication.
 
@@ -97,18 +114,16 @@ public class AuthResource {
 
       None
       """)
-  @CommonApiResponses
   @GET
   @Path("external")
   @Authenticated
   public Response externalRedirect(@QueryParam("redirectTo") URI redirectTo) {
     return Response.temporaryRedirect(redirectTo)
-        .cacheControl(noCache())
+        .cacheControl(NO_CACHE)
         .build();
   }
 
   @APIResponse(responseCode = "200", description = "OK")
-  @Tag(name = "auth")
   @Operation(summary = "Type of authentication", description = """
       Return the configured auth mechanism type.
 
@@ -116,17 +131,16 @@ public class AuthResource {
 
       None
       """)
-  @CommonApiResponses
   @GET
   @Path("type")
   public Response type(@QueryParam("redirectTo") URI redirectTo) {
     return Response.ok(Map.of("type", config.type()))
-        .cacheControl(noCache())
+        .cacheControl(NO_CACHE)
         .header("WWW-Authenticate", config.type())
         .build();
   }
 
-  private CacheControl noCache() {
+  private static final CacheControl noCache() {
     CacheControl cc = new CacheControl();
     cc.setPrivate(true);
     cc.setNoCache(true);

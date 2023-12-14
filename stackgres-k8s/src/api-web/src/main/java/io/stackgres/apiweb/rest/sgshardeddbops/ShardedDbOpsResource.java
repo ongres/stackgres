@@ -9,6 +9,7 @@ import java.util.List;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.shardeddbops.ShardedDbOpsDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractCustomResourceService;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import jakarta.annotation.Nullable;
@@ -24,6 +25,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("sgshardeddbops")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgshardeddbops")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class ShardedDbOpsResource
     extends AbstractCustomResourceService<ShardedDbOpsDto, StackGresShardedDbOps> {
 
@@ -31,7 +49,6 @@ public class ShardedDbOpsResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = ShardedDbOpsDto.class))})
-  @Tag(name = "sgshardeddbops")
   @Operation(summary = "List sgshardeddbops", description = """
       List sgshardeddbops.
 
@@ -48,7 +65,6 @@ public class ShardedDbOpsResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ShardedDbOpsDto.class))})
-  @Tag(name = "sgshardeddbops")
   @Operation(summary = "Create a sgshardeddbops", description = """
       Create a sgshardeddbops.
 
@@ -62,7 +78,6 @@ public class ShardedDbOpsResource
   }
 
   @APIResponse(responseCode = "200", description = "OK")
-  @Tag(name = "sgshardeddbops")
   @Operation(summary = "Delete a sgshardeddbops", description = """
       Delete a sgshardeddbops.
 
@@ -79,7 +94,6 @@ public class ShardedDbOpsResource
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ShardedDbOpsDto.class))})
-  @Tag(name = "sgshardeddbops")
   @Operation(summary = "Update a sgshardeddbops", description = """
       Update a sgshardeddbops.
 

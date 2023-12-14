@@ -7,6 +7,7 @@ package io.stackgres.apiweb.rest.sgshardedcluster;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterStatsDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.common.resource.CustomResourceFinder;
 import jakarta.enterprise.context.RequestScoped;
@@ -24,6 +25,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgshardedclusters")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgshardedcluster")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class NamespacedShardedClusterStatsResource {
 
   private final CustomResourceFinder<ShardedClusterStatsDto> shardedClusterResourceStatsFinder;
@@ -41,7 +59,6 @@ public class NamespacedShardedClusterStatsResource {
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ShardedClusterStatsDto.class))})
-  @Tag(name = "sgshardedcluster")
   @Operation(summary = "Get a sgshardedcluster's stats", description = """
       Get a sgshardedcluster's stats.
 
@@ -51,7 +68,6 @@ public class NamespacedShardedClusterStatsResource {
       * pod list
       * persistentvolume list
       """)
-  @CommonApiResponses
   @GET
   @Path("{name}/stats")
   public ShardedClusterStatsDto stats(@PathParam("namespace") String namespace,

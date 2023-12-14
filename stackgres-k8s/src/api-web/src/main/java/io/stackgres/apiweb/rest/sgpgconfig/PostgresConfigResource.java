@@ -10,6 +10,7 @@ import java.util.Objects;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.pgconfig.PostgresConfigDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.AbstractCustomResourceServiceDependency;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -26,6 +27,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("sgpgconfigs")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgpgconfig")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class PostgresConfigResource extends
     AbstractCustomResourceServiceDependency<PostgresConfigDto, StackGresPostgresConfig> {
 
@@ -41,7 +59,6 @@ public class PostgresConfigResource extends
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = PostgresConfigDto.class))})
-  @Tag(name = "sgpgconfig")
   @Operation(summary = "List sgpgconfigs", description = """
       List sgpgconfigs.
 
@@ -58,7 +75,6 @@ public class PostgresConfigResource extends
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = PostgresConfigDto.class))})
-  @Tag(name = "sgpgconfig")
   @Operation(summary = "Create a sgpgconfig", description = """
       Create a sgpgconfig.
 
@@ -72,7 +88,6 @@ public class PostgresConfigResource extends
   }
 
   @APIResponse(responseCode = "200", description = "OK")
-  @Tag(name = "sgpgconfig")
   @Operation(summary = "Delete a sgpgconfig", description = """
       Delete a sgpgconfig.
 
@@ -89,7 +104,6 @@ public class PostgresConfigResource extends
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = PostgresConfigDto.class))})
-  @Tag(name = "sgpgconfig")
   @Operation(summary = "Update a sgpgconfig", description = """
       Update a sgpgconfig.
 

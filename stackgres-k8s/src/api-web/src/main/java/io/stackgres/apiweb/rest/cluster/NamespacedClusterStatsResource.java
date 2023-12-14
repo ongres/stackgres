@@ -7,6 +7,7 @@ package io.stackgres.apiweb.rest.cluster;
 
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
+import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import io.stackgres.common.resource.CustomResourceFinder;
 import jakarta.enterprise.context.RequestScoped;
@@ -24,6 +25,23 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgclusters")
 @RequestScoped
 @Authenticated
+@Tag(name = "sgcluster")
+@APIResponse(responseCode = "400", description = "Bad Request",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "401", description = "Unauthorized",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "403", description = "Forbidden",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
+@APIResponse(responseCode = "500", description = "Internal Server Error",
+content = {@Content(
+    mediaType = "application/json",
+    schema = @Schema(implementation = ErrorResponse.class))})
 public class NamespacedClusterStatsResource {
 
   private final CustomResourceFinder<ClusterStatsDto> clusterResourceStatsFinder;
@@ -41,7 +59,6 @@ public class NamespacedClusterStatsResource {
       content = {@Content(
           mediaType = "application/json",
           schema = @Schema(implementation = ClusterStatsDto.class))})
-  @Tag(name = "sgcluster")
   @Operation(summary = "Get a sgcluster's stats", description = """
       Get a sgcluster's stats.
 
@@ -53,7 +70,6 @@ public class NamespacedClusterStatsResource {
       * pod/exec create
       * persistentvolume list
       """)
-  @CommonApiResponses
   @GET
   @Path("{name}/stats")
   public ClusterStatsDto stats(@PathParam("namespace") String namespace,
