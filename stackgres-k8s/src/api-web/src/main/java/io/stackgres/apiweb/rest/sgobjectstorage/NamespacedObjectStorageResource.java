@@ -33,29 +33,29 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Authenticated
 @Tag(name = "sgobjectstorage")
 @APIResponse(responseCode = "400", description = "Bad Request",
-content = {@Content(
-    mediaType = "application/json",
-    schema = @Schema(implementation = ErrorResponse.class))})
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "401", description = "Unauthorized",
-content = {@Content(
-    mediaType = "application/json",
-    schema = @Schema(implementation = ErrorResponse.class))})
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "403", description = "Forbidden",
-content = {@Content(
-    mediaType = "application/json",
-    schema = @Schema(implementation = ErrorResponse.class))})
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "500", description = "Internal Server Error",
-content = {@Content(
-    mediaType = "application/json",
-    schema = @Schema(implementation = ErrorResponse.class))})
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
 public class NamespacedObjectStorageResource
     extends AbstractNamespacedRestServiceDependency<ObjectStorageDto, StackGresObjectStorage> {
 
   @Inject
-  public  ObjectStorageResource backupConfigResource;
+  public ObjectStorageResource backupConfigResource;
 
   @Inject
-  public  ResourceFinder<Secret> secretFinder;
+  public ResourceFinder<Secret> secretFinder;
 
   @Override
   public boolean belongsToCluster(StackGresObjectStorage resource, StackGresCluster cluster) {

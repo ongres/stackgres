@@ -67,26 +67,26 @@ import org.slf4j.LoggerFactory;
 @Authenticated
 @Tag(name = "auth")
 @APIResponse(responseCode = "400", description = "Bad Request",
-content = {@Content(
-    mediaType = "application/json",
-    schema = @Schema(implementation = ErrorResponse.class))})
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "401", description = "Unauthorized",
-content = {@Content(
-    mediaType = "application/json",
-    schema = @Schema(implementation = ErrorResponse.class))})
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "403", description = "Forbidden",
-content = {@Content(
-    mediaType = "application/json",
-    schema = @Schema(implementation = ErrorResponse.class))})
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "500", description = "Internal Server Error",
-content = {@Content(
-    mediaType = "application/json",
-    schema = @Schema(implementation = ErrorResponse.class))})
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
 public class RbacResource {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RbacResource.class);
 
-  private static final List<String> NAMESPACED_RESOURCES =  getResourcesUnnamespaced();
+  private static final List<String> NAMESPACED_RESOURCES = getResourcesUnnamespaced();
   private static final List<String> UNNAMESPACED_RESOURCES = getResourcesUnnamespaced();
 
   @Inject
