@@ -8,7 +8,6 @@ package io.stackgres.apiweb.rest.misc;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.exception.ErrorResponse;
-import io.stackgres.apiweb.rest.utils.CommonApiResponses;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -26,21 +25,21 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Authenticated
 @Tag(name = "misc")
 @APIResponse(responseCode = "400", description = "Bad Request",
-content = {@Content(
-    mediaType = "application/json",
-    schema = @Schema(implementation = ErrorResponse.class))})
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "401", description = "Unauthorized",
-content = {@Content(
-    mediaType = "application/json",
-    schema = @Schema(implementation = ErrorResponse.class))})
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "403", description = "Forbidden",
-content = {@Content(
-    mediaType = "application/json",
-    schema = @Schema(implementation = ErrorResponse.class))})
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
 @APIResponse(responseCode = "500", description = "Internal Server Error",
-content = {@Content(
-    mediaType = "application/json",
-    schema = @Schema(implementation = ErrorResponse.class))})
+    content = {@Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = ErrorResponse.class))})
 public class KubernetesInfoResource {
 
   @Inject
