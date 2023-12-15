@@ -68,10 +68,10 @@ public class ScriptsConfigMutator implements ClusterMutator {
       resource.getStatus().getManagedSql().setScripts(new ArrayList<>());
     }
     resource.getStatus().getManagedSql().getScripts()
-        .removeIf(entry -> Objects.equals(0, entry.getId()));
+        .removeIf(entry -> Objects.equals(lastId + 1, entry.getId()));
     resource.getStatus().getManagedSql().getScripts()
         .add(0, new StackGresClusterManagedScriptEntryStatus());
-    resource.getStatus().getManagedSql().getScripts().get(0).setId(0);
+    resource.getStatus().getManagedSql().getScripts().get(0).setId(lastId + 1);
   }
 
   private void fillRequiredFields(StackGresCluster resource) {

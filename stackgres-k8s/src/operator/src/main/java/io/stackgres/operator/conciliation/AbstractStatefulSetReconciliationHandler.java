@@ -105,7 +105,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
 
   @Override
   public HasMetadata create(T context, HasMetadata resource) {
-    return concileSts(context, resource, (c, sts) -> updateStatefulSet(c, sts));
+    return concileSts(context, resource, (c, sts) -> createStatefulSet(c, sts));
   }
 
   @Override
@@ -134,6 +134,10 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
       throw new IllegalArgumentException("Resource must be a StatefulSet instance");
     }
     return (StatefulSet) resource;
+  }
+
+  private StatefulSet createStatefulSet(T context, StatefulSet requiredSts) {
+    return (StatefulSet) handler.create(context, requiredSts);
   }
 
   private StatefulSet updateStatefulSet(T context, StatefulSet requiredSts) {
