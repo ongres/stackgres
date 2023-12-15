@@ -7,6 +7,7 @@ package io.stackgres.apiweb.transformer;
 
 import java.util.Collection;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.apiweb.dto.extension.Extension;
@@ -74,7 +75,8 @@ public class ExtensionsTransformer {
             .grouped(Function.<StackGresExtensionMetadata>identity()
                 .andThen(StackGresExtensionMetadata::getVersion)
                 .andThen(StackGresExtensionVersion::getVersion))
-            .sorted(t -> t.v2.sorted().findFirst().orElseThrow())
+            .map(t -> t.map2(Stream::toList))
+            .sorted(t -> t.v2.stream().sorted().findFirst().orElseThrow())
             .map(Tuple2::v1)
             .toList());
     return transformation;
