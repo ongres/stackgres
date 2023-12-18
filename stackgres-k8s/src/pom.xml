@@ -304,6 +304,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${compiler-plugin.version}</version>
         <configuration>
+          <proc>full</proc>
           <compilerArgs>
             <arg>-Xlint:all,-processing</arg>
           </compilerArgs>

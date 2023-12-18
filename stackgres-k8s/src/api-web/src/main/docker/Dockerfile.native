@@ -12,6 +12,7 @@ FROM "$BASE_IMAGE"
     echo 'jboss:!!:18655:0:99999:7:::' >> /etc/shadow && \
     echo 'jboss:100000:65536' >> /etc/subgid
 
+  COPY 'target/*.so' '/app/'
   COPY 'src/main/docker/stackgres-restapi.native.sh' '/app/stackgres-restapi.sh'
   COPY 'target/stackgres-restapi-runner' '/app/stackgres-restapi'
 
