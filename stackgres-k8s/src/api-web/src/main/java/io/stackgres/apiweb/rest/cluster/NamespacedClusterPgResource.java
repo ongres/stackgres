@@ -90,11 +90,11 @@ public class NamespacedClusterPgResource {
           mediaType = "application/json",
           schema = @Schema(type = SchemaType.ARRAY, implementation = Object.class))})
   @Operation(summary = "Get results from queries related to an sgcluster", description = """
-        Get the results from queries made to an sgcluster.
+      Get the results from queries made to an sgcluster.
 
-        ### RBAC permissions required
+      ### RBAC permissions required
 
-        * sgcluster get
+      * sgcluster get
       """)
   @Path("{name}/query")
   @GET

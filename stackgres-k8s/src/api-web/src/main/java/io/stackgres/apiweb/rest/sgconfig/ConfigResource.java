@@ -66,11 +66,11 @@ public class ConfigResource extends AbstractCustomResourceService<ConfigDto, Sta
           mediaType = "application/json",
           schema = @Schema(implementation = ConfigDto.class))})
   @Operation(summary = "Create a sgconfigs", description = """
-        Create a sgconfigs.
+      Create a sgconfigs.
 
-        ### RBAC permissions required
+      ### RBAC permissions required
 
-        * sgconfigs create
+      * sgconfigs create
       """)
   @Override
   public ConfigDto create(@NotNull ConfigDto resource, @Nullable Boolean dryRun) {
