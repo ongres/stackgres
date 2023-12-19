@@ -106,12 +106,10 @@ class RbacResourceTest {
     given(subjectReviewStatus.getAllowed()).willReturn(true);
     given(namespaces.get()).willReturn(expectedNamespaces());
 
-    Response permissions = rbacResource.caniList();
+    PermissionsListDto permissions = rbacResource.caniList();
 
-    assertEquals(Response.Status.OK.getStatusCode(), permissions.getStatus());
-    var entity = ((PermissionsListDto) permissions.getEntity());
-    assertUnnamespacedResources(entity.unnamespaced());
-    assertNamespacedResources(entity.namespaced());
+    assertUnnamespacedResources(permissions.unnamespaced());
+    assertNamespacedResources(permissions.namespaced());
   }
 
   private List<String> expectedNamespaces() {
@@ -133,10 +131,6 @@ class RbacResourceTest {
     expectedNamespacedResourceNames().contains(actualResourceName);
   }
 
-  private List<String> expectedNamespacedResourceNames() {
-    return rbacResource.getResourcesNamespaced();
-  }
-
   private void assertUnnamespacedResources(Map<String, List<String>> unnamespaced) {
     assertEquals(expectedUnnamespaces().size(), unnamespaced.size());
     for (Map.Entry<String, List<String>> resource : unnamespaced.entrySet()) {
@@ -148,8 +142,12 @@ class RbacResourceTest {
     expectedUnnamespaces().contains(unnamespacedResource);
   }
 
+  private List<String> expectedNamespacedResourceNames() {
+    return RbacResource.getResourcesNamespaced();
+  }
+
   private List<String> expectedUnnamespaces() {
-    return rbacResource.getResourcesUnnamespaced();
+    return RbacResource.getResourcesUnnamespaced();
   }
 
 }

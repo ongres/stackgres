@@ -86,7 +86,7 @@ public class RbacResource {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(RbacResource.class);
 
-  private static final List<String> NAMESPACED_RESOURCES = getResourcesUnnamespaced();
+  private static final List<String> NAMESPACED_RESOURCES = getResourcesNamespaced();
   private static final List<String> UNNAMESPACED_RESOURCES = getResourcesUnnamespaced();
 
   @Inject
@@ -161,14 +161,13 @@ public class RbacResource {
       """)
   @GET
   @Path("can-i")
-  public Response caniList() {
+  public PermissionsListDto caniList() {
     String impersonated = k8sUsername != null ? k8sUsername : identity.getPrincipal().getName();
     LOGGER.debug("User to review access {}", impersonated);
     try (KubernetesClient client = kubernetesClientProvider.createDefault()) {
-      return Response.ok(new PermissionsListDto(
+      return new PermissionsListDto(
           buildUnnamespacedPermissionList(client, impersonated),
-          buildNamespacedPermissionList(client, impersonated)))
-          .build();
+          buildNamespacedPermissionList(client, impersonated));
     }
   }
 
@@ -235,7 +234,7 @@ public class RbacResource {
         HasMetadata.getFullResourceName(StackGresShardedDbOps.class));
   }
 
-  private List<String> getVerbs() {
+  private static List<String> getVerbs() {
     return List.of("get", "list", "create", "patch", "delete");
   }
 
