@@ -134,8 +134,6 @@ modules:
       - sh stackgres-k8s/ci/build/redact-version.sh api-web
     sources:
       - stackgres-k8s/src/api-web/src/test
-    post_build_commands:
-      - 'sh $SHELL_XTRACE stackgres-k8s/src/api-web/src/main/swagger/build.sh'
     artifacts:
       - stackgres-k8s/src/api-web/target
   jobs-java:
