@@ -198,5 +198,6 @@ rules:
   - sgscripts.stackgres.io
   verbs:
   - patch
+  - update
 {{- end }}
 {{- end }}
