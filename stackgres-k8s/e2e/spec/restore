@@ -41,16 +41,18 @@ EOF
   
   wait_until is_backup_phase "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_VOLUME_SNAPSHOT_NAME" "Completed"
 
-  create_or_replace_cluster_only "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE" 1 \
-    -f "$SPEC_FILE.backup.values.yaml" \
-    --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION" \
-    --set-string "configurations.objectstorage.s3Compatible.endpoint=$BACKUP_ENDPOINT" \
-    --set cluster.configurations.backups.useVolumeSnapshot=false
-
-  wait_until eval 'kubectl get cronjob -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_CLUSTER_NAME" -o json \
-    | jq ".spec.template.spec.containers[0].env | any(.name == \"USE_VOLUME_SNAPSHOT\" and .value == \"true\")"'
-
-  cat << EOF | kubectl create -f -
+  if [ "$K8S_DISABLE_VOLUME_SNAPSHOT" != true ]
+  then
+    create_or_replace_cluster_only "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE" 1 \
+      -f "$SPEC_FILE.backup.values.yaml" \
+      --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION" \
+      --set-string "configurations.objectstorage.s3Compatible.endpoint=$BACKUP_ENDPOINT" \
+      --set cluster.configurations.backups.useVolumeSnapshot=false
+  
+    wait_until eval 'kubectl get cronjob -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_CLUSTER_NAME" -o json \
+      | jq ".spec.template.spec.containers[0].env | any(.name == \"USE_VOLUME_SNAPSHOT\" and .value == \"true\")"'
+  
+    cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGBackup
 metadata:
@@ -60,8 +62,9 @@ spec:
   sgCluster: "$BACKUP_CLUSTER_NAME"
   managedLifecycle: false
 EOF
-  
-  wait_until is_backup_phase "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_NAME" "Completed"
+
+    wait_until is_backup_phase "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_NAME" "Completed"
+  fi
 
   BACKUP_PITR_DATE="$(date +%Y-%m-%dT%H:%M:%SZ --utc)"
   sleep 2
@@ -88,13 +91,25 @@ e2e_test_uninstall() {
 
 e2e_test() {
   run_test "Check that backup can be copied across namespaces" check_backup_can_be_copied_from_another_namespace
+
   run_test "Check that backup can be restored" check_backup_can_be_restored
-  run_test "Check that volume snapshot backup can be restored" check_volume_snapshot_backup_can_be_restored
+
+  if [ "$K8S_DISABLE_VOLUME_SNAPSHOT" != true ]
+  then
+    run_test "Check that volume snapshot backup can be restored" check_volume_snapshot_backup_can_be_restored
+  else
+    echo "Skipping Check that volume snapshot backup can be restored since volume snapshot feature is not available"
+  fi
+
   run_test "Check that backup is compatible with cluster" check_backup_pg_version
+
   run_test "Check that restore using PITR" check_restore_using_pitr
+
   run_test "Check that after deleting original backup the backup is not deleted if a copy exists" \
     check_delete_original_backup_dont_delete_backup_if_copy_exists
+
   run_test "Check that after deleting backup copy the backup is deleted" check_delete_backup_copy_delete_backup
+
   run_test "Check that cluster keep working after backup is removed" check_delete_backup_dont_require_restart
 }
 
