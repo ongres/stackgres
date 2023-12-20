@@ -13,19 +13,19 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class DistributedLogsNonProductionOptions {
 
-  public Boolean disableClusterPodAntiAffinity;
+  Boolean disableClusterPodAntiAffinity;
 
-  public Boolean disablePatroniResourceRequirements;
+  Boolean disablePatroniResourceRequirements;
 
-  public Boolean disableClusterResourceRequirements;
+  Boolean disableClusterResourceRequirements;
 
-  public Boolean enableSetPatroniCpuRequests;
+  Boolean enableSetPatroniCpuRequests;
 
-  public Boolean enableSetClusterCpuRequests;
+  Boolean enableSetClusterCpuRequests;
 
-  public Boolean enableSetPatroniMemoryRequests;
+  Boolean enableSetPatroniMemoryRequests;
 
-  public Boolean enableSetClusterMemoryRequests;
+  Boolean enableSetClusterMemoryRequests;
 
   public Boolean getDisableClusterPodAntiAffinity() {
     return disableClusterPodAntiAffinity;

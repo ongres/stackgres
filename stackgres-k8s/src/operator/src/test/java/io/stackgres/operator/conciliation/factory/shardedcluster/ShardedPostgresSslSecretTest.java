@@ -62,10 +62,10 @@ class ShardedPostgresSslSecretTest {
 
     Assertions.assertEquals(1, generateResources.size());
     Assertions.assertEquals(postgresSslSecretName(cluster),
-        generateResources.get(0)
+        generateResources.getFirst()
         .getMetadata()
         .getName());
-    Assertions.assertEquals(1, Optional.of(generateResources.get(0))
+    Assertions.assertEquals(1, Optional.of(generateResources.getFirst())
         .map(Secret.class::cast)
         .orElseThrow()
         .getData()
@@ -81,29 +81,29 @@ class ShardedPostgresSslSecretTest {
     var generateResources = postgresSslSecret.generateResource(context).toList();
 
     Assertions.assertEquals(postgresSslSecretName(cluster),
-        generateResources.get(0)
+        generateResources.getFirst()
         .getMetadata()
         .getName());
     Assertions.assertEquals(1, generateResources.size());
-    Assertions.assertTrue(Optional.of(generateResources.get(0))
+    Assertions.assertTrue(Optional.of(generateResources.getFirst())
         .map(Secret.class::cast)
         .map(Secret::getData)
         .map(data -> data.get(CERTIFICATE_KEY))
         .isPresent());
-    Assertions.assertTrue(Optional.of(generateResources.get(0))
+    Assertions.assertTrue(Optional.of(generateResources.getFirst())
         .map(Secret.class::cast)
         .map(Secret::getData)
         .map(data -> data.get(PRIVATE_KEY_KEY))
         .isPresent());
     checkCertificateAndPrivateKey(
         ResourceUtil.decodeSecret(
-            Optional.of(generateResources.get(0))
+            Optional.of(generateResources.getFirst())
             .map(Secret.class::cast)
             .map(Secret::getData)
             .map(data -> data.get(CERTIFICATE_KEY))
             .orElseThrow()),
         ResourceUtil.decodeSecret(
-            Optional.of(generateResources.get(0))
+            Optional.of(generateResources.getFirst())
             .map(Secret.class::cast)
             .map(Secret::getData)
             .map(data -> data.get(PRIVATE_KEY_KEY))
@@ -121,30 +121,30 @@ class ShardedPostgresSslSecretTest {
     var generateResources = postgresSslSecret.generateResource(context).toList();
 
     Assertions.assertEquals(postgresSslSecretName(cluster),
-        generateResources.get(0)
+        generateResources.getFirst()
         .getMetadata()
         .getName());
     Assertions.assertEquals(1, generateResources.size());
-    Assertions.assertTrue(Optional.of(generateResources.get(0))
+    Assertions.assertTrue(Optional.of(generateResources.getFirst())
         .map(Secret.class::cast)
         .map(Secret::getData)
         .map(data -> data.get(CERTIFICATE_KEY))
         .isPresent());
     Assertions.assertEquals("test-certificate",
         ResourceUtil.decodeSecret(
-            Optional.of(generateResources.get(0))
+            Optional.of(generateResources.getFirst())
             .map(Secret.class::cast)
             .map(Secret::getData)
             .map(data -> data.get(CERTIFICATE_KEY))
             .orElseThrow()));
-    Assertions.assertTrue(Optional.of(generateResources.get(0))
+    Assertions.assertTrue(Optional.of(generateResources.getFirst())
         .map(Secret.class::cast)
         .map(Secret::getData)
         .map(data -> data.get(PRIVATE_KEY_KEY))
         .isPresent());
     Assertions.assertEquals("test-private-key",
         ResourceUtil.decodeSecret(
-            Optional.of(generateResources.get(0))
+            Optional.of(generateResources.getFirst())
             .map(Secret.class::cast)
             .map(Secret::getData)
             .map(data -> data.get(PRIVATE_KEY_KEY))

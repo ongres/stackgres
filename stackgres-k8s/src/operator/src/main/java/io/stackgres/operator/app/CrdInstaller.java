@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.app;
 
+import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -16,12 +17,14 @@ import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition
 import io.fabric8.kubernetes.api.model.apiextensions.v1.JSONSchemaProps;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
+import io.fabric8.kubernetes.client.impl.BaseClient;
 import io.stackgres.common.CrdLoader;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.kubernetesclient.ProxiedKubernetesClientProducer.KubernetesClientInvocationHandler;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -59,8 +62,7 @@ public class CrdInstaller {
   public void checkUpgrade() {
     var resourcesRequiringUpgrade = crdLoader.scanCrds().stream()
         .map(crd -> crdResourceFinder.findByName(crd.getMetadata().getName()))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
+        .flatMap(Optional::stream)
         .flatMap(crd -> client
           .genericKubernetesResources(CustomResourceDefinitionContext.fromCrd(crd))
           .inAnyNamespace()
@@ -103,26 +105,9 @@ public class CrdInstaller {
         .forEach(this::installCrd);
   }
 
-  private CustomResourceDefinition fixCrd(CustomResourceDefinition crd) {
-    crd.getSpec().getVersions()
-        .forEach(crdVersion -> fixOpenApiProps(crdVersion.getSchema().getOpenAPIV3Schema()));
-    return crd;
-  }
-
-  private void fixOpenApiProps(JSONSchemaProps props) {
-    if (props == null) {
-      return;
-    }
-    props.setDependencies(null);
-    props.getDefinitions().values().forEach(this::fixOpenApiProps);
-    if (props.getItems() != null) {
-      fixOpenApiProps(props.getItems().getSchema());
-    }
-  }
-
   protected void installCrd(@NotNull CustomResourceDefinition currentCrd) {
     String name = currentCrd.getMetadata().getName();
-    LOGGER.info("Installing CRD " + name);
+    LOGGER.info("Installing CRD {}", name);
     Optional<CustomResourceDefinition> installedCrdOpt = crdResourceFinder
         .findByName(name);
 
@@ -133,10 +118,31 @@ public class CrdInstaller {
         upgradeCrd(currentCrd, installedCrd);
       }
       updateAlreadyInstalledVersions(currentCrd, installedCrd);
-      crdResourceWriter.update(installedCrd);
+      crdResourceWriter.update(installedCrd, foundCrd -> {
+        fixCrd(installedCrd);
+        foundCrd.setSpec(installedCrd.getSpec());
+        if (LOGGER.isTraceEnabled()) {
+          LOGGER.trace("Updating CRD:\n{}",
+              serializeToJsonAsKubernetesClient(foundCrd));
+        }
+      });
     } else {
       LOGGER.info("CRD {} is not present, installing it", name);
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("Creating CRD:\n{}", serializeToJsonAsKubernetesClient(currentCrd));
+      }
       crdResourceWriter.create(currentCrd);
+    }
+  }
+
+  private String serializeToJsonAsKubernetesClient(CustomResourceDefinition foundCrd) {
+    try {
+      return BaseClient.class.cast(
+          KubernetesClientInvocationHandler.class.cast(
+              Proxy.getInvocationHandler(client)).getClient())
+          .getKubernetesSerialization().asJson(foundCrd);
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
     }
   }
 
@@ -164,7 +170,14 @@ public class CrdInstaller {
       CustomResourceDefinition installedCrd) {
     disableStorageVersions(installedCrd);
     addNewSchemaVersions(currentCrd, installedCrd);
-    crdResourceWriter.update(installedCrd);
+    crdResourceWriter.update(installedCrd, foundCrd -> {
+      fixCrd(installedCrd);
+      foundCrd.setSpec(installedCrd.getSpec());
+      if (LOGGER.isTraceEnabled()) {
+        LOGGER.trace("Updating CRD:\n{}",
+            serializeToJsonAsKubernetesClient(foundCrd));
+      }
+    });
   }
 
   private void disableStorageVersions(CustomResourceDefinition installedCrd) {
@@ -216,6 +229,32 @@ public class CrdInstaller {
 
     if (installedCrdOpt.isEmpty()) {
       throw new RuntimeException("CRD " + name + " was not found.");
+    }
+  }
+
+  private CustomResourceDefinition fixCrd(CustomResourceDefinition crd) {
+    crd.getSpec().getVersions()
+        .forEach(crdVersion -> fixOpenApiProps(
+            "openAPIV3Schema",
+            crdVersion.getSchema().getOpenAPIV3Schema()));
+    return crd;
+  }
+
+  private void fixOpenApiProps(String key, JSONSchemaProps props) {
+    LOGGER.trace("Inspecting key {}", key);
+    if (props == null) {
+      return;
+    }
+    if (props.getDependencies() != null) {
+      LOGGER.trace("Setting dependencies null for key {}", key);
+      props.setDependencies(null);
+    }
+    props.getProperties().entrySet().forEach(e -> fixOpenApiProps(
+        key + "." + e.getKey(), e.getValue()));
+    props.getDefinitions().entrySet().forEach(e -> fixOpenApiProps(
+        key + "." + e.getKey(), e.getValue()));
+    if (props.getItems() != null) {
+      fixOpenApiProps(key + "[]", props.getItems().getSchema());
     }
   }
 

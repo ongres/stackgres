@@ -44,7 +44,7 @@ class SgPoolingConfigConversionPipelineTest {
     ObjectNode toVersion1 = getToVersion1Resource();
 
     var converted = pipeline.convert(ConversionUtil.API_VERSION_1, List.of(fromVersion1beta1));
-    JsonUtil.assertJsonEquals(toVersion1, converted.get(0));
+    JsonUtil.assertJsonEquals(toVersion1, converted.getFirst());
   }
 
   @Test
@@ -53,7 +53,7 @@ class SgPoolingConfigConversionPipelineTest {
     ObjectNode toVersion1beta1 = getToVersion1beta1Resource();
 
     var converted = pipeline.convert(ConversionUtil.API_VERSION_1BETA1, List.of(fromVersion1));
-    JsonUtil.assertJsonEquals(toVersion1beta1, converted.get(0));
+    JsonUtil.assertJsonEquals(toVersion1beta1, converted.getFirst());
   }
 
 }

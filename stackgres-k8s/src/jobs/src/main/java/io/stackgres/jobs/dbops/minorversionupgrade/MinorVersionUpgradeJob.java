@@ -21,7 +21,6 @@ import io.stackgres.jobs.dbops.DbOpsExecutorService;
 import io.stackgres.jobs.dbops.MutinyUtil;
 import io.stackgres.jobs.dbops.StateHandler;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
-import io.stackgres.jobs.dbops.securityupgrade.SecurityUpgradeJob;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.slf4j.Logger;
@@ -31,7 +30,7 @@ import org.slf4j.LoggerFactory;
 @DatabaseOperation("minorVersionUpgrade")
 public class MinorVersionUpgradeJob implements DatabaseOperationJob {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(SecurityUpgradeJob.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MinorVersionUpgradeJob.class);
 
   @Inject
   CustomResourceFinder<StackGresCluster> clusterFinder;

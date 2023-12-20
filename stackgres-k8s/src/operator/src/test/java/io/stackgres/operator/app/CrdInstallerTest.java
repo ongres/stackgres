@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResourceBuilder;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResourceList;
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
@@ -176,13 +178,15 @@ class CrdInstallerTest {
         .thenAnswer((Answer<Optional<CustomResourceDefinition>>) invocation -> Optional
             .of(crdLoader.getCrd(definition.getSpec().getNames().getKind())));
 
-    when(customResourceDefinitionWriter.update(any(CustomResourceDefinition.class)))
+    when(customResourceDefinitionWriter.update(any(CustomResourceDefinition.class),
+        Mockito.<Consumer<CustomResourceDefinition>>any()))
         .thenReturn(definition);
 
     crdInstaller.installCrd(definition);
 
     verify(customResourceDefinitionFinder).findByName(definition.getMetadata().getName());
-    verify(customResourceDefinitionWriter).update(any(CustomResourceDefinition.class));
+    verify(customResourceDefinitionWriter).update(any(CustomResourceDefinition.class),
+        Mockito.<Consumer<CustomResourceDefinition>>any());
   }
 
 }

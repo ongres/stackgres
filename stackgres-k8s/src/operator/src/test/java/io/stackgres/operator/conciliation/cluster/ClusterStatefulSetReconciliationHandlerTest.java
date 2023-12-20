@@ -146,7 +146,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
   @Test
   void createResource_shouldCreateTheResource() {
-    when(defaultHandler.patch(any(), any(StatefulSet.class), any()))
+    when(defaultHandler.create(any(), any(StatefulSet.class)))
         .thenReturn(requiredStatefulSet);
 
     HasMetadata sts = handler.create(cluster, requiredStatefulSet);

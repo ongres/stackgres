@@ -116,7 +116,7 @@ public class ShardedBackupCronJobV1Beta1
         .map(StackGresShardedClusterSpec::getConfigurations)
         .map(StackGresShardedClusterConfigurations::getBackups)
         .filter(Predicate.not(List::isEmpty))
-        .map(backups -> backups.get(0));
+        .map(backups -> backups.getFirst());
     if (backupConfig
         .map(StackGresShardedClusterBackupConfiguration::getCronSchedule)
         .isEmpty()) {
@@ -127,8 +127,7 @@ public class ShardedBackupCronJobV1Beta1
     return Seq.<HasMetadata>of(backupCronJob)
         .append(volumes.stream()
             .map(VolumePair::getSource)
-            .filter(Optional::isPresent)
-            .map(Optional::get));
+            .flatMap(Optional::stream));
   }
 
   private CronJob createCronJob(

@@ -25,6 +25,8 @@ import io.quarkus.security.identity.SecurityIdentity;
 import io.stackgres.apiweb.app.KubernetesClientProvider;
 import io.stackgres.apiweb.dto.PermissionsListDto;
 import io.stackgres.apiweb.dto.PermissionsListDto.Namespaced;
+import io.stackgres.apiweb.rest.auth.RbacResource;
+import io.stackgres.apiweb.rest.misc.NamespaceResource;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -104,12 +106,10 @@ class RbacResourceTest {
     given(subjectReviewStatus.getAllowed()).willReturn(true);
     given(namespaces.get()).willReturn(expectedNamespaces());
 
-    Response permissions = rbacResource.caniList();
+    PermissionsListDto permissions = rbacResource.caniList();
 
-    assertEquals(Response.Status.OK.getStatusCode(), permissions.getStatus());
-    var entity = ((PermissionsListDto) permissions.getEntity());
-    assertUnnamespacedResources(entity.unnamespaced());
-    assertNamespacedResources(entity.namespaced());
+    assertUnnamespacedResources(permissions.unnamespaced());
+    assertNamespacedResources(permissions.namespaced());
   }
 
   private List<String> expectedNamespaces() {
@@ -118,10 +118,10 @@ class RbacResourceTest {
 
   private void assertNamespacedResources(List<Namespaced> actualNamespaced) {
     assertEquals(expectedNamespaces().size(), actualNamespaced.size());
-    assertEquals(expectedNamespaces().iterator().next(),
-        actualNamespaced.iterator().next().namespace());
+    assertEquals(expectedNamespaces().getFirst(),
+        actualNamespaced.getFirst().namespace());
 
-    Map<String, List<String>> resources = actualNamespaced.iterator().next().resources();
+    Map<String, List<String>> resources = actualNamespaced.getFirst().resources();
     for (Map.Entry<String, List<String>> resource : resources.entrySet()) {
       assertNamespacedResource(resource.getKey());
     }
@@ -129,10 +129,6 @@ class RbacResourceTest {
 
   private void assertNamespacedResource(String actualResourceName) {
     expectedNamespacedResourceNames().contains(actualResourceName);
-  }
-
-  private List<String> expectedNamespacedResourceNames() {
-    return rbacResource.getResourcesNamespaced();
   }
 
   private void assertUnnamespacedResources(Map<String, List<String>> unnamespaced) {
@@ -146,8 +142,12 @@ class RbacResourceTest {
     expectedUnnamespaces().contains(unnamespacedResource);
   }
 
+  private List<String> expectedNamespacedResourceNames() {
+    return RbacResource.getResourcesNamespaced();
+  }
+
   private List<String> expectedUnnamespaces() {
-    return rbacResource.getResourcesUnnamespaced();
+    return RbacResource.getResourcesUnnamespaced();
   }
 
 }

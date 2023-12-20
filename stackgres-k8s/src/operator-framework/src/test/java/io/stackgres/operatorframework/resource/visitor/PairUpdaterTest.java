@@ -115,7 +115,7 @@ public class PairUpdaterTest {
     List<String> values = getPodNodeSelectorRequirement(leftMeta).getValues();
     Assertions.assertNotNull(values);
     Assertions.assertEquals(2, values.size());
-    Assertions.assertEquals("1", values.get(0));
+    Assertions.assertEquals("1", values.getFirst());
     Assertions.assertEquals("2", values.get(1));
   }
 
@@ -156,7 +156,7 @@ public class PairUpdaterTest {
     List<String> values = getPodNodeSelectorRequirement(leftMeta).getValues();
     Assertions.assertNotNull(values);
     Assertions.assertEquals(2, values.size());
-    Assertions.assertEquals("3", values.get(0));
+    Assertions.assertEquals("3", values.getFirst());
     Assertions.assertEquals("4", values.get(1));
   }
 
@@ -168,7 +168,7 @@ public class PairUpdaterTest {
     List<String> values = getPodNodeSelectorRequirement(leftMeta).getValues();
     Assertions.assertNotNull(values);
     Assertions.assertEquals(3, values.size());
-    Assertions.assertEquals("1", values.get(0));
+    Assertions.assertEquals("1", values.getFirst());
     Assertions.assertEquals("2", values.get(1));
     Assertions.assertEquals("3", values.get(2));
   }

@@ -30,9 +30,9 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import org.jooq.lambda.Seq;
 
-public class GeneratorTestUtil {
+public final class GeneratorTestUtil {
 
-  public GeneratorTestUtil() {
+  private GeneratorTestUtil() {
     throw new IllegalStateException("Should not be instantiated");
   }
 

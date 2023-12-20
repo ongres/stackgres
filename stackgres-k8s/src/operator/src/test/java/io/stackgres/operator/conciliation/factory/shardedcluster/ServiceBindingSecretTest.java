@@ -81,7 +81,7 @@ public class ServiceBindingSecretTest {
 
     List<HasMetadata> secrets = hasMetadataStream.toList();
     assertEquals(secrets.size(), 1);
-    Secret serviceBindingSecret = (Secret) secrets.get(0);
+    Secret serviceBindingSecret = (Secret) secrets.getFirst();
     assertEquals(serviceBindingSecret.getType(), "servicebinding.io/postgresql");
 
     Map<String, String> data = serviceBindingSecret.getStringData();
@@ -161,7 +161,7 @@ public class ServiceBindingSecretTest {
 
     List<HasMetadata> secrets = serviceBindingMetadata.toList();
     assertEquals(secrets.size(), 1);
-    Secret serviceBindingSecret = (Secret) secrets.get(0);
+    Secret serviceBindingSecret = (Secret) secrets.getFirst();
     assertEquals(serviceBindingSecret.getType(), "servicebinding.io/postgresql");
 
     Map<String, String> data = serviceBindingSecret.getStringData();

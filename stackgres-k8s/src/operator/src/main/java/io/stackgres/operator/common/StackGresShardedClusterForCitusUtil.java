@@ -15,6 +15,7 @@ import java.util.function.Predicate;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.stackgres.common.ManagedSqlUtil;
 import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
@@ -25,6 +26,10 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurationsBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCredentials;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialDataBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryBuilder;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
+import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSqlBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniCredentials;
@@ -140,7 +145,7 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
             index))
         .findFirst()
         .ifPresent(specOverride -> setClusterSpecFromShardOverrides(
-            specOverride, spec, index + 1));
+            cluster, specOverride, spec, index + 1));
     StackGresCluster shardsCluster = new StackGresCluster();
     shardsCluster.setMetadata(new ObjectMeta());
     shardsCluster.getMetadata().setNamespace(cluster.getMetadata().getNamespace());
@@ -180,6 +185,7 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
     setConfigurationsPatroniInitialConfig(cluster, spec, index);
     setMetadata(cluster, spec, index);
     setInitialData(cluster, spec, index);
+    setManagedSql(cluster, spec, index);
     spec.setDistributedLogs(cluster.getSpec().getDistributedLogs());
     spec.setPrometheusAutobind(cluster.getSpec().getPrometheusAutobind());
     spec.setNonProductionOptions(cluster.getSpec().getNonProductionOptions());
@@ -237,7 +243,7 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
         .map(StackGresShardedClusterSpec::getConfigurations)
         .map(StackGresShardedClusterConfigurations::getBackups)
         .filter(Predicate.not(List::isEmpty))
-        .map(backups -> backups.get(0))
+        .map(backups -> backups.getFirst())
         .filter(backup -> backup.getPaths() != null)
         .ifPresent(backup -> {
           if (spec.getConfigurations() == null) {
@@ -409,8 +415,48 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
     }
   }
 
+  private static void setManagedSql(
+      StackGresShardedCluster cluster,
+      StackGresClusterSpec spec,
+      int index) {
+    final String defaultScript = ManagedSqlUtil.defaultName(getClusterName(cluster, index));
+    spec.setManagedSql(new StackGresClusterManagedSqlBuilder(spec.getManagedSql())
+        .withScripts(
+            Optional.ofNullable(spec.getManagedSql())
+            .map(StackGresClusterManagedSql::getScripts)
+            .map(scripts -> Seq
+                .of(new StackGresClusterManagedScriptEntryBuilder()
+                    .withId(getLastId(spec) + 1)
+                    .withSgScript(defaultScript)
+                    .build())
+                .filter(script -> scripts.stream()
+                    .map(StackGresClusterManagedScriptEntry::getSgScript)
+                    .noneMatch(defaultScript::equals))
+                .append(scripts)
+                .toList())
+            .orElse(List
+                .of(new StackGresClusterManagedScriptEntryBuilder()
+                    .withId(0)
+                    .withSgScript(defaultScript)
+                    .build())))
+        .build());
+  }
+
+  private static Integer getLastId(StackGresClusterSpec spec) {
+    return Optional.of(spec)
+        .map(StackGresClusterSpec::getManagedSql)
+        .map(StackGresClusterManagedSql::getScripts)
+        .stream()
+        .flatMap(List::stream)
+        .map(StackGresClusterManagedScriptEntry::getId)
+        .reduce(-1, (last, id) -> id == null || last >= id ? last : id, (u, v) -> v);
+  }
+
   private static void setClusterSpecFromShardOverrides(
-      StackGresShardedClusterShard specOverride, StackGresClusterSpec spec, int index) {
+      StackGresShardedCluster cluster,
+      StackGresShardedClusterShard specOverride,
+      StackGresClusterSpec spec,
+      int index) {
     if (specOverride.getConfigurationsForShards() != null) {
       if (specOverride.getConfigurationsForShards().getSgPostgresConfig() != null) {
         spec.getConfigurations().setSgPostgresConfig(
@@ -431,7 +477,26 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
       spec.setReplication(specOverride.getReplicationForShards());
     }
     if (specOverride.getManagedSql() != null) {
-      spec.setManagedSql(specOverride.getManagedSql());
+      final String defaultScript = ManagedSqlUtil.defaultName(getClusterName(cluster, index));
+      spec.setManagedSql(new StackGresClusterManagedSqlBuilder(specOverride.getManagedSql())
+          .withScripts(
+              Optional.ofNullable(specOverride.getManagedSql().getScripts())
+              .map(scripts -> Seq
+                  .of(new StackGresClusterManagedScriptEntryBuilder()
+                      .withId(getLastId(specOverride) + 1)
+                      .withSgScript(defaultScript)
+                      .build())
+                  .filter(script -> scripts.stream()
+                      .map(StackGresClusterManagedScriptEntry::getSgScript)
+                      .noneMatch(defaultScript::equals))
+                  .append(scripts)
+                  .toList())
+              .orElse(List
+                  .of(new StackGresClusterManagedScriptEntryBuilder()
+                      .withId(0)
+                      .withSgScript(defaultScript)
+                      .build())))
+          .build());
     }
     if (specOverride.getMetadata() != null) {
       if (spec.getMetadata() == null) {

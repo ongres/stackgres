@@ -44,7 +44,7 @@ public class ObjectStorageValidator
     return Optional.ofNullable(resource.getSpec().getConfigurations())
         .map(StackGresClusterConfigurations::getBackups)
         .filter(Predicate.not(List::isEmpty))
-        .map(backups -> backups.get(0))
+        .map(backups -> backups.getFirst())
         .map(StackGresClusterBackupConfiguration::getSgObjectStorage)
         .orElse(null);
   }

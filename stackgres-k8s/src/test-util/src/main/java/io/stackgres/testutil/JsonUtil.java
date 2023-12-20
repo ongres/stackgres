@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import junit.framework.AssertionFailedError;
 import org.json.JSONException;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -29,8 +30,22 @@ public class JsonUtil {
         .build();
   }
 
+  private static final YAMLMapper YAML_MAPPER = createYamlMapper();
+
+  private static YAMLMapper createYamlMapper() {
+    return YAMLMapper.builder()
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
+        .build();
+  }
+
   public static JsonMapper jsonMapper() {
     return JSON_MAPPER;
+  }
+
+  public static YAMLMapper yamlMapper() {
+    return YAML_MAPPER;
   }
 
   public static JsonNode toJson(Object object) {

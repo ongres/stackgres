@@ -72,8 +72,7 @@ public class PatroniStandbyHistoryReconciliator {
     try {
       reconcileBootstrappedStandbyLeaderWithAntHistory(context);
     } catch (Exception ex) {
-      LOGGER.error("An error occurred while"
-          + " reconciling patroni history for standby cluster", ex);
+      LOGGER.error("An error occurred while reconciling patroni history for standby cluster", ex);
       try {
         eventController.sendEvent(ClusterControllerEventReason.CLUSTER_CONTROLLER_ERROR,
             "An error occurred while reconciling patroni history for standby cluster: "

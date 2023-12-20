@@ -65,7 +65,7 @@ public class ReconciliationResult<R> {
 
   public Exception getException() {
     if (!exceptions.isEmpty()) {
-      final Exception exception = exceptions.get(0);
+      final Exception exception = exceptions.getFirst();
       Seq.seq(exceptions)
           .skip(1)
           .forEach(suppressedException -> exception.addSuppressed(suppressedException));

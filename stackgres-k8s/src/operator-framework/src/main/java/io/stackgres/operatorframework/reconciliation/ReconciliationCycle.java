@@ -102,7 +102,7 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
         }
         reconciliationCycle(existingContextResources);
       } catch (Exception ex) {
-        logger.error(name + " reconciliation cycle loop was interrupted", ex);
+        logger.error("{} reconciliation cycle loop was interrupted", name, ex);
       }
     }
     logger.info("{} reconciliation cycle loop stopped", name);
@@ -134,12 +134,11 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
             .toList();
       }
     } catch (RuntimeException ex) {
-      logger.error(cycleName + " failed", ex);
+      logger.error("{} failed", cycleName, ex);
       try {
         onError(ex);
       } catch (RuntimeException rex) {
-        logger.error(cycleName
-            + " failed sending event while retrieving reconciliation cycle contexts", rex);
+        logger.error("{} failed sending event while retrieving reconciliation cycle contexts", cycleName, rex);
       }
       return new ReconciliationCycleResult<>(ex);
     }
@@ -197,24 +196,24 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
           }
         } catch (Exception ex) {
           contextExceptions.put(exisitingContextResource, ex);
-          logger.error(cycleName + " failed reconciling " + contextId, ex);
+          logger.error("{} failed reconciling {}", cycleName, contextId, ex);
           try {
             onConfigError(context, exisitingContextResource, ex);
           } catch (RuntimeException rex) {
-            logger.error(cycleName + " failed sending event while reconciling " + contextId, rex);
+            logger.error("{} failed sending event while reconciling {}", cycleName, contextId, rex);
           }
         }
       }
-      logger.trace(cycleName + " ended successfully");
+      logger.trace("{} ended successfully", cycleName);
       return new ReconciliationCycleResult<>(
           existingContextResourcesBuilder.build(),
           contextExceptions.build());
     } catch (RuntimeException ex) {
-      logger.error(cycleName + " failed", ex);
+      logger.error("{} failed", cycleName, ex);
       try {
         onError(ex);
       } catch (RuntimeException rex) {
-        logger.error(cycleName + " failed sending event while running reconciliation cycle", rex);
+        logger.error("{} failed sending event while running reconciliation cycle", cycleName, rex);
       }
       return new ReconciliationCycleResult<>(ex);
     }

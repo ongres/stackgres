@@ -111,7 +111,7 @@ abstract class ShardedDbOpsJobTestCase {
 
     var generatedResources = dbOpsJobsGenerator.generateResource(context)
         .collect(Collectors.toUnmodifiableList());
-    var job = (Job) generatedResources.iterator().next();
+    var job = (Job) generatedResources.getFirst();
     assertEquals(2, job.getSpec().getTemplate().getSpec().getNodeSelector().size());
 
   }
@@ -130,7 +130,7 @@ abstract class ShardedDbOpsJobTestCase {
     var generatedResources = dbOpsJobsGenerator.generateResource(context)
         .collect(Collectors.toUnmodifiableList());
 
-    var job = (Job) generatedResources.iterator().next();
+    var job = (Job) generatedResources.getFirst();
     var nodeAffinity = job.getSpec().getTemplate().getSpec().getAffinity().getNodeAffinity();
     assertEquals(1, nodeAffinity.getPreferredDuringSchedulingIgnoredDuringExecution().size());
     assertEquals(1, nodeAffinity.getRequiredDuringSchedulingIgnoredDuringExecution()

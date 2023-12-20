@@ -12,6 +12,7 @@ FROM "$BASE_IMAGE"
     echo 'jboss:!!:18655:0:99999:7:::' >> /etc/shadow && \
     echo 'jboss:100000:65536' >> /etc/subgid
 
+  COPY 'target/*.so' '/app/'
   COPY 'src/main/docker/stackgres-jobs.native.sh' '/app/stackgres-jobs.sh'
   COPY 'target/stackgres-jobs-runner' '/app/stackgres-jobs'
 

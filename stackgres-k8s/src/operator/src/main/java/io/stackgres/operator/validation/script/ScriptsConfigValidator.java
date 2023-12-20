@@ -119,7 +119,7 @@ public class ScriptsConfigValidator implements ScriptValidator {
       Optional<ConfigMap> scriptConfigMap = configMapFinder
           .findByNameAndNamespace(configMapRef.getName(), clusterNamespace);
 
-      if (!scriptConfigMap.isPresent()) {
+      if (scriptConfigMap.isEmpty()) {
         fail(invalidReference,
             "Referenced ConfigMap " + configMapRef.getName()
                 + " does not exists in namespace " + clusterNamespace);
@@ -159,7 +159,7 @@ public class ScriptsConfigValidator implements ScriptValidator {
       Optional<Secret> scriptSecret = secretFinder
           .findByNameAndNamespace(secretRef.getName(), clusterNamespace);
 
-      if (!scriptSecret.isPresent()) {
+      if (scriptSecret.isEmpty()) {
         fail(invalidReference,
             "Referenced Secret " + secretRef.getName()
                 + " does not exists in namespace " + clusterNamespace);

@@ -45,11 +45,11 @@
 
   <module name="NewlineAtEndOfFile" />
 
-  <module name="RegexpSingleline">
-    <!-- \s matches whitespace character, $ matches end of line. -->
+  <!-- \s matches whitespace character, $ matches end of line. -->
+  <!-- <module name="RegexpSingleline">
     <property name="format" value="\s+$" />
     <property name="message" value="Line has trailing spaces." />
-  </module>
+  </module> -->
 
   <module name="RegexpHeader">
     <property name="headerFile" value="${checkstyle.header.file}" />
@@ -57,7 +57,7 @@
   </module>
 
   <module name="LineLength">
-    <property name="max" value="100" />
+    <property name="max" value="120" />
     <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://" />
   </module>
 

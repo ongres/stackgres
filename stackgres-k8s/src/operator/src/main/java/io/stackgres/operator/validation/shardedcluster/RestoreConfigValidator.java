@@ -158,7 +158,7 @@ public class RestoreConfigValidator
           .ofNullable(review.getRequest().getOldObject().getSpec().getInitialData())
           .map(StackGresShardedClusterInitialData::getRestore);
 
-      if (!initRestoreOpt.isPresent() && oldRestoreOpt.isPresent()) {
+      if (initRestoreOpt.isEmpty() && oldRestoreOpt.isPresent()) {
         fail(errorConstraintViolationUri, "Cannot update SGShardedCluster's restore configuration");
       }
     }

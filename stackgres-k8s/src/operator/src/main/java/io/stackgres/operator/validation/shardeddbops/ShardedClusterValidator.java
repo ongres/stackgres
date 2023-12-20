@@ -44,7 +44,7 @@ public class ShardedClusterValidator implements ShardedDbOpsValidator {
     Optional<StackGresShardedCluster> clusterOpt = clusterFinder
         .findByNameAndNamespace(cluster, namespace);
 
-    if (!clusterOpt.isPresent()) {
+    if (clusterOpt.isEmpty()) {
       fail(onError);
     }
   }

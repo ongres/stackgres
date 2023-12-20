@@ -83,8 +83,11 @@ public class ShardedDbOpsStatusManager
     }
 
     if (isJobFailedAndStatusNotUpdated) {
-      LOGGER.debug("ShardedDbOps {} failed since the job failed but status condition"
-          + " is neither completed or failed", getShardedDbOpsId(source));
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug(
+            "ShardedDbOps {} failed since the job failed but status condition is neither completed or failed",
+            getShardedDbOpsId(source));
+      }
       updateCondition(getFalseRunning(), source);
       updateCondition(getFalseCompleted(), source);
       updateCondition(getFailedDueToUnexpectedFailure(), source);

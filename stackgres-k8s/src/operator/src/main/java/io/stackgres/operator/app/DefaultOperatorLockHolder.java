@@ -106,7 +106,7 @@ public class DefaultOperatorLockHolder implements OperatorLockHolder {
         throw new IllegalArgumentException("More than one SGConfig found. Please remove extra"
             + " SGConfig for the operator to function properly");
       }
-      StackGresConfig config = configs.get(0);
+      StackGresConfig config = configs.getFirst();
 
       final String serviceAccount = context.getString(OperatorProperty.OPERATOR_SERVICE_ACCOUNT);
       final String podName = context.getString(OperatorProperty.OPERATOR_POD_NAME);
@@ -150,7 +150,7 @@ public class DefaultOperatorLockHolder implements OperatorLockHolder {
       throw new IllegalArgumentException("More than one SGConfig found. Please remove extra"
           + " SGConfig for the operator to function properly");
     }
-    StackGresConfig config = configs.get(0);
+    StackGresConfig config = configs.getFirst();
     final String podName = context.getString(OperatorProperty.OPERATOR_POD_NAME);
     scheduler.update(config, foundConfig -> {
       if (StackGresUtil.isLockedBy(foundConfig, podName)) {

@@ -179,8 +179,7 @@ public class ClusterStatefulSet
         .map(availableVolumesPairs::get)
         .filter(Objects::nonNull)
         .map(VolumePair::getSource)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
+        .flatMap(Optional::stream)
         .toList();
 
     return Stream.concat(Stream.of(clusterStatefulSet), volumeDependencies.stream());

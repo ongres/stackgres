@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 public class DefaultOperatorBootstrap implements OperatorBootstrap {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(OperatorBootstrap.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultOperatorBootstrap.class);
 
   private final KubernetesClient client;
   private final ConfigInstaller configInstaller;

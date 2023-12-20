@@ -22,7 +22,7 @@ public interface MutinyUtil {
 
   static Throwable logOnFailureToRetry(Throwable ex, String message, Object...args) {
     LOGGER.warn(MessageFormatter.arrayFormat("Transient failure " + message + ": {}",
-        Seq.of(args).append(ex.getMessage()).toArray()).getMessage());
+        Seq.of(args).append(ex.getMessage()).toArray()).getMessage(), ex);
     return ex;
   }
 

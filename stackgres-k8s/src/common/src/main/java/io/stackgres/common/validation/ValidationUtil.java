@@ -53,8 +53,7 @@ public interface ValidationUtil {
               (u, v) -> v)
           .v1().toString();
     } catch (Exception ex) {
-      LOGGER.warn("Can not translate path " + propertyPath + " using @JsonProperty annotations",
-          ex);
+      LOGGER.warn("Can not translate path {} using @JsonProperty annotations", propertyPath, ex);
       return propertyPath;
     }
   }

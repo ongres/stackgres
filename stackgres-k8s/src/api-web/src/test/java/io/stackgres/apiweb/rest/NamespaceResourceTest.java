@@ -16,6 +16,7 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceList;
+import io.stackgres.apiweb.rest.misc.NamespaceResource;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.common.resource.ResourceWriter;

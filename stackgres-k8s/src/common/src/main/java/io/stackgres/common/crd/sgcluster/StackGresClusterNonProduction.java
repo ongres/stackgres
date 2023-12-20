@@ -23,23 +23,23 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterNonProduction {
 
-  public Boolean disableClusterPodAntiAffinity;
+  Boolean disableClusterPodAntiAffinity;
 
-  public Boolean disablePatroniResourceRequirements;
+  Boolean disablePatroniResourceRequirements;
 
-  public Boolean disableClusterResourceRequirements;
+  Boolean disableClusterResourceRequirements;
 
-  public Boolean enableSetPatroniCpuRequests;
+  Boolean enableSetPatroniCpuRequests;
 
-  public Boolean enableSetClusterCpuRequests;
+  Boolean enableSetClusterCpuRequests;
 
-  public Boolean enableSetPatroniMemoryRequests;
+  Boolean enableSetPatroniMemoryRequests;
 
-  public Boolean enableSetClusterMemoryRequests;
+  Boolean enableSetClusterMemoryRequests;
 
   @ValidEnumList(enumClass = StackGresFeatureGates.class, allowNulls = true,
       message = "enabledFeatureGates must contain only babelfish-flavor")
-  public List<String> enabledFeatureGates;
+  List<String> enabledFeatureGates;
 
   public Boolean getDisableClusterPodAntiAffinity() {
     return disableClusterPodAntiAffinity;

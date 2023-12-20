@@ -166,7 +166,7 @@ public class DistributedLogsClusterReconciliator {
         .findAny();
     final StackGresDistributedLogsStatusDatabase distributedLogsDatabase =
         foundDistributedLogsDatabase.orElseGet(() -> new StackGresDistributedLogsStatusDatabase());
-    if (!foundDistributedLogsDatabase.isPresent()) {
+    if (foundDistributedLogsDatabase.isEmpty()) {
       distributedLogs.getStatus().getDatabases().add(distributedLogsDatabase);
     }
 
@@ -196,8 +196,8 @@ public class DistributedLogsClusterReconciliator {
           DistributedLogsControllerEventReason.DISTRIBUTEDLOGS_CONTROLLER_ERROR,
           message + ": " + ex.getMessage(), distributedLogs, client);
     } catch (RuntimeException rex) {
-      LOGGER.error("Failed sending event while reconciling cluster "
-          + cluster.getNamespace() + "." + cluster.getName(), rex);
+      LOGGER.error("Failed sending event while reconciling cluster {}.{}",
+          cluster.getNamespace(), cluster.getName(), rex);
     }
   }
 

@@ -42,6 +42,10 @@ public class ProxiedKubernetesClientProducer {
             new KubernetesClientInvocationHandler(client));
   }
 
+  public KubernetesClient getClient() {
+    return client;
+  }
+
   @Produces
   public KubernetesClient create() {
     return proxyClient;
@@ -63,6 +67,10 @@ public class ProxiedKubernetesClientProducer {
 
     public KubernetesClientInvocationHandler(KubernetesClient client) {
       this.client = client;
+    }
+
+    public KubernetesClient getClient() {
+      return client;
     }
 
     @Override

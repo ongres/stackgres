@@ -421,7 +421,7 @@ class PatroniConfigEndpointsTest {
 
     assertFalse(endpoints.isEmpty());
 
-    final Endpoints endpoint = (Endpoints) endpoints.get(0);
+    final Endpoints endpoint = (Endpoints) endpoints.getFirst();
     assertNotNull(endpoint.getMetadata());
     assertNotNull(endpoint.getMetadata().getLabels());
     assertNotNull(endpoint.getMetadata().getAnnotations());

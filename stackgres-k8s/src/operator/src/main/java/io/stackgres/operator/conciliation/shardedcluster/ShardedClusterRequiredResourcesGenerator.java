@@ -543,8 +543,7 @@ public class ShardedClusterRequiredResourcesGenerator
         .map(backup -> backup
             .map(StackGresShardedBackup::getMetadata)
             .map(ObjectMeta::getNamespace))
-        .filter(Optional::isPresent)
-        .map(Optional::get)
+        .flatMap(Optional::stream)
         .filter(Predicate.not(clusterNamespace::equals))
         .collect(Collectors.groupingBy(Function.identity()))
         .keySet();

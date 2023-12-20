@@ -41,8 +41,7 @@ public enum StackGresComponent {
     Stream.of(Components.values())
         .flatMap(cs -> Stream.of(cs)
             .map(c -> c.getComponent(this))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
+            .flatMap(Optional::stream)
             .map(c -> Tuple.tuple(cs.getVersion(), c)))
         .forEach(component -> componentMapBuilder.put(component.v1, component.v2));
     this.componentMap = componentMapBuilder.build();

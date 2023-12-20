@@ -97,7 +97,7 @@ public abstract class ResourceGeneratorReconciliator<
             existingResource.v1.getMetadata().getName(),
             existingResource.v1.getKind(), name);
         handlerSelector.delete(client, context, existingResource.v1);
-      } else if (!existingResource.v2.isPresent()
+      } else if (existingResource.v2.isEmpty()
           && !handlerSelector.isManaged(context, existingResource.v1)) {
         if (handlerSelector.skipDeletion(context, existingResource.v1)) {
           logger.trace("Skip deletion of resource {}.{} of type {}",

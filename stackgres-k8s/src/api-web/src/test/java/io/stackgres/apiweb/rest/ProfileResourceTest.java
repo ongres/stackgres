@@ -12,6 +12,8 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.stackgres.apiweb.dto.fixture.DtoFixtures;
 import io.stackgres.apiweb.dto.profile.ProfileDto;
+import io.stackgres.apiweb.rest.sginstanceprofile.NamespacedProfileResource;
+import io.stackgres.apiweb.rest.sginstanceprofile.ProfileResource;
 import io.stackgres.apiweb.transformer.AbstractDependencyResourceTransformer;
 import io.stackgres.apiweb.transformer.ProfileTransformer;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;

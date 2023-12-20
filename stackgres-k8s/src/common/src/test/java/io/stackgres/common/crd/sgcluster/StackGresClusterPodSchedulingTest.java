@@ -62,7 +62,7 @@ class StackGresClusterPodSchedulingTest {
 
   @Test
   void shouldMatchExpressionKey_BeEqualsForPodNodeAffinityPreferredDuringScheduling() {
-    nodeAffinityPreferredDuringScheduling.get(0).getPreference()
+    nodeAffinityPreferredDuringScheduling.getFirst().getPreference()
         .getMatchExpressions().forEach(matchExpression -> {
           assertTrue(matchExpression.getKey().equals(PREFERRED_TOPOLOGY_KEY));
         });
@@ -70,7 +70,7 @@ class StackGresClusterPodSchedulingTest {
 
   @Test
   void shouldOperator_BeEqualsInForPodNodeAffinityPreferredDuringScheduling() {
-    nodeAffinityPreferredDuringScheduling.get(0)
+    nodeAffinityPreferredDuringScheduling.getFirst()
         .getPreference().getMatchExpressions().forEach(matchExpression -> {
           assertEquals(matchExpression.getOperator(), OPERATOR_IN);
         });
@@ -79,7 +79,7 @@ class StackGresClusterPodSchedulingTest {
   @Test
   void shouldMathExpressionValuesSize_BeEqualsPodNodeAffinityPreferredDuringSchedulingSize() {
     assertEquals(TWO_NODE_AFFFINITY_EXPRESSION_VALUES,
-        nodeAffinityPreferredDuringScheduling.get(0).getPreference()
+        nodeAffinityPreferredDuringScheduling.getFirst().getPreference()
             .getMatchExpressions().get(0).getValues().size());
   }
 }

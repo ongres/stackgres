@@ -118,7 +118,7 @@ public class ItHelper {
   public static String generateOperatorNamespace(Container k8s) throws Exception {
     return k8s.execute("sh", "/resources/e2e/e2e", "generate_operator_namespace")
         .filter(ItHelper.EXCLUDE_TTY_WARNING)
-        .peek(line -> LOGGER.info("Generated operator namespace: " + line))
+        .peek(line -> LOGGER.info("Generated operator namespace: {}", line))
         .collect(Collectors.joining());
   }
 
@@ -129,7 +129,7 @@ public class ItHelper {
     if (Optional.ofNullable(System.getenv("K8S_REUSE"))
         .map(Boolean::parseBoolean)
         .orElse(true)) {
-      LOGGER.info("Reusing " + E2E_ENV);
+      LOGGER.info("Reusing {}", E2E_ENV);
       k8s.copyIn(new ByteArrayInputStream(
           ("cd /resources/e2e\n"
               + E2E_ENVVARS + "\n"
@@ -173,7 +173,7 @@ public class ItHelper {
               "/resources/e2e/target/" + file, Paths.get("target/certs", file))));
       return;
     }
-    LOGGER.info("Restarting " + E2E_ENV);
+    LOGGER.info("Restarting {}", E2E_ENV);
     k8s.copyIn(new ByteArrayInputStream(
         ("cd /resources/e2e\n"
             + E2E_ENVVARS + "\n"
@@ -205,7 +205,7 @@ public class ItHelper {
    * It helper method.
    */
   public static void createNamespace(Container k8s, String namespace) throws Exception {
-    LOGGER.info("Create namespace '" + namespace + "'");
+    LOGGER.info("Create namespace '{}'", namespace);
     k8s.execute("sh", "-l", "-c",
         "kubectl create namespace " + namespace)
         .filter(EXCLUDE_TTY_WARNING)
@@ -222,15 +222,14 @@ public class ItHelper {
     Optional<Integer> secondPointIndex = firstPointIndex
         .map(index -> host.indexOf('.', index + 1))
         .filter(index -> index >= 0);
-    if (!firstPointIndex.isPresent()) {
+    if (firstPointIndex.isEmpty()) {
       return host;
     }
     String namespace = host.substring(firstPointIndex.get() + 1,
         secondPointIndex.orElse(host.length()));
     String serviceName = host.substring(0, firstPointIndex.get());
     String exposedServiceName = serviceName + "-exposed";
-    LOGGER.info("Create service " + exposedServiceName
-        + " to expose service " + serviceName + " in namespace " + namespace);
+    LOGGER.info("Create service {} to expose service {} in namespace {}", exposedServiceName, serviceName, namespace);
     k8s.execute("sh", "-l", "-ce",
         "kubectl get service -n " + namespace + " " + exposedServiceName
             + " | grep -q '^" + exposedServiceName + "\\s'"
@@ -385,11 +384,11 @@ public class ItHelper {
    */
   public static void installStackGresCluster(Container k8s, String namespace, String name,
       int instances) throws Exception {
-    LOGGER.info("Deleting if exists stackgres-cluster helm chart for cluster with name " + name);
+    LOGGER.info("Deleting if exists stackgres-cluster helm chart for cluster with name {}", name);
     k8s.execute("sh", "-l", "-c", "helm delete " + name + " --namespace " + namespace + "|| true")
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(LOGGER::info);
-    LOGGER.info("Installing stackgres-cluster helm chart for cluster with name " + name);
+    LOGGER.info("Installing stackgres-cluster helm chart for cluster with name {}", name);
     k8s.execute("sh", "-l", "-c", "helm install "
         + name
         + " --namespace " + namespace
@@ -408,7 +407,7 @@ public class ItHelper {
    */
   public static void upgradeStackGresCluster(Container k8s, String namespace, String name,
       int instances) throws Exception {
-    LOGGER.info("Upgrade stackgres-cluster helm chart for cluster with name " + name);
+    LOGGER.info("Upgrade stackgres-cluster helm chart for cluster with name {}", name);
     k8s.execute("sh", "-l", "-c", "helm upgrade "
         + name
         + " /resources/stackgres-cluster "
@@ -428,7 +427,7 @@ public class ItHelper {
    */
   public static void deleteStackGresCluster(Container k8s, String namespace, String name)
       throws Exception {
-    LOGGER.info("Delete stackgres-cluster helm chart for cluster with name " + name);
+    LOGGER.info("Delete stackgres-cluster helm chart for cluster with name {}", name);
     k8s.execute("sh", "-l", "-c", "helm delete " + name + " --namespace " + namespace)
         .filter(EXCLUDE_TTY_WARNING)
         .forEach(LOGGER::info);

@@ -282,4 +282,24 @@ class ScriptsConfigMutatorTest {
         JsonUtil.toJson(result));
   }
 
+  @Test
+  void updateClusterWithDefaultRemovedWithDifferentId_shouldAddDefaultAndResetStatus() {
+    StackGresClusterReview review = AdmissionReviewFixtures.cluster()
+        .loadUpdateWithManagedSql().get();
+
+    review.getRequest().getObject().getStatus().getManagedSql().getScripts().get(0).setId(4);
+    StackGresCluster expected = JsonUtil.copy(review.getRequest().getObject());
+    review.getRequest().getObject().getSpec().getManagedSql().getScripts().remove(0);
+    expected.getSpec().getManagedSql().getScripts().get(0).setId(4);
+    expected.getStatus().getManagedSql().getScripts().get(0).setId(4);
+    JsonNode expectedCluster = JsonUtil.toJson(expected);
+
+    StackGresCluster result = mutator.mutate(
+        review, JsonUtil.copy(review.getRequest().getObject()));
+
+    JsonUtil.assertJsonEquals(
+        expectedCluster,
+        JsonUtil.toJson(result));
+  }
+
 }

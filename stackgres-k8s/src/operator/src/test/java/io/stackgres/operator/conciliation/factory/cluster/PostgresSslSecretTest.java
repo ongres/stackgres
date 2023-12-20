@@ -58,11 +58,11 @@ class PostgresSslSecretTest {
 
     Assertions.assertEquals(1, secretVolumePairs.size());
     Assertions.assertEquals(PostgresSslSecret.name(cluster),
-        secretVolumePairs.get(0).getSource()
+        secretVolumePairs.getFirst().getSource()
         .orElseThrow()
         .getMetadata()
         .getName());
-    Assertions.assertEquals(1, secretVolumePairs.get(0).getSource()
+    Assertions.assertEquals(1, secretVolumePairs.getFirst().getSource()
         .map(Secret.class::cast)
         .orElseThrow()
         .getData()
@@ -78,30 +78,30 @@ class PostgresSslSecretTest {
     var secretVolumePairs = postgresSslSecret.buildVolumes(context).toList();
 
     Assertions.assertEquals(PostgresSslSecret.name(cluster),
-        secretVolumePairs.get(0).getSource()
+        secretVolumePairs.getFirst().getSource()
         .orElseThrow()
         .getMetadata()
         .getName());
     Assertions.assertEquals(1, secretVolumePairs.size());
-    Assertions.assertTrue(secretVolumePairs.get(0).getSource()
+    Assertions.assertTrue(secretVolumePairs.getFirst().getSource()
         .map(Secret.class::cast)
         .map(Secret::getData)
         .map(data -> data.get(PostgresSslSecret.CERTIFICATE_KEY))
         .isPresent());
-    Assertions.assertTrue(secretVolumePairs.get(0).getSource()
+    Assertions.assertTrue(secretVolumePairs.getFirst().getSource()
         .map(Secret.class::cast)
         .map(Secret::getData)
         .map(data -> data.get(PostgresSslSecret.PRIVATE_KEY_KEY))
         .isPresent());
     checkCertificateAndPrivateKey(
         ResourceUtil.decodeSecret(
-            secretVolumePairs.get(0).getSource()
+            secretVolumePairs.getFirst().getSource()
             .map(Secret.class::cast)
             .map(Secret::getData)
             .map(data -> data.get(PostgresSslSecret.CERTIFICATE_KEY))
             .orElseThrow()),
         ResourceUtil.decodeSecret(
-            secretVolumePairs.get(0).getSource()
+            secretVolumePairs.getFirst().getSource()
             .map(Secret.class::cast)
             .map(Secret::getData)
             .map(data -> data.get(PostgresSslSecret.PRIVATE_KEY_KEY))
@@ -119,31 +119,31 @@ class PostgresSslSecretTest {
     var secretVolumePairs = postgresSslSecret.buildVolumes(context).toList();
 
     Assertions.assertEquals(PostgresSslSecret.name(cluster),
-        secretVolumePairs.get(0).getSource()
+        secretVolumePairs.getFirst().getSource()
         .orElseThrow()
         .getMetadata()
         .getName());
     Assertions.assertEquals(1, secretVolumePairs.size());
-    Assertions.assertTrue(secretVolumePairs.get(0).getSource()
+    Assertions.assertTrue(secretVolumePairs.getFirst().getSource()
         .map(Secret.class::cast)
         .map(Secret::getData)
         .map(data -> data.get(PostgresSslSecret.CERTIFICATE_KEY))
         .isPresent());
     Assertions.assertEquals("test-certificate",
         ResourceUtil.decodeSecret(
-        secretVolumePairs.get(0).getSource()
+        secretVolumePairs.getFirst().getSource()
         .map(Secret.class::cast)
         .map(Secret::getData)
         .map(data -> data.get(PostgresSslSecret.CERTIFICATE_KEY))
         .orElseThrow()));
-    Assertions.assertTrue(secretVolumePairs.get(0).getSource()
+    Assertions.assertTrue(secretVolumePairs.getFirst().getSource()
         .map(Secret.class::cast)
         .map(Secret::getData)
         .map(data -> data.get(PostgresSslSecret.PRIVATE_KEY_KEY))
         .isPresent());
     Assertions.assertEquals("test-private-key",
         ResourceUtil.decodeSecret(
-        secretVolumePairs.get(0).getSource()
+        secretVolumePairs.getFirst().getSource()
         .map(Secret.class::cast)
         .map(Secret::getData)
         .map(data -> data.get(PostgresSslSecret.PRIVATE_KEY_KEY))
