@@ -82,7 +82,7 @@ e2e_install_previous_operator() {
       | jq -sr ".[]|select(.name == \"stackgres.v$BUNDLE_STACKGRES_PREVIOUS_VERSION\").image" | grep .')"
   fi
 
-  CATALOG_IMAGE_NAME="$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}/stackgres/${OPERATOR_BUNDLE_CATALOG_IMAGE_NAME##*/}"
+  CATALOG_IMAGE_NAME="${E2E_CATALOG_IMAGE_REGISTRY:-$E2E_OPERATOR_REGISTRY${E2E_OPERATOR_REGISTRY_PATH%/}}/stackgres/${OPERATOR_BUNDLE_CATALOG_IMAGE_NAME##*/}"
   mkdir -p "$LOG_PATH/operator-catalog"
   opm generate dockerfile "$LOG_PATH/operator-catalog"
   echo > "$LOG_PATH/README.md"
