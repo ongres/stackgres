@@ -335,66 +335,74 @@ EOF
   fi
   echo "...done"
 
-  CSI_DRIVER_HOST_PATH_VERSION=""
-  if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
-      -ge "$(echo "1.26" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  if [ "$K8S_DISABLE_VOLUME_SNAPSHOT" != true ]
   then
-    CSI_DRIVER_HOST_PATH_VERSION=v1.12.0
-    SNAPSHOTTER_VERSION=v6.3.2
-  elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
-      -ge "$(echo "1.24" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
-  then
-    CSI_DRIVER_HOST_PATH_VERSION=v1.11.0
-    SNAPSHOTTER_VERSION=v6.3.2
-  elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
-      -ge "$(echo "1.22" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
-  then
-    CSI_DRIVER_HOST_PATH_VERSION=v1.10.0
-    SNAPSHOTTER_VERSION=v6.3.2
-  elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
-      -ge "$(echo "1.21" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
-  then
-    CSI_DRIVER_HOST_PATH_VERSION=v1.9.0
-    SNAPSHOTTER_VERSION=v6.3.2
-  elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
-      -ge "$(echo "1.20" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
-  then
-    CSI_DRIVER_HOST_PATH_VERSION=v1.9.0
-    SNAPSHOTTER_VERSION=v3.0.3
-  elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
-      -ge "$(echo "1.19" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
-  then
-    CSI_DRIVER_HOST_PATH_VERSION=v1.7.3
-    SNAPSHOTTER_VERSION=v3.0.3
-  elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
-      -ge "$(echo "1.18" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
-  then
-    CSI_DRIVER_HOST_PATH_VERSION=v1.7.2
-    SNAPSHOTTER_VERSION=v3.0.3
-  fi
-  if [ -z "$CSI_DRIVER_HOST_PATH_VERSION" ]
-  then
-    echo "Can not find a valid csi driver host path version"
-    exit 1
-  fi
-  if ! git -C "$TARGET_PATH/csi-driver-host-path/.git" diff origin/"$CSI_DRIVER_HOST_PATH_VERSION"
-  then
-    rm -rf "$TARGET_PATH/csi-driver-host-path"
-    git clone -b "$CSI_DRIVER_HOST_PATH_VERSION" --single-branch \
-      https://github.com/kubernetes-csi/csi-driver-host-path \
-      "$TARGET_PATH/csi-driver-host-path"
-  fi
-  
-  {
-    # Apply VolumeSnapshot CRDs
-    kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml"
-    kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml"
-    kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml"
-    # Create snapshot controller
-    kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml"
-    kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml"
-    CSI_DRIVER_HOST_PATH_PATH="$TARGET_PATH/csi-driver-host-path/deploy/kubernetes-$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)"
-    cat << 'EOF' > "$CSI_DRIVER_HOST_PATH_PATH/kubectlw"
+    echo "Setting up CSI Hostpath Driver with Snapshotter for kind..."
+    CSI_DRIVER_HOST_PATH_VERSION=""
+    if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+        -ge "$(echo "1.29" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+    then
+      CSI_DRIVER_HOST_PATH_VERSION=master
+      SNAPSHOTTER_VERSION=v6.3.2
+    elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+        -ge "$(echo "1.26" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+    then
+      CSI_DRIVER_HOST_PATH_VERSION=v1.12.0
+      SNAPSHOTTER_VERSION=v6.3.2
+    elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+        -ge "$(echo "1.24" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+    then
+      CSI_DRIVER_HOST_PATH_VERSION=v1.11.0
+      SNAPSHOTTER_VERSION=v6.3.2
+    elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+        -ge "$(echo "1.22" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+    then
+      CSI_DRIVER_HOST_PATH_VERSION=v1.10.0
+      SNAPSHOTTER_VERSION=v6.3.2
+    elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+        -ge "$(echo "1.21" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+    then
+      CSI_DRIVER_HOST_PATH_VERSION=v1.9.0
+      SNAPSHOTTER_VERSION=v6.3.2
+    elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+        -ge "$(echo "1.20" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+    then
+      CSI_DRIVER_HOST_PATH_VERSION=v1.9.0
+      SNAPSHOTTER_VERSION=v3.0.3
+    elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+        -ge "$(echo "1.19" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+    then
+      CSI_DRIVER_HOST_PATH_VERSION=v1.7.3
+      SNAPSHOTTER_VERSION=v3.0.3
+    elif [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+        -ge "$(echo "1.18" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+    then
+      CSI_DRIVER_HOST_PATH_VERSION=v1.7.2
+      SNAPSHOTTER_VERSION=v3.0.3
+    fi
+    if [ -z "$CSI_DRIVER_HOST_PATH_VERSION" ]
+    then
+      echo "Can not find a valid csi driver host path version"
+      exit 1
+    fi
+    if ! git -C "$TARGET_PATH/csi-driver-host-path/.git" diff origin/"$CSI_DRIVER_HOST_PATH_VERSION" 2>/dev/null
+    then
+      rm -rf "$TARGET_PATH/csi-driver-host-path"
+      git clone -b "$CSI_DRIVER_HOST_PATH_VERSION" --single-branch \
+        https://github.com/kubernetes-csi/csi-driver-host-path \
+        "$TARGET_PATH/csi-driver-host-path"
+    fi
+    
+    {
+      # Apply VolumeSnapshot CRDs
+      kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/client/config/crd/snapshot.storage.k8s.io_volumesnapshotclasses.yaml"
+      kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/client/config/crd/snapshot.storage.k8s.io_volumesnapshotcontents.yaml"
+      kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/client/config/crd/snapshot.storage.k8s.io_volumesnapshots.yaml"
+      # Create snapshot controller
+      kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml"
+      kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml"
+      CSI_DRIVER_HOST_PATH_PATH="$TARGET_PATH/csi-driver-host-path/deploy/kubernetes-$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)"
+      cat << 'EOF' > "$CSI_DRIVER_HOST_PATH_PATH/kubectlw"
 set -e
 if [ "x$1" = xapply ]
 then
@@ -430,14 +438,16 @@ else
   kubectl -n kube-system "$@"
 fi
 EOF
-    sed -i "s#kubectl#sh $CSI_DRIVER_HOST_PATH_PATH/kubectlw#" \
-      "$CSI_DRIVER_HOST_PATH_PATH"/deploy.sh
-    IMAGE_TAG= bash "$CSI_DRIVER_HOST_PATH_PATH"/deploy.sh
-    kubectl create -f "$TARGET_PATH/csi-driver-host-path/examples/csi-storageclass.yaml"
-    kubectl get storageclass -o name | xargs -I % kubectl annotate % --overwrite storageclass.kubernetes.io/is-default-class=false
-    kubectl annotate storageclass csi-hostpath-sc --overwrite storageclass.kubernetes.io/is-default-class=true
-    kubectl annotate volumesnapshotclass csi-hostpath-snapclass --overwrite snapshot.storage.kubernetes.io/is-default-class="true"
-  }
+      sed -i "s#kubectl#sh $CSI_DRIVER_HOST_PATH_PATH/kubectlw#" \
+        "$CSI_DRIVER_HOST_PATH_PATH"/deploy.sh
+      IMAGE_TAG= bash "$CSI_DRIVER_HOST_PATH_PATH"/deploy.sh
+      kubectl create -f "$TARGET_PATH/csi-driver-host-path/examples/csi-storageclass.yaml"
+      kubectl get storageclass -o name | xargs -I % kubectl annotate % --overwrite storageclass.kubernetes.io/is-default-class=false
+      kubectl annotate storageclass csi-hostpath-sc --overwrite storageclass.kubernetes.io/is-default-class=true
+      kubectl annotate volumesnapshotclass csi-hostpath-snapclass --overwrite snapshot.storage.kubernetes.io/is-default-class="true"
+    }
+    echo "...done"
+  fi
 
   if [ "$ENABLE_METRIC_SERVER" = true ]
   then
