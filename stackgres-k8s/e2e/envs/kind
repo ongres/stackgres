@@ -318,14 +318,14 @@ EOF
   echo "Setting up calico for kind..."
   until kubectl get node --template '{{ if (index .items 0).spec.podCIDR }}true{{ end }}' | grep -q 'true'
   do
-    sleep 1
+    sleep 3
   done
   K8S_POD_CIDR="$(kubectl get node --template '{{ (index .items 0).spec.podCIDR }}')"
   if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
       -ge "$(echo "1.22" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
   then
-    kubectl create -f https://docs.projectcalico.org/archive/v3.24/manifests/tigera-operator.yaml
-    kubectl create -f https://docs.projectcalico.org/archive/v3.24/manifests/custom-resources.yaml
+    kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.4/manifests/tigera-operator.yaml
+    kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.4/manifests/custom-resources.yaml
     kubectl patch installations.operator.tigera.io default --type json \
       -p '[{"op":"replace","path":"/spec/calicoNetwork/ipPools/0/cidr","value":"'"$K8S_POD_CIDR"'"}]'
   else
