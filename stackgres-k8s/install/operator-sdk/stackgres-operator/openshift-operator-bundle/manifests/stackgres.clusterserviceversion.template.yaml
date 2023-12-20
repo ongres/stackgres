@@ -1,6 +1,6 @@
 kind: ClusterServiceVersion
 # metadata:
 #   annotations:
-#     olm.properties: '[{"type": "olm.maxOpenShiftVersion", "value": "4.13"}]' # Uncomment to specify max OpenShift supported version. 
+#     olm.properties: '[{"type": "olm.maxOpenShiftVersion", "value": "4.14"}]' # Uncomment to specify max OpenShift supported version. 
 #                                                                                # Beware that k8s version is already enforced and this check may prevent
 #                                                                                #  operator installation on newer OpenShift version without a real need.
