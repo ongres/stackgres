@@ -43,7 +43,7 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DefaultCloseableDSLContext;
 import org.jooq.impl.DefaultConnectionProvider;
 
-@Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgcluster")
+@Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgclusters")
 @RequestScoped
 @Authenticated
 @Tag(name = "sgcluster")
