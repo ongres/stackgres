@@ -1,0 +1,202 @@
+#!/bin/sh
+
+. "$SPEC_PATH/abstract/dbops-major-version-upgrade"
+
+e2e_test_extra_hash() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/dbops-major-version-upgrade")"
+}
+
+e2e_test() {
+  run_test "Checking that major version upgrade is working" check_major_version_upgrade_is_working
+
+  run_test "Checking that major version upgrade check is working" check_major_version_upgrade_check_is_working
+
+  run_test "Checking that major version upgrade creation fails on missing extension version" check_major_version_upgrade_creation_fail_on_missing_extension_version
+}
+
+check_major_version_upgrade_is_working() {
+  reset_cluster
+
+  install_minio
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1beta1
+kind: SGObjectStorage
+metadata:
+  namespace: "$CLUSTER_NAMESPACE"
+  name: backupconf
+spec:
+  type: s3Compatible
+  s3Compatible:
+    bucket: stackgres
+    endpoint: http://$CLUSTER_NAME-minio:9000
+    enablePathStyleAddressing: true
+    region: k8s
+    awsCredentials:
+      secretKeySelectors:
+        accessKeyId:
+          name: dbops-major-version-upgrade-minio
+          key: accesskey
+        secretAccessKey:
+          name: dbops-major-version-upgrade-minio
+          key: secretkey
+EOF
+
+  create_or_replace_cluster_without_defaults "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string cluster.postgres.version="$E2E_MAJOR_SOURCE_POSTGRES_VERSION" \
+    --set cluster.configurations.backups.retention=2 \
+    --set-string cluster.configurations.backups.cronSchedule='0 5 31 2 *' \
+    --set-string cluster.configurations.backups.sgObjectStorage=backupconf \
+    --set cluster.postgres.ssl.enabled=true
+
+  local BACKUP_NAME_PRE BACKUP_NAME_POST
+  BACKUP_NAME_PRE="$(get_sgbackup_name "$CLUSTER_NAME-pre")"
+  BACKUP_NAME_POST="$(get_sgbackup_name "$CLUSTER_NAME-post")"
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGBackup
+metadata:
+  namespace: "$CLUSTER_NAMESPACE"
+  name: "$BACKUP_NAME_POST"
+spec:
+  sgCluster: "$CLUSTER_NAME"
+  managedLifecycle: false
+EOF
+
+  if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME_POST" \
+    --template "{{ .status.process.status }}")" = Completed ]'
+  then
+    echo "SUCCESS. The backup has completed"
+  else
+    echo "FAIL. The backup has failed"
+    return 1
+  fi
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: majorVersionUpgrade
+  majorVersionUpgrade:
+    postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
+    sgPostgresConfig: postgresconf-for-major-version-upgrade
+    postgresExtensions:
+    - name: pg_repack
+      version: $TARGET_PG_REPACK_VERSION
+EOF
+
+  wait_until eval '[ "$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" \
+    --template "{{ .status.opRetries }}")" = "0" ]'
+  kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" -o yaml > "$LOG_PATH/sgdbops.yaml"
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
+  kubectl create -f "$LOG_PATH/sgdbops.yaml"
+
+  if [ "$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --template "{{ .spec.majorVersionUpgrade.backupPath }}")" \
+    = "sgbackups.stackgres.io/$CLUSTER_NAMESPACE/$CLUSTER_NAME/${E2E_MAJOR_TARGET_POSTGRES_VERSION%.*}" ]
+  then
+    echo "SUCCESS. DbOps path was added to spec"
+  else
+    echo "FAIL. DbOps path was not added to spec"
+    return 1
+  fi
+
+  check_major_version_upgrade
+
+  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath='{ .spec.configurations.backups[0].path }')" \
+    = "sgbackups.stackgres.io/$CLUSTER_NAMESPACE/$CLUSTER_NAME/${E2E_MAJOR_TARGET_POSTGRES_VERSION%.*}" ]
+  then
+    echo "SUCCESS. Backup path was added to cluster backup configuration after major version upgrade"
+  else
+    echo "FAIL. Backup path was not added to cluster backup configuration after major version upgrade"
+    return 1
+  fi
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGBackup
+metadata:
+  namespace: "$CLUSTER_NAMESPACE"
+  name: "$BACKUP_NAME_PRE"
+spec:
+  sgCluster: "$CLUSTER_NAME"
+  managedLifecycle: false
+EOF
+
+  if wait_until eval '[ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME_PRE" \
+    --template "{{ .status.process.status }}")" = Completed ]'
+  then
+    echo "SUCCESS. The backup has completed"
+  else
+    echo "FAIL. The backup has failed"
+    return 1
+  fi
+
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
+  helm delete --namespace "$MINIO_NAMESPACE" "$MINIO_NAME"
+}
+
+check_major_version_upgrade_check_is_working() {
+  reset_cluster
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: majorVersionUpgrade
+  majorVersionUpgrade:
+    postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
+    sgPostgresConfig: postgresconf-for-major-version-upgrade
+    check: true
+    postgresExtensions:
+    - name: pg_repack
+      version: $TARGET_PG_REPACK_VERSION
+EOF
+
+  check_major_version_upgrade_check
+
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
+}
+
+check_major_version_upgrade_creation_fail_on_missing_extension_version() {
+  local E2E_MAJOR_SOURCE_POSTGRES_VERSION=14
+  local E2E_MAJOR_TARGET_POSTGRES_VERSION=15
+  local SOURCE_PG_REPACK_VERSION
+  SOURCE_PG_REPACK_VERSION="$(get_oldest_version_of_extension pg_repack "${E2E_MAJOR_SOURCE_POSTGRES_VERSION%.*}")"
+
+  reset_cluster_only_pg_repack
+
+  cat << EOF > "$LOG_PATH"/failing-dbops.yaml
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: majorVersionUpgrade
+  majorVersionUpgrade:
+    postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
+    sgPostgresConfig: postgresconf-for-major-version-upgrade
+    check: true
+EOF
+
+  if ! kubectl create -f "$LOG_PATH"/failing-dbops.yaml
+  then
+    echo "SUCCESS. The SGDbOps creation has failed"
+  else
+    echo "FAIL. The SGDbOps creation has not failed"
+    return 1
+  fi
+}
