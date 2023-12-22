@@ -20,7 +20,8 @@ const resources = {
   sgdbops: '/sgdbops',
   storageclasses: '/storageclasses',
   extensions: '/extensions',
-  applications: '/applications'
+  applications: '/applications',
+  sgconfigs: '/sgconfigs',
 };
 
 export default {

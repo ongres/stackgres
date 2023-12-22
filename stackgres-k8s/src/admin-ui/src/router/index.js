@@ -50,6 +50,9 @@ import NotFound from '../components/NotFound.vue'
 // Applications
 import BabelfishCompass from '../components/applications/BabelfishCompass.vue'
 
+// Settings
+import SGConfig from '../components/SGConfig.vue'
+import EditSGConfig from '../components/forms/EditSGConfig.vue'
 
 Vue.use(VueRouter);
 
@@ -696,6 +699,25 @@ const routes = [
     meta: {
       conditionalRoute: false, 
       componentName: 'Application'
+    },
+  },
+  {
+    path: '/sgconfig/:name', 
+    component: SGConfig,
+    name: 'SGConfig',
+    meta: {
+      conditionalRoute: false, 
+      componentName: 'SGConfig'
+    },
+  },
+  ,
+  {
+    path: '/sgconfig/:name/edit', 
+    component: EditSGConfig,
+    name: 'EditSGConfig',
+    meta: {
+      conditionalRoute: false, 
+      componentName: 'SGConfig'
     },
   },
   {

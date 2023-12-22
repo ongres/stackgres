@@ -616,7 +616,7 @@ export const sgclusterform = {
                 let [prop, ...pathSplit] = path.split('.');
                     
                 if(!term.hasOwnProperty(prop)) {
-                    term[prop] = pathSplit.length ? {} : [];
+                    this.$set(term, prop, pathSplit.length ? {} : []);
                 }
 
                 this.addRequiredAffinityTerm(term[prop], pathSplit.join('.'));
@@ -640,7 +640,7 @@ export const sgclusterform = {
                 let [prop, ...pathSplit] = path.split('.');
                     
                 if(!term.hasOwnProperty(prop)) {
-                    term[prop] = pathSplit.length ? {} : [];
+                    this.$set(term, prop, pathSplit.length ? {} : []);
                 }
 
                 this.addPreferredAffinityTerm(term[prop], pathSplit.join('.'));
