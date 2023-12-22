@@ -20,6 +20,10 @@ e2e_test_install() {
 
   install_minio
 
+  deploy_curl_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 2
+
   DISTRIBUTED_LOGS_NAME="$(get_sgdistributedlogs_name distributedlogs)"
 }
 
@@ -33,7 +37,11 @@ e2e_test_uninstall() {
 
 e2e_test() {
   run_test "Check that operator can be installed" check_operator_install
+
   run_test "Check that resources can be created" check_resources_creation
+
+  run_test "Namespace endpoint should return all kubernetes namespaces" check_namespace
+
   run_test "Check that operator can be deleted" check_operator_delete
 }
 
@@ -413,5 +421,29 @@ e2e_properly_tag_not_found_import_images() {
 
 e2e_is_backup_phase() {
   [ "$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o=jsonpath='{.status.process.status}')" = "$1" ]
+}
+
+check_namespace() {
+  if wait_until check_returned_namespaces
+  then
+    echo "SUCCESS. Namespace endpoint returned all namespaces"
+    return 0
+  else
+    echo "FAIL. Namespace endpoint not return all namespaces"
+    return 1
+  fi
+}
+
+check_returned_namespaces() {
+  local NAMESPACES_IN_RESPONSE
+  local NAMESPACES_IN_K8S
+
+  NAMESPACES_IN_RESPONSE="$(run_curl -r "stackgres/namespaces" -n "$CLUSTER_NAMESPACE" \
+    | jq -M -S 'sort_by(.)[]' )"
+
+  NAMESPACES_IN_K8S="$(kubectl get ns -o json \
+    | jq -M -S '.items[].metadata.name')"
+
+  [ "$NAMESPACES_IN_RESPONSE" = "$NAMESPACES_IN_K8S" ]
 }
 

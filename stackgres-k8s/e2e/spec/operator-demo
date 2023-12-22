@@ -155,6 +155,8 @@ test_yamls() {
     return 1
   fi
 
+  check_namespace
+
   echo "Deleting MinIO resources"
   kubectl delete --namespace "${CLUSTER_NAMESPACE}" -f "${STACKGRES_YAMLS}/minio-demo.yml"
 
@@ -273,6 +275,8 @@ test_packages() {
     return 1
   fi
 
+  check_namespace
+
   echo "Deleting demo package cluster"
   helm uninstall --namespace "${CLUSTER_NAMESPACE}" "${CLUSTER_NAME}"
 
@@ -283,4 +287,28 @@ test_packages() {
     echo "FAILED. The demo package StackGres cluster pods have not been terminated."
     return 1
   fi
+}
+
+check_namespace() {
+  if wait_until check_returned_namespaces
+  then
+    echo "SUCCESS. Namespace endpoint returned all namespaces"
+    return 0
+  else
+    echo "FAIL. Namespace endpoint not return all namespaces"
+    return 1
+  fi
+}
+
+check_returned_namespaces() {
+  local NAMESPACES_IN_RESPONSE
+  local NAMESPACES_IN_K8S
+
+  NAMESPACES_IN_RESPONSE="$(run_curl -r "stackgres/namespaces" -n "$CLUSTER_NAMESPACE" \
+    | jq -M -S 'sort_by(.)[]' )"
+
+  NAMESPACES_IN_K8S="$(kubectl get ns -o json \
+    | jq -M -S '.items[].metadata.name')"
+
+  [ "$NAMESPACES_IN_RESPONSE" = "$NAMESPACES_IN_K8S" ]
 }
