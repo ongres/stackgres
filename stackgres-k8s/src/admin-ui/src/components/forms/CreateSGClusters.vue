@@ -2,32 +2,170 @@
     <div id="create-cluster" class="createCluster noSubmit" v-if="iCanLoad">
         <!-- Vue reactivity hack -->
         <template v-if="Object.keys(cluster).length > 0"></template>
-
+        
         <form id="createCluster" class="form" @submit.prevent v-if="!editMode || editReady">
+
             <div class="header stickyHeader">
                 <h2>
                     <span>{{ editMode ? 'Edit' :  'Create' }} Cluster</span>
                 </h2>
-                <label for="advancedMode" class="floatRight">
+                
+                <label for="advancedMode" class="floatRight" v-if="formTemplate == 'custom'">
                     <span>ADVANCED OPTIONS </span>
-                    <input type="checkbox" id="advancedMode" name="advancedMode" v-model="advancedMode" class="switch" @change="( (!advancedMode && (currentStepIndex > 2)) && (currentStep = formSteps[0]))">
+                    <input type="checkbox" id="advancedMode" name="advancedMode" v-model="advancedMode" class="switch" @change="( (!advancedMode && (currentStepIndex > 2)) && (currentStep = formSteps.custom[0]))">
                 </label>
             </div>
-            <div class="stepsContainer">
+
+            <div
+                id="wizard"
+                v-if="isNull(formTemplate) && !editMode"
+            >
+                <br/><br/>
+                <p>
+                    To create your cluster easily, you can choose a template from our predefined express setups or select "Custom" for personalized and advanced settings.
+                </p>
+                <br/><br/>
+
+                <div class="optionBoxes withLogos">
+                    <label for="basicWizard" data-field="formTemplate.basic" :class="( (formTemplate == 'basic') && 'active' )" tabindex="0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="39.999" height="40"><g fill="#36a8ff" transform="translate(17620 11563)"><rect width="10.37" height="26.667" rx="2" transform="translate(-17620 -11549.667)"/><rect width="10.37" height="32.593" opacity=".25" rx="2" transform="translate(-17605.186 -11555.593)"/><rect width="10.37" height="40" opacity=".25" rx="2" transform="translate(-17590.371 -11563)"/></g></svg>
+                        Basic
+                        <input type="radio" name="flavor" v-model="formTemplate" value="basic" id="basicWizard" @change="setupTemplate()">
+                    </label>
+                    <label for="fullWizard" data-field="formTemplate.full" :class="( (formTemplate == 'full') && 'active' )">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="39.999" height="40"><g fill="#36a8ff" transform="translate(17620 11563)"><rect width="10.37" height="26.667" rx="2" transform="translate(-17620 -11549.667)"/><rect width="10.37" height="32.593" rx="2" transform="translate(-17605.186 -11555.593)"/><rect width="10.37" height="40" opacity=".25" rx="2" transform="translate(-17590.371 -11563)"/></g></svg>
+                        Full
+                        <input type="radio" name="flavor" v-model="formTemplate" value="full" id="fullWizard" @change="setupTemplate()">
+                    </label>
+                    <label for="customWizard" data-field="formTemplate.custom" :class="( (formTemplate == 'custom') && 'active' )">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="44.007" height="44.28"><defs><clipPath id="a"><path fill="none" d="M0 0h44.007v44.28H0z"/></clipPath></defs><g fill="#05aafe" clip-path="url(#a)"><path d="M26.227 10.421A10.422 10.422 0 0 1 15.805 0 10.422 10.422 0 0 1 5.382 10.421a10.422 10.422 0 0 1 10.423 10.422 10.422 10.422 0 0 1 10.422-10.422M44.008 25.049a6.908 6.908 0 0 1-6.909-6.909 6.908 6.908 0 0 1-6.909 6.909 6.908 6.908 0 0 1 6.909 6.909 6.908 6.908 0 0 1 6.909-6.909M29.02 36.207a8.074 8.074 0 0 1-8.073-8.073 8.074 8.074 0 0 1-8.073 8.073 8.074 8.074 0 0 1 8.073 8.073 8.074 8.074 0 0 1 8.073-8.073M10.764 27.44a5.382 5.382 0 0 1-5.382-5.382A5.382 5.382 0 0 1 0 27.44a5.383 5.383 0 0 1 5.382 5.382 5.383 5.383 0 0 1 5.382-5.382"/></g></svg>
+                        Custom
+                        <input type="radio" name="flavor" v-model="formTemplate" value="custom" id="customWizard" @change="setupTemplate()">
+                    </label>
+                </div>
+            </div>
+            <div class="stepsContainer" v-if="!isNull(formTemplate)">
                 <ul class="steps">
-                    <button type="button" class="btn arrow prev" @click="currentStep = formSteps[(currentStepIndex - 1)]" :disabled="( currentStepIndex == 0 )"></button>
+                    <button type="button" class="btn arrow prev" @click="currentStep = formSteps[formTemplate][(currentStepIndex - 1)]" :disabled="( currentStepIndex == 0 )"></button>
             
-                    <template v-for="(step, index) in formSteps"  v-if="( ((index < 3) && !advancedMode) || advancedMode)">
+                    <template v-for="(step, index) in formSteps[formTemplate]"  v-if="( ((index < 3) && !advancedMode) || advancedMode)">
                         <li @click="currentStep = step; checkValidSteps(_data, 'steps')" :class="[( (currentStep == step) && 'active'), ( (index < 3) && 'basic' ), (errorStep.includes(step) && 'notValid')]" v-if="!( editMode && (step == 'initialization') && !restoreBackup.length )" :data-step="step">
                             {{ step }}
                         </li>
                     </template>
 
-                    <button type="button" class="btn arrow next" @click="currentStep = formSteps[(currentStepIndex + 1)]" :disabled="(!advancedMode && ( currentStepIndex == 2 ) ) || ( (advancedMode && ( currentStepIndex == (formSteps.length - 1) )) )"></button>
+                    <button type="button" class="btn arrow next" @click="currentStep = formSteps[formTemplate][(currentStepIndex + 1)]" :disabled="( currentStepIndex == (formSteps[formTemplate].length - 1) ) || (!advancedMode && ( currentStepIndex == 2 ) )"></button>
                 </ul>
             </div>
 
             <div class="clearfix"></div>
+
+            <fieldset class="step" :class="(currentStep == 'information') && 'active'" data-fieldset="information">
+                <div class="header">
+                    <h2>Cluster Information</h2>
+                </div>
+
+                <div class="fields">
+                    <div class="row-50">
+                        <div class="col">
+                            <label for="metadata.name">Cluster Name <span class="req">*</span></label>
+                            <input v-model="name" :disabled="editMode" required data-field="metadata.name" autocomplete="off">
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.metadata.name')"></span>
+                            
+                            <span class="warning topAnchor" v-if="nameColission && !editMode">
+                                There's already a <strong>SGCluster</strong> with the same name on this namespace. Please specify a different name or create the cluster on another namespace
+                            </span>
+                        </div>
+
+                        <div class="col">
+                            <label for="spec.profile">Profile</label>
+                            <select v-model="profile" data-field="spec.profile" class="capitalize">
+                                <option v-for="profile in clusterProfiles">{{ profile }}</option>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.profile')"></span>
+                        </div>
+                    </div>
+
+                    <hr/>
+                    
+                    <div class="row-50">
+                        <h3>Instances</h3>
+
+                        <div class="col">
+                            <label for="spec.instances">Number of Instances <span class="req">*</span></label>
+                            <input type="number" v-model="instances" required data-field="spec.instances" min="0">
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.instances')"></span>
+                        </div>
+                        <div class="col">
+                            <label for="spec.sgInstanceProfile">Instance Profile</label>  
+                            <select v-model="resourceProfile" class="resourceProfile" data-field="spec.sgInstanceProfile" @change="(resourceProfile == 'createNewResource') && createNewResource('sginstanceprofiles')" :set="( (resourceProfile == 'createNewResource') && (resourceProfile = '') )">
+                                <option selected value="">Default (Cores: 1, RAM: 2GiB)</option>
+                                <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace" :value="prof.name">{{ prof.name }} (Cores: {{ prof.data.spec.cpu }}, RAM: {{ prof.data.spec.memory }}B)</option>
+                                <template v-if="iCan('create', 'sginstanceprofiles', $route.params.namespace)">
+                                    <option value="" disabled>– OR –</option>
+                                    <option value="createNewResource">Create new profile</option>
+                                </template>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.sgInstanceProfile')"></span>
+                        </div>
+                    </div>
+
+                    <hr/>
+
+                    <div class="row-50">
+                        <h3>Postgres</h3>
+
+                        <div class="col">                    
+                            <div class="versionContainer">
+                                <label for="spec.postgres.version">Postgres Version <span class="req">*</span></label>
+                                <ul class="select" id="postgresVersion" data-field="spec.postgres.version" tabindex="0">
+                                    <li class="selected">
+                                        {{ (postgresVersion == 'latest') ? 'Latest' : 'Postgres '+postgresVersion }}
+                                    </li>
+                                    <li>
+                                        <a @click="setVersion('latest')" data-val="latest" class="active">Latest</a>
+                                    </li>
+
+                                    <li v-for="version in Object.keys(postgresVersionsList[flavor]).reverse()">
+                                        <strong>Postgres {{ version }}</strong>
+                                        <ul>
+                                            <li>
+                                                <a @click="setVersion(version)" :data-val="version">Postgres {{ version }} (Latest)</a>
+                                            </li>
+                                            <li v-for="minorVersion in postgresVersionsList[flavor][version]">
+                                                <a @click="setVersion(minorVersion)" :data-val="minorVersion">Postgres {{ minorVersion }}</a>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.version')"></span>
+
+                                <input v-model="postgresVersion" required class="hide">
+                            </div>
+                        </div>
+                    </div>
+
+                    <template v-if="formTemplate === 'full'">
+                        <hr style="margin-top: -15px;" />
+                    
+                        <div class="row-50">
+                            <h3>Sidecars</h3>
+
+                             <div class="col">
+                                <label>Monitoring</label>  
+                                <label for="enableMonitoring" class="switch yes-no">Enable<input type="checkbox" id="enableMonitoring" v-model="enableMonitoring" data-switch="YES" @change="checkenableMonitoring()"></label>
+                                <span class="helpTooltip" data-tooltip="StackGres supports enabling automatic monitoring for your Postgres cluster, but you need to provide or install the <a href='https://stackgres.io/doc/latest/install/prerequisites/monitoring/' target='_blank'>Prometheus stack as a pre-requisite</a>. Then, check this option to configure automatically sending metrics to the Prometheus stack."></span>
+                            </div>
+
+                             <div class="col">
+                                <label>Distributed Logs</label>  
+                                <label for="enableDistributedLogs" class="switch yes-no">Enable<input type="checkbox" id="enableDistributedLogs" v-model="enableDistributedLogs" data-switch="YES"></label>
+                                <span class="helpTooltip" data-tooltip="Allows sending Postgres and Patroni logs to a central SGDistributedLogs instance. Optional: if not enabled, logs are sent to the standard output."></span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </fieldset>
 
             <fieldset class="step" :class="(currentStep == 'cluster') && 'active'" data-fieldset="cluster">
                 <div class="header">
@@ -161,8 +299,8 @@
 
                         <div class="col">
                             <label for="spec.configurations.sgPostgresConfig">Postgres Configuration</label>
-                            <select v-model="pgConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig" @change="(pgConfig == 'createNewResource') && createNewResource('sgpgconfigs')" :set="( (pgConfig == 'createNewResource') && (pgConfig = '') )">
-                                <option value="" selected>Default</option>
+                            <select v-model="pgConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig" @change="(pgConfig == 'createNewResource') && createNewResource('sgpgconfigs')" :set="( (formTemplate !== 'full') && (pgConfig == 'createNewResource') ) && (pgConfig = '')">
+                                <option :value="null" selected>Default</option>
                                 <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == shortPostgresVersion) )">{{ conf.name }}</option>
                                 <template v-if="iCan('create', 'sgpgconfigs', $route.params.namespace)">
                                     <option value="" disabled>– OR –</option>
@@ -387,6 +525,74 @@
                 </div>
             </fieldset>
 
+            <fieldset class="step" :class="(currentStep == 'configurations') && 'active'" data-fieldset="configurations">
+                <div class="header">
+                    <h2>Configurations</h2>
+                </div>
+
+                <div class="fields">
+                    <div class="row-50">
+                        <div class="col">
+                            <label for="spec.configurations.sgPostgresConfig">Postgres Configuration</label>
+                            <select v-model="pgConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig" @change="(pgConfig !== 'createNewResource') && (configurations.sgPostgresConfig = null)">
+                                <option :value="null">Default</option>
+                                <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == shortPostgresVersion) )">{{ conf.name }}</option>
+                                <template v-if="iCan('create', 'sgpgconfigs', $route.params.namespace)">
+                                    <option disabled>– OR –</option>
+                                    <option value="createNewResource">Create new configuration</option>
+                                </template>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPostgresConfig')"></span>
+
+                            <template v-if="pgConfig === 'createNewResource'">
+                                <hr/>
+                                <textarea v-model="configurations.sgPostgresConfig" data-field="spec.configurations.sgPostgresConfig" placeholder="Paste your configuration here..."></textarea>
+                                <br/>
+                                <hr/>
+                                <span class="inlineHr">
+                                    OR
+                                </span>
+                                <br/>
+                                
+                                <label for="uploadSgPostgresConfig">
+                                    Upload Configuration File
+                                </label>
+                                <input id="uploadSgPostgresConfig" type="file" @change="uploadFile($event, 'configurations.sgPostgresConfig')">
+                            </template>
+                        </div>
+
+                        <div class="col">
+                            <label for="spec.configurations.sgPoolingConfig">Connection Pooling Configuration</label>
+                            <select v-model="connectionPoolingConfig" class="connectionPoolingConfig" data-field="spec.configurations.sgPoolingConfig" @change="(connectionPoolingConfig !== 'createNewResource') && (configurations.sgPoolingConfig = null)">
+                                <option :value="null">Default</option>
+                                <option v-for="conf in connPoolConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
+                                <template v-if="iCan('create', 'sgpoolconfigs', $route.params.namespace)">
+                                    <option disabled>– OR –</option>
+                                    <option value="createNewResource">Create new configuration</option>
+                                </template>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPoolingConfig')"></span>
+
+                            <template v-if="connectionPoolingConfig === 'createNewResource'">
+                                <hr/>
+                                <textarea v-model="configurations.sgPoolingConfig" data-field="spec.configurations.sgPoolingConfig" placeholder="Paste your configuration here..."></textarea>
+                                <br/>
+                                <hr/>
+                                <span class="inlineHr">
+                                    OR
+                                </span>
+                                <br/>
+                                
+                                <label for="uploadSgPoolingConfig">
+                                    Upload Configuration File    
+                                </label>
+                                <input id="uploadSgPoolingConfig" type="file" @change="uploadFile($event, 'configurations.sgPoolingConfig')">
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
             <fieldset class="step" :class="(currentStep == 'backups') && 'active'" data-fieldset="backups">
                 <div class="header">
                     <h2>Backups</h2>
@@ -424,7 +630,7 @@
                     <template v-if="managedBackups">
                     
                         <hr/>
-                   
+                
                         <h4 for="spec.configurations.backups.cronSchedule">
                             Backup Schedule 
                             <span class="req">*</span>
@@ -892,7 +1098,7 @@
                                 </div>
                             </div>
 
-                             <div class="row-50 noMargin">
+                            <div class="row-50 noMargin">
                                 <div class="col">
                                     <label for="spec.managedSql.scripts.scriptSource">Source</label>
                                     <select v-model="scriptSource[baseIndex].base" :disabled="editMode && isDefaultScript(baseScript.sgScript) && baseScript.hasOwnProperty('scriptSpec')" @change="setBaseScriptSource(baseIndex)" :data-field="'spec.managedSql.scripts.scriptSource[' + baseIndex + ']'">
@@ -930,7 +1136,7 @@
                                         <span class="helpTooltip" :data-tooltip="getTooltip('sgscript.spec.managedVersions').replace(/true/g, 'Enabled')"></span>
                                     </div>
                                 </div>
-                           
+                        
                                 <div class="section">
                                     <fieldset v-for="(script, index) in baseScript.scriptSpec.scripts">
                                         <div class="header">
@@ -1115,8 +1321,8 @@
 
                         <div class="col" v-if="connPooling">
                             <label for="connectionPoolingConfig">Connection Pooling Configuration</label>
-                            <select v-model="connectionPoolingConfig" class="connectionPoolingConfig" :disabled="!connPooling" @change="(connectionPoolingConfig == 'createNewResource') && createNewResource('sgpoolconfigs')" :set="( (connectionPoolingConfig == 'createNewResource') && (connectionPoolingConfig = '') )">
-                                <option value="" selected>Default</option>
+                            <select v-model="connectionPoolingConfig" class="connectionPoolingConfig" :disabled="!connPooling" @change="(connectionPoolingConfig == 'createNewResource') && createNewResource('sgpoolconfigs')">
+                                <option :value="null" selected>Default</option>
                                 <option v-for="conf in connPoolConf" v-if="conf.data.metadata.namespace == namespace">{{ conf.name }}</option>
                                 <template v-if="iCan('create', 'sgpoolconfigs', $route.params.namespace)">
                                     <option value="" disabled>– OR –</option>
@@ -2040,7 +2246,7 @@
                     <div class="row-50">
                         <div class="col">
                             <label for="spec.replication.role">Role</label>
-                             <select v-model="replication.role" required data-field="spec.replication.role">    
+                            <select v-model="replication.role" required data-field="spec.replication.role">    
                                 <option selected>ha-read</option>
                                 <option>ha</option>
                             </select>
@@ -2049,7 +2255,7 @@
 
                         <div class="col">
                             <label for="spec.replication.mode">Mode</label>
-                             <select v-model="replication.mode" required data-field="spec.replication.mode">    
+                            <select v-model="replication.mode" required data-field="spec.replication.mode">    
                                 <option selected>async</option>
                                 <option>sync</option>
                                 <option>strict-sync</option>
@@ -2978,19 +3184,20 @@
                 </div>
             </fieldset>
 
-            <hr/>
+            <template v-if="!isNull(formTemplate)">
+                <hr/>
             
-            <template v-if="editMode">
-                <button type="submit" class="btn" @click="createCluster(false)">Update Cluster</button>
-            </template>
-            <template v-else>
-                <button type="submit" class="btn" @click="createCluster(false)">Create Cluster</button>
-            </template>
+                <template v-if="editMode">
+                    <button type="submit" class="btn" @click="createCluster(false)">Update Cluster</button>
+                </template>
+                <template v-else>
+                    <button type="submit" class="btn" @click="createCluster(false)">Create Cluster</button>
+                </template>
 
-            <button type="button" class="btn floatRight" @click="createCluster(true)">View Summary</button>
+                <button type="button" class="btn floatRight" @click="createCluster(true)">View Summary</button>
 
-            <button type="button" @click="cancel" class="btn border">Cancel</button>
-        
+                <button type="button" @click="setupTemplate(true)" class="btn border">Cancel</button>
+            </template>
         </form>
         
         <ClusterSummary :cluster="previewCRD" :extensionsList="extensionsList[flavor][postgresVersion]" v-if="showSummary" @closeSummary="showSummary = false"></ClusterSummary>
@@ -3020,15 +3227,25 @@
             const vc = this;
 
             return {
-                formSteps: ['cluster', 'extensions', 'backups', 'initialization', 'replicate-from', 'scripts', 'sidecars', 'pods-replication', 'services', 'metadata', 'scheduling', 'non-production'],
+                formTemplate: (vc.$route.name === 'EditCluster') ? 'custom' : null,
+                formSteps: {
+                    basic: ['information', 'extensions'],
+                    full: ['information', 'extensions', 'configurations'],
+                    custom: ['cluster', 'extensions', 'backups', 'initialization', 'replicate-from', 'scripts', 'sidecars', 'pods-replication', 'services', 'metadata', 'scheduling', 'non-production']
+                },
                 editMode: (vc.$route.name === 'EditCluster'),
                 editReady: false,
                 clusterProfiles: ['production', 'testing', 'development'],
                 profile: 'production',
                 instances: 1,
-                pgConfig: '',
+                pgConfig: null,
                 connPooling: true,
-                connectionPoolingConfig: '',
+                connectionPoolingConfig: null,
+                configurations: {
+                    sgPostgresConfig: null,
+                    sgPoolingConfig: null
+                },
+                enableDistributedLogs: true,
                 restoreBackup: '',
                 enablePITR: false,
                 pitr: '',
@@ -3239,6 +3456,8 @@
                             return false
                         }
                     });
+
+                    vm.setupTemplate();
                 }
                 
                 return cluster
@@ -3267,7 +3486,7 @@
 
         methods: {
 
-            createCluster(preview = false, previous) {
+            async createCluster(preview = false, previous, checkDependencies = true) {
                 const vc = this;
 
                 if(!vc.checkRequired()) {
@@ -3295,7 +3514,12 @@
                 let preferredAffinity = vc.cleanNodeAffinity(this.preferredAffinity);
                 let managedSql = vc.cleanUpScripts($.extend(true,{},this.managedSql));
                 let pods = vc.cleanUpUserSuppliedSidecars($.extend(true,{},this.pods));
-                
+
+                // Set template-based specs
+                if(checkDependencies && !preview && (vc.formTemplate !== 'custom')) {
+                    await vc.createTemplateResources()
+                }
+
                 var cluster = {
                     "metadata": {
                         ...(this.hasProp(previous, 'metadata') && previous.metadata),
@@ -3356,14 +3580,14 @@
                                 } || { "customContainers": null }
                             )),
                         },
-                        ...( (this.hasProp(previous, 'spec.configurations') || this.pgConfig.length || this.managedBackups || this.connectionPoolingConfig.length) && ({
+                        ...( (this.hasProp(previous, 'spec.configurations') || !this.isNull(this.pgConfig) || this.managedBackups || !this.isNull(this.connectionPoolingConfig) ) && ({
                             "configurations": {
                                 ...(this.hasProp(previous, 'spec.configurations') && previous.spec.configurations),
-                                ...(this.pgConfig.length && {"sgPostgresConfig": this.pgConfig } || {"sgPostgresConfig": null} ),
+                                ...(!this.isNull(this.pgConfig) && {"sgPostgresConfig": this.pgConfig } || {"sgPostgresConfig": null} ),
                                 ...(this.managedBackups && {
                                     "backups": this.backups
                                 } || { "backups": null }),
-                                ...(this.connectionPoolingConfig.length && {"sgPoolingConfig": this.connectionPoolingConfig } || {"sgPoolingConfig": null} ),
+                                ...(!this.isNull(this.connectionPoolingConfig) && {"sgPoolingConfig": this.connectionPoolingConfig } || {"sgPoolingConfig": null} ),
                             }
                         }) ),
                         ...( (this.hasProp(previous, 'spec.distributedLogs') || this.distributedLogs.length) && {
@@ -3499,7 +3723,7 @@
                     vc.showSummary = true;
 
                 } else {
-
+                    
                     if(this.editMode) {
                         sgApi
                         .update('sgclusters', cluster)
@@ -3659,7 +3883,115 @@
                     vc.enableMonitoring = true;
                 }
             },
-        
+
+            setupTemplate(reset = false) {
+                const vc = this;
+                
+                if(reset) { // Reset template specs
+                    vc.formTemplate = null;
+                    vc.currentStep = null;
+                    vc.pgConfig = null;
+                    vc.connectionPoolingConfig = null;
+                    vc.enableDistributedLogs = false;
+                    vc.configurations = {
+                        sgPostgresConfig: null,
+                        sgPoolingConfig: null
+                    };
+                } else { // Set template-based specs
+                    vc.currentStep = vc.formSteps[vc.formTemplate][0];
+
+                    if (vc.formTemplate !== 'custom') {
+                        vc.enableMonitoring = true;
+                        vc.prometheusAutobind = true;
+                        vc.metricsExporter = true;
+                        vc.enableDistributedLogs = true;
+                    }
+                }
+            },
+
+            async createTemplateResources() {
+                const vc = this;
+                const timestamp = new Date();
+                const namespace = vc.$route.params.namespace;
+                const name = `generated-for-${vc.name}-${timestamp.getTime()}`;
+                
+                if(vc.enableDistributedLogs) {
+                    let sgdistributedlog = {
+                        "metadata": {
+                            "name": name,
+                            "namespace": namespace
+                        },
+                        "spec":{
+                            "persistentVolume":{
+                                "size":"1Gi"
+                            }
+                        }
+                    };
+                    
+                    await sgApi
+                    .create('sgdistributedlogs', sgdistributedlog)
+                    .then(function (response) {
+                        vc.distributedLogs = name;
+                    })
+                    .catch(function (error) {
+                        console.log(error.response);
+                        vc.notify('There was an error when trying to create SGDistributedLog dependency.', 'error', 'sgclusters');
+                        vc.notify(error.response.data, 'error', 'sgdistributedlogs');
+                    });
+                }
+
+                if(!vc.isNull(vc.configurations.sgPostgresConfig)) {
+                    let sgpgconfig = {
+                        "metadata":{
+                            "name": name,
+                            "namespace": namespace
+                        },
+                        "spec":{
+                            "postgresVersion": vc.shortPostgresVersion,
+                            "postgresql.conf": vc.configurations.sgPostgresConfig
+                        }
+                    };
+                    
+                    await sgApi
+                    .create('sgpgconfigs', sgpgconfig)
+                    .then(function (response) {
+                        vc.pgConfig = name;
+                        vc.fetchAPI('sgpgconfigs');
+                    })
+                    .catch(function (error) {
+                        console.log(error.response);
+                        vc.notify('There was an error when trying to create SGPostgresConfig dependency.', 'error', 'sgclusters');
+                        vc.notify(error.response.data, 'error', 'sgpgconfigs');
+                    });
+                }
+
+                if(!vc.isNull(vc.configurations.sgPoolingConfig)) {
+                    let sgpoolingconfig = {
+                        "metadata":{
+                            "name": name,
+                            "namespace": namespace
+                        },
+                        "spec":{
+                            "pgBouncer": {
+                                "pgbouncer.ini": vc.configurations.sgPoolingConfig
+                            }
+                        }
+                    };
+                    
+                    await sgApi
+                    .create('sgpoolconfigs', sgpoolingconfig)
+                    .then(function (response) {
+                        vc.connectionPoolingConfig = name;
+                        vc.fetchAPI('sgpoolconfigs');
+                    })
+                    .catch(function (error) {
+                        console.log(error.response);
+                        vc.notify('There was an error when trying to create SGPoolingConfig dependency.', 'error', 'sgclusters');
+                        vc.notify(error.response.data, 'error', 'sgpoolconfigs');
+                    });
+                }          
+            }
+
         },
 
     }
