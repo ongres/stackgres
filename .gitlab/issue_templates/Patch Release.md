@@ -3,7 +3,7 @@
 Set title to:
 
 ```
-Release StackGres 1.6.2
+Release StackGres 1.7.1
 ```
 
 Generate template using the command:
@@ -16,29 +16,29 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
 
 # Pre Checks
 
-1. [ ] Make sure all tasks marked with label ~"target_version::1.6.2" are done.
+1. [ ] Make sure all tasks marked with label ~"target_version::1.7.1" are done.
 
 # Release steps
 
-1. [ ] Create local branch `release-1.6.2` from `main-1.6`:
+1. [ ] Create local branch `release-1.7.1` from `main-1.7`:
     ```
-    git checkout "main-1.6" && git pull && git checkout -b "release-1.6.2"
+    git checkout "main-1.7" && git pull && git checkout -b "release-1.7.1"
     ```
-1. [ ] Update project version to `1.6.2`:
+1. [ ] Update project version to `1.7.1`:
     ```
-    sh -x stackgres-k8s/ci/utils/update-version.sh "1.6.2"
+    sh -x stackgres-k8s/ci/utils/update-version.sh "1.7.1"
     ```
 1. [ ] Update `CHANGELOG.md` (review commit messages to populate the changelog: `git log`)
-1. [ ] Add 1.6.2 section in `doc/content/en/01-introduction/06-versions/_index.md` with values from `stackgres-k8s/src/common/src/main/resources/versions.properties`
+1. [ ] Add 1.7.1 section in `doc/content/en/01-introduction/06-versions/_index.md` with values from `stackgres-k8s/src/common/src/main/resources/versions.properties`
 1. [ ] Check the changes to ensure everything is correct before commit:
     ```
     git diff
     ```
-1. [ ] Commit changes with message `version: 1.6.2`:
+1. [ ] Commit changes with message `version: 1.7.1`:
     ```
-    git commit -S -a -m "version: 1.6.2"
+    git commit -S -a -m "version: 1.7.1"
     ```
-1. [ ] Push `release-1.6.2` branch:
+1. [ ] Push `release-1.7.1` branch:
 
      **This step requires at least one ARM instance with docker installed and a gitlab runner registered with the StackGres project. All this setup is already built in a template. The only action we need to do is scale up the auto-scaling group `sg-army-builder` auto scaling group.** 
 
@@ -53,44 +53,44 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
      curl -s https://gitlab.com/snippets/1985684/raw | bash -s -- -r "" -t m6gd.4xlarge -i "" -d 14400 -df internal -dp /dev/nvme1n1 -rn army-builder -tl 'docker-junit-extension-runner, oci-image, ongresinc, stackgres-maven-runner, stackgres-native-build-runner, stackgres-quarkus-test-runner, stackgres-runner-v2, linux-arm64, stackgres-e2e-runner'
      ```
 
-     Now we can push `release-1.6.2` branch and wait for the pipeline to complete:
+     Now we can push `release-1.7.1` branch and wait for the pipeline to complete:
     ```
-    git push origin "release-1.6.2" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true"
+    git push origin "release-1.7.1" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true"
     ```
-1. [ ] Create tag `1.6.2`:
+1. [ ] Create tag `1.7.1`:
     ```
-    git tag "1.6.2"
+    git tag "1.7.1"
     ```
-1. [ ] Push tag `1.6.2` to the origin and wait for the pipeline to complete:
+1. [ ] Push tag `1.7.1` to the origin and wait for the pipeline to complete:
     ```
-    git push origin "1.6.2"
+    git push origin "1.7.1"
     ```
 1. [ ] After pipeline succeeded, scale down the ARM runners (or terminate the instance created with the script):
     ```
      aws autoscaling update-auto-scaling-group      --auto-scaling-group-name sg-army-builder      --min-size 0      --max-size 0       --desired-capacity 0
     ```
-1. [ ] Edit the [release notes of tag 1.6.2](https://gitlab.com/ongresinc/stackgres/-/releases/new?tag_name=1.6.2) by Copying and Pasting `CHANGELOG.md` section for version `1.6.2` (GitLab)
-1. [ ] Merge local branch `release-1.6.2` into `main-1.6`:
+1. [ ] Edit the [release notes of tag 1.7.1](https://gitlab.com/ongresinc/stackgres/-/releases/new?tag_name=1.7.1) by Copying and Pasting `CHANGELOG.md` section for version `1.7.1` (GitLab)
+1. [ ] Merge local branch `release-1.7.1` into `main-1.7`:
     ```
-    git checkout "main-1.6" && git pull && git merge --ff-only "release-1.6.2"
+    git checkout "main-1.7" && git pull && git merge --ff-only "release-1.7.1"
     ```
-1. [ ] Update version to be `1.6.3-SNAPSHOT`:
+1. [ ] Update version to be `1.7.2-SNAPSHOT`:
     ```
-    sh -x stackgres-k8s/ci/utils/update-version.sh "1.6.3-SNAPSHOT" "main-1.6"
-    git commit -a -m "version: 1.6.3-SNAPSHOT"
+    sh -x stackgres-k8s/ci/utils/update-version.sh "1.7.2-SNAPSHOT" "main-1.7"
+    git commit -a -m "version: 1.7.2-SNAPSHOT"
     git push
     ```
-1. [ ] Create branch `merge-1.6.2` from `main`:
+1. [ ] Create branch `merge-1.7.1` from `main`:
     ```
-    git checkout main && git pull && git checkout -b "merge-1.6.2"
+    git checkout main && git pull && git checkout -b "merge-1.7.1"
     ```
-1. [ ] Merge branch `main-1.6` into `merge-1.6.2`:
+1. [ ] Merge branch `main-1.7` into `merge-1.7.1`:
     ```
-    git merge "main-1.6"
+    git merge "main-1.7"
     ```
-1. [ ] Push `merge-1.6.2` to origin, create the merge request to merge it into `main` and wait for the pipeline to complete fixing any encountered issues:
+1. [ ] Push `merge-1.7.1` to origin, create the merge request to merge it into `main` and wait for the pipeline to complete fixing any encountered issues:
     ```
-    git push origin "merge-1.6.2"
+    git push origin "merge-1.7.1"
     ```
 
 # Deploy Web
@@ -100,25 +100,25 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
     ```
     git checkout development && git pull
     ```
-1. [ ] Set `STACKGRES_FULL_VERSIONS` in `.gitlab-ci.yml` by setting `1.6.2` as the first value.
-1. [ ] Commit changes with message `version: 1.6.2`: `git commit -a -m 'version: 1.6.2'`
+1. [ ] Set `STACKGRES_FULL_VERSIONS` in `.gitlab-ci.yml` by setting `1.7.1` as the first value.
+1. [ ] Commit changes with message `version: 1.7.1`: `git commit -a -m 'version: 1.7.1'`
 1. [ ] Push development to origin: `git push`
 1. [ ] Check staging Web: `https://ongresinc.gitlab.io/web/stackgres/`
 1. [ ] Merge `development` branch into `master`:
     ```
     git checkout master && git pull && git merge --ff-only development
     ```
-1. [ ] Create tag `1.6.2`:
+1. [ ] Create tag `1.7.1`:
     ```
-    git tag 1.6.2
+    git tag 1.7.1
     ```
 1. [ ] Push master to origin:
     ```
     git push
     ```
-1. [ ] Push tag `1.6.2` to origin:
+1. [ ] Push tag `1.7.1` to origin:
     ```
-    git push origin 1.6.2
+    git push origin 1.7.1
     ```
 
 # Post Checks
@@ -130,11 +130,11 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
 # Changelog
 
 ~~~
-# :rocket: Release 1.6.2 (${DATE})
+# :rocket: Release 1.7.1 (${DATE})
 
 ## :notepad_spiral: NOTES
 
-StackGres 1.6.2 is out! :confetti_ball: :champagne: 
+StackGres 1.7.1 is out! :confetti_ball: :champagne: 
 
 So, what you are waiting for to try this release and have a look to the future of StackGres! 
 
@@ -166,15 +166,15 @@ To upgrade from a previous installation of the StackGres operator's helm chart y
 
 To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
 
-`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.6.2/helm/stackgres-operator.tgz`
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.7.1/helm/stackgres-operator.tgz`
 
 > IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
 
 Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
 
-## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.6.2)
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.7.1)
 ~~~
 
-/label ~StackGres ~"target_version::1.6.2" ~"team::DEV" 
-/milestone %"StackGres 1.6.2"
+/label ~StackGres ~"target_version::1.7.1" ~"team::DEV" 
+/milestone %"StackGres 1.7.1"
 /confidential 
