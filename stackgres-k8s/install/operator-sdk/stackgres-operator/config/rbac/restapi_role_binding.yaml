@@ -4,17 +4,17 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app.kubernetes.io/name: clusterrolebinding
-    app.kubernetes.io/instance: operator-rolebinding
+    app.kubernetes.io/instance: restapi-rolebinding
     app.kubernetes.io/component: rbac
     app.kubernetes.io/created-by: stackgres
     app.kubernetes.io/part-of: stackgres
     app.kubernetes.io/managed-by: kustomize
-  name: operator
+  name: restapi
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: operator
+  name: restapi
 subjects:
 - kind: ServiceAccount
-  name: operator
+  name: stackgres-restapi
   namespace: system
