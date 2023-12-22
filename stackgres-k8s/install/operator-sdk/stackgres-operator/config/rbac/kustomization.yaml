@@ -9,3 +9,5 @@ resources:
 - role_binding.yaml
 - editor_role.yaml
 - viewer_role.yaml
+- restapi_role_binding.yaml
+- restapi_admin_role_binding.yaml
