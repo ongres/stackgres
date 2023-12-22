@@ -109,9 +109,19 @@ describe('Create SGCluster', () => {
     });  
 
     it('Creating a basic SGCluster should be possible', () => {
+        // Choose basic wizard
+        cy.get('[data-field="formTemplate.basic"]')
+            .click()
+
         // Test Cluster Name
         cy.get('[data-field="metadata.name"]')
             .type('basic-' + resourceName)
+
+        // Setup get and put mock to check resource is not found and all fields are correctly set
+        cy.intercept('GET', '/stackgres/namespaces/' + namespace + '/sgclusters/basic-' + resourceName)
+            .as('getCluster')
+        cy.intercept('POST', '/stackgres/sgclusters')
+            .as('postCluster')
 
         // Test Submit form
         cy.get('form#createCluster button[type="submit"]')
@@ -123,9 +133,116 @@ describe('Create SGCluster', () => {
             })
 
         cy.location('pathname').should('eq', '/admin/' + namespace + '/sgclusters')
-    }); 
+
+        // Test data sent to API
+        cy.wait('@getCluster')
+            .its('response.statusCode')
+            .should('eq', 404)
+        cy.wait('@postCluster')
+            .its('response.statusCode')
+            .should('eq', 200)
+        cy.get('@postCluster')
+            .its('request.body.spec.instances')
+            .should('eq', 1)
+        cy.get('@postCluster')
+            .its('request.body.spec.profile')
+            .should('eq', "production")
+        cy.get('@postCluster')
+            .its('request.body.spec.pods.persistentVolume.size')
+            .should('eq', "1Gi")
+        cy.get('@postCluster')
+            .its('request.body.spec.postgres')
+            .should('nested.include', {"flavor": "vanilla"})
+            .and('nested.include', {"version": "latest"})
+        cy.get('@postCluster')
+            .its('request.body.spec.prometheusAutobind')
+            .should('eq', true)
+        cy.get('@postCluster')
+            .its('request.body.spec.distributedLogs')
+            .should('have.nested.property','sgDistributedLogs')
+    });
+
+    it('Creating a full SGCluster should be possible', () => {
+        // Choose basic wizard
+        cy.get('[data-field="formTemplate.full"]')
+            .click()
+
+        // Test Cluster Name
+        cy.get('[data-field="metadata.name"]')
+            .type('full-' + resourceName)
+
+        // Test Configurations
+        cy.get('form#createCluster li[data-step="configurations"]')
+            .click()
+        
+        // Test SGPostgresConfig file selection
+        cy.get('select[data-field="spec.configurations.sgPostgresConfig"]')
+            .select('createNewResource')
+
+        cy.get('input#uploadSgPostgresConfig').selectFile('cypress/fixtures/forms/sgcluster/postgresql.conf')
+
+        // Test SGPoolingConfig file selection
+        cy.get('select[data-field="spec.configurations.sgPoolingConfig"]')
+            .select('createNewResource')
+
+        cy.get('input#uploadSgPoolingConfig').selectFile('cypress/fixtures/forms/sgcluster/pgbouncer.ini')
+
+        // Setup get and put mock to check resource is not found and all fields are correctly set
+        cy.intercept('GET', '/stackgres/namespaces/' + namespace + '/sgclusters/full-' + resourceName)
+            .as('getCluster')
+        cy.intercept('POST', '/stackgres/sgclusters')
+            .as('postCluster')
+
+        // Test Submit form
+        cy.get('form#createCluster button[type="submit"]')
+            .click()
+        
+        cy.get('#notifications .message.show .title')
+            .should(($notification) => {
+                expect($notification).contain('Cluster "full-' + resourceName + '" created successfully')
+            })
+
+        cy.location('pathname').should('eq', '/admin/' + namespace + '/sgclusters')
+
+        // Test data sent to API
+        cy.wait('@getCluster')
+            .its('response.statusCode')
+            .should('eq', 404)
+        cy.wait('@postCluster')
+            .its('response.statusCode')
+            .should('eq', 200)
+        cy.get('@postCluster')
+            .its('request.body.spec.instances')
+            .should('eq', 1)
+        cy.get('@postCluster')
+            .its('request.body.spec.profile')
+            .should('eq', "production")
+        cy.get('@postCluster')
+            .its('request.body.spec.pods.persistentVolume.size')
+            .should('eq', "1Gi")
+        cy.get('@postCluster')
+            .its('request.body.spec.postgres')
+            .should('nested.include', {"flavor": "vanilla"})
+            .and('nested.include', {"version": "latest"})
+        cy.get('@postCluster')
+            .its('request.body.spec.prometheusAutobind')
+            .should('eq', true)
+        cy.get('@postCluster')
+            .its('request.body.spec.distributedLogs')
+            .should('have.nested.property','sgDistributedLogs')
+        cy.get('@postCluster')
+            .its('request.body.spec.configurations')
+            .should('have.nested.property','sgPostgresConfig')
+        cy.get('@postCluster')
+            .its('request.body.spec.configurations')
+            .should('have.nested.property','sgPoolingConfig')
+    });
 
     it('Creating a SGCluster with Babelfish should be possible', () => {
+        // Choose custom wizard
+        cy.get('[data-field="formTemplate.custom"]')
+            .click()
+
         // Test Cluster Name
         cy.get('input[data-field="metadata.name"]')
             .type('babelfish-' + resourceName)
@@ -135,6 +252,12 @@ describe('Create SGCluster', () => {
             .click()
         cy.get('input[data-field="spec.nonProductionOptions.enabledFeatureGates.babelfish"]')
             .click()
+
+        // Setup get and put mock to check resource is not found and all fields are correctly set
+        cy.intercept('GET', '/stackgres/namespaces/' + namespace + '/sgclusters/babelfish-' + resourceName)
+            .as('getCluster')
+        cy.intercept('POST', '/stackgres/sgclusters')
+            .as('postCluster')
 
         // Test Submit form
         cy.get('form#createCluster button[type="submit"]')
@@ -146,9 +269,37 @@ describe('Create SGCluster', () => {
             })
 
         cy.location('pathname').should('eq', '/admin/' + namespace + '/sgclusters')
+
+        // Test data sent to API
+        cy.wait('@getCluster')
+            .its('response.statusCode')
+            .should('eq', 404)
+        cy.wait('@postCluster')
+            .its('response.statusCode')
+            .should('eq', 200)
+        cy.get('@postCluster')
+            .its('request.body.spec.instances')
+            .should('eq', 1)
+        cy.get('@postCluster')
+            .its('request.body.spec.profile')
+            .should('eq', "production")
+        cy.get('@postCluster')
+            .its('request.body.spec.pods.persistentVolume.size')
+            .should('eq', "1Gi")
+        cy.get('@postCluster')
+            .its('request.body.spec.postgres')
+            .should('nested.include', {"flavor": "babelfish"})
+            .and('nested.include', {"version": "latest"})
+        cy.get('@postCluster')
+            .its('request.body.spec.nonProductionOptions')
+            .should('nested.include',{'enabledFeatureGates[0]': "babelfish-flavor"})
     });
 
     it('Creating an advanced SGCluster should be possible', () => {
+        // Choose custom wizard
+        cy.get('[data-field="formTemplate.custom"]')
+            .click()
+
         // Enable advanced options
         cy.get('form#createCluster input#advancedMode')
             .click()
@@ -1232,7 +1383,6 @@ describe('Create SGCluster', () => {
             .its('request.body.spec.nonProductionOptions.disableClusterPodAntiAffinity')
             .should('eq', true)
     });
-
     
     it('Updating an advanced SGCluster should be possible', () => {
         // Edit advanced cluster
@@ -2281,6 +2431,10 @@ describe('Create SGCluster', () => {
     }); 
 
     it('Repeater fields should match error responses coming from the API', () => {
+        // Choose custom wizard
+        cy.get('[data-field="formTemplate.custom"]')
+            .click()
+
         // Enable advanced options
         cy.get('form#createCluster input#advancedMode')
             .click()
@@ -2305,6 +2459,10 @@ describe('Create SGCluster', () => {
     });
 
     it('Enable Monitoring to enable Metrics Exporter and Prometheus Autobind ', () => {
+        // Choose custom wizard
+        cy.get('[data-field="formTemplate.custom"]')
+            .click()
+
         // Enable advanced options
         cy.get('input#advancedMode')
             .click()
@@ -2349,6 +2507,10 @@ describe('Create SGCluster', () => {
     }); 
 
     it('Make sure script source always matches its parent script', () => {
+        // Choose custom wizard
+        cy.get('[data-field="formTemplate.custom"]')
+            .click()
+
         // Enable advanced options
         cy.get('form#createCluster input#advancedMode')
             .click()
@@ -2375,6 +2537,5 @@ describe('Create SGCluster', () => {
         cy.get('select[data-field="spec.managedSql.scripts.scriptSource[0]"]')
             .should('have.value', 'createNewScript')
     });
-   
 
-  })
+})

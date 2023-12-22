@@ -60,379 +60,382 @@
 
             <div class="clearfix"></div>
 
-            <fieldset class="step" :class="(currentStep == 'information') && 'active'" data-fieldset="information">
-                <div class="header">
-                    <h2>Cluster Information</h2>
-                </div>
-
-                <div class="fields">
-                    <div class="row-50">
-                        <div class="col">
-                            <label for="metadata.name">Cluster Name <span class="req">*</span></label>
-                            <input v-model="name" :disabled="editMode" required data-field="metadata.name" autocomplete="off">
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.metadata.name')"></span>
-                            
-                            <span class="warning topAnchor" v-if="nameColission && !editMode">
-                                There's already a <strong>SGCluster</strong> with the same name on this namespace. Please specify a different name or create the cluster on another namespace
-                            </span>
-                        </div>
-
-                        <div class="col">
-                            <label for="spec.profile">Profile</label>
-                            <select v-model="profile" data-field="spec.profile" class="capitalize">
-                                <option v-for="profile in clusterProfiles">{{ profile }}</option>
-                            </select>
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.profile')"></span>
-                        </div>
+            <template v-if="formTemplate !== 'custom'">
+                <fieldset class="step" :class="(currentStep == 'information') && 'active'" data-fieldset="information">
+                    <div class="header">
+                        <h2>Cluster Information</h2>
                     </div>
 
-                    <hr/>
-                    
-                    <div class="row-50">
-                        <h3>Instances</h3>
+                    <div class="fields">
+                        <div class="row-50">
+                            <div class="col">
+                                <label for="metadata.name">Cluster Name <span class="req">*</span></label>
+                                <input v-model="name" :disabled="editMode" required data-field="metadata.name" autocomplete="off">
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.metadata.name')"></span>
+                                
+                                <span class="warning topAnchor" v-if="nameColission && !editMode">
+                                    There's already a <strong>SGCluster</strong> with the same name on this namespace. Please specify a different name or create the cluster on another namespace
+                                </span>
+                            </div>
 
-                        <div class="col">
-                            <label for="spec.instances">Number of Instances <span class="req">*</span></label>
-                            <input type="number" v-model="instances" required data-field="spec.instances" min="0">
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.instances')"></span>
-                        </div>
-                        <div class="col">
-                            <label for="spec.sgInstanceProfile">Instance Profile</label>  
-                            <select v-model="resourceProfile" class="resourceProfile" data-field="spec.sgInstanceProfile" @change="(resourceProfile == 'createNewResource') && createNewResource('sginstanceprofiles')" :set="( (resourceProfile == 'createNewResource') && (resourceProfile = '') )">
-                                <option selected value="">Default (Cores: 1, RAM: 2GiB)</option>
-                                <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace" :value="prof.name">{{ prof.name }} (Cores: {{ prof.data.spec.cpu }}, RAM: {{ prof.data.spec.memory }}B)</option>
-                                <template v-if="iCan('create', 'sginstanceprofiles', $route.params.namespace)">
-                                    <option value="" disabled>– OR –</option>
-                                    <option value="createNewResource">Create new profile</option>
-                                </template>
-                            </select>
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.sgInstanceProfile')"></span>
-                        </div>
-                    </div>
-
-                    <hr/>
-
-                    <div class="row-50">
-                        <h3>Postgres</h3>
-
-                        <div class="col">                    
-                            <div class="versionContainer">
-                                <label for="spec.postgres.version">Postgres Version <span class="req">*</span></label>
-                                <ul class="select" id="postgresVersion" data-field="spec.postgres.version" tabindex="0">
-                                    <li class="selected">
-                                        {{ (postgresVersion == 'latest') ? 'Latest' : 'Postgres '+postgresVersion }}
-                                    </li>
-                                    <li>
-                                        <a @click="setVersion('latest')" data-val="latest" class="active">Latest</a>
-                                    </li>
-
-                                    <li v-for="version in Object.keys(postgresVersionsList[flavor]).reverse()">
-                                        <strong>Postgres {{ version }}</strong>
-                                        <ul>
-                                            <li>
-                                                <a @click="setVersion(version)" :data-val="version">Postgres {{ version }} (Latest)</a>
-                                            </li>
-                                            <li v-for="minorVersion in postgresVersionsList[flavor][version]">
-                                                <a @click="setVersion(minorVersion)" :data-val="minorVersion">Postgres {{ minorVersion }}</a>
-                                            </li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.version')"></span>
-
-                                <input v-model="postgresVersion" required class="hide">
+                            <div class="col">
+                                <label for="spec.profile">Profile</label>
+                                <select v-model="profile" data-field="spec.profile" class="capitalize">
+                                    <option v-for="profile in clusterProfiles">{{ profile }}</option>
+                                </select>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.profile')"></span>
                             </div>
                         </div>
+
+                        <hr/>
+                        
+                        <div class="row-50">
+                            <h3>Instances</h3>
+
+                            <div class="col">
+                                <label for="spec.instances">Number of Instances <span class="req">*</span></label>
+                                <input type="number" v-model="instances" required data-field="spec.instances" min="0">
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.instances')"></span>
+                            </div>
+                            <div class="col">
+                                <label for="spec.sgInstanceProfile">Instance Profile</label>  
+                                <select v-model="resourceProfile" class="resourceProfile" data-field="spec.sgInstanceProfile" @change="(resourceProfile == 'createNewResource') && createNewResource('sginstanceprofiles')" :set="( (resourceProfile == 'createNewResource') && (resourceProfile = '') )">
+                                    <option selected value="">Default (Cores: 1, RAM: 2GiB)</option>
+                                    <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace" :value="prof.name">{{ prof.name }} (Cores: {{ prof.data.spec.cpu }}, RAM: {{ prof.data.spec.memory }}B)</option>
+                                    <template v-if="iCan('create', 'sginstanceprofiles', $route.params.namespace)">
+                                        <option value="" disabled>– OR –</option>
+                                        <option value="createNewResource">Create new profile</option>
+                                    </template>
+                                </select>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.sgInstanceProfile')"></span>
+                            </div>
+                        </div>
+
+                        <hr/>
+
+                        <div class="row-50">
+                            <h3>Postgres</h3>
+
+                            <div class="col">                    
+                                <div class="versionContainer">
+                                    <label for="spec.postgres.version">Postgres Version <span class="req">*</span></label>
+                                    <ul class="select" id="postgresVersion" data-field="spec.postgres.version" tabindex="0">
+                                        <li class="selected">
+                                            {{ (postgresVersion == 'latest') ? 'Latest' : 'Postgres '+postgresVersion }}
+                                        </li>
+                                        <li>
+                                            <a @click="setVersion('latest')" data-val="latest" class="active">Latest</a>
+                                        </li>
+
+                                        <li v-for="version in Object.keys(postgresVersionsList[flavor]).reverse()">
+                                            <strong>Postgres {{ version }}</strong>
+                                            <ul>
+                                                <li>
+                                                    <a @click="setVersion(version)" :data-val="version">Postgres {{ version }} (Latest)</a>
+                                                </li>
+                                                <li v-for="minorVersion in postgresVersionsList[flavor][version]">
+                                                    <a @click="setVersion(minorVersion)" :data-val="minorVersion">Postgres {{ minorVersion }}</a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.version')"></span>
+
+                                    <input v-model="postgresVersion" required class="hide">
+                                </div>
+                            </div>
+                        </div>
+
+                        <template v-if="formTemplate === 'full'">
+                            <hr style="margin-top: -15px;" />
+                        
+                            <div class="row-50">
+                                <h3>Sidecars</h3>
+
+                                <div class="col">
+                                    <label>Monitoring</label>  
+                                    <label for="enableMonitoring" class="switch yes-no">Enable<input type="checkbox" id="enableMonitoring" v-model="enableMonitoring" data-switch="YES" @change="checkenableMonitoring()"></label>
+                                    <span class="helpTooltip" data-tooltip="StackGres supports enabling automatic monitoring for your Postgres cluster, but you need to provide or install the <a href='https://stackgres.io/doc/latest/install/prerequisites/monitoring/' target='_blank'>Prometheus stack as a pre-requisite</a>. Then, check this option to configure automatically sending metrics to the Prometheus stack."></span>
+                                </div>
+
+                                <div class="col">
+                                    <label>Distributed Logs</label>  
+                                    <label for="enableDistributedLogs" class="switch yes-no">Enable<input type="checkbox" id="enableDistributedLogs" v-model="enableDistributedLogs" data-switch="YES"></label>
+                                    <span class="helpTooltip" data-tooltip="Allows sending Postgres and Patroni logs to a central SGDistributedLogs instance. Optional: if not enabled, logs are sent to the standard output."></span>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </fieldset>
+            </template>
+            <template v-else>
+                <fieldset class="step" :class="(currentStep == 'cluster') && 'active'" data-fieldset="cluster">
+                    <div class="header">
+                        <h2>Cluster Information</h2>
                     </div>
 
-                    <template v-if="formTemplate === 'full'">
-                        <hr style="margin-top: -15px;" />
-                    
+                    <div class="fields">
                         <div class="row-50">
-                            <h3>Sidecars</h3>
+                            <div class="col">
+                                <label for="metadata.name">Cluster Name <span class="req">*</span></label>
+                                <input v-model="name" :disabled="editMode" required data-field="metadata.name" autocomplete="off">
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.metadata.name')"></span>
+                                
+                                <span class="warning topAnchor" v-if="nameColission && !editMode">
+                                    There's already a <strong>SGCluster</strong> with the same name on this namespace. Please specify a different name or create the cluster on another namespace
+                                </span>
+                            </div>
 
-                             <div class="col">
+                            <div class="col">
+                                <label for="spec.profile">Profile</label>
+                                <select v-model="profile" data-field="spec.profile" class="capitalize">
+                                    <option v-for="profile in clusterProfiles">{{ profile }}</option>
+                                </select>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.profile')"></span>
+
+                                <div class="warning topAnchor" v-if="profile != 'production'">
+                                    By choosing this Profile, the following defaults are overwritten:
+                                    <ul>
+                                        <li><strong>Cluster Pod Anti Affinity</strong> is set to <strong>Disable</strong>.</li>
+                                        <template v-if="profile == 'development'">
+                                            <li><strong>Patroni Resource Requirements</strong> is set to <strong>Disable</strong>.</li>
+                                            <li><strong>Cluster Resource Requirements</strong> is set to <strong>Disable</strong>.</li>
+                                        </template>
+                                    </ul>     
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr/>
+                        
+                        <div class="row-50">
+                            <h3>Instances</h3>
+
+                            <div class="col">
+                                <label for="spec.instances">Number of Instances <span class="req">*</span></label>
+                                <input type="number" v-model="instances" required data-field="spec.instances" min="0">
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.instances')"></span>
+                            </div>
+                            <div class="col">
+                                <label for="spec.sgInstanceProfile">Instance Profile</label>  
+                                <select v-model="resourceProfile" class="resourceProfile" data-field="spec.sgInstanceProfile" @change="(resourceProfile == 'createNewResource') && createNewResource('sginstanceprofiles')" :set="( (resourceProfile == 'createNewResource') && (resourceProfile = '') )">
+                                    <option selected value="">Default (Cores: 1, RAM: 2GiB)</option>
+                                    <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace" :value="prof.name">{{ prof.name }} (Cores: {{ prof.data.spec.cpu }}, RAM: {{ prof.data.spec.memory }}B)</option>
+                                    <template v-if="iCan('create', 'sginstanceprofiles', $route.params.namespace)">
+                                        <option value="" disabled>– OR –</option>
+                                        <option value="createNewResource">Create new profile</option>
+                                    </template>
+                                </select>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.sgInstanceProfile')"></span>
+                            </div>
+                        </div>
+
+                        <hr/>
+
+                        <div class="row-50">
+                            <h3>Postgres</h3>
+
+                            <div class="col">
+                                <label for="spec.postgres.flavor">Postgres Flavor <span class="req">*</span></label>
+                                <div class="optionBoxes withLogos">
+                                    <label for="vanilla" data-field="spec.postgres.flavor.vanilla" :class="( (flavor == 'vanilla') && 'active' )" tabindex="0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" xml:space="preserve"><path d="M49.1 30c-.3-.9-1.1-1.5-2-1.7-.5-.1-1 0-1.6.1-1.1.2-1.9.3-2.5.3 2.2-3.8 4.1-8.1 5.1-12.2 1.7-6.6.8-9.6-.3-10.9C45 2 40.9.1 35.9 0c-2.6 0-5 .5-6.2.9-1.1-.2-2.3-.3-3.6-.3-2.4 0-4.5.5-6.3 1.5-1-.3-2.6-.8-4.4-1.1C11.1.3 7.6.8 5 2.6 2 4.8.5 8.6.8 13.9c.1 1.7 1 6.8 2.5 11.7.9 2.8 1.8 5.1 2.7 6.9 1.3 2.5 2.8 4 4.4 4.5.9.3 2.5.5 4.2-.9.2.3.5.5.9.8.5.3 1.1.6 1.7.7 2.2.5 4.2.4 5.9-.3v2.1c.1 2.5.3 4.5.8 5.9 0 .1.1.2.1.3.3.8.7 2.1 1.8 3.1 1.1 1.1 2.5 1.4 3.7 1.4.6 0 1.2-.1 1.7-.2 1.9-.4 4-1 5.5-3.2 1.4-2.1 2.2-5.2 2.3-10.1v-.7h.4c1.9.1 4.2-.3 5.6-1 1.4-.5 5-2.4 4.1-4.9z"/><path fill="#336791" d="M45.9 30.5c-5.6 1.2-6-.8-6-.8 6-8.8 8.5-20.1 6.3-22.8-5.9-7.5-16-4-16.2-3.9h-.1c-1.1-.2-2.4-.4-3.8-.4-2.6 0-4.5.7-6 1.8 0 0-18.1-7.5-17.3 9.4.3 3.6 5.2 27.2 11.1 20 2.2-2.6 4.3-4.8 4.3-4.8 1 .7 2.3 1 3.6.9l.1-.1v1c-1.5 1.7-1.1 2-4.1 2.6-3.1.6-1.3 1.8-.1 2.1 1.4.4 4.7.9 7-2.3l-.1.4c.6.5 1 3.1.9 5.5-.1 2.4-.1 4 .3 5.3.5 1.3.9 4.2 4.9 3.3C34 47 35.8 45.1 36 42c.2-2.2.6-1.9.6-3.9l.3-.9c.4-3 .1-4 2.1-3.5h.5c1.5.1 3.5-.2 4.7-.8 2.7-1 4.1-3 1.7-2.4z"/><g fill="#FFF"><path d="M47.7 30.3c-.2-.7-.9-.9-2.1-.6-3.4.7-4.6.2-5-.1 2.7-4.1 4.8-8.9 6-13.5.6-2.2.9-4.2.9-5.8 0-1.8-.3-3.1-.9-3.9-2.5-3.3-6.3-5-10.8-5-3.1 0-5.7.8-6.2 1-1.1-.3-2.2-.4-3.5-.4-2.3 0-4.3.5-6 1.7-.8-.3-2.6-.9-4.9-1.3-4-.6-7.1-.2-9.4 1.4-2.7 1.8-3.9 5.2-3.7 10 .1 1.6 1 6.6 2.4 11.3 1.9 6.3 4 9.8 6.2 10.5.3.1.6.1.9.1.8 0 1.8-.4 2.8-1.6 1.7-2 3.3-3.7 3.9-4.4.9.5 1.8.7 2.8.7v.1c-.2.2-.3.4-.5.6-.7.9-.8 1-3 1.5-.6.1-2.2.5-2.3 1.6 0 1.2 1.9 1.8 2.1 1.8.8.2 1.5.3 2.2.3 1.7 0 3.2-.6 4.5-1.7 0 4.4.1 8.8.7 10.2.4 1.1 1.5 3.8 4.9 3.8.5 0 1-.1 1.6-.2 3.5-.8 5-2.3 5.6-5.7.3-1.8.9-6.2 1.1-8.6.5.2 1.2.2 2 .2 1.6 0 3.4-.3 4.5-.9 1.4-.4 3.7-1.8 3.2-3.1zm-8.3-15.8c0 .7-.1 1.3-.2 2s-.2 1.4-.2 2.3c0 .9.1 1.8.2 2.6.2 1.8.4 3.5-.4 5.3-.1-.2-.3-.5-.4-.8-.1-.2-.3-.7-.6-1.2-1.2-2.2-4.1-7.3-2.6-9.4.3-.5 1.4-1.2 4.2-.8zM36 2.7c4.1.1 7.3 1.6 9.5 4.5 1.7 2.2-.2 12.3-5.7 21.1l-.2-.2s0-.1-.1-.1c1.4-2.4 1.2-4.7.9-6.8-.1-.9-.2-1.7-.2-2.4 0-.8.1-1.5.2-2.2.1-.8.3-1.7.2-2.7v-.4c-.1-1-1.2-3.8-3.4-6.4-1.2-1.4-3-3-5.4-4.1 1.2-.1 2.6-.3 4.2-.3zM13.4 33.3c-1.1 1.3-1.9 1.1-2.1 1-1.7-.6-3.6-4.1-5.3-9.6-1.5-4.8-2.3-9.6-2.4-11-.3-4.3.8-7.3 3-8.9 3.7-2.6 9.7-1 12.2-.3l-.1.1c-4 4-3.9 10.9-3.9 11.4v.7c.1 1.2.2 3.3-.1 5.8-.3 2.3.4 4.5 1.9 6.1l.5.5c-.7.7-2.2 2.3-3.7 4.2zm4.2-5.7c-1.2-1.3-1.8-3.1-1.5-4.9.4-2.6.2-4.8.2-6v-.4c.6-.5 3.3-2 5.2-1.5.9.2 1.4.8 1.6 1.8 1.2 5.3.2 7.6-.7 9.4-.2.4-.3.7-.5 1.1l-.1.3c-.3.7-.5 1.4-.7 2-1.2-.2-2.5-.8-3.5-1.8zm.2 7.2c-.4-.1-.7-.3-.9-.4.2-.1.5-.2 1-.3 2.5-.5 2.9-.9 3.8-2 .2-.2.4-.5.7-.9.5-.5.7-.4 1-.3.3.1.6.5.7.9.1.2.1.6-.1.9-1.7 2.6-4.3 2.6-6.2 2.1zm13.3 12.3c-3.1.7-4.2-.9-4.9-2.7-.5-1.2-.7-6.4-.5-12.2V32c0-.1 0-.3-.1-.4-.2-.8-.8-1.5-1.5-1.8-.3-.1-.8-.3-1.4-.2.1-.6.4-1.2.6-1.8l.1-.3c.1-.3.3-.6.4-1 .8-1.9 2-4.4.7-10.2-.5-2.2-2-3.2-4.4-3-1.4.1-2.7.7-3.4 1.1-.1.1-.3.1-.4.2.2-2.2.9-6.3 3.4-8.8 1.6-1.6 3.8-2.4 6.4-2.4 5.2.1 8.5 2.7 10.3 4.9 1.6 1.9 2.5 3.8 2.8 4.8-2.6-.3-4.4.2-5.3 1.5-2 2.8 1.1 8.2 2.5 10.8.3.5.5.9.6 1.1.5 1.1 1.1 1.9 1.5 2.5.1.2.3.3.4.5-.8.2-2.2.8-2.1 3.4-.1 1.3-.8 7.5-1.2 9.7-.5 2.8-1.5 3.9-4.5 4.5zM44 32.3c-.8.4-2.2.7-3.4.7-1.4.1-2.1-.2-2.3-.3-.1-1.6.5-1.8 1.2-2 .1 0 .2-.1.3-.1.1 0 .1.1.2.1 1.1.8 3.2.8 6.1.2-.5.5-1.1 1-2.1 1.4z"/><path d="M22.4 16.2c.1-.4-.6-.7-1.2-.8-.5-.1-1 0-1.2.2-.1.1-.2.2-.2.3 0 .2.1.4.2.6.3.3.6.6 1 .6h.2c.6 0 1.2-.5 1.2-.9zM36.8 15.1c-.6.1-1.2.3-1.1.7 0 .3.5.7 1.1.7h.1c.4-.1.7-.3.8-.4.2-.2.3-.5.3-.6 0-.4-.6-.5-1.2-.4z"/></g></svg>
+                                        PostgreSQL Community
+                                        <input type="radio" name="flavor" v-model="flavor" value="vanilla" id="vanilla" @change="validatePostgresSpecs()">
+                                    </label>
+                                    <label for="babelfish" data-field="spec.postgres.flavor.babelfish" :class="( (flavor == 'babelfish') && 'active' )">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" xml:space="preserve"><path fill="#3BF" d="M28.6 32c-.7-1.3-2.1-1.9-3.5-1.7-1.4.1-2.7-.9-2.9-2.3-.2-1.8.5-1.2 1.7-6.1.4-1.8.2-3.8-.9-5.4-.8-1.3-2.2-2-3.4-1.2-1.2.8-2 1.9-2.5 3.2-1.9 5 .9 8.8 3.5 10.9 1.1.9 1.6 2.4 1.3 3.9-.2 1.2.4 2.1 1.3 3 1.4-1.2 1.4-2.8.7-4.5l.2-.2c1.3 1.5 3.2 1.5 4.5.4zm-7.5-12.8c-.4.2-.9.1-1.2-.3-.2-.4-.1-.9.3-1.3.4-.2.9-.1 1.3.3.1.6 0 1.1-.4 1.3z"/><path fill="#FFF" d="M32.3 2.5h-.7c-1.5.2-3 .5-4.4 1-1.5.4-11.3-7-20.6-1.4C1.2 5.5-.6 12.6 2.8 18c.4.7.9 1.3 1.5 1.9 1.6 1.9 2.4 4.4 2.1 6.8-.7 5.2 2.3 9.1 7 9.1 2.1.1 4.1-.3 6.1-1.1.6-.3 1.1-.9 1.3-1.6.2-.9-.2-1.9-.9-2.5-4.2-3.6-5.6-8-3.9-12.5.5-1.6 1.6-3 3-3.9.5-.4 1.3-.5 1.9-.5 1.5.1 2.8.9 3.5 2.2 1.2 2 1.5 4.2 1 6.4-.3 1.5-.9 3-1.5 4.5-.6 1.4.2 2 1.3 2.2 1 .2 2.1.1 3-.2 3.7-1.3 8-.3 9.4 6.4.5 3.2-.2 6.6-3.4 7.7 0 0-6.3 2.2-5-8.4v-.4c0-.2-.2-.3-.4-.3-.1 0-.2.1-.2.1-.6.4-1.3.6-2 .5-.4 0-.7.3-.8.7-.2 1-.8 2-1.6 2.7l-.5.4c-.2.2-.3.5-.3.7 1.8 13.1 12 11 12 11 5.8-.4 13.5-7 13.5-30.7 0-8.3-7.4-16.7-16.6-16.7zm8.1 20.1c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
+                                        Babelfish (Experimental)
+                                        <input type="radio" name="flavor" v-model="flavor" value="babelfish" id="babelfish" @change="validatePostgresSpecs()">
+                                    </label>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.flavor')"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="warning orange babelfish topAnchor right" v-if="( (flavor == 'babelfish') && !editMode )" tabindex="0">
+                            <div class="row-50">
+                                <div class="col">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 18"><g transform="translate(0 -183)"><path d="M18.994,201H1.006a1,1,0,0,1-.871-.516,1.052,1.052,0,0,1,0-1.031l8.993-15.974a1.033,1.033,0,0,1,1.744,0l8.993,15.974a1.052,1.052,0,0,1,0,1.031A1,1,0,0,1,18.994,201ZM2.75,198.937h14.5L10,186.059Z"/><rect width="2" height="5.378" rx="0.947" transform="translate(9 189.059)"/><rect width="2" height="2" rx="1" transform="translate(9 195.437)"/></g></svg>
+                                    <p>StackGres packs Babelfish for PostgreSQL as an <strong>experimental feature</strong>. Its use is <strong>not recommended for production environments</strong>. Please enable the Babelfish Experimental Feature flag to acknowledge.</strong></p>
+                                </div>
+                                <div class="col">                    
+                                    <label for="spec.nonProductionOptions.enabledFeatureGates.babelfish">Babelfish Experimental Feature</label>  
+                                    <label for="babelfishFeatureGates" class="switch yes-no">
+                                        Enable
+                                        <input type="checkbox" id="babelfishFeatureGates" v-model="babelfishFeatureGates" data-switch="NO" data-field="spec.nonProductionOptions.enabledFeatureGates.babelfish" required>
+                                    </label>
+                                    <span class="helpTooltip" data-tooltip="Enables Babelfish for PostgreSQL project, from <a href='https://babelfishpg.org' target='_blank'>babelfishpg.org</a>, adding a SQL Server compatibility layer"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row-50">
+                            <div class="col">                    
+                                <div class="versionContainer">
+                                    <label for="spec.postgres.version">Postgres Version <span class="req">*</span></label>
+                                    <ul class="select" id="postgresVersion" data-field="spec.postgres.version" tabindex="0">
+                                        <li class="selected">
+                                            {{ (postgresVersion == 'latest') ? 'Latest' : 'Postgres '+postgresVersion }}
+                                        </li>
+                                        <li>
+                                            <a @click="setVersion('latest')" data-val="latest" class="active">Latest</a>
+                                        </li>
+
+                                        <li v-for="version in Object.keys(postgresVersionsList[flavor]).reverse()">
+                                            <strong>Postgres {{ version }}</strong>
+                                            <ul>
+                                                <li>
+                                                    <a @click="setVersion(version)" :data-val="version">Postgres {{ version }} (Latest)</a>
+                                                </li>
+                                                <li v-for="minorVersion in postgresVersionsList[flavor][version]">
+                                                    <a @click="setVersion(minorVersion)" :data-val="minorVersion">Postgres {{ minorVersion }}</a>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.version')"></span>
+
+                                    <input v-model="postgresVersion" required class="hide">
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <label for="spec.configurations.sgPostgresConfig">Postgres Configuration</label>
+                                <select v-model="pgConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig" @change="(pgConfig == 'createNewResource') && createNewResource('sgpgconfigs')" :set="( (formTemplate !== 'full') && (pgConfig == 'createNewResource') ) && (pgConfig = '')">
+                                    <option :value="null" selected>Default</option>
+                                    <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == shortPostgresVersion) )">{{ conf.name }}</option>
+                                    <template v-if="iCan('create', 'sgpgconfigs', $route.params.namespace)">
+                                        <option value="" disabled>– OR –</option>
+                                        <option value="createNewResource">Create new configuration</option>
+                                    </template>
+                                </select>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPostgresConfig')"></span>
+                            </div>
+                        </div>
+
+                        <div class="row-50">
+                            <h3>SSL Connections</h3>
+                            <p>
+                                By default, support for SSL connections to Postgres is disabled, to enable it configure this section. SSL connections will be handled by Envoy using Postgres filter’s SSL termination.
+                            </p>
+                            <div class="col">
+                                <label>SSL Connections</label>  
+                                <label for="enableSSL" class="switch yes-no">
+                                    Enable
+                                    <input type="checkbox" id="enableSSL" v-model="ssl.enabled" data-switch="YES" data-field="spec.postgres.ssl.enabled">
+                                </label>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.enabled')"></span>
+                            </div>
+                        </div>
+                        <div class="row-50" v-if="ssl.enabled">
+                            <div class="col">
+                                <label for="spec.postgres.ssl.certificateSecretKeySelector.name">
+                                    SSL Certificate Secret Name
+                                    <span class="req">*</span>
+                                </label>
+                                <input required v-model="ssl.certificateSecretKeySelector.name" data-field="spec.postgres.ssl.certificateSecretKeySelector.name" autocomplete="off">
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.certificateSecretKeySelector.name')"></span>
+                            </div>
+                            <div class="col">
+                                <label for="spec.postgres.ssl.certificateSecretKeySelector.key">
+                                    SSL Certificate Secret Key
+                                    <span class="req">*</span>
+                                </label>
+                                <input required v-model="ssl.certificateSecretKeySelector.key" data-field="spec.postgres.ssl.certificateSecretKeySelector.key" autocomplete="off">
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.certificateSecretKeySelector.key')"></span>
+                            </div>
+                            <div class="col">
+                                <label for="spec.postgres.ssl.privateKeySecretKeySelector.name">
+                                    SSL Private Key Secret Name
+                                    <span class="req">*</span>
+                                </label>
+                                <input required v-model="ssl.privateKeySecretKeySelector.name" data-field="spec.postgres.ssl.privateKeySecretKeySelector.name" autocomplete="off">
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.privateKeySecretKeySelector.name')"></span>
+                            </div>
+                            <div class="col">
+                                <label for="spec.postgres.ssl.privateKeySecretKeySelector.key">
+                                    SSL Private Key Secret Key
+                                    <span class="req">*</span>
+                                </label>
+                                <input required v-model="ssl.privateKeySecretKeySelector.key" data-field="spec.postgres.ssl.privateKeySecretKeySelector.key" autocomplete="off">
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.privateKeySecretKeySelector.key')"></span>
+                            </div>
+                        </div>
+
+                        <hr/>
+
+                        <div class="row-50">
+                            <h3>Pods Storage</h3>
+
+                            <div class="col">
+                                <div class="unit-select">
+                                    <label for="spec.pods.persistentVolume.size">Volume Size <span class="req">*</span></label>  
+                                    <input v-model="volumeSize" class="size" required data-field="spec.pods.persistentVolume.size" type="number">
+                                    <select v-model="volumeUnit" class="unit" required data-field="spec.pods.persistentVolume.size" >
+                                        <option disabled value="">Select Unit</option>
+                                        <option value="Mi">MiB</option>
+                                        <option value="Gi">GiB</option>
+                                        <option value="Ti">TiB</option>   
+                                    </select>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.size')"></span>
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <label for="spec.pods.persistentVolume.storageClass">Storage Class</label>
+                                <select v-model="storageClass" data-field="spec.pods.persistentVolume.storageClass" :disabled="!storageClasses.length">
+                                    <option value=""> {{ storageClasses.length ? 'Select Storage Class' : 'No storage classes available' }}</option>
+                                    <option v-for="sClass in storageClasses">{{ sClass }}</option>
+                                </select>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.storageClass')"></span>
+                            </div>
+                        </div>
+
+                        <hr/>
+
+                        <div class="row-50">
+                            <h3>Monitoring</h3>
+                            <p>
+                                By enabling Monitoring, you are activating metrics scrapping via service monitors, which is done by enabling both, Prometheus Autobind and Metrics Exporter.
+                            </p>
+                            <div class="col">
                                 <label>Monitoring</label>  
                                 <label for="enableMonitoring" class="switch yes-no">Enable<input type="checkbox" id="enableMonitoring" v-model="enableMonitoring" data-switch="YES" @change="checkenableMonitoring()"></label>
                                 <span class="helpTooltip" data-tooltip="StackGres supports enabling automatic monitoring for your Postgres cluster, but you need to provide or install the <a href='https://stackgres.io/doc/latest/install/prerequisites/monitoring/' target='_blank'>Prometheus stack as a pre-requisite</a>. Then, check this option to configure automatically sending metrics to the Prometheus stack."></span>
-                            </div>
-
-                             <div class="col">
-                                <label>Distributed Logs</label>  
-                                <label for="enableDistributedLogs" class="switch yes-no">Enable<input type="checkbox" id="enableDistributedLogs" v-model="enableDistributedLogs" data-switch="YES"></label>
-                                <span class="helpTooltip" data-tooltip="Allows sending Postgres and Patroni logs to a central SGDistributedLogs instance. Optional: if not enabled, logs are sent to the standard output."></span>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-            </fieldset>
-
-            <fieldset class="step" :class="(currentStep == 'cluster') && 'active'" data-fieldset="cluster">
-                <div class="header">
-                    <h2>Cluster Information</h2>
-                </div>
-
-                <div class="fields">
-                    <div class="row-50">
-                        <div class="col">
-                            <label for="metadata.name">Cluster Name <span class="req">*</span></label>
-                            <input v-model="name" :disabled="editMode" required data-field="metadata.name" autocomplete="off">
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.metadata.name')"></span>
-                            
-                            <span class="warning topAnchor" v-if="nameColission && !editMode">
-                                There's already a <strong>SGCluster</strong> with the same name on this namespace. Please specify a different name or create the cluster on another namespace
-                            </span>
+                            </div>                  
                         </div>
 
-                        <div class="col">
-                            <label for="spec.profile">Profile</label>
-                            <select v-model="profile" data-field="spec.profile" class="capitalize">
-                                <option v-for="profile in clusterProfiles">{{ profile }}</option>
-                            </select>
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.profile')"></span>
+                        <hr/>
 
-                            <div class="warning topAnchor" v-if="profile != 'production'">
-                                By choosing this Profile, the following defaults are overwritten:
-                                <ul>
-                                    <li><strong>Cluster Pod Anti Affinity</strong> is set to <strong>Disable</strong>.</li>
-                                    <template v-if="profile == 'development'">
-                                        <li><strong>Patroni Resource Requirements</strong> is set to <strong>Disable</strong>.</li>
-                                        <li><strong>Cluster Resource Requirements</strong> is set to <strong>Disable</strong>.</li>
-                                    </template>
-                                </ul>     
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr/>
-                    
-                    <div class="row-50">
-                        <h3>Instances</h3>
-
-                        <div class="col">
-                            <label for="spec.instances">Number of Instances <span class="req">*</span></label>
-                            <input type="number" v-model="instances" required data-field="spec.instances" min="0">
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.instances')"></span>
-                        </div>
-                        <div class="col">
-                            <label for="spec.sgInstanceProfile">Instance Profile</label>  
-                            <select v-model="resourceProfile" class="resourceProfile" data-field="spec.sgInstanceProfile" @change="(resourceProfile == 'createNewResource') && createNewResource('sginstanceprofiles')" :set="( (resourceProfile == 'createNewResource') && (resourceProfile = '') )">
-                                <option selected value="">Default (Cores: 1, RAM: 2GiB)</option>
-                                <option v-for="prof in profiles" v-if="prof.data.metadata.namespace == namespace" :value="prof.name">{{ prof.name }} (Cores: {{ prof.data.spec.cpu }}, RAM: {{ prof.data.spec.memory }}B)</option>
-                                <template v-if="iCan('create', 'sginstanceprofiles', $route.params.namespace)">
-                                    <option value="" disabled>– OR –</option>
-                                    <option value="createNewResource">Create new profile</option>
-                                </template>
-                            </select>
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.sgInstanceProfile')"></span>
-                        </div>
-                    </div>
-
-                    <hr/>
-
-                    <div class="row-50">
-                        <h3>Postgres</h3>
-
-                        <div class="col">
-                            <label for="spec.postgres.flavor">Postgres Flavor <span class="req">*</span></label>
-                            <div class="optionBoxes withLogos">
-                                <label for="vanilla" data-field="spec.postgres.flavor.vanilla" :class="( (flavor == 'vanilla') && 'active' )" tabindex="0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" xml:space="preserve"><path d="M49.1 30c-.3-.9-1.1-1.5-2-1.7-.5-.1-1 0-1.6.1-1.1.2-1.9.3-2.5.3 2.2-3.8 4.1-8.1 5.1-12.2 1.7-6.6.8-9.6-.3-10.9C45 2 40.9.1 35.9 0c-2.6 0-5 .5-6.2.9-1.1-.2-2.3-.3-3.6-.3-2.4 0-4.5.5-6.3 1.5-1-.3-2.6-.8-4.4-1.1C11.1.3 7.6.8 5 2.6 2 4.8.5 8.6.8 13.9c.1 1.7 1 6.8 2.5 11.7.9 2.8 1.8 5.1 2.7 6.9 1.3 2.5 2.8 4 4.4 4.5.9.3 2.5.5 4.2-.9.2.3.5.5.9.8.5.3 1.1.6 1.7.7 2.2.5 4.2.4 5.9-.3v2.1c.1 2.5.3 4.5.8 5.9 0 .1.1.2.1.3.3.8.7 2.1 1.8 3.1 1.1 1.1 2.5 1.4 3.7 1.4.6 0 1.2-.1 1.7-.2 1.9-.4 4-1 5.5-3.2 1.4-2.1 2.2-5.2 2.3-10.1v-.7h.4c1.9.1 4.2-.3 5.6-1 1.4-.5 5-2.4 4.1-4.9z"/><path fill="#336791" d="M45.9 30.5c-5.6 1.2-6-.8-6-.8 6-8.8 8.5-20.1 6.3-22.8-5.9-7.5-16-4-16.2-3.9h-.1c-1.1-.2-2.4-.4-3.8-.4-2.6 0-4.5.7-6 1.8 0 0-18.1-7.5-17.3 9.4.3 3.6 5.2 27.2 11.1 20 2.2-2.6 4.3-4.8 4.3-4.8 1 .7 2.3 1 3.6.9l.1-.1v1c-1.5 1.7-1.1 2-4.1 2.6-3.1.6-1.3 1.8-.1 2.1 1.4.4 4.7.9 7-2.3l-.1.4c.6.5 1 3.1.9 5.5-.1 2.4-.1 4 .3 5.3.5 1.3.9 4.2 4.9 3.3C34 47 35.8 45.1 36 42c.2-2.2.6-1.9.6-3.9l.3-.9c.4-3 .1-4 2.1-3.5h.5c1.5.1 3.5-.2 4.7-.8 2.7-1 4.1-3 1.7-2.4z"/><g fill="#FFF"><path d="M47.7 30.3c-.2-.7-.9-.9-2.1-.6-3.4.7-4.6.2-5-.1 2.7-4.1 4.8-8.9 6-13.5.6-2.2.9-4.2.9-5.8 0-1.8-.3-3.1-.9-3.9-2.5-3.3-6.3-5-10.8-5-3.1 0-5.7.8-6.2 1-1.1-.3-2.2-.4-3.5-.4-2.3 0-4.3.5-6 1.7-.8-.3-2.6-.9-4.9-1.3-4-.6-7.1-.2-9.4 1.4-2.7 1.8-3.9 5.2-3.7 10 .1 1.6 1 6.6 2.4 11.3 1.9 6.3 4 9.8 6.2 10.5.3.1.6.1.9.1.8 0 1.8-.4 2.8-1.6 1.7-2 3.3-3.7 3.9-4.4.9.5 1.8.7 2.8.7v.1c-.2.2-.3.4-.5.6-.7.9-.8 1-3 1.5-.6.1-2.2.5-2.3 1.6 0 1.2 1.9 1.8 2.1 1.8.8.2 1.5.3 2.2.3 1.7 0 3.2-.6 4.5-1.7 0 4.4.1 8.8.7 10.2.4 1.1 1.5 3.8 4.9 3.8.5 0 1-.1 1.6-.2 3.5-.8 5-2.3 5.6-5.7.3-1.8.9-6.2 1.1-8.6.5.2 1.2.2 2 .2 1.6 0 3.4-.3 4.5-.9 1.4-.4 3.7-1.8 3.2-3.1zm-8.3-15.8c0 .7-.1 1.3-.2 2s-.2 1.4-.2 2.3c0 .9.1 1.8.2 2.6.2 1.8.4 3.5-.4 5.3-.1-.2-.3-.5-.4-.8-.1-.2-.3-.7-.6-1.2-1.2-2.2-4.1-7.3-2.6-9.4.3-.5 1.4-1.2 4.2-.8zM36 2.7c4.1.1 7.3 1.6 9.5 4.5 1.7 2.2-.2 12.3-5.7 21.1l-.2-.2s0-.1-.1-.1c1.4-2.4 1.2-4.7.9-6.8-.1-.9-.2-1.7-.2-2.4 0-.8.1-1.5.2-2.2.1-.8.3-1.7.2-2.7v-.4c-.1-1-1.2-3.8-3.4-6.4-1.2-1.4-3-3-5.4-4.1 1.2-.1 2.6-.3 4.2-.3zM13.4 33.3c-1.1 1.3-1.9 1.1-2.1 1-1.7-.6-3.6-4.1-5.3-9.6-1.5-4.8-2.3-9.6-2.4-11-.3-4.3.8-7.3 3-8.9 3.7-2.6 9.7-1 12.2-.3l-.1.1c-4 4-3.9 10.9-3.9 11.4v.7c.1 1.2.2 3.3-.1 5.8-.3 2.3.4 4.5 1.9 6.1l.5.5c-.7.7-2.2 2.3-3.7 4.2zm4.2-5.7c-1.2-1.3-1.8-3.1-1.5-4.9.4-2.6.2-4.8.2-6v-.4c.6-.5 3.3-2 5.2-1.5.9.2 1.4.8 1.6 1.8 1.2 5.3.2 7.6-.7 9.4-.2.4-.3.7-.5 1.1l-.1.3c-.3.7-.5 1.4-.7 2-1.2-.2-2.5-.8-3.5-1.8zm.2 7.2c-.4-.1-.7-.3-.9-.4.2-.1.5-.2 1-.3 2.5-.5 2.9-.9 3.8-2 .2-.2.4-.5.7-.9.5-.5.7-.4 1-.3.3.1.6.5.7.9.1.2.1.6-.1.9-1.7 2.6-4.3 2.6-6.2 2.1zm13.3 12.3c-3.1.7-4.2-.9-4.9-2.7-.5-1.2-.7-6.4-.5-12.2V32c0-.1 0-.3-.1-.4-.2-.8-.8-1.5-1.5-1.8-.3-.1-.8-.3-1.4-.2.1-.6.4-1.2.6-1.8l.1-.3c.1-.3.3-.6.4-1 .8-1.9 2-4.4.7-10.2-.5-2.2-2-3.2-4.4-3-1.4.1-2.7.7-3.4 1.1-.1.1-.3.1-.4.2.2-2.2.9-6.3 3.4-8.8 1.6-1.6 3.8-2.4 6.4-2.4 5.2.1 8.5 2.7 10.3 4.9 1.6 1.9 2.5 3.8 2.8 4.8-2.6-.3-4.4.2-5.3 1.5-2 2.8 1.1 8.2 2.5 10.8.3.5.5.9.6 1.1.5 1.1 1.1 1.9 1.5 2.5.1.2.3.3.4.5-.8.2-2.2.8-2.1 3.4-.1 1.3-.8 7.5-1.2 9.7-.5 2.8-1.5 3.9-4.5 4.5zM44 32.3c-.8.4-2.2.7-3.4.7-1.4.1-2.1-.2-2.3-.3-.1-1.6.5-1.8 1.2-2 .1 0 .2-.1.3-.1.1 0 .1.1.2.1 1.1.8 3.2.8 6.1.2-.5.5-1.1 1-2.1 1.4z"/><path d="M22.4 16.2c.1-.4-.6-.7-1.2-.8-.5-.1-1 0-1.2.2-.1.1-.2.2-.2.3 0 .2.1.4.2.6.3.3.6.6 1 .6h.2c.6 0 1.2-.5 1.2-.9zM36.8 15.1c-.6.1-1.2.3-1.1.7 0 .3.5.7 1.1.7h.1c.4-.1.7-.3.8-.4.2-.2.3-.5.3-.6 0-.4-.6-.5-1.2-.4z"/></g></svg>
-                                    PostgreSQL Community
-                                    <input type="radio" name="flavor" v-model="flavor" value="vanilla" id="vanilla" @change="validatePostgresSpecs()">
-                                </label>
-                                <label for="babelfish" data-field="spec.postgres.flavor.babelfish" :class="( (flavor == 'babelfish') && 'active' )">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" xml:space="preserve"><path fill="#3BF" d="M28.6 32c-.7-1.3-2.1-1.9-3.5-1.7-1.4.1-2.7-.9-2.9-2.3-.2-1.8.5-1.2 1.7-6.1.4-1.8.2-3.8-.9-5.4-.8-1.3-2.2-2-3.4-1.2-1.2.8-2 1.9-2.5 3.2-1.9 5 .9 8.8 3.5 10.9 1.1.9 1.6 2.4 1.3 3.9-.2 1.2.4 2.1 1.3 3 1.4-1.2 1.4-2.8.7-4.5l.2-.2c1.3 1.5 3.2 1.5 4.5.4zm-7.5-12.8c-.4.2-.9.1-1.2-.3-.2-.4-.1-.9.3-1.3.4-.2.9-.1 1.3.3.1.6 0 1.1-.4 1.3z"/><path fill="#FFF" d="M32.3 2.5h-.7c-1.5.2-3 .5-4.4 1-1.5.4-11.3-7-20.6-1.4C1.2 5.5-.6 12.6 2.8 18c.4.7.9 1.3 1.5 1.9 1.6 1.9 2.4 4.4 2.1 6.8-.7 5.2 2.3 9.1 7 9.1 2.1.1 4.1-.3 6.1-1.1.6-.3 1.1-.9 1.3-1.6.2-.9-.2-1.9-.9-2.5-4.2-3.6-5.6-8-3.9-12.5.5-1.6 1.6-3 3-3.9.5-.4 1.3-.5 1.9-.5 1.5.1 2.8.9 3.5 2.2 1.2 2 1.5 4.2 1 6.4-.3 1.5-.9 3-1.5 4.5-.6 1.4.2 2 1.3 2.2 1 .2 2.1.1 3-.2 3.7-1.3 8-.3 9.4 6.4.5 3.2-.2 6.6-3.4 7.7 0 0-6.3 2.2-5-8.4v-.4c0-.2-.2-.3-.4-.3-.1 0-.2.1-.2.1-.6.4-1.3.6-2 .5-.4 0-.7.3-.8.7-.2 1-.8 2-1.6 2.7l-.5.4c-.2.2-.3.5-.3.7 1.8 13.1 12 11 12 11 5.8-.4 13.5-7 13.5-30.7 0-8.3-7.4-16.7-16.6-16.7zm8.1 20.1c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
-                                    Babelfish (Experimental)
-                                    <input type="radio" name="flavor" v-model="flavor" value="babelfish" id="babelfish" @change="validatePostgresSpecs()">
-                                </label>
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.flavor')"></span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="warning orange babelfish topAnchor right" v-if="( (flavor == 'babelfish') && !editMode )" tabindex="0">
                         <div class="row-50">
+                            <h3>
+                                Distributed Logs
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs')"></span>
+                            </h3>
+                            <p>Send Postgres and Patroni logs to a central <a href="https://stackgres.io/doc/latest/reference/crd/sgdistributedlogs/" target="_blank">SGDistributedLogs</a> instance. Optional: if not enabled, logs are sent to the standard output.</p>
+
                             <div class="col">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 18"><g transform="translate(0 -183)"><path d="M18.994,201H1.006a1,1,0,0,1-.871-.516,1.052,1.052,0,0,1,0-1.031l8.993-15.974a1.033,1.033,0,0,1,1.744,0l8.993,15.974a1.052,1.052,0,0,1,0,1.031A1,1,0,0,1,18.994,201ZM2.75,198.937h14.5L10,186.059Z"/><rect width="2" height="5.378" rx="0.947" transform="translate(9 189.059)"/><rect width="2" height="2" rx="1" transform="translate(9 195.437)"/></g></svg>
-                                <p>StackGres packs Babelfish for PostgreSQL as an <strong>experimental feature</strong>. Its use is <strong>not recommended for production environments</strong>. Please enable the Babelfish Experimental Feature flag to acknowledge.</strong></p>
-                            </div>
-                            <div class="col">                    
-                                <label for="spec.nonProductionOptions.enabledFeatureGates.babelfish">Babelfish Experimental Feature</label>  
-                                <label for="babelfishFeatureGates" class="switch yes-no">
-                                    Enable
-                                    <input type="checkbox" id="babelfishFeatureGates" v-model="babelfishFeatureGates" data-switch="NO" data-field="spec.nonProductionOptions.enabledFeatureGates.babelfish" required>
-                                </label>
-                                <span class="helpTooltip" data-tooltip="Enables Babelfish for PostgreSQL project, from <a href='https://babelfishpg.org' target='_blank'>babelfishpg.org</a>, adding a SQL Server compatibility layer"></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row-50">
-                        <div class="col">                    
-                            <div class="versionContainer">
-                                <label for="spec.postgres.version">Postgres Version <span class="req">*</span></label>
-                                <ul class="select" id="postgresVersion" data-field="spec.postgres.version" tabindex="0">
-                                    <li class="selected">
-                                        {{ (postgresVersion == 'latest') ? 'Latest' : 'Postgres '+postgresVersion }}
-                                    </li>
-                                    <li>
-                                        <a @click="setVersion('latest')" data-val="latest" class="active">Latest</a>
-                                    </li>
-
-                                    <li v-for="version in Object.keys(postgresVersionsList[flavor]).reverse()">
-                                        <strong>Postgres {{ version }}</strong>
-                                        <ul>
-                                            <li>
-                                                <a @click="setVersion(version)" :data-val="version">Postgres {{ version }} (Latest)</a>
-                                            </li>
-                                            <li v-for="minorVersion in postgresVersionsList[flavor][version]">
-                                                <a @click="setVersion(minorVersion)" :data-val="minorVersion">Postgres {{ minorVersion }}</a>
-                                            </li>
-                                        </ul>
-                                    </li>
-                                </ul>
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.version')"></span>
-
-                                <input v-model="postgresVersion" required class="hide">
-                            </div>
-                        </div>
-
-                        <div class="col">
-                            <label for="spec.configurations.sgPostgresConfig">Postgres Configuration</label>
-                            <select v-model="pgConfig" class="pgConfig" data-field="spec.configurations.sgPostgresConfig" @change="(pgConfig == 'createNewResource') && createNewResource('sgpgconfigs')" :set="( (formTemplate !== 'full') && (pgConfig == 'createNewResource') ) && (pgConfig = '')">
-                                <option :value="null" selected>Default</option>
-                                <option v-for="conf in pgConf" v-if="( (conf.data.metadata.namespace == namespace) && (conf.data.spec.postgresVersion == shortPostgresVersion) )">{{ conf.name }}</option>
-                                <template v-if="iCan('create', 'sgpgconfigs', $route.params.namespace)">
-                                    <option value="" disabled>– OR –</option>
-                                    <option value="createNewResource">Create new configuration</option>
-                                </template>
-                            </select>
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPostgresConfig')"></span>
-                        </div>
-                    </div>
-
-                    <div class="row-50">
-                        <h3>SSL Connections</h3>
-                        <p>
-                            By default, support for SSL connections to Postgres is disabled, to enable it configure this section. SSL connections will be handled by Envoy using Postgres filter’s SSL termination.
-                        </p>
-                        <div class="col">
-                            <label>SSL Connections</label>  
-                            <label for="enableSSL" class="switch yes-no">
-                                Enable
-                                <input type="checkbox" id="enableSSL" v-model="ssl.enabled" data-switch="YES" data-field="spec.postgres.ssl.enabled">
-                            </label>
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.enabled')"></span>
-                        </div>
-                    </div>
-                    <div class="row-50" v-if="ssl.enabled">
-                        <div class="col">
-                            <label for="spec.postgres.ssl.certificateSecretKeySelector.name">
-                                SSL Certificate Secret Name
-                                <span class="req">*</span>
-                            </label>
-                            <input required v-model="ssl.certificateSecretKeySelector.name" data-field="spec.postgres.ssl.certificateSecretKeySelector.name" autocomplete="off">
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.certificateSecretKeySelector.name')"></span>
-                        </div>
-                        <div class="col">
-                            <label for="spec.postgres.ssl.certificateSecretKeySelector.key">
-                                SSL Certificate Secret Key
-                                <span class="req">*</span>
-                            </label>
-                            <input required v-model="ssl.certificateSecretKeySelector.key" data-field="spec.postgres.ssl.certificateSecretKeySelector.key" autocomplete="off">
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.certificateSecretKeySelector.key')"></span>
-                        </div>
-                        <div class="col">
-                            <label for="spec.postgres.ssl.privateKeySecretKeySelector.name">
-                                SSL Private Key Secret Name
-                                <span class="req">*</span>
-                            </label>
-                            <input required v-model="ssl.privateKeySecretKeySelector.name" data-field="spec.postgres.ssl.privateKeySecretKeySelector.name" autocomplete="off">
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.privateKeySecretKeySelector.name')"></span>
-                        </div>
-                        <div class="col">
-                            <label for="spec.postgres.ssl.privateKeySecretKeySelector.key">
-                                SSL Private Key Secret Key
-                                <span class="req">*</span>
-                            </label>
-                            <input required v-model="ssl.privateKeySecretKeySelector.key" data-field="spec.postgres.ssl.privateKeySecretKeySelector.key" autocomplete="off">
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.ssl.privateKeySecretKeySelector.key')"></span>
-                        </div>
-                    </div>
-
-                    <hr/>
-
-                    <div class="row-50">
-                        <h3>Pods Storage</h3>
-
-                        <div class="col">
-                            <div class="unit-select">
-                                <label for="spec.pods.persistentVolume.size">Volume Size <span class="req">*</span></label>  
-                                <input v-model="volumeSize" class="size" required data-field="spec.pods.persistentVolume.size" type="number">
-                                <select v-model="volumeUnit" class="unit" required data-field="spec.pods.persistentVolume.size" >
-                                    <option disabled value="">Select Unit</option>
-                                    <option value="Mi">MiB</option>
-                                    <option value="Gi">GiB</option>
-                                    <option value="Ti">TiB</option>   
+                                <label for="spec.distributedLogs.sgDistributedLogs">Logs Cluster</label>
+                                <select v-model="distributedLogs" class="distributedLogs" data-field="spec.distributedLogs.sgDistributedLogs" @change="(distributedLogs == 'createNewResource') && createNewResource('sgdistributedlogs')" :set="( (distributedLogs == 'createNewResource') && (distributedLogs = '') )">
+                                    <option value="">Select Logs Server</option>
+                                    <option v-for="cluster in logsClusters" :value="( (cluster.data.metadata.namespace !== $route.params.namespace) ? cluster.data.metadata.namespace + '.' : '') + cluster.data.metadata.name">{{ cluster.data.metadata.name }}</option>
+                                    <template v-if="iCan('create', 'sgdistributedlogs', $route.params.namespace)">
+                                        <option value="" disabled>– OR –</option>
+                                        <option value="createNewResource">Create new logs server</option>
+                                    </template>
                                 </select>
-                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.size')"></span>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs.sgDistributedLogs')"></span>
+                            </div>
+
+                            <div class="col" v-if="distributedLogs.length">
+                                <label for="spec.distributedLogs.retention">Retention</label>
+                                <input v-model="retention" data-field="spec.distributedLogs.retention" autocomplete="off">
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs.retention')"></span>
                             </div>
                         </div>
-
-                        <div class="col">
-                            <label for="spec.pods.persistentVolume.storageClass">Storage Class</label>
-                            <select v-model="storageClass" data-field="spec.pods.persistentVolume.storageClass" :disabled="!storageClasses.length">
-                                <option value=""> {{ storageClasses.length ? 'Select Storage Class' : 'No storage classes available' }}</option>
-                                <option v-for="sClass in storageClasses">{{ sClass }}</option>
-                            </select>
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.storageClass')"></span>
-                        </div>
                     </div>
-
-                    <hr/>
-
-                    <div class="row-50">
-                        <h3>Monitoring</h3>
-                        <p>
-                            By enabling Monitoring, you are activating metrics scrapping via service monitors, which is done by enabling both, Prometheus Autobind and Metrics Exporter.
-                        </p>
-                        <div class="col">
-                            <label>Monitoring</label>  
-                            <label for="enableMonitoring" class="switch yes-no">Enable<input type="checkbox" id="enableMonitoring" v-model="enableMonitoring" data-switch="YES" @change="checkenableMonitoring()"></label>
-                            <span class="helpTooltip" data-tooltip="StackGres supports enabling automatic monitoring for your Postgres cluster, but you need to provide or install the <a href='https://stackgres.io/doc/latest/install/prerequisites/monitoring/' target='_blank'>Prometheus stack as a pre-requisite</a>. Then, check this option to configure automatically sending metrics to the Prometheus stack."></span>
-                        </div>                  
-                    </div>
-
-                    <hr/>
-
-                    <div class="row-50">
-                        <h3>
-                            Distributed Logs
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs')"></span>
-                        </h3>
-                        <p>Send Postgres and Patroni logs to a central <a href="https://stackgres.io/doc/latest/reference/crd/sgdistributedlogs/" target="_blank">SGDistributedLogs</a> instance. Optional: if not enabled, logs are sent to the standard output.</p>
-
-                        <div class="col">
-                            <label for="spec.distributedLogs.sgDistributedLogs">Logs Cluster</label>
-                            <select v-model="distributedLogs" class="distributedLogs" data-field="spec.distributedLogs.sgDistributedLogs" @change="(distributedLogs == 'createNewResource') && createNewResource('sgdistributedlogs')" :set="( (distributedLogs == 'createNewResource') && (distributedLogs = '') )">
-                                <option value="">Select Logs Server</option>
-                                <option v-for="cluster in logsClusters" :value="( (cluster.data.metadata.namespace !== $route.params.namespace) ? cluster.data.metadata.namespace + '.' : '') + cluster.data.metadata.name">{{ cluster.data.metadata.name }}</option>
-                                <template v-if="iCan('create', 'sgdistributedlogs', $route.params.namespace)">
-                                    <option value="" disabled>– OR –</option>
-                                    <option value="createNewResource">Create new logs server</option>
-                                </template>
-                            </select>
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs.sgDistributedLogs')"></span>
-                        </div>
-
-                        <div class="col" v-if="distributedLogs.length">
-                            <label for="spec.distributedLogs.retention">Retention</label>
-                            <input v-model="retention" data-field="spec.distributedLogs.retention" autocomplete="off">
-                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.distributedLogs.retention')"></span>
-                        </div>
-                    </div>
-                </div>
-            </fieldset>
+                </fieldset>
+            </template>
 
             <fieldset class="step" :class="(currentStep == 'extensions') && 'active'" data-fieldset="extensions">
                 <div class="header">
