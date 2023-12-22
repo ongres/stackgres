@@ -1405,6 +1405,32 @@ export const mixin = {
         prop.splice( index, 1 );
       },
 
+      uploadFile(e, prop) {
+        const vc = this;
+        var files = e.target.files || e.target.dataTransfer.files;
+
+        if (!files.length){
+            console.log("File not loaded")
+            return;
+        } else {
+            var reader = new FileReader();
+            
+            reader.onload = function(e) {
+                if(!prop.includes('.')) {
+                    vc.$set(vc, prop, e.target.result);
+                } else {
+                    let el = {};
+                    let props = prop.split('.');
+                    for(var i = 0; i < props.length - 1; i++) {
+                        el = Object.keys(el).length ? el[props[i]] : vc[props[i]];
+                    }
+                    vc.$set(el, props[props.length - 1], e.target.result);
+                }
+            };
+            reader.readAsText(files[0]);
+        }
+      },
+
     },
       
   
