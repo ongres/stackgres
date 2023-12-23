@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.rest;
+package io.stackgres.apiweb.rest.auth;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -16,16 +16,19 @@ import java.util.Map;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReview;
+import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReviewSpecBuilder;
 import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReviewStatus;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.V1AuthorizationAPIGroupDSL;
 import io.fabric8.kubernetes.client.dsl.AuthorizationAPIGroupDSL;
 import io.fabric8.kubernetes.client.dsl.InOutCreateable;
+import io.quarkus.cache.Cache;
+import io.quarkus.cache.runtime.caffeine.CaffeineCacheImpl;
+import io.quarkus.cache.runtime.caffeine.CaffeineCacheInfo;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.stackgres.apiweb.app.KubernetesClientProvider;
 import io.stackgres.apiweb.dto.PermissionsListDto;
 import io.stackgres.apiweb.dto.PermissionsListDto.Namespaced;
-import io.stackgres.apiweb.rest.auth.RbacResource;
 import io.stackgres.apiweb.rest.misc.NamespaceResource;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,6 +72,9 @@ class RbacResourceTest {
   @Mock
   private SubjectAccessReviewStatus subjectReviewStatus;
 
+  @Mock
+  private Cache cache = new CaffeineCacheImpl(new CaffeineCacheInfo(), false);
+
   @BeforeEach
   public void setup() {
     MockitoAnnotations.openMocks(this);
@@ -102,6 +108,12 @@ class RbacResourceTest {
 
   @Test
   void shouldListUnnamespacedAndNamespacedResources() {
+    SubjectAccessReviewSpecBuilder subjectAccessReviewSpecBuilder =
+        new SubjectAccessReviewSpecBuilder()
+            .withNewResourceAttributes()
+            .withVerb("get")
+            .endResourceAttributes();
+    given(review.getSpec()).willReturn(subjectAccessReviewSpecBuilder.build());
     given(review.getStatus()).willReturn(subjectReviewStatus);
     given(subjectReviewStatus.getAllowed()).willReturn(true);
     given(namespaces.get()).willReturn(expectedNamespaces());

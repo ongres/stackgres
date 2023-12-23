@@ -5,11 +5,12 @@
 
 package io.stackgres.apiweb.rest.auth;
 
+import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Event;
@@ -26,8 +27,12 @@ import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.quarkus.cache.Cache;
+import io.quarkus.cache.CacheName;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
+import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
 import io.stackgres.apiweb.app.KubernetesClientProvider;
 import io.stackgres.apiweb.dto.PermissionsListDto;
 import io.stackgres.apiweb.exception.ErrorResponse;
@@ -102,6 +107,10 @@ public class RbacResource {
   @Inject
   KubernetesClientProvider kubernetesClientProvider;
 
+  @Inject
+  @CacheName("RbacResource")
+  Cache cache;
+
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
           mediaType = "application/json",
@@ -134,8 +143,7 @@ public class RbacResource {
           .endSpec()
           .build();
 
-      review = client.authorization().v1().subjectAccessReview()
-          .create(review);
+      review = client.authorization().v1().subjectAccessReview().create(review);
 
       LOGGER.debug("{}", review);
 
@@ -173,37 +181,28 @@ public class RbacResource {
 
   private Map<String, List<String>> buildUnnamespacedPermissionList(
       KubernetesClient client, String user) {
-    Map<String, List<String>> resourceUnamespace = new HashMap<>();
-
-    for (String rsUnnamespaced : UNNAMESPACED_RESOURCES) {
-      String[] resource = rsUnnamespaced.split("\\.", 2);
-      List<String> allowed = accessReview(client, user, null, resource[0],
-          resource.length == 2 ? resource[1] : "", getVerbs());
-      resourceUnamespace.put(resource[0], allowed);
-    }
-
-    return resourceUnamespace;
+    return UNNAMESPACED_RESOURCES.stream()
+        .map(rs -> rs.split("\\.", 2))
+        .collect(Collectors.toUnmodifiableMap(resource -> resource[0],
+            resource -> accessReview(client, user, null, resource[0],
+                resource.length == 2 ? resource[1] : "", getVerbs())));
   }
 
   private List<PermissionsListDto.Namespaced> buildNamespacedPermissionList(
       KubernetesClient client, String user) {
-    List<PermissionsListDto.Namespaced> listNamespaced = new ArrayList<>();
-
+    List<PermissionsListDto.Namespaced> namespaced = new ArrayList<>();
     for (String ns : namespaces.get()) {
-      Map<String, List<String>> resourceNamespace = new HashMap<>();
-      for (String rsNamespaced : NAMESPACED_RESOURCES) {
-        String[] resource = rsNamespaced.split("\\.", 2);
-        List<String> allowed = accessReview(client, user, ns, resource[0],
-            resource.length == 2 ? resource[1] : "", getVerbs());
-        resourceNamespace.put(resource[0], allowed);
-      }
-
-      listNamespaced.add(new PermissionsListDto.Namespaced(ns, resourceNamespace));
+      Map<String, List<String>> perms = NAMESPACED_RESOURCES.stream()
+          .map(rs -> rs.split("\\.", 2))
+          .collect(Collectors.toUnmodifiableMap(resource -> resource[0],
+              resource -> accessReview(client, user, ns, resource[0],
+                  resource.length == 2 ? resource[1] : "", getVerbs())));
+      namespaced.add(new PermissionsListDto.Namespaced(ns, perms));
     }
-    return listNamespaced;
+    return namespaced;
   }
 
-  public static final List<String> getResourcesUnnamespaced() {
+  static final List<String> getResourcesUnnamespaced() {
     return List.of(
         HasMetadata.getFullResourceName(Namespace.class),
         HasMetadata.getFullResourceName(StorageClass.class),
@@ -211,7 +210,7 @@ public class RbacResource {
         HasMetadata.getFullResourceName(ClusterRoleBinding.class));
   }
 
-  public static final List<String> getResourcesNamespaced() {
+  static final List<String> getResourcesNamespaced() {
     return List.of(
         HasMetadata.getFullResourceName(Secret.class),
         HasMetadata.getFullResourceName(ConfigMap.class),
@@ -240,27 +239,24 @@ public class RbacResource {
 
   private List<String> accessReview(KubernetesClient client, String user, String namespace,
       String resource, String group, List<String> verbs) {
-    List<String> allowed = new ArrayList<>();
-    for (String verb : verbs) {
-      SubjectAccessReview review = new SubjectAccessReviewBuilder()
-          .withNewSpec()
-          .withUser(user)
-          .withNewResourceAttributes()
-          .withNamespace(namespace)
-          .withResource(resource)
-          .withGroup(group)
-          .withVerb(verb)
-          .endResourceAttributes()
-          .endSpec()
-          .build();
-      review = client.authorization().v1().subjectAccessReview()
-          .create(review);
-
-      if (Boolean.TRUE.equals(review.getStatus().getAllowed())) {
-        allowed.add(verb);
-      }
-    }
-    return allowed;
+    return Multi.createFrom().iterable(verbs)
+        .onItem().transform(verb -> new SubjectAccessReviewBuilder()
+            .withNewSpec()
+            .withUser(user)
+            .withNewResourceAttributes()
+            .withNamespace(namespace)
+            .withResource(resource)
+            .withGroup(group)
+            .withVerb(verb)
+            .endResourceAttributes()
+            .endSpec()
+            .build())
+        .onItem().transformToUniAndMerge(review -> cache.getAsync(review,
+            k -> Uni.createFrom()
+                .item(() -> client.authorization().v1().subjectAccessReview().create(k))))
+        .select().where(review -> Boolean.TRUE.equals(review.getStatus().getAllowed()))
+        .onItem().transform(review -> review.getSpec().getResourceAttributes().getVerb())
+        .collect().asList().await().atMost(Duration.ofSeconds(5));
   }
 
 }
