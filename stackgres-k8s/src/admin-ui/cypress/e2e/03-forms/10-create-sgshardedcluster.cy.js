@@ -336,8 +336,8 @@ describe('Create SGShardedCluster', () => {
         cy.get('form#createShardedCluster li[data-step="general.non-production"]')
             .click()
 
-        cy.get('input[data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity"]')
-            .click()
+        cy.get('select[data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity"]')
+            .select('Disable')
         
         // Coordinator section
         cy.get('form#createShardedCluster li.coordinator')
@@ -2647,9 +2647,9 @@ describe('Create SGShardedCluster', () => {
         cy.get('form#createShardedCluster li[data-step="general.non-production"]')
             .click()
 
-        cy.get('input[data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity"]')
-            .should('not.be.checked')
-            .click()
+        cy.get('select[data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity"]')
+            .should('have.value', 'true')    
+            .select('Enable')
         
         // Coordinator section
         cy.get('form#createShardedCluster li.coordinator')
@@ -3951,7 +3951,7 @@ describe('Create SGShardedCluster', () => {
             .and('nested.include', {"annotations.replicasService.annotation1": 'value1'})
         cy.get('@putCluster')
             .its('request.body.spec.nonProductionOptions.disableClusterPodAntiAffinity')
-            .should('be.null')
+            .should('eq', false)
         cy.get('@putCluster')
             .its('request.body.spec.coordinator.instances')
             .should('eq', "5")
