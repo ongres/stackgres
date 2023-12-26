@@ -183,8 +183,8 @@ describe('Create SGDistributedLog', () => {
         cy.get('form#createLogsServer li[data-step="non-production"]')
             .click()
 
-        cy.get('input[data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity"]')
-            .click()
+        cy.get('select[data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity"]')
+            .select('Disable')
 
         // Test Submit form
         cy.get('form#createLogsServer button[type="submit"]')
