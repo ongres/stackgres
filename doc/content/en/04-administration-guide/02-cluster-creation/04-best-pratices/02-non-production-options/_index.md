@@ -17,7 +17,7 @@ For reference, you can see a list of all of these [non-production options]({{% r
 
 ## Scaling with limited resources
 
-By default StackGres enforces some rules and resource requirements and limitatios in order to be production Ready by default. In case you are testing StackGres functionality it is possible to configure StackGres so that it does not prevent Pods from being scheduled in a Kubernetes cluster with insufficient resources.
+By default StackGres enforces some rules and resource requirements and limitations in order to be production Ready by default. In case you are testing StackGres functionality it is possible to configure StackGres so that it does not prevent Pods from being scheduled in a Kubernetes cluster with insufficient resources.
 
 Normally StackGres requires each Pod of a Postgres cluster to be scheduled on a separate node using a Pod anti affinity rule. To disable such rule you may set the following options:
 
