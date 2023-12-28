@@ -119,6 +119,10 @@ describe('Create SGDistributedLog', () => {
         // Test SGDistributedLog Name
         cy.get('input[data-field="metadata.name"]')
             .type('advanced-' + resourceName)
+
+        // Test Profile
+        cy.get('select[data-field="spec.profile"]')
+            .select('testing')
         
         // Test Volume Size
         cy.get('input[data-field="spec.persistentVolume.size"]')
