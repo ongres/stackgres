@@ -45,9 +45,28 @@
                             <input v-model="name" :disabled="(editMode)" required data-field="metadata.name" autocomplete="off">
                             <span class="helpTooltip" :data-tooltip="getTooltip( 'sgdistributedlogs.metadata.name')"></span>
 
-                            <span class="warning" v-if="nameColission && !editMode">
+                            <span class="warning topAnchor" v-if="nameColission && !editMode">
                                 There's already a <strong>SGDistributedLogs</strong> with the same name on this namespace. Please specify a different name or create the server on another namespace.
                             </span>
+                        </div>
+
+                        <div class="col">
+                            <label for="spec.profile">Profile</label>
+                            <select v-model="profile" data-field="spec.profile" class="capitalize">
+                                <option v-for="profile in clusterProfiles">{{ profile }}</option>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.profile')"></span>
+
+                            <div class="warning topAnchor" v-if="profile != 'production'">
+                                By choosing this Profile, the following defaults are overwritten:
+                                <ul>
+                                    <li><strong>Cluster Pod Anti Affinity</strong> is set to <strong>Disable</strong>.</li>
+                                    <template v-if="profile == 'development'">
+                                        <li><strong>Patroni Resource Requirements</strong> is set to <strong>Disable</strong>.</li>
+                                        <li><strong>Cluster Resource Requirements</strong> is set to <strong>Disable</strong>.</li>
+                                    </template>
+                                </ul>     
+                            </div>
                         </div>
                     </div>
 
@@ -518,6 +537,8 @@
                 errorStep: [],
                 name: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
                 namespace: vm.$route.params.hasOwnProperty('namespace') ? vm.$route.params.namespace : '',
+                clusterProfiles: ['production', 'testing', 'development'],
+                profile: 'production',
                 storageClass: '',
                 volumeSize: '1',
                 volumeUnit: 'Gi',
@@ -602,6 +623,7 @@
 
                             vm.volumeSize = volumeSize;
                             vm.volumeUnit = ''+volumeUnit;
+                            vm.profile = c.data.spec.hasOwnProperty('profile') ? c.data.spec.profile : 'production' ;
                             vm.resourceProfile = c.data.spec.sgInstanceProfile;
                             vm.pgConfig = c.data.spec.configurations.sgPostgresConfig;
                             vm.clusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : null;
@@ -675,6 +697,7 @@
                     },
                     "spec": {
                         ...(this.hasProp(previous, 'spec') && previous.spec),
+                        "profile": this.profile,
                         "persistentVolume": {
                             "size": this.volumeSize+this.volumeUnit,
                             ...( ( (this.storageClass !== undefined) && (this.storageClass.length ) ) && ( {"storageClass": this.storageClass }) )
