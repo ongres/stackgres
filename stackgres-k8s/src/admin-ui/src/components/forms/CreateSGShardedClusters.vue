@@ -91,11 +91,30 @@
                                 <label for="metadata.name">Sharded Cluster Name <span class="req">*</span></label>
                                 <input v-model="name" :disabled="editMode" required data-field="metadata.name" autocomplete="off">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.metadata.name')"></span>
+
+                                <span class="warning topAnchor" v-if="nameColission && !editMode">
+                                    There's already a <strong>SGShardedCluster</strong> with the same name on this namespace. Please specify a different name or create the resource on another namespace
+                                </span>
                             </div>
 
-                            <span class="warning topAnchor" v-if="nameColission && !editMode">
-                                There's already a <strong>SGShardedCluster</strong> with the same name on this namespace. Please specify a different name or create the resource on another namespace
-                            </span>
+                            <div class="col">
+                                <label for="spec.profile">Profile</label>
+                                <select v-model="profile" data-field="spec.profile" class="capitalize">
+                                    <option v-for="profile in clusterProfiles">{{ profile }}</option>
+                                </select>
+                                <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.profile')"></span>
+
+                                <div class="warning topAnchor" v-if="profile != 'production'">
+                                    By choosing this Profile, the following defaults are overwritten:
+                                    <ul>
+                                        <li><strong>Cluster Pod Anti Affinity</strong> is set to <strong>Disable</strong>.</li>
+                                        <template v-if="profile == 'development'">
+                                            <li><strong>Patroni Resource Requirements</strong> is set to <strong>Disable</strong>.</li>
+                                            <li><strong>Cluster Resource Requirements</strong> is set to <strong>Disable</strong>.</li>
+                                        </template>
+                                    </ul>     
+                                </div>
+                            </div>
                         </div>
 
                         <hr/>
@@ -6927,6 +6946,8 @@
                 },
                 editMode: (vc.$route.name === 'EditShardedCluster'),
                 editReady: false,
+                clusterProfiles: ['production', 'testing', 'development'],
+                profile: 'production',
                 database: '',
                 shardingType: 'citus',
                 backups: [{
@@ -7277,6 +7298,7 @@
                     let cluster = store.state.sgshardedclusters.find(( c ) => (c.data.metadata.name === vm.$route.params.name) && (c.data.metadata.namespace === vm.$route.params.namespace));
                     if( typeof cluster !== 'undefined' ) {
                         c = JSON.parse(JSON.stringify(cluster));
+                        vm.profile = c.data.spec.hasOwnProperty('profile') ? c.data.spec.profile : 'production' ;
                         vm.database = c.data.spec.database;
                         vm.shardingType = c.data.spec.type;
 
@@ -7592,6 +7614,7 @@
                     },
                     "spec": {
                         ...(this.hasProp(previous, 'spec') && previous.spec),
+                        "profile": this.profile,
                         "database": this.database,
                         "type": this.shardingType,
                         ...( (this.hasProp(previous, 'spec.configurations') || this.managedBackups ) && ({
