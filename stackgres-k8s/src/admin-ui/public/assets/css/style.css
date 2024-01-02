@@ -700,7 +700,7 @@ form#login .warning {
     color: #e3e3e3;
 }
 
-.darkmode h4, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs a, .darkmode #keyword, .darkmode .options li.textFilter .search, .darkmode #help h3.title, .darkmode table.crdDetails td.label, .darkmode .details th, .darkmode tr.details table td.label, .darkmode .yaml .label, .darkmode .logMessage .param, .darkmode .logDetails td.param {
+.darkmode h4, .darkmode h3, .darkmode h2, .darkmode thead, .darkmode .tabs li a, .darkmode #keyword, .darkmode .options li.textFilter .search, .darkmode #help h3.title, .darkmode table.crdDetails td.label, .darkmode .details th, .darkmode tr.details table td.label, .darkmode .yaml .label, .darkmode .logMessage .param, .darkmode .logDetails td.param {
     color: #a5a5a5;
 }
 
@@ -1559,25 +1559,26 @@ footer .tooltip p {
     font-size: 1rem;
 }
 
-header .add {
+a.add {
     /*position: absolute;
     top: 0;
     right: 0;*/
     background: none;
-    color: var(--blue);
+    color: var(--blue); 
     font-size: 1rem;
     font-weight: bold;
     text-transform: uppercase;
 }
 
-header .add:before {
+a.add:before {
     content: "+";
     font-size: 18px;
     display: inline-block;
-    margin-right: 5px;
+    margin-right: 2px;
+    vertical-align: text-bottom;
 }
 
-header .add:hover, tr.controlData a:hover {
+a.add:hover, tr.controlData a:hover {
     color: var(--lblue);
 }
 
@@ -1667,7 +1668,7 @@ ul.breadcrumbs {
     font-weight: bold;
 }
 
-.breadcrumbs a {
+.breadcrumbs a:not(.add) {
     color: inherit;
 }
 
@@ -1688,7 +1689,7 @@ ul.tabs {
     margin-right: 20px;
 }
 
-.tabs a {
+.tabs li a {
     padding: 10px 2px;
     display: block;
     color: var(--gray4);
@@ -1704,16 +1705,16 @@ ul.tabs {
     top: 2px;
 }
 
-.contentTooltip .tabs a {
+.contentTooltip .tabs li  a {
     margin-top: 0;
     padding-top: 0;
 }
 
-.tabs a:hover {
+.tabs li a:hover {
     color: var(--blue);
 }
 
-.tabs a.router-link-exact-active, .tabs .active a {
+.tabs li a.router-link-exact-active, .tabs li.active a {
     color: var(--blue);
     border-bottom-color: var(--blue);
     font-weight: bold;
@@ -5237,4 +5238,3 @@ i.length {
     border-color: var(--inputBg);
     background: var(--borderColor);
 }
-

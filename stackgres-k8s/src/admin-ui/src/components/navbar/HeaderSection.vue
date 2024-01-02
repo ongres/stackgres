@@ -21,7 +21,7 @@
             </li>
 
             <template v-if="!$route.params.hasOwnProperty('namespace') && iCan('create', 'namespaces') && ($route.name !== 'CreateNamespace')">
-                <router-link to="/namespaces/new" class="floatRight" data-field="CreateNamespace">
+                <router-link to="/namespaces/new" class="floatRight add" data-field="CreateNamespace">
                     Create Namespace
                 </router-link>
             </template>
