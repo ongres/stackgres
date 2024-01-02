@@ -23,7 +23,7 @@
             </ul>
             <template v-if="(currentSection == 'overrides')">
                 <template v-if="shards.overrides.length">
-                    <ul class="tabs">
+                    <ul class="tabs overrides">
                         <template v-for="(override, index) in shards.overrides">
                             <li :class="['override-' + index, ( (index == overrideIndex) && 'active' )]">
                                 <a @click="overrideIndex = index">
@@ -38,7 +38,7 @@
                             </li>
                         </template>
                         <a
-                            class="plain floatRight"
+                            class="add floatRight"
                             @click="(shards.overrides.length < shards.clusters) && pushOverride()"
                             :disabled="(shards.overrides.length >= shards.clusters)"
                             :title="
@@ -8845,6 +8845,10 @@
 
     .annotation.repeater .row:last-child input {
         margin-bottom: -10px;
+    }
+
+    .tabs.overrides a.floatRight {
+        margin-top: 15px;
     }
 
 </style>
