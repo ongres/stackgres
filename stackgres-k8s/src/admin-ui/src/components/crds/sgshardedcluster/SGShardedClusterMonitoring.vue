@@ -3,30 +3,52 @@
         <div class="content grafana">
             <template v-if="hasActivePods">
                 <div class="grafanaActions">
-                    <select class="plain" id="timeRange" v-model="timeRange" @change="goTo('/' + $route.params.namespace + '/sgshardedcluster/' + cluster.name + '/monitor/' + selectedNode + '/' + timeRange)">
+                    <select class="plain capitalize" id="dashboardsList" v-model="dashboard" @change="goTo(dashboardUrl)">
+						<option disabled value="">
+							Choose dashboard
+						</option>
+						<template v-for="dashboard in dashboardsList">
+							<option :value="dashboard" :key="'dashboard-' + dashboard.name">
+								{{ dashboard.name.replaceAll('-',' ') }}
+							</option>
+						</template>
+					</select>
+					
+					<select class="plain" id="timeRange" v-model="timeRange" @change="goTo(dashboardUrl)">
                         <option disabled value=""><strong>Choose time range</strong></option>
                         <option v-for="(time, id) in timeRangeOptions" :value="id">
                             {{ time.label }}
                         </option>
                     </select>
 
-                    <select class="plain" v-model="selectedNode" @change="goTo('/' + $route.params.namespace + '/sgshardedcluster/' + cluster.name + '/monitor/' + selectedNode + '/' + timeRange)">
+                    <select class="plain" v-model="selectedNode" @change="goTo(dashboardUrl)">
                         <option disabled value=""><strong>Choose node</strong></option>
-                        <option v-for="pod in clusterPods" v-if="pod.status == 'Active'" :value="pod.ip">
+                        <option v-for="pod in clusterPods" v-if="pod.status == 'Active'" :value="pod.name">
                             {{ pod.name }}
                             <template v-if="(pod.role == 'primary')"><span>(primary) </span></template>
                         </option>
                         <template v-if="clusterPods.filter(p => (p.status != 'Active')).length">
                             <option disabled value="">--</option>
                             <option disabled value="">Inactive nodes:</option>
-                            <option v-for="pod in clusterPods" v-if="pod.status != 'Active'" :value="pod.ip" disabled>
+                            <option v-for="pod in clusterPods" v-if="pod.status != 'Active'" :value="pod.name" disabled>
                                 {{ pod.name }}
                             </option>
                         </template>
                     </select>
                 </div>
 
-                <iframe v-if="grafanaUrl.length" :src="(grafanaUrl + (($route.params.hasOwnProperty('pod') && $route.params.pod.length) ? $route.params.pod : selectedNode) + ($route.params.hasOwnProperty('range') ? timeRangeOptions[timeRange].range : ''))" id="grafana"></iframe>
+                <iframe
+					v-if="grafanaUrl.length"
+					:src="grafanaUrl + 
+						'var-instance=' + selectedNodeIp +
+						'&var-pod=' + selectedNode +
+						($route.params.hasOwnProperty('range')
+							? timeRangeOptions[timeRange].range
+							: ''
+						)
+					"
+					id="grafana"
+				></iframe>
             </template>
             <div v-else class="warningText">
                 No active pods have been found for this cluster
@@ -49,7 +71,10 @@
 		data: function() {
 
 			return {
-				grafanaUrl: '',
+				dashboard: {
+					name: this.$route.params.hasOwnProperty('dashboard') ? this.$route.params.dashboard : 'current-activity',
+					url: ''
+				},
 				timeRange: this.$route.params.hasOwnProperty('range') ? this.$route.params.range : '',
 				timeRangeOptions: {
 					'last-5-minutes': { label: 'Last 5 minutes', range: '&from=now-5m&to=now' },
@@ -96,7 +121,9 @@
 
 				if(typeof cluster != 'undefined') {
 
-                    let clusterPods = cluster.stats.coordinator.pods.concat(cluster.stats.shards.pods);
+					let clusterPods = this.hasProp(cluster, 'stats.coordinator.pods') && this.hasProp(cluster, 'stats.coordinator.pods') 
+						? cluster.stats.coordinator.pods.concat(cluster.stats.shards.pods)
+						: []
 
 					// Read Grafana URL
 					if(!vc.$route.params.hasOwnProperty('pod')) {
@@ -105,43 +132,68 @@
 
 						if(typeof primaryNode != 'undefined') {
 							if(vc.$route.path.endsWith('/'))
-								router.replace(vc.$route.path + primaryNode.ip)
+								router.replace(vc.$route.path + primaryNode.name + '/' + vc.dashboard.name)
 							else 
-								router.replace(vc.$route.path + '/' + primaryNode.ip)
+								router.replace(vc.$route.path + '/' + primaryNode.name + '/' + vc.dashboard.name)
 						}
-					} else {
+					} else if(typeof clusterPods.find(p => (p.name == vc.$route.params.pod)) != 'undefined') {
 
-						if(typeof clusterPods.find(p => (p.ip == vc.$route.params.pod)) != 'undefined') {
-
+							if(vc.$route.params.hasOwnProperty('dashboard') && (typeof vc.dashboardsList.find( d => d.name == vc.$route.params.dashboard) === 'undefined')) {
+								vc.notify('The dashboard specified in the URL could not be found, you\'ve been redirected to the default dashboard (Current Activity)', 'message', 'sgshardedclusters');
+								vc.dashboard = {
+									name: 'current-activity',
+									url: ''
+								};
+								vc.goTo(vc.dashboardUrl);
+							}
+							
 							if(vc.$route.params.hasOwnProperty('range') && !vc.timeRangeOptions.hasOwnProperty(vc.$route.params.range)) {
-								store.commit('notFound',true)
-								return false;
+								vc.notify('The timerange specified in the URL could not be found, you\'ve been redirected to the default timerange (last 1 hour)', 'message', 'sgshardedclusters');
+								vc.timeRange = '';
+								vc.goTo(vc.dashboardUrl);
 							}
 
-							$.get("/grafana")
-							.done(function( data, textStatus, jqXHR ) {
-								
-								if(!data.startsWith('<!DOCTYPE html>')) { // Check "/grafana" isn't just returning web console's HTML content
-									vc.grafanaUrl = data + (data.includes('?') ? '&' : '?') + 'theme=' + vc.theme + '&kiosk&var-instance=';
-								} else {
-									vc.notifyGrafanaError();
-								}
-							})
-							.fail(function( jqXHR, textStatus, errorThrown ) {
-								if(textStatus == 'error') {
-									vc.notifyGrafanaError();
-								}       
-							})
-
-						} else {
-							store.commit('notFound',true)
-						}
+					} else {
+						store.commit('notFound',true)
 					}
 
-                    return cluster
+                    return cluster;
 				} else {
                     return null
                 }
+			},
+
+			theme() {
+				return store.state.theme
+			},
+
+			grafanaUrl() {
+				if(this.dashboard.url.length) {
+					return (
+						this.dashboard.url +
+						(this.dashboard.url.includes('?') ? '&' : '?') +
+						'theme=' + this.theme + '&kiosk&'
+					);
+				} else {
+					return '';
+				}
+			},
+
+			dashboardUrl() {
+				return '/' + this.$route.params.namespace + '/sgshardedcluster/' + this.$route.params.name + '/monitor/' + this.selectedNode + '/' + this.dashboard.name + '/' + this.timeRange;
+			},
+
+			dashboardsList() {
+				const vc = this;
+				
+				if(vc.$route.params.hasOwnProperty('dashboard')) {
+					vc.dashboard = store.state.dashboardsList.find( d => d.name == vc.$route.params.dashboard);
+				} else {
+					let defaultDashboard = store.state.dashboardsList.find( d => d.name == 'current-activity');
+					vc.dashboard = (typeof defaultDashboard !== 'undefined') ? defaultDashboard : store.state.dashboardsList[0];
+				}
+
+				return store.state.dashboardsList
 			},
 
             hasActivePods() {
@@ -159,30 +211,17 @@
 
             clusterPods() {
                 if (this.hasProp(this.cluster, 'stats.coordinator.pods') && this.hasProp(this.cluster, 'stats.coordinator.pods')) {
-                    return this.cluster.stats.coordinator.pods.concat( this.cluster.stats.shards.pods);
+                    return this.cluster.stats.coordinator.pods.concat(this.cluster.stats.shards.pods);
                 } else {
                     return [];
                 }
             },
 
-			theme () {
-				return store.state.theme
-			},
-
-		},
-		
-		methods: {
-
-			notifyGrafanaError() {
-				this.notify({
-					title: '',
-					detail: 'There was a problem when trying to access Grafana\'s dashboard. Please confirm the cluster is functioning properly and that you have correctly setup the operator\'s credentials to view Grafana.',
-					type: 'https://stackgres.io/doc/latest/install/prerequisites/monitoring/#installing-grafana-and-create-basic-dashboards',
-					status: 403
-				},'error')
-				$('#grafana').remove();
+			selectedNodeIp() {
+				return this.selectedNode.length ? this.clusterPods.find(p => (p.name == this.selectedNode)).ip : '';
 			}
-		}
+		},
+
 	}
 </script>
 
@@ -198,8 +237,11 @@
 	}
 
 	.grafanaActions select {
+		margin-top: 4px;
 		margin-left: 10px;
 		text-align: left;
+		width: auto;
+		min-width: 200px;
 	}
 	
 	#timeRange.active {
