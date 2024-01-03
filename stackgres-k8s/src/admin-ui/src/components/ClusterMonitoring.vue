@@ -186,7 +186,7 @@
 			},
 
 			dashboardUrl() {
-				return '/' + this.$route.params.namespace + '/sgcluster/' + this.$route.params.name + '/monitor/' + this.$route.params.pod + '/' + this.dashboard.name + '/' + this.timeRange;
+				return '/' + this.$route.params.namespace + '/sgcluster/' + this.$route.params.name + '/monitor/' + this.selectedNode + '/' + this.dashboard.name + '/' + this.timeRange;
 			},
 
 			dashboardsList() {
