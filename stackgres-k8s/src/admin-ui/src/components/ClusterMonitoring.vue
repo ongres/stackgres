@@ -1,69 +1,59 @@
 <template>
 	<div id="grafana" v-if="iCanLoad">
-		<template v-for="cluster in clusters" v-if="(cluster.name == $route.params.name) && (cluster.data.metadata.namespace == $route.params.namespace)">
-			<div class="content grafana">
-				<template v-if="cluster.data.pods.length && cluster.data.pods.filter(p => (p.status == 'Active')).length">
-					<div class="grafanaActions">
-						<select class="plain capitalize" id="dashboardsList" v-model="dashboard" @change="goTo(dashboardUrl)">
-							<option disabled value="">
-								Choose dashboard
+		<div class="content grafana">
+			<template v-if="hasActivePods">
+				<div class="grafanaActions">
+					<select class="plain capitalize" id="dashboardsList" v-model="dashboard" @change="goTo(dashboardUrl)">
+						<option disabled value="">
+							Choose dashboard
+						</option>
+						<template v-for="dashboard in dashboardsList">
+							<option :value="dashboard" :key="'dashboard-' + dashboard.name">
+								{{ dashboard.name.replaceAll('-',' ') }}
 							</option>
-							<template v-for="dashboard in dashboardsList">
-								<option :value="dashboard" :key="'dashboard-' + dashboard.name">
-									{{ dashboard.name.replaceAll('-',' ') }}
-								</option>
-							</template>
-						</select>
+						</template>
+					</select>
 
-						<select class="plain" id="timeRange" v-model="timeRange" @change="goTo(dashboardUrl)">
-							<option disabled value=""><strong>Choose time range</strong></option>
-							<option v-for="(time, id) in timeRangeOptions" :value="id">
-								{{ time.label }}
-							</option>
-						</select>
+					<select class="plain" id="timeRange" v-model="timeRange" @change="goTo(dashboardUrl)">
+						<option disabled value=""><strong>Choose time range</strong></option>
+						<option v-for="(time, id) in timeRangeOptions" :value="id">
+							{{ time.label }}
+						</option>
+					</select>
 
-						<select class="plain" v-model="selectedNode" @change="goTo(dashboardUrl)">
-							<option disabled value=""><strong>Choose node</strong></option>
-							<option v-for="pod in cluster.data.pods" v-if="pod.status == 'Active'" :value="pod.ip">
+					<select class="plain" v-model="selectedNode" @change="goTo(dashboardUrl)">
+						<option disabled value=""><strong>Choose node</strong></option>
+						<option v-for="pod in cluster.data.pods" v-if="pod.status == 'Active'" :value="pod.name">
+							{{ pod.name }}
+							<template v-if="(pod.role == 'primary')"><span>(primary) </span></template>
+						</option>
+						<template v-if="cluster.data.pods.filter(p => (p.status != 'Active')).length">
+							<option disabled value="">--</option>
+							<option disabled value="">Inactive nodes:</option>
+							<option v-for="pod in cluster.data.pods" v-if="pod.status != 'Active'" :value="pod.name" disabled>
 								{{ pod.name }}
-								<template v-if="(pod.role == 'primary')"><span>(primary) </span></template>
 							</option>
-							<template v-if="cluster.data.pods.filter(p => (p.status != 'Active')).length">
-								<option disabled value="">--</option>
-								<option disabled value="">Inactive nodes:</option>
-								<option v-for="pod in cluster.data.pods" v-if="pod.status != 'Active'" :value="pod.ip" disabled>
-									{{ pod.name }}
-								</option>
-							</template>
-						</select>
-					</div>
-
-					<iframe
-						v-if="grafanaUrl.length"
-						:src="grafanaUrl + 
-							'var-instance=' + (
-								($route.params.hasOwnProperty('pod') && $route.params.pod.length)
-									? $route.params.pod
-									: selectedNode
-							) +
-							'&var-pod=' + (
-								($route.params.hasOwnProperty('pod') && $route.params.pod.length)
-									? cluster.data.pods.find(p => p.ip == $route.params.pod).name
-									: ''
-							) +
-							($route.params.hasOwnProperty('range')
-								? timeRangeOptions[timeRange].range
-								: ''
-							)
-						"
-						id="grafana"
-					></iframe>
-				</template>
-				<div v-else class="warningText">
-					No active pods have been found for this cluster
+						</template>
+					</select>
 				</div>
+
+				<iframe
+					v-if="grafanaUrl.length"
+					:src="grafanaUrl + 
+						'var-instance=' + selectedNodeIp +
+						'&var-pod=' + selectedNode +
+						($route.params.hasOwnProperty('range')
+							? timeRangeOptions[timeRange].range
+							: ''
+						)
+					"
+					id="grafana"
+				></iframe>
+			</template>
+			<div v-else class="warningText">
+				No active pods have been found for this cluster
 			</div>
-		</template>
+		</div>
 	</div>
 </template>
 
@@ -71,8 +61,6 @@
 	import router from '../router'
 	import store from '../store'
 	import { mixin } from './mixins/mixin'
-	import axios from 'axios'
-
 
     export default {
         name: 'ClusterMonitoring',
@@ -126,7 +114,7 @@
 		
 		computed: {
 
-			clusters () {
+			cluster () {
 				let vc = this;
 				let cluster = store.state.sgclusters.find(c => ((vc.$route.params.namespace == c.data.metadata.namespace) && (vc.$route.params.name == c.name)));
 
@@ -139,14 +127,14 @@
 
 						if(typeof primaryNode != 'undefined') {
 							if(vc.$route.path.endsWith('/'))
-								router.replace(vc.$route.path + primaryNode.ip + '/' + vc.dashboard.name)
+								router.replace(vc.$route.path + primaryNode.name + '/' + vc.dashboard.name)
 							else 
-								router.replace(vc.$route.path + '/' + primaryNode.ip + '/' + vc.dashboard.name)
+								router.replace(vc.$route.path + '/' + primaryNode.name + '/' + vc.dashboard.name)
 						}
-					} else if(typeof cluster.data.pods.find(p => (p.ip == vc.$route.params.pod)) != 'undefined') {
+					} else if(typeof cluster.data.pods.find(p => (p.name == vc.$route.params.pod)) != 'undefined') {
 
 						if(vc.$route.params.hasOwnProperty('dashboard') && (typeof vc.dashboardsList.find( d => d.name == vc.$route.params.dashboard) === 'undefined')) {
-							vc.notify('The dashboard specified in the URL could not be found, you\'ve been redirected to the default dashboard (Current Activity)', 'message', 'general');
+							vc.notify('The dashboard specified in the URL could not be found, you\'ve been redirected to the default dashboard (Current Activity)', 'message', 'sgcluster');
 							vc.dashboard = {
 								name: 'current-activity',
 								url: ''
@@ -155,7 +143,7 @@
 						}
 						
 						if(vc.$route.params.hasOwnProperty('range') && !vc.timeRangeOptions.hasOwnProperty(vc.$route.params.range)) {
-							vc.notify('The timerange specified in the URL could not be found, you\'ve been redirected to the default timerange (last 1 hour)', 'message', 'general');
+							vc.notify('The timerange specified in the URL could not be found, you\'ve been redirected to the default timerange (last 1 hour)', 'message', 'sgcluster');
 							vc.timeRange = '';
 							vc.goTo(vc.dashboardUrl);
 						}
@@ -164,9 +152,10 @@
 						store.commit('notFound',true)
 					}
 
+					return cluster;
+				} else {
+					return null;
 				}
-
-				return store.state.sgclusters
 			},
 
 			theme () {
@@ -200,6 +189,14 @@
 				}
 
 				return store.state.dashboardsList
+			},
+
+			hasActivePods() {
+				return (this.hasProp(this.cluster, 'data.pods') && this.cluster.data.pods.filter(p => (p.status == 'Active')).length);
+			},
+
+			selectedNodeIp() {
+				return this.selectedNode.length ? this.cluster.data.pods.find(p => (p.name == this.selectedNode)).ip : '';
 			}
 
 		},
