@@ -26,7 +26,12 @@ e2e_test() {
 
   run_test "Checking that backup is working" check_backup_is_working
 
-  run_test "Checking that backup using volume snapshot is working" check_backup_using_volume_snapshot_is_working
+  if [ "$K8S_DISABLE_VOLUME_SNAPSHOT" != true ]
+  then
+    run_test "Checking that backup using volume snapshot is working" check_backup_using_volume_snapshot_is_working
+  else
+    echo "Skipping Checking that backup using volume snapshot is working since volume snapshot feature is not available"
+  fi
 
   run_test "Checking that backup retention is working" check_backup_retention_is_working
 

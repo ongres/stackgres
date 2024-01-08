@@ -186,6 +186,8 @@ EOF
     --set distributedLogs.create=false \
     --set-string cluster.distributedLogs.sgDistributedLogs="$CLUSTER_NAMESPACE.$DISTRIBUTED_LOGS_NAME"
 
+  deploy_curl_pod "$CLUSTER_NAMESPACE"
+
   if [ "$E2E_SPEC_SECURITY_UPGRADE_LOW_PROFILE" != true ]
   then
     wait_pods_running "$CLUSTER_NAMESPACE" 9
@@ -301,29 +303,45 @@ e2e_test() {
     echo "Skip dbops-security-upgrade since previous version of operator $STACKGRES_PREVIOUS_VERSION can not be installed"
     return
   fi
+
   run_test "Check clusters before operator upgrade" check_before_operator_upgrade
+
   run_test "Check that operator can be upgraded to newer version" check_operator_upgrade
+
   run_test "Check that previous CRDs be converted to previous versions" check_previous_versions_conversion_webhooks
+
   run_test "Check that distributedlogs node can be security upgrade after operator upgrade" check_distributedlogs_security_upgrade
+
   run_test "Check that cluster with 1 node can start security upgrade after operator upgrade with reduced impact" check_cluster_1_security_upgrade_start
+
   if [ "$E2E_SPEC_SECURITY_UPGRADE_LOW_PROFILE" != true ]
   then
     run_test "Check that cluster with 2 node can start security upgrade after operator upgrade with reduced impact" check_cluster_2_security_upgrade_start
+
     run_test "Check that cluster with 3 node can start security upgrade after operator upgrade with in-place" check_cluster_3_security_upgrade_start
   fi
+
   run_test "Check that cluster with 1 node can complete security upgrade after operator upgrade with reduced impact" check_cluster_1_security_upgrade
+
   if [ "$E2E_SPEC_SECURITY_UPGRADE_LOW_PROFILE" != true ]
   then
     run_test "Check that cluster with 2 node can complete security upgrade after operator upgrade with reduced impact" check_cluster_2_security_upgrade
+
     run_test "Check that cluster with 3 node can complete security upgrade after operator upgrade with in-place" check_cluster_3_security_upgrade
   fi
+
   run_test "Checking that metrics are exported for cluster with 1 node" check_metrics "$CLUSTER_1_NAME"
+
   if [ "$E2E_SPEC_SECURITY_UPGRADE_LOW_PROFILE" != true ]
   then
     run_test "Checking that metrics are exported for cluster with 2 node" check_metrics "$CLUSTER_2_NAME"
+
     run_test "Checking that metrics are exported for cluster with 3 node" check_metrics "$CLUSTER_3_NAME"
   fi
+
   run_test "Check that the conversion webhooks are configured" check_conversion_webhooks_configured
+
+  run_test "Namespace endpoint should return all kubernetes namespaces" check_namespace
 }
 
 check_before_operator_upgrade() {
@@ -1031,5 +1049,29 @@ check_managed_sql_mutation() {
       return 1
     fi
   fi
+}
+
+check_namespace() {
+  if wait_until check_returned_namespaces
+  then
+    echo "SUCCESS. Namespace endpoint returned all namespaces"
+    return 0
+  else
+    echo "FAIL. Namespace endpoint not return all namespaces"
+    return 1
+  fi
+}
+
+check_returned_namespaces() {
+  local NAMESPACES_IN_RESPONSE
+  local NAMESPACES_IN_K8S
+
+  NAMESPACES_IN_RESPONSE="$(run_curl -r "stackgres/namespaces" -n "$CLUSTER_NAMESPACE" \
+    | jq -M -S 'sort_by(.)[]' )"
+
+  NAMESPACES_IN_K8S="$(kubectl get ns -o json \
+    | jq -M -S '.items[].metadata.name')"
+
+  [ "$NAMESPACES_IN_RESPONSE" = "$NAMESPACES_IN_K8S" ]
 }
 

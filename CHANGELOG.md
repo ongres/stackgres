@@ -1,3 +1,67 @@
+# :rocket: Release 1.7.0-rc1 (2023-12-20)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.7.0-rc1 has landed! Prepare to see how fast can be your backups using VolumeSnapshot support. :confetti_ball: :champagne: :runner: 
+
+Finally the ability to overwrite Patroni dynamic configuration that allows to control better how failover behaves and when it is triggered.
+
+Also a lot of bugfixes and small improvements, what you are waiting to upgrade StackGres! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Support Kubernetes 1.29
+* Support OpenShift 4.14
+* Support for backup with VolumeSnapshots
+* Allow to overwrite patroni dynamic configuration
+* Order extensions returned by REST API using build and version
+* Added REST API endpoint to return results from named queries for an SGCluster
+* Added REST API endpoint to list postgres versions for an existing SGCluster
+
+## Web Console
+
+Nothing new here! :eyes:
+
+## :bug: FIXES
+
+* PgBouncer configuration is not reloaded
+* Can not create SGShardedCluster for Postgres 13
+* SGScript status is corrupted for SGShardedCluster
+* SGConfig was missing spec.jobs.serviceAccount section and some field where not used in spec.cert
+* Changes were detected when no change were present in applied required resources
+* SGShardedBackups do not start if cronSchedule is not set
+* Backup and restore secret are not correctly updated
+* SGShardedCluster do not propagate usernames configured in credentials
+* Native image require fixing CRD schema before updating
+
+## Web Console
+
+* Add link to redirect shard to specific configuration
+* Prevent backup path from being erased on focus out
+* Allow custom containers and custom init containters edition on sharded cluster form
+* Allow custom containers and custom init containters edition on cluster form
+* Fix credentials warning position
+
+## :construction: KNOWN ISSUES
+
+* Major version upgrade fails if some extensions version are not available for the target Postgres version ([#1368](https://gitlab.com/ongresinc/stackgres/-/issues/1368)) 
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.7.0-rc1/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.7.0-rc1)
+
 # :rocket: Release 1.6.1 (2023-12-04)
 
 ## :notepad_spiral: NOTES
