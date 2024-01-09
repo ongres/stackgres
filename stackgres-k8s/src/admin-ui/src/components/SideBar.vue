@@ -16,8 +16,8 @@
 					</h2>
 				</li>
 
-				<li>
-					<ul id="ns-select" tabindex="0" class="crdSubmenu set namespaces" :class="openNamespace && 'open'">
+				<li v-if="openNamespace">
+					<ul id="ns-select" tabindex="0" class="crdSubmenu set namespaces open">
 						<li>
 							<router-link :to="'/'" class="item bold">
 								Stackgres Namespaces
@@ -27,7 +27,7 @@
 							</router-link>
 						</li>
 						<template v-for="namespace in namespaces">
-							<li :class="{'active':(namespace == currentPath.namespace)}">
+							<li @click="openNamespace = false" :class="{'active':(namespace == currentPath.namespace)}">
 								<router-link :to="'/' + namespace" class="item namespace" :class="(namespace == currentPath.namespace) ? 'router-link-exact-active' : ''" :title="namespace">{{ namespace }}</router-link>
 							</li>
 						</template>
@@ -36,7 +36,7 @@
 			</ul>
 		</div>
 
-		<div id="sets" v-if="!notFound && currentPath.namespace.length">
+		<div id="sets" v-if="!notFound && currentPath.namespace.length" @click="openNamespace = false">
 			<div v-if="iCan('any','sgclusters', currentPath.namespace)" class="set clu" :class="currentPath.component.startsWith('Cluster') ? 'active' : ''" >
 				<ul>
 					<li class="crdName">
@@ -569,8 +569,9 @@
 	#ns-select.open {
 		display: block;
 		height: auto;
-		max-height: 100vh;
 		transition: max-height 0.5s ease-out;
+		max-height: calc(100vh - 725px);
+		overflow-y: auto;
 	}
 
 	#ns-select.open a.addnew {
