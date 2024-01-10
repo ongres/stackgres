@@ -11,9 +11,9 @@ import java.util.List;
 import java.util.Optional;
 
 import io.stackgres.common.BackupStorageUtil;
+import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
-import io.stackgres.operator.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -55,7 +55,7 @@ public class DefaultBackupPathsMutator implements ShardedClusterMutator {
     return Seq.range(0, getNumberOfClusters(cluster))
         .map(index -> BackupStorageUtil.getPath(
             cluster.getMetadata().getNamespace(),
-            StackGresShardedClusterForCitusUtil.getClusterName(cluster, index),
+            StackGresShardedClusterUtil.getClusterName(cluster, index),
             postgresMajorVersion))
         .toList();
   }

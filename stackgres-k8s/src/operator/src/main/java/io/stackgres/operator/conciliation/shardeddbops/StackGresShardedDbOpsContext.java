@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.shardeddbops;
 import java.util.Optional;
 
 import io.stackgres.common.ShardedClusterContext;
+import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -15,7 +16,6 @@ import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
-import io.stackgres.operator.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.operator.conciliation.GenerationContext;
 import org.immutables.value.Value;
 
@@ -24,6 +24,8 @@ public interface StackGresShardedDbOpsContext
     extends GenerationContext<StackGresShardedDbOps>, ShardedClusterContext {
 
   Optional<StackGresShardedCluster> getFoundShardedCluster();
+
+  Optional<StackGresCluster> getFoundCoordinator();
 
   Optional<StackGresProfile> getFoundProfile();
 
@@ -34,7 +36,7 @@ public interface StackGresShardedDbOpsContext
         .orElseThrow(() -> new IllegalArgumentException(
             "SGShardedDbOps " + getSource().getMetadata().getNamespace() + "."
                 + getSource().getMetadata().getName()
-                + " have a non existent SGShardedCluster "
+                + " target non existent SGShardedCluster "
                 + getSource().getSpec().getSgShardedCluster()));
   }
 
@@ -55,7 +57,14 @@ public interface StackGresShardedDbOpsContext
 
   @Value.Lazy
   default StackGresCluster getCoordinatorCluster() {
-    return StackGresShardedClusterForCitusUtil.getCoordinatorCluster(getShardedCluster());
+    return getFoundCoordinator()
+        .orElseThrow(() -> new IllegalArgumentException(
+            "SGShardedDbOps " + getSource().getMetadata().getNamespace() + "."
+                + getSource().getMetadata().getName()
+                + " target SGShardedCluster " + getSource().getSpec().getSgShardedCluster()
+                + " with a non existent coordinator SGCluster "
+                + StackGresShardedClusterUtil.getCoordinatorClusterName(
+                    getSource().getSpec().getSgShardedCluster())));
   }
 
   @Override

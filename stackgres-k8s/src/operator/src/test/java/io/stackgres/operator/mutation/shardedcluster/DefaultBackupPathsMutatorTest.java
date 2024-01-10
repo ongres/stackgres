@@ -15,11 +15,11 @@ import java.util.Map;
 
 import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterBackupConfiguration;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
-import io.stackgres.operator.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
@@ -73,7 +73,7 @@ class DefaultBackupPathsMutatorTest {
         Seq.range(0, cluster.getSpec().getShards().getClusters() + 1)
         .map(index -> BackupStorageUtil.getPath(
             cluster.getMetadata().getNamespace(),
-            StackGresShardedClusterForCitusUtil.getClusterName(cluster, index),
+            StackGresShardedClusterUtil.getClusterName(cluster, index),
             postgresMajorVersion))
         .toList(),
         actualCluster.getSpec().getConfigurations().getBackups().get(0).getPaths());
@@ -111,7 +111,7 @@ class DefaultBackupPathsMutatorTest {
         .append(Seq.range(2, cluster.getSpec().getShards().getClusters() + 1)
             .map(index -> BackupStorageUtil.getPath(
                 cluster.getMetadata().getNamespace(),
-                StackGresShardedClusterForCitusUtil.getClusterName(cluster, index),
+                StackGresShardedClusterUtil.getClusterName(cluster, index),
                 postgresMajorVersion)))
         .toList(),
         actualCluster.getSpec().getConfigurations().getBackups().get(0).getPaths());

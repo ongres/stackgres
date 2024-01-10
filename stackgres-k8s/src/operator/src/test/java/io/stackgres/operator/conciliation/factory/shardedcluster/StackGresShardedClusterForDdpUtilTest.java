@@ -5,9 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.shardedcluster;
 
-import static io.stackgres.common.StackGresShardedClusterUtil.coordinatorConfigName;
-import static io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForCitusUtil.getCoordinatorCluster;
-import static io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForCitusUtil.getShardsCluster;
+import static io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForDdpUtil.getCoordinatorCluster;
+import static io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForDdpUtil.getShardsCluster;
 import static io.stackgres.testutil.ModelTestUtil.createWithRandomData;
 
 import java.util.ArrayList;
@@ -32,12 +31,10 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.JsonUtil;
 import io.stackgres.testutil.ModelTestUtil;
 import org.jooq.lambda.Seq;
-import org.jooq.lambda.tuple.Tuple;
-import org.jooq.lambda.tuple.Tuple2;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-class StackGresShardedClusterForCitusUtilTest {
+class StackGresShardedClusterForDdpUtilTest {
 
   @Test
   void givedMinimalShardedCluster_shouldGenerateCoordinatorCluster() {
@@ -387,8 +384,6 @@ class StackGresShardedClusterForCitusUtilTest {
       StackGresClusterSpec clusterSpec,
       StackGresCluster cluster,
       int index) {
-    clusterSpec.getConfigurations()
-        .setSgPostgresConfig(coordinatorConfigName(shardedCluster));
     checkClusterWithGlobalSettings(
         shardedCluster,
         clusterSpec,
@@ -402,19 +397,6 @@ class StackGresShardedClusterForCitusUtilTest {
       StackGresCluster cluster,
       int index) {
     checkClusterGlobalSettingsOnly(shardedCluster, cluster, index);
-    if (shardedCluster.getSpec().getMetadata() != null
-        && shardedCluster.getSpec().getMetadata().getLabels() != null) {
-      Assertions.assertEquals(
-          Seq.seq(shardedCluster.getSpec().getMetadata().getLabels().getClusterPods())
-          .append(Tuple.tuple("citus-group", String.valueOf(index)))
-          .toMap(Tuple2::v1, Tuple2::v2),
-          cluster.getSpec().getMetadata().getLabels().getClusterPods());
-      Assertions.assertEquals(
-          Seq.seq(shardedCluster.getSpec().getMetadata().getLabels().getServices())
-          .append(Tuple.tuple("citus-group", String.valueOf(index)))
-          .toMap(Tuple2::v1, Tuple2::v2),
-          cluster.getSpec().getMetadata().getLabels().getServices());
-    }
     if (shardedCluster.getSpec().getMetadata() != null
         && shardedCluster.getSpec().getMetadata().getAnnotations() != null) {
       Assertions.assertEquals(
@@ -436,8 +418,6 @@ class StackGresShardedClusterForCitusUtilTest {
       StackGresClusterPods pod,
       StackGresCluster cluster,
       int index) {
-    clusterSpec.getConfigurations()
-        .setSgPostgresConfig(coordinatorConfigName(shardedCluster));
     checkClusterWithSettings(
         shardedCluster,
         clusterSpec,
@@ -457,22 +437,6 @@ class StackGresShardedClusterForCitusUtilTest {
       StackGresCluster cluster,
       int index) {
     checkClusterGlobalSettingsOnly(shardedCluster, cluster, index);
-    Assertions.assertEquals(
-        Seq.seq(clusterSpec.getMetadata().getLabels().getClusterPods())
-        .append(Tuple.tuple("citus-group", String.valueOf(index)))
-        .toMap(Tuple2::v1, Tuple2::v2),
-        cluster.getSpec().getMetadata().getLabels().getClusterPods());
-    Assertions.assertEquals(
-        Seq.seq(clusterSpec.getMetadata().getLabels().getServices())
-        .append(Tuple.tuple("citus-group", String.valueOf(index)))
-        .toMap(Tuple2::v1, Tuple2::v2),
-        cluster.getSpec().getMetadata().getLabels().getServices());
-    Assertions.assertEquals(
-        clusterSpec.getMetadata().getAnnotations(),
-        cluster.getSpec().getMetadata().getAnnotations());
-    Assertions.assertEquals(
-        replication,
-        cluster.getSpec().getReplication());
     checkClusterSettings(clusterSpec, configuration, pod, cluster);
   }
 

@@ -18,6 +18,7 @@ import java.util.Optional;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
 import io.stackgres.common.BackupStorageUtil;
+import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterBackupConfiguration;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
@@ -25,7 +26,6 @@ import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.ShardedDbOpsReview;
-import io.stackgres.operator.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.operator.common.fixture.AdmissionReviewFixtures;
 import io.stackgres.testutil.JsonUtil;
 import org.jooq.lambda.Seq;
@@ -106,7 +106,7 @@ class ShardedDbOpsMajorVersionUpgradeMutatorTest {
         Seq.range(0, cluster.getSpec().getShards().getClusters() + 1)
             .map(index -> BackupStorageUtil.getPath(
                 cluster.getMetadata().getNamespace(),
-                StackGresShardedClusterForCitusUtil.getClusterName(cluster, index),
+                StackGresShardedClusterUtil.getClusterName(cluster, index),
                 postgresMajorVersion))
         .toList(),
         actualDbOps.getSpec().getMajorVersionUpgrade().getBackupPaths());
@@ -143,7 +143,7 @@ class ShardedDbOpsMajorVersionUpgradeMutatorTest {
         .append(Seq.range(2, cluster.getSpec().getShards().getClusters() + 1)
             .map(index -> BackupStorageUtil.getPath(
                 cluster.getMetadata().getNamespace(),
-                StackGresShardedClusterForCitusUtil.getClusterName(cluster, index),
+                StackGresShardedClusterUtil.getClusterName(cluster, index),
                 postgresMajorVersion)))
         .toList(),
         actualDbOps.getSpec().getMajorVersionUpgrade().getBackupPaths());

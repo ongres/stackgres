@@ -114,7 +114,7 @@ public class ShardedClusterServices implements
             .map(ServicePortBuilder::build)
             .toList())
         .withSelector(clusterLabelFactory.clusterLabelsWithoutUid(
-            context.getCoordinator().getCluster()))
+            context.getCoordinator()))
         .endSpec()
         .build();
   }
