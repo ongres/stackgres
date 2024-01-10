@@ -46,6 +46,7 @@ import io.stackgres.operator.conciliation.factory.ScriptTemplatesVolumeMounts;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
@@ -99,6 +100,8 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
   @Override
   public Container getContainer(ClusterContainerContext context) {
     StackGresCluster cluster = context.getClusterContext().getSource();
+    String superuserUsername =
+        PatroniSecret.getSuperuserCredentials(context.getClusterContext()).v1;
     ContainerBuilder container = new ContainerBuilder();
     container.withName(StackGresContainer.POSTGRES_EXPORTER.getName())
         .withImage(StackGresComponent.PROMETHEUS_POSTGRES_EXPORTER.get(cluster)
@@ -114,7 +117,8 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
                 .build(),
             new EnvVarBuilder()
                 .withName("DATA_SOURCE_NAME")
-                .withValue("postgresql://postgres@:" + EnvoyUtil.PG_PORT + "/postgres"
+                .withValue("postgresql://" + superuserUsername + "@:" + EnvoyUtil.PG_PORT
+                    + "/postgres"
                     + "?host=" + ClusterPath.PG_RUN_PATH.path()
                     + "&sslmode=disable")
                 .build(),
