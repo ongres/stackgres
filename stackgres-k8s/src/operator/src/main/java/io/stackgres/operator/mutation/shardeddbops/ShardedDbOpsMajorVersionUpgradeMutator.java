@@ -12,13 +12,13 @@ import java.util.Optional;
 
 import com.google.common.base.Predicates;
 import io.stackgres.common.BackupStorageUtil;
+import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.ShardedDbOpsReview;
-import io.stackgres.operator.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -90,7 +90,7 @@ public class ShardedDbOpsMajorVersionUpgradeMutator implements ShardedDbOpsMutat
     return Seq.range(0, getNumberOfClusters(cluster))
         .map(index -> BackupStorageUtil.getPath(
             cluster.getMetadata().getNamespace(),
-            StackGresShardedClusterForCitusUtil.getClusterName(cluster, index),
+            StackGresShardedClusterUtil.getClusterName(cluster, index),
             postgresMajorVersion))
         .toList();
   }

@@ -245,6 +245,10 @@ public class ShardedBackupCronJobV1Beta1
                         .withValue(name)
                         .build(),
                         new EnvVarBuilder()
+                        .withName("SHARDING_TYPE")
+                        .withValue(cluster.getSpec().getType())
+                        .build(),
+                        new EnvVarBuilder()
                         .withName("CLUSTER_NAMES")
                         .withValue(Seq.of(getCoordinatorClusterName(cluster))
                             .append(Seq.range(0, cluster.getSpec().getShards().getClusters())
@@ -338,7 +342,7 @@ public class ShardedBackupCronJobV1Beta1
                         new EnvVarBuilder()
                         .withName("COORDINATOR_CLUSTER_LABELS")
                         .withValue(clusterLabelFactory.clusterLabelsWithoutUid(
-                            context.getCoordinator().getCluster())
+                            context.getCoordinator())
                             .entrySet()
                             .stream()
                             .map(e -> e.getKey() + "=" + e.getValue())

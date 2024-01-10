@@ -46,6 +46,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardingType;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -202,7 +203,7 @@ public interface StackGresUtil {
    * Return the port of an Web URL.
    */
   static int getPortFromUrl(String url) throws MalformedURLException {
-    URL parsedUrl = new URL(url);
+    URL parsedUrl = URI.create(url).toURL();
     int port = parsedUrl.getPort();
     if (port == -1) {
       if (parsedUrl.getProtocol().equals("https")) {
@@ -328,15 +329,20 @@ public interface StackGresUtil {
 
   static List<ExtensionTuple> getDefaultShardedClusterExtensions(
       StackGresShardedCluster cluster) {
-    String pgVersion = cluster.getSpec().getPostgres().getVersion();
-
-    return getDefaultShardedClusterExtensions(
-        pgVersion,
-        StackGresVersion.getStackGresVersion(cluster));
+    if (StackGresShardingType.CITUS.equals(
+        StackGresShardingType.fromString(cluster.getSpec().getType()))) {
+      return getDefaultCitusShardedClusterExtensions(cluster);
+    }
+    if (StackGresShardingType.DDP.equals(
+        StackGresShardingType.fromString(cluster.getSpec().getType()))) {
+      return getDefaultDdpShardedClusterExtensions(cluster);
+    }
+    return List.of();
   }
 
-  static List<ExtensionTuple> getDefaultShardedClusterExtensions(
-      String pgVersion, StackGresVersion sgVersion) {
+  static List<ExtensionTuple> getDefaultCitusShardedClusterExtensions(StackGresShardedCluster cluster) {
+    String pgVersion = cluster.getSpec().getPostgres().getVersion();
+    StackGresVersion sgVersion = StackGresVersion.getStackGresVersion(cluster);
     Component pgComponent = StackGresComponent.POSTGRESQL.getOrThrow(sgVersion);
     String pgMajorVersion = pgComponent
         .getMajorVersion(pgVersion);
@@ -359,6 +365,12 @@ public interface StackGresUtil {
         ? new ExtensionTuple("citus", "12.1-1")
             : new ExtensionTuple("citus", "11.3-1"),
         new ExtensionTuple("citus_columnar", "11.3-1"));
+  }
+
+  static List<ExtensionTuple> getDefaultDdpShardedClusterExtensions(StackGresShardedCluster cluster) {
+    return List.of(
+        new ExtensionTuple("dblink"),
+        new ExtensionTuple("postgres_fdw"));
   }
 
   static List<ExtensionTuple> getDefaultDistributedLogsExtensions(

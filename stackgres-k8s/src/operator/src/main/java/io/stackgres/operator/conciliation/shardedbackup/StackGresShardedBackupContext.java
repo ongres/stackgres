@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import io.stackgres.common.ShardedClusterContext;
+import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
@@ -17,7 +18,6 @@ import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinator;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
-import io.stackgres.operator.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.operator.conciliation.GenerationContext;
 import org.immutables.value.Value;
 
@@ -26,6 +26,8 @@ public interface StackGresShardedBackupContext
     extends GenerationContext<StackGresShardedBackup>, ShardedClusterContext {
 
   Optional<StackGresShardedCluster> getFoundShardedCluster();
+
+  Optional<StackGresCluster> getFoundCoordinator();
 
   Optional<StackGresProfile> getFoundProfile();
 
@@ -42,7 +44,15 @@ public interface StackGresShardedBackupContext
 
   @Value.Lazy
   default StackGresCluster getCoordinatorCluster() {
-    return StackGresShardedClusterForCitusUtil.getCoordinatorCluster(getShardedCluster());
+    return getFoundCoordinator()
+        .orElseThrow(() -> new IllegalArgumentException(
+            "SGShardedBackup " + getSource().getMetadata().getNamespace() + "."
+                + getSource().getMetadata().getName()
+                + " target SGShardedCluster "
+                + getSource().getSpec().getSgShardedCluster()
+                + " with a non existent coordinator SGCluster "
+                + StackGresShardedClusterUtil.getCoordinatorClusterName(
+                    getSource().getSpec().getSgShardedCluster())));
   }
 
   default StackGresProfile getProfile() {

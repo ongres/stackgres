@@ -31,7 +31,6 @@ public enum StackGresReplicationRole {
         return role;
       }
     }
-    throw new IllegalArgumentException(value + " can not be converted to a "
-        + StackGresReplicationRole.class.getName());
+    throw new IllegalArgumentException("Unknwon replication role " + value);
   }
 }

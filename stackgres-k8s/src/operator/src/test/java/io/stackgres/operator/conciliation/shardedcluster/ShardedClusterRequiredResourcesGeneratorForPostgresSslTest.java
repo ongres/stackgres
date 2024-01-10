@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.conciliation.shardedcluster;
 
-import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.postgresSslSecretName;
+import static io.stackgres.common.StackGresShardedClusterUtil.postgresSslSecretName;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -18,7 +18,7 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
-import io.stackgres.operator.common.StackGresShardedClusterForCitusUtil;
+import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForCitusUtil;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.junit.jupiter.api.Test;
 
@@ -30,16 +30,10 @@ class ShardedClusterRequiredResourcesGeneratorForPostgresSslTest
   void givenClusterWithPostgresSsl_shouldIgnoreMissingSecret() {
     mockPostgresSsl();
     mockPgConfig();
-    when(poolingConfigFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.empty());
-    when(profileConfigFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(instanceProfile));
 
     generator.getRequiredResources(cluster);
 
-    verify(postgresConfigFinder, times(3)).findByNameAndNamespace(any(), any());
-    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
-    verify(profileConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(3)).findByNameAndNamespace(any(), any());
   }
 
@@ -47,16 +41,10 @@ class ShardedClusterRequiredResourcesGeneratorForPostgresSslTest
   void givenClusterWithPostgresSslWithPreviousSecret_shouldLookItUp() {
     mockPostgresSslWithPreviousGeneratedSecret();
     mockPgConfig();
-    when(poolingConfigFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.empty());
-    when(profileConfigFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(instanceProfile));
 
     generator.getRequiredResources(cluster);
 
-    verify(postgresConfigFinder, times(3)).findByNameAndNamespace(any(), any());
-    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
-    verify(profileConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(3)).findByNameAndNamespace(any(), any());
   }
 
@@ -64,16 +52,10 @@ class ShardedClusterRequiredResourcesGeneratorForPostgresSslTest
   void givenClusterWithPostgresSslWithSecret_shouldLookItUp() {
     mockPostgresSslWithSecret();
     mockPgConfig();
-    when(poolingConfigFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.empty());
-    when(profileConfigFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(instanceProfile));
 
     generator.getRequiredResources(cluster);
 
-    verify(postgresConfigFinder, times(3)).findByNameAndNamespace(any(), any());
-    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
-    verify(profileConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(3)).findByNameAndNamespace(any(), any());
   }
 
@@ -81,16 +63,10 @@ class ShardedClusterRequiredResourcesGeneratorForPostgresSslTest
   void givenClusterWithPostgresSslWithoutSecretForCertificate_shouldFail() {
     mockPostgresSslWithMissingSecret("certificate");
     mockPgConfig();
-    when(poolingConfigFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.empty());
-    when(profileConfigFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(instanceProfile));
 
     assertException("Certificate secret missing-test-secret was not found");
 
-    verify(postgresConfigFinder, times(3)).findByNameAndNamespace(any(), any());
-    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
-    verify(profileConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
@@ -98,16 +74,10 @@ class ShardedClusterRequiredResourcesGeneratorForPostgresSslTest
   void givenClusterWithPostgresSslWithoutSecretForPrivateKey_shouldFail() {
     mockPostgresSslWithMissingSecret("private-key");
     mockPgConfig();
-    when(poolingConfigFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.empty());
-    when(profileConfigFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(instanceProfile));
 
     assertException("Private key secret missing-test-secret was not found");
 
-    verify(postgresConfigFinder, times(3)).findByNameAndNamespace(any(), any());
-    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
-    verify(profileConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(3)).findByNameAndNamespace(any(), any());
   }
 
@@ -115,16 +85,10 @@ class ShardedClusterRequiredResourcesGeneratorForPostgresSslTest
   void givenClusterWithPostgresSslWithoutKeyForCertificate_shouldFail() {
     mockPostgresSslWithMissingKey("certificate");
     mockPgConfig();
-    when(poolingConfigFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.empty());
-    when(profileConfigFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(instanceProfile));
 
     assertException("Certificate key test-certificate was not found in secret test-secret");
 
-    verify(postgresConfigFinder, times(3)).findByNameAndNamespace(any(), any());
-    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
-    verify(profileConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(2)).findByNameAndNamespace(any(), any());
   }
 
@@ -132,16 +96,10 @@ class ShardedClusterRequiredResourcesGeneratorForPostgresSslTest
   void givenClusterWithPostgresSslWithoutKeyForPrivateKey_shouldFail() {
     mockPostgresSslWithMissingKey("private-key");
     mockPgConfig();
-    when(poolingConfigFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.empty());
-    when(profileConfigFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(instanceProfile));
 
     assertException("Private key key test-private-key was not found in secret test-secret");
 
-    verify(postgresConfigFinder, times(3)).findByNameAndNamespace(any(), any());
-    verify(poolingConfigFinder, times(2)).findByNameAndNamespace(any(), any());
-    verify(profileConfigFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(postgresConfigFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(3)).findByNameAndNamespace(any(), any());
   }
 

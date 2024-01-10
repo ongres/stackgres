@@ -5,11 +5,14 @@
 
 package io.stackgres.operator.conciliation.shardeddbops;
 
+import static io.stackgres.common.StackGresShardedClusterUtil.getCoordinatorClusterName;
+
 import java.util.List;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -31,7 +34,9 @@ public class ShardedDbOpsRequiredResourcesGenerator
   protected static final Logger LOGGER = LoggerFactory
       .getLogger(ShardedDbOpsRequiredResourcesGenerator.class);
 
-  private final CustomResourceFinder<StackGresShardedCluster> clusterFinder;
+  private final CustomResourceFinder<StackGresShardedCluster> shardedClusterFinder;
+
+  private final CustomResourceFinder<StackGresCluster> clusterFinder;
 
   private final CustomResourceFinder<StackGresProfile> profileFinder;
 
@@ -39,9 +44,11 @@ public class ShardedDbOpsRequiredResourcesGenerator
 
   @Inject
   public ShardedDbOpsRequiredResourcesGenerator(
-      CustomResourceFinder<StackGresShardedCluster> clusterFinder,
+      CustomResourceFinder<StackGresShardedCluster> shardedClusterFinder,
+      CustomResourceFinder<StackGresCluster> clusterFinder,
       CustomResourceFinder<StackGresProfile> profileFinder,
       ResourceGenerationDiscoverer<StackGresShardedDbOpsContext> discoverer) {
+    this.shardedClusterFinder = shardedClusterFinder;
     this.clusterFinder = clusterFinder;
     this.profileFinder = profileFinder;
     this.discoverer = discoverer;
@@ -53,8 +60,11 @@ public class ShardedDbOpsRequiredResourcesGenerator
     final String dbOpsNamespace = metadata.getNamespace();
 
     final StackGresShardedDbOpsSpec spec = config.getSpec();
-    final Optional<StackGresShardedCluster> cluster = clusterFinder
+    final Optional<StackGresShardedCluster> cluster = shardedClusterFinder
         .findByNameAndNamespace(spec.getSgShardedCluster(), dbOpsNamespace);
+    final Optional<StackGresCluster> coordinator = clusterFinder
+        .findByNameAndNamespace(
+            getCoordinatorClusterName(spec.getSgShardedCluster()), dbOpsNamespace);
 
     final Optional<StackGresProfile> profile = cluster
         .map(StackGresShardedCluster::getSpec)
@@ -66,6 +76,7 @@ public class ShardedDbOpsRequiredResourcesGenerator
     StackGresShardedDbOpsContext context = ImmutableStackGresShardedDbOpsContext.builder()
         .source(config)
         .foundShardedCluster(cluster)
+        .foundCoordinator(coordinator)
         .foundProfile(profile)
         .build();
 

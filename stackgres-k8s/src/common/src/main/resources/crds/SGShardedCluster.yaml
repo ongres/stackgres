@@ -96,7 +96,10 @@ spec:
                 description: |
                   The sharding technology that will be used for the sharded cluster.
                   
-                  Currently the only possible value for this field is `citus`.
+                  Available technologies are:
+                  
+                  * `citus`
+                  * `ddp`
               database:
                 type: string
                 description: |
