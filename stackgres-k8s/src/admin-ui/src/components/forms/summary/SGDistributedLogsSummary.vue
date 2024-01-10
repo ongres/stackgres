@@ -19,7 +19,12 @@
             </li>
         </ul>
 
-        <ul class="section">
+        <ul class="section"
+            v-if="(showDefaults || (
+                ((crd.data.spec.persistentVolume.size != '1Gi') || hasProp(crd, 'data.spec.persistentVolume.storageClass')) ||
+                (hasProp(crd, 'data.spec.sgInstanceProfile') || hasProp(crd, 'data.spec.configurations.sgPostgresConfig'))
+            )
+        )">
             <li>
                 <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Specs </strong>
@@ -264,7 +269,7 @@
             </li>
         </ul>
 
-        <ul class="section" v-if="showDefaults || hasProp(crd, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity')">
+        <ul class="section" v-if="showDefaults || (hasProp(crd, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') && (crd.data.spec.nonProductionOptions.disableClusterPodAntiAffinity != null))">
             <li>
                 <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Non Production Settings </strong>
@@ -272,7 +277,7 @@
                     <li>
                         <strong class="label">Cluster Pod Anti Affinity</strong>
                         <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('If set to `true` it will allow','When disabled, it allows running')"></span>
-                        <span> : {{ hasProp(crd, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? isEnabled(crd.data.spec.nonProductionOptions.disableClusterPodAntiAffinity, true) : 'Enabled' }}</span>
+                        <span> : {{ (hasProp(crd, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') && (crd.data.spec.nonProductionOptions.disableClusterPodAntiAffinity != null)) ? isEnabled(crd.data.spec.nonProductionOptions.disableClusterPodAntiAffinity, true) : 'Default'}}</span>
                     </li>
                 </ul>
             </li>

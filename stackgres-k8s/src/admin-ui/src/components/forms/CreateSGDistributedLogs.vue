@@ -455,10 +455,11 @@
                         <div class="row-50">
                             <div class="col">
                                 <label for="spec.nonProductionOptions.disableClusterPodAntiAffinity">Cluster Pod Anti Affinity</label>  
-                                <label for="disableClusterPodAntiAffinity" class="switch yes-no">
-                                    Enable 
-                                    <input type="checkbox" id="disableClusterPodAntiAffinity" v-model="enableClusterPodAntiAffinity" data-switch="NO" data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity">
-                                </label>
+                                <select v-model="clusterPodAntiAffinity" data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity">
+                                    <option selected :value="null">Default</option>
+                                    <option :value="false">Enable</option>
+                                    <option :value="true">Disable</option>
+                                </select>
                                 <span class="helpTooltip"  :data-tooltip="getTooltip('sgdistributedlogs.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('If set to `true` it will','Disable this property to')"></span>
                             </div>
                         </div>
@@ -522,7 +523,7 @@
                 volumeUnit: 'Gi',
                 resourceProfile: '',
                 pgConfig: '',
-                enableClusterPodAntiAffinity: true,
+                clusterPodAntiAffinity: null,
                 hasStorageClass: true,
                 nodeSelector: [ { label: '', value: ''} ],
                 tolerations: [ { key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null } ],
@@ -603,7 +604,7 @@
                             vm.volumeUnit = ''+volumeUnit;
                             vm.resourceProfile = c.data.spec.sgInstanceProfile;
                             vm.pgConfig = c.data.spec.configurations.sgPostgresConfig;
-                            vm.enableClusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? !c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : true;
+                            vm.clusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : null;
                             vm.nodeSelector = vm.hasProp(c, 'data.spec.scheduling.nodeSelector') ? vm.unparseProps(c.data.spec.scheduling.nodeSelector, 'label') : [];
                             vm.tolerations = vm.hasProp(c, 'data.spec.scheduling.tolerations') ? c.data.spec.scheduling.tolerations : [];
                             vm.annotationsAll = vm.hasProp(c, 'data.spec.metadata.annotations.allResources') ? vm.unparseProps(c.data.spec.metadata.annotations.allResources) : [];
@@ -685,10 +686,10 @@
                                 ...(this.pgConfig.length && { "sgPostgresConfig": this.pgConfig } || { "sgPostgresConfig": null } )
                             }
                         }) ),
-                        ...((this.hasProp(previous, 'spec.nonProductionOptions') || !this.enableClusterPodAntiAffinity) && ( {
+                        ...((this.hasProp(previous, 'spec.nonProductionOptions') || (this.clusterPodAntiAffinity != null)) && ( {
                             "nonProductionOptions": { 
                                 ...(this.hasProp(previous, 'spec.nonProductionOptions') && previous.spec.nonProductionOptions),
-                                ...(!this.enableClusterPodAntiAffinity && {"disableClusterPodAntiAffinity": !this.enableClusterPodAntiAffinity} || {"disableClusterPodAntiAffinity": null} )
+                                ...((this.clusterPodAntiAffinity != null) && {"disableClusterPodAntiAffinity": this.clusterPodAntiAffinity} || {"disableClusterPodAntiAffinity": null} )
                                 } 
                             }) ),
                         ...( (this.hasProp(previous, 'spec.scheduling') || !$.isEmptyObject(this.parseProps(this.nodeSelector, 'label')) || this.hasTolerations() ) && ({
