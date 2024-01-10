@@ -438,10 +438,6 @@ $(document).ready(function(){
     
   });
 
-  $(document).on("click","[data-active]", function(){
-    $($(this).data("active")).addClass("active");
-  });
-
   $(document).on('click', 'ul.select .selected', function(){
     $(this).parent().toggleClass('active');
   });

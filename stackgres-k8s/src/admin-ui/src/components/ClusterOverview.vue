@@ -59,39 +59,39 @@
 												</template>
 											</template>
 											<span>
-												<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" data-active=".set.clu" class="noColor">
+												<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" class="noColor">
 													{{ cluster.name }}
 												</router-link>	
 											</span>
 										</td>
 										<td class="instances textRight">
-											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" data-active=".set.clu" class="noColor">
+											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" class="noColor">
 												{{ cluster.data.spec.instances }}
 											</router-link>
 										</td>
 										<td class="cpu textRight">
-											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" data-active=".set.clu" class="noColor">
+											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" class="noColor">
 												<span>{{ hasProp(cluster,'status.cpuRequested') ? cluster.status.cpuRequested : ''}}</span>
 											</router-link>
 										</td>
 										<td class="ram textRight">
-											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" data-active=".set.clu" class="noColor">
+											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" class="noColor">
 												<span>{{ hasProp(cluster,'status.memoryRequested') ? cluster.status.memoryRequested.replace('.00','') : '' }}</span>
 											</router-link>
 										</td>
 										<td class="volumeSize textRight">
-											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" data-active=".set.clu" class="noColor">
+											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" class="noColor">
 												{{ cluster.data.spec.pods.persistentVolume.size }}
 											</router-link>
 										</td>
 										<td class="health textRight">
-											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" data-active=".set.clu" class="noColor">
+											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" title="Cluster Status" class="noColor">
 												{{ cluster.data.podsReady }} / {{ cluster.data.spec.instances }}
 											</router-link>
 										</td>
 										<td class="actions">
 											<router-link :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name" target="_blank" class="newTab"></router-link>
-											<router-link v-if="iCan('patch','sgclusters',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name + '/edit'" title="Edit Cluster" data-active=".set.clu" class="editCRD" :class="isSharded(cluster.name) && 'disabled'"></router-link>
+											<router-link v-if="iCan('patch','sgclusters',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgcluster/' + cluster.name + '/edit'" title="Edit Cluster" class="editCRD" :class="isSharded(cluster.name) && 'disabled'"></router-link>
 											<a v-if="iCan('create','sgclusters',$route.params.namespace)" @click="cloneCRD('SGClusters', $route.params.namespace, cluster.name)" class="cloneCRD" :class="isSharded(cluster.name) && 'disabled'" title="Clone Cluster"></a>
 											<a @click="setRestartCluster($route.params.namespace, cluster.name)" class="restartCluster" title="Restart Cluster"></a>
 											<a v-if="iCan('delete','sgclusters',$route.params.namespace)" @click="deleteCRD('sgclusters', $route.params.namespace, cluster.name)" title="Delete Cluster" class="deleteCRD" :class="isSharded(cluster.name) && 'disabled'"></a>
