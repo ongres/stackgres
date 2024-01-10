@@ -172,10 +172,10 @@ get_primary_pod() {
   if [ ! -s /tmp/current-primary ]
   then
     kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
-      {"op":"replace","path":"/status/process/failure","value":"Unable to find primary, backup aborted"}
+      {"op":"replace","path":"/status/process/failure","value":"Unable to find coordinator primary, backup aborted"}
       ]'
     kubectl get pod -n "$CLUSTER_NAMESPACE" -l "${COORDINATOR_CLUSTER_LABELS}" >&2
-    echo "Unable to find primary, backup aborted" > /tmp/backup-push
+    echo "Unable to find cooridnator primary, backup aborted" > /tmp/backup-push
     exit 1
   fi
 
@@ -281,9 +281,23 @@ create_backup_restore_point() {
   cat << EOF | { set +e; kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
       -- sh -e $SHELL_XTRACE 2>&1; printf %s "$?" > /tmp/backup-restore-point-exit-code; } | tee /tmp/backup-restore-point
 psql -d "$SHARDED_CLUSTER_DATABASE" -v ON_ERROR_STOP=1 \
+$(
+  if [ "$SHARDING_TYPE" = citus ]
+  then
+    cat << INNER_EOF
   -c "SELECT citus_create_restore_point('$SHARDED_BACKUP_NAME')" \
   -c "SELECT pg_switch_wal()" \
   -c "SELECT run_command_on_workers(\\\$\\\$ SELECT pg_switch_wal() \\\$\\\$)"
+INNER_EOF
+  elif [ "$SHARDING_TYPE" = ddp ]
+  then
+    cat << INNER_EOF
+  -c "SELECT ddp_create_restore_point('$SHARDED_BACKUP_NAME')" \
+  -c "SELECT pg_switch_wal()" \
+  -c "SELECT result FROM pg_foreign_server, LATERAL (SELECT * FROM dblink(srvname, 'SELECT pg_switch_wal()') AS (result text)) AS _"
+INNER_EOF
+  fi
+)
 EOF
   if [ "$(cat /tmp/backup-restore-point-exit-code)" != 0 ]
   then

@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
@@ -30,6 +31,8 @@ abstract class ShardedDbOpsJobTestCase {
 
   StackGresShardedCluster cluster;
 
+  StackGresCluster coordinator;
+
   StackGresShardedDbOps dbOps;
 
   StackGresProfile clusterProfile;
@@ -37,6 +40,8 @@ abstract class ShardedDbOpsJobTestCase {
   @BeforeEach
   void setUp() {
     cluster = Fixtures.shardedCluster().loadDefault().get();
+
+    coordinator = Fixtures.cluster().loadDefault().get();
 
     clusterProfile = Fixtures.instanceProfile().loadSizeS().get();
 
@@ -55,6 +60,7 @@ abstract class ShardedDbOpsJobTestCase {
     StackGresShardedDbOpsContext context = ImmutableStackGresShardedDbOpsContext.builder()
         .source(dbOps)
         .foundShardedCluster(cluster)
+        .foundCoordinator(coordinator)
         .foundProfile(clusterProfile)
         .build();
 
@@ -71,6 +77,7 @@ abstract class ShardedDbOpsJobTestCase {
     StackGresShardedDbOpsContext context = ImmutableStackGresShardedDbOpsContext.builder()
         .source(dbOps)
         .foundShardedCluster(cluster)
+        .foundCoordinator(coordinator)
         .foundProfile(clusterProfile)
         .build();
 
@@ -87,6 +94,7 @@ abstract class ShardedDbOpsJobTestCase {
     StackGresShardedDbOpsContext context = ImmutableStackGresShardedDbOpsContext.builder()
         .source(dbOps)
         .foundShardedCluster(cluster)
+        .foundCoordinator(coordinator)
         .foundProfile(clusterProfile)
         .build();
 
@@ -106,6 +114,7 @@ abstract class ShardedDbOpsJobTestCase {
     StackGresShardedDbOpsContext context = ImmutableStackGresShardedDbOpsContext.builder()
         .source(dbOps)
         .foundShardedCluster(cluster)
+        .foundCoordinator(coordinator)
         .foundProfile(clusterProfile)
         .build();
 
@@ -124,6 +133,7 @@ abstract class ShardedDbOpsJobTestCase {
     StackGresShardedDbOpsContext context = ImmutableStackGresShardedDbOpsContext.builder()
         .source(dbOps)
         .foundShardedCluster(cluster)
+        .foundCoordinator(coordinator)
         .foundProfile(clusterProfile)
         .build();
 

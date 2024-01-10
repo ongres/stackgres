@@ -5,14 +5,13 @@
 
 package io.stackgres.operator.validation.shardedcluster;
 
-import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.getCoordinatorCluster;
+import static io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForCitusUtil.getCoordinatorCluster;
 
 import java.util.List;
 import java.util.Optional;
 
 import io.stackgres.common.ExtensionTuple;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtension;
@@ -59,9 +58,7 @@ public class ExtensionsValidator
   protected List<ExtensionTuple> getDefaultExtensions(
       StackGresShardedCluster resource,
       StackGresCluster cluster) {
-    String pgVersion = resource.getSpec().getPostgres().getVersion();
-    StackGresVersion operatorVersion = StackGresVersion.getStackGresVersion(resource);
-    return StackGresUtil.getDefaultShardedClusterExtensions(pgVersion, operatorVersion);
+    return StackGresUtil.getDefaultShardedClusterExtensions(resource);
   }
 
   @Override

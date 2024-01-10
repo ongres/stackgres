@@ -253,6 +253,10 @@ public class ShardedBackupJob
                     .withValue(namespace)
                     .build(),
                     new EnvVarBuilder()
+                    .withName("SHARDING_TYPE")
+                    .withValue(cluster.getSpec().getType())
+                    .build(),
+                    new EnvVarBuilder()
                     .withName("SHARDED_BACKUP_NAME")
                     .withValue(name)
                     .build(),

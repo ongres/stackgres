@@ -86,7 +86,7 @@ public interface PatroniUtil {
     return Optional
         .ofNullable(cluster.getSpec().getConfigurations().getPatroni())
         .map(StackGresClusterPatroni::getInitialConfig)
-        .map(patroniConfig -> patroniConfig.getScope())
+        .map(StackGresClusterPatroniConfig::getScope)
         .orElse(cluster.getMetadata().getName());
   }
 

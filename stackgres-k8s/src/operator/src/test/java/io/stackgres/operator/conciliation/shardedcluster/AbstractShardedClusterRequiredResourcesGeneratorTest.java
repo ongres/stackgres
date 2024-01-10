@@ -28,9 +28,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.common.resource.ConfigScanner;
-import io.stackgres.common.resource.PoolingConfigFinder;
 import io.stackgres.common.resource.PostgresConfigFinder;
-import io.stackgres.common.resource.ProfileConfigFinder;
 import io.stackgres.common.resource.SecretFinder;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
@@ -47,12 +45,6 @@ abstract class AbstractShardedClusterRequiredResourcesGeneratorTest {
 
   @InjectMock
   PostgresConfigFinder postgresConfigFinder;
-
-  @InjectMock
-  ProfileConfigFinder profileConfigFinder;
-
-  @InjectMock
-  PoolingConfigFinder poolingConfigFinder;
 
   @InjectMock
   SecretFinder secretFinder;
@@ -106,20 +98,6 @@ abstract class AbstractShardedClusterRequiredResourcesGeneratorTest {
     var ex =
         assertThrows(IllegalArgumentException.class, () -> generator.getRequiredResources(cluster));
     assertEquals(message, ex.getMessage());
-  }
-
-  void mockProfile() {
-    when(profileConfigFinder.findByNameAndNamespace(
-        cluster.getSpec().getCoordinator().getSgInstanceProfile(),
-        cluster.getMetadata().getNamespace()))
-        .thenReturn(Optional.of(instanceProfile));
-  }
-
-  void mockPoolingConfig() {
-    when(poolingConfigFinder.findByNameAndNamespace(
-        cluster.getSpec().getCoordinator().getConfigurations().getSgPoolingConfig(),
-        cluster.getMetadata().getNamespace()))
-        .thenReturn(Optional.of(poolingConfig));
   }
 
   void mockPgConfig() {
