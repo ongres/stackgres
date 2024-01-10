@@ -117,12 +117,12 @@ describe('Create SGShardedCluster', () => {
         });
     });
 
-    it.skip('Create SGShardedCluster form should be visible', () => {
+    it('Create SGShardedCluster form should be visible', () => {
         cy.get('form#createShardedCluster')
             .should('be.visible')
     });  
 
-    it.skip('Creating a basic SGShardedCluster should be possible', () => {
+    it('Creating a basic SGShardedCluster should be possible', () => {
         // Test Cluster Name
         cy.get('[data-field="metadata.name"]')
             .type('basic-' + resourceName)
@@ -187,6 +187,11 @@ describe('Create SGShardedCluster', () => {
         // Test Cluster Name
         cy.get('input[data-field="metadata.name"]')
             .type('advanced-' + resourceName)
+
+        // Test Profile
+        cy.get('select[data-field="spec.profile"]')
+            .select('testing')
+
         // Test Cluster Database
         cy.get('[data-field="spec.database"]')
             .type('advanced_' + resourceName)
@@ -198,7 +203,7 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         // Check Enable SSL Connections
-        /*cy.get('input[data-field="spec.postgres.ssl.enabled"]')
+        cy.get('input[data-field="spec.postgres.ssl.enabled"]')
             .should('be.checked')
         
         cy.get('input[data-field="spec.postgres.ssl.certificateSecretKeySelector.name"]')
@@ -208,10 +213,10 @@ describe('Create SGShardedCluster', () => {
         cy.get('input[data-field="spec.postgres.ssl.privateKeySecretKeySelector.name"]')
             .type('cert-cluster')
         cy.get('input[data-field="spec.postgres.ssl.privateKeySecretKeySelector.key"]')
-            .type('tls.key')*/
+            .type('tls.key')
 
         // Test some extensions
-        /*cy.get('form#createShardedCluster li[data-step="general.extensions"]')
+        cy.get('form#createShardedCluster li[data-step="general.extensions"]')
             .click()
 
         cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.db_info"].enableExtension')
@@ -223,7 +228,7 @@ describe('Create SGShardedCluster', () => {
         cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.http"].enableExtension')
             .click()
         cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.hostname"].enableExtension')
-            .click()*/
+            .click()
 
         // Test managed backups configuration
         cy.get('form#createShardedCluster li[data-step="general.backups"]')
@@ -2012,14 +2017,14 @@ describe('Create SGShardedCluster', () => {
         cy.wait('@postCluster')
             .its('response.statusCode')
             .should('eq', 200)
-        /*cy.get('@postCluster')
+        cy.get('@postCluster')
             .its('request.body.spec.postgres.ssl')
             .should('nested.include', {"enabled": true})
             .and('nested.include', {"certificateSecretKeySelector.name": "cert-cluster"})
             .and('nested.include', {"certificateSecretKeySelector.key": "tls.crt"})
             .and('nested.include', {"privateKeySecretKeySelector.name": "cert-cluster"})
-            .and('nested.include', {"privateKeySecretKeySelector.key": "tls.key"})*/
-        /*cy.get('@postCluster')
+            .and('nested.include', {"privateKeySecretKeySelector.key": "tls.key"})
+        cy.get('@postCluster')
             .its('request.body.spec.postgres.extensions')
             .should('have.lengthOf', 5)
             .then((list) => Cypress._.map(list, 'name'))
@@ -2027,7 +2032,7 @@ describe('Create SGShardedCluster', () => {
             .and('include', "pg_repack")
             .and('include', "plpgsql_check")
             .and('include', "http")
-            .and('include', "hostname")*/
+            .and('include', "hostname")
         cy.get('@postCluster')
             .its('request.body.spec.configurations.backups')
             .its(0)
@@ -2042,6 +2047,9 @@ describe('Create SGShardedCluster', () => {
         cy.get('@postCluster')
             .its('request.body.spec.prometheusAutobind')
             .should('eq', true)
+        cy.get('@postCluster')
+            .its('request.body.spec.profile')
+            .should('eq', 'testing')
         cy.get('@postCluster')
             .its('request.body.spec.metadata')
             .should('nested.include', {"labels.clusterPods.label": 'value'})
@@ -2471,17 +2479,23 @@ describe('Create SGShardedCluster', () => {
         // Test Cluster Name
         cy.get('input[data-field="metadata.name"]')
             .should('be.disabled')
+        
+        // Test Profile
+        cy.get('select[data-field="spec.profile"]')
+            .should('have.value', 'testing')    
+            .select('development')
+
         // Test Cluster Database
         cy.get('[data-field="spec.database"]')
             .should('be.disabled')
 
         // Disable SSL Connections
-        /*cy.get('input[data-field="spec.postgres.ssl.enabled"]')
+        cy.get('input[data-field="spec.postgres.ssl.enabled"]')
             .should('be.checked')
-            .click()*/
+            .click()
 
         // Test some extensions
-        /*cy.get('form#createShardedCluster li[data-step="general.extensions"]')
+        cy.get('form#createShardedCluster li[data-step="general.extensions"]')
             .click()
 
         cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.db_info"].enableExtension')
@@ -2494,7 +2508,7 @@ describe('Create SGShardedCluster', () => {
         cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.http"].enableExtension')
             .should('be.checked')
         cy.get('ul.extensionsList input[data-field="spec.postgres.extensions.hostname"].enableExtension')
-            .should('be.checked')*/
+            .should('be.checked')
 
         // Test managed backups configuration
         cy.get('form#createShardedCluster li[data-step="general.backups"]')
@@ -3912,17 +3926,17 @@ describe('Create SGShardedCluster', () => {
         cy.wait('@putCluster')
             .its('response.statusCode')
             .should('eq', 200)
-        /*cy.get('@putCluster')
+        cy.get('@putCluster')
             .its('request.body.spec.postgres.ssl.enabled')
-            .should('eq', false)*/
-        /*cy.get('@putCluster')
+            .should('eq', false)
+        cy.get('@putCluster')
             .its('request.body.spec.postgres.extensions')
             .should('have.lengthOf', 6)
             .then((list) => Cypress._.map(list, 'name'))
             .should('include', "pg_repack")
             .and('include', "plpgsql_check")
             .and('include', "http")
-            .and('include', "hostname")*/
+            .and('include', "hostname")
         cy.get('@putCluster')
             .its('request.body.spec.configurations.backups')
             .its(0)
@@ -3937,6 +3951,9 @@ describe('Create SGShardedCluster', () => {
         cy.get('@putCluster')
             .its('request.body.spec.prometheusAutobind')
             .should('eq', true)
+        cy.get('@putCluster')
+            .its('request.body.spec.profile')
+            .should('eq', 'development')
         cy.get('@putCluster')
             .its('request.body.spec.replication')
             .and('nested.include', {"mode": 'strict-sync'})
@@ -4203,7 +4220,7 @@ describe('Create SGShardedCluster', () => {
             .and('nested.include', {"nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight": '20'})
     }); 
 
-    it.skip('Repeater fields should match error responses coming from the API', () => {
+    it('Repeater fields should match error responses coming from the API', () => {
         // Enable advanced options
         cy.get('form#createShardedCluster input#advancedMode')
             .click()
@@ -4240,7 +4257,7 @@ describe('Create SGShardedCluster', () => {
             .should('have.class', 'notValid')
     });
 
-    it.skip('Enable Monitoring to enable Metrics Exporter and Prometheus Autobind ', () => {
+    it('Enable Monitoring to enable Metrics Exporter and Prometheus Autobind ', () => {
         // Enable advanced options
         cy.get('input#advancedMode')
             .click()
@@ -4325,7 +4342,7 @@ describe('Create SGShardedCluster', () => {
             .should('not.be.checked')
     }); 
 
-    it.skip('Make sure script source always matches its parent script', () => {
+    it('Make sure script source always matches its parent script', () => {
         // Enable advanced options
         cy.get('form#createShardedCluster input#advancedMode')
             .click()

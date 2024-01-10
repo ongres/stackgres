@@ -20,15 +20,23 @@
         </ul>
 
         <ul class="section"
-            v-if="(showDefaults || (
-                ((crd.data.spec.persistentVolume.size != '1Gi') || hasProp(crd, 'data.spec.persistentVolume.storageClass')) ||
-                (hasProp(crd, 'data.spec.sgInstanceProfile') || hasProp(crd, 'data.spec.configurations.sgPostgresConfig'))
-            )
-        )">
+            v-if="showDefaults || 
+                (crd.data.spec.profile != 'production') ||
+                (crd.data.spec.persistentVolume.size != '1Gi') ||
+                hasProp(crd, 'data.spec.persistentVolume.storageClass') ||
+                hasProp(crd, 'data.spec.sgInstanceProfile') || 
+                hasProp(crd, 'data.spec.configurations.sgPostgresConfig')
+            ">
             <li>
                 <button class="toggleSummary"></button>
                 <strong class="sectionTitle">Specs </strong>
-                <ul>                     
+                <ul>      
+                    <li v-if="showDefaults || (crd.data.spec.profile != 'production')">
+                        <strong class="label">Profile</strong>
+                        <span class="helpTooltip" :data-tooltip="getTooltip('sgdistributedlogs.spec.profile')"></span>
+                        <span class="value capitalize"> : {{ crd.data.spec.profile }}</span>
+                    </li>
+
                     <li v-if="showDefaults || (crd.data.spec.persistentVolume.size != '1Gi') || hasProp(crd, 'data.spec.persistentVolume.storageClass')">
                         <button class="toggleSummary"></button>
                         <strong class="label">Persistent Volume</strong>

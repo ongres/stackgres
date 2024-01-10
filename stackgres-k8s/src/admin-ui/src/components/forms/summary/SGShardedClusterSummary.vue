@@ -51,15 +51,20 @@
                             <button class="toggleSummary"></button>
                             <strong class="sectionTitle">Specs</strong>
                             <ul>
-                                <li v-if="(showDefaults || (cluster.data.spec.type !== 'citus'))">
-                                    <strong class="label">Type</strong>
-                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.type')"></span>
-                                    <span class="value"> : {{ cluster.data.spec.type }}</span>
+                                <li v-if="showDefaults || (cluster.data.spec.profile != 'production')">
+                                    <strong class="label">Profile</strong>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.profile')"></span>
+                                    <span class="value capitalize"> : {{ cluster.data.spec.profile }}</span>
                                 </li>
                                 <li>
                                     <strong class="label">Database</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.database')"></span>
                                     <span class="value"> : {{ cluster.data.spec.database }}</span>
+                                </li>
+                                <li v-if="(showDefaults || (cluster.data.spec.type !== 'citus'))">
+                                    <strong class="label">Type</strong>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgshardedcluster.spec.type')"></span>
+                                    <span class="value"> : {{ cluster.data.spec.type }}</span>
                                 </li>
                                 <li v-if="(showDefaults || (cluster.data.spec.postgres.flavor != 'vanilla') || (cluster.data.spec.postgres.version != 'latest') || (hasProp(cluster, 'data.spec.postgres.ssl.enabled') && !cluster.data.spec.postgres.ssl.enabled) )">
                                     <button class="toggleSummary"></button>
