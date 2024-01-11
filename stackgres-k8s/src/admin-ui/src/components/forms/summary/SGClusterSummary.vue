@@ -313,6 +313,48 @@
                                         
                                     </ul>
                                 </li>
+                                <li v-if="showDefaults || (hasProp(backup, 'useVolumeSnapshot') && backup.useVolumeSnapshot)">
+                                    <button class="toggleSummary"></button>
+                                    <strong class="label">
+                                        Volume Snapshot Specs
+                                    </strong>
+                                    <span
+                                        class="helpTooltip"
+                                        :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.useVolumeSnapshot')"
+                                    ></span>
+                                    <ul>
+                                        <li v-if="showDefaults || (hasProp(backup, 'useVolumeSnapshot') && backup.useVolumeSnapshot)">
+                                            <strong class="label">
+                                                Use Volume Snapshot
+                                            </strong>
+                                            <span
+                                                class="helpTooltip"
+                                                :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.useVolumeSnapshot')"
+                                            ></span>
+                                            <span class="value"> : {{ isEnabled(backup.useVolumeSnapshot) }} </span>
+                                        </li>
+                                        <li v-if="hasProp(backup, 'volumeSnapshotClass') && !isNull(backup.volumeSnapshotClass)">
+                                            <strong class="label">
+                                                Volume Snapshot Class
+                                            </strong>
+                                            <span
+                                                class="helpTooltip"
+                                                :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.volumeSnapshotClass')"
+                                            ></span>
+                                            <span class="value"> : {{ backup.volumeSnapshotClass }} </span>
+                                        </li>
+                                        <li v-if="showDefaults || hasProp(backup, 'fastVolumeSnapshot') && backup.fastVolumeSnapshot">
+                                            <strong class="label">
+                                                Fast Volume Snapshot
+                                            </strong>
+                                            <span
+                                                class="helpTooltip"
+                                                :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.fastVolumeSnapshot')"
+                                            ></span>
+                                            <span class="value"> : {{ isEnabled(backup.fastVolumeSnapshot) }} </span>
+                                        </li>
+                                    </ul>
+                                </li>
                             </ul>
                         </li>
                     </ul>
