@@ -515,6 +515,67 @@
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.performance.properties.uploadDiskConcurrency')"></span>
                             </div>                    
                         </div>
+
+                        <hr/>
+                        
+                        <div class="row-50">
+                            <h3>Snapshot Details</h3>
+
+                            <div class="col">
+                                <label>Use Volume Snapshots</label>  
+                                <label
+                                    class="switch yes-no"
+                                    for="useVolumeSnapshot"
+                                    data-field="spec.configurations.backups.useVolumeSnapshot"
+                                >
+                                    Enable
+                                    <input
+                                        type="checkbox"
+                                        data-switch="YES"
+                                        id="useVolumeSnapshot"
+                                        v-model="backups[0].useVolumeSnapshot"
+                                    >
+                                </label>
+                                <span
+                                    class="helpTooltip"
+                                    :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.useVolumeSnapshot')"
+                                ></span>
+                            </div>
+
+                            <template v-if="backups[0].useVolumeSnapshot">
+                                <div class="col">
+                                    <label for="spec.configurations.backups.volumeSnapshotClass">
+                                        Volume Snapshot Class
+                                    </label>
+                                    <input
+                                        v-model="backups[0].volumeSnapshotClass"
+                                        data-field="spec.configurations.backups.volumeSnapshotClass"
+                                    >
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.volumeSnapshotClass')"></span>
+                                </div>
+
+                                <div class="col">
+                                    <label>Fast Volume Snapshot</label>  
+                                    <label
+                                        class="switch yes-no"
+                                        for="fastVolumeSnapshot"
+                                        data-field="spec.configurations.backups.fastVolumeSnapshot"
+                                    >
+                                        Enable
+                                        <input
+                                            type="checkbox"
+                                            data-switch="YES"
+                                            id="fastVolumeSnapshot"
+                                            v-model="backups[0].fastVolumeSnapshot"
+                                        >
+                                    </label>
+                                    <span
+                                        class="helpTooltip"
+                                        :data-tooltip="getTooltip('sgcluster.spec.configurations.backups.fastVolumeSnapshot')"
+                                    ></span>
+                                </div>
+                            </template>
+                        </div>
                     </template>
                 </div>
             </fieldset>

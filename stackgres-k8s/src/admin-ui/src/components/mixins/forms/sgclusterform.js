@@ -116,7 +116,10 @@ export const sgclusterform = {
                     maxDiskBandwidth: '',
                     uploadDiskConcurrency: 1
                 },
-                sgObjectStorage: ''
+                sgObjectStorage: '',
+                useVolumeSnapshot: false,
+                volumeSnapshotClass: null,
+                fastVolumeSnapshot: false,
             }],
             cronSchedule: [{
                 min: tzCrontab[0],

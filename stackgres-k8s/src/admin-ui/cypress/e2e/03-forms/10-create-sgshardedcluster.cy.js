@@ -284,6 +284,17 @@ describe('Create SGShardedCluster', () => {
         cy.get('[data-field="spec.configurations.backups.performance.uploadDiskConcurrency"]')
             .clear()    
             .type('2')
+        
+        // Volume Snapshot details
+        cy.get('label[data-field="spec.configurations.backups.useVolumeSnapshot"]')
+            .click()
+
+        cy.get('[data-field="spec.configurations.backups.volumeSnapshotClass"]')
+            .clear()    
+            .type('snapshot')
+
+        cy.get('label[data-field="spec.configurations.backups.fastVolumeSnapshot"]')
+            .click()
 
         // Test prometheus autobind
         cy.get('form#createShardedCluster li[data-step="general.sidecars"]')
@@ -2044,6 +2055,9 @@ describe('Create SGShardedCluster', () => {
             .and('nested.include', {"performance.maxNetworkBandwidth": "1024"})
             .and('nested.include', {"performance.maxDiskBandwidth": "1024"})
             .and('nested.include', {"performance.uploadDiskConcurrency": "2"})
+            .and('nested.include', {"useVolumeSnapshot": true})
+            .and('nested.include', {"volumeSnapshotClass": "snapshot"})
+            .and('nested.include', {"fastVolumeSnapshot": true})
         cy.get('@postCluster')
             .its('request.body.spec.prometheusAutobind')
             .should('eq', true)
@@ -2577,6 +2591,19 @@ describe('Create SGShardedCluster', () => {
             .should('have.value', '2')
             .clear()
             .type('1')
+
+        // Test Volume Snapshot
+        cy.get('label[data-field="spec.configurations.backups.useVolumeSnapshot"] > input')
+            .should('be.enabled')
+        
+        cy.get('[data-field="spec.configurations.backups.volumeSnapshotClass"]')
+            .should('have.value', 'snapshot')
+            .clear()
+            .type('class')
+
+        cy.get('label[data-field="spec.configurations.backups.fastVolumeSnapshot"] > input')
+            .should('be.enabled')
+            .click()
 
         // Test prometheus autobind
         cy.get('form#createShardedCluster li[data-step="general.sidecars"]')
@@ -3948,6 +3975,9 @@ describe('Create SGShardedCluster', () => {
             .and('nested.include', {"performance.maxNetworkBandwidth": "2048"})
             .and('nested.include', {"performance.maxDiskBandwidth": "2048"})
             .and('nested.include', {"performance.uploadDiskConcurrency": "1"})
+            .and('nested.include', {"useVolumeSnapshot": true})
+            .and('nested.include', {"volumeSnapshotClass": "class"})
+            .and('nested.include', {"fastVolumeSnapshot": false})
         cy.get('@putCluster')
             .its('request.body.spec.prometheusAutobind')
             .should('eq', true)

@@ -75,7 +75,7 @@
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.postgresVersion')"></span>
                             <span class="value"> : {{ crd.data.status.backupInformation.postgresVersion | prefix }}</span>
                         </li>
-                        <li>
+                        <li v-if="hasProp(crd, 'data.status.internalName')">
                             <strong class="label">Internal Name</strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.internalName')"></span>
                             <span class="value"> : {{ crd.data.status.internalName }}</span>
@@ -219,10 +219,64 @@
                                 </div>
                             </span>
                         </li>
-                        <li>
+                        <li v-if="hasProp(crd, 'data.status.backupPath')">
                             <strong class="label">Backup Path</strong>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupPath')"></span>
                             <span class="value"> : {{ crd.data.status.backupPath }}</span>
+                        </li>
+                        <li v-if="hasProp(crd, 'data.status.volumeSnapshot')">
+                            <button class="toggleSummary"></button>
+                            <strong class="label">
+                                Volume Snapshot
+                            </strong>
+                            <span
+                                class="helpTooltip"
+                                :data-tooltip="getTooltip('sgbackup.status.volumeSnapshot')"
+                            ></span>
+
+                            <ul>
+                                <li v-if="hasProp(crd, 'data.status.volumeSnapshot.name')">
+                                    <strong class="label">
+                                        Name
+                                    </strong>
+                                    <span
+                                        class="helpTooltip"
+                                        :data-tooltip="getTooltip('sgbackup.status.volumeSnapshot.name')"
+                                    ></span>
+                                    <span class="value"> : {{ crd.data.status.volumeSnapshot.name }}</span>
+                                </li>
+                                <li v-if="hasProp(crd, 'data.status.volumeSnapshot.backupLabel')">
+                                    <strong class="label">
+                                        Backup Label
+                                    </strong>
+                                    <span
+                                        class="helpTooltip"
+                                        :data-tooltip="getTooltip('sgbackup.status.volumeSnapshot.backupLabel')"
+                                    ></span>
+                                    <span class="value">
+                                        <a @click="setContentTooltip('#backupLabel')"> 
+                                            View Backup Label
+                                            <span class="eyeIcon"></span>
+                                        </a>
+
+                                        <div id="backupLabel" class="hidden">
+                                            <pre>
+                                                {{ crd.data.status.volumeSnapshot.backupLabel }}
+                                            </pre>
+                                        </div>
+                                    </span>
+                                </li>
+                                <li v-if="hasProp(crd, 'data.status.volumeSnapshot.tablespaceMap') && !isNull(crd.data.status.volumeSnapshot.tablespaceMap)">
+                                    <strong class="label">
+                                        Tablespace Map
+                                    </strong>
+                                    <span
+                                        class="helpTooltip"
+                                        :data-tooltip="getTooltip('sgbackup.status.volumeSnapshot.tablespaceMap')"
+                                    ></span>
+                                    <span class="value"> : {{ crd.data.status.volumeSnapshot.tablespaceMap }}</span>
+                                </li>
+                            </ul>
                         </li>
                     </template>
 
