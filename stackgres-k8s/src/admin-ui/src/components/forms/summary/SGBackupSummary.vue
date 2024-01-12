@@ -266,7 +266,7 @@
                                         </div>
                                     </span>
                                 </li>
-                                <li v-if="hasProp(crd, 'data.status.volumeSnapshot.tablespaceMap')">
+                                <li v-if="hasProp(crd, 'data.status.volumeSnapshot.tablespaceMap') && !isNull(crd.data.status.volumeSnapshot.tablespaceMap)">
                                     <strong class="label">
                                         Tablespace Map
                                     </strong>
