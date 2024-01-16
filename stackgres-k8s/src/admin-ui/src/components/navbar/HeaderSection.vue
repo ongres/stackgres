@@ -54,7 +54,7 @@
                 <!--CRD Name-->
                 <template v-if="currentPath.hasOwnProperty('name') && currentPath.name.length">
                     <li>
-                        <template v-if="(currentPath.component.startsWith('Edit')) || ($route.meta.componentName == 'SGCluster')">
+                        <template v-if="(currentPath.component.startsWith('Edit')) || ($route.meta.componentName == 'SGCluster') || ($route.meta.componentName == 'SGShardedCluster')">
                             <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + currentPath.name" :title="currentPath.name">
                                 {{ currentPath.name }}
                             </router-link>
@@ -91,7 +91,7 @@
                         <template v-else>
                             <span>
                                 <template v-if="$route.name.endsWith('Status')">Status</template>
-                                <template v-else-if="$route.name.endsWith('Info')">Configuration</template>
+                                <template v-else-if="$route.name.endsWith('Info') || $route.name.endsWith('Config')">Configuration</template>
                                 <template v-else-if="$route.name.includes('Backup')">Backups</template>
                                 <template v-else-if="$route.name.endsWith('Logs')">Logs</template>
                                 <template v-else-if="$route.name.includes('Monitor')">Monitoring</template>
