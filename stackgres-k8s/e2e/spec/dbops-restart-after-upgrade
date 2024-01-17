@@ -244,9 +244,16 @@ check_operator_upgrade() {
     return 1
   fi
   local POD_RESTAPI_IMAGE
-  POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-restapi \
+  POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l "$(
+    if [ "$STACKGRES_PREVIOUS_VERSION" = 1.5.0 ]
+    then
+      printf %s app=stackgres-restapi
+    else
+      printf %s app=StackGresConfig,stackgres.io/restapi=true
+    fi
+    )" \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
-    | head -n 1 | grep '/restapi:')"
+    | head -n 1)"
   if ! printf %s "$POD_RESTAPI_IMAGE" | grep -q '^[^/]\+\.[^/]\+/'
   then
     POD_RESTAPI_IMAGE="docker.io/$POD_RESTAPI_IMAGE"
