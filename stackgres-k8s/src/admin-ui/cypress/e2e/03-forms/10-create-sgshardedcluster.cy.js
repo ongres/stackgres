@@ -390,7 +390,7 @@ describe('Create SGShardedCluster', () => {
             .select('script-' + resourceName)
 
         // Test User-Supplied Pods Sidecars
-        cy.get('form#createShardedCluster li[data-step="coordinator.pods"]')
+        cy.get('form#createShardedCluster li[data-step="coordinator.sidecars"]')
             .click({force: true})
 
         // Test Custom volumes
@@ -963,7 +963,7 @@ describe('Create SGShardedCluster', () => {
             .select('script-' + resourceName)
 
         // Test User-Supplied Pods Sidecars
-        cy.get('form#createShardedCluster li[data-step="shards.pods"]')
+        cy.get('form#createShardedCluster li[data-step="shards.sidecars"]')
             .click({force: true})
 
         // Test Custom volumes
@@ -1538,7 +1538,7 @@ describe('Create SGShardedCluster', () => {
         */
 
         // Test User-Supplied Pods Sidecars
-        cy.get('form#createShardedCluster li[data-step="overrides.pods"]')
+        cy.get('form#createShardedCluster li[data-step="overrides.sidecars"]')
             .click()
 
         // Test Custom volumes
@@ -2707,7 +2707,7 @@ describe('Create SGShardedCluster', () => {
             .should('have.value', '2')
 
         // Test Coordinator User-Supplied Pods Sidecars
-        cy.get('form#createShardedCluster li[data-step="coordinator.pods"]')
+        cy.get('form#createShardedCluster li[data-step="coordinator.sidecars"]')
             .click()
 
         // Test Coordinator Custom volumes
@@ -3286,7 +3286,7 @@ describe('Create SGShardedCluster', () => {
             .should('have.value', '2')
 
         // Test Shards User-Supplied Pods Sidecars
-        cy.get('form#createShardedCluster li[data-step="shards.pods"]')
+        cy.get('form#createShardedCluster li[data-step="shards.sidecars"]')
             .click()
 
         // Test Shards Custom volumes
