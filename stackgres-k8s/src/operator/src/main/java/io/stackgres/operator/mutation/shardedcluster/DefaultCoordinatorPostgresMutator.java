@@ -5,10 +5,10 @@
 
 package io.stackgres.operator.mutation.shardedcluster;
 
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinator;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinatorConfigurations;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.operator.common.StackGresShardedClusterReview;
@@ -32,20 +32,21 @@ public class DefaultCoordinatorPostgresMutator
       resource.getSpec().setCoordinator(
           new StackGresShardedClusterCoordinator());
     }
-    if (resource.getSpec().getCoordinator().getConfigurations() == null) {
-      resource.getSpec().getCoordinator().setConfigurations(
-          new StackGresClusterConfigurations());
+    if (resource.getSpec().getCoordinator().getConfigurationsForCoordinator() == null) {
+      resource.getSpec().getCoordinator().setConfigurationsForCoordinator(
+          new StackGresShardedClusterCoordinatorConfigurations());
     }
   }
 
   @Override
   protected String getTargetPropertyValue(StackGresShardedCluster resource) {
-    return resource.getSpec().getCoordinator().getConfigurations().getSgPostgresConfig();
+    return resource.getSpec().getCoordinator().getConfigurationsForCoordinator()
+        .getSgPostgresConfig();
   }
 
   @Override
   protected void setTargetProperty(StackGresShardedCluster resource, String defaultResourceName) {
-    resource.getSpec().getCoordinator().getConfigurations()
+    resource.getSpec().getCoordinator().getConfigurationsForCoordinator()
         .setSgPostgresConfig(defaultResourceName);
   }
 

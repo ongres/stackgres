@@ -147,7 +147,7 @@ class PostgresVersionValidatorTest {
 
     StackGresShardedClusterSpec spec = review.getRequest().getObject().getSpec();
     String coordinatorPostgresProfile =
-        spec.getCoordinator().getConfigurations().getSgPostgresConfig();
+        spec.getCoordinator().getConfigurationsForCoordinator().getSgPostgresConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
@@ -171,7 +171,7 @@ class PostgresVersionValidatorTest {
     StackGresShardedClusterSpec spec = review.getRequest().getObject().getSpec();
     spec.getPostgres().setVersion(getMajorPostgresVersion(getRandomPostgresVersion()));
     String coordinatorPostgresProfile =
-        spec.getCoordinator().getConfigurations().getSgPostgresConfig();
+        spec.getCoordinator().getConfigurationsForCoordinator().getSgPostgresConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
@@ -195,7 +195,7 @@ class PostgresVersionValidatorTest {
     StackGresShardedClusterSpec spec = review.getRequest().getObject().getSpec();
     spec.getPostgres().setVersion(StackGresComponent.LATEST);
     String postgresProfile = spec.getCoordinator()
-        .getConfigurations().getSgPostgresConfig();
+        .getConfigurationsForCoordinator().getSgPostgresConfig();
 
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
@@ -219,7 +219,8 @@ class PostgresVersionValidatorTest {
     postgresConfig.getSpec().setPostgresVersion(FIRST_PG_MAJOR_VERSION);
 
     StackGresShardedClusterSpec spec = review.getRequest().getObject().getSpec();
-    String postgresProfile = spec.getCoordinator().getConfigurations().getSgPostgresConfig();
+    String postgresProfile = spec.getCoordinator().getConfigurationsForCoordinator()
+        .getSgPostgresConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(postgresProfile, namespace))
@@ -253,7 +254,7 @@ class PostgresVersionValidatorTest {
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(spec.getCoordinator()
-        .getConfigurations().getSgPostgresConfig(), namespace))
+        .getConfigurationsForCoordinator().getSgPostgresConfig(), namespace))
         .thenReturn(Optional.of(postgresConfig));
     when(configFinder.findByNameAndNamespace(postgresProfile, namespace))
         .thenReturn(Optional.of(otherPostgresConfig));
@@ -293,7 +294,7 @@ class PostgresVersionValidatorTest {
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(spec.getCoordinator()
-        .getConfigurations().getSgPostgresConfig(), namespace))
+        .getConfigurationsForCoordinator().getSgPostgresConfig(), namespace))
         .thenReturn(Optional.of(postgresConfig));
     when(configFinder.findByNameAndNamespace(spec.getShards()
         .getConfigurations().getSgPostgresConfig(), namespace))
@@ -419,7 +420,8 @@ class PostgresVersionValidatorTest {
     review.getRequest().getObject().getSpec().getPostgres().setVersion(FIRST_PG_MAJOR_VERSION);
 
     StackGresShardedClusterSpec spec = review.getRequest().getObject().getSpec();
-    String postgresProfile = spec.getCoordinator().getConfigurations().getSgPostgresConfig();
+    String postgresProfile = spec.getCoordinator().getConfigurationsForCoordinator()
+        .getSgPostgresConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(postgresProfile, namespace))
@@ -449,7 +451,7 @@ class PostgresVersionValidatorTest {
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(spec.getCoordinator()
-        .getConfigurations().getSgPostgresConfig(), namespace))
+        .getConfigurationsForCoordinator().getSgPostgresConfig(), namespace))
         .thenReturn(Optional.of(postgresConfig));
     when(configFinder.findByNameAndNamespace(postgresProfile, namespace))
         .thenReturn(Optional.empty());
@@ -485,7 +487,7 @@ class PostgresVersionValidatorTest {
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(spec.getCoordinator()
-        .getConfigurations().getSgPostgresConfig(), namespace))
+        .getConfigurationsForCoordinator().getSgPostgresConfig(), namespace))
         .thenReturn(Optional.of(postgresConfig));
     when(configFinder.findByNameAndNamespace(spec.getShards()
         .getConfigurations().getSgPostgresConfig(), namespace))
@@ -513,7 +515,8 @@ class PostgresVersionValidatorTest {
     review.getRequest().getOldObject().getSpec().getPostgres().setVersion(FIRST_PG_MAJOR_VERSION);
 
     StackGresShardedClusterSpec spec = review.getRequest().getObject().getSpec();
-    String postgresProfile = spec.getCoordinator().getConfigurations().getSgPostgresConfig();
+    String postgresProfile = spec.getCoordinator().getConfigurationsForCoordinator()
+        .getSgPostgresConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(postgresProfile, namespace))
@@ -544,7 +547,7 @@ class PostgresVersionValidatorTest {
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(spec.getCoordinator()
-        .getConfigurations().getSgPostgresConfig(), namespace))
+        .getConfigurationsForCoordinator().getSgPostgresConfig(), namespace))
         .thenReturn(Optional.of(postgresConfig));
     when(configFinder.findByNameAndNamespace(postgresProfile, namespace))
         .thenReturn(Optional.empty());
@@ -590,7 +593,7 @@ class PostgresVersionValidatorTest {
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(spec.getCoordinator()
-        .getConfigurations().getSgPostgresConfig(), namespace))
+        .getConfigurationsForCoordinator().getSgPostgresConfig(), namespace))
         .thenReturn(Optional.of(postgresConfig));
     when(configFinder.findByNameAndNamespace(spec.getShards()
         .getConfigurations().getSgPostgresConfig(), namespace))
@@ -632,7 +635,7 @@ class PostgresVersionValidatorTest {
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(spec.getCoordinator()
-        .getConfigurations().getSgPostgresConfig(), namespace))
+        .getConfigurationsForCoordinator().getSgPostgresConfig(), namespace))
         .thenReturn(Optional.of(postgresConfig));
     when(configFinder.findByNameAndNamespace(spec.getShards()
         .getConfigurations().getSgPostgresConfig(), namespace))

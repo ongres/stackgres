@@ -12,6 +12,7 @@ import static org.mockito.MockitoAnnotations.openMocks;
 import java.util.List;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.LabelFactoryForShardedCluster;
@@ -28,6 +29,7 @@ public class ShardedClustersTest {
   private StackGresShardedClusterContext context;
 
   private LabelFactoryForShardedCluster labelFactory;
+  private StackGresConfig config;
   private StackGresShardedCluster shardedCluster;
   private StackGresCluster coordinator;
   private StackGresCluster shard0;
@@ -37,6 +39,7 @@ public class ShardedClustersTest {
   @BeforeEach
   public void setup() {
     openMocks(this);
+    config = Fixtures.config().loadDefault().get();
     shardedCluster = Fixtures.shardedCluster().loadDefault().get();
 
     labelFactory = new ShardedClusterLabelFactory(new ShardedClusterLabelMapper());
@@ -44,7 +47,9 @@ public class ShardedClustersTest {
     shard0 = Fixtures.cluster().loadDefault().get();
     shard1 = Fixtures.cluster().loadDefault().get();
     shardedClusters = new ShardedClusters(labelFactory);
+    when(context.getConfig()).thenReturn(config);
     when(context.getSource()).thenReturn(shardedCluster);
+    when(context.getShardedCluster()).thenReturn(shardedCluster);
     when(context.getCoordinator()).thenReturn(coordinator);
     when(context.getShards()).thenReturn(List.of(shard0, shard1));
   }

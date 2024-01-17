@@ -25,7 +25,7 @@ public class DbOpsScheduler
     return client.resources(StackGresDbOps.class, StackGresDbOpsList.class)
         .resource(resource)
         .lockResourceVersion(resource.getMetadata().getResourceVersion())
-        .replace();
+        .update();
   }
 
 }

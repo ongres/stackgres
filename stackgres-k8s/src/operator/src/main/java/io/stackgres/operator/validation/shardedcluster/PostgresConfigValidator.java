@@ -27,6 +27,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinator;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShard;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardConfigurations;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShards;
@@ -98,7 +99,7 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
         .orElse(null);
     String coordinatorPgConfig = Optional.of(cluster.getSpec())
         .map(StackGresShardedClusterSpec::getCoordinator)
-        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresShardedClusterCoordinator::getConfigurationsForCoordinator)
         .map(StackGresClusterConfigurations::getSgPostgresConfig)
         .orElse(null);
     String shardsPgConfig = Optional.of(cluster.getSpec())
@@ -177,7 +178,7 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
         }
 
         String oldCoordinatorPgConfig = oldCluster.getSpec().getCoordinator()
-            .getConfigurations().getSgPostgresConfig();
+            .getConfigurationsForCoordinator().getSgPostgresConfig();
         if (!oldCoordinatorPgConfig.equals(coordinatorPgConfig)) {
           validateAgainstConfiguration(givenMajorVersion, coordinatorPgConfig, namespace,
               "for coordinator");
@@ -301,7 +302,7 @@ public class PostgresConfigValidator implements ShardedClusterValidator {
     @Override
     protected String getReference(StackGresShardedCluster resource) {
       return Optional.ofNullable(resource.getSpec()
-          .getCoordinator().getConfigurations())
+          .getCoordinator().getConfigurationsForCoordinator())
           .map(StackGresClusterConfigurations::getSgPostgresConfig)
           .orElse(null);
     }

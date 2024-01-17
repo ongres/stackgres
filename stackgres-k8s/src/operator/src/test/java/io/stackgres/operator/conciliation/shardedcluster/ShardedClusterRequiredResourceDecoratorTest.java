@@ -11,6 +11,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.fixture.Fixtures;
@@ -29,11 +30,13 @@ class ShardedClusterRequiredResourceDecoratorTest
   @Inject
   ShardedClusterResourceGenerationDiscoverer resourceGenerationDiscoverer;
 
+  private StackGresConfig config;
   private StackGresShardedCluster resource;
   private StackGresPostgresConfig pgConfig;
 
   @BeforeEach
   public void setup() {
+    this.config = Fixtures.config().loadDefault().get();
     this.resource = Fixtures.shardedCluster().loadDefault().withLatestPostgresVersion().get();
     this.pgConfig = Fixtures.postgresConfig().loadDefault().get();
   }
@@ -47,6 +50,7 @@ class ShardedClusterRequiredResourceDecoratorTest
   @Override
   protected StackGresShardedClusterContext getResourceContext() {
     return ImmutableStackGresShardedClusterContext.builder()
+        .config(config)
         .source(resource)
         .coordinatorConfig(pgConfig)
         .coordinator(getCoordinator())

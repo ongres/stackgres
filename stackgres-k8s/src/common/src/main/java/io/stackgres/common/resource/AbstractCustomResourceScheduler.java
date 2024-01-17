@@ -75,7 +75,7 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?
               .inNamespace(resource.getMetadata().getNamespace())
               .resource(resourceToUpdate)
               .lockResourceVersion(resourceToUpdate.getMetadata().getResourceVersion())
-              .replace();
+              .update();
         });
   }
 
@@ -92,7 +92,7 @@ public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?
               .inNamespace(resource.getMetadata().getNamespace())
               .resource(resourceToUpdate)
               .lockResourceVersion(resourceToUpdate.getMetadata().getResourceVersion())
-              .replaceStatus();
+              .updateStatus();
         });
   }
 

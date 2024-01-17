@@ -1,0 +1,51 @@
+#!/bin/sh
+
+shardingsphere_namespace() {
+  echo "$CLUSTER_NAMESPACE-shardingsphere"
+}
+
+install_shardingsphere_operator() {
+  if [ "$E2E_ENV" = "minishift" ] || [ "$E2E_ENV" = "crc" ] || [ "$E2E_ENV" = "microshift" ]
+  then
+    if [ "$E2E_ENV" = "minishift" ]
+    then
+      eval "$(minishift oc-env)"
+    fi
+    if [ "$E2E_ENV" = "crc" ]
+    then
+      eval "$(crc oc-env)"
+    fi
+    if [ "$E2E_ENV" = "microshift" ]
+    then
+      alias oc="docker exec -ti '$K8S_NAME' oc"
+    fi
+    kubectl create ns "$(shardingsphere_namespace)"
+    oc adm policy add-scc-to-user anyuid -n "$(shardingsphere_namespace)" -z shardingsphere-operator
+    oc adm policy add-scc-to-user anyuid -n "$(shardingsphere_namespace)" -z default
+  fi
+
+  helm install shardingsphere-operator "$E2E_PATH/helm/apache-shardingsphere-operator-charts-0.3.0.tgz" \
+    --create-namespace \
+    --namespace "$(shardingsphere_namespace)" \
+    --set operator.featureGates.computeNode=true \
+    --set proxyCluster.enabled=false \
+    "$@"
+  kubectl delete clusterrole shardingsphere-operator-for-stackgres --ignore-not-found
+  kubectl delete clusterrolebinding shardingsphere-operator-for-stackgres --ignore-not-found
+  kubectl create clusterrole shardingsphere-operator-for-stackgres \
+    --verb update \
+    --resource=computenodes.shardingsphere.apache.org/finalizers
+  kubectl create clusterrolebinding shardingsphere-operator-for-stackgres \
+    --clusterrole=shardingsphere-operator-for-stackgres \
+    --serviceaccount="$(shardingsphere_namespace):shardingsphere-operator"
+  kubectl patch sgconfig -n "$OPERATOR_NAMESPACE" stackgres-operator --type json -p "[
+    {\"op\":\"replace\",\"path\":\"/spec/shardingSphere\",
+      \"value\":{\"serviceAccount\":{\"namespace\":\"$(shardingsphere_namespace)\",\"name\":\"shardingsphere-operator\"}}}]"
+
+  wait_pods_running "$(shardingsphere_namespace)" 2
+}
+
+uninstall_shardingsphere_operator() {
+  helm_cleanup_chart shardingsphere-operator "$(shardingsphere_namespace)"
+  k8s_async_cleanup_namespace "$(shardingsphere_namespace)"
+}

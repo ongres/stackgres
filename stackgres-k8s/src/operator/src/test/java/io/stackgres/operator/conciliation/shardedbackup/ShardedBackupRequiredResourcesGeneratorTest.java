@@ -24,6 +24,7 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
@@ -33,6 +34,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigura
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.resource.ClusterFinder;
+import io.stackgres.common.resource.ConfigScanner;
 import io.stackgres.common.resource.ObjectStorageFinder;
 import io.stackgres.common.resource.ProfileConfigFinder;
 import io.stackgres.common.resource.ShardedClusterFinder;
@@ -43,6 +45,9 @@ import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 class ShardedBackupRequiredResourcesGeneratorTest {
+
+  @InjectMock
+  ConfigScanner configScanner;
 
   @InjectMock
   ShardedClusterFinder shardedClusterFinder;
@@ -59,6 +64,7 @@ class ShardedBackupRequiredResourcesGeneratorTest {
   @Inject
   ShardedBackupRequiredResourcesGenerator generator;
 
+  private StackGresConfig config;
   private StackGresShardedBackup backup;
   private StackGresObjectStorage objectStorage;
   private StackGresCluster coordinator;
@@ -67,6 +73,7 @@ class ShardedBackupRequiredResourcesGeneratorTest {
 
   @BeforeEach
   void setUp() {
+    config = Fixtures.config().loadDefault().get();
     backup = Fixtures.shardedBackup().loadDefault().get();
     profile = Fixtures.instanceProfile().loadSizeS().get();
     objectStorage = Fixtures.objectStorage().loadDefault().get();
@@ -91,6 +98,9 @@ class ShardedBackupRequiredResourcesGeneratorTest {
     final String profileName = cluster.getSpec().getCoordinator().getSgInstanceProfile();
 
     backup.getSpec().setSgShardedCluster(clusterName);
+
+    when(configScanner.findResources())
+        .thenReturn(Optional.of(List.of(config)));
 
     when(shardedClusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
@@ -130,6 +140,9 @@ class ShardedBackupRequiredResourcesGeneratorTest {
         List.of(backupConfiguration));
     backupConfiguration.setSgObjectStorage(objectStorage.getMetadata().getName());
 
+    when(configScanner.findResources())
+        .thenReturn(Optional.of(List.of(config)));
+
     when(shardedClusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
 
@@ -157,6 +170,9 @@ class ShardedBackupRequiredResourcesGeneratorTest {
     final String clusterName = backup.getSpec().getSgShardedCluster();
     final String coordinatorName = getCoordinatorClusterName(clusterName);
 
+    when(configScanner.findResources())
+        .thenReturn(Optional.of(List.of(config)));
+
     when(shardedClusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.empty());
 
@@ -182,11 +198,14 @@ class ShardedBackupRequiredResourcesGeneratorTest {
     final String profileName = cluster.getSpec().getCoordinator().getSgInstanceProfile();
     final StackGresShardedClusterSpec clusterSpec = cluster.getSpec();
     final StackGresClusterConfigurations clusterConfiguration =
-        clusterSpec.getCoordinator().getConfigurations();
+        clusterSpec.getCoordinator().getConfigurationsForCoordinator();
     var backupConfiguration = new StackGresClusterBackupConfiguration();
     clusterConfiguration.setBackups(
         List.of(backupConfiguration));
     backupConfiguration.setSgObjectStorage(objectStorage.getMetadata().getName());
+
+    when(configScanner.findResources())
+        .thenReturn(Optional.of(List.of(config)));
 
     when(shardedClusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
@@ -226,6 +245,9 @@ class ShardedBackupRequiredResourcesGeneratorTest {
 
     cluster.getSpec().setConfigurations(null);
 
+    when(configScanner.findResources())
+        .thenReturn(Optional.of(List.of(config)));
+
     when(shardedClusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
 
@@ -255,6 +277,9 @@ class ShardedBackupRequiredResourcesGeneratorTest {
     final String clusterName = backup.getSpec().getSgShardedCluster();
     final String coordinatorName = getCoordinatorClusterName(clusterName);
     final String profileName = cluster.getSpec().getCoordinator().getSgInstanceProfile();
+
+    when(configScanner.findResources())
+        .thenReturn(Optional.of(List.of(config)));
 
     when(shardedClusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));
@@ -286,6 +311,9 @@ class ShardedBackupRequiredResourcesGeneratorTest {
     final String clusterName = backup.getSpec().getSgShardedCluster();
     final String coordinatorName = getCoordinatorClusterName(clusterName);
     final String profileName = cluster.getSpec().getCoordinator().getSgInstanceProfile();
+
+    when(configScanner.findResources())
+        .thenReturn(Optional.of(List.of(config)));
 
     when(shardedClusterFinder.findByNameAndNamespace(any(), any()))
         .thenReturn(Optional.of(cluster));

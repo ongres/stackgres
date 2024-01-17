@@ -337,6 +337,10 @@ public interface StackGresUtil {
         StackGresShardingType.fromString(cluster.getSpec().getType()))) {
       return getDefaultDdpShardedClusterExtensions(cluster);
     }
+    if (StackGresShardingType.SHARDING_SPHERE.equals(
+        StackGresShardingType.fromString(cluster.getSpec().getType()))) {
+      return getDefaultShardingSphereShardedClusterExtensions(cluster);
+    }
     return List.of();
   }
 
@@ -368,6 +372,12 @@ public interface StackGresUtil {
   }
 
   static List<ExtensionTuple> getDefaultDdpShardedClusterExtensions(StackGresShardedCluster cluster) {
+    return List.of(
+        new ExtensionTuple("dblink"),
+        new ExtensionTuple("postgres_fdw"));
+  }
+
+  static List<ExtensionTuple> getDefaultShardingSphereShardedClusterExtensions(StackGresShardedCluster cluster) {
     return List.of(
         new ExtensionTuple("dblink"),
         new ExtensionTuple("postgres_fdw"));

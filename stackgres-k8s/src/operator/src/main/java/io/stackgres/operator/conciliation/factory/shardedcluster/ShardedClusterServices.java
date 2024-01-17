@@ -24,6 +24,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresCoordinatorServices;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresServices;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresShardsServices;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardingType;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.labels.LabelFactoryForShardedCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -59,7 +60,9 @@ public class ShardedClusterServices implements
     var coordinatorServices = context.getSource().getSpec().getPostgresServices().getCoordinator();
     if (Optional.of(coordinatorServices.getAny())
         .map(StackGresPostgresService::getEnabled)
-        .orElse(true)) {
+        .orElse(true)
+        && !StackGresShardingType.SHARDING_SPHERE.equals(
+            StackGresShardingType.fromString(context.getShardedCluster().getSpec().getType()))) {
       services = services.append(createCoordinatorAnyService(context));
     }
 
@@ -136,13 +139,17 @@ public class ShardedClusterServices implements
                 .withName(EnvoyUtil.POSTGRES_PORT_NAME)
                 .withPort(PatroniUtil.POSTGRES_SERVICE_PORT)
                 .withTargetPort(new IntOrString(EnvoyUtil.POSTGRES_PORT_NAME))
-                .build(),
+                .build()))
+        .addAllToPorts(Seq.of(
             new ServicePortBuilder()
                 .withProtocol("TCP")
                 .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
                 .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
                 .withTargetPort(new IntOrString(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME))
-                .build()))
+                .build())
+            .filter(ignore -> !StackGresShardingType.SHARDING_SPHERE.equals(
+                StackGresShardingType.fromString(context.getShardedCluster().getSpec().getType())))
+            .toList())
         .addAllToPorts(
             Optional.of(context.getSource().getSpec().getPostgresServices())
             .map(StackGresShardedClusterPostgresServices::getCoordinator)

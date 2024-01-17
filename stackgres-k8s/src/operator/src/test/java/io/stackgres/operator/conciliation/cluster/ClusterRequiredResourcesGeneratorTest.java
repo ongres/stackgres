@@ -21,7 +21,7 @@ import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.prometheus.PodMonitor;
-import io.stackgres.common.prometheus.PrometheusConfig;
+import io.stackgres.common.prometheus.Prometheus;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
@@ -310,7 +310,7 @@ class ClusterRequiredResourcesGeneratorTest extends AbstractClusterRequiredResou
         .thenReturn(Optional.of(backup));
     mockSecrets();
 
-    List<PrometheusConfig> listPrometheus = Fixtures.prometheusList().loadDefault().get()
+    List<Prometheus> listPrometheus = Fixtures.prometheusList().loadDefault().get()
             .getItems()
             .stream()
             .peek(pc -> pc.getSpec().setPodMonitorSelector(null))
