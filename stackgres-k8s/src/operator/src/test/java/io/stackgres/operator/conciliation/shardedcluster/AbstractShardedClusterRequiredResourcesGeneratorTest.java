@@ -102,7 +102,7 @@ abstract class AbstractShardedClusterRequiredResourcesGeneratorTest {
 
   void mockPgConfig() {
     when(postgresConfigFinder.findByNameAndNamespace(
-        cluster.getSpec().getCoordinator().getConfigurations().getSgPostgresConfig(),
+        cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().getSgPostgresConfig(),
         cluster.getMetadata().getNamespace()))
         .thenReturn(Optional.of(this.postgresConfig));
   }

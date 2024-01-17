@@ -5,9 +5,11 @@
 
 package io.stackgres.operator.conciliation.factory.shardedcluster;
 
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardingType;
 import io.stackgres.common.labels.LabelFactoryForShardedCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
@@ -29,7 +31,10 @@ public class ShardedClusters implements ResourceGenerator<StackGresShardedCluste
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresShardedClusterContext context) {
-    return Seq.<HasMetadata>of(context.getCoordinator())
+    return Seq.of(Boolean.TRUE)
+        .filter(Predicate.not(ignore -> StackGresShardingType.SHARDING_SPHERE.equals(
+            StackGresShardingType.fromString(context.getShardedCluster().getSpec().getType()))))
+        .<HasMetadata>map(ignore -> context.getCoordinator())
         .map(coordinator -> {
           coordinator.getMetadata().setLabels(labelFactory.coordinatorLabels(context.getSource()));
           return coordinator;

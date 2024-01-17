@@ -25,7 +25,7 @@ public class ClusterScheduler extends
     return client.resources(StackGresCluster.class, StackGresClusterList.class)
         .resource(resource)
         .lockResourceVersion(resource.getMetadata().getResourceVersion())
-        .replace();
+        .update();
   }
 
 }

@@ -9,9 +9,10 @@ check_user_on_replica() {
 }
 
 check_user_on_sharded_primary() {
+  local FROM_HOST_INDEX="${1:-1}"
   local HOST="$CLUSTER_NAME"
   local CLUSTER_NAME="$CLUSTER_NAME-coord"
-  check_user "$HOST" 1
+  check_user "$HOST" "$FROM_HOST_INDEX"
 }
 
 check_user() {
@@ -39,9 +40,10 @@ check_database_on_replica() {
 }
 
 check_database_on_sharded_primary() {
+  local FROM_HOST_INDEX="${1:-1}"
   local HOST="$CLUSTER_NAME"
   local CLUSTER_NAME="$CLUSTER_NAME-coord"
-  check_database "$HOST" 1
+  check_database "$HOST" "$FROM_HOST_INDEX"
 }
 
 check_database() {
@@ -67,9 +69,10 @@ check_schema_on_replica() {
 }
 
 check_schema_on_sharded_primary() {
+  local FROM_HOST_INDEX="${1:-1}"
   local HOST="$CLUSTER_NAME"
   local CLUSTER_NAME="$CLUSTER_NAME-coord"
-  check_schema "$HOST" 1
+  check_schema "$HOST" "$FROM_HOST_INDEX"
 }
 
 check_schema() {

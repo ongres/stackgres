@@ -25,6 +25,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterReplication;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinator;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinatorConfigurations;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresServicesBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShards;
 import io.stackgres.common.fixture.Fixtures;
@@ -40,9 +41,10 @@ class StackGresShardedClusterForDdpUtilTest {
   void givedMinimalShardedCluster_shouldGenerateCoordinatorCluster() {
     var shardedCluster = getMinimalShardedCluster();
     var cluster = getCoordinatorCluster(JsonUtil.copy(shardedCluster));
-    checkCoordinatorWithGlobalSettings(
+    checkClusterWithGlobalSettings(
         shardedCluster,
         shardedCluster.getSpec().getCoordinator(),
+        shardedCluster.getSpec().getCoordinator().getConfigurationsForCoordinator(),
         cluster,
         0);
     Assertions.assertEquals(
@@ -69,9 +71,10 @@ class StackGresShardedClusterForDdpUtilTest {
         .endCoordinator()
         .build());
     var cluster = getCoordinatorCluster(JsonUtil.copy(shardedCluster));
-    checkCoordinatorWithGlobalSettings(
+    checkClusterWithGlobalSettings(
         shardedCluster,
         shardedCluster.getSpec().getCoordinator(),
+        shardedCluster.getSpec().getCoordinator().getConfigurationsForCoordinator(),
         cluster,
         0);
     Assertions.assertEquals(
@@ -101,9 +104,10 @@ class StackGresShardedClusterForDdpUtilTest {
         shardedCluster.getSpec().getPostgresServices().getCoordinator().getPrimary();
     coordinatorPrimary.setEnabled(false);
     var cluster = getCoordinatorCluster(JsonUtil.copy(shardedCluster));
-    checkCoordinatorWithGlobalSettings(
+    checkClusterWithGlobalSettings(
         shardedCluster,
         shardedCluster.getSpec().getCoordinator(),
+        shardedCluster.getSpec().getCoordinator().getConfigurationsForCoordinator(),
         cluster,
         0);
     Assertions.assertEquals(
@@ -125,6 +129,7 @@ class StackGresShardedClusterForDdpUtilTest {
     checkClusterWithGlobalSettings(
         shardedCluster,
         shardedCluster.getSpec().getShards(),
+        shardedCluster.getSpec().getShards().getConfigurations(),
         cluster,
         1);
     Assertions.assertEquals(
@@ -154,6 +159,7 @@ class StackGresShardedClusterForDdpUtilTest {
     checkClusterWithGlobalSettings(
         shardedCluster,
         shardedCluster.getSpec().getShards(),
+        shardedCluster.getSpec().getShards().getConfigurations(),
         cluster,
         1);
     Assertions.assertEquals(
@@ -183,6 +189,7 @@ class StackGresShardedClusterForDdpUtilTest {
     checkClusterWithGlobalSettings(
         shardedCluster,
         shardedCluster.getSpec().getShards(),
+        shardedCluster.getSpec().getShards().getConfigurations(),
         cluster,
         1);
     Assertions.assertEquals(
@@ -203,8 +210,8 @@ class StackGresShardedClusterForDdpUtilTest {
         .withNewPostgres()
         .endPostgres()
         .withNewCoordinator()
-        .withNewConfigurations()
-        .endConfigurations()
+        .withNewConfigurationsForCoordinator()
+        .endConfigurationsForCoordinator()
         .endCoordinator()
         .withNewShards()
         .withNewConfigurations()
@@ -229,9 +236,10 @@ class StackGresShardedClusterForDdpUtilTest {
     var coordinatorPrimary =
         shardedCluster.getSpec().getPostgresServices().getCoordinator().getPrimary();
     var cluster = getCoordinatorCluster(JsonUtil.copy(shardedCluster));
-    checkCoordinatorWithGlobalSettings(
+    checkClusterWithGlobalSettings(
         shardedCluster,
         shardedCluster.getSpec().getCoordinator(),
+        shardedCluster.getSpec().getCoordinator().getConfigurationsForCoordinator(),
         cluster,
         0);
     Assertions.assertEquals(
@@ -265,7 +273,8 @@ class StackGresShardedClusterForDdpUtilTest {
     var cluster = getShardsCluster(JsonUtil.copy(shardedCluster), 0);
     checkClusterWithGlobalSettings(
         shardedCluster,
-        shardedCluster.getSpec().getCoordinator(),
+        shardedCluster.getSpec().getShards(),
+        shardedCluster.getSpec().getShards().getConfigurations(),
         cluster,
         1);
     Assertions.assertEquals(
@@ -297,11 +306,11 @@ class StackGresShardedClusterForDdpUtilTest {
     shardedCluster.getSpec().getCoordinator().getReplicationForCoordinator().setRole(null);
     shardedCluster.getSpec().getCoordinator().getReplicationForCoordinator().setGroups(null);
     var cluster = getCoordinatorCluster(JsonUtil.copy(shardedCluster));
-    checkCoordinatorWithSettings(
+    checkClusterWithSettings(
         shardedCluster,
         shardedCluster.getSpec().getCoordinator(),
         shardedCluster.getSpec().getCoordinator().getReplicationForCoordinator(),
-        shardedCluster.getSpec().getCoordinator().getConfigurations(),
+        shardedCluster.getSpec().getCoordinator().getConfigurationsForCoordinator(),
         shardedCluster.getSpec().getCoordinator().getPods(),
         cluster,
         0);
@@ -370,7 +379,7 @@ class StackGresShardedClusterForDdpUtilTest {
     shardedCluster.getSpec().setCoordinator(new StackGresShardedClusterCoordinator());
     shardedCluster.getSpec().getCoordinator().setInstances(1);
     shardedCluster.getSpec().getCoordinator()
-        .setConfigurations(new StackGresClusterConfigurations());
+        .setConfigurationsForCoordinator(new StackGresShardedClusterCoordinatorConfigurations());
     shardedCluster.getSpec().getCoordinator().setPods(new StackGresClusterPods());
     shardedCluster.getSpec().setShards(new StackGresShardedClusterShards());
     shardedCluster.getSpec().getShards().setClusters(1);
@@ -379,24 +388,22 @@ class StackGresShardedClusterForDdpUtilTest {
     shardedCluster.getSpec().getShards().setPods(new StackGresClusterPods());
   }
 
-  private void checkCoordinatorWithGlobalSettings(
-      StackGresShardedCluster shardedCluster,
-      StackGresClusterSpec clusterSpec,
-      StackGresCluster cluster,
-      int index) {
-    checkClusterWithGlobalSettings(
-        shardedCluster,
-        clusterSpec,
-        cluster,
-        index);
-  }
-
   private void checkClusterWithGlobalSettings(
       StackGresShardedCluster shardedCluster,
       StackGresClusterSpec clusterSpec,
+      StackGresClusterConfigurations configuration,
       StackGresCluster cluster,
       int index) {
     checkClusterGlobalSettingsOnly(shardedCluster, cluster, index);
+    if (shardedCluster.getSpec().getMetadata() != null
+        && shardedCluster.getSpec().getMetadata().getLabels() != null) {
+      Assertions.assertEquals(
+          shardedCluster.getSpec().getMetadata().getLabels().getClusterPods(),
+          cluster.getSpec().getMetadata().getLabels().getClusterPods());
+      Assertions.assertEquals(
+          shardedCluster.getSpec().getMetadata().getLabels().getServices(),
+          cluster.getSpec().getMetadata().getLabels().getServices());
+    }
     if (shardedCluster.getSpec().getMetadata() != null
         && shardedCluster.getSpec().getMetadata().getAnnotations() != null) {
       Assertions.assertEquals(
@@ -407,25 +414,10 @@ class StackGresShardedClusterForDdpUtilTest {
         shardedCluster.getSpec().getReplication(),
         cluster.getSpec().getReplication());
     checkClusterSettings(
-        clusterSpec, clusterSpec.getConfigurations(), clusterSpec.getPods(), cluster);
-  }
-
-  private void checkCoordinatorWithSettings(
-      StackGresShardedCluster shardedCluster,
-      StackGresClusterSpec clusterSpec,
-      StackGresClusterReplication replication,
-      StackGresClusterConfigurations configuration,
-      StackGresClusterPods pod,
-      StackGresCluster cluster,
-      int index) {
-    checkClusterWithSettings(
-        shardedCluster,
         clusterSpec,
-        replication,
         configuration,
-        pod,
-        cluster,
-        index);
+        clusterSpec.getPods(),
+        cluster);
   }
 
   private void checkClusterWithSettings(
@@ -437,6 +429,18 @@ class StackGresShardedClusterForDdpUtilTest {
       StackGresCluster cluster,
       int index) {
     checkClusterGlobalSettingsOnly(shardedCluster, cluster, index);
+    Assertions.assertEquals(
+        clusterSpec.getMetadata().getLabels().getClusterPods(),
+        cluster.getSpec().getMetadata().getLabels().getClusterPods());
+    Assertions.assertEquals(
+        clusterSpec.getMetadata().getLabels().getServices(),
+        cluster.getSpec().getMetadata().getLabels().getServices());
+    Assertions.assertEquals(
+        clusterSpec.getMetadata().getAnnotations(),
+        cluster.getSpec().getMetadata().getAnnotations());
+    Assertions.assertEquals(
+        replication,
+        cluster.getSpec().getReplication());
     checkClusterSettings(clusterSpec, configuration, pod, cluster);
   }
 

@@ -87,7 +87,7 @@ class ShardsOverridesScriptsConfigMutatorTest {
 
     StackGresShardedCluster expected = JsonUtil.copy(review.getRequest().getObject());
     expected.getSpec().getShards().getOverrides().get(0)
-        .getManagedSql().getScripts().get(1).setId(4);
+        .getManagedSql().getScripts().get(1).setId(13);
     JsonNode expectedCluster = JsonUtil.toJson(expected);
 
     StackGresShardedCluster result = mutator.mutate(

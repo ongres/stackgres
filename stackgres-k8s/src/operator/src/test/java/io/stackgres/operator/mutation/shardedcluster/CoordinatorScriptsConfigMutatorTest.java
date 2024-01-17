@@ -85,7 +85,7 @@ class CoordinatorScriptsConfigMutatorTest {
         .add(1, new StackGresClusterManagedScriptEntry());
 
     StackGresShardedCluster expected = JsonUtil.copy(review.getRequest().getObject());
-    expected.getSpec().getCoordinator().getManagedSql().getScripts().get(1).setId(4);
+    expected.getSpec().getCoordinator().getManagedSql().getScripts().get(1).setId(13);
     JsonNode expectedCluster = JsonUtil.toJson(expected);
 
     StackGresShardedCluster result = mutator.mutate(

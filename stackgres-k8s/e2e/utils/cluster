@@ -236,12 +236,18 @@ wait_sharded_cluster() {
   local PATRONICTL_OPTS=""
   local SHARDING_TYPE
   SHARDING_TYPE="$(kubectl get sgshardedcluster -n "$NAMESPACE" "$SHARDED_RELEASE" --template '{{ .spec.type }}')"
-  for RELEASE in $SHARDED_RELEASE-coord $(
-    seq 0 "$(( -1 + $(kubectl get sgshardedcluster -n "$NAMESPACE" "$SHARDED_RELEASE" --template '{{ .spec.shards.clusters }}') ))" \
-      | while read INDEX
-        do
-          printf '%s-shard%s ' "$SHARDED_RELEASE" "$INDEX"
-        done)
+  for RELEASE in \
+    $(
+    if [ "$SHARDING_TYPE" != shardingsphere ]
+    then
+      printf '%s-coord' "$SHARDED_RELEASE"
+    fi) \
+    $(
+      seq 0 "$(( -1 + $(kubectl get sgshardedcluster -n "$NAMESPACE" "$SHARDED_RELEASE" --template '{{ .spec.shards.clusters }}') ))" \
+        | while read INDEX
+          do
+            printf '%s-shard%s ' "$SHARDED_RELEASE" "$INDEX"
+          done)
   do
     RELEASE="$RELEASE"
     if [ "$SHARDING_TYPE" = citus ]

@@ -51,6 +51,10 @@ spec:
     configurations: 
       sgPostgresConfig: {{ quote .Values.cluster.configurations.sgPostgresConfig }}
       sgPoolingConfig: {{ quote .Values.cluster.configurations.sgPoolingConfig }}
+      {{- with .Values.cluster.configurations.shardingSphere }}
+      shardingSphere:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     sgInstanceProfile: {{ quote .Values.cluster.sgInstanceProfile }}
     {{- with .Values.cluster.managedSql }}
     managedSql:

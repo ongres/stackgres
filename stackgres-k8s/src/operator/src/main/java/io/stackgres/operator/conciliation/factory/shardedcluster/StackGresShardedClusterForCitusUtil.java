@@ -26,7 +26,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurationsBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCredentials;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialDataBuilder;
-import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSqlBuilder;
@@ -65,6 +64,7 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
   static StackGresCluster getCoordinatorCluster(StackGresShardedCluster cluster) {
     final StackGresClusterSpec spec =
         new StackGresClusterSpecBuilder(cluster.getSpec().getCoordinator())
+        .withConfigurations(cluster.getSpec().getCoordinator().getConfigurationsForCoordinator())
         .build();
     setClusterSpecFromShardedCluster(cluster, spec, 0);
     if (cluster.getSpec().getCoordinator().getReplicationForCoordinator() != null) {
@@ -411,34 +411,16 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
         StackGresShardedClusterUtil.getClusterName(cluster, index));
     spec.setManagedSql(new StackGresClusterManagedSqlBuilder(spec.getManagedSql())
         .withScripts(
-            Optional.ofNullable(spec.getManagedSql())
-            .map(StackGresClusterManagedSql::getScripts)
-            .map(scripts -> Seq
-                .of(new StackGresClusterManagedScriptEntryBuilder()
-                    .withId(getLastId(spec) + 1)
-                    .withSgScript(defaultScript)
-                    .build())
-                .filter(script -> scripts.stream()
-                    .map(StackGresClusterManagedScriptEntry::getSgScript)
-                    .noneMatch(defaultScript::equals))
-                .append(scripts)
-                .toList())
-            .orElse(List
-                .of(new StackGresClusterManagedScriptEntryBuilder()
-                    .withId(0)
-                    .withSgScript(defaultScript)
-                    .build())))
+            Seq.of(new StackGresClusterManagedScriptEntryBuilder()
+                .withId(0)
+                .withSgScript(defaultScript)
+                .build())
+            .append(
+                Optional.ofNullable(spec.getManagedSql())
+                .map(StackGresClusterManagedSql::getScripts)
+                .orElse(List.of()))
+            .toList())
         .build());
-  }
-
-  private static Integer getLastId(StackGresClusterSpec spec) {
-    return Optional.of(spec)
-        .map(StackGresClusterSpec::getManagedSql)
-        .map(StackGresClusterManagedSql::getScripts)
-        .stream()
-        .flatMap(List::stream)
-        .map(StackGresClusterManagedScriptEntry::getId)
-        .reduce(-1, (last, id) -> id == null || last >= id ? last : id, (u, v) -> v);
   }
 
   private static void setClusterSpecFromShardOverrides(
@@ -470,22 +452,15 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
           StackGresShardedClusterUtil.getClusterName(cluster, index));
       spec.setManagedSql(new StackGresClusterManagedSqlBuilder(specOverride.getManagedSql())
           .withScripts(
-              Optional.ofNullable(specOverride.getManagedSql().getScripts())
-              .map(scripts -> Seq
-                  .of(new StackGresClusterManagedScriptEntryBuilder()
-                      .withId(getLastId(specOverride) + 1)
-                      .withSgScript(defaultScript)
-                      .build())
-                  .filter(script -> scripts.stream()
-                      .map(StackGresClusterManagedScriptEntry::getSgScript)
-                      .noneMatch(defaultScript::equals))
-                  .append(scripts)
-                  .toList())
-              .orElse(List
-                  .of(new StackGresClusterManagedScriptEntryBuilder()
-                      .withId(0)
-                      .withSgScript(defaultScript)
-                      .build())))
+              Seq.of(new StackGresClusterManagedScriptEntryBuilder()
+                  .withId(0)
+                  .withSgScript(defaultScript)
+                  .build())
+              .append(
+                  Optional.ofNullable(specOverride.getManagedSql())
+                  .map(StackGresClusterManagedSql::getScripts)
+                  .orElse(List.of()))
+              .toList())
           .build());
     }
     if (specOverride.getMetadata() != null) {

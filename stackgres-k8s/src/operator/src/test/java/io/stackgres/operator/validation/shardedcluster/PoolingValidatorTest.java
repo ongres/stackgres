@@ -57,7 +57,7 @@ class PoolingValidatorTest {
 
     String poolingConfig =
         review.getRequest().getObject().getSpec().getCoordinator()
-        .getConfigurations().getSgPoolingConfig();
+        .getConfigurationsForCoordinator().getSgPoolingConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
     when(configFinder.findByNameAndNamespace(poolingConfig, namespace))
         .thenReturn(Optional.of(pgbouncerConfig));
@@ -74,7 +74,7 @@ class PoolingValidatorTest {
 
     String poolingConfig =
         review.getRequest().getObject().getSpec().getCoordinator()
-        .getConfigurations().getSgPoolingConfig();
+        .getConfigurationsForCoordinator().getSgPoolingConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
     when(configFinder.findByNameAndNamespace(poolingConfig, namespace))
         .thenReturn(Optional.of(pgbouncerConfig));
@@ -91,7 +91,7 @@ class PoolingValidatorTest {
 
     String poolingConfig =
         review.getRequest().getObject().getSpec().getCoordinator()
-        .getConfigurations().getSgPoolingConfig();
+        .getConfigurationsForCoordinator().getSgPoolingConfig();
     review.getRequest().getObject().getSpec().getShards().setOverrides(List.of(
         new StackGresShardedClusterShardBuilder()
         .withIndex(0)
@@ -115,7 +115,7 @@ class PoolingValidatorTest {
 
     String poolingConfig =
         review.getRequest().getObject().getSpec().getCoordinator()
-        .getConfigurations().getSgPoolingConfig();
+        .getConfigurationsForCoordinator().getSgPoolingConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(poolingConfig, namespace))
@@ -145,7 +145,7 @@ class PoolingValidatorTest {
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(review.getRequest().getObject().getSpec()
-        .getCoordinator().getConfigurations().getSgPoolingConfig(), namespace))
+        .getCoordinator().getConfigurationsForCoordinator().getSgPoolingConfig(), namespace))
         .thenReturn(Optional.of(pgbouncerConfig));
     when(configFinder.findByNameAndNamespace(poolingConfig, namespace))
         .thenReturn(Optional.empty());
@@ -179,7 +179,7 @@ class PoolingValidatorTest {
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(review.getRequest().getObject().getSpec()
-        .getCoordinator().getConfigurations().getSgPoolingConfig(), namespace))
+        .getCoordinator().getConfigurationsForCoordinator().getSgPoolingConfig(), namespace))
         .thenReturn(Optional.of(pgbouncerConfig));
     when(configFinder.findByNameAndNamespace(review.getRequest().getObject().getSpec()
         .getShards().getConfigurations().getSgPoolingConfig(), namespace))
@@ -205,10 +205,10 @@ class PoolingValidatorTest {
         .loadConnectionPoolingConfigUpdate().get();
 
     review.getRequest().getObject().getSpec().getCoordinator()
-        .getConfigurations().setSgPoolingConfig("test");
+        .getConfigurationsForCoordinator().setSgPoolingConfig("test");
     String poolingConfig =
         review.getRequest().getObject().getSpec().getCoordinator()
-        .getConfigurations().getSgPoolingConfig();
+        .getConfigurationsForCoordinator().getSgPoolingConfig();
     String namespace = review.getRequest().getObject().getMetadata().getNamespace();
 
     when(configFinder.findByNameAndNamespace(poolingConfig, namespace))

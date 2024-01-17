@@ -58,7 +58,7 @@ public class PoolingConfigValidator
     @Override
     protected String getReference(StackGresShardedCluster resource) {
       return Optional.ofNullable(resource.getSpec()
-          .getCoordinator().getConfigurations())
+          .getCoordinator().getConfigurationsForCoordinator())
           .map(StackGresClusterConfigurations::getSgPoolingConfig)
           .orElse(null);
     }

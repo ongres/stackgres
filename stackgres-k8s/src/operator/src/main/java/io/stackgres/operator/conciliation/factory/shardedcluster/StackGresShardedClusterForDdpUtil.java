@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation.factory.shardedcluster;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -14,6 +15,8 @@ import java.util.function.Predicate;
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.stackgres.common.ManagedSqlUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresShardedClusterUtil;
@@ -25,7 +28,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCredentials;
 import io.stackgres.common.crd.sgcluster.StackGresClusterExtensionBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialDataBuilder;
-import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSqlBuilder;
@@ -44,6 +46,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterUsersCredentials;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptBuilder;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
+import io.stackgres.common.crd.sgscript.StackGresScriptEntryBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresCoordinatorServices;
@@ -56,6 +59,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterDefaultScripts;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 
@@ -64,6 +68,7 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
   static StackGresCluster getCoordinatorCluster(StackGresShardedCluster cluster) {
     final StackGresClusterSpec spec =
         new StackGresClusterSpecBuilder(cluster.getSpec().getCoordinator())
+        .withConfigurations(cluster.getSpec().getCoordinator().getConfigurationsForCoordinator())
         .build();
     setClusterSpecFromShardedCluster(cluster, spec, 0);
     if (cluster.getSpec().getCoordinator().getReplicationForCoordinator() != null) {
@@ -81,6 +86,7 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
             .limit(1))
         .append(new StackGresClusterManagedScriptEntryBuilder()
             .withSgScript(StackGresShardedClusterUtil.coordinatorScriptName(cluster))
+            .withId(1)
             .build())
         .append(Optional.ofNullable(spec.getManagedSql().getScripts())
             .stream()
@@ -146,6 +152,7 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
             .limit(1))
         .append(new StackGresClusterManagedScriptEntryBuilder()
             .withSgScript(StackGresShardedClusterUtil.shardsScriptName(cluster))
+            .withId(1)
             .build())
         .append(Optional.ofNullable(spec.getManagedSql().getScripts())
             .stream()
@@ -323,20 +330,16 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
     if (spec.getMetadata() == null) {
       spec.setMetadata(new StackGresClusterSpecMetadata());
     }
-    setLabels(cluster, spec, index);
+    if (spec.getMetadata().getLabels() == null
+        && cluster.getSpec().getMetadata() != null
+        && cluster.getSpec().getMetadata().getLabels() != null) {
+      spec.getMetadata().setLabels(cluster.getSpec().getMetadata().getLabels());
+    }
     if (spec.getMetadata().getAnnotations() == null
         && cluster.getSpec().getMetadata() != null
         && cluster.getSpec().getMetadata().getAnnotations() != null) {
       spec.getMetadata().setAnnotations(cluster.getSpec().getMetadata().getAnnotations());
     }
-  }
-
-  private static void setLabels(
-      StackGresShardedCluster cluster, final StackGresClusterSpec spec, int index) {
-    spec.getMetadata().setLabels(Optional.of(cluster.getSpec())
-        .map(StackGresShardedClusterSpec::getMetadata)
-        .map(StackGresClusterSpecMetadata::getLabels)
-        .orElse(null));
   }
 
   private static void setInitialData(
@@ -376,34 +379,16 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
         StackGresShardedClusterUtil.getClusterName(cluster, index));
     spec.setManagedSql(new StackGresClusterManagedSqlBuilder(spec.getManagedSql())
         .withScripts(
-            Optional.ofNullable(spec.getManagedSql())
-            .map(StackGresClusterManagedSql::getScripts)
-            .map(scripts -> Seq
-                .of(new StackGresClusterManagedScriptEntryBuilder()
-                    .withId(getLastId(spec) + 1)
-                    .withSgScript(defaultScript)
-                    .build())
-                .filter(script -> scripts.stream()
-                    .map(StackGresClusterManagedScriptEntry::getSgScript)
-                    .noneMatch(defaultScript::equals))
-                .append(scripts)
-                .toList())
-            .orElse(List
-                .of(new StackGresClusterManagedScriptEntryBuilder()
-                    .withId(0)
-                    .withSgScript(defaultScript)
-                    .build())))
+            Seq.of(new StackGresClusterManagedScriptEntryBuilder()
+                .withId(0)
+                .withSgScript(defaultScript)
+                .build())
+            .append(
+                Optional.ofNullable(spec.getManagedSql())
+                .map(StackGresClusterManagedSql::getScripts)
+                .orElse(List.of()))
+            .toList())
         .build());
-  }
-
-  private static Integer getLastId(StackGresClusterSpec spec) {
-    return Optional.of(spec)
-        .map(StackGresClusterSpec::getManagedSql)
-        .map(StackGresClusterManagedSql::getScripts)
-        .stream()
-        .flatMap(List::stream)
-        .map(StackGresClusterManagedScriptEntry::getId)
-        .reduce(-1, (last, id) -> id == null || last >= id ? last : id, (u, v) -> v);
   }
 
   private static void setClusterSpecFromShardOverrides(
@@ -435,22 +420,15 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
           StackGresShardedClusterUtil.getClusterName(cluster, index));
       spec.setManagedSql(new StackGresClusterManagedSqlBuilder(specOverride.getManagedSql())
           .withScripts(
-              Optional.ofNullable(specOverride.getManagedSql().getScripts())
-              .map(scripts -> Seq
-                  .of(new StackGresClusterManagedScriptEntryBuilder()
-                      .withId(getLastId(specOverride) + 1)
-                      .withSgScript(defaultScript)
-                      .build())
-                  .filter(script -> scripts.stream()
-                      .map(StackGresClusterManagedScriptEntry::getSgScript)
-                      .noneMatch(defaultScript::equals))
-                  .append(scripts)
-                  .toList())
-              .orElse(List
-                  .of(new StackGresClusterManagedScriptEntryBuilder()
-                      .withId(0)
-                      .withSgScript(defaultScript)
-                      .build())))
+              Seq.of(new StackGresClusterManagedScriptEntryBuilder()
+                  .withId(0)
+                  .withSgScript(defaultScript)
+                  .build())
+              .append(
+                  Optional.ofNullable(specOverride.getManagedSql())
+                  .map(StackGresClusterManagedSql::getScripts)
+                  .orElse(List.of()))
+              .toList())
           .build());
     }
     if (specOverride.getMetadata() != null) {
@@ -526,8 +504,7 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
   static StackGresScript getCoordinatorScript(
       StackGresShardedClusterContext context) {
     StackGresShardedCluster cluster = context.getShardedCluster();
-    return
-        new StackGresScriptBuilder()
+    return new StackGresScriptBuilder()
         .withMetadata(new ObjectMetaBuilder()
             .withNamespace(cluster.getMetadata().getNamespace())
             .withName(StackGresShardedClusterUtil.coordinatorScriptName(cluster))
@@ -536,7 +513,7 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
         .withScripts(
             getDdpCreateDatabase(context),
             getDdpInitScript(context),
-            getDdpUpdateWorkersScript(context))
+            getDdpUpdateShardsScript(context))
         .endSpec()
         .build();
   }
@@ -544,8 +521,7 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
   static StackGresScript getShardsScript(
       StackGresShardedClusterContext context) {
     StackGresShardedCluster cluster = context.getShardedCluster();
-    return
-        new StackGresScriptBuilder()
+    return new StackGresScriptBuilder()
         .withMetadata(new ObjectMetaBuilder()
             .withNamespace(cluster.getMetadata().getNamespace())
             .withName(StackGresShardedClusterUtil.shardsScriptName(cluster))
@@ -560,55 +536,81 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
   private static StackGresScriptEntry getDdpCreateDatabase(
       StackGresShardedClusterContext context) {
     StackGresShardedCluster cluster = context.getShardedCluster();
-    final StackGresScriptEntry script = new StackGresScriptEntry();
-    script.setName("ddp-create-database");
-    script.setRetryOnError(true);
-    script.setScript(Unchecked.supplier(() -> Resources
-        .asCharSource(ClusterDefaultScripts.class.getResource(
-            "/ddp/ddp-create-database.sql"),
-            StandardCharsets.UTF_8)
-        .read()).get()
-        .formatted(cluster.getSpec().getDatabase()));
+    final StackGresScriptEntry script = new StackGresScriptEntryBuilder()
+        .withName("ddp-create-database")
+        .withRetryOnError(true)
+        .withScript(Unchecked.supplier(() -> Resources
+            .asCharSource(ClusterDefaultScripts.class.getResource(
+                "/ddp/ddp-create-database.sql"),
+                StandardCharsets.UTF_8)
+            .read()).get()
+            .formatted(cluster.getSpec().getDatabase()))
+        .build();
     return script;
   }
 
   private static StackGresScriptEntry getDdpInitScript(
       StackGresShardedClusterContext context) {
     StackGresShardedCluster cluster = context.getShardedCluster();
-    final StackGresScriptEntry script = new StackGresScriptEntry();
-    script.setName("ddp-init");
-    script.setRetryOnError(true);
-    script.setDatabase(cluster.getSpec().getDatabase());
-    script.setScript(Unchecked.supplier(() -> Resources
-        .asCharSource(ClusterDefaultScripts.class.getResource(
-            "/ddp/ddp--0.1.0.sql"),
-            StandardCharsets.UTF_8)
-        .read()).get());
+    final StackGresScriptEntry script = new StackGresScriptEntryBuilder()
+        .withName("ddp-init")
+        .withRetryOnError(true)
+        .withDatabase(cluster.getSpec().getDatabase())
+        .withScript(Unchecked.supplier(() -> Resources
+            .asCharSource(ClusterDefaultScripts.class.getResource(
+                "/ddp/ddp--0.1.0.sql"),
+                StandardCharsets.UTF_8)
+            .read()).get())
+        .build();
     return script;
   }
 
-  private static StackGresScriptEntry getDdpUpdateWorkersScript(
+  private static StackGresScriptEntry getDdpUpdateShardsScript(
+      StackGresShardedClusterContext context) {
+    StackGresShardedCluster cluster = context.getShardedCluster();
+    final StackGresScriptEntry script = new StackGresScriptEntryBuilder()
+        .withName("ddp-update-shards")
+        .withRetryOnError(true)
+        .withDatabase(cluster.getSpec().getDatabase())
+        .withNewScriptFrom()
+        .withNewCrdSecretKeyRef()
+        .withName(getUpdateShardsSecretName(cluster))
+        .withKey("ddp-update-shards.sql")
+        .endCrdSecretKeyRef()
+        .endScriptFrom()
+        .build();
+    return script;
+  }
+
+  static Secret getUpdateShardsSecret(
       StackGresShardedClusterContext context) {
     StackGresShardedCluster cluster = context.getShardedCluster();
     var superuserCredentials = ShardedClusterSecret.getSuperuserCredentials(context);
-    final StackGresScriptEntry script = new StackGresScriptEntry();
-    script.setName("ddp-update-workers");
-    script.setRetryOnError(true);
-    script.setDatabase(cluster.getSpec().getDatabase());
-    script.setScript(Unchecked.supplier(() -> Resources
-        .asCharSource(ClusterDefaultScripts.class.getResource(
-            "/ddp/ddp-update-workers.sql"),
-            StandardCharsets.UTF_8)
-        .read()).get().formatted(
-            cluster.getSpec().getShards().getClusters(),
-            "host '" + primaryShardServiceNamePlaceholder(cluster, "%1s") + "', "
-                + "port '" + PatroniUtil.POSTGRES_SERVICE_PORT + "', "
-                + "dbname '" + cluster.getSpec().getDatabase() + "'",
-            "user '" + superuserCredentials.v1 + "', "
-                + "password '" + superuserCredentials.v2 + "'",
-            superuserCredentials.v1,
-            1000));
-    return script;
+    final Secret secret = new SecretBuilder()
+        .withNewMetadata()
+        .withNamespace(cluster.getMetadata().getNamespace())
+        .withName(getUpdateShardsSecretName(cluster))
+        .endMetadata()
+        .withData(ResourceUtil.decodeSecret(Map.of("ddp-update-shards.sql",
+            Unchecked.supplier(() -> Resources
+                .asCharSource(ClusterDefaultScripts.class.getResource(
+                    "/ddp/ddp-update-shards.sql"),
+                    StandardCharsets.UTF_8)
+                .read()).get().formatted(
+                    cluster.getSpec().getShards().getClusters(),
+                    "host '" + primaryShardServiceNamePlaceholder(cluster, "%1s") + "', "
+                        + "port '" + PatroniUtil.POSTGRES_SERVICE_PORT + "', "
+                        + "dbname '" + cluster.getSpec().getDatabase() + "'",
+                    "user '" + superuserCredentials.v1 + "', "
+                        + "password '" + superuserCredentials.v2 + "'",
+                    superuserCredentials.v1,
+                    1000))))
+        .build();
+    return secret;
+  }
+
+  static String getUpdateShardsSecretName(StackGresShardedCluster cluster) {
+    return StackGresShardedClusterUtil.coordinatorScriptName(cluster) + "-update-shards";
   }
 
   private static String primaryShardServiceNamePlaceholder(

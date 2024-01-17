@@ -30,12 +30,19 @@ import jakarta.validation.constraints.AssertTrue;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresShardedClusterCoordinator extends StackGresClusterSpec {
 
+  @JsonProperty("configurations")
+  @Valid
+  private StackGresShardedClusterCoordinatorConfigurations configurationsForCoordinator;
+
   @JsonProperty("replication")
   @Valid
   private StackGresShardedClusterReplication replicationForCoordinator;
 
   @ReferencedField("replication.syncInstances")
   interface SyncInstances extends FieldReference { }
+
+  @ReferencedField("configurations")
+  interface Configurations extends FieldReference { }
 
   @Override
   public boolean isPosgresSectionPresent() {
@@ -62,6 +69,17 @@ public class StackGresShardedClusterCoordinator extends StackGresClusterSpec {
     return true;
   }
 
+  @Override
+  public boolean isConfigurationsSectionPresent() {
+    return true;
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "configurations is required", payload = { Configurations.class })
+  public boolean isCoordinatorConfigurationsSectionPresent() {
+    return configurationsForCoordinator != null;
+  }
+
   @JsonIgnore
   @AssertTrue(message = "The total number synchronous replicas must be less or equals than the"
       + " number of coordinator or any shard replicas",
@@ -71,6 +89,15 @@ public class StackGresShardedClusterCoordinator extends StackGresClusterSpec {
         || !replicationForCoordinator.isSynchronousMode()
         || replicationForCoordinator.getSyncInstances() == null
         || getInstances() > replicationForCoordinator.getSyncInstances();
+  }
+
+  public StackGresShardedClusterCoordinatorConfigurations getConfigurationsForCoordinator() {
+    return configurationsForCoordinator;
+  }
+
+  public void setConfigurationsForCoordinator(
+      StackGresShardedClusterCoordinatorConfigurations configurationsForCoordinator) {
+    this.configurationsForCoordinator = configurationsForCoordinator;
   }
 
   public StackGresShardedClusterReplication getReplicationForCoordinator() {
@@ -86,7 +113,7 @@ public class StackGresShardedClusterCoordinator extends StackGresClusterSpec {
   public int hashCode() {
     final int prime = 31;
     int result = super.hashCode();
-    result = prime * result + Objects.hash(replicationForCoordinator);
+    result = prime * result + Objects.hash(configurationsForCoordinator, replicationForCoordinator);
     return result;
   }
 
@@ -102,7 +129,8 @@ public class StackGresShardedClusterCoordinator extends StackGresClusterSpec {
       return false;
     }
     StackGresShardedClusterCoordinator other = (StackGresShardedClusterCoordinator) obj;
-    return Objects.equals(replicationForCoordinator, other.replicationForCoordinator);
+    return Objects.equals(configurationsForCoordinator, other.configurationsForCoordinator)
+        && Objects.equals(replicationForCoordinator, other.replicationForCoordinator);
   }
 
 }

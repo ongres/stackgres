@@ -9,12 +9,12 @@ import java.util.List;
 
 import io.stackgres.common.prometheus.PrometheusInstallation;
 
-public class Prometheus {
+public class PrometheusContext {
 
   private final Boolean createPodMonitor;
   private final List<PrometheusInstallation> prometheusInstallations;
 
-  public Prometheus(Boolean createPodMonitor,
+  public PrometheusContext(Boolean createPodMonitor,
       List<PrometheusInstallation> prometheusInstallations) {
     super();
     this.createPodMonitor = createPodMonitor;

@@ -35,13 +35,13 @@ import io.sundr.builder.annotations.BuildableReference;
 @Version("v1")
 @Kind("Prometheus")
 @Plural("prometheuses")
-public final class PrometheusConfig
-    extends CustomResource<PrometheusConfigSpec, Void>
+public final class Prometheus
+    extends CustomResource<PrometheusSpec, Void>
     implements Namespaced {
 
   private static final long serialVersionUID = 1L;
 
-  private PrometheusConfigSpec spec;
+  private PrometheusSpec spec;
 
   @Override
   public ObjectMeta getMetadata() {
@@ -54,12 +54,12 @@ public final class PrometheusConfig
   }
 
   @Override
-  public PrometheusConfigSpec getSpec() {
+  public PrometheusSpec getSpec() {
     return spec;
   }
 
   @Override
-  public void setSpec(PrometheusConfigSpec spec) {
+  public void setSpec(PrometheusSpec spec) {
     this.spec = spec;
   }
 
@@ -79,10 +79,10 @@ public final class PrometheusConfig
     if (!super.equals(obj)) {
       return false;
     }
-    if (!(obj instanceof PrometheusConfig)) {
+    if (!(obj instanceof Prometheus)) {
       return false;
     }
-    PrometheusConfig other = (PrometheusConfig) obj;
+    Prometheus other = (Prometheus) obj;
     return Objects.equals(spec, other.spec);
   }
 

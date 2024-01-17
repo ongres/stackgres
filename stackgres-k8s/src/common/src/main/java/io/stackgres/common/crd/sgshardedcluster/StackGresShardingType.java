@@ -10,7 +10,8 @@ import org.jetbrains.annotations.NotNull;
 public enum StackGresShardingType {
 
   CITUS("citus"),
-  DDP("ddp");
+  DDP("ddp"),
+  SHARDING_SPHERE("shardingsphere");
 
   private final @NotNull String type;
 

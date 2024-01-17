@@ -12,6 +12,7 @@ public interface StackGresShardedClusterUtil {
 
   String CERTIFICATE_KEY = "tls.crt";
   String PRIVATE_KEY_KEY = "tls.key";
+  int LAST_RESERVER_SCRIPT_ID = 9;
 
   static String getClusterName(StackGresShardedCluster cluster, int index) {
     if (index == 0) {

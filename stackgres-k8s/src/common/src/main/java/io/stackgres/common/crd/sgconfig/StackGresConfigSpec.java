@@ -49,6 +49,8 @@ public class StackGresConfigSpec {
 
   private StackGresConfigDeveloper developer;
 
+  private StackGresConfigShardingSphere shardingSphere;
+
   public String getContainerRegistry() {
     return containerRegistry;
   }
@@ -161,11 +163,18 @@ public class StackGresConfigSpec {
     this.developer = developer;
   }
 
+  public StackGresConfigShardingSphere getShardingSphere() {
+    return shardingSphere;
+  }
+
+  public void setShardingSphere(StackGresConfigShardingSphere shardingSphere) {
+    this.shardingSphere = shardingSphere;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(adminui, authentication, cert, containerRegistry, deploy, developer,
-        extensions, grafana, imagePullPolicy, jobs, operator, prometheus, restapi,
-        serviceAccount);
+    return Objects.hash(adminui, authentication, cert, containerRegistry, deploy, developer, extensions, grafana,
+        imagePullPolicy, jobs, operator, prometheus, restapi, serviceAccount, shardingSphere);
   }
 
   @Override
@@ -177,20 +186,14 @@ public class StackGresConfigSpec {
       return false;
     }
     StackGresConfigSpec other = (StackGresConfigSpec) obj;
-    return Objects.equals(adminui, other.adminui)
-        && Objects.equals(authentication, other.authentication)
-        && Objects.equals(cert, other.cert)
-        && Objects.equals(containerRegistry, other.containerRegistry)
-        && Objects.equals(deploy, other.deploy)
-        && Objects.equals(developer, other.developer)
-        && Objects.equals(extensions, other.extensions)
-        && Objects.equals(grafana, other.grafana)
-        && Objects.equals(imagePullPolicy, other.imagePullPolicy)
-        && Objects.equals(jobs, other.jobs)
-        && Objects.equals(operator, other.operator)
-        && Objects.equals(prometheus, other.prometheus)
-        && Objects.equals(restapi, other.restapi)
-        && Objects.equals(serviceAccount, other.serviceAccount);
+    return Objects.equals(adminui, other.adminui) && Objects.equals(authentication, other.authentication)
+        && Objects.equals(cert, other.cert) && Objects.equals(containerRegistry, other.containerRegistry)
+        && Objects.equals(deploy, other.deploy) && Objects.equals(developer, other.developer)
+        && Objects.equals(extensions, other.extensions) && Objects.equals(grafana, other.grafana)
+        && Objects.equals(imagePullPolicy, other.imagePullPolicy) && Objects.equals(jobs, other.jobs)
+        && Objects.equals(operator, other.operator) && Objects.equals(prometheus, other.prometheus)
+        && Objects.equals(restapi, other.restapi) && Objects.equals(serviceAccount, other.serviceAccount)
+        && Objects.equals(shardingSphere, other.shardingSphere);
   }
 
   @Override

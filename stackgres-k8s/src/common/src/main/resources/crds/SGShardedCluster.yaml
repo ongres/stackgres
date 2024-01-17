@@ -100,6 +100,25 @@ spec:
                   
                   * `citus`
                   * `ddp`
+                  * `shardingshpere`
+                  
+                  **Citus**
+                  
+                  Citus is a PostgreSQL extension that transforms Postgres into a distributed database—so you can achieve high performance at any scale.
+                  
+                  See also https://github.com/citusdata/citus
+                  
+                  **DDP**
+                  
+                  DDP (Distributed Data Partitioning) allows you to distribute data across different physical nodes to improve the query performance of high data volumes, taking advantage of distinct nodes’ resources. Using the entry point named coordinator in charge of sending/distributing the queries to different nodes named shards.
+                  
+                  **ShardingSphere**
+                  
+                  Apache ShardingSphere is an ecosystem to transform any database into a distributed database system, and enhance it with sharding, elastic scaling, encryption features & more.
+                  
+                  StackGres implementation of ShardingSphere as a sharding technology uses the [ShardingSphere Proxy](https://shardingsphere.apache.org/document/current/en/quick-start/shardingsphere-proxy-quick-start/) as an entry point to distribute SQL traffic among the shards.
+                  
+                  This implementation requires the [ShardingSphere Operator](https://shardingsphere.apache.org/oncloud/current/en/user-manual/cn-sn-operator/) to be installed and will create a ComputeNode
               database:
                 type: string
                 description: |
@@ -319,7 +338,9 @@ spec:
                         type: object
                         description: |
                           Configure the coordinator service to any instance of the coordinator with the same name as the SGShardedCluster plus the `-reads` suffix.
-                          
+
+                          If the sharding type is `shardingsphere` then the name of the service will be the same name as the SGShardedCluster.
+
                           It provides a stable connection (regardless of node failures) to any Postgres server of the coordinator cluster. Servers are load-balanced via this service.
 
                           See also https://kubernetes.io/docs/concepts/services-networking/service/
@@ -354,6 +375,8 @@ spec:
                         type: object
                         description: |
                           Configure the coordinator service to the primary of the coordinator with the name as the SGShardedCluster.
+
+                          If the sharding type is `shardingsphere` then this service will be disabled.
                           
                           It provides a stable connection (regardless of primary failures or switchovers) to the read-write Postgres server of the coordinator cluster.
 
@@ -849,6 +872,10 @@ spec:
                     description: |
                       Number of StackGres instances for the cluster. Each instance contains one Postgres server.
                         Out of all of the Postgres servers, one is elected as the primary, the rest remain as read-only replicas.
+                      
+                      If sharding type is `shardingsphere` then, instead of an SGCluster a ComputeNode will be created.
+                      
+                      See also https://shardingsphere.apache.org/oncloud/current/en/user-manual/cn-sn-operator/#computenode 
                   sgInstanceProfile:
                     type: string
                     description: |
@@ -863,6 +890,20 @@ spec:
                     type: object
                     description: |
                       This section allows to reference SQL scripts that will be applied to the cluster live.
+                      
+                      If sharding type is `shardingsphere` then this section will be applied to the first cluster shard.
+                       In this case the database postgres will also provide a foreign server called `shardingsphere` and
+                       the superuser user mappings that will allow to run DistQL queries using command like the following:
+                      
+                      ```
+                      SELECT * FROM dblink('shardingsphere', 'SHOW STORAGE UNITS')
+                        AS _(name text, type text, host text, port int, db text,
+                          connection_timeout_milliseconds int, idle_timeout_milliseconds int,
+                          max_lifetime_milliseconds int, max_pool_size int, min_pool_size int,
+                          read_only boolean, other_attributes text);
+                      ```
+                      
+                      See https://shardingsphere.apache.org/document/current/en/user-manual/shardingsphere-proxy/distsql
                     properties:
                       continueOnSGScriptError:
                         type: boolean
@@ -885,36 +926,52 @@ spec:
                               description: A reference to an `SGScript`
                   pods:
                     type: object
-                    description: Cluster pod's configuration.
+                    description: |
+                      Cluster pod's configuration.
+                      
+                      If sharding type is `shardingsphere` then this section will apply to the ComputeNode.
                     properties:
                       persistentVolume:
                         type: object
-                        description: Pod's persistent volume configuration.
+                        description: |
+                          Pod's persistent volume configuration.
+                      
+                          If sharding type is `shardingsphere` then this section is ignored.
                         properties:
                           size:
                             type: string
                             pattern: '^[0-9]+(\.[0-9]+)?(Mi|Gi|Ti)$'
                             description: |
                               Size of the PersistentVolume set for each instance of the cluster. This size is specified either in Mebibytes, Gibibytes or Tebibytes (multiples of 2^20, 2^30 or 2^40, respectively).
+                      
+                              If sharding type is `shardingsphere` then this field is ignored.
                           storageClass:
                             type: string
                             description: |
                               Name of an existing StorageClass in the Kubernetes cluster, used to create the PersistentVolumes for the instances of the cluster.
+                      
+                              If sharding type is `shardingsphere` then this field is ignored.
                         required: ["size"]
                       disableConnectionPooling:
                         type: boolean
                         description: |
                           If set to `true`, avoids creating a connection pooling (using [PgBouncer](https://www.pgbouncer.org/)) sidecar.
+                      
+                          If sharding type is `shardingsphere` then this field is ignored.
 
                           **Changing this field may require a restart.**
                       disableMetricsExporter:
                         type: boolean
                         description: |
                           If set to `true`, avoids creating the Prometheus exporter sidecar. Recommended when there's no intention to use Prometheus for monitoring.
+                      
+                          If sharding type is `shardingsphere` then this field is ignored.
                       disablePostgresUtil:
                         type: boolean
                         description: |
                           If set to `true`, avoids creating the `postgres-util` sidecar. This sidecar contains usual Postgres administration utilities *that are not present in the main (`patroni`) container*, like `psql`. Only disable if you know what you are doing.
+                      
+                          If sharding type is `shardingsphere` then this field is ignored.
 
                           **Changing this field may require a restart.**
                       resources:
@@ -980,6 +1037,8 @@ spec:
                             ready before continuing. When scaling down, the pods are removed in the opposite order.
                             The alternative policy is `Parallel` which will create pods in parallel to match the desired
                             scale without waiting, and on scale down will delete all pods at once.
+                  
+                          If sharding type is `shardingsphere` then this field is ignored.
                       customVolumes:
                         type: array
                         description: |
@@ -1081,6 +1140,8 @@ spec:
                         type: string
                         description: |
                           Name of the [SGPostgresConfig](https://stackgres.io/doc/latest/reference/crd/sgpgconfig) used for the cluster. It must exist. When not set, a default Postgres config, for the major version selected, is used.
+                  
+                          If sharding type is `shardingsphere` then this field is ignored.
 
                           **Changing this field may require a restart.**
                       sgPoolingConfig:
@@ -1089,11 +1150,16 @@ spec:
                           Name of the [SGPoolingConfig](https://stackgres.io/doc/latest/reference/crd/sgpoolconfig) used for this cluster. Each pod contains a sidecar with a connection pooler (currently: [PgBouncer](https://www.pgbouncer.org/)). The connection pooler is implemented as a sidecar.
   
                           If not set, a default configuration will be used. Disabling connection pooling altogether is possible if the disableConnectionPooling property of the pods object is set to true.
+                  
+                          If sharding type is `shardingsphere` then this field is ignored.
 
                           **Changing this field may require a restart.**
                       patroni: &patroni
                         type: object
-                        description: Allow to specify Patroni configuration that will extend the generated one
+                        description: |
+                          Allow to specify Patroni configuration that will extend the generated one
+                  
+                          If sharding type is `shardingsphere` then this section is ignored.
                         properties:
                           dynamicConfig:
                             type: object
@@ -1107,6 +1173,8 @@ spec:
                               * failsafe_mode
                               * postgresql
                               * standby_cluster
+                      
+                              If sharding type is `shardingsphere` then this section is ignored.
                             "x-kubernetes-preserve-unknown-fields": true
                           initialConfig:
                             type: object
@@ -1133,9 +1201,148 @@ spec:
                               * ctl
                               * watchdog
                               * tags
+                      
+                              If sharding type is `shardingsphere` then this section is ignored.
     
                               **This field can only be set on creation.**
                             "x-kubernetes-preserve-unknown-fields": true
+                      shardingSphere:
+                        type: object
+                        description: |
+                          Allow to specify Sharding Sphere Proxy configuration that will extend the generated one.
+                  
+                          This section is required when sharding type is `shardingsphere` otherwise is ignored.
+                        required: [ mode ]
+                        properties:
+                          version:
+                            type: string
+                            description: The version of the ShardingSphere Proxy. If not specified latest version available will be used.
+                          mode:
+                            type: object
+                            description: Allow to configure the Sharding Shpere Proxy mode.
+                            required: [ type, repository ]
+                            properties:
+                              type:
+                                type: string
+                                description: |
+                                  Allow to configure the Sharding Shpere Proxy mode type. Options available are:
+                                  
+                                  * `standalone`
+                                  * `cluster`
+                                  
+                                  When `standalone` only 1 coordinator instance may be set.
+                              properties:
+                                type: object
+                                description: |
+                                  Properties that will be set in the ShardingSphere Proxy configuration.
+                                  
+                                  Some properties will be overwritten with the configuration generated by the operator. In particular:
+                                  
+                                  * `proxy-frontend-database-protocol-type`
+                                  * `proxy-default-port`
+                                "x-kubernetes-preserve-unknown-fields": true
+                              repository:
+                                type: object
+                                required: [ type ]
+                                properties:
+                                  type:
+                                    type: string
+                                    description: |
+                                      Allow to configure the Sharding Shpere Proxy repository type. Options available are:
+                                      
+                                      * `memory`
+                                      * `zooKeeper`
+                                      * `etcd`
+                                      
+                                      When `mode.type` is `standalone` then `repository.type` must be memory.
+                                      When `mode.type` is `cluster` then `repository.type` could be any of zooKeeper or etcd.
+                                  properties:
+                                    type: object
+                                    description: |
+                                      Properties that will be set in the ShardingSphere Proxy configuration for the Repository.
+                                      
+                                      Some properties will be overwritten with the configuration generated by the operator. In particular:
+                                      
+                                      * `server-lists`
+                                    "x-kubernetes-preserve-unknown-fields": true
+                                  zooKeeper:
+                                    type: object
+                                    description: Allow to configure ZooKeeper repository for Sharding Shpere Proxy.
+                                    required: [ serverList ]
+                                    properties:
+                                      serverList:
+                                        type: array
+                                        description: List of ZooKeeper servers to connect to.
+                                        items:
+                                          type: string
+                                          description: ZooKeeper server to connect to.
+                                  etcd:
+                                    type: object
+                                    description: Allow to configure Etcd repository for Sharding Shpere Proxy.
+                                    required: [ serverList ]
+                                    properties:
+                                      serverList:
+                                        type: array
+                                        description: List of Etcd servers to connect to.
+                                        items:
+                                          type: string
+                                          description: Etcd server to connect to.
+                          authority:
+                            type: object
+                            description: Allow to configure the Sharding Shpere Proxy authority.
+                            properties:
+                              users:
+                                type: array
+                                description: |
+                                  Allow to configure extra users other than the superuser (by default superuser username is postgres).
+                                  
+                                  See also https://shardingsphere.apache.org/document/current/en/user-manual/shardingsphere-proxy/yaml-config/authority/#authentication-configuration
+                                items:
+                                  type: object
+                                  description: |
+                                    Allow to configure extra user other than the superuser (by default superuser username is postgres).
+                                  properties:
+                                    user:
+                                      type: object
+                                      description: |
+                                        A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#secretkeyselector-v1-core) that contains the username of the user.
+                                      properties:
+                                        name:
+                                          type: string
+                                          description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                        key:
+                                          type: string
+                                          description: The key of the secret to select from. Must be a valid secret key.
+                                      required: ["name", "key"]
+                                    password:
+                                      type: object
+                                      description: |
+                                        A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#secretkeyselector-v1-core) that contains the password of the user.
+                                      properties:
+                                        name:
+                                          type: string
+                                          description: Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                        key:
+                                          type: string
+                                          description: The key of the secret to select from. Must be a valid secret key.
+                                      required: ["name", "key"]
+                                  required: [ user, password ]
+                              privilege:
+                                type: object
+                                description: Allow to configure the Sharding Shpere Proxy authority privilege.
+                                properties:
+                                  type:
+                                    type: string
+                                    description: |
+                                      Allow to configure the Sharding Shpere Proxy authority privilege type.
+                                      
+                                      See also https://shardingsphere.apache.org/document/current/en/user-manual/shardingsphere-proxy/yaml-config/authority/#authorization-configuration
+                                  userDatabaseMappings:
+                                    type: string
+                                    description: |
+                                      Allow to configure the mappings between users and databases.
+                                      
+                                      See also https://shardingsphere.apache.org/document/current/en/user-manual/shardingsphere-proxy/yaml-config/authority/#database_permitted
                   replication:
                     type: object
                     description: |
@@ -1145,6 +1352,8 @@ spec:
                         instances in other replication groups.
   
                       The total number of instances is always specified by `.spec.instances`.
+              
+                      If sharding type is `shardingsphere` then this section is ignored.
                     properties:
                       mode:
                         type: string
@@ -1216,7 +1425,10 @@ spec:
                             Only setteable if mode is `sync` or `strict-sync`.
                   metadata:
                     type: object
-                    description: Metadata information from coordinator cluster created resources.
+                    description: |
+                      Metadata information from coordinator cluster created resources.
+              
+                      If sharding type is `shardingsphere` then this section is applied to the ComputeNode.
                     properties:
                       annotations:
                         type: object

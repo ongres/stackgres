@@ -26,6 +26,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterReplication;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinator;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinatorConfigurations;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresServicesBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShards;
 import io.stackgres.common.fixture.Fixtures;
@@ -46,6 +47,7 @@ class StackGresShardedClusterForCitusUtilTest {
     checkCoordinatorWithGlobalSettings(
         shardedCluster,
         shardedCluster.getSpec().getCoordinator(),
+        shardedCluster.getSpec().getCoordinator().getConfigurationsForCoordinator(),
         cluster,
         0);
     Assertions.assertEquals(
@@ -75,6 +77,7 @@ class StackGresShardedClusterForCitusUtilTest {
     checkCoordinatorWithGlobalSettings(
         shardedCluster,
         shardedCluster.getSpec().getCoordinator(),
+        shardedCluster.getSpec().getCoordinator().getConfigurationsForCoordinator(),
         cluster,
         0);
     Assertions.assertEquals(
@@ -107,6 +110,7 @@ class StackGresShardedClusterForCitusUtilTest {
     checkCoordinatorWithGlobalSettings(
         shardedCluster,
         shardedCluster.getSpec().getCoordinator(),
+        shardedCluster.getSpec().getCoordinator().getConfigurationsForCoordinator(),
         cluster,
         0);
     Assertions.assertEquals(
@@ -128,6 +132,7 @@ class StackGresShardedClusterForCitusUtilTest {
     checkClusterWithGlobalSettings(
         shardedCluster,
         shardedCluster.getSpec().getShards(),
+        shardedCluster.getSpec().getShards().getConfigurations(),
         cluster,
         1);
     Assertions.assertEquals(
@@ -157,6 +162,7 @@ class StackGresShardedClusterForCitusUtilTest {
     checkClusterWithGlobalSettings(
         shardedCluster,
         shardedCluster.getSpec().getShards(),
+        shardedCluster.getSpec().getShards().getConfigurations(),
         cluster,
         1);
     Assertions.assertEquals(
@@ -186,6 +192,7 @@ class StackGresShardedClusterForCitusUtilTest {
     checkClusterWithGlobalSettings(
         shardedCluster,
         shardedCluster.getSpec().getShards(),
+        shardedCluster.getSpec().getShards().getConfigurations(),
         cluster,
         1);
     Assertions.assertEquals(
@@ -206,8 +213,8 @@ class StackGresShardedClusterForCitusUtilTest {
         .withNewPostgres()
         .endPostgres()
         .withNewCoordinator()
-        .withNewConfigurations()
-        .endConfigurations()
+        .withNewConfigurationsForCoordinator()
+        .endConfigurationsForCoordinator()
         .endCoordinator()
         .withNewShards()
         .withNewConfigurations()
@@ -235,6 +242,7 @@ class StackGresShardedClusterForCitusUtilTest {
     checkCoordinatorWithGlobalSettings(
         shardedCluster,
         shardedCluster.getSpec().getCoordinator(),
+        shardedCluster.getSpec().getCoordinator().getConfigurationsForCoordinator(),
         cluster,
         0);
     Assertions.assertEquals(
@@ -268,7 +276,8 @@ class StackGresShardedClusterForCitusUtilTest {
     var cluster = getShardsCluster(JsonUtil.copy(shardedCluster), 0);
     checkClusterWithGlobalSettings(
         shardedCluster,
-        shardedCluster.getSpec().getCoordinator(),
+        shardedCluster.getSpec().getShards(),
+        shardedCluster.getSpec().getShards().getConfigurations(),
         cluster,
         1);
     Assertions.assertEquals(
@@ -304,7 +313,7 @@ class StackGresShardedClusterForCitusUtilTest {
         shardedCluster,
         shardedCluster.getSpec().getCoordinator(),
         shardedCluster.getSpec().getCoordinator().getReplicationForCoordinator(),
-        shardedCluster.getSpec().getCoordinator().getConfigurations(),
+        shardedCluster.getSpec().getCoordinator().getConfigurationsForCoordinator(),
         shardedCluster.getSpec().getCoordinator().getPods(),
         cluster,
         0);
@@ -373,7 +382,7 @@ class StackGresShardedClusterForCitusUtilTest {
     shardedCluster.getSpec().setCoordinator(new StackGresShardedClusterCoordinator());
     shardedCluster.getSpec().getCoordinator().setInstances(1);
     shardedCluster.getSpec().getCoordinator()
-        .setConfigurations(new StackGresClusterConfigurations());
+        .setConfigurationsForCoordinator(new StackGresShardedClusterCoordinatorConfigurations());
     shardedCluster.getSpec().getCoordinator().setPods(new StackGresClusterPods());
     shardedCluster.getSpec().setShards(new StackGresShardedClusterShards());
     shardedCluster.getSpec().getShards().setClusters(1);
@@ -385,13 +394,15 @@ class StackGresShardedClusterForCitusUtilTest {
   private void checkCoordinatorWithGlobalSettings(
       StackGresShardedCluster shardedCluster,
       StackGresClusterSpec clusterSpec,
+      StackGresClusterConfigurations configuration,
       StackGresCluster cluster,
       int index) {
-    clusterSpec.getConfigurations()
+    configuration
         .setSgPostgresConfig(coordinatorConfigName(shardedCluster));
     checkClusterWithGlobalSettings(
         shardedCluster,
         clusterSpec,
+        configuration,
         cluster,
         index);
   }
@@ -399,6 +410,7 @@ class StackGresShardedClusterForCitusUtilTest {
   private void checkClusterWithGlobalSettings(
       StackGresShardedCluster shardedCluster,
       StackGresClusterSpec clusterSpec,
+      StackGresClusterConfigurations configuration,
       StackGresCluster cluster,
       int index) {
     checkClusterGlobalSettingsOnly(shardedCluster, cluster, index);
@@ -425,7 +437,10 @@ class StackGresShardedClusterForCitusUtilTest {
         shardedCluster.getSpec().getReplication(),
         cluster.getSpec().getReplication());
     checkClusterSettings(
-        clusterSpec, clusterSpec.getConfigurations(), clusterSpec.getPods(), cluster);
+        clusterSpec,
+        configuration,
+        clusterSpec.getPods(),
+        cluster);
   }
 
   private void checkCoordinatorWithSettings(
@@ -436,7 +451,7 @@ class StackGresShardedClusterForCitusUtilTest {
       StackGresClusterPods pod,
       StackGresCluster cluster,
       int index) {
-    clusterSpec.getConfigurations()
+    configuration
         .setSgPostgresConfig(coordinatorConfigName(shardedCluster));
     checkClusterWithSettings(
         shardedCluster,

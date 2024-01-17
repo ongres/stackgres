@@ -72,7 +72,7 @@ public abstract class AbstractUnamespacedResourceWriter<
           return getResourceEndpoints(client)
               .resource(resourceToUpdate)
               .lockResourceVersion(resourceToUpdate.getMetadata().getResourceVersion())
-              .replace();
+              .update();
         });
   }
 

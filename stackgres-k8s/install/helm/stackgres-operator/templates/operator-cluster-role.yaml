@@ -201,3 +201,14 @@ rules:
   - update
 {{- end }}
 {{- end }}
+- apiGroups: ["shardingsphere.apache.org"]
+  resources:
+  - computenodes
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - create
+  - delete
+  - patch

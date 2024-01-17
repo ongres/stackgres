@@ -29,7 +29,7 @@ class ShardedClusterRequiredResourcesGeneratorTest
     generator.getRequiredResources(cluster);
 
     verify(postgresConfigFinder, times(1)).findByNameAndNamespace(
-        cluster.getSpec().getCoordinator().getConfigurations().getSgPostgresConfig(),
+        cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().getSgPostgresConfig(),
         clusterNamespace);
   }
 
@@ -39,18 +39,21 @@ class ShardedClusterRequiredResourcesGeneratorTest
     final String clusterName = metadata.getName();
     final String clusterNamespace = metadata.getNamespace();
 
-    cluster.getSpec().getCoordinator().getConfigurations().setSgPostgresConfig("test");
+    cluster.getSpec().getCoordinator().getConfigurationsForCoordinator()
+        .setSgPostgresConfig("test");
     when(postgresConfigFinder.findByNameAndNamespace(
-        cluster.getSpec().getCoordinator().getConfigurations().getSgPostgresConfig(),
+        cluster.getSpec().getCoordinator().getConfigurationsForCoordinator()
+        .getSgPostgresConfig(),
         clusterNamespace))
         .thenReturn(Optional.empty());
 
     assertException("Coordinator of SGShardedCluster " + clusterNamespace + "." + clusterName
         + " have a non existent SGPostgresConfig "
-        + cluster.getSpec().getCoordinator().getConfigurations().getSgPostgresConfig());
+        + cluster.getSpec().getCoordinator()
+        .getConfigurationsForCoordinator().getSgPostgresConfig());
 
     verify(postgresConfigFinder, times(1)).findByNameAndNamespace(
-        cluster.getSpec().getCoordinator().getConfigurations().getSgPostgresConfig(),
+        cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().getSgPostgresConfig(),
         clusterNamespace);
   }
 

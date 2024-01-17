@@ -30,6 +30,7 @@ import io.stackgres.common.crd.sgdbops.DbOpsMethodType;
 import io.stackgres.common.crd.sgdbops.DbOpsStatusCondition;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardingType;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsRestart;
 import io.stackgres.common.labels.LabelFactoryForShardedDbOps;
@@ -81,6 +82,9 @@ public class ShardedDbOpsRestartJob extends AbstractShardedDbOpsJob {
             new EnvVarBuilder()
             .withName("CLUSTER_NAMES")
             .withValue(Seq.of(getCoordinatorClusterName(context.getShardedCluster()))
+                .filter(ignore -> !StackGresShardingType.SHARDING_SPHERE.equals(
+                    StackGresShardingType.fromString(
+                        context.getShardedCluster().getSpec().getType())))
                 .append(Seq.range(0, context.getShardedCluster()
                     .getSpec().getShards().getClusters())
                     .map(index -> getShardClusterName(context.getShardedCluster(), index)))
