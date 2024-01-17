@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeploy;
 import io.stackgres.common.crd.sgconfig.StackGresConfigServiceAccount;
@@ -45,7 +46,8 @@ public class WebConsoleServiceAccount
     if (!Optional.ofNullable(context.getSource().getSpec())
         .map(StackGresConfigSpec::getDeploy)
         .map(StackGresConfigDeploy::getRestapi)
-        .orElse(true)) {
+        .orElse(true)
+        || OperatorProperty.DISABLE_RESTAPI_SERVICE_ACCOUNT.getBoolean()) {
       return Stream.of();
     }
 

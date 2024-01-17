@@ -86,6 +86,8 @@ fi
             value: "true"
           - name: INSTALL_CONFIG
             value: "true"
+          - name: DISABLE_RESTAPI_SERVICE_ACCOUNT
+            value: "true"
           - name: OPERATOR_CERT_FILE
             value: /tmp/k8s-webhook-server/serving-certs/tls.crt
           - name: OPERATOR_KEY_FILE

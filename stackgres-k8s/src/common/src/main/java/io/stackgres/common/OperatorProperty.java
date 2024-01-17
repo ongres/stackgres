@@ -31,7 +31,8 @@ public enum OperatorProperty implements StackGresPropertyReader {
   INSTALL_CRDS("stackgres.installCrds"),
   INSTALL_WEBHOOKS("stackgres.installWebhooks"),
   CERTIFICATE_TIMEOUT("stackgres.certificateTimeout"),
-  OPERATOR_CERT_SECRET_NAME("stackgres.operatorCertSecretName");
+  OPERATOR_CERT_SECRET_NAME("stackgres.operatorCertSecretName"),
+  DISABLE_RESTAPI_SERVICE_ACCOUNT("stackgres.disableRestapiServiceAccount");
 
   private static final Properties APPLICATION_PROPERTIES =
       StackGresPropertyReader.readApplicationProperties(OperatorProperty.class);
