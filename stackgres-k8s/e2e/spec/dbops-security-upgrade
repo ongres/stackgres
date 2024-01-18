@@ -445,9 +445,10 @@ check_operator_upgrade() {
 
   e2e_upgrade_operator
 
-  POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
+  kubectl rollout status -n "$OPERATOR_NAMESPACE" "$(kubectl get deployment -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator -o name)"
+  POD_OPERATOR_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator --sort-by '{.metadata.creationTimestamp}' \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
-    | head -n 1 | grep '/operator:')"
+    | grep '/operator:' | tail -n 1 | grep .)"
   if ! printf %s "$POD_OPERATOR_IMAGE" | grep -q '^[^/]\+\.[^/]\+/'
   then
     POD_OPERATOR_IMAGE="docker.io/$POD_OPERATOR_IMAGE"
@@ -463,9 +464,11 @@ check_operator_upgrade() {
     echo "Used new operator image is $POD_OPERATOR_IMAGE"
     return 1
   fi
-  POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=StackGresConfig,stackgres.io/restapi=true \
+  DEPLOYMENT_RESTAPI="$(wait_until eval 'kubectl get deployment -n "$OPERATOR_NAMESPACE" stackgres-restapi -o name | grep .')"
+  timeout "$E2E_TIMEOUT" kubectl rollout status -n "$OPERATOR_NAMESPACE" "$DEPLOYMENT_RESTAPI"
+  POD_RESTAPI_IMAGE="$(kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=StackGresConfig,stackgres.io/restapi=true --sort-by '{.metadata.creationTimestamp}' \
     --template '{{ range .items }}{{ if not .metadata.deletionTimestamp }}{{ range .spec.containers }}{{ printf "%s\n" .image }}{{ end }}{{ end }}{{ end }}' \
-    | head -n 1 | grep '/restapi:')"
+    | grep '/restapi:' | tail -n 1 | grep .)"
   if ! printf %s "$POD_RESTAPI_IMAGE" | grep -q '^[^/]\+\.[^/]\+/'
   then
     POD_RESTAPI_IMAGE="docker.io/$POD_RESTAPI_IMAGE"
