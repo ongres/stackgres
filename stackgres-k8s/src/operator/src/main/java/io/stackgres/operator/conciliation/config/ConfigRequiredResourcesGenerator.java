@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
 import io.fabric8.kubernetes.client.VersionInfo;
@@ -23,6 +24,7 @@ import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.factory.config.OperatorSecret;
 import io.stackgres.operator.conciliation.factory.config.webconsole.WebConsoleAdminSecret;
+import io.stackgres.operator.conciliation.factory.config.webconsole.WebConsoleDeployment;
 import io.stackgres.operator.conciliation.factory.config.webconsole.WebConsoleGrafanaIntegrationJob;
 import io.stackgres.operator.conciliation.factory.config.webconsole.WebConsoleSecret;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -42,6 +44,8 @@ public class ConfigRequiredResourcesGenerator
 
   private final ResourceGenerationDiscoverer<StackGresConfigContext> discoverer;
 
+  private final ResourceFinder<ServiceAccount> serviceAccountFinder;
+
   private final ResourceFinder<Secret> secretFinder;
 
   private final ResourceFinder<Job> jobFinder;
@@ -52,11 +56,13 @@ public class ConfigRequiredResourcesGenerator
   public ConfigRequiredResourcesGenerator(
       Supplier<VersionInfo> kubernetesVersionSupplier,
       ResourceGenerationDiscoverer<StackGresConfigContext> discoverer,
+      ResourceFinder<ServiceAccount> serviceAccountFinder,
       ResourceFinder<Secret> secretFinder,
       ResourceFinder<Job> jobFinder,
       ConfigGrafanaIntegrationChecker grafanaIntegrationChecker) {
     this.kubernetesVersionSupplier = kubernetesVersionSupplier;
     this.discoverer = discoverer;
+    this.serviceAccountFinder = serviceAccountFinder;
     this.secretFinder = secretFinder;
     this.jobFinder = jobFinder;
     this.grafanaIntegrationChecker = grafanaIntegrationChecker;
@@ -73,6 +79,8 @@ public class ConfigRequiredResourcesGenerator
         WebConsoleSecret.name(config), namespace);
     Optional<Secret> webConsoleAdminSecret = secretFinder.findByNameAndNamespace(
         WebConsoleAdminSecret.name(config), namespace);
+    Optional<ServiceAccount> webConsoleServiceAccount = serviceAccountFinder.findByNameAndNamespace(
+        WebConsoleDeployment.name(config), namespace);
     boolean isGrafanaEmbedded = grafanaIntegrationChecker.isGrafanaEmbedded(config);
     boolean isGrafanaIntegrated = grafanaIntegrationChecker.isGrafanaIntegrated(config);
     boolean isGrafanaIntegrationJobFailed =
@@ -114,6 +122,7 @@ public class ConfigRequiredResourcesGenerator
         .operatorSecret(operatorSecret)
         .webConsoleSecret(webConsoleSecret)
         .webConsoleAdminSecret(webConsoleAdminSecret)
+        .webConsoleServiceAccount(webConsoleServiceAccount)
         .isGrafanaEmbedded(isGrafanaEmbedded)
         .isGrafanaIntegrated(isGrafanaIntegrated)
         .isGrafanaIntegrationJobFailed(isGrafanaIntegrationJobFailed)

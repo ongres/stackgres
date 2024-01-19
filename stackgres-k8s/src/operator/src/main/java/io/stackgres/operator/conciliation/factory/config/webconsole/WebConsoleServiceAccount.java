@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeploy;
 import io.stackgres.common.crd.sgconfig.StackGresConfigServiceAccount;
@@ -21,6 +22,7 @@ import io.stackgres.common.labels.LabelFactoryForConfig;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.config.StackGresConfigContext;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +47,15 @@ public class WebConsoleServiceAccount
     if (!Optional.ofNullable(context.getSource().getSpec())
         .map(StackGresConfigSpec::getDeploy)
         .map(StackGresConfigDeploy::getRestapi)
-        .orElse(true)) {
+        .orElse(true)
+        || (context.getWebConsoleServiceAccount()
+            .filter(serviceAccount -> Optional
+                .ofNullable(serviceAccount.getMetadata().getOwnerReferences())
+                .stream()
+                .flatMap(List::stream)
+                .noneMatch(ResourceUtil.getControllerOwnerReference(context.getSource())::equals))
+            .isPresent()
+            && OperatorProperty.DISABLE_RESTAPI_SERVICE_ACCOUNT_IF_NOT_EXISTS.getBoolean())) {
       return Stream.of();
     }
 

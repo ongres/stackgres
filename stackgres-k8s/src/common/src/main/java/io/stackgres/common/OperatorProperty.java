@@ -25,14 +25,14 @@ public enum OperatorProperty implements StackGresPropertyReader {
   LOCK_DURATION("stackgres.lockDuration"),
   RECONCILIATION_CACHE_EXPIRATION("stackgres.reconciliationCacheExpitarion"),
   RECONCILIATION_CACHE_SIZE("stackgres.reconciliationCacheSize"),
-  REMOVE_OLD_OPERATOR_BUNDLE_RESOURCES("stackgres.removeOldOperatorBundleResources"),
   SGCONFIG("stackgres.sgconfig"),
   INSTALL_CONFIG("stackgres.installConfig"),
   INSTALL_CERTS("stackgres.installCerts"),
   INSTALL_CRDS("stackgres.installCrds"),
   INSTALL_WEBHOOKS("stackgres.installWebhooks"),
   CERTIFICATE_TIMEOUT("stackgres.certificateTimeout"),
-  OPERATOR_CERT_SECRET_NAME("stackgres.operatorCertSecretName");
+  OPERATOR_CERT_SECRET_NAME("stackgres.operatorCertSecretName"),
+  DISABLE_RESTAPI_SERVICE_ACCOUNT_IF_NOT_EXISTS("stackgres.disableRestapiServiceAccountIfNotExists");
 
   private static final Properties APPLICATION_PROPERTIES =
       StackGresPropertyReader.readApplicationProperties(OperatorProperty.class);

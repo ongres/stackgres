@@ -1,0 +1,72 @@
+#!/bin/sh
+
+. "$SPEC_PATH/abstract/dbops-major-version-upgrade"
+
+e2e_test_extra_hash() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/dbops-major-version-upgrade")"
+}
+
+e2e_test() {
+  run_test "Checking that major version upgrade link is working" check_major_version_upgrade_link_is_working
+
+  run_test "Checking that major version upgrade clone is working" check_major_version_upgrade_clone_is_working
+}
+
+check_major_version_upgrade_link_is_working() {
+  reset_cluster
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: majorVersionUpgrade
+  majorVersionUpgrade:
+    postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
+    sgPostgresConfig: postgresconf-for-major-version-upgrade
+    link: true
+    postgresExtensions:
+    - name: pg_repack
+      version: $TARGET_PG_REPACK_VERSION
+EOF
+
+  check_major_version_upgrade
+
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
+}
+
+check_major_version_upgrade_clone_is_working() {
+  if [ "$E2E_STORAGE_CLASS_REFLINK_ENABLED" != true ]
+  then
+    echo "Skipping test since reflink is not supposed to be supported by default storage class"
+    return
+  fi
+
+  reset_cluster
+
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGDbOps
+metadata:
+  name: $DBOPS_NAME
+  namespace: $CLUSTER_NAMESPACE
+spec:
+  sgCluster: $CLUSTER_NAME
+  op: majorVersionUpgrade
+  majorVersionUpgrade:
+    postgresVersion: "$E2E_MAJOR_TARGET_POSTGRES_VERSION"
+    sgPostgresConfig: postgresconf-for-major-version-upgrade
+    clone: true
+    postgresExtensions:
+    - name: pg_repack
+      version: $TARGET_PG_REPACK_VERSION
+EOF
+
+  check_major_version_upgrade
+
+  kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
+}

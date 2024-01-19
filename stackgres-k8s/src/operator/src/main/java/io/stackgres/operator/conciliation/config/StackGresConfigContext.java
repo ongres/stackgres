@@ -8,6 +8,7 @@ package io.stackgres.operator.conciliation.config;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
@@ -24,6 +25,8 @@ public interface StackGresConfigContext extends GenerationContext<StackGresConfi
   Optional<Secret> getWebConsoleSecret();
 
   Optional<Secret> getWebConsoleAdminSecret();
+
+  Optional<ServiceAccount> getWebConsoleServiceAccount();
 
   boolean isGrafanaEmbedded();
 

@@ -21,7 +21,6 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.labels.LabelFactoryForCluster;
@@ -37,7 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Singleton
-@OperatorVersionBinder(startAt = StackGresVersion.V_1_5)
+@OperatorVersionBinder
 public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsContext> {
 
   public static final int PATRONI_LOG_FILE_SIZE = 256 * 1024 * 1024;
