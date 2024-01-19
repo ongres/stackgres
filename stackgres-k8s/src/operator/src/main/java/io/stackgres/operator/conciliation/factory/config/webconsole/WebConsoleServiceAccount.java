@@ -22,6 +22,7 @@ import io.stackgres.common.labels.LabelFactoryForConfig;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.config.StackGresConfigContext;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +48,14 @@ public class WebConsoleServiceAccount
         .map(StackGresConfigSpec::getDeploy)
         .map(StackGresConfigDeploy::getRestapi)
         .orElse(true)
-        || OperatorProperty.DISABLE_RESTAPI_SERVICE_ACCOUNT.getBoolean()) {
+        || (context.getWebConsoleServiceAccount()
+            .filter(serviceAccount -> Optional
+                .ofNullable(serviceAccount.getMetadata().getOwnerReferences())
+                .stream()
+                .flatMap(List::stream)
+                .noneMatch(ResourceUtil.getControllerOwnerReference(context.getSource())::equals))
+            .isPresent()
+            && OperatorProperty.DISABLE_RESTAPI_SERVICE_ACCOUNT_IF_NOT_EXISTS.getBoolean())) {
       return Stream.of();
     }
 
