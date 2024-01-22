@@ -78,10 +78,8 @@ class ResourceUtilTest {
   @Test
   void testIllegalArgumentPrefix() {
     String rand = StringUtil.generateRandom(10);
-    assertThrows(IllegalArgumentException.class,
-        () -> labelKey("kubernetes.io/" + rand));
-    assertThrows(IllegalArgumentException.class,
-        () -> labelKey("k8s.io/" + rand));
+    assertThrows(IllegalArgumentException.class, () -> labelKey("kubernetes.io/" + rand));
+    assertThrows(IllegalArgumentException.class, () -> labelKey("k8s.io/" + rand));
 
     assertThrows(IllegalArgumentException.class,
         () -> labelKey("devil-variety-list-blow-valence-"
