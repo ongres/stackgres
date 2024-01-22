@@ -357,8 +357,8 @@ describe('Create SGCluster', () => {
             .click()
         
         // Test create new script
-        cy.get('label[for="spec.managedSql.scripts.scriptSource"] + select')
-            .select('createNewScript')
+        cy.get('.scriptFieldset > div.fieldsetFooter > a.addRow')
+            .click()
 
         // Test Entry script textarea
         cy.get('[data-field="spec.managedSql.scripts[0].scriptSpec.scripts[0].script"]')
@@ -381,6 +381,9 @@ describe('Create SGCluster', () => {
 
         // Test User-Supplied Pods Sidecars
         // Test Custom volumes
+        cy.get('div.repeater.customVolumes .fieldsetFooter .addRow')
+            .click()
+
         cy.get('input[data-field="spec.pods.customVolumes[0].name"]')
             .type('vol1')
 
@@ -487,6 +490,9 @@ describe('Create SGCluster', () => {
         */
 
         // Test Custom Init Containers
+        cy.get('div.repeater.customInitContainers .fieldsetFooter .addRow')
+            .click()
+
         cy.get('input[data-field="spec.pods.customInitContainers[0].name"]')
             .type('container1')
 
@@ -617,6 +623,9 @@ describe('Create SGCluster', () => {
             .click()
 
         // Test Custom Containers
+        cy.get('div.repeater.customContainers .fieldsetFooter .addRow')
+            .click()
+
         cy.get('input[data-field="spec.pods.customContainers[0].name"]')
             .type('container1')
 
@@ -760,6 +769,9 @@ describe('Create SGCluster', () => {
             .clear()
             .type('2')
 
+        cy.get('[data-add="spec.replication.groups"]')
+            .click()
+
         cy.get('[data-group="replication-group-0"] input[data-field="spec.replication.groups[0].name"]')
             .clear()
             .type('group-0')
@@ -795,6 +807,9 @@ describe('Create SGCluster', () => {
         cy.get('input[data-field="spec.postgresServices.primary.loadBalancerIP"]')
             .clear()
             .type('1.2.3.4')
+
+        cy.get('div.repeater.sidecars.primary div.fieldsetFooter > a.addRow')
+            .click()
 
         cy.get('input[data-field="spec.postgresServices.primary.customPorts[0].appProtocol"]')
             .clear()
@@ -852,6 +867,9 @@ describe('Create SGCluster', () => {
             .clear()
             .type('1.2.3.4')
 
+        cy.get('div.repeater.sidecars.replica div.fieldsetFooter > a.addRow')
+            .click()
+
         cy.get('input[data-field="spec.postgresServices.replicas.customPorts[0].appProtocol"]')
             .clear()
             .type('protocol')
@@ -905,31 +923,43 @@ describe('Create SGCluster', () => {
         cy.get('form#createCluster li[data-step="metadata"]')
             .click()
 
+        cy.get('fieldset[data-field="spec.metadata.labels.clusterPods"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.metadata.labels.clusterPods[0].label"]')
             .type('label')
         cy.get('input[data-field="spec.metadata.labels.clusterPods[0].value"]')
             .type('value')
         
+        cy.get('fieldset[data-field="spec.metadata.annotations.allResources"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.metadata.annotations.allResources[0].annotation"]')
             .type('annotation')
         cy.get('input[data-field="spec.metadata.annotations.allResources[0].value"]')
             .type('value')
 
+        cy.get('fieldset[data-field="spec.metadata.annotations.clusterPods"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.metadata.annotations.clusterPods[0].annotation"]')
             .type('annotation')
         cy.get('input[data-field="spec.metadata.annotations.clusterPods[0].value"]')
             .type('value')
 
+        cy.get('fieldset[data-field="spec.metadata.annotations.services"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.metadata.annotations.services[0].annotation"]')
             .type('annotation')        
         cy.get('input[data-field="spec.metadata.annotations.services[0].value"]')
             .type('value')
         
+        cy.get('fieldset[data-field="spec.metadata.annotations.primaryService"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.metadata.annotations.primaryService[0].annotation"]')
             .type('annotation')        
         cy.get('input[data-field="spec.metadata.annotations.primaryService[0].value"]')
             .type('value')
         
+        cy.get('fieldset[data-field="spec.metadata.annotations.replicasService"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.metadata.annotations.replicasService[0].annotation"]')
             .type('annotation')        
         cy.get('input[data-field="spec.metadata.annotations.replicasService[0].value"]')
@@ -940,12 +970,16 @@ describe('Create SGCluster', () => {
             .click()
 
         // Tests Node Selectors
+        cy.get('div.repeater.nodeSelector div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.pods.scheduling.nodeSelector[0].label"]')
             .type('key')
         cy.get('input[data-field="spec.pods.scheduling.nodeSelector[0].value"]')
             .type('value')
 
         // Tests Node Tolerations
+        cy.get('div.scheduling.repeater.tolerations div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.pods.scheduling.tolerations[0].key"]')
             .type('key')
         cy.get('input[data-field="spec.pods.scheduling.tolerations[0].value"]')
@@ -954,6 +988,8 @@ describe('Create SGCluster', () => {
             .select('NoSchedule')
         
         // Tests Node Affinity (Required)
+        cy.get('div.scheduling.repeater.requiredAffinity div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.key"]')
             .type('key')
         cy.get('select[data-field="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator"]')
@@ -969,6 +1005,8 @@ describe('Create SGCluster', () => {
             .type('value')
         
         // Tests Node Affinity (Preferred)
+        cy.get('div.scheduling.repeater.preferredAffinity div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.key"]')
             .type('key')
         cy.get('select[data-field="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.operator"]')
@@ -2317,6 +2355,9 @@ describe('Create SGCluster', () => {
         cy.get('form#createCluster li[data-step="scheduling"]')
             .click()
             
+        cy.get('div.scheduling.repeater.tolerations div.fieldsetFooter > a.addRow')
+            .click()
+
         cy.get('input[data-field="spec.pods.scheduling.tolerations[0].value"]')
             .type('value')
 
@@ -2379,6 +2420,9 @@ describe('Create SGCluster', () => {
         
         // Tests script source on script repeaters
         cy.get('form#createCluster li[data-step="scripts"]')
+            .click()
+        
+        cy.get('.scriptFieldset > div.fieldsetFooter > a.addRow')
             .click()
             
         cy.get('select[data-field="spec.managedSql.scripts.scriptSource[0]"]')
