@@ -24,7 +24,6 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.config.StackGresConfigContext;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pgexporter.PostgresExporter;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
@@ -38,11 +37,7 @@ public class AdminuiNginxConfigMap
   private final LabelFactoryForConfig labelFactory;
 
   public static String name(StackGresConfig config) {
-    return ResourceUtil.resourceName(
-        config.getSpec().getCert() != null
-        && config.getSpec().getCert().getWebSecretName() != null
-        ? config.getSpec().getCert().getWebSecretName()
-            : WebConsoleDeployment.name(config) + "-nginx");
+    return WebConsoleDeployment.name(config) + "-nginx";
   }
 
   @Inject
