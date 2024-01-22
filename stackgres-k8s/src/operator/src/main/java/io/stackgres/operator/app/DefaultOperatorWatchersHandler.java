@@ -80,6 +80,8 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   private final ShardedBackupReconciliator shardedBackupReconciliatorCycle;
   private final ShardedDbOpsReconciliator shardedDbOpsReconciliatorCycle;
   private final ResourceWatcherFactory watcherFactory;
+  private final Map<String, StackGresConfig> configs =
+      Collections.synchronizedMap(new HashMap<>());
   private final Map<String, StackGresCluster> clusters =
       Collections.synchronizedMap(new HashMap<>());
   private final Map<String, StackGresDistributedLogs> distributedLogs =
@@ -126,7 +128,8 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
         StackGresConfig.class,
         StackGresConfigList.class,
         onCreateOrUpdate(
-            reconcileConfig())));
+            reconcileConfig()
+            .andThen(putConfig()))));
 
     monitors.add(createCustomResourceWatcher(
         StackGresCluster.class,
@@ -267,6 +270,10 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
     return resource.getMetadata().getNamespace() + "." + resource.getMetadata().getName();
   }
 
+  private BiConsumer<Action, StackGresConfig> putConfig() {
+    return (action, config) -> configs.put(resourceId(config), config);
+  }
+
   private BiConsumer<Action, StackGresCluster> putCluster() {
     return (action, cluster) -> clusters.put(resourceId(cluster), cluster);
   }
@@ -297,7 +304,15 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   }
 
   private BiConsumer<Action, StackGresConfig> reconcileConfig() {
-    return (action, config) -> configReconciliatorCycle.reconcile(config);
+    return (action, config) -> Optional
+        .ofNullable(configs.get(resourceId(config)))
+        .filter(oldConfig -> config.getMetadata().getAnnotations() == null
+            || oldConfig == null
+            || oldConfig.getMetadata().getAnnotations() == null
+            || Objects.equals(
+                config.getMetadata().getAnnotations().get(StackGresContext.LOCK_TIMEOUT_KEY),
+                oldConfig.getMetadata().getAnnotations().get(StackGresContext.LOCK_TIMEOUT_KEY)))
+        .ifPresent(ignore -> configReconciliatorCycle.reconcile(config));
   }
 
   private BiConsumer<Action, StackGresCluster> reconcileCluster() {
