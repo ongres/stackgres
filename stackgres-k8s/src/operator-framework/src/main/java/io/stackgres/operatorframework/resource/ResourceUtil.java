@@ -126,38 +126,73 @@ public interface ResourceUtil {
     return name;
   }
 
-  static @NotNull String labelKey(@NotNull String name) {
-    String label = name;
-    if (name.indexOf('/') != -1) {
-      Preconditions.checkArgument(
-          !name.startsWith("kubernetes.io/") && !name.startsWith("k8s.io/"),
-          format("The kubernetes.io/ and k8s.io/ prefixes are reserved"
-              + " for Kubernetes core components. But was %s", name));
+  static @NotNull String annotationKeySyntax(@NotNull String name) {
+    return checkKey(name);
+  }
 
+  static @NotNull String labelKeySyntax(@NotNull String name) {
+    return checkKey(name);
+  }
+
+  static @NotNull String annotationKey(@NotNull String name) {
+    checkPrefix(name);
+    return checkKey(name);
+  }
+
+  static @NotNull String labelKey(@NotNull String name) {
+    checkPrefix(name);
+    return checkKey(name);
+  }
+
+  private static @NotNull String checkKey(@NotNull String name) {
+    String key = name;
+    if (name.indexOf('/') != -1) {
       final String[] split = name.split("/");
       Preconditions.checkArgument(split.length == 2, "name part must be non-empty");
 
       String prefix = split[0];
+      Preconditions.checkArgument(prefix.length() <= DNS_SUBDOMAIN_NAME_MAX_LENGTH,
+          "prefix must not be more than 253 characters. But was %d length", prefix.length());
+      Preconditions.checkArgument(PREFIX_PART.matcher(prefix).matches(),
+          String.format("Prefix part a lowercase RFC 1123 subdomain must consist of lower case "
+          + "alphanumeric characters, '-' or '.', and must start and end "
+          + "with an alphanumeric character. But was %s", prefix));
+      InternetDomainName.from(prefix);
+
+      key = split[1];
+    }
+
+    if (!key.isBlank()) {
+      Preconditions.checkArgument(VALID_VALUE.matcher(key).matches(),
+          "Label key not compliant with pattern %s, was %s", VALID_VALUE.pattern(), key);
+    }
+
+    Preconditions.checkArgument(key.length() <= 63,
+        format("Label key must be 63 characters or less but was %d (%s)", key.length(), key));
+
+    return name;
+  }
+
+  static void checkPrefix(@NotNull String name) {
+    String prefix;
+    if (name.indexOf('/') != -1) {
+      Preconditions.checkArgument(
+          !name.startsWith("kubernetes.io/") && !name.startsWith("k8s.io/"),
+          format("The kubernetes.io/ and k8s.io/ prefixes are reserved"
+          + " for Kubernetes core components. But was %s", name));
+
+      final String[] split = name.split("/");
+      Preconditions.checkArgument(split.length == 2, "name part must be non-empty");
+
+      prefix = split[0];
 
       Preconditions.checkArgument(PREFIX_PART.matcher(prefix).matches(),
           format("Prefix part a lowercase RFC 1123 subdomain must consist of lower case "
-              + "alphanumeric characters, '-' or '.', and must start and end "
-              + "with an alphanumeric character. But was %s", prefix));
+          + "alphanumeric characters, '-' or '.', and must start and end "
+          + "with an alphanumeric character. But was %s", prefix));
 
       InternetDomainName.from(prefix);
-
-      label = split[1];
     }
-
-    if (!label.isBlank()) {
-      Preconditions.checkArgument(VALID_VALUE.matcher(label).matches(),
-          "Label key not compliant with pattern %s, was %s", VALID_VALUE.pattern(), name);
-    }
-
-    Preconditions.checkArgument(label.length() <= 63,
-        format("Label key must be 63 characters or less but was %d (%s)", name.length(), name));
-
-    return name;
   }
 
   static @NotNull String labelValue(@NotNull String name) {
