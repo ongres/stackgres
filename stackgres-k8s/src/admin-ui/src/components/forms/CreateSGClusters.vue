@@ -2330,7 +2330,7 @@
                         </div>
                     </div>
 
-                    <div class="repeater sidecars">
+                    <div class="repeater sidecars primary">
                         <div class="header">
                             <h4 for="spec.postgresServices.primary.customPorts">
                                 Custom Ports
@@ -2442,7 +2442,7 @@
                         </div>
                     </div>
 
-                    <div class="repeater sidecars">
+                    <div class="repeater sidecars replica">
                         <div class="header">
                             <h4 for="spec.postgresServices.replicas.customPorts">
                                 Custom Ports
@@ -2721,7 +2721,7 @@
                 </div>
                 
                 <div class="fields">
-                    <div class="repeater">
+                    <div class="repeater nodeSelector">
                         <div class="header">
                             <h3 for="spec.pods.scheduling.nodeSelector">
                                 Node Selectors
@@ -2757,7 +2757,7 @@
                         </h3>
                     </div>
             
-                    <div class="scheduling repeater">
+                    <div class="scheduling repeater tolerations">
                         <fieldset v-if="tolerations.length" data-field="spec.pods.scheduling.tolerations">
                             <div class="section" v-for="(field, index) in tolerations">
                                 <div class="header">
@@ -2822,7 +2822,7 @@
 
                     <br/><br/>
                     
-                    <div class="scheduling repeater">
+                    <div class="scheduling repeater requiredAffinity">
                         <div class="header">
                             <h4 for="spec.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms">
                                 Node Selector Terms
@@ -2970,7 +2970,7 @@
 
                     <br/><br/>
 
-                    <div class="scheduling repeater">
+                    <div class="scheduling repeater preferredAffinity">
                         <div class="header">
                             <h4 for="spec.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items">
                                 Node Selector Terms
@@ -3199,13 +3199,7 @@
                     role: 'ha-read',
                     mode: 'async',
                     syncInstances: 1,
-                    groups: [
-                        {
-                            name: '',
-                            role: 'ha-read',
-                            instances: null
-                        }
-                    ]
+                    groups: []
                 },
                 pgConfigExists: true,
                 postgresServices: {
@@ -3213,31 +3207,17 @@
                         enabled: true,
                         type: 'ClusterIP',
                         loadBalancerIP: '',
-                        customPorts: [{
-                            appProtocol: null,
-                            name: null,
-                            nodePort: null,
-                            port: null,
-                            protocol: null,
-                            targetPort: null
-                        }]
+                        customPorts: []
                     },
                     replicas: {
                         enabled: true,
                         type: 'ClusterIP',
                         loadBalancerIP: '',
-                        customPorts: [{
-                            appProtocol: null,
-                            name: null,
-                            nodePort: null,
-                            port: null,
-                            protocol: null,
-                            targetPort: null
-                        }]
+                        customPorts: []
                     },
                 },
-                postgresServicesPrimaryAnnotations: [ { annotation: '', value: '' } ],
-                postgresServicesReplicasAnnotations: [ { annotation: '', value: '' } ],
+                postgresServicesPrimaryAnnotations: [],
+                postgresServicesReplicasAnnotations: [],
                 clusterPodAntiAffinity: null
             }
 
