@@ -51,15 +51,15 @@ spec:
           - "-ecx"
           - |
             kubectl delete clusterrolebinding stackgres-restapi-admin --ignore-not-found
----
 {{- end }}
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: stackgres-restapi-admin
 subjects:
 - kind: User
-  name: admin
+  name: {{ .Values.authentication.user | quote }}
 roleRef:
   kind: ClusterRole
   name: stackgres-restapi-admin

@@ -78,7 +78,7 @@ public class ConfigRequiredResourcesGenerator
     Optional<Secret> webConsoleSecret = secretFinder.findByNameAndNamespace(
         WebConsoleSecret.name(config), namespace);
     Optional<Secret> webConsoleAdminSecret = secretFinder.findByNameAndNamespace(
-        WebConsoleAdminSecret.name(config), namespace);
+        WebConsoleAdminSecret.sourceName(config), namespace);
     Optional<ServiceAccount> webConsoleServiceAccount = serviceAccountFinder.findByNameAndNamespace(
         WebConsoleDeployment.name(config), namespace);
     boolean isGrafanaEmbedded = grafanaIntegrationChecker.isGrafanaEmbedded(config);

@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
@@ -36,6 +37,15 @@ public class WebConsoleAdminSecret
     implements ResourceGenerator<StackGresConfigContext> {
 
   private final LabelFactoryForConfig labelFactory;
+
+  public static String sourceName(StackGresConfig config) {
+    return Optional.of(config)
+        .map(StackGresConfig::getSpec)
+        .map(StackGresConfigSpec::getAuthentication)
+        .map(StackGresConfigAuthentication::getSecretRef)
+        .map(SecretKeySelector::getName)
+        .orElse(ResourceUtil.resourceName("stackgres-restapi-admin"));
+  }
 
   public static String name(StackGresConfig config) {
     return ResourceUtil.resourceName("stackgres-restapi-admin");
