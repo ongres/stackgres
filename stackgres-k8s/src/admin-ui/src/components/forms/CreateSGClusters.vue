@@ -1339,7 +1339,7 @@
 
                     <br/>
                     
-                    <div class="repeater">
+                    <div class="repeater customVolumes">
                         <fieldset
                             class="noPaddingBottom"
                             v-if="pods.customVolumes.length"
@@ -1580,7 +1580,7 @@
 
                     <br/>
                     
-                    <div class="repeater">
+                    <div class="repeater customInitContainers">
                         <fieldset
                             v-if="pods.customInitContainers.length"
                             data-fieldset="spec.pods.customInitContainers"
@@ -1887,7 +1887,7 @@
 
                     <br/>
                     
-                    <div class="repeater">
+                    <div class="repeater customContainers">
                         <fieldset
                             v-if="pods.customContainers.length"
                             data-fieldset="spec.pods.customContainers"
