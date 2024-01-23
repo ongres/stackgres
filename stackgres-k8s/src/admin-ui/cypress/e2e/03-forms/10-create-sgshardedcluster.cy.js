@@ -318,31 +318,43 @@ describe('Create SGShardedCluster', () => {
         cy.get('form#createShardedCluster li[data-step="general.metadata"]')
             .click()
 
+        cy.get('fieldset[data-field="spec.metadata.labels.clusterPods"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.metadata.labels.clusterPods[0].label"]')
             .type('label')
         cy.get('input[data-field="spec.metadata.labels.clusterPods[0].value"]')
             .type('value')
         
+        cy.get('fieldset[data-field="spec.metadata.annotations.allResources"] + div.fieldsetFooter > a.addRow')
+            .click()            
         cy.get('input[data-field="spec.metadata.annotations.allResources[0].annotation"]')
             .type('annotation')
         cy.get('input[data-field="spec.metadata.annotations.allResources[0].value"]')
             .type('value')
 
+        cy.get('fieldset[data-field="spec.metadata.annotations.clusterPods"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.metadata.annotations.clusterPods[0].annotation"]')
             .type('annotation')
         cy.get('input[data-field="spec.metadata.annotations.clusterPods[0].value"]')
             .type('value')
 
+        cy.get('fieldset[data-field="spec.metadata.annotations.services"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.metadata.annotations.services[0].annotation"]')
             .type('annotation')        
         cy.get('input[data-field="spec.metadata.annotations.services[0].value"]')
             .type('value')
         
+        cy.get('fieldset[data-field="spec.metadata.annotations.primaryService"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.metadata.annotations.primaryService[0].annotation"]')
             .type('annotation')        
         cy.get('input[data-field="spec.metadata.annotations.primaryService[0].value"]')
             .type('value')
         
+        cy.get('fieldset[data-field="spec.metadata.annotations.replicasService"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.metadata.annotations.replicasService[0].annotation"]')
             .type('annotation')        
         cy.get('input[data-field="spec.metadata.annotations.replicasService[0].value"]')
@@ -374,6 +386,9 @@ describe('Create SGShardedCluster', () => {
             .click()
         
         // Test Coordinator create new script
+        cy.get('.scriptFieldset > div.fieldsetFooter > a.addRow')
+            .click()
+        
         cy.get('label[for="spec.coordinator.managedSql.scripts.scriptSource"] + select')
             .select('createNewScript')
 
@@ -394,6 +409,9 @@ describe('Create SGShardedCluster', () => {
             .click({force: true})
 
         // Test Custom volumes
+        cy.get('div.repeater.customVolumes .fieldsetFooter .addRow')
+            .click()
+
         cy.get('input[data-field="spec.coordinator.pods.customVolumes[0].name"]')
             .type('vol1')
 
@@ -500,6 +518,9 @@ describe('Create SGShardedCluster', () => {
         */
 
         // Test Custom Init Containers
+        cy.get('div.repeater.customInitContainers .fieldsetFooter .addRow')
+            .click()
+
         cy.get('input[data-field="spec.coordinator.pods.customInitContainers[0].name"]')
             .type('container1')
 
@@ -630,6 +651,9 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         // Test Custom Containers
+        cy.get('div.repeater.customContainers .fieldsetFooter .addRow')
+            .click()
+
         cy.get('input[data-field="spec.coordinator.pods.customContainers[0].name"]')
             .type('container1')
 
@@ -780,7 +804,10 @@ describe('Create SGShardedCluster', () => {
         cy.get('input[data-field="spec.postgresServices.coordinator.primary.loadBalancerIP"]')
             .clear()
             .type('1.2.3.4')
-
+        
+        cy.get('div.repeater.sidecars div.fieldsetFooter > a.addRow')
+            .click()
+   
         cy.get('input[data-field="spec.postgresServices.coordinator.customPorts[0].appProtocol"]')
             .clear()
             .type('protocol')
@@ -841,31 +868,43 @@ describe('Create SGShardedCluster', () => {
         cy.get('form#createShardedCluster li[data-step="coordinator.metadata"]')
             .click()
 
+        cy.get('fieldset[data-field="spec.coordinator.metadata.labels.clusterPods"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.coordinator.metadata.labels.clusterPods[0].label"]')
             .type('label')
         cy.get('input[data-field="spec.coordinator.metadata.labels.clusterPods[0].value"]')
             .type('value')
         
+        cy.get('fieldset[data-field="spec.coordinator.metadata.annotations.allResources"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.coordinator.metadata.annotations.allResources[0].annotation"]')
             .type('annotation')
         cy.get('input[data-field="spec.coordinator.metadata.annotations.allResources[0].value"]')
             .type('value')
 
+        cy.get('fieldset[data-field="spec.coordinator.metadata.annotations.clusterPods"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.coordinator.metadata.annotations.clusterPods[0].annotation"]')
             .type('annotation')
         cy.get('input[data-field="spec.coordinator.metadata.annotations.clusterPods[0].value"]')
             .type('value')
 
+        cy.get('fieldset[data-field="spec.coordinator.metadata.annotations.services"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.coordinator.metadata.annotations.services[0].annotation"]')
             .type('annotation')        
         cy.get('input[data-field="spec.coordinator.metadata.annotations.services[0].value"]')
             .type('value')
         
+        cy.get('fieldset[data-field="spec.coordinator.metadata.annotations.primaryService"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.coordinator.metadata.annotations.primaryService[0].annotation"]')
             .type('annotation')        
         cy.get('input[data-field="spec.coordinator.metadata.annotations.primaryService[0].value"]')
             .type('value')
         
+        cy.get('fieldset[data-field="spec.coordinator.metadata.annotations.replicasService"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.coordinator.metadata.annotations.replicasService[0].annotation"]')
             .type('annotation')        
         cy.get('input[data-field="spec.coordinator.metadata.annotations.replicasService[0].value"]')
@@ -876,12 +915,16 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         // Tests Coordinator Node Selectors
+        cy.get('div.repeater.nodeSelector div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.coordinator.pods.scheduling.nodeSelector[0].label"]')
             .type('key')
         cy.get('input[data-field="spec.coordinator.pods.scheduling.nodeSelector[0].value"]')
             .type('value')
 
         // Tests Coordinator Node Tolerations
+        cy.get('div.scheduling.repeater.tolerations div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.coordinator.pods.scheduling.tolerations[0].key"]')
             .type('key')
         cy.get('input[data-field="spec.coordinator.pods.scheduling.tolerations[0].value"]')
@@ -890,6 +933,8 @@ describe('Create SGShardedCluster', () => {
             .select('NoSchedule')
         
         // Tests Coordinator Node Affinity (Required)
+        cy.get('div.scheduling.repeater.requiredAffinity div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.coordinator.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.key"]')
             .type('key')
         cy.get('select[data-field="spec.coordinator.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator"]')
@@ -905,6 +950,8 @@ describe('Create SGShardedCluster', () => {
             .type('value')
         
         // Tests Coordinator Node Affinity (Preferred)
+        cy.get('div.scheduling.repeater.preferredAffinity div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.coordinator.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.key"]')
             .type('key')
         cy.get('select[data-field="spec.coordinator.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.operator"]')
@@ -947,6 +994,9 @@ describe('Create SGShardedCluster', () => {
             .click()
         
         // Test Shards create new script
+        cy.get('.scriptFieldset > div.fieldsetFooter > a.addRow')
+            .click()
+        
         cy.get('label[for="spec.shards.managedSql.scripts.scriptSource"] + select')
             .select('createNewScript')
 
@@ -967,6 +1017,9 @@ describe('Create SGShardedCluster', () => {
             .click({force: true})
 
         // Test Custom volumes
+        cy.get('div.repeater.customVolumes .fieldsetFooter .addRow')
+            .click()
+
         cy.get('input[data-field="spec.shards.pods.customVolumes[0].name"]')
             .type('vol1')
 
@@ -1073,6 +1126,9 @@ describe('Create SGShardedCluster', () => {
         */
 
         // Test Custom Init Containers
+        cy.get('div.repeater.customInitContainers .fieldsetFooter .addRow')
+            .click()
+        
         cy.get('input[data-field="spec.shards.pods.customInitContainers[0].name"]')
             .type('container1')
 
@@ -1203,6 +1259,9 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         // Test Custom Containers
+        cy.get('div.repeater.customContainers .fieldsetFooter .addRow')
+            .click()
+
         cy.get('input[data-field="spec.shards.pods.customContainers[0].name"]')
             .type('container1')
 
@@ -1354,6 +1413,9 @@ describe('Create SGShardedCluster', () => {
             .clear()
             .type('1.2.3.4')
 
+        cy.get('div.repeater.sidecars div.fieldsetFooter > a.addRow')
+            .click()
+
         cy.get('input[data-field="spec.postgresServices.shards.customPorts[0].appProtocol"]')
             .clear()
             .type('protocol')
@@ -1407,31 +1469,43 @@ describe('Create SGShardedCluster', () => {
         cy.get('form#createShardedCluster li[data-step="shards.metadata"]')
             .click()
 
+        cy.get('fieldset[data-field="spec.shards.metadata.labels.clusterPods"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.shards.metadata.labels.clusterPods[0].label"]')
             .type('label')
         cy.get('input[data-field="spec.shards.metadata.labels.clusterPods[0].value"]')
             .type('value')
         
+        cy.get('fieldset[data-field="spec.shards.metadata.annotations.allResources"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.shards.metadata.annotations.allResources[0].annotation"]')
             .type('annotation')
         cy.get('input[data-field="spec.shards.metadata.annotations.allResources[0].value"]')
             .type('value')
 
+        cy.get('fieldset[data-field="spec.shards.metadata.annotations.clusterPods"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.shards.metadata.annotations.clusterPods[0].annotation"]')
             .type('annotation')
         cy.get('input[data-field="spec.shards.metadata.annotations.clusterPods[0].value"]')
             .type('value')
 
+        cy.get('fieldset[data-field="spec.shards.metadata.annotations.services"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.shards.metadata.annotations.services[0].annotation"]')
             .type('annotation')        
         cy.get('input[data-field="spec.shards.metadata.annotations.services[0].value"]')
             .type('value')
         
+        cy.get('fieldset[data-field="spec.shards.metadata.annotations.primaryService"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.shards.metadata.annotations.primaryService[0].annotation"]')
             .type('annotation')        
         cy.get('input[data-field="spec.shards.metadata.annotations.primaryService[0].value"]')
             .type('value')
         
+        cy.get('fieldset[data-field="spec.shards.metadata.annotations.replicasService"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.shards.metadata.annotations.replicasService[0].annotation"]')
             .type('annotation')        
         cy.get('input[data-field="spec.shards.metadata.annotations.replicasService[0].value"]')
@@ -1442,12 +1516,16 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         // Tests Shards Node Selectors
+        cy.get('div.repeater.nodeSelector div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.shards.pods.scheduling.nodeSelector[0].label"]')
             .type('key')
         cy.get('input[data-field="spec.shards.pods.scheduling.nodeSelector[0].value"]')
             .type('value')
 
         // Tests Shards Node Tolerations
+        cy.get('div.scheduling.repeater.tolerations div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.shards.pods.scheduling.tolerations[0].key"]')
             .type('key')
         cy.get('input[data-field="spec.shards.pods.scheduling.tolerations[0].value"]')
@@ -1456,6 +1534,8 @@ describe('Create SGShardedCluster', () => {
             .select('NoSchedule')
         
         // Tests Shards Node Affinity (Required)
+        cy.get('div.scheduling.repeater.requiredAffinity div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.shards.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.key"]')
             .type('key')
         cy.get('select[data-field="spec.shards.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator"]')
@@ -1471,6 +1551,8 @@ describe('Create SGShardedCluster', () => {
             .type('value')
         
         // Tests Shards Node Affinity (Preferred)
+        cy.get('div.scheduling.repeater.preferredAffinity div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.shards.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.key"]')
             .type('key')
         cy.get('select[data-field="spec.shards.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.operator"]')
@@ -1542,6 +1624,9 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         // Test Custom volumes
+        cy.get('div.repeater.customVolumes .fieldsetFooter .addRow')
+            .click()
+
         cy.get('input[data-field="spec.shards.overrides[0].pods.customVolumes[0].name"]')
             .type('vol1')
 
@@ -1648,6 +1733,9 @@ describe('Create SGShardedCluster', () => {
         */
 
         // Test Custom Init Containers
+        cy.get('div.repeater.customInitContainers .fieldsetFooter .addRow')
+            .click()
+        
         cy.get('input[data-field="spec.shards.overrides[0].pods.customInitContainers[0].name"]')
             .type('container1')
 
@@ -1778,6 +1866,9 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         // Test Custom Containers
+        cy.get('div.repeater.customContainers .fieldsetFooter .addRow')
+            .click()
+
         cy.get('input[data-field="spec.shards.overrides[0].pods.customContainers[0].name"]')
             .type('container1')
 
@@ -1922,31 +2013,43 @@ describe('Create SGShardedCluster', () => {
         cy.get('form#createShardedCluster li[data-step="overrides.metadata"]')
             .click()
 
+        cy.get('fieldset[data-field="spec.shards.overrides[0].metadata.labels.clusterPods"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.shards.overrides[0].metadata.labels.clusterPods[0].label"]')
             .type('label')
         cy.get('input[data-field="spec.shards.overrides[0].metadata.labels.clusterPods[0].value"]')
             .type('value')
         
+        cy.get('fieldset[data-field="spec.shards.overrides[0].metadata.annotations.allResources"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.allResources[0].annotation"]')
             .type('annotation')
         cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.allResources[0].value"]')
             .type('value')
 
+        cy.get('fieldset[data-field="spec.shards.overrides[0].metadata.annotations.clusterPods"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.clusterPods[0].annotation"]')
             .type('annotation')
         cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.clusterPods[0].value"]')
             .type('value')
 
+        cy.get('fieldset[data-field="spec.shards.overrides[0].metadata.annotations.services"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.services[0].annotation"]')
             .type('annotation')        
         cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.services[0].value"]')
             .type('value')
         
+        cy.get('fieldset[data-field="spec.shards.overrides[0].metadata.annotations.primaryService"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.primaryService[0].annotation"]')
             .type('annotation')        
         cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.primaryService[0].value"]')
             .type('value')
         
+        cy.get('fieldset[data-field="spec.shards.overrides[0].metadata.annotations.replicasService"] + div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.replicasService[0].annotation"]')
             .type('annotation')        
         cy.get('input[data-field="spec.shards.overrides[0].metadata.annotations.replicasService[0].value"]')
@@ -1956,13 +2059,17 @@ describe('Create SGShardedCluster', () => {
         cy.get('form#createShardedCluster li[data-step="overrides.scheduling"]')
             .click()
 
-        // Tests Shards Node Selectors
+        // Tests Overrides' Node Selectors
+        cy.get('div.repeater.nodeSelector div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeSelector[0].label"]')
             .type('label')
         cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeSelector[0].value"]')
             .type('value')
 
-        // Tests Shards Node Tolerations
+        // Tests Overrides' Node Tolerations
+        cy.get('div.scheduling.repeater.tolerations div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.tolerations[0].key"]')
             .type('key')
         cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.tolerations[0].value"]')
@@ -1971,6 +2078,8 @@ describe('Create SGShardedCluster', () => {
             .select('NoSchedule')
         
         // Tests Overrides' Node Affinity (Required)
+        cy.get('div.scheduling.repeater.requiredAffinity div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.key"]')
             .type('key')
         cy.get('select[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms.items.properties.matchExpressions.items.properties.operator"]')
@@ -1986,6 +2095,8 @@ describe('Create SGShardedCluster', () => {
             .type('value')
         
         // Tests Overrides' Node Affinity (Preferred)
+        cy.get('div.scheduling.repeater.preferredAffinity div.fieldsetFooter > a.addRow')
+            .click()
         cy.get('input[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.key"]')
             .type('key')
         cy.get('select[data-field="spec.shards.overrides[0].pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items.properties.preference.properties.matchExpressions.items.properties.operator"]')
@@ -4275,6 +4386,9 @@ describe('Create SGShardedCluster', () => {
         // Tests Coordinator Node Tolerations repeaters
         cy.get('form#createShardedCluster li[data-step="coordinator.scheduling"]')
             .click()
+        
+        cy.get('div.scheduling.repeater.tolerations div.fieldsetFooter > a.addRow')
+            .click()
             
         cy.get('input[data-field="spec.coordinator.pods.scheduling.tolerations[0].value"]')
             .type('value')
@@ -4384,7 +4498,10 @@ describe('Create SGShardedCluster', () => {
         // Tests Coordinator script source on script repeaters
         cy.get('form#createShardedCluster li[data-step="coordinator.scripts"]')
             .click()
-            
+        
+        cy.get('.scriptFieldset > div.fieldsetFooter > a.addRow')
+            .click({force: true})
+        
         cy.get('select[data-field="spec.coordinator.managedSql.scripts.scriptSource.coordinator[0]"]')
             .select('script-' + resourceName)
 
@@ -4410,7 +4527,10 @@ describe('Create SGShardedCluster', () => {
         // Tests Shards script source on script repeaters
         cy.get('form#createShardedCluster li[data-step="shards.scripts"]')
             .click()
-            
+        
+        cy.get('.scriptFieldset > div.fieldsetFooter > a.addRow')
+            .click({force: true})
+        
         cy.get('select[data-field="spec.shards.managedSql.scripts.scriptSource.shards[0]"]')
             .select('script-' + resourceName)
 
