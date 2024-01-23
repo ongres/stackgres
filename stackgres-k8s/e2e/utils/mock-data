@@ -60,8 +60,9 @@ check_mock_data_samehost(){
 
 check_mock_data(){
   local CLUSTER_NAME="${1:-$CLUSTER_NAME}"
+  local INSTANCE="${2:-1}"
   local RESPONSE
-  RESPONSE="$(read_mock_table)"
+  RESPONSE="$(read_mock_table "$INSTANCE")"
   if [ "$RESPONSE" = "54" ]
   then
     echo "Mock data is present"

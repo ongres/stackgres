@@ -69,7 +69,7 @@ public class ShardedDbOpsRestartJob extends AbstractShardedDbOpsJob {
             .withName("METHOD")
             .withValue(Optional.ofNullable(restart)
                 .map(StackGresShardedDbOpsRestart::getMethod)
-                .orElse(DbOpsMethodType.REDUCED_IMPACT.toString()))
+                .orElse(DbOpsMethodType.IN_PLACE.toString()))
             .build(),
             new EnvVarBuilder()
             .withName("ONLY_PENDING_RESTART")

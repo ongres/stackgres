@@ -86,9 +86,9 @@ spec:
 
                   * `resharding`: perform a resharding of the cluster.
                   * `restart`: perform a restart of the cluster.
+                  * `securityUpgrade`: perform a security upgrade of the cluster.
                 #  * `majorVersionUpgrade`: perform a major version upgrade of PostgreSQL.
                 #  * `minorVersionUpgrade`: perform a minor version upgrade of PostgreSQL.
-                #  * `securityUpgrade`: perform a security upgrade of the cluster.
               runAt:
                 type: string
                 description: |
@@ -224,21 +224,21 @@ spec:
               #           last longer so we encourage use the reduced impact restart and especially for a production environment.
               #         * `ReducedImpact`: this procedure is the same as the in-place method but require additional
               #           resources in order to spawn a new updated replica that will be removed when the procedure completes.
-              # securityUpgrade:
-              #   type: object
-              #   description: |
-              #     Configuration of security upgrade
-              #   properties:
-              #     method:
-              #       type: string
-              #       description: |
-              #         The method used to perform the security upgrade operation. Available methods are:
-              # 
-              #         * `InPlace`: the in-place method does not require more resources than those that are available.
-              #           In case only an instance of the StackGres cluster is present this mean the service disruption will
-              #           last longer so we encourage use the reduced impact restart and especially for a production environment.
-              #         * `ReducedImpact`: this procedure is the same as the in-place method but require additional
-              #           resources in order to spawn a new updated replica that will be removed when the procedure completes.
+              securityUpgrade:
+                type: object
+                description: |
+                  Configuration of security upgrade
+                properties:
+                  method:
+                    type: string
+                    description: |
+                      The method used to perform the security upgrade operation. Available methods are:
+              
+                      * `InPlace`: the in-place method does not require more resources than those that are available.
+                        In case only an instance of the StackGres cluster is present this mean the service disruption will
+                        last longer so we encourage use the reduced impact restart and especially for a production environment.
+                      * `ReducedImpact`: this procedure is the same as the in-place method but require additional
+                        resources in order to spawn a new updated replica that will be removed when the procedure completes.
             required: ["sgShardedCluster", "op"]
           status:
             type: object
@@ -356,24 +356,24 @@ spec:
               #       type: string
               #       description: |
               #         A failure message (when available)
-              # securityUpgrade:
-              #   type: object
-              #   description: |
-              #     The results of a security upgrade
-              #   properties:
-              #     pendingToRestartSgClusters:
-              #       type: array
-              #       description: |
-              #         The SGClusters that are pending to be restarted
-              #       items:
-              #         type: string
-              #     restartedSgClusters:
-              #       type: array
-              #       description: |
-              #         The SGClusters that have been restarted
-              #       items:
-              #         type: string
-              #     failure:
-              #       type: string
-              #       description: |
-              #         A failure message (when available)
+              securityUpgrade:
+                type: object
+                description: |
+                  The results of a security upgrade
+                properties:
+                  pendingToRestartSgClusters:
+                    type: array
+                    description: |
+                      The SGClusters that are pending to be restarted
+                    items:
+                      type: string
+                  restartedSgClusters:
+                    type: array
+                    description: |
+                      The SGClusters that have been restarted
+                    items:
+                      type: string
+                  failure:
+                    type: string
+                    description: |
+                      A failure message (when available)
