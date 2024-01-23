@@ -18,6 +18,7 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecBuilder;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -35,12 +36,15 @@ class PatroniEnvVarFactoryTest {
 
   private StackGresCluster cluster;
 
+  private StackGresPostgresConfig postgresConfig;
+
   private final PatroniEnvironmentVariablesFactory factory =
       new PatroniEnvironmentVariablesFactory();
 
   @BeforeEach
   void setUp() {
     cluster = Fixtures.cluster().loadDefault().get();
+    postgresConfig = Fixtures.postgresConfig().loadDefault().get();
   }
 
   @Test
@@ -269,6 +273,7 @@ class PatroniEnvVarFactoryTest {
 
   private EnvVar getEnvVar(String envVarName) {
     when(context.getSource()).thenReturn(cluster);
+    when(context.getPostgresConfig()).thenReturn(postgresConfig);
     Stream<EnvVar> envVars = factory.createResource(context).stream();
 
     var envVarFound = envVars.filter(envVar -> envVar.getName().equals(envVarName))
@@ -279,6 +284,7 @@ class PatroniEnvVarFactoryTest {
 
   private void assertNotPresent(String envVarName) {
     when(context.getSource()).thenReturn(cluster);
+    when(context.getPostgresConfig()).thenReturn(postgresConfig);
     Stream<EnvVar> envVars = factory.createResource(context).stream();
 
     var envVarFound = envVars.filter(envVar -> envVar.getName().equals(envVarName))

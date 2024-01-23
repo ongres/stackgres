@@ -135,7 +135,7 @@ RECOVERY_EOF
 fi
 )
   initdb:
-  - auth-host: md5
+  - auth-host: ${INITDB_AUTH_HOST:-scram-sha-256}
   - auth-local: trust
   - encoding: UTF8
   - locale: C.UTF-8

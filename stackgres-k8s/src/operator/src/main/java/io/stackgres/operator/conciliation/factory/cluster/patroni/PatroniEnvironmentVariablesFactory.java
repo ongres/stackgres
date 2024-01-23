@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -17,6 +19,7 @@ import java.util.function.Function;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
@@ -24,6 +27,8 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestorePitr;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.AbstractPatroniEnvironmentVariablesFactory;
@@ -93,6 +98,21 @@ public class PatroniEnvironmentVariablesFactory
             + " " + DateTimeFormatter.ISO_LOCAL_TIME
             .withZone(ZoneId.from(ZoneOffset.UTC))
             .format(restoreToTimestamp)));
+    appendEnvVarIfPresent("INITDB_AUTH_HOST",
+        Optional.of(context.getPostgresConfig()),
+        additionalEnvVars,
+        Function.<StackGresPostgresConfig>identity()
+        .andThen(StackGresPostgresConfig::getSpec)
+        .andThen(StackGresPostgresConfigSpec::getPostgresqlConf)
+        .andThen(conf -> conf.get("password_encryption")),
+        Function.<String>identity());
+    if (additionalEnvVars.stream().map(EnvVar::getName).noneMatch("INITDB_AUTH_HOST"::equals)
+        && getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH) {
+      additionalEnvVars.add(new EnvVarBuilder()
+          .withName("INITDB_AUTH_HOST")
+          .withValue("md5")
+          .build());
+    }
 
     List<EnvVar> patroniEnvVars = createPatroniEnvVars(cluster)
         .stream()
