@@ -8,6 +8,7 @@ package io.stackgres.apiweb.dto.config;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.SecretKeySelector;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -20,6 +21,8 @@ public class ConfigAuthentication {
   private String user;
 
   private String password;
+
+  private SecretKeySelector secretRef;
 
   private ConfigAuthenticationOidc oidc;
 
@@ -53,6 +56,14 @@ public class ConfigAuthentication {
 
   public void setPassword(String password) {
     this.password = password;
+  }
+
+  public SecretKeySelector getSecretRef() {
+    return secretRef;
+  }
+
+  public void setSecretRef(SecretKeySelector secretRef) {
+    this.secretRef = secretRef;
   }
 
   public ConfigAuthenticationOidc getOidc() {
