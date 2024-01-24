@@ -35,6 +35,7 @@ import io.stackgres.apiweb.rest.misc.NamespaceResource;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
@@ -220,6 +221,7 @@ public class RbacResource {
         HasMetadata.getFullResourceName(Pod.class) + "/exec",
         HasMetadata.getFullResourceName(Role.class),
         HasMetadata.getFullResourceName(RoleBinding.class),
+        HasMetadata.getFullResourceName(StackGresConfig.class),
         HasMetadata.getFullResourceName(StackGresScript.class),
         HasMetadata.getFullResourceName(StackGresObjectStorage.class),
         HasMetadata.getFullResourceName(StackGresBackup.class),
