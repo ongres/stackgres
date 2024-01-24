@@ -12,15 +12,10 @@
   "__elements": {},
   "__requires": [
     {
-      "type": "panel",
-      "id": "gauge",
-      "name": "Gauge",
-      "version": ""
-    },
-    {
       "type": "grafana",
       "id": "grafana",
-      "name": "Grafana"
+      "name": "Grafana",
+      "version": "10.2.3"
     },
     {
       "type": "datasource",
@@ -115,7 +110,8 @@
           "values": false
         },
         "text": {},
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
       "targets": [
         {
@@ -198,7 +194,8 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
       "targets": [
         {
@@ -226,27 +223,21 @@
       "fieldConfig": {
         "defaults": {
           "color": {
-            "mode": "thresholds"
+            "mode": "palette-classic"
           },
           "decimals": 0,
           "mappings": [],
+          "noValue": "0",
           "thresholds": {
-            "mode": "percentage",
+            "mode": "absolute",
             "steps": [
               {
                 "color": "green",
                 "value": null
-              },
-              {
-                "color": "#EAB839",
-                "value": 70
-              },
-              {
-                "color": "red",
-                "value": 85
               }
             ]
-          }
+          },
+          "unit": "short"
         },
         "overrides": []
       },
@@ -256,8 +247,11 @@
         "x": 6,
         "y": 0
       },
-      "id": 251,
+      "id": 281,
       "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
@@ -266,8 +260,8 @@
           "fields": "",
           "values": false
         },
-        "showThresholdLabels": true,
-        "showThresholdMarkers": true
+        "textMode": "auto",
+        "wideLayout": true
       },
       "targets": [
         {
@@ -276,49 +270,15 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "exemplar": false,
           "expr": "sum(pg_stat_activity_count{state='active', instance=~\"${instance}:9187\"})",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "exemplar": true,
-          "expr": "pg_settings_max_connections{instance=~\"${instance}:9187\"}",
-          "hide": false,
-          "interval": "",
-          "legendFormat": "",
+          "instant": false,
+          "legendFormat": "__auto",
           "range": true,
-          "refId": "B"
+          "refId": "A"
         }
       ],
       "title": "Active Connections",
-      "transformations": [
-        {
-          "id": "configFromData",
-          "options": {
-            "applyTo": {
-              "id": "byType",
-              "options": "number"
-            },
-            "configRefId": "B",
-            "mappings": [
-              {
-                "fieldName": "pg_settings_max_connections{instance=\"postgres-exporter:9187\", job=\"prometheus\", server=\"postgres:5432\"}",
-                "handlerKey": "max",
-                "reducerId": "max"
-              }
-            ]
-          }
-        }
-      ],
-      "type": "gauge"
+      "type": "stat"
     },
     {
       "datasource": {
@@ -332,23 +292,17 @@
           },
           "decimals": 0,
           "mappings": [],
+          "noValue": "0",
           "thresholds": {
-            "mode": "percentage",
+            "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "orange",
                 "value": null
-              },
-              {
-                "color": "#EAB839",
-                "value": 50
-              },
-              {
-                "color": "red",
-                "value": 85
               }
             ]
-          }
+          },
+          "unit": "short"
         },
         "overrides": []
       },
@@ -358,8 +312,11 @@
         "x": 10,
         "y": 0
       },
-      "id": 278,
+      "id": 282,
       "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
@@ -368,8 +325,8 @@
           "fields": "",
           "values": false
         },
-        "showThresholdLabels": true,
-        "showThresholdMarkers": true
+        "textMode": "auto",
+        "wideLayout": true
       },
       "targets": [
         {
@@ -378,49 +335,15 @@
             "uid": "${DS_PROMETHEUS}"
           },
           "editorMode": "code",
-          "exemplar": false,
           "expr": "sum(pg_stat_activity_count{instance=~\"${instance}:9187\", state=~\"idle|idle in transaction|idle in transaction (aborted)\"})",
-          "instant": true,
-          "interval": "",
-          "legendFormat": "",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          },
-          "editorMode": "code",
-          "exemplar": true,
-          "expr": "pg_settings_max_connections{instance=~\"${instance}:9187\"}",
-          "hide": false,
-          "interval": "",
-          "legendFormat": "",
+          "instant": false,
+          "legendFormat": "__auto",
           "range": true,
-          "refId": "B"
+          "refId": "A"
         }
       ],
       "title": "Idle Connections",
-      "transformations": [
-        {
-          "id": "configFromData",
-          "options": {
-            "applyTo": {
-              "id": "byType",
-              "options": "number"
-            },
-            "configRefId": "B",
-            "mappings": [
-              {
-                "fieldName": "pg_settings_max_connections{instance=\"postgres-exporter:9187\", job=\"prometheus\", server=\"postgres:5432\"}",
-                "handlerKey": "max",
-                "reducerId": "max"
-              }
-            ]
-          }
-        }
-      ],
-      "type": "gauge"
+      "type": "stat"
     },
     {
       "datasource": {
@@ -476,7 +399,8 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
       "targets": [
         {
@@ -546,7 +470,8 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
       "targets": [
         {
@@ -580,15 +505,15 @@
           "mappings": [
             {
               "options": {
-                "1": {
-                  "color": "dark-red",
-                  "index": 1,
-                  "text": "Fail"
-                },
                 "0": {
                   "color": "green",
                   "index": 0,
                   "text": "Ok"
+                },
+                "1": {
+                  "color": "dark-red",
+                  "index": 1,
+                  "text": "Fail"
                 }
               },
               "type": "value"
@@ -629,7 +554,8 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
       "targets": [
         {
@@ -697,7 +623,8 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
       "targets": [
         {
@@ -766,7 +693,8 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
       "targets": [
         {
@@ -835,7 +763,8 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
       "targets": [
         {
@@ -905,7 +834,8 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
       "targets": [
         {
@@ -974,7 +904,8 @@
           "fields": "",
           "values": false
         },
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
       "targets": [
         {
@@ -1005,6 +936,7 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -1018,6 +950,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -1035,6 +968,7 @@
             }
           },
           "mappings": [],
+          "noValue": "No vacuum in progress",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1165,6 +1099,7 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
             "axisLabel": "",
@@ -1178,6 +1113,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -1195,6 +1131,7 @@
             }
           },
           "mappings": [],
+          "noValue": "No vacuum cluster in progress",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1303,8 +1240,7 @@
     }
   ],
   "refresh": "",
-  "schemaVersion": 38,
-  "style": "dark",
+  "schemaVersion": 39,
   "tags": [
     "postgres",
     "db",
@@ -1488,6 +1424,6 @@
   "timezone": "utc",
   "title": "CurrentActivity",
   "uid": "000000044",
-  "version": 4,
+  "version": 5,
   "weekStart": ""
 }
