@@ -19,6 +19,7 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresPort;
 import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceNodePort;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresCoordinatorServices;
@@ -95,12 +96,22 @@ public class ShardedClusterServices implements
         .editSpec()
         .addAllToPorts(List.of(
             new ServicePortBuilder()
+                .withNodePort(Optional
+                        .ofNullable(cluster.getSpec().getPostgresServices().getCoordinator().getAny())
+                        .map(StackGresPostgresService::getNodePorts)
+                        .map(StackGresPostgresServiceNodePort::getPgport)
+                        .orElse(null))
                 .withProtocol("TCP")
                 .withName(EnvoyUtil.POSTGRES_PORT_NAME)
                 .withPort(PatroniUtil.POSTGRES_SERVICE_PORT)
                 .withTargetPort(new IntOrString(EnvoyUtil.POSTGRES_PORT_NAME))
                 .build(),
             new ServicePortBuilder()
+                .withNodePort(Optional
+                        .ofNullable(cluster.getSpec().getPostgresServices().getCoordinator().getAny())
+                        .map(StackGresPostgresService::getNodePorts)
+                        .map(StackGresPostgresServiceNodePort::getReplicationport)
+                        .orElse(null))
                 .withProtocol("TCP")
                 .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
                 .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
@@ -135,6 +146,11 @@ public class ShardedClusterServices implements
         .editSpec()
         .addAllToPorts(List.of(
             new ServicePortBuilder()
+                .withNodePort(Optional
+                        .ofNullable(cluster.getSpec().getPostgresServices().getCoordinator().getPrimary())
+                        .map(StackGresPostgresService::getNodePorts)
+                        .map(StackGresPostgresServiceNodePort::getPgport)
+                        .orElse(null))
                 .withProtocol("TCP")
                 .withName(EnvoyUtil.POSTGRES_PORT_NAME)
                 .withPort(PatroniUtil.POSTGRES_SERVICE_PORT)
@@ -142,6 +158,11 @@ public class ShardedClusterServices implements
                 .build()))
         .addAllToPorts(Seq.of(
             new ServicePortBuilder()
+                .withNodePort(Optional
+                        .ofNullable(cluster.getSpec().getPostgresServices().getCoordinator().getPrimary())
+                        .map(StackGresPostgresService::getNodePorts)
+                        .map(StackGresPostgresServiceNodePort::getReplicationport)
+                        .orElse(null))
                 .withProtocol("TCP")
                 .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
                 .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
@@ -177,12 +198,22 @@ public class ShardedClusterServices implements
         .editSpec()
         .addAllToPorts(List.of(
             new ServicePortBuilder()
+                .withNodePort(Optional
+                        .ofNullable(cluster.getSpec().getPostgresServices().getShards().getPrimaries())
+                        .map(StackGresPostgresService::getNodePorts)
+                        .map(StackGresPostgresServiceNodePort::getPgport)
+                        .orElse(null))
                 .withProtocol("TCP")
                 .withName(EnvoyUtil.POSTGRES_PORT_NAME)
                 .withPort(PatroniUtil.POSTGRES_SERVICE_PORT)
                 .withTargetPort(new IntOrString(EnvoyUtil.POSTGRES_PORT_NAME))
                 .build(),
             new ServicePortBuilder()
+                .withNodePort(Optional
+                        .ofNullable(cluster.getSpec().getPostgresServices().getShards().getPrimaries())
+                        .map(StackGresPostgresService::getNodePorts)
+                        .map(StackGresPostgresServiceNodePort::getReplicationport)
+                        .orElse(null))
                 .withProtocol("TCP")
                 .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
                 .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
