@@ -587,9 +587,21 @@
 
                 <template  v-if="!editMode || (editMode && restoreBackup.length)">
 
-                    <p>Use this option to initialize the cluster with the data from an existing backup.</p><br/><br/>
+                    <template v-if="!editMode">
+                        <template v-if="pitrBackups.length">
+                            <p>
+                                Select a backup from the following timeline to initialize the cluster with the data from an existing backup.
+                            </p>
+                            <br/><br/>
+                        </template>
+                        <template v-else>
+                            <span class="warning">
+                                There are no backups available to initialize your cluster. Please check if there are any <router-link :to="'/' + $route.params.namespace + '/sgbackups'">backups</router-link> that fit your specs or consider <router-link :to="'/' + $route.params.namespace + '/sgbackups/new'">creating a new one</router-link>.
+                            </span>
+                        </template>
+                    </template>
 
-                    <div class="fields">
+                    <div class="fields" v-if="pitrBackups.length">
                         <template v-if="( (editMode && restoreBackup.length) || !editMode )">
                             <div class="header">
                                 <h3 for="spec.initialData.restore.fromBackup">
@@ -597,27 +609,133 @@
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup')"></span>
                                 </h3>
                             </div>
-                            <fieldset class="row-50">
+                            <template
+                                v-if="!editMode && pitrBackups.length"
+                            >
+                                <component :is="`style`">
+                                    <template v-for="(bk, index) in pitrBackups">
+                                        #apexchartsarea-datetime .apexcharts-series-markers:nth-child({{index}}) > circle {
+                                            stroke: {{ bk.isSnapshot ? '#FABE25' : '#16A085' }};
+                                        }
+                                    </template>
+                                </component>
+                                <div class="apexcharts-legend">
+                                    <ul>
+                                        <li class="snapshot">
+                                            Snapshot
+                                        </li>
+                                        <li class="base">
+                                            Base Backup
+                                        </li>
+                                    </ul>
+                                </div>
+                                <apexchart 
+                                    type="line"
+                                    :key="'pitrgraph-' + pitrBackups.length"
+                                    :options="{
+                                        theme: {
+                                            mode: theme
+                                        },
+                                        chart: {
+                                            id: 'area-datetime',
+                                            type: 'area',
+                                            height: 250,
+                                            zoom: {
+                                                autoScaleYaxis: false
+                                            },
+                                            toolbar: {
+                                                    tools: {
+                                                    download: false,
+                                                }
+                                            },
+                                            events: {
+                                                dataPointSelection: function(event, chartContext, config) {
+                                                    setPitrBackup(event, chartContext, config)
+                                                }
+                                            }
+                                        },
+                                        stroke: {
+                                            width: 2,
+                                            curve: 'straight',
+                                            colors: ['#36A8FF']
+                                        },
+                                        xaxis: {
+                                            type: 'datetime',
+                                            max: new Date().getTime(),
+                                            tooltip: {
+                                                enabled: false
+                                            }
+                                        },
+                                        yaxis: {
+                                            show: false,
+                                            max: 2
+                                        },
+                                        grid: {
+                                            show: false
+                                        },
+                                        fill: {
+                                            opacity: 0,
+                                        },
+                                        markers: {
+                                            size: 5,
+                                            style: 'hollow',
+                                            colors: [ (theme == 'dark') ? '#171717': '#fff'],
+                                            hover: {
+                                                sizeOffset: 0
+                                            }
+                                        },
+                                        annotations: pitrAnnotations,
+                                        tooltip: {
+                                            enabled: true,
+                                            intersect: true,
+                                            shared: false,
+                                            custom: function({series, seriesIndex, dataPointIndex, w}) {
+                                                var data = w.globals.initialSeries[seriesIndex].data[dataPointIndex];
+                                                
+                                                return `
+                                                    <ul>
+                                                        <li>
+                                                            <strong>Name:</strong> ${data.name}
+                                                        </li>
+                                                        <li>
+                                                            <strong>Timestamp:</strong> ${data.x}
+                                                        </li>
+                                                        <li>
+                                                            <strong>Cluster:</strong> ${data.cluster}
+                                                        </li>
+                                                    </ul>
+                                                `;
+                                            }
+                                        }
+                                    }"
+                                    :series="[{ data: pitrBackups }]"
+                                >
+                                </apexchart>
+                            </template>
+
+                            <fieldset class="row-50" :class="!restoreBackup.length && 'hidden'">
                                 <div class="col">
                                     <label for="spec.initialData.restore.fromBackup">Backup Selection</label>
-                                    <template v-if="editMode">
-                                        <input v-model="restoreBackup" disabled>
-                                    </template>
-                                    <template v-else>
-                                        <select v-model="restoreBackup" data-field="spec.initialData.restore.fromBackup" @change="(restoreBackup == 'createNewResource') ? createNewResource('sgbackups') : (enablePITR && initDatepicker())" :set="( (restoreBackup == 'createNewResource') && (restoreBackup = '') )">
-                                            <option value="">Select a Backup</option>
-                                            <template v-for="backup in sgbackups">
-                                                <option :value="backup.name">
-                                                    {{ backup.name }} ({{ backup.data.status.process.timing.stored | formatTimestamp('date') }} {{ backup.data.status.process.timing.stored | formatTimestamp('time') }} {{ showTzOffset() }}) [{{ backup.data.metadata.uid.substring(0,4) }}...{{ backup.data.metadata.uid.slice(-4) }}]
-                                                </option>
-                                            </template>
-                                            <template v-if="iCan('create', 'sgbackups', $route.params.namespace)">
-                                                <option value="" disabled>– OR –</option>
-                                                <option value="createNewResource">Create new backup</option>
-                                            </template>
-                                        </select>
-                                    </template>
+                                    <input v-model="restoreBackup" disabled data-field="spec.initialData.restore.fromBackup">
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup')"></span>
+                                    <span
+                                        v-if="!editMode && restoreBackup.length"
+                                        class="warning topAnchor"
+                                    >
+                                        You have selected backup <strong>{{ restoreBackup }}</strong> as the starting point for your restoration.
+                                    </span>
+                                </div>
+
+                                <div class="col">
+                                    <label for="spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp">Restore To Timestamp</label>
+                                    <input class="datePicker" :value="getPitrWithTimezone(pitr)" :disabled="editMode" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" data-field="spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp">
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp')"></span>
+                                    <span
+                                        v-if="!editMode && restoreBackup.length"
+                                        class="warning topAnchor"
+                                    >
+                                        If you wish, you can use this field to indicate at which point-in-time the database has to be restored.
+                                    </span>
                                 </div>
 
                                 <div class="col" v-if="restoreBackup.length">
@@ -625,28 +743,6 @@
                                     <input v-model="downloadDiskConcurrency" data-field="spec.initialData.restore.downloadDiskConcurrency" autocomplete="off" type="number" min="1" :disabled="editMode">
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.downloadDiskConcurrency')"></span>
                                 </div>
-
-                                <template v-if="( (!editMode && restoreBackup.length) || (editMode && pitr.length) )">
-                                    <div class="col">
-                                        <label>Point-in-Time Recovery (PITR)</label>  
-                                        <label for="enablePITR" class="switch yes-no" @change="initDatepicker()" :disabled="editMode">
-                                            Enable
-                                            <input type="checkbox" id="enablePITR" v-model="enablePITR" data-switch="NO" data-field="spec.initialData.restore.fromBackup.pointInTimeRecovery" :disabled="editMode">
-                                        </label>
-                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup.pointInTimeRecovery')"></span>
-                                    </div>
-
-                                    <div class="col" :class="!enablePITR && 'hidden'">
-                                        <label for="spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp">Restore To Timestamp</label>
-                                        <template v-if="editMode">
-                                            <input disabled :value="pitrTimezone" data-field="spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp">
-                                        </template>
-                                        <template v-else>
-                                            <input class="datePicker" autocomplete="off" placeholder="YYYY-MM-DD HH:MM:SS" :disabled="!enablePITR" data-field="spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp">
-                                        </template>
-                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp')"></span>
-                                    </div>
-                                </template>
                             </fieldset>
                             <br/><br/><br/>
                         </template>
@@ -3090,9 +3186,11 @@
                 pgConfig: '',
                 connPooling: true,
                 connectionPoolingConfig: '',
+                restoreBackupIndex: -1,
                 restoreBackup: '',
                 enablePITR: false,
                 pitr: '',
+                pitrDatepicker: '',
                 downloadDiskConcurrency: 1,
                 metricsExporter: true,
                 replicateFrom: {},
@@ -3294,19 +3392,16 @@
                             vm.downloadDiskConcurrency = vm.hasProp(c, 'data.spec.initialData.restore.downloadDiskConcurrency') ? c.data.spec.initialData.restore.downloadDiskConcurrency : 1;
                             vm.pitr = vm.hasProp(c, 'data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp') ? c.data.spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp : ''
                             vm.enablePITR = (vm.pitr.length > 0);
-                            $('.datePicker').val(vm.pitrTimezone);
+                            vm.pitrDatepicker = vm.getPitrWithTimezone(vm.pitr);
                             
-                            vm.editReady = vm.advancedMode = true
+                            vm.editReady = true;
+                            vm.advancedMode = true;
                             return false
                         }
                     });
                 }
                 
                 return cluster
-            },
-
-            pitrTimezone () {
-                return this.pitr.length ? ( (store.state.timezone == 'local') ? moment.utc(this.pitr).local().format('YYYY-MM-DD HH:mm:ss') : moment.utc(this.pitr).format('YYYY-MM-DD HH:mm:ss') ) : '';
             },
 
             nameColission() {
@@ -3324,9 +3419,69 @@
                 return nameColission
             },
 
+            pitrAnnotations() {
+                let xAnnotations = [
+                    {
+                        id: 'current',
+                        x: new Date().getTime(),
+                        yAxisIndex: 0,
+                        label: {
+                            borderColor: '#A68BF9',
+                            show: true,
+                            text: 'Current Time',
+                            style: {
+                                background: '#A68BF9',
+                                strokeColors: '#A68BF9',
+                                color: '#000'
+                            }
+                        }
+                    }
+                ];
+                
+                if(this.pitr.length) {
+                    xAnnotations.push({
+                        id: 'pitr',
+                        x: new Date(this.getPitrWithTimezone(this.pitr)).getTime(),
+                        yAxisIndex: 0,
+                        label: {
+                            text: 'PITR',
+                            borderColor: '#5ad2ff',
+                            show: true,
+                            style: {
+                                color: '#000',
+                                background: '#5ad2ff',
+                                strokeColors: '#5ad2ff',
+                            }
+                        }
+                    });
+                }
+
+                return { xaxis: xAnnotations };
+            },
+
         },
 
         methods: {
+
+            getPitrWithTimezone(pitr) {
+                return pitr.length ? ( (store.state.timezone == 'local') ? moment.utc(pitr).local().format('YYYY-MM-DD HH:mm:ss') : moment.utc(pitr).format('YYYY-MM-DD HH:mm:ss') ) : '';
+            },
+
+            setPitrBackup(event, chartContext, config) {
+                if(config.dataPointIndex != -1) { // Clicking on backup
+                    chartContext.removeAnnotation('pitr');
+                    if(config.dataPointIndex == this.restoreBackupIndex) {
+                        this.restoreBackup = '';
+                        this.restoreBackupIndex = -1;
+                        this.enablePITR = false;
+                    } else {
+                        this.restoreBackup = this.pitrBackups[config.dataPointIndex].name;
+                        this.restoreBackupIndex = config.dataPointIndex;
+                        this.enablePITR = true;
+                        this.initDatepicker();
+                    }
+                }
+            },
 
             createCluster(preview = false, previous) {
                 const vc = this;
@@ -3593,21 +3748,24 @@
                     
                 }
 
-            }, 
+            },
+
+            updatePitrTimestamp(timestamp) {
+                this.pitr = (store.state.timezone == 'local') ? timestamp.utc().format() : ( timestamp.format('YYYY-MM-DDTHH:mm:ss') + 'Z' );
+            },
 
             initDatepicker() {
                 const vc = this;
-
+                
                 vc.pitr = '';
+                vc.pitrDatepicker = '';
 
                 if(!vc.enablePITR) {
                     $('.daterangepicker').remove();
                 } else { // Initialize PITR datepicker only if there's no backup newer than the chosen one
-                    
-                    let baseBkIndex = vc.sgbackups.findIndex( (bk) => (bk.data.metadata.name == vc.restoreBackup) );
-                    let minDate = new Date(vc.sgbackups[baseBkIndex].data.status.process.timing.stored);
-                    let maxDate = (typeof vc.sgbackups[baseBkIndex + 1] !== 'undefined')
-                        ? new Date(vc.sgbackups[baseBkIndex + 1].data.status.process.timing.stored)
+                    let minDate = new Date(vc.pitrBackups[vc.restoreBackupIndex].x);
+                    let maxDate = (typeof vc.pitrBackups[vc.restoreBackupIndex + 1] !== 'undefined')
+                        ? new Date(vc.pitrBackups[vc.restoreBackupIndex + 1].x)
                         : new Date();
 
                     if(store.state.timezone == 'local') {
@@ -3623,13 +3781,14 @@
 
                     $('.daterangepicker').remove();
                     $(document).find('.datePicker').daterangepicker({
-                        "autoApply": true,
+                        "autoApply": false,
+                        "autoUpdateInput": false,
                         "singleDatePicker": true,
                         "timePicker": true,
                         "opens": "right",
+                        "drops": "auto",
                         "minDate": minDate,
                         "maxDate": maxDate,
-                        "startDate": minDate,
                         "timePicker24Hour": true,
                         "timePickerSeconds": true,
                         locale: {
@@ -3637,24 +3796,15 @@
                             format: 'YYYY-MM-DD HH:mm:ss'
                         }
                     }, function(start, end, label) {
-                        vc.pitr = (store.state.timezone == 'local') ? start.utc().format() : ( start.format('YYYY-MM-DDTHH:mm:ss') + 'Z' );
-                        $('.datePicker').val(vc.pitrTimezone);
+                        vc.updatePitrTimestamp(start)
                     })
                     .on('apply.daterangepicker', function(ev, picker) {
-                        if(!vc.pitrTimezone.length) {
-                            $('.datePicker').val('');    
-                        } else {
-                            $('.datePicker').val(vc.pitrTimezone);
-                        }
+                        vc.updatePitrTimestamp(picker.startDate)
                     })
                     .on('cancel.daterangepicker', function(ev, picker) {
                         vc.pitr = '';
-                        $('.datePicker').val('');
                     });
 
-                    if($('.datePicker').val().length && !vc.pitr.length) {
-                        vc.pitr = ( $('.datePicker').val() + 'Z' ).replace(' ', 'T');
-                    }
                 }
             },
 
@@ -3662,11 +3812,13 @@
                 const vc = this;
 
                 if(vc.restoreBackup.length) {
-                    let bk = vc.backups.find(b => (b.data.metadata.name == vc.restoreBackup) && (b.data.metadata.namespace == vc.$route.params.namespace) && (b.data.status.backupInformation.postgresVersion.substring(0,2) == vc.shortPostgresVersion))
+                    let bk = vc.pitrBackups.find(b => (b.data.metadata.name == vc.restoreBackup) && (b.data.metadata.namespace == vc.$route.params.namespace))
 
                     if(typeof bk == 'undefined') {
-                        vc.notify('The <strong>initialization backup</strong> you selected is not available for this postgres version. Choose a new backup from the list or no data will be restored.', 'message', 'sgclusters');
+                        vc.notify('The <strong>initialization backup</strong> you selected is not available for this postgres version. Please check if there are any backups available for the corresponding version or no data will be restored.', 'message', 'sgclusters');
                         vc.restoreBackup = '';
+                        vc.restoreBackupIndex = -1;
+                        vc.pitr = '';
                     }
                 }
             },
@@ -4147,5 +4299,92 @@
         width: 1120px;
         max-width: 100%;
     }
+</style>
 
+<style>
+
+    .apexcharts-canvas > svg.apexcharts-svg {
+        background: transparent !important;
+    }
+
+    .apexcharts-tooltip {
+        background: var(--activeBg) !important;
+        padding: 10px;
+        font-size: 90% !important;
+        top: 35px !important;
+    }
+
+    .apexcharts-tooltip ul {
+        list-style: none;
+    }
+
+    .apexcharts-tooltip li {
+        margin: 2.5px;
+    }
+
+    .apexcharts-tooltip:before {
+        content: " ";
+        width: 10px;
+        height: 10px;
+        transform: rotate(45deg);
+        background: var(--activeBg);
+        display: block;
+        position: absolute;
+        left: -10px;
+        top: 10px;
+    }
+
+    #apexchartsarea-datetime {
+        transform: translateY(-45px);
+    }
+
+    #apexchartsarea-datetime:before {
+        content: " ";
+        display: block;
+        height: 94px;
+        border: 1px solid var(--textColor);
+        border-right: 0;
+        border-left: 0;
+        bottom: 30px;
+        position: absolute;
+        left: 0;
+        width: 100%;
+        background: var(--baseColor);
+        opacity: .3;
+    }
+
+    #apexchartsarea-datetime .apexcharts-series-markers > circle {
+        filter: none !important;
+        cursor: pointer;
+    }
+
+    #apexchartsarea-datetime .apexcharts-series-markers > circle[selected="true"] {
+        stroke-width: 10px !important;
+        stroke-opacity: 1 !important;
+        opacity: 1 !important;
+    }
+
+    .apexcharts-legend li.base:before {
+        border-color: var(--green);
+    }
+    .apexcharts-legend li.snapshot:before {
+        border-color: var(--yellow);
+    }
+    .apexcharts-legend li:before {
+        content: " ";
+        width: 8px;
+        height: 8px;
+        border-radius: 100%;
+        border: 2.5px solid;
+        display: inline-block;
+        transform: translateY(1px);
+    }
+    .apexcharts-legend li {
+        display: inline-block;
+        margin-right: 20px;
+    }
+    .apexcharts-legend {
+        position: absolute;
+    }
+    
 </style>
