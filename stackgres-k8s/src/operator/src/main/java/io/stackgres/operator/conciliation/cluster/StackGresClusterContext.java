@@ -179,7 +179,9 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
             Optional.ofNullable(bc.getUseVolumeSnapshot())
             .orElse(false),
             bc.getVolumeSnapshotClass(),
-            bc.getFastVolumeSnapshot()));
+            bc.getFastVolumeSnapshot(),
+            bc.getTimeout(),
+            bc.getReconciliationTimeout()));
   }
 
   default Optional<BackupStorage> getBackupStorage() {
@@ -244,6 +246,8 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
                 bp.getUploadConcurrency(),
                 bp.getDownloadConcurrency()))
             .orElse(null),
+            null,
+            null,
             null,
             null,
             null));

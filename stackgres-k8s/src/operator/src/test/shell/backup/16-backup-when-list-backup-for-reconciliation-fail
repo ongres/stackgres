@@ -1,0 +1,35 @@
+#!/bin/sh
+
+. "$TEST_SHELL_PATH/backup/abstract-backup"
+
+shell_unit_test() {
+  echo 0 > "$TEST_TARGET_PATH/backup_list_count"
+  shell_unit_test_backup
+}
+
+mock kubectl kubectl_mock_overwrite
+
+kubectl_mock_overwrite() {
+  mokked
+  case "$*" in
+    ("exec -i -n $CLUSTER_NAMESPACE test-1 -c $PATRONI_CONTAINER_NAME -- sh -e"*)
+    STDIN="$(cat)"
+    case "$STDIN" in
+      (*" for each existing backup"*)
+      ;;
+      (*" wal-g backup-list "*)
+      COUNT="$(cat "$TEST_TARGET_PATH/backup_list_count")"
+      if [ "$COUNT" -ge 1 ]
+      then
+        exit 1
+      fi
+      cat "$TEST_SHELL_PATH/backup/wal-g-backup-list"
+      echo "$((COUNT + 1))" > "$TEST_TARGET_PATH/backup_list_count"
+      ;;
+    esac
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}

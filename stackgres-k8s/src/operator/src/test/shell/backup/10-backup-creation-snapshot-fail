@@ -1,0 +1,23 @@
+#!/bin/sh
+
+USE_VOLUME_SNAPSHOT=true
+
+. "$TEST_SHELL_PATH/backup/abstract-backup"
+
+shell_unit_test() {
+  ! (shell_unit_test_backup)
+}
+
+mock kubectl kubectl_mock_overwrite
+
+kubectl_mock_overwrite() {
+  mokked
+  case "$*" in
+    ("get $VOLUME_SNAPSHOT_CRD_NAME -n $CLUSTER_NAMESPACE $BACKUP_NAME -o json")
+    printf '%s\n' '{"status":{"error":"no space left on device"}}'
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}
