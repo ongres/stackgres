@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.stackgres.common.crd.sgshardeddbops.ShardedDbOpsOperation;
+import io.stackgres.common.crd.sgshardeddbops.ShardedDbOpsOperationAllowed;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsMajorVersionUpgrade;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsMinorVersionUpgrade;
@@ -150,7 +151,7 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Shard
   @ParameterizedTest(name = "op: {0} section: {1}")
   @MethodSource("dbOpsOperationsMatrix")
   void opThatDontMatchSection_shouldFailWithMessage(
-      ShardedDbOpsOperation op, ShardedDbOpsOperation section) {
+      ShardedDbOpsOperationAllowed op, ShardedDbOpsOperationAllowed section) {
     ShardedDbOpsReview review = getValidReview();
     StackGresShardedDbOpsSpec spec = review.getRequest().getObject().getSpec();
     spec.setOp(op.toString());
@@ -161,7 +162,7 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Shard
     spec.setMinorVersionUpgrade(null);
     spec.setSecurityUpgrade(null);
 
-    switch (section) {
+    switch (ShardedDbOpsOperation.fromString(section.toString())) {
       case RESHARDING:
         spec.setResharding(new StackGresShardedDbOpsResharding());
         break;
@@ -187,7 +188,7 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Shard
         break;
     }
 
-    switch (op) {
+    switch (ShardedDbOpsOperation.fromString(op.toString())) {
       case MAJOR_VERSION_UPGRADE:
         ValidationUtils.assertValidationFailed(() -> validator.validate(review),
             "SGShardedDbOps has invalid properties."
@@ -206,10 +207,10 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Shard
   }
 
   private static Stream<Arguments> dbOpsOperationsMatrix() {
-    return Arrays.stream(ShardedDbOpsOperation.values())
+    return Arrays.stream(ShardedDbOpsOperationAllowed.values())
         .sorted()
         .collect(Collectors.toMap(Function.identity(),
-            e -> Arrays.stream(ShardedDbOpsOperation.values())
+            e -> Arrays.stream(ShardedDbOpsOperationAllowed.values())
                 .filter(p -> p != e)
                 .collect(Collectors.toUnmodifiableList())))
         .entrySet().stream()
@@ -221,7 +222,8 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Shard
 
   @ParameterizedTest(name = "op: {0} section: {1}")
   @MethodSource("dbOpsOperationsSameMatrix")
-  void opThatMatchSection_shouldNotFail(ShardedDbOpsOperation op, ShardedDbOpsOperation section) {
+  void opThatMatchSection_shouldNotFail(
+      ShardedDbOpsOperationAllowed op, ShardedDbOpsOperationAllowed section) {
     ShardedDbOpsReview review = getValidReview();
     StackGresShardedDbOpsSpec spec = review.getRequest().getObject().getSpec();
     spec.setOp(op.toString());
@@ -232,7 +234,7 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Shard
     spec.setMinorVersionUpgrade(null);
     spec.setSecurityUpgrade(null);
 
-    switch (section) {
+    switch (ShardedDbOpsOperation.fromString(section.toString())) {
       case RESHARDING:
         spec.setResharding(new StackGresShardedDbOpsResharding());
         break;
@@ -261,7 +263,7 @@ class ShardedDbOpsConstraintValidatorTest extends ConstraintValidationTest<Shard
   }
 
   private static Stream<Arguments> dbOpsOperationsSameMatrix() {
-    return Arrays.stream(ShardedDbOpsOperation.values())
+    return Arrays.stream(ShardedDbOpsOperationAllowed.values())
         .sorted()
         .map(val -> Arguments.of(val, val));
   }

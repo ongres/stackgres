@@ -18,14 +18,17 @@ then
     rm -rf ~/.crc
     cp -a "$CRC_BACKUP_PATH" ~/.crc
   else
-    cp ~/.crc/pull-secret ~/pull-secret
+    if [ -f ~/.crc/pull-secret ]
+    then
+      cp ~/.crc/pull-secret ~/pull-secret
+    fi
     rm -rf ~/.crc
     crc config set skip-check-daemon-systemd-unit true
     crc config set skip-check-daemon-systemd-sockets true
     crc config set network-mode user
     crc config set host-network-access true
     crc config set nameserver 8.8.8.8
-    crc setup
+    crc setup $([ -z "$E2E_CRC_BUNDLE" ] || printf %s "--bundle $E2E_CRC_BUNDLE")
     cp ~/pull-secret ~/.crc/pull-secret
   fi
   touch "$TARGET_PATH"/setup-completed
@@ -52,6 +55,8 @@ else
   echo
   E2E_ENV=crc CRC_ENABLE_DAEMON=true sh -x "$PROJECT_PATH"/stackgres-k8s/e2e/e2e reuse_k8s
 fi
+
+OPENSHIFT_VERSION="$(oc version -o json | jq -r .openshiftVersion)"
 
 if ! kubectl get ns certification > /dev/null 2>&1
 then
@@ -93,16 +98,16 @@ spec:
 EOF
   rm -rf "$TARGET_PATH"/operator-pipelines
   git clone https://github.com/redhat-openshift-ecosystem/operator-pipelines "$TARGET_PATH"/operator-pipelines
-  yq -y '.
-      | del(.spec.tasks[0].taskref.bundle)
-      | del(.spec.tasks[2].taskRef.bundle)
-      | del(.spec.tasks[3].taskRef.bundle)
-      | .spec.params = (.spec.params | map(if has("type") then . else .type = "string" end))
-      ' \
-    "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines/community-signing-pipeline.yml \
-    > "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines/community-signing-pipeline.yml.tmp
-  mv "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines/community-signing-pipeline.yml.tmp \
-    "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines/community-signing-pipeline.yml
+  # yq -y '.
+  #     | del(.spec.tasks[0].taskref.bundle)
+  #     | del(.spec.tasks[2].taskRef.bundle)
+  #     | del(.spec.tasks[3].taskRef.bundle)
+  #     | .spec.params = (.spec.params | map(if has("type") then . else .type = "string" end))
+  #     ' \
+  #   "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines/community-signing-pipeline.yml \
+  #   > "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines/community-signing-pipeline.yml.tmp
+  # mv "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines/community-signing-pipeline.yml.tmp \
+  #   "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines/community-signing-pipeline.yml
   yq -y '.
       | del(.spec.tasks[19].taskRef.bundle)
       | del(.spec.tasks[20].taskRef.bundle)
@@ -128,18 +133,20 @@ EOF
   echo
   oc apply -R -f "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/pipelines
   oc apply -R -f "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/tasks
-  oc import-image certified-operator-index \
-    --from=registry.redhat.io/redhat/certified-operator-index \
+  oc import-image certified-operator-index:v"${OPENSHIFT_VERSION%.*}" \
+    --from=registry.redhat.io/redhat/certified-operator-index:v"${OPENSHIFT_VERSION%.*}" \
+    --request-timeout=5m \
     --reference-policy local \
     --scheduled \
-    --confirm \
-    --all > /dev/null
-  oc import-image redhat-marketplace-index \
-    --from=registry.redhat.io/redhat/redhat-marketplace-index \
+    --confirm > /dev/null
+  oc tag registry.redhat.io/redhat/certified-operator-index:v"${OPENSHIFT_VERSION%.*}" certified-operator-index:v"${OPENSHIFT_VERSION%.*}"
+  oc import-image redhat-marketplace-index:v"${OPENSHIFT_VERSION%.*}" \
+    --from=registry.redhat.io/redhat/redhat-marketplace-index:v"${OPENSHIFT_VERSION%.*}" \
+    --request-timeout=5m \
     --reference-policy local \
     --scheduled \
-    --confirm \
-    --all > /dev/null
+    --confirm > /dev/null
+  oc tag registry.redhat.io/redhat/redhat-marketplace-index:v"${OPENSHIFT_VERSION%.*}" redhat-marketplace-index:v"${OPENSHIFT_VERSION%.*}"
   touch "$TARGET_PATH"/install-openshift-pipelines-operator-rh-completed
 else
   echo
@@ -148,12 +155,16 @@ else
   echo
 fi
 
+# Create a new SCC
+oc apply -f "$TARGET_PATH"/operator-pipelines/ansible/roles/operator-pipeline/templates/openshift/openshift-pipelines-custom-scc.yml
+# Add SCC to a pipeline service account
+oc adm policy add-scc-to-user pipelines-custom-scc -z pipeline
 STACKGRES_VERSION="${STACKGRES_VERSION:-$(sh "$PROJECT_PATH"/stackgres-k8s/ci/build/version.sh)}"
 tkn pipeline start operator-ci-pipeline \
   --param git_repo_url="$OPENSHIFT_CERTIFICATION_GITHUB_REPO" \
   --param git_branch=main \
   --param upstream_repo_name=redhat-openshift-ecosystem/certified-operators \
-  --param bundle_path="operators/stackgres/$STACKGRES_VERSION" \
+  --param bundle_path="operators/stackgres-certified/$STACKGRES_VERSION" \
   --param env=prod \
   --workspace name=pipeline,volumeClaimTemplateFile="$TARGET_PATH"/operator-pipelines/templates/workspace-template.yml \
   --pod-template "$TARGET_PATH"/operator-pipelines/templates/crc-pod-template.yml \

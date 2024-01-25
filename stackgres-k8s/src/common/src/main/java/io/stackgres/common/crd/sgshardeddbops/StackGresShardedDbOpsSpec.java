@@ -38,9 +38,9 @@ public class StackGresShardedDbOpsSpec {
 
   private StackGresShardedDbOpsSpecScheduling scheduling;
 
-  @ValidEnum(enumClass = ShardedDbOpsOperation.class, allowNulls = false,
-      message = "op must be one of benchmark, vacuum, repack, restart, "
-          + "majorVersionUpgrade, minorVersionUpgrade or securityUpgrade")
+  @ValidEnum(enumClass = ShardedDbOpsOperationAllowed.class, allowNulls = false,
+      message = "op must be one of resharding, restart "
+          + " or securityUpgrade")
   private String op;
 
   private String runAt;

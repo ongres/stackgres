@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.validation.cluster;
+package io.stackgres.operator.validation.shardedcluster;
 
 import static io.stackgres.operatorframework.resource.ResourceUtil.getServiceAccountFromUsername;
 import static io.stackgres.operatorframework.resource.ResourceUtil.isServiceAccountUsername;
@@ -15,8 +15,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.stackgres.common.ErrorType;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.operator.common.StackGresClusterReview;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.operator.common.StackGresShardedClusterReview;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
@@ -25,7 +25,7 @@ import jakarta.inject.Singleton;
 
 @Singleton
 @ValidationType(ErrorType.FORBIDDEN_CLUSTER_UPDATE)
-public class LockValidator implements ClusterValidator {
+public class LockValidator implements ShardedClusterValidator {
 
   final ObjectMapper objectMapper;
   final int duration;
@@ -40,11 +40,11 @@ public class LockValidator implements ClusterValidator {
   @Override
   @SuppressFBWarnings(value = "SF_SWITCH_NO_DEFAULT",
       justification = "False positive")
-  public void validate(StackGresClusterReview review) throws ValidationFailed {
+  public void validate(StackGresShardedClusterReview review) throws ValidationFailed {
     switch (review.getRequest().getOperation()) {
       case UPDATE: {
-        StackGresCluster cluster = review.getRequest().getObject();
-        StackGresCluster oldCluster = review.getRequest().getOldObject();
+        StackGresShardedCluster cluster = review.getRequest().getObject();
+        StackGresShardedCluster oldCluster = review.getRequest().getOldObject();
         if (Objects.equals(objectMapper.valueToTree(cluster.getSpec()),
             objectMapper.valueToTree(oldCluster.getSpec()))) {
           return;
@@ -59,7 +59,7 @@ public class LockValidator implements ClusterValidator {
                     getServiceAccountFromUsername(username))
                 )
             ) {
-          fail("SGCluster update is forbidden. It is locked by some SGBackup or SGDbOps"
+          fail("SGShardedCluster update is forbidden. It is locked by some SGShardedBackup or SGShardedDbOps"
               + " that is currently running. Please, wait for the operation to finish,"
               + " stop the operation by deleting it or wait for the lock duration of "
               + duration + " seconds to expire.");
