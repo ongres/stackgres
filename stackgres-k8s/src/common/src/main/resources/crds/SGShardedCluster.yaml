@@ -436,6 +436,18 @@ spec:
                             {"description":"Supports \"ClientIP\" and \"None\". Used to maintain session affinity. Enable client IP based session affinity. Must be ClientIP or None. Defaults to None. More info: https://kubernetes.io/docs/concepts/services-networking/service/#virtual-ips-and-service-proxies","type":"string"}
                           sessionAffinityConfig: #!jq_placeholder .definitions["io.k8s.api.core.v1.ServiceSpec"].properties.sessionAffinityConfig #sessionaffinityconfig-v1-core
                             {"description":"SessionAffinityConfig represents the configurations of session affinity.\n\nSee https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#sessionaffinityconfig-v1-core","properties":{"clientIP":{"description":"ClientIPConfig represents the configurations of Client IP based session affinity.","properties":{"timeoutSeconds":{"description":"timeoutSeconds specifies the seconds of ClientIP type session sticky time. The value must be >0 && <=86400(for 1 day) if ServiceAffinity == \"ClientIP\". Default value is 10800(for 3 hours).","format":"int32","type":"integer"}},"type":"object"}},"type":"object"}
+                          nodePorts:
+                            type: object
+                            description: nodePorts is a list of ports for exposing a cluster services to the
+                              outside world
+                            properties:
+                              pgport:
+                                type: integer
+                                description: the node port that will be exposed to connect to Postgres instance
+                              replicationport:
+                                type: integer
+                                description: the node port that will be exposed to connect to Postgres instance
+                                  for replication purpose
                       primary:
                         type: object
                         description: |

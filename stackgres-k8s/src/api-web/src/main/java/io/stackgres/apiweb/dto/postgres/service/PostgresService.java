@@ -15,6 +15,7 @@ import io.fabric8.kubernetes.api.model.SessionAffinityConfig;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.ServiceSpec;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceNodePort;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -27,6 +28,8 @@ public class PostgresService extends ServiceSpec {
   private Boolean enabled;
 
   private String type;
+
+  private StackGresPostgresServiceNodePort nodePorts;
 
   public Boolean getEnabled() {
     return enabled;
@@ -219,6 +222,14 @@ public class PostgresService extends ServiceSpec {
   @Override
   public void setSessionAffinityConfig(SessionAffinityConfig sessionAffinityConfig) {
     super.setSessionAffinityConfig(sessionAffinityConfig);
+  }
+
+  public StackGresPostgresServiceNodePort getNodePorts() {
+    return nodePorts;
+  }
+
+  public void setNodePorts(StackGresPostgresServiceNodePort nodePorts) {
+    this.nodePorts = nodePorts;
   }
 
   @Override
