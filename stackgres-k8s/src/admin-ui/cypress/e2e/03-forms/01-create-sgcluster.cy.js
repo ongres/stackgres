@@ -170,7 +170,6 @@ describe('Create SGCluster', () => {
         // Enable SSL Connections
         cy.get('input[data-field="spec.postgres.ssl.enabled"]')
             .click()
-        
         cy.get('input[data-field="spec.postgres.ssl.certificateSecretKeySelector.name"]')
             .type('cert-cluster')
         cy.get('input[data-field="spec.postgres.ssl.certificateSecretKeySelector.key"]')
@@ -276,13 +275,10 @@ describe('Create SGCluster', () => {
             .click()
         
         // Choose Backup (We're always assuming there's a backup with name "ui-0" on the specified namespace)
-        cy.get('select[data-field="spec.initialData.restore.fromBackup"]') 
-            .select('ui-0')
+        cy.get('#apexchartsarea-datetime .apexcharts-series-markers:last-child') 
+            .click()
          
         // Set PITR
-        cy.get('input[data-field="spec.initialData.restore.fromBackup.pointInTimeRecovery"]')
-            .click()
-
         cy.get('input[data-field="spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp"]')
             .clear()
             .type('9999-01-01 00:00:00')
@@ -1246,8 +1242,7 @@ describe('Create SGCluster', () => {
             .its('request.body.spec.nonProductionOptions.disableClusterPodAntiAffinity')
             .should('eq', true)
     });
-
-    
+ 
     it('Updating an advanced SGCluster should be possible', () => {
         // Edit advanced cluster
         cy.visit(namespace + '/sgcluster/advanced-' + resourceName + '/edit')
@@ -1382,18 +1377,17 @@ describe('Create SGCluster', () => {
             .click()
         
         // Choose Backup (We're always assuming there's a backup with name "ui-0" on the specified namespace)
-        cy.get('label[for="spec.initialData.restore.fromBackup"] + input') 
+        cy.get('input[data-field="spec.initialData.restore.fromBackup"]')
+            .should('have.value', 'ui-0')
             .should('be.disabled')
-        
-        // Set PITR
-        cy.get('input[data-field="spec.initialData.restore.fromBackup.pointInTimeRecovery"]') 
-            .should('be.disabled')
-        
+
+        // Check PITR
         cy.get('input[data-field="spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp"]') 
             .should('be.disabled')
         
         // Performance details
-        cy.get('input[data-field="spec.initialData.restore.downloadDiskConcurrency"]') 
+        cy.get('input[data-field="spec.initialData.restore.downloadDiskConcurrency"]')
+            .should('have.value', '2') 
             .should('be.disabled')
 
         // Test User-Supplied Pods Sidecars
