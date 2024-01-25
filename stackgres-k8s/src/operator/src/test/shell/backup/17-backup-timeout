@@ -1,0 +1,32 @@
+#!/bin/sh
+
+BACKUP_TIMEOUT=1
+
+. "$TEST_SHELL_PATH/backup/abstract-backup"
+
+shell_unit_test() {
+  ! (shell_unit_test_backup)
+}
+
+mock kubectl kubectl_mock_overwrite
+
+kubectl_mock_overwrite() {
+  mokked
+  case "$*" in
+    ("exec -i -n $CLUSTER_NAMESPACE test-0 -c $PATRONI_CONTAINER_NAME -- sh -e"*)
+    STDIN="$(cat)"
+    case "$STDIN" in
+      (*" timeout "*)
+      echo "Timeout!"
+      exit 1
+      ;;
+      ("pg_controldata "*)
+      cat "$TEST_SHELL_PATH/backup/pg_controldata"
+      ;;
+    esac
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}

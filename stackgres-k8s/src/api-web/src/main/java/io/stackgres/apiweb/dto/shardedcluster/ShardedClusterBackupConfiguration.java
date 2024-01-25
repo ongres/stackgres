@@ -34,6 +34,10 @@ public class ShardedClusterBackupConfiguration {
 
   private Boolean fastVolumeSnapshot;
 
+  private Integer timeout;
+
+  private Integer reconciliationTimeout;
+
   public Integer getRetention() {
     return retention;
   }
@@ -104,6 +108,22 @@ public class ShardedClusterBackupConfiguration {
 
   public void setFastVolumeSnapshot(Boolean fastVolumeSnapshot) {
     this.fastVolumeSnapshot = fastVolumeSnapshot;
+  }
+
+  public Integer getTimeout() {
+    return timeout;
+  }
+
+  public void setTimeout(Integer timeout) {
+    this.timeout = timeout;
+  }
+
+  public Integer getReconciliationTimeout() {
+    return reconciliationTimeout;
+  }
+
+  public void setReconciliationTimeout(Integer reconciliationTimeout) {
+    this.reconciliationTimeout = reconciliationTimeout;
   }
 
   @Override

@@ -54,6 +54,8 @@ check_backup_is_working() {
 }
 
 check_backup_using_volume_snapshot_is_working() {
+  disable_cluster_cron_schedule
+
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set cluster.configurations.backups.useVolumeSnapshot=true
 

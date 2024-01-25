@@ -178,6 +178,8 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
               .map(StackGresClusterBackupConfiguration::getUseVolumeSnapshot)
               .orElse(false),
               null,
+              null,
+              null,
               null
           ))
       );
