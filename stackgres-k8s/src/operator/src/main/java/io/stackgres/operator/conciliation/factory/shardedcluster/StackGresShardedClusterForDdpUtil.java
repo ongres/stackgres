@@ -591,7 +591,7 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(getUpdateShardsSecretName(cluster))
         .endMetadata()
-        .withData(ResourceUtil.decodeSecret(Map.of("ddp-update-shards.sql",
+        .withData(ResourceUtil.encodeSecret(Map.of("ddp-update-shards.sql",
             Unchecked.supplier(() -> Resources
                 .asCharSource(ClusterDefaultScripts.class.getResource(
                     "/ddp/ddp-update-shards.sql"),
