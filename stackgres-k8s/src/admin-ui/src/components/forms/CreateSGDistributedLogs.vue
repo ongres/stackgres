@@ -481,6 +481,26 @@
                                 </select>
                                 <span class="helpTooltip"  :data-tooltip="getTooltip('sgdistributedlogs.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('If set to `true` it will','Disable this property to')"></span>
                             </div>
+
+                            <div class="col">
+                                <label for="spec.nonProductionOptions.disablePatroniResourceRequirements">Patroni Resource Requirements</label>  
+                                <select v-model="patroniResourceRequirements" data-field="spec.nonProductionOptions.disablePatroniResourceRequirements">
+                                    <option selected :value="null">Default</option>
+                                    <option :value="false">Enable</option>
+                                    <option :value="true">Disable</option>
+                                </select>
+                                <span class="helpTooltip"  :data-tooltip="getTooltip('sgdistributedlogs.spec.nonProductionOptions.disablePatroniResourceRequirements').replace('Set this property to true to','Disable this property to')"></span>
+                            </div>
+
+                            <div class="col">
+                                <label for="spec.nonProductionOptions.disableClusterResourceRequirements">Cluster Resource Requirements</label>  
+                                <select v-model="clusterResourceRequirements" data-field="spec.nonProductionOptions.disableClusterResourceRequirements">
+                                    <option selected :value="null">Default</option>
+                                    <option :value="false">Enable</option>
+                                    <option :value="true">Disable</option>
+                                </select>
+                                <span class="helpTooltip"  :data-tooltip="getTooltip('sgdistributedlogs.spec.nonProductionOptions.disableClusterResourceRequirements').replace('Set this property to true to','Disable this property to')"></span>
+                            </div>
                         </div>
                     </div>
                 </fieldset>
@@ -545,6 +565,8 @@
                 resourceProfile: '',
                 pgConfig: '',
                 clusterPodAntiAffinity: null,
+                patroniResourceRequirements: null,
+                clusterResourceRequirements: null,
                 hasStorageClass: true,
                 nodeSelector: [ { label: '', value: ''} ],
                 tolerations: [ { key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null } ],
@@ -627,6 +649,8 @@
                             vm.resourceProfile = c.data.spec.sgInstanceProfile;
                             vm.pgConfig = c.data.spec.configurations.sgPostgresConfig;
                             vm.clusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : null;
+                            vm.patroniResourceRequirements = vm.hasProp(c, 'data.spec.nonProductionOptions.disablePatroniResourceRequirements') ? c.data.spec.nonProductionOptions.disablePatroniResourceRequirements : null;
+                            vm.clusterResourceRequirements = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterResourceRequirements') ? c.data.spec.nonProductionOptions.disableClusterResourceRequirements : null;
                             vm.nodeSelector = vm.hasProp(c, 'data.spec.scheduling.nodeSelector') ? vm.unparseProps(c.data.spec.scheduling.nodeSelector, 'label') : [];
                             vm.tolerations = vm.hasProp(c, 'data.spec.scheduling.tolerations') ? c.data.spec.scheduling.tolerations : [];
                             vm.annotationsAll = vm.hasProp(c, 'data.spec.metadata.annotations.allResources') ? vm.unparseProps(c.data.spec.metadata.annotations.allResources) : [];
@@ -709,10 +733,12 @@
                                 ...(this.pgConfig.length && { "sgPostgresConfig": this.pgConfig } || { "sgPostgresConfig": null } )
                             }
                         }) ),
-                        ...((this.hasProp(previous, 'spec.nonProductionOptions') || (this.clusterPodAntiAffinity != null)) && ( {
+                        ...((this.hasProp(previous, 'spec.nonProductionOptions') || (this.clusterPodAntiAffinity != null) || (this.patroniResourceRequirements != null) || (this.clusterResourceRequirements != null)) && ( {
                             "nonProductionOptions": { 
                                 ...(this.hasProp(previous, 'spec.nonProductionOptions') && previous.spec.nonProductionOptions),
-                                ...((this.clusterPodAntiAffinity != null) && {"disableClusterPodAntiAffinity": this.clusterPodAntiAffinity} || {"disableClusterPodAntiAffinity": null} )
+                                ...((this.clusterPodAntiAffinity != null) && {"disableClusterPodAntiAffinity": this.clusterPodAntiAffinity} || {"disableClusterPodAntiAffinity": null} ),
+                                ...((this.patroniResourceRequirements != null) && {"disablePatroniResourceRequirements": this.patroniResourceRequirements} || {"disablePatroniResourceRequirements": null} ),
+                                ...((this.clusterResourceRequirements != null) && {"disableClusterResourceRequirements": this.clusterResourceRequirements} || {"disableClusterResourceRequirements": null} )
                                 } 
                             }) ),
                         ...( (this.hasProp(previous, 'spec.scheduling') || !$.isEmptyObject(this.parseProps(this.nodeSelector, 'label')) || this.hasTolerations() ) && ({
