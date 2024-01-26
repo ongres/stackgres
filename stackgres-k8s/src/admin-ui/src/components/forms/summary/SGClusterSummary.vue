@@ -1901,15 +1901,30 @@
                         </li>
                     </ul>
 
-                    <ul class="section" v-if="showDefaults || (hasProp(cluster, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') && (cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity != null))">
+                    <ul class="section" v-if="
+                        showDefaults || 
+                        (hasProp(cluster, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') && (cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity != null)) ||
+                        (hasProp(cluster, 'data.spec.nonProductionOptions.disablePatroniResourceRequirements') && (cluster.data.spec.nonProductionOptions.disablePatroniResourceRequirements != null)) ||
+                        (hasProp(cluster, 'data.spec.nonProductionOptions.disableClusterResourceRequirements') && (cluster.data.spec.nonProductionOptions.disableClusterResourceRequirements != null))
+                    ">
                         <li>
                             <button class="toggleSummary"></button>
                             <strong class="sectionTitle">Non Production Settings </strong>
                             <ul>
-                                <li>
+                                <li v-if="showDefaults || (hasProp(cluster, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') && (cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity != null))">
                                     <strong class="label">Cluster Pod Anti Affinity</strong>
                                     <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('Set this property to true to allow','When disabled, it allows running')"></span>
                                     <span> : {{ (hasProp(cluster, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') && (cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity != null)) ? isEnabled(cluster.data.spec.nonProductionOptions.disableClusterPodAntiAffinity, true) : 'Default'}}</span>
+                                </li>
+                                <li v-if="showDefaults || (hasProp(cluster, 'data.spec.nonProductionOptions.disablePatroniResourceRequirements') && (cluster.data.spec.nonProductionOptions.disablePatroniResourceRequirements != null))">
+                                    <strong class="label">Patroni Resource Requirements</strong>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disablePatroniResourceRequirements').replace('Set this property to true to prevent','When disabled, it prevents')"></span>
+                                    <span> : {{ (hasProp(cluster, 'data.spec.nonProductionOptions.disablePatroniResourceRequirements') && (cluster.data.spec.nonProductionOptions.disablePatroniResourceRequirements != null)) ? isEnabled(cluster.data.spec.nonProductionOptions.disablePatroniResourceRequirements, true) : 'Default'}}</span>
+                                </li>
+                                <li v-if="showDefaults || (hasProp(cluster, 'data.spec.nonProductionOptions.disableClusterResourceRequirements') && (cluster.data.spec.nonProductionOptions.disableClusterResourceRequirements != null))">
+                                    <strong class="label">Cluster Resource Requirements</strong>
+                                    <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disableClusterResourceRequirements').replace('Set this property to true to prevent','When disabled, it prevents')"></span>
+                                    <span> : {{ (hasProp(cluster, 'data.spec.nonProductionOptions.disableClusterResourceRequirements') && (cluster.data.spec.nonProductionOptions.disableClusterResourceRequirements != null)) ? isEnabled(cluster.data.spec.nonProductionOptions.disableClusterResourceRequirements, true) : 'Default'}}</span>
                                 </li>
                             </ul>
                         </li>
