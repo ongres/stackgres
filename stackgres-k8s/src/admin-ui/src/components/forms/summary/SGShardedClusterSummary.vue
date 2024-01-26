@@ -467,7 +467,14 @@
 
                     <strong class="sectionTitle">Coordinator </strong>
                     
-                    <ul class="section">
+                    <ul class="section" v-if="
+                        showDefaults ||
+                        (cluster.data.spec.coordinator.instances !== 1) ||
+                        hasProp(cluster, 'data.spec.coordinator.sgInstanceProfile') ||
+                        hasProp(cluster, 'data.spec.coordinator.configurations.sgPostgresConfig') ||
+                        (cluster.data.spec.coordinator.pods.persistentVolume.size != '1Gi') || 
+                        hasProp(cluster, 'data.spec.coordinator.pods.persistentVolume.storageClass')
+                    ">
                         <li>
                             <button class="toggleSummary"></button>
                             <strong class="sectionTitle">Specs </strong>
@@ -1658,7 +1665,15 @@
 
                     <strong class="sectionTitle">Shards </strong>
                     
-                    <ul class="section">
+                    <ul class="section"  v-if="
+                        showDefaults ||
+                        (cluster.data.spec.shards.clusters !== 1) ||
+                        (cluster.data.spec.shards.instancesPerCluster !== 1) ||
+                        hasProp(cluster, 'data.spec.shards.sgInstanceProfile') ||
+                        hasProp(cluster, 'data.spec.shards.configurations.sgPostgresConfig') || 
+                        (cluster.data.spec.shards.pods.persistentVolume.size != '1Gi') || 
+                        hasProp(cluster, 'data.spec.shards.pods.persistentVolume.storageClass')
+                    ">
                         <li>
                             <button class="toggleSummary"></button>
                             <strong class="sectionTitle">Specs </strong>
