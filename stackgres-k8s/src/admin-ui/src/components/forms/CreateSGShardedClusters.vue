@@ -999,7 +999,7 @@
 
                         <br/>
                         
-                        <div class="repeater">
+                        <div class="repeater customVolumes">
                             <fieldset
                                 class="noPaddingBottom"
                                 v-if="(coordinator.pods.hasOwnProperty('customVolumes') && coordinator.pods.customVolumes.length)"
@@ -1246,7 +1246,7 @@
 
                         <br/>
                         
-                        <div class="repeater">
+                        <div class="repeater customInitContainers">
                             <fieldset
                                 v-if="coordinator.pods.hasOwnProperty('customInitContainers') && coordinator.pods.customInitContainers.length"
                                 data-fieldset="spec.coordinator.pods.customInitContainers"
@@ -1555,7 +1555,7 @@
 
                         <br/>
                         
-                        <div class="repeater">
+                        <div class="repeater customContainers">
                             <fieldset
                                 v-if="coordinator.pods.hasOwnProperty('customContainers') && coordinator.pods.customContainers.length"
                                 data-fieldset="spec.coordinator.pods.customContainers"
@@ -2478,7 +2478,7 @@
                     </div>
                     
                     <div class="fields">
-                        <div class="repeater">
+                        <div class="repeater nodeSelector">
                             <div class="header">
                                 <h3 for="spec.coordinator.pods.scheduling.nodeSelector">
                                     Node Selectors
@@ -2514,7 +2514,7 @@
                             </h3>
                         </div>
                 
-                        <div class="scheduling repeater">
+                        <div class="scheduling repeater tolerations">
                             <fieldset v-if="(hasProp(coordinator, 'pods.scheduling.tolerations') && coordinator.pods.scheduling.tolerations.length)" data-field="spec.coordinator.pods.scheduling.tolerations">
                                 <div class="section" v-for="(field, index) in coordinator.pods.scheduling.tolerations">
                                     <div class="header">
@@ -2579,7 +2579,7 @@
 
                         <br/><br/>
                         
-                        <div class="scheduling repeater">
+                        <div class="scheduling repeater requiredAffinity">
                             <div class="header">
                                 <h4 for="spec.coordinator.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms">
                                     Node Selector Terms
@@ -2727,7 +2727,7 @@
 
                         <br/><br/>
 
-                        <div class="scheduling repeater">
+                        <div class="scheduling repeater preferredAffinity">
                             <div class="header">
                                 <h4 for="spec.coordinator.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items">
                                     Node Selector Terms
@@ -3051,7 +3051,7 @@
 
                             <br/>
                             
-                            <div class="repeater">
+                            <div class="repeater customVolumes">
                                 <fieldset
                                     class="noPaddingBottom"
                                     v-if="(shards.pods.hasOwnProperty('customVolumes') && shards.pods.customVolumes.length)"
@@ -3298,7 +3298,7 @@
 
                             <br/>
                             
-                            <div class="repeater">
+                            <div class="repeater customInitContainers">
                                 <fieldset
                                     v-if="shards.pods.hasOwnProperty('customInitContainers') &&  shards.pods.customInitContainers.length"
                                     data-fieldset="spec.shards.pods.customInitContainers"
@@ -3608,7 +3608,7 @@
 
                             <br/>
                             
-                            <div class="repeater">
+                            <div class="repeater customContainers">
                                 <fieldset
                                     v-if="shards.pods.hasOwnProperty('customContainers') && shards.pods.customContainers.length"
                                     data-fieldset="spec.shards.pods.customContainers"
@@ -4496,7 +4496,7 @@
                     </div>
                     
                     <div class="fields">
-                        <div class="repeater">
+                        <div class="repeater nodeSelector">
                             <div class="header">
                                 <h3 for="spec.shards.pods.scheduling.nodeSelector">
                                     Node Selectors
@@ -4532,7 +4532,7 @@
                             </h3>
                         </div>
                 
-                        <div class="scheduling repeater">
+                        <div class="scheduling repeater tolerations">
                             <fieldset v-if="(hasProp(shards, 'pods.scheduling.tolerations') && shards.pods.scheduling.tolerations.length)" data-field="spec.shards.pods.scheduling.tolerations">
                                 <div class="section" v-for="(field, index) in shards.pods.scheduling.tolerations">
                                     <div class="header">
@@ -4597,7 +4597,7 @@
 
                         <br/><br/>
                         
-                        <div class="scheduling repeater">
+                        <div class="scheduling repeater requiredAffinity">
                             <div class="header">
                                 <h4 for="spec.shards.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms">
                                     Node Selector Terms
@@ -4745,7 +4745,7 @@
 
                         <br/><br/>
 
-                        <div class="scheduling repeater">
+                        <div class="scheduling repeater preferredAffinity">
                             <div class="header">
                                 <h4 for="spec.shards.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items">
                                     Node Selector Terms
@@ -5080,7 +5080,7 @@
 
                             <br/>
                             
-                            <div class="repeater">
+                            <div class="repeater customVolumes">
                                 <fieldset
                                     class="noPaddingBottom"
                                     v-if="(shards.overrides[overrideIndex].pods.hasOwnProperty('customVolumes') && shards.overrides[overrideIndex].pods.customVolumes.length)"
@@ -5327,7 +5327,7 @@
 
                             <br/>
                             
-                            <div class="repeater">
+                            <div class="repeater customInitContainers">
                                 <fieldset
                                     v-if="shards.overrides[overrideIndex].pods.hasOwnProperty('customInitContainers') && shards.overrides[overrideIndex].pods.customInitContainers.length"
                                     :data-fieldset="'spec.shards.overrides[' + overrideIndex + '].pods.customInitContainers'"
@@ -5636,7 +5636,7 @@
 
                             <br/>
                             
-                            <div class="repeater">
+                            <div class="repeater customContainers">
                                 <fieldset
                                     v-if="shards.overrides[overrideIndex].pods.hasOwnProperty('customContainers') && shards.overrides[overrideIndex].pods.customContainers.length"
                                     :data-fieldset="'spec.shards.overrides[' + overrideIndex + '].pods.customContainers'"
@@ -6529,7 +6529,7 @@
                     </div>
                     
                     <div class="fields">
-                        <div class="repeater">
+                        <div class="repeater nodeSelector">
                             <div class="header">
                                 <h3 for="spec.shards.overrides.pods.scheduling.nodeSelector">
                                     Node Selectors
@@ -6565,7 +6565,7 @@
                             </h3>
                         </div>
                 
-                        <div class="scheduling repeater">
+                        <div class="scheduling repeater tolerations">
                             <fieldset v-if="(hasProp(shards.overrides[overrideIndex], 'pods.scheduling.tolerations') && shards.overrides[overrideIndex].pods.scheduling.tolerations.length)" :data-field="'spec.shards.overrides[' + overrideIndex + '].pods.scheduling.tolerations'">
                                 <div class="section" v-for="(field, index) in shards.overrides[overrideIndex].pods.scheduling.tolerations">
                                     <div class="header">
@@ -6630,7 +6630,7 @@
 
                         <br/><br/>
                         
-                        <div class="scheduling repeater">
+                        <div class="scheduling repeater requiredAffinity">
                             <div class="header">
                                 <h4 for="spec.shards.overrides.pods.scheduling.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms">
                                     Node Selector Terms
@@ -6778,7 +6778,7 @@
 
                         <br/><br/>
 
-                        <div class="scheduling repeater">
+                        <div class="scheduling repeater preferredAffinity">
                             <div class="header">
                                 <h4 for="spec.shards.overrides.pods.scheduling.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution.items">
                                     Node Selector Terms
@@ -7035,14 +7035,7 @@
                             type: 'ClusterIP',
                             loadBalancerIP: '',
                         },
-                        customPorts: [{
-                            appProtocol: null,
-                            name: null,
-                            nodePort: null,
-                            port: null,
-                            protocol: null,
-                            targetPort: null
-                        }]
+                        customPorts: []
                     },
                     shards: {
                         primaries: {
@@ -7050,14 +7043,7 @@
                             type: 'ClusterIP',
                             loadBalancerIP: '',
                         },
-                        customPorts: [{
-                            appProtocol: null,
-                            name: null,
-                            nodePort: null,
-                            port: null,
-                            protocol: null,
-                            targetPort: null
-                        }]
+                        customPorts: []
                     }
                 },
                 clusterPodAntiAffinity: null,
@@ -7073,18 +7059,18 @@
                     },
                     managedSql: {
                         continueOnSGScriptError: false,
-                        scripts: [ {} ]
+                        scripts: []
                     },
                     metadata: {
                         labels: {
-                            clusterPods: [ { label: '', value: ''} ],
+                            clusterPods: [],
                         },
                         annotations: {
-                            allResources: [ { annotation: '', value: ''} ],
-                            clusterPods: [ { annotation: '', value: ''} ],
-                            primaryService: [ { annotation: '', value: ''} ],
-                            replicasService: [ { annotation: '', value: ''} ],
-                            services: [ { annotation: '', value: ''} ],
+                            allResources: [],
+                            clusterPods: [],
+                            primaryService: [],
+                            replicasService: [],
+                            services: [],
                         }
                     },
                     pods: {
@@ -7098,86 +7084,17 @@
                             },
                             storageClass: ''
                         },
-                        customVolumes: [{
-                            name: null,
-                        }],
-                        customInitContainers: [{
-                            name: null,
-                            image: null,
-                            imagePullPolicy: null,
-                            args: [null],
-                            command: [null],
-                            workingDir: null,
-                            env: [ { name: null, value: null } ],
-                            ports: [{
-                                containerPort: null,
-                                hostIP: null,
-                                hostPort: null,
-                                name: null,
-                                protocol: null
-                            }],
-                            volumeMounts: [{
-                                mountPath: null,
-                                mountPropagation: null,
-                                name: null,
-                                readOnly: false,
-                                subPath: null,
-                                subPathExpr: null,
-                            }]
-                        }],
-                        customContainers: [{
-                            name: null,
-                            image: null,
-                            imagePullPolicy: null,
-                            args: [null],
-                            command: [null],
-                            workingDir: null,
-                            env: [ { name: null, value: null } ],
-                            ports: [{
-                                containerPort: null,
-                                hostIP: null,
-                                hostPort: null,
-                                name: null,
-                                protocol: null
-                            }],
-                            volumeMounts: [{
-                                mountPath: null,
-                                mountPropagation: null,
-                                name: null,
-                                readOnly: false,
-                                subPath: null,
-                                subPathExpr: null,
-                            }]
-                        }],
+                        customVolumes: [],
+                        customInitContainers: [],
+                        customContainers: [],
                         scheduling: {
-                            nodeSelector: [ { label: '', value: ''} ],
-                            tolerations: [ { key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null } ],
+                            nodeSelector: [],
+                            tolerations: [],
                             nodeAffinity: {
                                 requiredDuringSchedulingIgnoredDuringExecution: {
-                                    nodeSelectorTerms: [
-                                        {   
-                                            matchExpressions: [
-                                                { key: '', operator: '', values: [ '' ] }
-                                            ],
-                                            matchFields: [
-                                                { key: '', operator: '', values: [ '' ] }
-                                            ]
-                                        }
-                                    ],
+                                    nodeSelectorTerms: [],
                                 },
-                                preferredDuringSchedulingIgnoredDuringExecution: [
-                                    {
-                                        preference: {
-                                            matchExpressions: [
-                                                { key: '', operator: '', values: [ '' ] }
-                                            ],
-                                            matchFields: [
-                                                { key: '', operator: '', values: [ '' ] }
-                                            ]
-                                        },
-                                        weight:  1
-                                    }
-                                ],
+                                preferredDuringSchedulingIgnoredDuringExecution: [],
                             },
                         }
                     },
@@ -7195,18 +7112,18 @@
                     },
                     managedSql: {
                         continueOnSGScriptError: false,
-                        scripts: [ {} ]
+                        scripts: []
                     },
                     metadata: {
                         labels: {
-                            clusterPods: [ { label: '', value: ''} ],
+                            clusterPods: [],
                         },
                         annotations: {
-                            allResources: [ { annotation: '', value: ''} ],
-                            clusterPods: [ { annotation: '', value: ''} ],
-                            primaryService: [ { annotation: '', value: ''} ],
-                            replicasService: [ { annotation: '', value: ''} ],
-                            services: [ { annotation: '', value: ''} ],
+                            allResources: [],
+                            clusterPods: [],
+                            primaryService: [],
+                            replicasService: [],
+                            services: [],
                         }
                     },
                     pods: {
@@ -7220,86 +7137,17 @@
                             },
                             storageClass: ''
                         },
-                        customVolumes: [{
-                            name: null,
-                        }],
-                        customInitContainers: [{
-                            name: null,
-                            image: null,
-                            imagePullPolicy: null,
-                            args: [null],
-                            command: [null],
-                            workingDir: null,
-                            env: [ { name: null, value: null } ],
-                            ports: [{
-                                containerPort: null,
-                                hostIP: null,
-                                hostPort: null,
-                                name: null,
-                                protocol: null
-                            }],
-                            volumeMounts: [{
-                                mountPath: null,
-                                mountPropagation: null,
-                                name: null,
-                                readOnly: false,
-                                subPath: null,
-                                subPathExpr: null,
-                            }]
-                        }],
-                        customContainers: [{
-                            name: null,
-                            image: null,
-                            imagePullPolicy: null,
-                            args: [null],
-                            command: [null],
-                            workingDir: null,
-                            env: [ { name: null, value: null } ],
-                            ports: [{
-                                containerPort: null,
-                                hostIP: null,
-                                hostPort: null,
-                                name: null,
-                                protocol: null
-                            }],
-                            volumeMounts: [{
-                                mountPath: null,
-                                mountPropagation: null,
-                                name: null,
-                                readOnly: false,
-                                subPath: null,
-                                subPathExpr: null,
-                            }]
-                        }],
+                        customVolumes: [],
+                        customInitContainers: [],
+                        customContainers: [],
                         scheduling: {
-                            nodeSelector: [ { label: '', value: ''} ],
-                            tolerations: [ { key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null } ],
+                            nodeSelector: [],
+                            tolerations: [],
                             nodeAffinity: {
                                 requiredDuringSchedulingIgnoredDuringExecution: {
-                                    nodeSelectorTerms: [
-                                        {   
-                                            matchExpressions: [
-                                                { key: '', operator: '', values: [ '' ] }
-                                            ],
-                                            matchFields: [
-                                                { key: '', operator: '', values: [ '' ] }
-                                            ]
-                                        }
-                                    ],
+                                    nodeSelectorTerms: [],
                                 },
-                                preferredDuringSchedulingIgnoredDuringExecution: [
-                                    {
-                                        preference: {
-                                            matchExpressions: [
-                                                { key: '', operator: '', values: [ '' ] }
-                                            ],
-                                            matchFields: [
-                                                { key: '', operator: '', values: [ '' ] }
-                                            ]
-                                        },
-                                        weight:  1
-                                    }
-                                ],
+                                preferredDuringSchedulingIgnoredDuringExecution: [],
                             },
                         }
                     },
@@ -8202,14 +8050,14 @@
                     },
                     metadata: {
                         labels: {
-                            clusterPods: [ { label: '', value: ''} ],
+                            clusterPods: [],
                         },
                         annotations: {
-                            allResources: [ { annotation: '', value: ''} ],
-                            clusterPods: [ { annotation: '', value: ''} ],
-                            primaryService: [ { annotation: '', value: ''} ],
-                            replicasService: [ { annotation: '', value: ''} ],
-                            services: [ { annotation: '', value: ''} ],
+                            allResources: [],
+                            clusterPods: [],
+                            primaryService: [],
+                            replicasService: [],
+                            services: [],
                         }
                     },
                     pods: {
@@ -8223,86 +8071,17 @@
                             },
                             storageClass: ''
                         },
-                        customVolumes: [{
-                            name: null,
-                        }],
-                        customInitContainers: [{
-                            name: null,
-                            image: null,
-                            imagePullPolicy: null,
-                            args: [null],
-                            command: [null],
-                            workingDir: null,
-                            env: [ { name: null, value: null } ],
-                            ports: [{
-                                containerPort: null,
-                                hostIP: null,
-                                hostPort: null,
-                                name: null,
-                                protocol: null
-                            }],
-                            volumeMounts: [{
-                                mountPath: null,
-                                mountPropagation: null,
-                                name: null,
-                                readOnly: false,
-                                subPath: null,
-                                subPathExpr: null,
-                            }]
-                        }],
-                        customContainers: [{
-                            name: null,
-                            image: null,
-                            imagePullPolicy: null,
-                            args: [null],
-                            command: [null],
-                            workingDir: null,
-                            env: [ { name: null, value: null } ],
-                            ports: [{
-                                containerPort: null,
-                                hostIP: null,
-                                hostPort: null,
-                                name: null,
-                                protocol: null
-                            }],
-                            volumeMounts: [{
-                                mountPath: null,
-                                mountPropagation: null,
-                                name: null,
-                                readOnly: false,
-                                subPath: null,
-                                subPathExpr: null,
-                            }]
-                        }],
+                        customVolumes: [],
+                        customInitContainers: [],
+                        customContainers: [],
                         scheduling: {
-                            nodeSelector: [ { label: '', value: ''} ],
-                            tolerations: [ { key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null } ],
+                            nodeSelector: [],
+                            tolerations: [],
                             nodeAffinity: {
                                 requiredDuringSchedulingIgnoredDuringExecution: {
-                                    nodeSelectorTerms: [
-                                        {   
-                                            matchExpressions: [
-                                                { key: '', operator: '', values: [ '' ] }
-                                            ],
-                                            matchFields: [
-                                                { key: '', operator: '', values: [ '' ] }
-                                            ]
-                                        }
-                                    ],
+                                    nodeSelectorTerms: [],
                                 },
-                                preferredDuringSchedulingIgnoredDuringExecution: [
-                                    {
-                                        preference: {
-                                            matchExpressions: [
-                                                { key: '', operator: '', values: [ '' ] }
-                                            ],
-                                            matchFields: [
-                                                { key: '', operator: '', values: [ '' ] }
-                                            ]
-                                        },
-                                        weight:  1
-                                    }
-                                ],
+                                preferredDuringSchedulingIgnoredDuringExecution: [],
                             },
                         }
                     },

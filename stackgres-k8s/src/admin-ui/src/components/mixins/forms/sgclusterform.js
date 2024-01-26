@@ -43,21 +43,19 @@ export const sgclusterform = {
             enableClusterPodAntiAffinity: true,
             postgresUtil: true,
             enableMonitoring: false,
-            podsMetadata: [ { label: '', value: ''} ],
-            nodeSelector: [ { label: '', value: ''} ],
-            tolerations: [ { key: '', operator: 'Equal', value: null, effect: null, tolerationSeconds: null } ],
+            podsMetadata: [],
+            nodeSelector: [],
+            tolerations: [],
             currentScriptIndex: { base: 0, entry: 0 },
             managedSql: {
                 continueOnSGScriptError: false,
-                scripts: [ {} ]
+                scripts: []
             },
-            scriptSource: [ 
-                { base: '', entries: ['raw'] }
-            ],
-            annotationsAll: [ { annotation: '', value: '' } ],
+            scriptSource: [],
+            annotationsAll: [],
             annotationsAllText: '',
-            annotationsPods: [ { annotation: '', value: '' } ],
-            annotationsServices: [ { annotation: '', value: '' } ],
+            annotationsPods: [],
+            annotationsServices: [],
             searchExtension: '',
             extLicense: 'opensource',
             extensionsList: {
@@ -82,29 +80,8 @@ export const sgclusterform = {
                 { label: 'Greater Than', value: 'Gt' },
                 { label: 'Less Than', value: 'Lt' },
             ],
-            requiredAffinity: [
-                {   
-                    matchExpressions: [
-                        { key: '', operator: '', values: [ '' ] }
-                    ],
-                    matchFields: [
-                        { key: '', operator: '', values: [ '' ] }
-                    ]
-                }
-            ],
-            preferredAffinity: [
-                {
-                    preference: {
-                        matchExpressions: [
-                            { key: '', operator: '', values: [ '' ] }
-                        ],
-                        matchFields: [
-                            { key: '', operator: '', values: [ '' ] }
-                        ]
-                    },
-                    weight:  1
-                }
-            ],
+            requiredAffinity: [],
+            preferredAffinity: [],
             managedBackups: false,
             backups: [{
                 path: null,
@@ -129,61 +106,13 @@ export const sgclusterform = {
                 dow: tzCrontab[4],
             }],
             pods: {
-                customVolumes: [{
-                    name: null,
-                }],
-                customInitContainers: [{
-                    name: null,
-                    image: null,
-                    imagePullPolicy: null,
-                    args: [null],
-                    command: [null],
-                    workingDir: null,
-                    env: [ { name: null, value: null } ],
-                    ports: [{
-                        containerPort: null,
-                        hostIP: null,
-                        hostPort: null,
-                        name: null,
-                        protocol: null
-                    }],
-                    volumeMounts: [{
-                        mountPath: null,
-                        mountPropagation: null,
-                        name: null,
-                        readOnly: false,
-                        subPath: null,
-                        subPathExpr: null,
-                    }]
-                }],
-                customContainers: [{
-                    name: null,
-                    image: null,
-                    imagePullPolicy: null,
-                    args: [null],
-                    command: [null],
-                    workingDir: null,
-                    env: [ { name: null, value: null } ],
-                    ports: [{
-                        containerPort: null,
-                        hostIP: null,
-                        hostPort: null,
-                        name: null,
-                        protocol: null
-                    }],
-                    volumeMounts: [{
-                        mountPath: null,
-                        mountPropagation: null,
-                        name: null,
-                        readOnly: false,
-                        subPath: null,
-                        subPathExpr: null,
-                    }]
-                }]
+                customVolumes: [],
+                customInitContainers: [],
+                customContainers: []
             },
             customVolumesType: [null],
-            postgresServicesPrimaryAnnotations: [ { annotation: '', value: '' } ],
-            postgresServicesReplicasAnnotations: [ { annotation: '', value: '' } ],
+            postgresServicesPrimaryAnnotations: [],
+            postgresServicesReplicasAnnotations: [],
         }
     },
 
