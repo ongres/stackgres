@@ -162,6 +162,7 @@ public class PostgresSslReconciliator {
     }
   }
 
+  @SuppressWarnings("unchecked")
   private boolean testPostgresSsl(ClusterContext context) {
     var postgresCredentials = PostgresUtil.getPostgresCredentials(context, secretFinder);
     try (Connection connection = postgresConnectionManager.getConnection(
