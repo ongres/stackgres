@@ -117,9 +117,8 @@ FROM registry.access.redhat.com/ubi8-minimal:8.8-1072
 
   # StackGres CI Tools
   RUN microdnf install -y gnupg openssl jq curl bash zsh sed
-  RUN uname -a | grep -qxF aarch64 \
-    || wget -O /bin/yajsv https://github.com/neilpa/yajsv/releases/download/v1.4.1/yajsv.linux.amd64
-  RUN chmod a+x /bin/yajsv
+  RUN if uname -m | grep -qxF x86_64; then \
+    wget -O /bin/yajsv https://github.com/neilpa/yajsv/releases/download/v1.4.1/yajsv.linux.amd64 && chmod a+x /bin/yajsv; fi
   RUN microdnf install -y python39-pip
   RUN pip3 install yamllint yq
   RUN mkdir -p "$HOME/.docker"; echo '{"experimental":"enabled"}' > "$HOME/.docker/config.json"
@@ -127,7 +126,7 @@ FROM registry.access.redhat.com/ubi8-minimal:8.8-1072
   RUN microdnf install -y xz
   RUN mkdir -p ~/.docker/cli-plugins
   RUN echo '{"experimental":"enabled"}' > ~/.docker/config.json
-  RUN wget -O /bin/kubectl "https://dl.k8s.io/release/v1.28.2/bin/linux/$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/kubectl"
+  RUN wget -O /bin/kubectl "https://dl.k8s.io/release/v1.29.1/bin/linux/$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/kubectl"
   RUN chmod a+x /bin/kubectl
   RUN wget -O /bin/kind-0.15.0 "https://github.com/kubernetes-sigs/kind/releases/download/v0.15.0/kind-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
   RUN chmod a+x /bin/kind-0.15.0
@@ -136,15 +135,15 @@ FROM registry.access.redhat.com/ubi8-minimal:8.8-1072
   RUN ln -s /bin/kind-0.20.0 /bin/kind
   RUN wget -O /bin/k3d "https://github.com/rancher/k3d/releases/download/v5.5.1/k3d-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)"
   RUN chmod a+x /bin/k3d
-  RUN wget "https://get.helm.sh/helm-v3.12.3-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64).tar.gz" -O -|tar xz --strip-components=1 -C /bin -f - "linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/helm"
-  RUN wget "https://github.com/derailed/k9s/releases/download/v0.27.4/k9s_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64).tar.gz" -O -|tar xz -C /bin -f - k9s
+  RUN wget "https://get.helm.sh/helm-v3.14.0-linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64).tar.gz" -O -|tar xz --strip-components=1 -C /bin -f - "linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)/helm"
+  RUN wget "https://github.com/derailed/k9s/releases/download/v0.31.7/k9s_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64).tar.gz" -O -|tar xz -C /bin -f - k9s
   RUN pip3 install awscli
-  RUN wget https://github.com/operator-framework/operator-sdk/releases/download/v1.29.0/operator-sdk_linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64) -O /bin/operator-sdk
+  RUN wget https://github.com/operator-framework/operator-sdk/releases/download/v1.32.0/operator-sdk_linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64) -O /bin/operator-sdk
   RUN chmod a+x /bin/operator-sdk
-  RUN wget https://github.com/operator-framework/operator-registry/releases/download/v1.27.1/linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)-opm -O /bin/opm
+  RUN wget https://github.com/operator-framework/operator-registry/releases/download/v1.36.0/linux-$(uname -m | grep -qxF aarch64 && echo arm64 || echo amd64)-opm -O /bin/opm
   RUN chmod a+x /bin/opm
   RUN microdnf install -y findutils make procps diffutils
-  RUN wget https://github.com/norwoodj/helm-docs/releases/download/v1.11.0/helm-docs_1.11.0_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo x86_64).tar.gz -O -|tar xz -C /bin -f - helm-docs
+  RUN wget https://github.com/norwoodj/helm-docs/releases/download/v1.12.0/helm-docs_1.12.0_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo x86_64).tar.gz -O -|tar xz -C /bin -f - helm-docs
   RUN wget https://github.com/gohugoio/hugo/releases/download/v0.81.0/hugo_0.81.0_Linux-$(uname -m | grep -qxF aarch64 && echo ARM64 || echo 64bit).tar.gz -O -|tar xz -C /bin -f - hugo
-  RUN wget https://github.com/fybrik/crdoc/releases/download/v0.6.2/crdoc_0.6.2_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo x86_64).tar.gz -O -|tar xz -C /bin -f - crdoc
-  RUN wget -O - "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v4.5.7/kustomize_v4.5.7_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/').tar.gz" | tar xzf - -C /bin
+  RUN wget https://github.com/fybrik/crdoc/releases/download/v0.6.3/crdoc_Linux_$(uname -m | grep -qxF aarch64 && echo arm64 || echo x86_64).tar.gz -O -|tar xz -C /bin -f - crdoc
+  RUN wget -O - "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize/v5.3.0/kustomize_v5.3.0_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/').tar.gz" | tar xzf - -C /bin
