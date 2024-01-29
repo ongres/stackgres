@@ -116,15 +116,20 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.postgres.version')"></span>
                                             <span class="value"> : {{ cluster.data.spec.postgres.version }}</span>
                                         </li>
-                                        <li v-if="hasProp(cluster, 'data.spec.configurations.sgPostgresConfig') || showDefaults">
+                                        <li v-if="(hasProp(cluster, 'data.spec.configurations.sgPostgresConfig') || showDefaults)">
                                             <strong class="label">Configuration</strong>
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPostgresConfig')"></span>
                                             <span class="value"> :
                                                 <template v-if="hasProp(cluster, 'data.spec.configurations.sgPostgresConfig')">
-                                                    <router-link :to="'/' + $route.params.namespace + '/sgpgconfig/' + cluster.data.spec.configurations.sgPostgresConfig" target="_blank"> 
-                                                        {{ cluster.data.spec.configurations.sgPostgresConfig }}
-                                                         <span class="eyeIcon"></span>
-                                                    </router-link>
+                                                    <template v-if="(cluster.data.spec.configurations.sgPostgresConfig === 'createNewResource')">
+                                                        Create New Resource
+                                                    </template>
+                                                    <template v-else>
+                                                        <router-link :to="'/' + $route.params.namespace + '/sgpgconfig/' + cluster.data.spec.configurations.sgPostgresConfig" target="_blank"> 
+                                                            {{ cluster.data.spec.configurations.sgPostgresConfig }}
+                                                            <span class="eyeIcon"></span>
+                                                        </router-link>
+                                                    </template>
                                                 </template>
                                                 <template v-else>
                                                     Default
@@ -854,10 +859,15 @@
                                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.configurations.sgPoolingConfig')"></span>
                                             <span class="value"> :
                                                 <template v-if="hasProp(cluster, 'data.spec.configurations.sgPoolingConfig')">
-                                                    <router-link :to="'/' + $route.params.namespace + '/sgpoolconfig/' + cluster.data.spec.configurations.sgPoolingConfig" target="_blank">
-                                                        {{ cluster.data.spec.configurations.sgPoolingConfig }}
-                                                        <span class="eyeIcon"></span>
-                                                    </router-link>
+                                                    <template v-if="(cluster.data.spec.configurations.sgPoolingConfig === 'createNewResource')">
+                                                        Create New Resource
+                                                    </template>
+                                                    <template v-else>
+                                                        <router-link :to="'/' + $route.params.namespace + '/sgpoolconfig/' + cluster.data.spec.configurations.sgPoolingConfig" target="_blank">
+                                                            {{ cluster.data.spec.configurations.sgPoolingConfig }}
+                                                            <span class="eyeIcon"></span>
+                                                        </router-link>
+                                                    </template>
                                                 </template>
                                                 <template v-else>
                                                     Default
@@ -2009,9 +2019,9 @@
         list-style: none;
     }
 
-    .summary strong.label {
+    .summary strong.label + span[data-tooltip] {
         display: inline-block;
-        margin-right: 7px;
+        margin-left: 7px;
     }
 
     .summary li {

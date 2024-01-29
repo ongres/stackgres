@@ -455,10 +455,27 @@ svg.background circle {
     margin: 0 !important;
 }
 
+.noBorder {
+    border: 0 !important;
+}
+
 .clearfix {
     content: "";
     clear: both;
     display: table;
+}
+
+hr {
+    clear: both;
+}
+
+.inlineHr {
+    position: absolute;
+    display: block;
+    left: 50%;
+    transform: translate(-50%, -140%);
+    background: var(--bgColor);
+    padding: 0 10px;
 }
 
 /* Log in */
@@ -2749,9 +2766,24 @@ a.addRow, .addRow > a {
     position: absolute;
     top: 0;
     right: 0;
+    z-index: 1;
 }
 .inputContainer a.addRow.topRight {
     top: -20px;
+}
+
+.inputContainer a.addRow.inline {
+    position: absolute;
+    z-index: 1;
+    top: 10px;
+    right: 10px;
+    transform: none;
+}
+
+input + a.addRow.inline {
+    transform: translate(-13px, -26px);
+    z-index: 1;
+    position: relative;
 }
 
 input.annotation, input.annotationValue, input.label, input.labelValue {
@@ -5060,6 +5092,7 @@ fieldset.accordion .fields {
 
 .fields > fieldset {
     padding: 20px 20px 10px;
+    overflow: hidden;
 }
 
 .fields:not(.repeater) > fieldset:not(:last-of-type) {

@@ -176,7 +176,6 @@ export const mixin = {
             });
           } else {
 
-
             if ( vc.iCan('list', 'namespaces') && ( !kind.length || (kind == 'namespaces') ) ) {
               /* Namespaces Data */
               sgApi
@@ -535,6 +534,18 @@ export const mixin = {
             }
           }
 
+          if (!store.state.sgconfigs.length || (kind == 'sgconfigs')){
+            /* Operator Config Data */
+            sgApi
+            .get('sgconfigs')
+            .then( function(response){
+              store.commit('setSGConfigs', response.data);
+            }).catch(function(err) {
+              console.log(err);
+              vc.checkAuthError(err);
+            });
+          }
+
           if(!Object.keys(store.state.tooltips).length && !store.state.tooltips.hasOwnProperty('error')) {
             fetch('/admin/info/sg-tooltips.json')
             .then(response => response.json())
@@ -720,7 +731,7 @@ export const mixin = {
             )
           )
 
-        } else if( !['namespaces', 'storageclasses'].includes(kind) && (action != 'any') ) { // For CRDs when no namespace indicated
+        } else if( !['namespaces', 'storageclasses', 'sgconfigs'].includes(kind) && (action != 'any') ) { // For CRDs when no namespace indicated
           
           return (store.state.permissions.allowed.namespaced.filter(n => 
             (n.resources[kind].includes(action)) ).length == store.state.permissions.allowed.namespaced.length
@@ -1103,7 +1114,7 @@ export const mixin = {
             params.forEach(function(item, index){
               tooltipText = tooltipText[item]
             })
-            return tooltipText.description
+            return tooltipText.hasOwnProperty('description') ? tooltipText.description : 'Information not available'
           } else {
             return 'Information not available'
           }
@@ -1337,7 +1348,7 @@ export const mixin = {
       },
 
       splitUppercase(text) {
-        return text.split(/(?=[A-Z])/).join(' ')
+        return text.split(/(?=[A-Z])/).join(' ').replace(text[0], text[0].toUpperCase());
       },
       
       getDateString() {
@@ -1403,6 +1414,32 @@ export const mixin = {
 
       spliceArray: function( prop, index ) {
         prop.splice( index, 1 );
+      },
+
+      uploadFile(e, prop) {
+        const vc = this;
+        var files = e.target.files || e.target.dataTransfer.files;
+
+        if (!files.length){
+            console.log("File not loaded")
+            return;
+        } else {
+            var reader = new FileReader();
+            
+            reader.onload = function(e) {
+                if(!prop.includes('.')) {
+                    vc.$set(vc, prop, e.target.result);
+                } else {
+                    let el = {};
+                    let props = prop.split('.');
+                    for(var i = 0; i < props.length - 1; i++) {
+                        el = Object.keys(el).length ? el[props[i]] : vc[props[i]];
+                    }
+                    vc.$set(el, props[props.length - 1], e.target.result);
+                }
+            };
+            reader.readAsText(files[0]);
+        }
       },
 
     },

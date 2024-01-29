@@ -13,7 +13,7 @@ export const sgclusterform = {
             previewCRD: {},
             showSummary: false,
             advancedMode: false,
-            currentStep: 'cluster',
+            currentStep: null,
             errorStep: [],
             editReady: false,
             nullVal: null,
@@ -189,7 +189,7 @@ export const sgclusterform = {
         },
 
         currentStepIndex() {
-            return this.formSteps.indexOf(this.currentStep)
+            return this.hasOwnProperty('formTemplate') ? this.formSteps[this.formTemplate].indexOf(this.currentStep) : this.formSteps.indexOf(this.currentStep)
         }
     },
 
@@ -566,7 +566,7 @@ export const sgclusterform = {
                 let [prop, ...pathSplit] = path.split('.');
                     
                 if(!term.hasOwnProperty(prop)) {
-                    term[prop] = pathSplit.length ? {} : [];
+                    this.$set(term, prop, pathSplit.length ? {} : []);
                 }
 
                 this.addRequiredAffinityTerm(term[prop], pathSplit.join('.'));
@@ -590,7 +590,7 @@ export const sgclusterform = {
                 let [prop, ...pathSplit] = path.split('.');
                     
                 if(!term.hasOwnProperty(prop)) {
-                    term[prop] = pathSplit.length ? {} : [];
+                    this.$set(term, prop, pathSplit.length ? {} : []);
                 }
 
                 this.addPreferredAffinityTerm(term[prop], pathSplit.join('.'));
@@ -732,7 +732,7 @@ export const sgclusterform = {
         validateSelectedPgConfig() {
             const vc = this;
 
-            if( vc.hasOwnProperty('pgConfig') && (vc.pgConfig.length) ) {
+            if( vc.hasOwnProperty('pgConfig') && (!vc.isNull(vc.pgConfig)) ) {
                 let config = vc.pgConf.find(c => (c.data.metadata.name == vc.pgConfig) && (c.data.metadata.namespace == vc.$route.params.namespace) && (c.data.spec.postgresVersion == vc.shortPostgresVersion))
 
                 if(typeof config == 'undefined') {
