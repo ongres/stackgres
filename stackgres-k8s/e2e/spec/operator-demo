@@ -156,6 +156,7 @@ test_yamls() {
     return 1
   fi
 
+  deploy_curl_pod "$CLUSTER_NAMESPACE"
   check_namespace
 
   echo "Deleting MinIO resources"

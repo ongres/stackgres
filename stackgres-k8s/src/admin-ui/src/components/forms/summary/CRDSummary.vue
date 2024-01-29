@@ -115,9 +115,9 @@
         list-style: none;
     }
 
-    .summary strong.label {
+    .summary strong.label + span[data-tooltip] {
         display: inline-block;
-        margin-right: 7px;
+        margin-left: 7px;
     }
 
     .summary .value {

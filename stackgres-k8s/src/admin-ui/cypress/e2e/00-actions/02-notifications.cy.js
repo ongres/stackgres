@@ -10,8 +10,12 @@ describe('Notifications Area', () => {
     });
 
     it('Notification details and link should be visible if they exist', () => {
-        // Submit form without selecting an op
+        // Submit form with an empty cluster name
         cy.visit(namespace + '/sgclusters/new')
+
+        // Choose basic wizard
+        cy.get('[data-field="formTemplate.basic"]')
+            .click()
 
         cy.get('[data-field="metadata.name"]')
             .type(' ')
