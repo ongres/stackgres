@@ -95,11 +95,11 @@
 								<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.status')"></span>
 							</th>
 							<th class="desc size hasTooltip textRight">
-								<span @click="sort('data.status.backupInformation.size.uncompressed', 'memory')" title="Size uncompressed (compressed)">Size uncompressed (compressed)</span>
-								<span class="helpTooltip" data-tooltip="Size (in bytes) of the uncompressed backup (Size (in bytes) of the compressed backup)."></span>
+								<span @click="sort('data.status.backupInformation.size.uncompressed', 'memory')" title="Size (compressed)">Size</span>
+								<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.size.compressed')"></span>
 							</th>
 							<th class="desc postgresVersion hasTooltip" v-if="!isCluster" data-type="version">
-								<span@click="sort('data.status.backupInformation.postgresVersion')" title="Postgres Version">PG</span>
+								<span @click="sort('data.status.backupInformation.postgresVersion')" title="Postgres Version">PG</span>
 								<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.postgresVersion')"></span>
 							</th>
 							<th class="desc name hasTooltip">
@@ -161,7 +161,7 @@
 												<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
 													<span>
 														<template v-if="back.data.status.process.status === 'Completed'">
-															{{ back.data.status.backupInformation.size.uncompressed | formatBytes }} ({{ back.data.status.backupInformation.size.compressed | formatBytes }})
+															{{ back.data.status.backupInformation.size.compressed | formatBytes }}
 														</template>
 													</span>
 												</router-link>
