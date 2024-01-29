@@ -8702,5 +8702,7 @@
     }
 
 </style>
+
+<style scoped>
     @import '../../assets/css/sgclusterform.css';
 </style>

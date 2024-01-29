@@ -444,7 +444,7 @@
                 
                 <div class="fields">
                     <div class="toolbar">
-                        <div class="searchBar">
+                        <div class="searchBar extensions">
                             <label for="keyword">Search Extensions</label>
                             <input id="keyword" v-model="searchExtension" class="search" placeholder="Enter text..." autocomplete="off" data-field="spec.postgres.extensions">
                             <a @click="clearExtFilters()" class="btn clear border keyword" v-if="searchExtension.length">CLEAR</a>
