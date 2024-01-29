@@ -2060,16 +2060,10 @@ ul.selector li {
     background-position-x: 15px;
 }
 
-/* #backups .timestamp {
-    min-width: 210px;
-    width: 210px;
+td.timestamp, th.timestamp {
+    min-width: 235px;
 }
 
-#backups .managedLifecycle {
-    min-width: 225px;
-    width: 225px;
-}
- */
 #backups .details.Failed div {
     width: calc(100% - 50px);
 }
