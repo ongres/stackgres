@@ -15,15 +15,19 @@ import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.ShardedClusterContext;
 import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.operator.conciliation.GenerationContext;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import org.immutables.value.Value;
+import org.jooq.lambda.tuple.Tuple2;
 
 @Value.Immutable
 public interface StackGresShardedClusterContext
     extends GenerationContext<StackGresShardedCluster>, ShardedClusterContext {
+
+  StackGresConfig getConfig();
 
   @Override
   @Value.Derived
@@ -36,11 +40,11 @@ public interface StackGresShardedClusterContext
     return getSource();
   }
 
-  StackGresClusterContext getCoordinator();
+  StackGresCluster getCoordinator();
 
   StackGresPostgresConfig getCoordinatorConfig();
 
-  List<StackGresClusterContext> getShards();
+  List<StackGresCluster> getShards();
 
   Optional<Endpoints> getCoordinatorPrimaryEndpoints();
 
@@ -104,5 +108,7 @@ public interface StackGresShardedClusterContext
   Optional<String> getPostgresSslCertificate();
 
   Optional<String> getPostgresSslPrivateKey();
+
+  List<Tuple2<String, String>> getShardingSphereAuthorityUsers();
 
 }

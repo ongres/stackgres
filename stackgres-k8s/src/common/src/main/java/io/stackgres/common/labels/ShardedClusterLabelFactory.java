@@ -30,8 +30,14 @@ public class ShardedClusterLabelFactory
 
   @Override
   public Map<String, String> coordinatorLabels(@NotNull StackGresShardedCluster resource) {
-    return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
+    return ImmutableMap.<String, String>builder().putAll(coordinatorLabelsWithoutUid(resource))
         .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
+        .build();
+  }
+
+  @Override
+  public Map<String, String> coordinatorLabelsWithoutUid(@NotNull StackGresShardedCluster resource) {
+    return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
         .put(labelMapper().coordinatorKey(resource), StackGresContext.RIGHT_VALUE)
         .build();
   }

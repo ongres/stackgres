@@ -1,0 +1,33 @@
+#!/bin/sh
+
+USE_VOLUME_SNAPSHOT=true
+
+. "$TEST_SHELL_PATH/backup/abstract-backup"
+
+shell_unit_test() {
+  ! (shell_unit_test_backup)
+}
+
+mock kubectl kubectl_mock_overwrite
+
+kubectl_mock_overwrite() {
+  mokked
+  case "$*" in
+    ("exec -i -n $CLUSTER_NAMESPACE test-0 -c $PATRONI_CONTAINER_NAME -- psql -v ON_ERROR_STOP=1 -t -A")
+    while read -r LINE
+    do
+      case "$LINE" in
+        ("SELECT 'Backup bootstrap';")
+        echo 'Backup bootstrap'
+        ;;
+        ("SELECT 'Backup started';")
+        exit 1
+        ;;
+      esac
+    done
+    ;;
+    *)
+    not_mokked
+    ;;
+  esac
+}

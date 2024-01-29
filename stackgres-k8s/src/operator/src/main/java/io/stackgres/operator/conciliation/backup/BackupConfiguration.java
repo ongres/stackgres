@@ -13,6 +13,8 @@ public record BackupConfiguration(
     BackupPerformance performance,
     Boolean useVolumeSnapshot,
     String volumeSnapshotStorageClass,
-    Boolean fastVolumeSnapshot
+    Boolean fastVolumeSnapshot,
+    Integer timeout,
+    Integer reconciliationTimeout
 ) {
 }

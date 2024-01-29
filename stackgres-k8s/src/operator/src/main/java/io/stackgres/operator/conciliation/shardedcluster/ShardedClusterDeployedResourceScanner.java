@@ -26,8 +26,12 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigList;
+import io.stackgres.common.crd.sgscript.StackGresScript;
+import io.stackgres.common.crd.sgscript.StackGresScriptList;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.labels.LabelFactoryForShardedCluster;
+import io.stackgres.common.shardingsphere.ComputeNode;
+import io.stackgres.common.shardingsphere.ComputeNodeList;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.ReconciliationOperations;
@@ -101,7 +105,11 @@ public class ShardedClusterDeployedResourceScanner
           Map.entry(StackGresCluster.class, client -> client
               .resources(StackGresCluster.class, StackGresClusterList.class)),
           Map.entry(StackGresPostgresConfig.class, client -> client
-              .resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class))
+              .resources(StackGresPostgresConfig.class, StackGresPostgresConfigList.class)),
+          Map.entry(StackGresScript.class, client -> client
+              .resources(StackGresScript.class, StackGresScriptList.class)),
+          Map.entry(ComputeNode.class, client -> client
+              .resources(ComputeNode.class, ComputeNodeList.class))
           );
 
 }

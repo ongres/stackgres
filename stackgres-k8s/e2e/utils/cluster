@@ -70,6 +70,8 @@ wait_cluster() {
     --template="{{ range .subsets }}{{ range .addresses }}{{ printf \"%s\n\" .ip }}{{ end }}{{ end }}" 2>/dev/null \
     | wc -l)" -ge 1 ]'
 
+  wait_until eval 'kubectl get endpoints --namespace "$NAMESPACE" "$RELEASE" \
+    --template="{{ .metadata.annotations.leader }}" | grep -q "^$RELEASE-[0-9]\+"'
   LEADER="$(kubectl get endpoints --namespace "$NAMESPACE" "$RELEASE" \
     --template="{{ .metadata.annotations.leader }}")"
   if [ "$LEADER" != "$RELEASE-0" ]
@@ -230,18 +232,39 @@ wait_sharded_cluster() {
   local SHARDED_RELEASE="$RELEASE"
   local INDEX=0
   local ENDPOINTS
-  for RELEASE in $SHARDED_RELEASE-coord $(
-    seq 0 "$(( -1 + $(kubectl get sgshardedcluster -n "$NAMESPACE" "$SHARDED_RELEASE" --template '{{ .spec.shards.clusters }}') ))" \
-      | while read INDEX
-        do
-          printf '%s-shard%s ' "$SHARDED_RELEASE" "$INDEX"
-        done)
+  local CLUSTER_SCOPE
+  local PATRONICTL_OPTS=""
+  local SHARDING_TYPE
+  SHARDING_TYPE="$(kubectl get sgshardedcluster -n "$NAMESPACE" "$SHARDED_RELEASE" --template '{{ .spec.type }}')"
+  for RELEASE in \
+    $(
+    if [ "$SHARDING_TYPE" != shardingsphere ]
+    then
+      printf '%s-coord' "$SHARDED_RELEASE"
+    fi) \
+    $(
+      seq 0 "$(( -1 + $(kubectl get sgshardedcluster -n "$NAMESPACE" "$SHARDED_RELEASE" --template '{{ .spec.shards.clusters }}') ))" \
+        | while read INDEX
+          do
+            printf '%s-shard%s ' "$SHARDED_RELEASE" "$INDEX"
+          done)
   do
     RELEASE="$RELEASE"
-    ENDPOINTS="$SHARDED_RELEASE-$INDEX"
+    if [ "$SHARDING_TYPE" = citus ]
+    then
+      PATRONICTL_OPTS="--group $INDEX"
+      CLUSTER_SCOPE="$SHARDED_RELEASE"
+      ENDPOINTS="$SHARDED_RELEASE-$INDEX"
+    else
+      CLUSTER_SCOPE="$RELEASE"
+      ENDPOINTS="$RELEASE"
+    fi
     wait_until eval '[ "$(kubectl get endpoints --namespace "$NAMESPACE" "$ENDPOINTS" \
       --template="{{ range .subsets }}{{ range .addresses }}{{ printf \"%s\n\" .ip }}{{ end }}{{ end }}" 2>/dev/null \
       | wc -l)" -ge 1 ]'
+
+    wait_until eval 'kubectl get endpoints --namespace "$NAMESPACE" "$ENDPOINTS" \
+      --template="{{ .metadata.annotations.leader }}" | grep -q "^$RELEASE-[0-9]\+"'
     LEADER="$(kubectl get endpoints --namespace "$NAMESPACE" "$ENDPOINTS" \
       --template="{{ .metadata.annotations.leader }}")"
     if [ "$LEADER" != "$RELEASE-0" ]
@@ -249,7 +272,7 @@ wait_sharded_cluster() {
       wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$RELEASE-0" \
         --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
       wait_until eval '! kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
-        patronictl switchover "$SHARDED_RELEASE" --group "$INDEX" --primary "$LEADER" --candidate "$RELEASE-0" --force \
+        patronictl switchover "$CLUSTER_SCOPE" $PATRONICTL_OPTS --primary "$LEADER" --candidate "$RELEASE-0" --force \
         | grep -q "^Switchover failed"'
       wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$LEADER" \
         --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'

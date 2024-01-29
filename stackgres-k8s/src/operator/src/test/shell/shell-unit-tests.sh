@@ -160,6 +160,7 @@ mock() {
 $1_mocks="$2 \$$1_mocks"
 alias $1=$1_mock_entry
 $1_mock_entry() {
+  {
   local E_UNSET=true
   if echo "\$-" | grep -q e
   then
@@ -190,6 +191,7 @@ $1_mock_entry() {
     exit 1
   fi
   return "\$EXIT_CODE"
+  } $([ "$DEBUG_MOCK" != true ] && printf '2>/dev/null' || true)
 }
 EOF
   )"

@@ -5,13 +5,14 @@
 
 package io.stackgres.operator.conciliation.factory.shardedcluster;
 
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardingType;
 import io.stackgres.common.labels.LabelFactoryForShardedCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -30,12 +31,15 @@ public class ShardedClusters implements ResourceGenerator<StackGresShardedCluste
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresShardedClusterContext context) {
-    return Seq.<HasMetadata>of(context.getCoordinator().getCluster())
+    return Seq.of(Boolean.TRUE)
+        .filter(Predicate.not(ignore -> StackGresShardingType.SHARDING_SPHERE.equals(
+            StackGresShardingType.fromString(context.getShardedCluster().getSpec().getType()))))
+        .<HasMetadata>map(ignore -> context.getCoordinator())
         .map(coordinator -> {
           coordinator.getMetadata().setLabels(labelFactory.coordinatorLabels(context.getSource()));
           return coordinator;
         })
-        .append(context.getShards().stream().map(StackGresClusterContext::getCluster)
+        .append(context.getShards().stream()
             .map(shards -> {
               shards.getMetadata().setLabels(labelFactory.shardsLabels(context.getSource()));
               return shards;

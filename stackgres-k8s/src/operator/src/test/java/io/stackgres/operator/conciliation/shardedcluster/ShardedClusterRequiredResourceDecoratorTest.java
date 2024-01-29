@@ -5,26 +5,19 @@
 
 package io.stackgres.operator.conciliation.shardedcluster;
 
-import static java.util.Optional.ofNullable;
-
 import java.util.List;
-import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.fixture.Fixtures;
-import io.stackgres.operator.common.Prometheus;
-import io.stackgres.operator.common.StackGresShardedClusterForCitusUtil;
 import io.stackgres.operator.conciliation.AbstractRequiredResourceGeneratorTest;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
-import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForCitusUtil;
 import jakarta.inject.Inject;
 import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,16 +33,12 @@ class ShardedClusterRequiredResourceDecoratorTest
   private StackGresConfig config;
   private StackGresShardedCluster resource;
   private StackGresPostgresConfig pgConfig;
-  private StackGresProfile profile;
-  private Optional<StackGresPoolingConfig> pooling;
 
   @BeforeEach
   public void setup() {
     this.config = Fixtures.config().loadDefault().get();
     this.resource = Fixtures.shardedCluster().loadDefault().withLatestPostgresVersion().get();
     this.pgConfig = Fixtures.postgresConfig().loadDefault().get();
-    this.profile = Fixtures.instanceProfile().loadSizeM().get();
-    this.pooling = ofNullable(Fixtures.poolingConfig().loadDefault().get());
   }
 
   @Override
@@ -61,33 +50,21 @@ class ShardedClusterRequiredResourceDecoratorTest
   @Override
   protected StackGresShardedClusterContext getResourceContext() {
     return ImmutableStackGresShardedClusterContext.builder()
+        .config(config)
         .source(resource)
         .coordinatorConfig(pgConfig)
-        .coordinator(getCoordinatorContext())
-        .shards(getShardsContext())
+        .coordinator(getCoordinator())
+        .shards(getShards())
         .build();
   }
 
-  private StackGresClusterContext getCoordinatorContext() {
-    return ImmutableStackGresClusterContext.builder()
-        .config(config)
-        .source(StackGresShardedClusterForCitusUtil.getCoordinatorCluster(resource))
-        .postgresConfig(pgConfig)
-        .profile(profile)
-        .poolingConfig(pooling)
-        .prometheus(new Prometheus(false, null))
-        .build();
+  private StackGresCluster getCoordinator() {
+    return StackGresShardedClusterForCitusUtil.getCoordinatorCluster(resource);
   }
 
-  private List<StackGresClusterContext> getShardsContext() {
+  private List<StackGresCluster> getShards() {
     return Seq.range(0, resource.getSpec().getShards().getClusters())
-        .<StackGresClusterContext>map(index -> ImmutableStackGresClusterContext.builder()
-            .config(config)
-            .source(StackGresShardedClusterForCitusUtil.getShardsCluster(resource, index))
-            .postgresConfig(pgConfig)
-            .profile(profile)
-            .poolingConfig(pooling)
-            .build())
+        .map(index -> StackGresShardedClusterForCitusUtil.getShardsCluster(resource, index))
         .toList();
   }
 

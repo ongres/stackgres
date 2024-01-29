@@ -6,22 +6,22 @@
 package io.stackgres.operator.resource;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.stackgres.common.prometheus.PrometheusConfig;
-import io.stackgres.common.prometheus.PrometheusConfigList;
+import io.stackgres.common.prometheus.Prometheus;
+import io.stackgres.common.prometheus.PrometheusList;
 import io.stackgres.common.resource.AbstractCustomResourceScanner;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class PrometheusScanner
-    extends AbstractCustomResourceScanner<PrometheusConfig, PrometheusConfigList> {
+    extends AbstractCustomResourceScanner<Prometheus, PrometheusList> {
 
   /**
    * Create a {@code PrometheusScanner} instance.
    */
   @Inject
   public PrometheusScanner(KubernetesClient client) {
-    super(client, PrometheusConfig.class, PrometheusConfigList.class);
+    super(client, Prometheus.class, PrometheusList.class);
   }
 
 }

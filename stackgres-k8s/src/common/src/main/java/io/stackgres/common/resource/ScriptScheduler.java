@@ -25,7 +25,7 @@ public class ScriptScheduler extends
     return client.resources(StackGresScript.class, StackGresScriptList.class)
         .resource(resource)
         .lockResourceVersion(resource.getMetadata().getResourceVersion())
-        .replace();
+        .update();
   }
 
 }

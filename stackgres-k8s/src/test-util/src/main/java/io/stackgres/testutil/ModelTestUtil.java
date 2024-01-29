@@ -55,7 +55,7 @@ public class ModelTestUtil {
 
   public static class CheckJsonInoreUnknownPropertiesVisitor implements ResourceVisitor<Void> {
     @Override
-    public Void onObject(Class<?> clazz, Field[] fields) {
+    public Void onObject(Class<?> clazz, List<Field> fields) {
       if (clazz.getPackage().getName().startsWith("io.stackgres.")) {
         JsonIgnoreProperties jsonIgnoreProperties = clazz.getAnnotation(JsonIgnoreProperties.class);
         for (var currentClazz = clazz; jsonIgnoreProperties == null;) {
@@ -101,7 +101,7 @@ public class ModelTestUtil {
   public static class RandomDataVisitor<T> implements ResourceVisitor<T> {
     @Override
     @SuppressWarnings("unchecked")
-    public T onObject(Class<?> clazz, Field[] fields) {
+    public T onObject(Class<?> clazz, List<Field> fields) {
       T targetInstance;
       try {
         targetInstance = (T) clazz.getDeclaredConstructor().newInstance();
@@ -129,7 +129,7 @@ public class ModelTestUtil {
     @Override
     @SuppressWarnings("unchecked")
     public T onList(Class<?> clazz, Class<?> elementClazz) {
-      int desiredListSize = RANDOM.nextInt(10) + 1; //More than this could be counter-productive
+      int desiredListSize = RANDOM.nextInt(3) + 1; //More than this could be counter-productive
 
       List<Object> targetList = new ArrayList<>(desiredListSize);
       if (clazz != List.class) {
@@ -157,7 +157,7 @@ public class ModelTestUtil {
     @Override
     @SuppressWarnings("unchecked")
     public T onMap(Class<?> clazz, Class<?> keyClazz, Class<?> valueClazz, Type valueType) {
-      int desiredMapSize = RANDOM.nextInt(10) + 1; //More than this could be counter-productive
+      int desiredMapSize = RANDOM.nextInt(3) + 1; //More than this could be counter-productive
 
       Map<Object, Object> targetMap = new HashMap<>(desiredMapSize);
       if (clazz != Map.class) {
@@ -191,7 +191,7 @@ public class ModelTestUtil {
   }
 
   public interface ResourceVisitor<T> {
-    T onObject(Class<?> clazz, Field[] fields);
+    T onObject(Class<?> clazz, List<Field> fields);
 
     T onList(Class<?> clazz, Class<?> elementClazz);
 
@@ -225,7 +225,7 @@ public class ModelTestUtil {
       }
     }
 
-    Field[] targetFields = getRepresentativeFields(clazz);
+    List<Field> targetFields = getRepresentativeFields(clazz);
 
     return visitor.onObject(clazz, targetFields);
   }
@@ -264,16 +264,16 @@ public class ModelTestUtil {
         || Object.class == type;
   }
 
-  private static Field[] getRepresentativeFields(Class<?> clazz) {
+  private static List<Field> getRepresentativeFields(Class<?> clazz) {
     if (clazz != null) {
       Field[] declaredFields = clazz.getDeclaredFields();
-      Field[] parentFields = getRepresentativeFields(clazz.getSuperclass());
+      List<Field> parentFields = getRepresentativeFields(clazz.getSuperclass());
       List<String> ignoredFields = Optional
           .ofNullable(clazz.getAnnotation(JsonIgnoreProperties.class))
           .map(JsonIgnoreProperties::value)
           .map(Arrays::asList)
           .orElse(List.of());
-      return Stream.concat(Arrays.stream(declaredFields), Arrays.stream(parentFields))
+      return Stream.concat(Arrays.stream(declaredFields), parentFields.stream())
           .filter(field -> !Modifier.isStatic(field.getModifiers()))
           .filter(field -> !Modifier.isFinal(field.getModifiers()))
           .filter(field -> !field.isAnnotationPresent(JsonIgnore.class))
@@ -282,9 +282,9 @@ public class ModelTestUtil {
               .map(JsonProperty::value)
               .filter(Predicate.not(JsonProperty.USE_DEFAULT_NAME::equals))
               .orElse(field.getName())))
-          .toArray(Field[]::new);
+          .toList();
     } else {
-      return new Field[0];
+      return List.of();
     }
   }
 

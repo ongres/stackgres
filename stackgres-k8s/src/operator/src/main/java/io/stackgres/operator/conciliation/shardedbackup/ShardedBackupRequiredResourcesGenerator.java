@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.shardedbackup;
 
+import static io.stackgres.common.StackGresShardedClusterUtil.getCoordinatorClusterName;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -18,6 +20,7 @@ import java.util.stream.Stream;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgshardedbackup.ShardedBackupStatus;
@@ -48,6 +51,8 @@ public class ShardedBackupRequiredResourcesGenerator
 
   private final CustomResourceFinder<StackGresShardedCluster> shardedClusterFinder;
 
+  private final CustomResourceFinder<StackGresCluster> clusterFinder;
+
   private final CustomResourceFinder<StackGresProfile> profileFinder;
 
   private final CustomResourceScanner<StackGresShardedBackup> shardedBackupScanner;
@@ -58,11 +63,13 @@ public class ShardedBackupRequiredResourcesGenerator
   @Inject
   public ShardedBackupRequiredResourcesGenerator(
       CustomResourceFinder<StackGresShardedCluster> shardedClusterFinder,
+      CustomResourceFinder<StackGresCluster> clusterFinder,
       CustomResourceFinder<StackGresProfile> profileFinder,
       CustomResourceScanner<StackGresShardedBackup> shardedBackupScanner,
       CustomResourceFinder<StackGresObjectStorage> objectStorageFinder,
       ResourceGenerationDiscoverer<StackGresShardedBackupContext> discoverer) {
     this.shardedClusterFinder = shardedClusterFinder;
+    this.clusterFinder = clusterFinder;
     this.profileFinder = profileFinder;
     this.shardedBackupScanner = shardedBackupScanner;
     this.objectStorageFinder = objectStorageFinder;
@@ -81,6 +88,9 @@ public class ShardedBackupRequiredResourcesGenerator
 
     final Optional<StackGresShardedCluster> cluster = shardedClusterFinder
         .findByNameAndNamespace(clusterName, clusterNamespace);
+    final Optional<StackGresCluster> coordinator = clusterFinder
+        .findByNameAndNamespace(
+            getCoordinatorClusterName(spec.getSgShardedCluster()), clusterNamespace);
     final Optional<StackGresProfile> profile = cluster
         .map(StackGresShardedCluster::getSpec)
         .map(StackGresShardedClusterSpec::getCoordinator)
@@ -93,6 +103,7 @@ public class ShardedBackupRequiredResourcesGenerator
     var contextBuilder = ImmutableStackGresShardedBackupContext.builder()
         .source(config)
         .foundShardedCluster(cluster)
+        .foundCoordinator(coordinator)
         .foundProfile(profile)
         .clusterBackupNamespaces(clusterBackupNamespaces);
 

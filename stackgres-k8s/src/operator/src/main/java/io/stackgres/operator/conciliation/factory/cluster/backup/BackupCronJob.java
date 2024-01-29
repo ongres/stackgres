@@ -255,6 +255,20 @@ public class BackupCronJob
                             .orElse("false"))
                         .build(),
                         new EnvVarBuilder()
+                        .withName("BACKUP_TIMEOUT")
+                        .withValue(Optional.of(backupConfig)
+                            .map(BackupConfiguration::timeout)
+                            .map(String::valueOf)
+                            .orElse(""))
+                        .build(),
+                        new EnvVarBuilder()
+                        .withName("RECONCILIATION_TIMEOUT")
+                        .withValue(Optional.of(backupConfig)
+                            .map(BackupConfiguration::reconciliationTimeout)
+                            .map(String::valueOf)
+                            .orElse("300"))
+                        .build(),
+                        new EnvVarBuilder()
                         .withName("VOLUME_SNAPSHOT_CRD_NAME")
                         .withValue(VolumeSnapshotUtil.VOLUME_SNAPSHOT_CRD_NAME)
                         .build(),

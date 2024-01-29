@@ -9,7 +9,9 @@ import org.jetbrains.annotations.NotNull;
 
 public enum StackGresShardingType {
 
-  CITUS("citus");
+  CITUS("citus"),
+  DDP("ddp"),
+  SHARDING_SPHERE("shardingsphere");
 
   private final @NotNull String type;
 
@@ -20,5 +22,14 @@ public enum StackGresShardingType {
   @Override
   public @NotNull String toString() {
     return type;
+  }
+
+  public static @NotNull StackGresShardingType fromString(@NotNull String value) {
+    for (StackGresShardingType type : StackGresShardingType.values()) {
+      if (type.toString().equals(value)) {
+        return type;
+      }
+    }
+    throw new IllegalArgumentException("Unknwon sharding type " + value);
   }
 }

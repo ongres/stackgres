@@ -41,6 +41,8 @@ public class ConfigSpec {
 
   private ConfigDeveloper developer;
 
+  private ConfigShardingSphere shardingSphere;
+
   public String getContainerRegistry() {
     return containerRegistry;
   }
@@ -151,6 +153,14 @@ public class ConfigSpec {
 
   public void setDeveloper(ConfigDeveloper developer) {
     this.developer = developer;
+  }
+
+  public ConfigShardingSphere getShardingSphere() {
+    return shardingSphere;
+  }
+
+  public void setShardingSphere(ConfigShardingSphere shardingSphere) {
+    this.shardingSphere = shardingSphere;
   }
 
   @Override

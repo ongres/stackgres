@@ -12,12 +12,12 @@ import static org.mockito.MockitoAnnotations.openMocks;
 import java.util.List;
 
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.LabelFactoryForShardedCluster;
 import io.stackgres.common.labels.ShardedClusterLabelFactory;
 import io.stackgres.common.labels.ShardedClusterLabelMapper;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,14 +27,9 @@ public class ShardedClustersTest {
 
   @Mock
   private StackGresShardedClusterContext context;
-  @Mock
-  private StackGresClusterContext coordinatorContext;
-  @Mock
-  private StackGresClusterContext shard0Context;
-  @Mock
-  private StackGresClusterContext shard1Context;
 
   private LabelFactoryForShardedCluster labelFactory;
+  private StackGresConfig config;
   private StackGresShardedCluster shardedCluster;
   private StackGresCluster coordinator;
   private StackGresCluster shard0;
@@ -44,22 +39,19 @@ public class ShardedClustersTest {
   @BeforeEach
   public void setup() {
     openMocks(this);
+    config = Fixtures.config().loadDefault().get();
     shardedCluster = Fixtures.shardedCluster().loadDefault().get();
 
     labelFactory = new ShardedClusterLabelFactory(new ShardedClusterLabelMapper());
     coordinator = Fixtures.cluster().loadDefault().get();
-    when(coordinatorContext.getCluster()).thenReturn(coordinator);
-    when(coordinatorContext.getSource()).thenReturn(coordinator);
     shard0 = Fixtures.cluster().loadDefault().get();
-    when(shard0Context.getCluster()).thenReturn(shard0);
-    when(shard0Context.getSource()).thenReturn(shard0);
     shard1 = Fixtures.cluster().loadDefault().get();
-    when(shard1Context.getCluster()).thenReturn(shard1);
-    when(shard1Context.getSource()).thenReturn(shard1);
     shardedClusters = new ShardedClusters(labelFactory);
+    when(context.getConfig()).thenReturn(config);
     when(context.getSource()).thenReturn(shardedCluster);
-    when(context.getCoordinator()).thenReturn(coordinatorContext);
-    when(context.getShards()).thenReturn(List.of(shard0Context, shard1Context));
+    when(context.getShardedCluster()).thenReturn(shardedCluster);
+    when(context.getCoordinator()).thenReturn(coordinator);
+    when(context.getShards()).thenReturn(List.of(shard0, shard1));
   }
 
   @Test

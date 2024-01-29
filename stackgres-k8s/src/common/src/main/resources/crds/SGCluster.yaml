@@ -872,6 +872,24 @@ spec:
                             If specified SGBackup will create a backup forcing a fast start (by setting parameter `fast` to `true` when calling `pg_backup_start`) that will reduce the time the backups may take at the expense of more IO usage.
                             
                             See also https://www.postgresql.org/docs/current/continuous-archiving.html#BACKUP-LOWLEVEL-BASE-BACKUP
+                        timeout:
+                          type: integer
+                          description: |
+                            Allow to set a timeout for the backup creation.
+                            
+                            If not set it will be disabled and the backup operation will continue until the backup completes or fail. If set to 0 is the same as not being set.
+                            
+                            Make sure to set a reasonable high value in order to allow for any unexpected delays during backup creation (network low bandwidth, disk low throughput and so forth).
+                        reconciliationTimeout:
+                          type: integer
+                          default: 300
+                          description: |
+                            Allow to set a timeout for the reconciliation process that take place after the backup.
+                            
+                            If not set defaults to 300 (5 minutes). If set to 0 it will disable timeout.
+                            
+                            Failure of reconciliation will not make the backup fail and will be re-tried the next time a SGBackup
+                             or shecduled backup Job take place.
                       required: ["sgObjectStorage"]
                   patroni:
                     type: object

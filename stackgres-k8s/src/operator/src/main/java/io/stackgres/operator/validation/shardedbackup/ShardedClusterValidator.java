@@ -13,6 +13,8 @@ import io.stackgres.common.ErrorType;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupStatus;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardingType;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.operator.common.ShardedBackupReview;
 import io.stackgres.operator.resource.NamedResource;
@@ -69,6 +71,8 @@ public class ShardedClusterValidator implements ShardedBackupValidator {
         .findByNameAndNamespace(namedResource.resource(), namedResource.namespace());
 
     checkIfShardedClusterExists(clusterOpt, "SGShardedCluster " + clusterName + " not found");
+    checkIfShardedClusterSupportBackups(clusterOpt, "SGShardedCluster " + clusterName
+        + " do not support sharded backups");
     checkIfShardedClusterHasValidBackupConfig(clusterOpt,
         "SGShardedCluster " + clusterName + " has no backup configuration");
   }
@@ -96,6 +100,19 @@ public class ShardedClusterValidator implements ShardedBackupValidator {
       Optional<StackGresShardedCluster> clusterOpt, String onError)
       throws ValidationFailed {
     if (clusterOpt.isEmpty()) {
+      fail(onError);
+    }
+  }
+
+  private void checkIfShardedClusterSupportBackups(
+      Optional<StackGresShardedCluster> clusterOpt, String onError)
+      throws ValidationFailed {
+    if (clusterOpt
+        .map(StackGresShardedCluster::getSpec)
+        .map(StackGresShardedClusterSpec::getType)
+        .map(StackGresShardingType::fromString)
+        .map(StackGresShardingType.SHARDING_SPHERE::equals)
+        .orElse(false)) {
       fail(onError);
     }
   }

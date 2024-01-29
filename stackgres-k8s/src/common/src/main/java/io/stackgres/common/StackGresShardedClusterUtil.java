@@ -10,6 +10,17 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 
 public interface StackGresShardedClusterUtil {
 
+  String CERTIFICATE_KEY = "tls.crt";
+  String PRIVATE_KEY_KEY = "tls.key";
+  int LAST_RESERVER_SCRIPT_ID = 9;
+
+  static String getClusterName(StackGresShardedCluster cluster, int index) {
+    if (index == 0) {
+      return getCoordinatorClusterName(cluster);
+    }
+    return getShardClusterName(cluster, index - 1);
+  }
+
   static String getCoordinatorClusterName(StackGresShardedCluster cluster) {
     return getCoordinatorClusterName(cluster.getMetadata().getName());
   }
@@ -19,7 +30,27 @@ public interface StackGresShardedClusterUtil {
   }
 
   static String getShardClusterName(StackGresShardedCluster cluster, int shardIndex) {
+    return getShardClusterName(cluster, String.valueOf(shardIndex));
+  }
+
+  static String getShardClusterName(StackGresShardedCluster cluster, String shardIndex) {
     return cluster.getMetadata().getName() + "-shard" + shardIndex;
+  }
+
+  static String coordinatorConfigName(StackGresShardedCluster cluster) {
+    return cluster.getMetadata().getName() + "-coord";
+  }
+
+  static String coordinatorScriptName(StackGresShardedCluster cluster) {
+    return cluster.getMetadata().getName() + "-coord";
+  }
+
+  static String shardsScriptName(StackGresShardedCluster cluster) {
+    return cluster.getMetadata().getName() + "-shards";
+  }
+
+  static String postgresSslSecretName(StackGresShardedCluster cluster) {
+    return ResourceUtil.nameIsValidDnsSubdomain(cluster.getMetadata().getName() + "-ssl");
   }
 
   static String primaryCoordinatorServiceName(StackGresShardedCluster cluster) {

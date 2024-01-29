@@ -56,7 +56,9 @@ public class BackupStatusManager {
     Optional<Boolean> isBackupJobCompletedOrFailed = JobUtil.isJobCompleteOrFailed(backupJob);
     Optional<Boolean> isBackupJobActive = JobUtil.isJobActive(backupJob);
     if (isBackupJobCompletedOrFailed.isPresent()) {
-      if (Boolean.TRUE.equals(isBackupJobCompletedOrFailed.get())) {
+      if (Boolean.TRUE.equals(isBackupJobCompletedOrFailed.get())
+          && source.getStatus().getBackupInformation() != null
+          && source.getStatus().getInternalName() != null) {
         setStatus(source, BackupStatus.COMPLETED);
       } else {
         setStatus(source, BackupStatus.FAILED);

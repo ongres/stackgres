@@ -9,6 +9,7 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.ValidEnum;
@@ -31,6 +32,8 @@ public class StackGresConfigAuthentication {
   private String user;
 
   private String password;
+
+  private SecretKeySelector secretRef;
 
   private StackGresConfigAuthenticationOidc oidc;
 
@@ -66,6 +69,14 @@ public class StackGresConfigAuthentication {
     this.password = password;
   }
 
+  public SecretKeySelector getSecretRef() {
+    return secretRef;
+  }
+
+  public void setSecretRef(SecretKeySelector secretRef) {
+    this.secretRef = secretRef;
+  }
+
   public StackGresConfigAuthenticationOidc getOidc() {
     return oidc;
   }
@@ -76,7 +87,7 @@ public class StackGresConfigAuthentication {
 
   @Override
   public int hashCode() {
-    return Objects.hash(createAdminSecret, oidc, password, type, user);
+    return Objects.hash(createAdminSecret, oidc, password, secretRef, type, user);
   }
 
   @Override
@@ -88,11 +99,9 @@ public class StackGresConfigAuthentication {
       return false;
     }
     StackGresConfigAuthentication other = (StackGresConfigAuthentication) obj;
-    return Objects.equals(createAdminSecret, other.createAdminSecret)
-        && Objects.equals(oidc, other.oidc)
-        && Objects.equals(password, other.password)
-        && Objects.equals(type, other.type)
-        && Objects.equals(user, other.user);
+    return Objects.equals(createAdminSecret, other.createAdminSecret) && Objects.equals(oidc, other.oidc)
+        && Objects.equals(password, other.password) && Objects.equals(secretRef, other.secretRef)
+        && Objects.equals(type, other.type) && Objects.equals(user, other.user);
   }
 
   @Override

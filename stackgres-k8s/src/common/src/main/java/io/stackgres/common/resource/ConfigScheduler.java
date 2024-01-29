@@ -25,7 +25,7 @@ public class ConfigScheduler extends
     return client.resources(StackGresConfig.class, StackGresConfigList.class)
         .resource(resource)
         .lockResourceVersion(resource.getMetadata().getResourceVersion())
-        .replace();
+        .update();
   }
 
 }

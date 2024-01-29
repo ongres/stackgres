@@ -102,7 +102,9 @@ public interface StackGresBackupContext extends GenerationContext<StackGresBacku
             Optional.ofNullable(bc.getUseVolumeSnapshot())
             .orElse(false),
             bc.getVolumeSnapshotClass(),
-            bc.getFastVolumeSnapshot()))
+            bc.getFastVolumeSnapshot(),
+            bc.getTimeout(),
+            bc.getReconciliationTimeout()))
         .orElseThrow();
   }
 

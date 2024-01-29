@@ -77,16 +77,13 @@
         "coordinator": {
           "managedSql": {
             "scripts": [{
-              "id": 0,
-              "sgScript": "stackgres-default"
-            },{
-              "id": 1,
+              "id": 10,
               "sgScript": "test1"
             },{
-              "id": 2,
+              "id": 11,
               "sgScript": "test2"
             },{
-              "id": 3,
+              "id": 12,
               "sgScript": "test3"
             }]
           },
@@ -106,16 +103,13 @@
             "index": 1,
             "managedSql": {
               "scripts": [{
-                "id": 0,
-                "sgScript": "stackgres-default"
-              },{
-                "id": 1,
+                "id": 10,
                 "sgScript": "test1"
               },{
-                "id": 2,
+                "id": 11,
                 "sgScript": "test2"
               },{
-                "id": 3,
+                "id": 12,
                 "sgScript": "test3"
               }]
             }
@@ -124,16 +118,13 @@
         "shards": {
           "managedSql": {
             "scripts": [{
-              "id": 0,
-              "sgScript": "stackgres-default"
-            },{
-              "id": 1,
+              "id": 10,
               "sgScript": "test1"
             },{
-              "id": 2,
+              "id": 11,
               "sgScript": "test2"
             },{
-              "id": 3,
+              "id": 12,
               "sgScript": "test3"
             }]
           },
@@ -154,16 +145,13 @@
             "index": 1,
             "managedSql": {
               "scripts": [{
-                "id": 0,
-                "sgScript": "stackgres-default"
-              },{
-                "id": 1,
+                "id": 10,
                 "sgScript": "test1"
               },{
-                "id": 2,
+                "id": 11,
                 "sgScript": "test2"
               },{
-                "id": 3,
+                "id": 12,
                 "sgScript": "test3"
               }]
             }
@@ -214,16 +202,13 @@
         "coordinator": {
           "managedSql": {
             "scripts": [{
-              "id": 0,
-              "sgScript": "stackgres-default"
-            },{
-              "id": 1,
+              "id": 10,
               "sgScript": "test1"
             },{
-              "id": 2,
+              "id": 11,
               "sgScript": "test2"
             },{
-              "id": 3,
+              "id": 12,
               "sgScript": "test3"
             }]
           },
@@ -243,16 +228,13 @@
         "shards": {
           "managedSql": {
             "scripts": [{
-              "id": 0,
-              "sgScript": "stackgres-default"
-            },{
-              "id": 1,
+              "id": 10,
               "sgScript": "test1"
             },{
-              "id": 2,
+              "id": 11,
               "sgScript": "test2"
             },{
-              "id": 3,
+              "id": 12,
               "sgScript": "test3"
             }]
           },

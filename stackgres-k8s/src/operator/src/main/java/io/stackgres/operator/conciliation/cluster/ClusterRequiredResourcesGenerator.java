@@ -53,13 +53,13 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
-import io.stackgres.common.prometheus.PrometheusConfig;
-import io.stackgres.common.prometheus.PrometheusConfigSpec;
+import io.stackgres.common.prometheus.Prometheus;
 import io.stackgres.common.prometheus.PrometheusInstallation;
+import io.stackgres.common.prometheus.PrometheusSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.ResourceFinder;
-import io.stackgres.operator.common.Prometheus;
+import io.stackgres.operator.common.PrometheusContext;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresSslSecret;
@@ -99,7 +99,7 @@ public class ClusterRequiredResourcesGenerator
 
   private final ResourceFinder<Secret> secretFinder;
 
-  private final CustomResourceScanner<PrometheusConfig> prometheusScanner;
+  private final CustomResourceScanner<Prometheus> prometheusScanner;
 
   private final CustomResourceScanner<StackGresBackup> backupScanner;
 
@@ -120,7 +120,7 @@ public class ClusterRequiredResourcesGenerator
       CustomResourceFinder<StackGresProfile> profileFinder,
       CustomResourceFinder<StackGresBackup> backupFinder,
       ResourceFinder<Secret> secretFinder,
-      CustomResourceScanner<PrometheusConfig> prometheusScanner,
+      CustomResourceScanner<Prometheus> prometheusScanner,
       CustomResourceScanner<StackGresBackup> backupScanner,
       BackupEnvVarFactory backupEnvVarFactory,
       OperatorPropertyContext operatorContext,
@@ -141,9 +141,9 @@ public class ClusterRequiredResourcesGenerator
     this.discoverer = discoverer;
   }
 
-  private static PrometheusInstallation toPrometheusInstallation(PrometheusConfig pc) {
+  private static PrometheusInstallation toPrometheusInstallation(Prometheus pc) {
     Map<String, String> matchLabels = Optional.ofNullable(pc.getSpec())
-        .map(PrometheusConfigSpec::getPodMonitorSelector)
+        .map(PrometheusSpec::getPodMonitorSelector)
         .map(LabelSelector::getMatchLabels)
         .map(Map::copyOf)
         .orElse(Map.of());
@@ -302,7 +302,7 @@ public class ClusterRequiredResourcesGenerator
         .restoreBackup(restoreBackup)
         .restoreSecrets(restoreSecrets)
         .replicateSecrets(replicateSecrets)
-        .prometheus(getPrometheus(cluster))
+        .prometheusContext(getPrometheusContext(cluster))
         .clusterBackupNamespaces(clusterBackupNamespaces)
         .databaseSecret(databaseSecret)
         .replicateCluster(replicateCluster)
@@ -692,7 +692,7 @@ public class ClusterRequiredResourcesGenerator
         .flatMap(backupName -> backupFinder.findByNameAndNamespace(backupName, clusterNamespace));
   }
 
-  public Optional<Prometheus> getPrometheus(StackGresCluster cluster) {
+  public Optional<PrometheusContext> getPrometheusContext(StackGresCluster cluster) {
     boolean isAutobindAllowed = operatorContext.getBoolean(OperatorProperty.PROMETHEUS_AUTOBIND);
 
     boolean isPrometheusAutobindEnabled = Optional.ofNullable(cluster.getSpec()
@@ -701,17 +701,17 @@ public class ClusterRequiredResourcesGenerator
     if (isAutobindAllowed && isPrometheusAutobindEnabled) {
       LOGGER.trace("Prometheus auto bind enabled, looking for prometheus installations");
 
-      final Optional<List<PrometheusConfig>> prometheusConfigsOpt = prometheusScanner
+      final Optional<List<Prometheus>> prometheusConfigsOpt = prometheusScanner
           .findResources();
 
       return prometheusConfigsOpt
           .map(prometheusConfigs -> prometheusConfigs.stream()
               .map(ClusterRequiredResourcesGenerator::toPrometheusInstallation)
               .toList())
-          .map(installations -> new Prometheus(!installations.isEmpty(), installations));
+          .map(installations -> new PrometheusContext(!installations.isEmpty(), installations));
 
     } else {
-      return Optional.of(new Prometheus(false, null));
+      return Optional.of(new PrometheusContext(false, null));
     }
   }
 

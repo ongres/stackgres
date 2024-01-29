@@ -24,7 +24,7 @@ import io.stackgres.common.prometheus.NamespaceSelector;
 import io.stackgres.common.prometheus.PodMonitor;
 import io.stackgres.common.prometheus.PodMonitorSpec;
 import io.stackgres.common.prometheus.PrometheusInstallation;
-import io.stackgres.operator.common.Prometheus;
+import io.stackgres.operator.common.PrometheusContext;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
@@ -45,7 +45,7 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
-    Optional<Stream<HasMetadata>> podMonitors = context.getPrometheus()
+    Optional<Stream<HasMetadata>> podMonitors = context.getPrometheusContext()
         .filter(c -> Optional.ofNullable(c.getCreatePodMonitor()).orElse(false))
         .map(c -> getPodMonitors(context, c));
 
@@ -55,7 +55,7 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
   @NotNull
   private Stream<HasMetadata> getPodMonitors(
       StackGresClusterContext context,
-      Prometheus prometheusConfig) {
+      PrometheusContext prometheusConfig) {
     return prometheusConfig.getPrometheusInstallations().stream()
         .map(prometheusInstallation -> getPodMonitor(context, prometheusInstallation));
   }

@@ -17,6 +17,10 @@ public class BackupSpec {
 
   private Boolean managedLifecycle;
 
+  private Integer timeout;
+
+  private Integer reconciliationTimeout;
+
   public String getSgCluster() {
     return sgCluster;
   }
@@ -31,6 +35,22 @@ public class BackupSpec {
 
   public void setManagedLifecycle(Boolean managedLifecycle) {
     this.managedLifecycle = managedLifecycle;
+  }
+
+  public Integer getTimeout() {
+    return timeout;
+  }
+
+  public void setTimeout(Integer timeout) {
+    this.timeout = timeout;
+  }
+
+  public Integer getReconciliationTimeout() {
+    return reconciliationTimeout;
+  }
+
+  public void setReconciliationTimeout(Integer reconciliationTimeout) {
+    this.reconciliationTimeout = reconciliationTimeout;
   }
 
   @Override

@@ -448,13 +448,26 @@ spec:
                   user:
                     type: string
                     default: admin
-                    description: The admin username that will be created for the Web Console
+                    description: |
+                      The admin username that will be created for the Web Console
+                      
+                      Operator bundle installation can not change the default value of this field.
                   password:
                     type: string
                     description: |
                       The admin password that will be created for the Web Console.
                       
                       If not specified a random password will be generated.
+                  secretRef:
+                    type: object
+                    description: |
+                      Allow to specify a reference to a Secret with the admin user credentials for the Web Console.
+                      
+                      In order to assign properly permissions. Make sure the `user` field match the value of the `k8sUsername` key in the referenced Secret.
+                    properties:
+                      name:
+                        description: The name of the Secret.
+                        type: string
                   oidc:
                     type: object
                     description: Section to configure Web Console OIDC authentication
@@ -656,6 +669,22 @@ spec:
                         description: |
                           If set, will use a host path volume with the specified path for the extensions cache
                            instead of a PersistentVolume
+              shardingSphere:
+                type: object
+                description: Section to configure integration with ShardingSphere operator
+                required: [serviceAccount]
+                properties:
+                  serviceAccount:
+                    type: object
+                    description: Section to configure ServiceAccount used by ShardingSphere operator
+                    required: [namespace,name]
+                    properties:
+                      namespace:
+                        type: string
+                        description: The namespace of the ServiceAccount used by ShardingSphere operator
+                      name:
+                        type: string
+                        description: The name of the ServiceAccount used by ShardingSphere operator
               developer:
                 type: object
                 x-kubernetes-preserve-unknown-fields: true

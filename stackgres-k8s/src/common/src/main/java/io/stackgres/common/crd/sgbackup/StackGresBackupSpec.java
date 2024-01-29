@@ -27,6 +27,10 @@ public class StackGresBackupSpec {
 
   private Boolean managedLifecycle;
 
+  private Integer timeout;
+
+  private Integer reconciliationTimeout;
+
   public String getSgCluster() {
     return sgCluster;
   }
@@ -43,9 +47,25 @@ public class StackGresBackupSpec {
     this.managedLifecycle = managedLifecycle;
   }
 
+  public Integer getTimeout() {
+    return timeout;
+  }
+
+  public void setTimeout(Integer timeout) {
+    this.timeout = timeout;
+  }
+
+  public Integer getReconciliationTimeout() {
+    return reconciliationTimeout;
+  }
+
+  public void setReconciliationTimeout(Integer reconciliationTimeout) {
+    this.reconciliationTimeout = reconciliationTimeout;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(managedLifecycle, sgCluster);
+    return Objects.hash(managedLifecycle, reconciliationTimeout, sgCluster, timeout);
   }
 
   @Override
@@ -58,7 +78,8 @@ public class StackGresBackupSpec {
     }
     StackGresBackupSpec other = (StackGresBackupSpec) obj;
     return Objects.equals(managedLifecycle, other.managedLifecycle)
-        && Objects.equals(sgCluster, other.sgCluster);
+        && Objects.equals(reconciliationTimeout, other.reconciliationTimeout)
+        && Objects.equals(sgCluster, other.sgCluster) && Objects.equals(timeout, other.timeout);
   }
 
   @Override

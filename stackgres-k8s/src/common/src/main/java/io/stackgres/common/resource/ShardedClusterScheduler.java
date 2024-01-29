@@ -25,7 +25,7 @@ public class ShardedClusterScheduler extends
     return client.resources(StackGresShardedCluster.class, StackGresShardedClusterList.class)
         .resource(resource)
         .lockResourceVersion(resource.getMetadata().getResourceVersion())
-        .replace();
+        .update();
   }
 
 }

@@ -10,7 +10,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.ManagedSqlUtil;
+import io.stackgres.common.StackGresShardedClusterUtil;
+import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryStatus;
@@ -18,6 +21,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSqlStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.operator.common.StackGresClusterReview;
 import io.stackgres.operatorframework.admissionwebhook.Operation;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -26,11 +30,41 @@ import org.jooq.lambda.Seq;
 @ApplicationScoped
 public class ScriptsConfigMutator implements ClusterMutator {
 
+  private static final long V_1_7_0 = StackGresVersion.V_1_7.getVersionAsNumber();
+
   @Override
   public StackGresCluster mutate(StackGresClusterReview review, StackGresCluster resource) {
     if (review.getRequest().getOperation() != Operation.CREATE
         && review.getRequest().getOperation() != Operation.UPDATE) {
       return resource;
+    }
+    final long version = StackGresVersion.getStackGresVersionAsNumber(resource);
+    if (V_1_7_0 >= version
+        && Optional.ofNullable(resource.getMetadata().getOwnerReferences())
+        .stream()
+        .flatMap(List::stream)
+        .anyMatch(owner -> owner.getApiVersion()
+            .equals(HasMetadata.getApiVersion(StackGresShardedCluster.class))
+            && owner.getKind()
+            .equals(HasMetadata.getKind(StackGresShardedCluster.class)))) {
+      Optional.of(resource.getSpec())
+          .map(StackGresClusterSpec::getManagedSql)
+          .map(StackGresClusterManagedSql::getScripts)
+          .stream()
+          .flatMap(List::stream)
+          .filter(script -> script.getId() >= 0
+            && script.getId() <= StackGresShardedClusterUtil.LAST_RESERVER_SCRIPT_ID)
+          .forEach(script -> script.setId(
+              script.getId() + StackGresShardedClusterUtil.LAST_RESERVER_SCRIPT_ID + 1));
+      Optional.ofNullable(resource.getStatus())
+          .map(StackGresClusterStatus::getManagedSql)
+          .map(StackGresClusterManagedSqlStatus::getScripts)
+          .stream()
+          .flatMap(List::stream)
+          .filter(script -> script.getId() >= 0
+            && script.getId() <= StackGresShardedClusterUtil.LAST_RESERVER_SCRIPT_ID)
+          .forEach(script -> script.setId(
+              script.getId() + StackGresShardedClusterUtil.LAST_RESERVER_SCRIPT_ID + 1));
     }
     addDefaultScripts(resource);
     fillRequiredFields(resource);

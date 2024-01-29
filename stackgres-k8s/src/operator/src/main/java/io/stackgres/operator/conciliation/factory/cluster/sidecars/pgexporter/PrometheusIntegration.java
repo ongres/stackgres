@@ -56,7 +56,7 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
-    Optional<Stream<HasMetadata>> podMonitors = context.getPrometheus()
+    Optional<Stream<HasMetadata>> podMonitors = context.getPrometheusContext()
         .filter(c -> Optional.ofNullable(c.getCreatePodMonitor()).orElse(false))
         .map(c -> c.getPrometheusInstallations().stream()
             .map(prometheusInstallation -> getPodMonitor(

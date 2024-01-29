@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import io.stackgres.common.ErrorType;
+import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntry;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSql;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
@@ -50,6 +51,14 @@ public class CoordinatorScriptsConfigValidator implements ShardedClusterValidato
         .stream()
         .anyMatch(list -> list.size() > 1)) {
       fail(constraintViolationUri, "Script entries must contain unique ids");
+    }
+    if (scripts.stream()
+        .collect(Collectors.groupingBy(StackGresClusterManagedScriptEntry::getId))
+        .keySet()
+        .stream()
+        .anyMatch(id -> id >= 0 && id <= StackGresShardedClusterUtil.LAST_RESERVER_SCRIPT_ID)) {
+      fail(constraintViolationUri, "Script entries must not use reserved ids from 0 to "
+          + StackGresShardedClusterUtil.LAST_RESERVER_SCRIPT_ID);
     }
   }
 

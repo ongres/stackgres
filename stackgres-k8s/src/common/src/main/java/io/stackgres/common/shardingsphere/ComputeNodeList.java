@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common.prometheus;
+package io.stackgres.common.shardingsphere;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -18,7 +18,7 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class PrometheusConfigList extends DefaultKubernetesResourceList<PrometheusConfig> {
+public class ComputeNodeList extends DefaultKubernetesResourceList<ComputeNode> {
 
   private static final long serialVersionUID = 1L;
 

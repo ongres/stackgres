@@ -22,7 +22,7 @@ public class ShardedClusterCoordinator extends ClusterSpec {
   private ShardedClusterReplication replicationForCoordinator;
 
   @JsonProperty("configurations")
-  private ShardedClusterInnerConfigurations configurationsForCoordinator;
+  private ShardedClusterCoordinatorConfigurations configurationsForCoordinator;
 
   public ShardedClusterReplication getReplicationForCoordinator() {
     return replicationForCoordinator;
@@ -33,12 +33,12 @@ public class ShardedClusterCoordinator extends ClusterSpec {
     this.replicationForCoordinator = replicationForCoordinator;
   }
 
-  public ShardedClusterInnerConfigurations getConfigurationsForCoordinator() {
+  public ShardedClusterCoordinatorConfigurations getConfigurationsForCoordinator() {
     return configurationsForCoordinator;
   }
 
   public void setConfigurationsForCoordinator(
-      ShardedClusterInnerConfigurations configurationsForCoordinator) {
+      ShardedClusterCoordinatorConfigurations configurationsForCoordinator) {
     this.configurationsForCoordinator = configurationsForCoordinator;
   }
 

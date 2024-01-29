@@ -36,7 +36,7 @@ pg_stat_user_tables:
     )
     SELECT datname, _.* FROM databases,
       LATERAL (SELECT * FROM dblink(
-        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        'host=/var/run/postgresql port=5432 user=' || CURRENT_USER || ' sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
         'SELECT schemaname, relname, seq_scan, seq_tup_read, idx_scan, idx_tup_fetch, n_tup_ins, n_tup_upd, n_tup_del, n_tup_hot_upd, n_live_tup, n_dead_tup, n_mod_since_analyze, '
           || CASE WHEN (SELECT setting FROM pg_settings WHERE name = 'server_version_num')::bigint >= 130000 THEN 'n_ins_since_vacuum' ELSE 'NULL::bigint AS n_ins_since_vacuum' END || ', '
           || 'COALESCE(last_vacuum, ''1970-01-01Z'') as last_vacuum, COALESCE(last_autovacuum, ''1970-01-01Z'') as last_autovacuum, COALESCE(last_analyze, ''1970-01-01Z'') as last_analyze, COALESCE(last_autoanalyze, ''1970-01-01Z'') as last_autoanalyze, vacuum_count, autovacuum_count, analyze_count, autoanalyze_count FROM pg_catalog.pg_stat_user_tables')
@@ -119,7 +119,7 @@ pg_statio_user_tables:
     )
     SELECT datname, _.* FROM databases,
       LATERAL (SELECT * FROM dblink(
-        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        'host=/var/run/postgresql port=5432 user=' || CURRENT_USER || ' sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
         'SELECT schemaname, relname, heap_blks_read, heap_blks_hit, idx_blks_read, idx_blks_hit, toast_blks_read, toast_blks_hit, tidx_blks_read, tidx_blks_hit FROM pg_catalog.pg_statio_user_tables')
         AS (schemaname name, relname name, heap_blks_read bigint, heap_blks_hit bigint, idx_blks_read bigint, idx_blks_hit bigint, toast_blks_read bigint, toast_blks_hit bigint, tidx_blks_read bigint, tidx_blks_hit bigint)) AS _;
   metrics:
@@ -167,7 +167,7 @@ pg_stat_user_indexes:
     )
     SELECT datname, _.* FROM databases,
       LATERAL (SELECT * FROM dblink(
-        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        'host=/var/run/postgresql port=5432 user=' || CURRENT_USER || ' sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
         'SELECT schemaname, relname, indexrelname, idx_scan, '
           || CASE WHEN (SELECT setting FROM pg_settings WHERE name = 'server_version_num')::bigint >= 160000 THEN 'COALESCE(last_idx_scan, ''1970-01-01Z'')' ELSE '''1970-01-01Z''' END || ' AS last_idx_scan, '
           || 'idx_tup_read, idx_tup_fetch FROM pg_catalog.pg_stat_user_indexes')
@@ -208,7 +208,7 @@ pg_statio_user_indexes:
     )
     SELECT datname, _.* FROM databases,
       LATERAL (SELECT * FROM dblink(
-        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        'host=/var/run/postgresql port=5432 user=' || CURRENT_USER || ' sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
         'SELECT schemaname, relname, indexrelname, idx_blks_read, idx_blks_hit FROM pg_catalog.pg_statio_user_indexes')
         AS (schemaname name, relname name, indexrelname name, idx_blks_read bigint, idx_blks_hit bigint)) AS _;
   metrics:
@@ -242,7 +242,7 @@ pg_total_relation_size:
     )
     SELECT datname, _.* FROM databases,
       LATERAL (SELECT * FROM dblink(
-        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        'host=/var/run/postgresql port=5432 user=' || CURRENT_USER || ' sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
         'SELECT relnamespace::regnamespace as schemaname, relname as relname, pg_total_relation_size(oid) bytes FROM pg_catalog.pg_class WHERE relkind = ''r''')
         AS (schemaname name, relname name, bytes bigint)) AS _;
   metrics:
@@ -301,7 +301,7 @@ pg_blocked:
     INNER JOIN databases
       ON blocked.database = databases.oid,
       LATERAL (SELECT * FROM dblink(
-        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        'host=/var/run/postgresql port=5432 user=' || CURRENT_USER || ' sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
         'SELECT nspname as schemaname, relkind, relname FROM pg_catalog.pg_class LEFT JOIN pg_catalog.pg_namespace ON (pg_namespace.oid = relnamespace) WHERE pg_class.oid = ' || blocked.relation)
         AS (schemaname name, relkind char, relname name)) AS _
     WHERE NOT blocked.granted AND relation IS NOT NULL
@@ -523,7 +523,7 @@ pg_table_bloat:
     )
     SELECT datname, _.* FROM databases,
     LATERAL (SELECT * FROM dblink(
-        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        'host=/var/run/postgresql port=5432 user=' || CURRENT_USER || ' sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
         '-- https://github.com/ioguix/pgsql-bloat-estimation' || E'\n'
         || ' SELECT schemaname, tablename, bs*tblpages AS real_size,' || E'\n'
         || ' (tblpages-est_tblpages)*bs AS extra_size,' || E'\n'
@@ -624,7 +624,7 @@ pg_index:
     )
     SELECT datname, _.* FROM databases,
     LATERAL (SELECT * FROM dblink(
-        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        'host=/var/run/postgresql port=5432 user=' || CURRENT_USER || ' sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
         '-- https://github.com/ioguix/pgsql-bloat-estimation' || E'\n'
       || ' SELECT nspname AS schema_name, tblname, idxname, bs*(relpages)::bigint AS real_size,' || E'\n'
       || '  bs*(relpages-est_pages)::bigint AS extra_size,' || E'\n'
@@ -786,7 +786,7 @@ pg_vaccuum_wraparound:
     )
     SELECT datname, _.* FROM databases,
     LATERAL (SELECT * FROM dblink(
-        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
+        'host=/var/run/postgresql port=5432 user=' || CURRENT_USER || ' sslmode=disable dbname=''' || regexp_replace(datname, '([.\\])', '\\\1', 'g') || '''',
         '
         WITH tabfreeze AS (
             SELECT pg_class.oid::regclass AS full_table_name,
@@ -1251,7 +1251,7 @@ node_filesystem:
 pg_statements:
   query: |
     SELECT * FROM dblink(
-        'host=/var/run/postgresql port=5432 user=postgres sslmode=disable dbname=postgres',
+        'host=/var/run/postgresql port=5432 user=' || CURRENT_USER || ' sslmode=disable dbname=postgres',
         '
         SELECT
             pg_database.datname,

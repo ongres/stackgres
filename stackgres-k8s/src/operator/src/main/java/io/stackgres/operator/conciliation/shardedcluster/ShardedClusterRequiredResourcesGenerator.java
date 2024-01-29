@@ -5,11 +5,9 @@
 
 package io.stackgres.operator.conciliation.shardedcluster;
 
-import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.CERTIFICATE_KEY;
-import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.PRIVATE_KEY_KEY;
-import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.getCoordinatorCluster;
-import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.getShardsCluster;
-import static io.stackgres.operator.common.StackGresShardedClusterForCitusUtil.postgresSslSecretName;
+import static io.stackgres.common.StackGresShardedClusterUtil.CERTIFICATE_KEY;
+import static io.stackgres.common.StackGresShardedClusterUtil.PRIVATE_KEY_KEY;
+import static io.stackgres.common.StackGresShardedClusterUtil.postgresSslSecretName;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +27,6 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterCredentials;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniCredentials;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgres;
@@ -39,30 +36,33 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterUserSecretKeyRef;
 import io.stackgres.common.crd.sgcluster.StackGresClusterUsersCredentials;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
-import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupSpec;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupStatus;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
-import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinator;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinatorConfigurations;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterInitialData;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterRestore;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterRestoreFromBackup;
-import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShards;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardingSphere;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardingSphereAuthority;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardingType;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
-import io.stackgres.operator.conciliation.cluster.ImmutableStackGresClusterContext;
-import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
+import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForCitusUtil;
+import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForDdpUtil;
+import io.stackgres.operator.conciliation.factory.shardedcluster.StackGresShardedClusterForShardingSphereUtil;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.jooq.lambda.tuple.Tuple;
+import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,10 +80,6 @@ public class ShardedClusterRequiredResourcesGenerator
 
   private final CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder;
 
-  private final CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder;
-
-  private final CustomResourceFinder<StackGresProfile> profileFinder;
-
   private final CustomResourceFinder<StackGresShardedBackup> backupFinder;
 
   private final ResourceFinder<Secret> secretFinder;
@@ -99,8 +95,6 @@ public class ShardedClusterRequiredResourcesGenerator
       Supplier<VersionInfo> kubernetesVersionSupplier,
       CustomResourceScanner<StackGresConfig> configScanner,
       CustomResourceFinder<StackGresPostgresConfig> postgresConfigFinder,
-      CustomResourceFinder<StackGresPoolingConfig> poolingConfigFinder,
-      CustomResourceFinder<StackGresProfile> profileFinder,
       CustomResourceFinder<StackGresShardedBackup> backupFinder,
       ResourceFinder<Secret> secretFinder,
       ResourceFinder<Endpoints> endpointsFinder,
@@ -109,8 +103,6 @@ public class ShardedClusterRequiredResourcesGenerator
     this.kubernetesVersionSupplier = kubernetesVersionSupplier;
     this.configScanner = configScanner;
     this.postgresConfigFinder = postgresConfigFinder;
-    this.poolingConfigFinder = poolingConfigFinder;
-    this.profileFinder = profileFinder;
     this.backupFinder = backupFinder;
     this.secretFinder = secretFinder;
     this.endpointsFinder = endpointsFinder;
@@ -126,9 +118,6 @@ public class ShardedClusterRequiredResourcesGenerator
 
     VersionInfo kubernetesVersion = kubernetesVersionSupplier.get();
 
-    Optional<Secret> databaseSecret = secretFinder
-        .findByNameAndNamespace(clusterName, clusterNamespace);
-
     final StackGresConfig config = configScanner.findResources()
         .stream()
         .filter(list -> list.size() == 1)
@@ -136,14 +125,18 @@ public class ShardedClusterRequiredResourcesGenerator
         .findAny()
         .orElseThrow(() -> new IllegalArgumentException(
             "SGConfig not found or more than one exists. Aborting reoconciliation!"));
+
+    Optional<Secret> databaseSecret = secretFinder
+        .findByNameAndNamespace(clusterName, clusterNamespace);
+
     StackGresPostgresConfig coordinatorConfig = postgresConfigFinder.findByNameAndNamespace(
-        cluster.getSpec().getCoordinator().getConfigurations().getSgPostgresConfig(),
+        cluster.getSpec().getCoordinator().getConfigurationsForCoordinator().getSgPostgresConfig(),
         clusterNamespace)
         .orElseThrow(() -> new IllegalArgumentException(
             "Coordinator of SGShardedCluster "
                 + clusterNamespace + "." + clusterName
                 + " have a non existent " + StackGresPostgresConfig.KIND
-                + " " + cluster.getSpec().getCoordinator().getConfigurations()
+                + " " + cluster.getSpec().getCoordinator().getConfigurationsForCoordinator()
                 .getSgPostgresConfig()));
     if (Optional.of(cluster.getSpec())
         .map(StackGresShardedClusterSpec::getInitialData)
@@ -166,19 +159,17 @@ public class ShardedClusterRequiredResourcesGenerator
       }
       cluster.getStatus().setSgBackups(sgBackups);
     }
-    StackGresClusterContext coordinatorContext = getCoordinatorContext(config,
-        clusterName, clusterNamespace, cluster, kubernetesVersion, databaseSecret);
+    StackGresCluster coordinator = getCoordinatorCluster(cluster);
 
-    List<StackGresClusterContext> shardsContexts = getShardsContexts(config,
-        clusterName, clusterNamespace, cluster, kubernetesVersion, databaseSecret);
+    List<StackGresCluster> shards = getShardsClusters(cluster);
 
     Optional<Endpoints> coordinatorPrimaryEndpoints = endpointsFinder
         .findByNameAndNamespace(
-            PatroniUtil.readWriteName(coordinatorContext.getCluster()), clusterNamespace);
-    List<Endpoints> shardsPrimaryEndpoints = shardsContexts.stream()
-        .map(shardsContext -> endpointsFinder
+            PatroniUtil.readWriteName(coordinator), clusterNamespace);
+    List<Endpoints> shardsPrimaryEndpoints = shards.stream()
+        .map(shard -> endpointsFinder
             .findByNameAndNamespace(
-                PatroniUtil.readWriteName(shardsContext.getCluster()), clusterNamespace))
+                PatroniUtil.readWriteName(shard), clusterNamespace))
         .flatMap(Optional::stream)
         .toList();
 
@@ -191,12 +182,40 @@ public class ShardedClusterRequiredResourcesGenerator
 
     final PostgresSsl postgresSsl = getPostgresSsl(clusterNamespace, cluster);
 
+    final List<Tuple2<String, String>> shardingSphereAuthorityUsers =
+        Optional.of(cluster.getSpec().getCoordinator().getConfigurationsForCoordinator())
+        .map(StackGresShardedClusterCoordinatorConfigurations::getShardingSphere)
+        .map(StackGresShardedClusterShardingSphere::getAuthority)
+        .map(StackGresShardedClusterShardingSphereAuthority::getUsers)
+        .stream()
+        .flatMap(List::stream)
+        .map(user -> Tuple.tuple(
+            Optional.of(secretFinder
+                .findByNameAndNamespace(user.getUser().getName(), clusterNamespace)
+                .orElseThrow(() -> new IllegalArgumentException(
+                    "Secret " + user.getUser().getName() + " not found for ShardingSphere authority")))
+            .map(secret -> secret.getData().get(user.getUser().getKey()))
+            .map(ResourceUtil::decodeSecret)
+            .orElseThrow(() -> new IllegalArgumentException(
+                "Secret " + user.getUser().getName() + " do not contains key "
+                    + user.getUser().getKey() + " for ShardingSphere authority")),
+            Optional.of(secretFinder
+                .findByNameAndNamespace(user.getPassword().getName(), clusterNamespace)
+                .orElseThrow(() -> new IllegalArgumentException(
+                    "Secret " + user.getPassword().getName() + " not found for ShardingSphere authority")))
+            .map(secret -> secret.getData().get(user.getPassword().getKey()))
+            .orElseThrow(() -> new IllegalArgumentException(
+                "Secret " + user.getPassword().getName() + " do not contains key "
+                    + user.getPassword().getKey() + " for ShardingSphere authority"))))
+        .toList();
+
     StackGresShardedClusterContext context = ImmutableStackGresShardedClusterContext.builder()
         .kubernetesVersion(kubernetesVersion)
+        .config(config)
         .source(cluster)
         .coordinatorConfig(coordinatorConfig)
-        .coordinator(coordinatorContext)
-        .shards(shardsContexts)
+        .coordinator(coordinator)
+        .shards(shards)
         .coordinatorPrimaryEndpoints(coordinatorPrimaryEndpoints)
         .shardsPrimaryEndpoints(shardsPrimaryEndpoints)
         .clusterBackupNamespaces(clusterBackupNamespaces)
@@ -211,111 +230,18 @@ public class ShardedClusterRequiredResourcesGenerator
         .userPasswordForBinding(userPasswordForBinding)
         .postgresSslCertificate(postgresSsl.certificate)
         .postgresSslPrivateKey(postgresSsl.privateKey)
+        .shardingSphereAuthorityUsers(shardingSphereAuthorityUsers)
         .build();
 
     return discoverer.generateResources(context);
   }
 
-  private StackGresClusterContext getCoordinatorContext(
-      final StackGresConfig config,
-      final String clusterName,
-      final String clusterNamespace,
-      StackGresShardedCluster cluster,
-      VersionInfo kubernetesVersion,
-      Optional<Secret> databaseSecret) {
-    final StackGresShardedClusterSpec spec = cluster.getSpec();
-    final StackGresShardedClusterCoordinator coordinator = spec.getCoordinator();
-    final StackGresClusterConfigurations configuration = coordinator.getConfigurations();
-    final StackGresPostgresConfig pgConfig = postgresConfigFinder
-        .findByNameAndNamespace(configuration.getSgPostgresConfig(), clusterNamespace)
-        .orElseThrow(() -> new IllegalArgumentException(
-            "Coordinator of SGShardedCluster " + clusterNamespace + "." + clusterName
-                + " have a non existent " + StackGresPostgresConfig.KIND
-                + " " + configuration.getSgPostgresConfig()));
-
-    final StackGresProfile profile = profileFinder
-        .findByNameAndNamespace(coordinator.getSgInstanceProfile(), clusterNamespace)
-        .orElseThrow(() -> new IllegalArgumentException(
-            "Coordinator of SGShardedCluster " + clusterNamespace + "." + clusterName
-                + " have a non existent " + StackGresProfile.KIND
-                + " " + coordinator.getSgInstanceProfile()));
-
-    final Optional<StackGresPoolingConfig> pooling = Optional
-        .ofNullable(configuration.getSgPoolingConfig())
-        .flatMap(poolingConfigName -> poolingConfigFinder
-            .findByNameAndNamespace(poolingConfigName, clusterNamespace));
-
-    StackGresCluster coordinatorCluster = getCoordinatorCluster(cluster);
-
-    StackGresClusterContext coordinatorContext = ImmutableStackGresClusterContext.builder()
-        .kubernetesVersion(kubernetesVersion)
-        .config(config)
-        .source(coordinatorCluster)
-        .postgresConfig(pgConfig)
-        .profile(profile)
-        .poolingConfig(pooling)
-        .databaseSecret(databaseSecret)
-        .build();
-    return coordinatorContext;
-  }
-
-  private List<StackGresClusterContext> getShardsContexts(
-      final StackGresConfig config,
-      final String clusterName,
-      final String clusterNamespace,
-      StackGresShardedCluster cluster,
-      VersionInfo kubernetesVersion,
-      Optional<Secret> databaseSecret) {
-    final StackGresShardedClusterSpec spec = cluster.getSpec();
-    final StackGresShardedClusterShards shards = spec.getShards();
-    final StackGresClusterConfigurations configuration = shards.getConfigurations();
-    final StackGresPostgresConfig pgConfig = postgresConfigFinder
-        .findByNameAndNamespace(configuration.getSgPostgresConfig(), clusterNamespace)
-        .orElseThrow(() -> new IllegalArgumentException(
-            "Shards of SGShardedCluster " + clusterNamespace + "." + clusterName
-                + " have a non existent " + StackGresPostgresConfig.KIND
-                + " " + configuration.getSgPostgresConfig()));
-
-    final StackGresProfile profile = profileFinder
-        .findByNameAndNamespace(shards.getSgInstanceProfile(), clusterNamespace)
-        .orElseThrow(() -> new IllegalArgumentException(
-            "Shards of SGShardedCluster " + clusterNamespace + "." + clusterName
-                + " have a non existent " + StackGresProfile.KIND
-                + " " + shards.getSgInstanceProfile()));
-
-    final Optional<StackGresPoolingConfig> pooling = Optional
-        .ofNullable(configuration.getSgPoolingConfig())
-        .flatMap(poolingConfigName -> poolingConfigFinder
-            .findByNameAndNamespace(poolingConfigName, clusterNamespace));
+  private List<StackGresCluster> getShardsClusters(
+      StackGresShardedCluster cluster) {
 
     return IntStream.range(0, cluster.getSpec().getShards().getClusters())
-        .mapToObj(index -> getShardContext(
-            config, cluster, kubernetesVersion, databaseSecret,
-            pgConfig, profile, pooling, index))
+        .mapToObj(index -> getShardsCluster(cluster, index))
         .toList();
-  }
-
-  private StackGresClusterContext getShardContext(
-      StackGresConfig config,
-      StackGresShardedCluster cluster,
-      VersionInfo kubernetesVersion,
-      Optional<Secret> databaseSecret,
-      StackGresPostgresConfig pgConfig,
-      StackGresProfile profile,
-      Optional<StackGresPoolingConfig> pooling,
-      int index) {
-    StackGresCluster shardsCluster = getShardsCluster(cluster, index);
-
-    StackGresClusterContext shardsContext = ImmutableStackGresClusterContext.builder()
-        .kubernetesVersion(kubernetesVersion)
-        .config(config)
-        .source(shardsCluster)
-        .postgresConfig(pgConfig)
-        .profile(profile)
-        .poolingConfig(pooling)
-        .databaseSecret(databaseSecret)
-        .build();
-    return shardsContext;
   }
 
   record Credentials(
@@ -547,6 +473,34 @@ public class ShardedClusterRequiredResourcesGenerator
         .filter(Predicate.not(clusterNamespace::equals))
         .collect(Collectors.groupingBy(Function.identity()))
         .keySet();
+  }
+
+  private StackGresCluster getCoordinatorCluster(StackGresShardedCluster cluster) {
+    switch (StackGresShardingType.fromString(cluster.getSpec().getType())) {
+      case CITUS:
+        return StackGresShardedClusterForCitusUtil.getCoordinatorCluster(cluster);
+      case DDP:
+        return StackGresShardedClusterForDdpUtil.getCoordinatorCluster(cluster);
+      case SHARDING_SPHERE:
+        return StackGresShardedClusterForShardingSphereUtil.getCoordinatorCluster(cluster);
+      default:
+        throw new UnsupportedOperationException(
+            "Sharding technology " + cluster.getSpec().getType() + " not implemented");
+    }
+  }
+
+  private StackGresCluster getShardsCluster(StackGresShardedCluster cluster, int index) {
+    switch (StackGresShardingType.fromString(cluster.getSpec().getType())) {
+      case CITUS:
+        return StackGresShardedClusterForCitusUtil.getShardsCluster(cluster, index);
+      case DDP:
+        return StackGresShardedClusterForDdpUtil.getShardsCluster(cluster, index);
+      case SHARDING_SPHERE:
+        return StackGresShardedClusterForShardingSphereUtil.getShardsCluster(cluster, index);
+      default:
+        throw new UnsupportedOperationException(
+            "Sharding technology " + cluster.getSpec().getType() + " not implemented");
+    }
   }
 
 }

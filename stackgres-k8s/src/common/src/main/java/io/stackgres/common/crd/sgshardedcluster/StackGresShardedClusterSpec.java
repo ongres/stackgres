@@ -41,7 +41,7 @@ public class StackGresShardedClusterSpec {
   private String profile;
 
   @ValidEnum(enumClass = StackGresShardingType.class, allowNulls = false,
-      message = "only supported type is citus")
+      message = "supported type are citus, ddp and shardingsphere")
   private String type;
 
   @NotEmpty(message = "database name can not be empty")

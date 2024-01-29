@@ -75,7 +75,7 @@ public abstract class AbstractResourceWriter<T extends HasMetadata>
               .inNamespace(resource.getMetadata().getNamespace())
               .resource(resourceToUpdate)
               .lockResourceVersion(resourceToUpdate.getMetadata().getResourceVersion())
-              .replace();
+              .update();
         });
   }
 
