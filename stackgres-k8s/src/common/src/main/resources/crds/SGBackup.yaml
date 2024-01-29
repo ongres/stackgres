@@ -86,7 +86,7 @@ spec:
                 managedLifecycle:
                   type: boolean
                   description: |
-                    Indicate if this backup is permanent and should not be removed by the automated
+                    Indicate if this backup is not permanent and should be removed by the automated
                      retention policy. Default is `false`.
                 timeout:
                   type: integer
