@@ -1,6 +1,6 @@
 apiVersion: v2
 name: stackgres-cluster
-version: "1.8.1-SNAPSHOT"
+version: "1.9.0-SNAPSHOT"
 kubeVersion: "1.18.0-0 - 1.29.x-0"
 description: StackGres Cluster
 keywords:
@@ -18,5 +18,5 @@ maintainers:
     email: info@ongres.com
     url: https://ongres.com
 icon: https://gitlab.com/uploads/-/system/project/avatar/12584701/logo-stackgres.png?width=64
-appVersion: "1.8.1-SNAPSHOT"
+appVersion: "1.9.0-SNAPSHOT"
 deprecated: false

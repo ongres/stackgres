@@ -9,9 +9,9 @@ check_user_on_replica() {
 }
 
 check_user_on_sharded_primary() {
-  local FROM_HOST_INDEX="${1:-1}"
-  local HOST="$CLUSTER_NAME"
-  local CLUSTER_NAME="$CLUSTER_NAME-coord"
+  local HOST="${1:-$CLUSTER_NAME}"
+  local CLUSTER_NAME="${2:-$CLUSTER_NAME-coord}"
+  local FROM_HOST_INDEX="${3:-1}"
   check_user "$HOST" "$FROM_HOST_INDEX"
 }
 
@@ -20,8 +20,8 @@ check_user() {
   local FROM_HOST_INDEX="$2"
   local DATABASE="${DATABASE:-postgres}"
   wait_until eval 'run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" \
-    -q "SELECT usename FROM pg_user;" -d "$DATABASE" | grep -q "^sakila$"'
-  if run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT usename FROM pg_user;" -d "$DATABASE" \
+    -q "SELECT usename FROM pg_catalog.pg_user;" -d "$DATABASE" | grep -q "^sakila$"'
+  if run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT usename FROM pg_catalog.pg_user;" -d "$DATABASE" \
     | grep -q "^sakila$"
   then
     echo "SUCCESS: sakila user was created successfully"
@@ -40,9 +40,9 @@ check_database_on_replica() {
 }
 
 check_database_on_sharded_primary() {
-  local FROM_HOST_INDEX="${1:-1}"
-  local HOST="$CLUSTER_NAME"
-  local CLUSTER_NAME="$CLUSTER_NAME-coord"
+  local HOST="${1:-$CLUSTER_NAME}"
+  local CLUSTER_NAME="${2:-$CLUSTER_NAME-coord}"
+  local FROM_HOST_INDEX="${3:-1}"
   check_database "$HOST" "$FROM_HOST_INDEX"
 }
 
@@ -50,7 +50,7 @@ check_database() {
   local HOST="$1"
   local FROM_HOST_INDEX="$2"
   local DATABASE="${DATABASE:-sakila}"
-  if run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT datname FROM pg_database;" -d "$DATABASE" \
+  if run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT datname FROM pg_catalog.pg_database;" -d "$DATABASE" \
     | grep -q "^$DATABASE$"
   then
     echo "SUCCESS: sakila database was created successfully"
@@ -69,9 +69,9 @@ check_schema_on_replica() {
 }
 
 check_schema_on_sharded_primary() {
-  local FROM_HOST_INDEX="${1:-1}"
-  local HOST="$CLUSTER_NAME"
-  local CLUSTER_NAME="$CLUSTER_NAME-coord"
+  local HOST="${1:-$CLUSTER_NAME}"
+  local CLUSTER_NAME="${2:-$CLUSTER_NAME-coord}"
+  local FROM_HOST_INDEX="${3:-1}"
   check_schema "$HOST" "$FROM_HOST_INDEX"
 }
 
@@ -79,9 +79,9 @@ check_schema() {
   local HOST="$1"
   local FROM_HOST_INDEX="$2"
   local DATABASE="${DATABASE:-sakila}"
-  if run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT tablename FROM pg_tables;" -d "$DATABASE" \
+  if run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT tablename FROM pg_catalog.pg_tables;" -d "$DATABASE" \
     | grep -q "^film$" \
-    && run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT tablename FROM pg_tables;" -d "$DATABASE" \
+    && run_query -p 5432 -i "$FROM_HOST_INDEX" -h "$HOST" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "SELECT tablename FROM pg_catalog.pg_tables;" -d "$DATABASE" \
     | grep -q "^store$"
   then
     echo "SUCCESS: sakila schema was created successfully"
