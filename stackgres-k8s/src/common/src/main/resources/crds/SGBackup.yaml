@@ -338,8 +338,6 @@ spec:
                             *  `dow`: day of week, 0 to 7 (0 and 7 both represent Sunday)
 
                             Also ranges of values (`start-end`), the symbol `*` (meaning `first-last`) or even `*/N`, where `N` is a number, meaning every `N`, may be used. All times are UTC. It is recommended to avoid 00:00 as base backup time, to avoid overlapping with any other external operations happening at this time.
-
-                            If not provided, full backups will be performed each day at 05:00 UTC
                         retention:
                           type: integer
                           minimum: 1
