@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.app;
 
+import static io.stackgres.common.RetryUtil.retryWithLimit;
+
 import java.net.SocketTimeoutException;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -58,7 +60,6 @@ public class DefaultOperatorBootstrap implements OperatorBootstrap {
     certInstaller.waitForCertificate();
   }
 
-  @Override
   public void bootstrap() {
     try {
       if (client.getKubernetesVersion() != null) {
@@ -74,14 +75,7 @@ public class DefaultOperatorBootstrap implements OperatorBootstrap {
             throw new RuntimeException(ex);
           }
         }
-        if (OperatorProperty.INSTALL_CRDS.getBoolean()) {
-          crdInstaller.installCustomResourceDefinitions();
-        }
-        crdInstaller.checkCustomResourceDefinitions();
-        if (OperatorProperty.INSTALL_WEBHOOKS.getBoolean()) {
-          crdWebhookInstaller.installWebhooks();
-        }
-        crUpdater.updateExistingCustomResources();
+        retryWithLimit(this::bootstrapCrds, ex -> true, 10, 10000, 20000, 2000);
         operatorLockHolder.startReconciliation();
       } catch (RuntimeException ex) {
         operatorLockHolder.stop();
@@ -97,6 +91,17 @@ public class DefaultOperatorBootstrap implements OperatorBootstrap {
       }
       throw ex;
     }
+  }
+
+  private void bootstrapCrds() {
+    if (OperatorProperty.INSTALL_CRDS.getBoolean()) {
+      crdInstaller.installCustomResourceDefinitions();
+    }
+    crdInstaller.checkCustomResourceDefinitions();
+    if (OperatorProperty.INSTALL_WEBHOOKS.getBoolean()) {
+      crdWebhookInstaller.installWebhooks();
+    }
+    crUpdater.updateExistingCustomResources();
   }
 
 }

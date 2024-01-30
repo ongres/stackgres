@@ -5,13 +5,13 @@
 
 package io.stackgres.common.kubernetesclient;
 
-import static io.stackgres.common.RetryUtil.calculateExponentialBackoffDelay;
+import static io.stackgres.common.RetryUtil.retry;
+import static io.stackgres.common.RetryUtil.retryWithLimit;
 
 import java.util.function.Supplier;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import org.slf4j.LoggerFactory;
 
 public interface KubernetesClientUtil {
 
@@ -39,57 +39,24 @@ public interface KubernetesClientUtil {
    * Retry on conflict (409) error with back-off.
    */
   static <T> T retryOnConflict(Supplier<T> supplier) {
-    int retry = 0;
-    while (true) {
-      try {
-        return supplier.get();
-      } catch (KubernetesClientException ex) {
-        if (isConflict(ex)) {
-          try {
-            Thread.sleep(calculateExponentialBackoffDelay(10, 600, 10, retry++));
-            continue;
-          } catch (InterruptedException iex) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException(iex);
-          }
-        }
-        throw ex;
-      }
-    }
+    return retry(supplier, KubernetesClientUtil::isConflict, 10, 600, 10);
   }
 
   /**
    * Retry on error.
    */
-  static void retryOnError(Runnable runnable, int maxRetries) {
+  static void retryOnError(Runnable runnable, int retryLimit) {
     retryOnError((Supplier<Void>) () -> {
       runnable.run();
       return null;
-    }, maxRetries);
+    }, retryLimit);
   }
 
   /**
    * Retry on error.
    */
-  static <T> T retryOnError(Supplier<T> supplier, int maxRetries) {
-    int retry = 0;
-    while (true) {
-      try {
-        return supplier.get();
-      } catch (KubernetesClientException ex) {
-        try {
-          Thread.sleep(calculateExponentialBackoffDelay(3000, 30000, 1000, retry));
-        } catch (InterruptedException iex) {
-          Thread.currentThread().interrupt();
-          throw new RuntimeException(iex);
-        }
-        if (retry++ > maxRetries) {
-          throw ex;
-        }
-        LoggerFactory.getLogger(KubernetesClientUtil.class)
-            .warn("Retry {} after error: {}", retry, ex.getMessage());
-      }
-    }
+  static <T> T retryOnError(Supplier<T> supplier, int retryLimit) {
+    return retryWithLimit(supplier, ex -> true, retryLimit, 3000, 30000, 1000);
   }
 
 }
