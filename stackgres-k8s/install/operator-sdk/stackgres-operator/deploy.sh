@@ -139,11 +139,14 @@ find "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION" -name '*.yaml' 
 
 operator-sdk bundle validate "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"
 
-git -C "$FORK_GIT_PATH" add .
+git -C "$FORK_GIT_PATH" add "operators/$PROJECT_NAME/$STACKGRES_VERSION"
+git -C "$FORK_GIT_PATH" add "operators/$PROJECT_NAME/ci.yaml"
 git -C "$FORK_GIT_PATH" status
-echo "Creating commit"
 git -C "$FORK_GIT_PATH" commit -s -m "operator $PROJECT_NAME (${STACKGRES_VERSION})"
+git -C "$FORK_GIT_PATH" reset --hard HEAD
+echo
 echo "To push use the following command"
+echo
 echo git -C "$PROJECT_PATH"/stackgres-k8s/install/operator-sdk/stackgres-operator/"$FORK_GIT_PATH" push -f
 echo
 if [ "$UPSTREAM_GIT_URL" != "${UPSTREAM_GIT_URL#https://github.com}" ]
