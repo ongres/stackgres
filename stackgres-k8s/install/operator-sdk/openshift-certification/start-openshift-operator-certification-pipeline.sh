@@ -162,7 +162,7 @@ oc adm policy add-scc-to-user pipelines-custom-scc -z pipeline
 STACKGRES_VERSION="${STACKGRES_VERSION:-$(sh "$PROJECT_PATH"/stackgres-k8s/ci/build/version.sh)}"
 tkn pipeline start operator-ci-pipeline \
   --param git_repo_url="$OPENSHIFT_CERTIFICATION_GITHUB_REPO" \
-  --param git_branch=main \
+  --param git_branch="${OPENSHIFT_CERTIFICATION_BRANCH:-main}" \
   --param upstream_repo_name=redhat-openshift-ecosystem/certified-operators \
   --param bundle_path="operators/stackgres-certified/$STACKGRES_VERSION" \
   --param env=prod \
@@ -170,4 +170,4 @@ tkn pipeline start operator-ci-pipeline \
   --pod-template "$TARGET_PATH"/operator-pipelines/templates/crc-pod-template.yml \
   --use-param-defaults \
   --showlog \
-  --param submit=true
+  --param submit=false
