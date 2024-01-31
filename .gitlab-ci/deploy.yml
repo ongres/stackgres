@@ -167,6 +167,10 @@ deploy helm packages and templates:
         "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/$STACKGRES_VERSION/helm"
       if [ "${STACKGRES_VERSION%-SNAPSHOT}" = "$STACKGRES_VERSION" ]
       then
+        cp -a stackgres-k8s/install/helm/target/templates \
+          "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/latest"
+        cp -a stackgres-k8s/install/helm/target/packages \
+          "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/latest/helm"
         mkdir -p stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/helm
         cp -a stackgres-k8s/install/helm/artifacthub-repo.yml \
           "stackgres-k8s/install/helm/target/public/downloads/stackgres-k8s/stackgres/helm/artifacthub-repo.yml"
