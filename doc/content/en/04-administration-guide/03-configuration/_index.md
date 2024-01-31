@@ -17,8 +17,7 @@ These created configuration resources are independent of other clusters configur
 
 The operator will merge the fields of a custom configuration resource with its default configuration.
 
-If a StackGres cluster is created without specifying custom PostgreSQL configuration (`SGPostgresConfig`) or resource profile configuration (`SgInstanceProfile`), the operator applies the default configuration.
-
+If an SGCluster is created without specifying custom PostgreSQL configuration (`SGPostgresConfig`), PgBouncer configuration (`SGPoolingConfig`) or resource profile configuration (`SGInstanceProfile`), the operator applies the default configuration.
 
 Here is the list of default configuration resources that will be created in the same namespace as the cluster:
 
@@ -71,6 +70,20 @@ Status:
     checkpoint_timeout:                15min
 [...]
 ```
+
+## Cluster Profile
+
+By default an SGCluster is created with the `production` profile that will enforce some best practices suited for a production environment.
+
+This may be inconvenient in a testing or development environment. In such case you may chose any of the other existing profile.
+
+The available profiles are:
+
+* `production`: enforces resources requests and limits and add a Pod anti-affinity rules to prevent a Postgres instance to run in the same Kubernetes node.
+* `testing`: enforces resources limits but disables resources requests and removes the Pod anti-affinity rules that prevents a Postgres instance to run in the same Kubernetes node.
+* `development`: disables resources requests and limits and removes the Pod anti-affinity rules that prevents a Postgres instance to run in the same Kubernetes node.
+
+The above rules may still be affected by other configurations. Details will can be found in the [CRD reference about SGCluster profile]({{% relref "06-crd-reference/01-sgcluster#sgclusterspec" %}}).
 
 ## Custom Configuration
 

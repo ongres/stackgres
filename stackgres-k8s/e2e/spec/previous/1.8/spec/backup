@@ -26,6 +26,13 @@ e2e_test() {
 
   run_test "Checking that backup is working" check_backup_is_working
 
+  if [ "$K8S_DISABLE_VOLUME_SNAPSHOT" != true ]
+  then
+    run_test "Checking that backup using volume snapshot is working" check_backup_using_volume_snapshot_is_working
+  else
+    echo "Skipping Checking that backup using volume snapshot is working since volume snapshot feature is not available"
+  fi
+
   run_test "Checking that backup retention is working" check_backup_retention_is_working
 
   run_test "Checking that backup is working after killing storage provider service" check_backup_after_kill_storage_provider_service
@@ -41,6 +48,20 @@ check_cron_job_security_context() {
 
 
 check_backup_is_working() {
+  kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true"
+
+  check_backup 0
+}
+
+check_backup_using_volume_snapshot_is_working() {
+  disable_cluster_cron_schedule
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set cluster.configurations.backups.useVolumeSnapshot=true
+
+  # Avoid backups before waiting for pods (since backup pods could biase the wait)
+  enable_cluster_cron_schedule
+
   kubectl delete job -n "$CLUSTER_NAMESPACE" -l "stackgres.io/scheduled-backup=true"
 
   check_backup 0

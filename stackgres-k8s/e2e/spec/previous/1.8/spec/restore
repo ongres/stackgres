@@ -12,18 +12,47 @@ e2e_test_install() {
   create_or_replace_cluster_only "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE" 1 \
     -f "$SPEC_FILE.backup.values.yaml" \
     --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION" \
-    --set-string "configurations.objectstorage.s3Compatible.endpoint=$BACKUP_ENDPOINT"
+    --set-string "configurations.objectstorage.s3Compatible.endpoint=$BACKUP_ENDPOINT" \
+    --set cluster.configurations.backups.useVolumeSnapshot=true
 
   wait_pods_running "$BACKUP_CLUSTER_NAMESPACE" 2
   wait_cluster "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE"
 
   create_mock_data
 
+  CLUSTER_SNAPSHOT_NAME="$(get_sgcluster_name "${SPEC_NAME}-snapshot")"
+
   BACKUP_SOURCE_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-backup-0-$(shuf -i 0-65535 -n 1)")"
   BACKUP_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-backup-0-$(shuf -i 0-65535 -n 1)")"
+  BACKUP_SOURCE_VOLUME_SNAPSHOT_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-backup-0-$(shuf -i 0-65535 -n 1)")"
+  BACKUP_VOLUME_SNAPSHOT_NAME="$(get_sgbackup_name "${CLUSTER_NAME}-backup-0-$(shuf -i 0-65535 -n 1)")"
   ALTER_CLUSTER_NAME="$(get_sgcluster_name "$CLUSTER_NAME-alter")"
 
   cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGBackup
+metadata:
+  namespace: "$BACKUP_CLUSTER_NAMESPACE"
+  name: "$BACKUP_SOURCE_VOLUME_SNAPSHOT_NAME"
+spec:
+  sgCluster: "$BACKUP_CLUSTER_NAME"
+  managedLifecycle: false
+EOF
+  
+  wait_until is_backup_phase "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_VOLUME_SNAPSHOT_NAME" "Completed"
+
+  if [ "$K8S_DISABLE_VOLUME_SNAPSHOT" != true ]
+  then
+    create_or_replace_cluster_only "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE" 1 \
+      -f "$SPEC_FILE.backup.values.yaml" \
+      --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION" \
+      --set-string "configurations.objectstorage.s3Compatible.endpoint=$BACKUP_ENDPOINT" \
+      --set cluster.configurations.backups.useVolumeSnapshot=false
+  
+    wait_until eval 'kubectl get cronjob -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_CLUSTER_NAME" -o json \
+      | jq ".spec.template.spec.containers[0].env | any(.name == \"USE_VOLUME_SNAPSHOT\" and .value == \"true\")"'
+  
+    cat << EOF | kubectl create -f -
 apiVersion: stackgres.io/v1
 kind: SGBackup
 metadata:
@@ -33,11 +62,14 @@ spec:
   sgCluster: "$BACKUP_CLUSTER_NAME"
   managedLifecycle: false
 EOF
-  
-  wait_until is_backup_phase "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_NAME" "Completed"
+
+    wait_until is_backup_phase "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_NAME" "Completed"
+  fi
 
   BACKUP_PITR_DATE="$(date +%Y-%m-%dT%H:%M:%SZ --utc)"
   sleep 2
+
+  create_more_mock_data
 
   kubectl create ns "$CLUSTER_NAMESPACE"
 }
@@ -59,12 +91,25 @@ e2e_test_uninstall() {
 
 e2e_test() {
   run_test "Check that backup can be copied across namespaces" check_backup_can_be_copied_from_another_namespace
+
   run_test "Check that backup can be restored" check_backup_can_be_restored
+
+  if [ "$K8S_DISABLE_VOLUME_SNAPSHOT" != true ]
+  then
+    run_test "Check that volume snapshot backup can be restored" check_volume_snapshot_backup_can_be_restored
+  else
+    echo "Skipping Check that volume snapshot backup can be restored since volume snapshot feature is not available"
+  fi
+
   run_test "Check that backup is compatible with cluster" check_backup_pg_version
+
   run_test "Check that restore using PITR" check_restore_using_pitr
+
   run_test "Check that after deleting original backup the backup is not deleted if a copy exists" \
     check_delete_original_backup_dont_delete_backup_if_copy_exists
+
   run_test "Check that after deleting backup copy the backup is deleted" check_delete_backup_copy_delete_backup
+
   run_test "Check that cluster keep working after backup is removed" check_delete_backup_dont_require_restart
 }
 
@@ -94,15 +139,53 @@ check_backup_can_be_copied_from_another_namespace() {
   kubectl get secret -n "$BACKUP_CLUSTER_NAMESPACE" "$MINIO_NAME" -o json \
     | jq ".metadata.namespace = \"$CLUSTER_NAMESPACE\"" \
     | kubectl create -f -
-  TMP_BACKUP=$(kubectl get sgbackups.stackgres.io -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_NAME" -o json \
+  TMP_BACKUP="$(kubectl get sgbackups.stackgres.io -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_NAME" -o json \
     | jq ".metadata.namespace = \"$CLUSTER_NAMESPACE\" | .metadata.name = \"$BACKUP_NAME\"" \
-    | jq ".spec.sgCluster = \"$BACKUP_CLUSTER_NAMESPACE.\" + .spec.sgCluster")
+    | jq ".spec.sgCluster = \"$BACKUP_CLUSTER_NAMESPACE.\" + .spec.sgCluster")"
 
-  echo "$TMP_BACKUP" | kubectl create -f -
+  printf %s "$TMP_BACKUP" | kubectl create -f -
+
+  TMP_BACKUP="$(kubectl get sgbackups.stackgres.io -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_VOLUME_SNAPSHOT_NAME" -o json \
+    | jq ".metadata.namespace = \"$CLUSTER_NAMESPACE\" | .metadata.name = \"$BACKUP_VOLUME_SNAPSHOT_NAME\"" \
+    | jq ".status.volumeSnapshot.name = \"$BACKUP_VOLUME_SNAPSHOT_NAME\"" \
+    | jq ".spec.sgCluster = \"$BACKUP_CLUSTER_NAMESPACE.\" + .spec.sgCluster")"
+
+  printf %s "$TMP_BACKUP" | kubectl create -f -
+
+  TMP_VOLUME_SNAPSHOT="$(kubectl get volumesnapshot -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_VOLUME_SNAPSHOT_NAME" -o json \
+    | jq ".metadata.namespace = \"$CLUSTER_NAMESPACE\" | .metadata.name = \"$BACKUP_VOLUME_SNAPSHOT_NAME\"" \
+    | jq "del(.metadata.ownerReferences)" \
+    | jq ".spec.source = { volumeSnapshotContentName: \"$BACKUP_VOLUME_SNAPSHOT_NAME\" }" \
+    | jq "del(.status)")"
+
+  printf %s "$TMP_VOLUME_SNAPSHOT" | kubectl create -f -
+
+  BACKUP_SOURCE_VOLUME_SNAPSHOT_CONTENT_NAME="$(
+    kubectl get volumesnapshot -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_VOLUME_SNAPSHOT_NAME" \
+      --template '{{ .status.boundVolumeSnapshotContentName }}')"
+  BACKUP_VOLUME_SNAPSHOT_UID="$(
+    kubectl get volumesnapshot -n "$CLUSTER_NAMESPACE" "$BACKUP_VOLUME_SNAPSHOT_NAME" \
+      --template '{{ .metadata.uid }}')"
+  TMP_VOLUME_SNAPSHOT_CONTENT="$(kubectl get volumesnapshotcontent "$BACKUP_SOURCE_VOLUME_SNAPSHOT_CONTENT_NAME" -o json \
+    | jq ".metadata.name = \"$BACKUP_VOLUME_SNAPSHOT_NAME\"" \
+    | jq ".spec.source = { snapshotHandle: .status.snapshotHandle }" \
+    | jq ".spec.volumeSnapshotRef = { apiVersion: \"snapshot.storage.k8s.io/v1\", kind: \"VolumeSnapshot\", name: \"$BACKUP_VOLUME_SNAPSHOT_NAME\", namespace: \"$CLUSTER_NAMESPACE\", uid: \"$BACKUP_VOLUME_SNAPSHOT_UID\"  }" \
+    | jq "del(.status)")"
+
+  printf %s "$TMP_VOLUME_SNAPSHOT_CONTENT" | kubectl create -f -
+
+  wait_until eval 'kubectl get volumesnapshot -n "$CLUSTER_NAMESPACE" "$BACKUP_VOLUME_SNAPSHOT_NAME" --template "{{ .status.readyToUse }}" | grep -qxF true'
 }
 
 check_backup_can_be_restored() {
-  create_more_mock_data
+  if kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" \
+    --template '{{ .status.volumeSnapshot.name }}' | grep -qxF "<no value>"
+  then
+    echo "SUCCESS: backup not performed using volume snapshot"
+  else
+    echo "FAIL: backup performed using volume snapshot"
+    return 1
+  fi
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set cluster.initialData.restore.fromBackup.name="$BACKUP_NAME" \
@@ -116,6 +199,35 @@ check_backup_can_be_restored() {
   check_replica_data_after_restore
 
   check_replication_after_restore
+}
+
+check_volume_snapshot_backup_can_be_restored() {
+  local CLUSTER_NAME="$CLUSTER_SNAPSHOT_NAME"
+
+  if kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_VOLUME_SNAPSHOT_NAME" \
+    --template '{{ .status.volumeSnapshot.name }}' | grep -qxF "$BACKUP_VOLUME_SNAPSHOT_NAME"
+  then
+    echo "SUCCESS: backup performed using volume snapshot"
+  else
+    echo "FAIL: backup not performed using volume snapshot"
+    return 1
+  fi
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set cluster.initialData.restore.fromBackup.name="$BACKUP_VOLUME_SNAPSHOT_NAME" \
+    --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION" \
+     --set configurations.create=false --set instanceProfiles=null
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 4
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"  
+
+  check_init_data_after_restore
+
+  check_replica_data_after_restore
+
+  check_replication_after_restore
+
+  remove_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 }
 
 check_init_data_after_restore() {
@@ -155,18 +267,16 @@ check_replica_data_after_restore() {
 
 check_replication_after_restore() {
   local PRIMARY_RESPONSE
-  local REPLICA_RESPONSE
 
   run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "INSERT INTO fibonacci(num) VALUES (21);" -d test
   run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "INSERT INTO fibonacci(num) VALUES (34);" -d test
   run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -q "INSERT INTO fibonacci(num) VALUES (55);" -d test
 
   PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" -q "SELECT num FROM fibonacci ORDER BY num;" | tr -d '\n')"
-  REPLICA_RESPONSE="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" -q "SELECT num FROM fibonacci ORDER BY num;" | tr -d '\n')"
 
   if [ "$PRIMARY_RESPONSE" = "1235813213455" ]
   then
-    if [ "$PRIMARY_RESPONSE" = "$REPLICA_RESPONSE" ]
+    if wait_until eval 'run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" -q "SELECT num FROM fibonacci ORDER BY num;" | tr -d "\n" | grep -qxF "$PRIMARY_RESPONSE"'
     then
       echo "SUCCESS: replication is working"
       return 0

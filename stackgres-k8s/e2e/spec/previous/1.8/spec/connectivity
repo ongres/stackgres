@@ -8,7 +8,8 @@ e2e_test_extra_hash() {
 }
 
 e2e_test_install() {
-  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2"
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.password_encryption=md5'
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 

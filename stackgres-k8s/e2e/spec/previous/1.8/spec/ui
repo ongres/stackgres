@@ -30,6 +30,9 @@ e2e_test_install() {
     --set grafana.autoEmbed=true \
     --set-string grafana.webHost="prometheus-grafana.$(prometheus_namespace)"
 
+  kubectl create clusterrole stackgres-restapi-namespace-admin --verb=create --resource=namespace
+  kubectl create clusterrolebinding stackgres-restapi-namespace-admin --user=admin --clusterrole=stackgres-restapi-namespace-admin
+
   kubectl create namespace "$CLUSTER_NAMESPACE"
   install_minio
 
@@ -124,6 +127,12 @@ is_backup_phase() {
   [ "$(kubectl get sgbackup -n "$NAMESPACE" "$NAME" -o=jsonpath='{.status.process.status}')" = "$STATUS" ]
 }
 
+e2e_test_values() {
+  (
+  cd "$UI_TESTS_RESOURCES_PATH/cypress/e2e"
+  find -name '*.cy.js' | cut -d / -f 2-
+  )
+}
 
 e2e_test() {  
   if [ "$(uname -m)" != x86_64 ]
@@ -132,15 +141,19 @@ e2e_test() {
     return
   fi
 
-  run_test "Cypress ${E2E_UI_TEST_BROWSER:-chrome} tests should pass" cypress_tests
+  run_test "Cypress ${E2E_UI_TEST_BROWSER:-chrome} tests $SPEC_VALUE should pass" cypress_test
 
   run_test "Nginx must return the index page when a resource is not found" check_index_on_not_found_resource
 
   run_test "Nginx must work correctly on HTTP port when HTTP is exposed" check_http_port
 }
 
-cypress_tests(){
-  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- cypress run --headless  --browser "${E2E_UI_TEST_BROWSER:-chrome}"
+cypress_test(){
+  kubectl exec -i -n "$CLUSTER_NAMESPACE" "$CYPRESS_POD" -- \
+    cypress run \
+      --headless \
+      --browser "${E2E_UI_TEST_BROWSER:-chrome}" \
+      -s cypress/e2e/"$SPEC_VALUE"
 }
 
 check_index_on_not_found_resource(){

@@ -7,16 +7,15 @@ description: Details about how to set up and configure backups.
 showToc: true
 ---
 
-StackGres supports automated backups, based on Postgres [continuous archiving](https://www.postgresql.org/docs/current/continuous-archiving.html), that is base backups plus WAL (write ahead log) archiving, as well as backup lifecycle management.
-To achieve maximum durability, backups are stored on cloud/object storage.
-S3, GCP, Azure Blob, and S3-compatible object storages are supported.
+StackGres supports manual and automated backups, based on Postgres [continuous archiving](https://www.postgresql.org/docs/current/continuous-archiving.html), that is base backups plus WAL (write ahead log) archiving, as well as backup lifecycle management.
+To achieve maximum durability, backups are stored on cloud/object storage and [volume snapshots](https://kubernetes.io/docs/concepts/storage/volume-snapshots/).
+S3, GCP, Azure Blob, and S3-compatible object storages are supported as on cloud/object storage.
 
 ## Cluster Backup Configuration
 
 All the configuration for this matter can be found at the [SGCluster backups section]({{% relref "06-crd-reference/01-sgcluster/#backups" %}}).
 When backups are configured, Postgres WAL files will start being archived in the specified storage at the specified path.
-Also, automatic backups will be scheduled and a retention policy of backups is created.
-By default, automatic backups will be scheduled daily at `05:00 UTC`, with a retention policy of 5 backups.
+Also, automatic backups can be scheduled and (in such case) a retention policy of backups is created.
 You will have to find out a time window and retention policy that fit your needs.
 When configuring cluster backups, you may also specify the compression algorithm and performance-related options, such as the maximum disk and network throughput, or the parallelism for uploading files.
 
@@ -75,6 +74,8 @@ spec:
     azureBlob: {}
 ```
 
+StackGres supports also backup based on Volume Snapshot that, in general, are faster that object storage for big volumes of data. This feature requires the VolumeSnapshot CRDs and controller to be installed in the Kubernetes cluster. A backup based on VolumeSnapshot still requires WAL files that will be stored in the object storage defined by SGObjectStorage.
+
 ## Backups
 
 Backups are materialized using [SGBackup]({{% relref "06-crd-reference/06-sgbackup" %}}).
@@ -108,7 +109,7 @@ kubectl get sgbackup -n source source -o json \
   | kubectl create -f -
 ```
 
-A backup created in this way will not be deleted until the copying action has finished and the original SGBackup has been removed.
+The backup associated to the SGBackup created in this way will not be deleted until all the copies and the original SGBackup have been removed.
 
 ## Restoring from a Backup
 
@@ -125,4 +126,5 @@ spec:
         name: # the backup name to restore
 ```
 
+An SGBackup can be restored only on SGCluster creation and such section can not be modified.
 Check the complete explanation about restoring a backup in the [Restore a Backup Runbook]({{% relref "09-runbooks/03-restore-backup" %}}).

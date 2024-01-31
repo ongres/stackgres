@@ -61,10 +61,11 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
 1. [ ] Perform preflight for operator images (make each of them pass pass the index health check by opening each image project):
 
     > Registry authnetications (using same format as `~/.docker/config.json`) with short life tokens must be present at path `~/.openshift-certification-auths.json` 
-    > Red Hat Image project ids (using JSON format `{"<image name without tag e.g. `quay.io/stackgres/operator`":"<project id>"}`) must be present at path `~/.openshift-certification-projects.json` 
+    > 
+    > Red Hat Image project ids (using JSON format `{"<image name without tag e.g. quay.io/stackgres/operator>":"<Red Hat image project id>"}`) must be present at path `~/.openshift-certification-projects.json` 
 
     ```
-    STACKGRES_VERSION="1.8.0" IMAGE_TAG="4c53cb13" sh get-images.sh | grep -F quay.io/stackgres/ | sed 's#quay\.io/stackgres/#registry.gitlab.com/ongresinc/stackgres/stackgres/#' | xargs -I % sh preflight.sh %
+    STACKGRES_VERSION="1.8.0" IMAGE_TAG="$(git rev-parse --short=8 HEAD)" sh get-images.sh | grep -F quay.io/stackgres/ | sed 's#quay\.io/stackgres/#registry.gitlab.com/ongresinc/stackgres/stackgres/#' | xargs -I % sh preflight.sh %
     ```
 
 1. [ ] Create tag `1.8.0`:
@@ -81,7 +82,8 @@ sh stackgres-k8s/ci/utils/generate-release-template.sh $VERSION
     ```
 1. [ ] Perform preflight for operator images (publish each of them by opening each image project):
     > Registry authnetications (using same format as `~/.docker/config.json`) with short life tokens must be present at path `~/.openshift-certification-auths.json` 
-    > Red Hat Image project ids (using JSON format `{"<image name without tag e.g. `quay.io/stackgres/operator`":"<project id>"}`) must be present at path `~/.openshift-certification-projects.json` 
+    > 
+    > Red Hat Image project ids (using JSON format `{"<image name without tag e.g. quay.io/stackgres/operator>":"<Red Hat image project id>"}`) must be present at path `~/.openshift-certification-projects.json` 
 
     ```
     cd stackgres-k8s/install/operator-sdk/openshift-certification/

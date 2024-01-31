@@ -41,7 +41,7 @@ public class CrdInstaller {
   /*
    * When add new version just increase the above to the next minor if latest minor is greater than 2.
    */
-  private static final long V_1_6 = StackGresVersion.V_1_6.getVersionAsNumber();
+  private static final long V_1_7 = StackGresVersion.V_1_7.getVersionAsNumber();
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CrdInstaller.class);
 
@@ -84,7 +84,7 @@ public class CrdInstaller {
               HasMetadata.getKind(StackGresShardedCluster.class),
               HasMetadata.getKind(StackGresDistributedLogs.class))
               .contains(t.v1.getKind())
-              || t.v2.longValue() > V_1_6))
+              || t.v2.longValue() > V_1_7))
         .toList();
     if (!resourcesRequiringUpgrade.isEmpty()) {
       throw new RuntimeException("Can not upgrade due to some resources still at version"
