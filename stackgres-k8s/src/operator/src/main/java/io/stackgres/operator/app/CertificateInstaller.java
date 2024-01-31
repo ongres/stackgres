@@ -127,9 +127,6 @@ public class CertificateInstaller {
 
   public void waitForCertificate() {
     LOGGER.info("Waiting for certificate");
-    var config = configFinder.findByNameAndNamespace(operatorName, operatorNamespace)
-        .orElseThrow(() -> new IllegalArgumentException(
-            "SGConfig " + operatorNamespace + "." + operatorName + " was not found"));
     String certSecretName = podFinder
         .findByNameAndNamespace(
             OperatorProperty.OPERATOR_POD_NAME.getString(), operatorNamespace)
@@ -149,7 +146,10 @@ public class CertificateInstaller {
                 .map(Volume::getSecret)
                 .map(SecretVolumeSource::getSecretName))
             .findFirst())
-        .orElseGet(() -> OperatorSecret.name(config));
+        .orElseGet(() -> OperatorSecret.name(
+            configFinder.findByNameAndNamespace(operatorName, operatorNamespace)
+            .orElseThrow(() -> new IllegalArgumentException(
+                "SGConfig " + operatorNamespace + "." + operatorName + " was not found"))));
     Instant end = Instant.now().plus(
         OperatorProperty.CERTIFICATE_TIMEOUT.get()
         .map(Long::parseLong)

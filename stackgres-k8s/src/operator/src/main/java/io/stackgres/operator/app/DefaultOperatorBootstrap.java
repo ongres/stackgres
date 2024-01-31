@@ -50,17 +50,17 @@ public class DefaultOperatorBootstrap implements OperatorBootstrap {
 
   @Override
   public void syncBootstrap() {
-    crdInstaller.checkUpgrade();
-    if (OperatorProperty.INSTALL_CONFIG.getBoolean()) {
-      configInstaller.installOrUpdateConfig();
-    }
     if (OperatorProperty.INSTALL_CERTS.getBoolean()) {
+      installOrUpdateConfig();
       certInstaller.installOrUpdateCertificate();
     }
     certInstaller.waitForCertificate();
   }
 
   public void bootstrap() {
+    if (!OperatorProperty.INSTALL_CERTS.getBoolean()) {
+      retryWithLimit(this::installOrUpdateConfig, ex -> true, 10, 10000, 20000, 2000);
+    }
     try {
       if (client.getKubernetesVersion() != null) {
         LOGGER.info("Kubernetes version: {}", client.getKubernetesVersion().getGitVersion());
@@ -90,6 +90,13 @@ public class DefaultOperatorBootstrap implements OperatorBootstrap {
         LOGGER.error("Kubernetes cluster is not reachable, check your connection.");
       }
       throw ex;
+    }
+  }
+
+  private void installOrUpdateConfig() {
+    crdInstaller.checkUpgrade();
+    if (OperatorProperty.INSTALL_CONFIG.getBoolean()) {
+      configInstaller.installOrUpdateConfig();
     }
   }
 
