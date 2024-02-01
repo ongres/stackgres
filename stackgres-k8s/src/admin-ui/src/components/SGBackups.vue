@@ -10,7 +10,14 @@
 							<button @click="clearFilters('keyword')" class="btn clear border keyword" v-if="filters.keyword.length">CLEAR</button>
 						</div>
 
-						<router-link v-if="isCluster && iCan('create','sgbackups',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/sgbackups/new'" title="Add New Backup" class="btn addClusterBackup">Add Backup</router-link>
+						<router-link
+							v-if="isCluster && iCan('create','sgbackups',$route.params.namespace)"
+							:to="'/' + $route.params.namespace + '/sgcluster/' + $route.params.name + '/sgbackups/new'"
+							title="Add New Backup"
+							class="add addClusterBackup"
+						>
+							Create Backup
+						</router-link>
 
 						<div class="filter" :class="(filters.dateStart.length && filters.dateEnd.length) ? 'filtered' : ''">
 							<span class="toggle date">DATE RANGE <input v-model="filters.datePicker" id="datePicker" autocomplete="off" @focus="initDatePicker()" /></span>
@@ -94,6 +101,10 @@
 								<span @click="sort('data.status.process.status')" title="Status">Status</span>
 								<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.process.status')"></span>
 							</th>
+							<th class="notSortable type">
+								<span title="Backup Type">Type</span>
+								<span class="helpTooltip" data-tooltip='Indicates if the backup is either a "Base Backup" or a "Snapshot"'></span>
+							</th>							
 							<th class="desc size hasTooltip textRight">
 								<span @click="sort('data.status.backupInformation.size.uncompressed', 'memory')" title="Size (compressed)">Size</span>
 								<span class="helpTooltip" :data-tooltip="getTooltip('sgbackup.status.backupInformation.size.compressed')"></span>
@@ -157,6 +168,11 @@
 													</span>
 												</router-link>
 											</td>
+											<td class="type">
+												<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
+													{{ hasProp(back, 'data.status.volumeSnapshot') ? 'Snapshot' : 'Base Backup' }}
+												</router-link>
+											</td>
 											<td class="size hasTooltip textRight" :data-val="(back.data.status.process.status == 'Completed') ? back.data.status.backupInformation.size.uncompressed : ''">
 												<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" class="noColor">
 													<span>
@@ -190,7 +206,12 @@
 												</span>
 											</td>
 											<td class="actions">
-												<router-link :to="'/' + $route.params.namespace + (isCluster ? '/sgcluster/' + $route.params.name : '') + '/sgbackup/' + back.data.metadata.name" target="_blank" class="newTab"></router-link>
+												<template v-if="(back.data.status.process.status === 'Completed') && iCan('create','sgclusters',$route.params.namespace)">
+													<router-link :to="'/' + $route.params.namespace + '/sgclusters/new?restoreFromBackup=' + back.name + '&postgresVersion=' + back.data.status.backupInformation.postgresVersion.substring(0, 2)" title="Restore Backup" class="restoreBackup"></router-link>
+												</template>
+												<template v-else>
+													<a class="restoreBackup disabled"></a>
+												</template>
 												<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)"  :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackup/' + back.data.metadata.name + '/edit'" title="Edit Backup" class="editCRD"></router-link>
 												<a v-if="iCan('delete','sgbackups',$route.params.namespace)"  @click="deleteCRD('sgbackups',$route.params.namespace, back.data.metadata.name)" class="delete deleteCRD" title="Delete Backup"></a>
 											</td>
@@ -203,6 +224,7 @@
 											<td class="phase center Pending">
 												<span>Pending</span>
 											</td>
+											<td class="type"></td>
 											<td class="size"></td>
 											<td class="postgresVersion" v-if="!isCluster"></td>
 											<td class="name hasTooltip">
@@ -212,7 +234,7 @@
 												<span>{{ back.data.spec.sgCluster }}</span>
 											</td>
 											<td class="actions">
-												<a target="_blank" class="newTab disabled"></a>
+												<a class="restoreBackup disabled"></a>
 												<router-link v-if="iCan('patch','sgbackups',$route.params.namespace)" :to="'/' + $route.params.namespace + (isCluster ? ( '/sgcluster/' + $route.params.name ) : '' ) + '/sgbackup/' + back.data.metadata.name + '/edit'" title="Edit Backup" class="editCRD"></router-link>
 												<a v-if="iCan('delete','sgbackups',$route.params.namespace)" @click="deleteCRD('sgbackups',$route.params.namespace, back.data.metadata.name)" class="delete deleteCRD" title="Delete Backup"></a>
 											</td>

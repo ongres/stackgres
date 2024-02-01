@@ -823,9 +823,11 @@
                             >
                                 <component :is="`style`">
                                     <template v-for="(bk, index) in pitrBackups">
-                                        #apexchartsarea-datetime .apexcharts-series-markers:nth-child({{index}}) > circle {
-                                            stroke: {{ bk.isSnapshot ? '#FABE25' : '#16A085' }};
-                                        }
+                                        <template v-if="bk.isSnapshot">
+                                            #apexchartsarea-datetime .apexcharts-series-markers circle[rel="{{index}}"] {
+                                                stroke: #FABE25;
+                                            }
+                                        </template>
                                     </template>
                                 </component>
                                 <div class="apexcharts-legend">
@@ -838,88 +840,98 @@
                                         </li>
                                     </ul>
                                 </div>
-                                <apexchart 
-                                    type="line"
-                                    :key="'pitrgraph-' + pitrBackups.length"
-                                    :options="{
-                                        theme: {
-                                            mode: theme
-                                        },
-                                        chart: {
-                                            id: 'area-datetime',
-                                            type: 'area',
-                                            height: 250,
-                                            zoom: {
-                                                autoScaleYaxis: false
+                                <div class="apexcharts-container">
+                                    <apexchart 
+                                        type="line"
+                                        :key="'pitrgraph-' + pitrBackups.length"
+                                        :options="{
+                                            theme: {
+                                                mode: theme
                                             },
-                                            toolbar: {
-                                                    tools: {
-                                                    download: false,
+                                            chart: {
+                                                id: 'area-datetime',
+                                                type: 'area',
+                                                height: 250,
+                                                zoom: {
+                                                    autoScaleYaxis: false
+                                                },
+                                                toolbar: {
+                                                        tools: {
+                                                        download: false,
+                                                    }
+                                                },
+                                                events: {
+                                                    mounted: function(chartContext, config) { 
+                                                        if($route.query.hasOwnProperty('restoreFromBackup')) {
+                                                            const backupName = $route.query.restoreFromBackup;
+                                                            const backupIndex = pitrBackups.findIndex( bk => bk.name == backupName);
+                                                            chartContext.toggleDataPointSelection(0, backupIndex);
+                                                            name = 'restore-from-' + restoreBackup + '-' + (new Date().getTime());
+                                                        }
+                                                    },
+                                                    dataPointSelection: function(event, chartContext, config) {
+                                                        setPitrBackup(chartContext, config)
+                                                    }
                                                 }
                                             },
-                                            events: {
-                                                dataPointSelection: function(event, chartContext, config) {
-                                                    setPitrBackup(event, chartContext, config)
+                                            stroke: {
+                                                width: 2,
+                                                curve: 'straight',
+                                                colors: ['#36A8FF']
+                                            },
+                                            xaxis: {
+                                                type: 'datetime',
+                                                max: new Date().getTime(),
+                                                tooltip: {
+                                                    enabled: false
                                                 }
-                                            }
-                                        },
-                                        stroke: {
-                                            width: 2,
-                                            curve: 'straight',
-                                            colors: ['#36A8FF']
-                                        },
-                                        xaxis: {
-                                            type: 'datetime',
-                                            max: new Date().getTime(),
+                                            },
+                                            yaxis: {
+                                                show: false,
+                                                max: 2
+                                            },
+                                            grid: {
+                                                show: false
+                                            },
+                                            fill: {
+                                                opacity: 0,
+                                            },
+                                            markers: {
+                                                size: 5,
+                                                style: 'hollow',
+                                                colors: [ (theme == 'dark') ? '#171717': '#fff'],
+                                                hover: {
+                                                    sizeOffset: 0
+                                                }
+                                            },
+                                            annotations: pitrAnnotations,
                                             tooltip: {
-                                                enabled: false
+                                                enabled: true,
+                                                intersect: true,
+                                                shared: false,
+                                                custom: function({series, seriesIndex, dataPointIndex, w}) {
+                                                    var data = w.globals.initialSeries[seriesIndex].data[dataPointIndex];
+                                                    
+                                                    return `
+                                                        <ul>
+                                                            <li>
+                                                                <strong>Name:</strong> ${data.name}
+                                                            </li>
+                                                            <li>
+                                                                <strong>Timestamp:</strong> ${data.x}
+                                                            </li>
+                                                            <li>
+                                                                <strong>Cluster:</strong> ${data.cluster}
+                                                            </li>
+                                                        </ul>
+                                                    `;
+                                                }
                                             }
-                                        },
-                                        yaxis: {
-                                            show: false,
-                                            max: 2
-                                        },
-                                        grid: {
-                                            show: false
-                                        },
-                                        fill: {
-                                            opacity: 0,
-                                        },
-                                        markers: {
-                                            size: 5,
-                                            style: 'hollow',
-                                            colors: [ (theme == 'dark') ? '#171717': '#fff'],
-                                            hover: {
-                                                sizeOffset: 0
-                                            }
-                                        },
-                                        annotations: pitrAnnotations,
-                                        tooltip: {
-                                            enabled: true,
-                                            intersect: true,
-                                            shared: false,
-                                            custom: function({series, seriesIndex, dataPointIndex, w}) {
-                                                var data = w.globals.initialSeries[seriesIndex].data[dataPointIndex];
-                                                
-                                                return `
-                                                    <ul>
-                                                        <li>
-                                                            <strong>Name:</strong> ${data.name}
-                                                        </li>
-                                                        <li>
-                                                            <strong>Timestamp:</strong> ${data.x}
-                                                        </li>
-                                                        <li>
-                                                            <strong>Cluster:</strong> ${data.cluster}
-                                                        </li>
-                                                    </ul>
-                                                `;
-                                            }
-                                        }
-                                    }"
-                                    :series="[{ data: pitrBackups }]"
-                                >
-                                </apexchart>
+                                        }"
+                                        :series="[{ data: pitrBackups }]"
+                                    >
+                                    </apexchart>
+                                </div>
                             </template>
 
                             <fieldset class="row-50" :class="!restoreBackup.length && 'hidden'">
@@ -3622,6 +3634,31 @@
                 return nameColission
             },
 
+            pitrBackups () {
+                return store.state.sgbackups.filter( backup => ( 
+                    (backup.data.metadata.namespace == this.$route.params.namespace) && 
+                    (this.hasProp(backup, 'data.status.process.status')) && 
+                    (backup.data.status.process.status === 'Completed') && 
+                    (backup.data.status.backupInformation.postgresVersion.substring(0,2) == this.shortPostgresVersion)
+                )).map(
+                    (bk) => { 
+                        return { 
+                            x: bk.data.status.process.timing.stored,
+                            y: 1,
+                            name: bk.name,
+                            cluster: bk.data.spec.sgCluster,
+                            uid: bk.data.metadata.uid,
+                            isSnapshot: bk.data.status.hasOwnProperty('volumeSnapshot')
+                        }
+                    }
+                )
+                .sort(
+                    (a,b) => (
+                        a.x - b.x
+                    )
+                );
+            },
+
             pitrAnnotations() {
                 let xAnnotations = [
                     {
@@ -3670,10 +3707,11 @@
                 return pitr.length ? ( (store.state.timezone == 'local') ? moment.utc(pitr).local().format('YYYY-MM-DD HH:mm:ss') : moment.utc(pitr).format('YYYY-MM-DD HH:mm:ss') ) : '';
             },
 
-            setPitrBackup(event, chartContext, config) {
+            setPitrBackup(chartContext, config, fromRestore = false) {
                 if(config.dataPointIndex != -1) { // Clicking on backup
                     chartContext.removeAnnotation('pitr');
-                    if(config.dataPointIndex == this.restoreBackupIndex) {
+
+                    if(!fromRestore && (config.dataPointIndex == this.restoreBackupIndex)) {
                         this.restoreBackup = '';
                         this.restoreBackupIndex = -1;
                         this.enablePITR = false;
@@ -3995,6 +4033,7 @@
                         "timePicker": true,
                         "opens": "right",
                         "drops": "auto",
+                        "startDate": minDate,
                         "minDate": minDate,
                         "maxDate": maxDate,
                         "timePicker24Hour": true,
@@ -4187,9 +4226,23 @@
                         vc.notify(error.response.data, 'error', 'sgpoolconfigs');
                     });
                 }          
-            }
+            },
 
         },
+
+        mounted() {
+            const vc = this;
+
+            // Check if form should set initialization from a backup
+            if(vc.$route.query.hasOwnProperty('restoreFromBackup')) {
+                vc.advancedMode = true;
+                vc.formTemplate = 'custom';
+                vc.setupTemplate();
+
+                let initializationStep = vc.formSteps[vc.formTemplate].indexOf('initialization');
+                vc.currentStep = vc.formSteps[vc.formTemplate][initializationStep];
+            }
+        }
 
     }
 </script>
@@ -4234,6 +4287,15 @@
     #apexchartsarea-datetime {
         transform: translateY(-45px);
     }
+    
+    #apexchartsarea-datetime, #apexchartsarea-datetime > svg {
+        max-height: 250px;
+    }
+
+    .apexcharts-container > div {
+        max-height: 265px;
+        min-height: auto !important;
+    }
 
     #apexchartsarea-datetime:before {
         content: " ";
@@ -4253,6 +4315,7 @@
     #apexchartsarea-datetime .apexcharts-series-markers > circle {
         filter: none !important;
         cursor: pointer;
+        stroke: #16A085;
     }
 
     #apexchartsarea-datetime .apexcharts-series-markers > circle[selected="true"] {
