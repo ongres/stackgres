@@ -830,7 +830,7 @@
                                         </template>
                                     </template>
                                 </component>
-                                <div class="apexcharts-legend">
+                                <div class="pitr-legend">
                                     <ul>
                                         <li class="snapshot">
                                             Snapshot
@@ -4026,7 +4026,9 @@
                     require('daterangepicker');
 
                     $('.daterangepicker').remove();
-                    $(document).find('.datePicker').daterangepicker({
+                    let datePicker = $(document).find('.datePicker');
+                    datePicker.removeClass('ready');
+                    datePicker.daterangepicker({
                         "autoApply": false,
                         "autoUpdateInput": false,
                         "singleDatePicker": true,
@@ -4052,6 +4054,7 @@
                         vc.pitr = '';
                     });
 
+                    datePicker.addClass('ready');
                 }
             },
 
@@ -4324,13 +4327,13 @@
         opacity: 1 !important;
     }
 
-    .apexcharts-legend li.base:before {
+    .pitr-legend li.base:before {
         border-color: var(--green);
     }
-    .apexcharts-legend li.snapshot:before {
+    .pitr-legend li.snapshot:before {
         border-color: var(--yellow);
     }
-    .apexcharts-legend li:before {
+    .pitr-legend li:before {
         content: " ";
         width: 8px;
         height: 8px;
@@ -4339,11 +4342,11 @@
         display: inline-block;
         transform: translateY(1px);
     }
-    .apexcharts-legend li {
+    .pitr-legend li {
         display: inline-block;
         margin-right: 20px;
     }
-    .apexcharts-legend {
+    .pitr-legend {
         position: absolute;
     }
     
