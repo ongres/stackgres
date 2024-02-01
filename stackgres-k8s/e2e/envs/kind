@@ -325,7 +325,7 @@ EOF
       -ge "$(echo "1.22" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
   then
     kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.4/manifests/tigera-operator.yaml
-    kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.4/manifests/custom-resources.yaml
+    wait_until kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.4/manifests/custom-resources.yaml
     kubectl patch installations.operator.tigera.io default --type json \
       -p '[{"op":"replace","path":"/spec/calicoNetwork/ipPools/0/cidr","value":"'"$K8S_POD_CIDR"'"}]'
   else
