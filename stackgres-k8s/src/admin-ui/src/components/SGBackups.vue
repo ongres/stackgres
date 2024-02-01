@@ -61,14 +61,12 @@
 
 								<li v-if="!isCluster">
 									<span>Postgres Version</span>
-									<label for="pg11">
-										<input v-model="filters.postgresVersion" data-filter="postgresVersion" type="checkbox" class="xCheckbox" id="pg11" name="pg11" value="11"/>
-										<span>11</span>
-									</label>
-									<label for="pg12">
-										<input v-model="filters.postgresVersion" data-filter="postgresVersion" type="checkbox" class="xCheckbox" id="pg12" name="pg12" value="12"/>
-										<span>12</span>
-									</label>
+									<template v-for="version in postgresVersionsList">
+										<label :for="'pg' + version" :key="'pgVersion-' + version">
+											<input v-model="filters.postgresVersion" data-filter="postgresVersion" type="checkbox" class="xCheckbox" :id="'pg' + version" :name="'pg' + version" :value="version"/>
+											<span>{{ version }}</span>
+										</label>
+									</template>
 								</li>
 								<li v-if="!isCluster">
 									<span>Cluster</span>
@@ -387,6 +385,10 @@
 
 			crd () {
 				return store.state.sgbackups.find(b => (b.data.metadata.namespace == this.$route.params.namespace) && (b.data.metadata.name == this.$route.params.backupname))
+			},
+
+			postgresVersionsList() {
+				return Object.keys(store.state.postgresVersions.vanilla)
 			}
 
 		},
