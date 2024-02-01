@@ -188,7 +188,6 @@
                                         </router-link>
                                     </td>
                                     <td class="actions textRight">
-                                        <router-link :to="'/' + $route.params.namespace + '/sgdbop/' + op.data.metadata.name" target="_blank" class="newTab"></router-link>
                                         <a class="delete deleteCRD" title="Delete Operation" @click="deleteCRD('sgdbops',$route.params.namespace, op.name)"></a>
                                     </td>
                                 </tr>
