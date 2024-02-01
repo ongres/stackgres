@@ -89,7 +89,6 @@
 										</router-link>
 									</td>
 									<td class="actions">
-										<router-link :to="'/' + $route.params.namespace + '/sgshardedcluster/' + cluster.name" target="_blank" class="newTab"></router-link>
 										<router-link v-if="iCan('patch','sgshardedclusters',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgshardedcluster/' + cluster.name + '/edit'" title="Edit Cluster" class="editCRD"></router-link>
 										<a v-if="iCan('create','sgshardedclusters',$route.params.namespace)" @click="cloneCRD('SGShardedClusters', $route.params.namespace, cluster.name)" class="cloneCRD" title="Clone Cluster"></a>
 										<a v-if="iCan('delete','sgshardedclusters',$route.params.namespace)" @click="deleteCRD('sgshardedclusters', $route.params.namespace, cluster.name)" title="Delete Cluster" class="deleteCRD"></a>
@@ -159,12 +158,6 @@
 
 	td.clusterName > div + span {
 		width: calc(100% - 45px);
-	}
-
-	th.actions, td.actions {
-		width: 120px !important;
-		min-width: 120px;
-		max-width: 120px !important;
 	}
 
 	a.cloneCRD svg {

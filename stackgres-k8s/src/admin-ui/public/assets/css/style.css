@@ -3170,9 +3170,9 @@ table.resizable th[data-type="version"] {
 
 th.actions, td.actions {
     text-align: right;
-    width: 120px !important;
-    min-width: 120px;
-    max-width: 120px;
+    width: 95px !important;
+    min-width: 95px;
+    max-width: 95px;
     padding: 0 10px;
     text-transform: uppercase;
 }
