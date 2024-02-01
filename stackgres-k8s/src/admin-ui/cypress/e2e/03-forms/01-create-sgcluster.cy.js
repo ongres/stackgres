@@ -1036,7 +1036,7 @@ describe('Create SGCluster', () => {
         cy.get('input[data-field="spec.postgresServices.replicas.customPorts[0].port"]')
             .clear()
             .type('1234')
-
+    
         cy.get('select[data-field="spec.postgresServices.replicas.customPorts[0].protocol"]')
             .select('UDP')
         
@@ -2572,39 +2572,49 @@ describe('Create SGCluster', () => {
 
     }); 
 
-    it('Make sure script source always matches its parent script', () => {
-        // Choose custom wizard
-        cy.get('[data-field="formTemplate.custom"]')
-            .click()
+    it('Restore cluster from an SGBackup', () => {
+        cy.visit(namespace + '/sgclusters/new?restoreFromBackup=ui-0&postgresVersion=' + Cypress.env('postgres_version'))
 
-        // Enable advanced options
-        cy.get('form#createCluster input#advancedMode')
-            .click()
+        // Advanced mode should be enabled
+        cy.get('input#advancedMode')
+            .should('be.checked')
+
+        // Form should start at Initialization step
+        cy.get('li[data-step="initialization"]')
+            .should('have.class', 'active')
+
+        // Backup selection graph should be visible
+        cy.get('#apexchartsarea-datetime')
+            .should('be.visible')
+
+        // Backup "ui-0" should be selected in the graph
+        cy.get('.apexcharts-series-markers circle[selected="true"]')
+            .should('be.visible')
+
+        // Initialization should be "ui-0"
+        cy.get('input[data-field="spec.initialData.restore.fromBackup"]')
+            .should('be.visible')
+            .should('have.value', 'ui-0')
+            .should('be.disabled')
+
+        // PITR input should be available
+        cy.get('input[data-field="spec.initialData.restore.fromBackup.pointInTimeRecovery.restoreToTimestamp"]')
+            .should('be.visible')
+            .should('be.enabled')
+            .should('have.value', '')
+            .should('have.class', 'ready')
         
-        // Tests script source on script repeaters
-        cy.get('form#createCluster li[data-step="scripts"]')
-            .click()
-        
-        cy.get('.scriptFieldset > div.fieldsetFooter > a.addRow')
-            .click()
-            
-        cy.get('select[data-field="spec.managedSql.scripts.scriptSource[0]"]')
-            .select('script-' + resourceName)
-
-        // Add new Script
-        cy.get('.scriptFieldset > div.fieldsetFooter > a.addRow')
+        // Cluster name should have a default value
+        cy.get('li[data-step="cluster"]')
             .click()
 
-        cy.get('select[data-field="spec.managedSql.scripts.scriptSource[1]"]')
-            .select('createNewScript')
+        cy.get('input[data-field="metadata.name"]')
+            .invoke('val').should('contain', 'restore-from-ui-0-')
 
-        // Remove first script
-        cy.get('.scriptFieldset > fieldset[data-field="spec.managedSql.scripts[0]"] a.delete')
-            .click()
+        // Postgres version should match that of backup's
+        cy.get('ul#postgresVersion li.selected')
+            .invoke('text').should('contain', 'Postgres ' + Cypress.env('postgres_version'))
 
-        // Validate script source has the right value
-        cy.get('select[data-field="spec.managedSql.scripts.scriptSource[0]"]')
-            .should('have.value', 'createNewScript')
     });
 
 })
