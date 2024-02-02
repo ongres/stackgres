@@ -524,55 +524,82 @@
                         <li class="extension notFound">
                             {{ searchExtension.length ? 'No extensions match your search terms...' : 'No extensions available for the postgres specs you selected...' }}
                         </li>
-                        <li v-for="(ext, index) in extensionsList[flavor][postgresVersion]" 
-                            v-if="( ( (extLicense == 'opensource') && (ext.name != 'timescaledb_tsl') ) || ( (extLicense == 'nonopensource') && (ext.name == 'timescaledb_tsl') ) ) && (!searchExtension.length || (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)) && ext.versions.length" 
-                            class="extension" 
-                            :class="( (viewExtension == index) && 'show')">
-                            <label><input type="checkbox" class="plain enableExtension" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)" :disabled="!ext.versions.length || !ext.selectedVersion.length" :data-field="'spec.postgres.extensions.' + ext.name" /></label>
-                            <span class="extInfo" @click.stop.prevent="viewExt(index)">
-                                <span class="hasTooltip extName">
-                                    <span class="name">
-                                        <span>{{ ext.name }}</span>
-                                        <a v-if="ext.hasOwnProperty('url') && ext.url" :href="ext.url" class="newTab" target="_blank"></a>
+                        <template v-for="(ext, index) in extensionsList[flavor][postgresVersion]" >
+                            <li 
+                                :key="'extension-' + index"
+                                v-if="
+                                    ( 
+                                        ( (extLicense == 'opensource') && (ext.name != 'timescaledb_tsl') ) ||
+                                        ( (extLicense == 'nonopensource') && (ext.name == 'timescaledb_tsl') ) 
+                                    ) &&
+                                    (
+                                        !searchExtension.length ||
+                                        (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)
+                                    ) && 
+                                    ext.versions.length
+                                " 
+                                class="extension" 
+                                :class="( (viewExtension == index) && 'show')"
+                            >
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        class="plain enableExtension"
+                                        @change="setExtension(index)"
+                                        :checked="(extIsSet(ext.name) !== -1)"
+                                        :disabled="!ext.versions.length || !ext.selectedVersion.length"
+                                        :data-field="'spec.postgres.extensions.' + ext.name"
+                                    />
+                                </label>
+                                <span class="extInfo">
+                                    <span class="hasTooltip extName" @click.stop.prevent="viewExt(index)">
+                                        <span class="name">
+                                            <span>{{ ext.name }}</span>
+                                            <a v-if="ext.hasOwnProperty('url') && ext.url" :href="ext.url" class="newTab" target="_blank"></a>
+                                        </span>
                                     </span>
-                                </span>
-                                <span class="version">
-                                    <select v-model="ext.selectedVersion" class="extVersion" @change="updateExtVersion(ext.name, ext.selectedVersion)">
-                                        <option v-if="!ext.versions.length" selected>Not available for this postgres version</option>
-                                        <option v-else value="">Select version...</option>
-                                        <option v-for="v in ext.versions">{{ v }}</option>
-                                    </select>
-                                </span>
-                                <span class="hasTooltip">
-                                    <span class="description firstLetter">
-                                        <span>{{ ext.abstract }}</span>
+                                    <span class="version">
+                                        <select v-model="ext.selectedVersion" class="extVersion" @change="updateExtVersion(ext.name, ext.selectedVersion)">
+                                            <option v-if="!ext.versions.length" selected>Not available for this postgres version</option>
+                                            <option v-else value="">Select version...</option>
+                                            <option v-for="v in ext.versions">{{ v }}</option>
+                                        </select>
                                     </span>
+                                    <span class="hasTooltip" @click.stop.prevent="viewExt(index)">
+                                        <span class="description firstLetter">
+                                            <span>{{ ext.abstract }}</span>
+                                        </span>
+                                    </span>
+                                    <button
+                                        type="button"
+                                        class="textBtn anchor toggleExt"
+                                        @click.stop.prevent="viewExt(index)"
+                                    ></button>
                                 </span>
-                                <button type="button" class="textBtn anchor toggleExt">-</button>
-                            </span>
 
-                            <div v-if="(viewExtension == index)" class="extDetails">
-                                <div class="header">
-                                    <h3>{{ ext.name }}</h3>
-                                </div>
-                                <div class="description">
-                                    {{ ext.description }}
-                                </div>
-                                <div class="header">
-                                    <h3>Tags</h3>
-                                </div>
-                                <div class="tags" v-if="ext.tags.length">
-                                    <span v-for="tag in ext.tags" class="extTag">
-                                        {{ tag }}
-                                    </span>
-                                </div>
+                                <div v-if="(viewExtension == index)" class="extDetails">
+                                    <div class="header">
+                                        <h3>{{ ext.name }}</h3>
+                                    </div>
+                                    <div class="description">
+                                        {{ ext.description }}
+                                    </div>
+                                    <div class="header">
+                                        <h3>Tags</h3>
+                                    </div>
+                                    <div class="tags" v-if="ext.tags.length">
+                                        <span v-for="tag in ext.tags" class="extTag">
+                                            {{ tag }}
+                                        </span>
+                                    </div>
 
-                                <div class="header">
-                                    <h3>Source:</h3>
+                                    <div class="header">
+                                        <h3>Source:</h3>
+                                    </div>
+                                    <a :href="ext.source" target="_blank">{{ ext.source }}</a>
                                 </div>
-                                <a :href="ext.source" target="_blank">{{ ext.source }}</a>
-                            </div>
-                        </li>
+                            </li>
+                        </template>
                     </ul>
                 </div>
                 <div id="nameTooltip">
