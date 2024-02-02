@@ -22,18 +22,23 @@
             >
                 <br/><br/>
                 <p>
-                    To create your cluster easily, you can choose a template from our predefined express setups or select "Custom" for personalized and advanced settings.
+                    To create your cluster easily, you can choose a template from our predefined express setups or select <strong>"Custom"</strong> for personalized and advanced settings.
                 </p>
                 <br/><br/>
 
                 <div class="optionBoxes withLogos">
-                    <label for="basicWizard" data-field="formTemplate.basic" :class="( (formTemplate == 'basic') && 'active' )" tabindex="0">
+                    <label for="minimalWizard" data-field="formTemplate.minimal" :class="( (formTemplate == 'minimal') && 'active' )" tabindex="0">
                         <svg xmlns="http://www.w3.org/2000/svg" width="39.999" height="40"><g fill="#36a8ff" transform="translate(17620 11563)"><rect width="10.37" height="26.667" rx="2" transform="translate(-17620 -11549.667)"/><rect width="10.37" height="32.593" opacity=".25" rx="2" transform="translate(-17605.186 -11555.593)"/><rect width="10.37" height="40" opacity=".25" rx="2" transform="translate(-17590.371 -11563)"/></g></svg>
+                        Minimal
+                        <input type="radio" name="flavor" v-model="formTemplate" value="minimal" id="minimalWizard" @change="setupTemplate()">
+                    </label>
+                    <label for="basicWizard" data-field="formTemplate.basic" :class="( (formTemplate == 'basic') && 'active' )" tabindex="0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="39.999" height="40"><g fill="#36a8ff" transform="translate(17620 11563)"><rect width="10.37" height="26.667" rx="2" transform="translate(-17620 -11549.667)"/><rect width="10.37" height="32.593" rx="2" transform="translate(-17605.186 -11555.593)"/><rect width="10.37" height="40" opacity=".25" rx="2" transform="translate(-17590.371 -11563)"/></g></svg>
                         Basic
                         <input type="radio" name="flavor" v-model="formTemplate" value="basic" id="basicWizard" @change="setupTemplate()">
                     </label>
                     <label for="fullWizard" data-field="formTemplate.full" :class="( (formTemplate == 'full') && 'active' )">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="39.999" height="40"><g fill="#36a8ff" transform="translate(17620 11563)"><rect width="10.37" height="26.667" rx="2" transform="translate(-17620 -11549.667)"/><rect width="10.37" height="32.593" rx="2" transform="translate(-17605.186 -11555.593)"/><rect width="10.37" height="40" opacity=".25" rx="2" transform="translate(-17590.371 -11563)"/></g></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="39.999" height="40"><g fill="#36a8ff" transform="translate(17620 11563)"><rect width="10.37" height="26.667" rx="2" transform="translate(-17620 -11549.667)"/><rect width="10.37" height="32.593" rx="2" transform="translate(-17605.186 -11555.593)"/><rect width="10.37" height="40" rx="2" transform="translate(-17590.371 -11563)"/></g></svg>
                         Full
                         <input type="radio" name="flavor" v-model="formTemplate" value="full" id="fullWizard" @change="setupTemplate()">
                     </label>
@@ -42,9 +47,35 @@
                         Custom
                         <input type="radio" name="flavor" v-model="formTemplate" value="custom" id="customWizard" @change="setupTemplate()">
                     </label>
+                    <span class="helpTooltip" :data-tooltip="`Express templates provide predefined specs to suit most needs:
+                                \n* **Minimal:** includes basic features, ideal for development or testing purposes on minimal environments
+                                    \n  * **Cluster Profile:** Development
+                                    \n  * **Instance Profile:** Cores: 1, RAM: 2GiB
+                                    \n  * **Volume Size:** 1GiB
+                                    \n  * **Connection Pooling:** Disabled
+                                    \n  * **Postgres Extensions:** Not available
+                                \n* **Basic:** includes the most standard features and some customizable specs, ideal for testing purposes
+                                    \n  * **Cluster Profile:** Testing (customizable)
+                                    \n  * **Instance Profile:** Cores: 1, RAM: 2GiB (customizable)
+                                    \n  * **Volume Size:** 1GiB
+                                    \n  * **Distributed Logs:** Enabled
+                                    \n  * **Connection Pooling:** Enabled
+                                    \n  * **Postgres Extensions:** Available
+                                \n* **Full:** packed with fully customizable standard features, ideal for testing or production purposes
+                                    \n  * **Cluster Profile:** Production (customizable)
+                                    \n  * **Instance Profile:** Cores: 1, RAM: 2GiB (customizable)
+                                    \n  * **Volume Size:** 1Gib (customizable)
+                                    \n  * **Distributed Logs:** Enabled (customizable)
+                                    \n  * **Postgres Extensions:** Available
+                                    \n  * **Postgres Configuration:** Customizable
+                                    \n  * **Connection Pooling:** Enabled
+                                    \n  * **Connection Pooling Configuration:** Customizable
+                                \n* **Custom:** fully customizable cluster creation packed with every feature available. Includes both, basic and advanced specs, ideal for development, testing or production environments.
+                        `
+                    "></span>
                 </div>
             </div>
-            <div class="stepsContainer" v-if="!isNull(formTemplate)">
+            <div class="stepsContainer" v-if="!isNull(formTemplate) && (formTemplate !== 'minimal')">
                 <ul class="steps">
                     <button type="button" class="btn arrow prev" @click="currentStep = formSteps[formTemplate][(currentStepIndex - 1)]" :disabled="( currentStepIndex == 0 )"></button>
             
@@ -62,7 +93,7 @@
 
             <template v-if="formTemplate !== 'custom'">
                 <fieldset class="step" :class="(currentStep == 'information') && 'active'" data-fieldset="information">
-                    <div class="header">
+                    <div class="header" v-if="formTemplate !== 'minimal'">
                         <h2>Cluster Information</h2>
                     </div>
 
@@ -78,7 +109,7 @@
                                 </span>
                             </div>
 
-                            <div class="col">
+                            <div class="col" v-if="formTemplate !== 'minimal'">
                                 <label for="spec.profile">Profile</label>
                                 <select v-model="profile" data-field="spec.profile" class="capitalize">
                                     <option v-for="profile in clusterProfiles">{{ profile }}</option>
@@ -97,7 +128,7 @@
                                 <input type="number" v-model="instances" required data-field="spec.instances" min="0">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.instances')"></span>
                             </div>
-                            <div class="col">
+                            <div class="col" v-if="formTemplate !== 'minimal'">
                                 <label for="spec.sgInstanceProfile">Instance Profile</label>  
                                 <select v-model="resourceProfile" class="resourceProfile" data-field="spec.sgInstanceProfile" @change="(resourceProfile == 'createNewResource') && createNewResource('sginstanceprofiles')" :set="( (resourceProfile == 'createNewResource') && (resourceProfile = '') )">
                                     <option selected value="">Default (Cores: 1, RAM: 2GiB)</option>
@@ -148,6 +179,27 @@
 
                         <template v-if="formTemplate === 'full'">
                             <hr style="margin-top: -15px;" />
+
+                            
+                            <div class="row-50">
+                                <h3>Pods Storage</h3>
+
+                                <div class="col">
+                                    <div class="unit-select">
+                                        <label for="spec.pods.persistentVolume.size">Volume Size <span class="req">*</span></label>  
+                                        <input v-model="volumeSize" class="size" required data-field="spec.pods.persistentVolume.size" type="number">
+                                        <select v-model="volumeUnit" class="unit" required data-field="spec.pods.persistentVolume.size" >
+                                            <option disabled value="">Select Unit</option>
+                                            <option value="Mi">MiB</option>
+                                            <option value="Gi">GiB</option>
+                                            <option value="Ti">TiB</option>   
+                                        </select>
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.size')"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr/>
                         
                             <div class="row-50">
                                 <h3>Sidecars</h3>
@@ -3401,6 +3453,7 @@
             return {
                 formTemplate: (vc.$route.name === 'EditCluster') ? 'custom' : null,
                 formSteps: {
+                    minimal: ['information'],
                     basic: ['information', 'extensions'],
                     full: ['information', 'extensions', 'configurations'],
                     custom: ['cluster', 'extensions', 'backups', 'initialization', 'replicate-from', 'scripts', 'sidecars', 'pods-replication', 'services', 'metadata', 'scheduling', 'non-production']
@@ -4129,6 +4182,7 @@
                 if(reset) { // Reset template specs
                     vc.formTemplate = null;
                     vc.currentStep = null;
+                    vc.profile = 'production';
                     vc.pgConfig = null;
                     vc.connectionPoolingConfig = null;
                     vc.enableDistributedLogs = false;
@@ -4139,7 +4193,18 @@
                 } else { // Set template-based specs
                     vc.currentStep = vc.formSteps[vc.formTemplate][0];
 
-                    if (vc.formTemplate !== 'custom') {
+                    switch(vc.formTemplate) {
+                        case 'minimal':
+                            vc.connPooling = false;
+                            vc.profile = 'development';
+                            break;
+
+                        case 'basic':
+                            vc.profile = 'testing';
+                            break;
+                    }
+
+                    if (!['minimal','custom'].includes(vc.formTemplate)) {
                         vc.enableMonitoring = true;
                         vc.prometheusAutobind = true;
                         vc.metricsExporter = true;
