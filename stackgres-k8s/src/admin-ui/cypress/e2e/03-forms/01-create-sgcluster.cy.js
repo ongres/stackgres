@@ -1182,6 +1182,12 @@ describe('Create SGCluster', () => {
 
         cy.get('select[data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity"]')
             .select('Disable')
+        
+        cy.get('select[data-field="spec.nonProductionOptions.disablePatroniResourceRequirements"]')
+            .select('Disable')
+        
+        cy.get('select[data-field="spec.nonProductionOptions.disableClusterResourceRequirements"]')
+            .select('Disable')
 
         // Setup get and put mock to check resource is not found and all fields are correctly set
         cy.intercept('GET', '/stackgres/namespaces/' + namespace + '/sgclusters/advanced-' + resourceName)
@@ -1429,6 +1435,12 @@ describe('Create SGCluster', () => {
             .and('nested.include', {"nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight": '10'})
         cy.get('@postCluster')
             .its('request.body.spec.nonProductionOptions.disableClusterPodAntiAffinity')
+            .should('eq', true)
+        cy.get('@postCluster')
+            .its('request.body.spec.nonProductionOptions.disablePatroniResourceRequirements')
+            .should('eq', true)
+        cy.get('@postCluster')
+            .its('request.body.spec.nonProductionOptions.disableClusterResourceRequirements')
             .should('eq', true)
     });
 
@@ -2229,6 +2241,14 @@ describe('Create SGCluster', () => {
             .should('have.value', 'true')    
             .select('Enable')
 
+        cy.get('select[data-field="spec.nonProductionOptions.disablePatroniResourceRequirements"]')
+            .should('have.value', 'true')    
+            .select('Enable')
+
+        cy.get('select[data-field="spec.nonProductionOptions.disableClusterResourceRequirements"]')
+            .should('have.value', 'true')    
+            .select('Enable')
+
         // Setup get and put mock to check resource is not found and all fields are correctly set
         cy.intercept('GET', '/stackgres/namespaces/' + namespace + '/sgclusters/advanced-' + resourceName,
             (req) => {
@@ -2490,6 +2510,12 @@ describe('Create SGCluster', () => {
             .and('nested.include', {"nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution[0].weight": '20'})
         cy.get('@putCluster')
             .its('request.body.spec.nonProductionOptions.disableClusterPodAntiAffinity')
+            .should('eq', false)
+        cy.get('@putCluster')
+            .its('request.body.spec.nonProductionOptions.disablePatroniResourceRequirements')
+            .should('eq', false)
+        cy.get('@putCluster')
+            .its('request.body.spec.nonProductionOptions.disableClusterResourceRequirements')
             .should('eq', false)
     }); 
 
