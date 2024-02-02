@@ -72,7 +72,7 @@
 
 			return {
 				dashboard: {
-					name: this.$route.params.hasOwnProperty('dashboard') ? this.$route.params.dashboard : 'current-activity',
+					name: this.$route.params.hasOwnProperty('dashboard') ? this.$route.params.dashboard : 'db-info',
 					url: ''
 				},
 				timeRange: this.$route.params.hasOwnProperty('range') ? this.$route.params.range : '',
@@ -141,7 +141,7 @@
 							if(vc.$route.params.hasOwnProperty('dashboard') && (typeof vc.dashboardsList.find( d => d.name == vc.$route.params.dashboard) === 'undefined')) {
 								vc.notify('The dashboard specified in the URL could not be found, you\'ve been redirected to the default dashboard (Current Activity)', 'message', 'sgshardedclusters');
 								vc.dashboard = {
-									name: 'current-activity',
+									name: 'db-info',
 									url: ''
 								};
 								vc.goTo(vc.dashboardUrl);
@@ -189,7 +189,7 @@
 				if(vc.$route.params.hasOwnProperty('dashboard')) {
 					vc.dashboard = store.state.dashboardsList.find( d => d.name == vc.$route.params.dashboard);
 				} else {
-					let defaultDashboard = store.state.dashboardsList.find( d => d.name == 'current-activity');
+					let defaultDashboard = store.state.dashboardsList.find( d => d.name == 'db-info');
 					vc.dashboard = (typeof defaultDashboard !== 'undefined') ? defaultDashboard : store.state.dashboardsList[0];
 				}
 
