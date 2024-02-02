@@ -87,6 +87,8 @@ describe('Create SGCluster', () => {
     after( () => {
         cy.login()
 
+        cy.deleteCluster(namespace, 'minimal-' + resourceName);
+        
         cy.deleteCluster(namespace, 'basic-' + resourceName);
 
         cy.deleteCluster(namespace, 'babelfish-' + resourceName);
@@ -101,12 +103,70 @@ describe('Create SGCluster', () => {
                 namespace: namespace
             }
         });
+
+        cy.deleteCRD('sgscripts', {
+            metadata: {
+                name: 'script-' + resourceName,
+                namespace: namespace
+            }
+        });
     });
 
     it('Create SGCluster form should be visible', () => {
         cy.get('form#createCluster')
             .should('be.visible')
-    });  
+    });
+
+    it('Creating a minimal SGCluster should be possible', () => {
+        // Choose minimal wizard
+        cy.get('[data-field="formTemplate.minimal"]')
+            .click()
+
+        // Test Cluster Name
+        cy.get('[data-field="metadata.name"]')
+            .type('minimal-' + resourceName)
+
+        // Setup get and put mock to check resource is not found and all fields are correctly set
+        cy.intercept('GET', '/stackgres/namespaces/' + namespace + '/sgclusters/minimal-' + resourceName)
+            .as('getCluster')
+        cy.intercept('POST', '/stackgres/sgclusters')
+            .as('postCluster')
+
+        // Test Submit form
+        cy.get('form#createCluster button[type="submit"]')
+            .click()
+        
+        cy.get('#notifications .message.show .title')
+            .should(($notification) => {
+                expect($notification).contain('Cluster "minimal-' + resourceName + '" created successfully')
+            })
+
+        cy.location('pathname').should('eq', '/admin/' + namespace + '/sgclusters')
+
+        // Test data sent to API
+        cy.wait('@getCluster')
+            .its('response.statusCode')
+            .should('eq', 404)
+        cy.wait('@postCluster')
+            .its('response.statusCode')
+            .should('eq', 200)
+        cy.get('@postCluster')
+            .its('request.body.spec.instances')
+            .should('eq', 1)
+        cy.get('@postCluster')
+            .its('request.body.spec.profile')
+            .should('eq', "development")
+        cy.get('@postCluster')
+            .its('request.body.spec.pods.persistentVolume.size')
+            .should('eq', "1Gi")
+        cy.get('@postCluster')
+            .its('request.body.spec.postgres')
+            .should('nested.include', {"flavor": "vanilla"})
+            .and('nested.include', {"version": "latest"})
+        cy.get('@postCluster')
+            .its('request.body.spec.pods.disableConnectionPooling')
+            .should('eq', true)
+    });
 
     it('Creating a basic SGCluster should be possible', () => {
         // Choose basic wizard
@@ -146,7 +206,7 @@ describe('Create SGCluster', () => {
             .should('eq', 1)
         cy.get('@postCluster')
             .its('request.body.spec.profile')
-            .should('eq', "production")
+            .should('eq', "testing")
         cy.get('@postCluster')
             .its('request.body.spec.pods.persistentVolume.size')
             .should('eq', "1Gi")
