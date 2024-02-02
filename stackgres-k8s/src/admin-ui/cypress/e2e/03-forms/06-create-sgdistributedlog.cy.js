@@ -189,6 +189,12 @@ describe('Create SGDistributedLog', () => {
 
         cy.get('select[data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity"]')
             .select('Disable')
+        
+        cy.get('select[data-field="spec.nonProductionOptions.disablePatroniResourceRequirements"]')
+            .select('Disable')
+        
+        cy.get('select[data-field="spec.nonProductionOptions.disableClusterResourceRequirements"]')
+            .select('Disable')
 
         // Test Submit form
         cy.get('form#createLogsServer button[type="submit"]')
