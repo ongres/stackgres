@@ -94,13 +94,14 @@ ul.extensionsList {
 
 .extension > label {
     cursor: pointer;
-    width: 68px;
+    width: 50px;
     display: inline-block;
+    text-align: center;
 }
 
 .extInfo {
     cursor: pointer;
-    width: calc(100% - 68px);
+    width: calc(100% - 50px);
     display: inline-block;
 }
 
