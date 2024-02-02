@@ -366,6 +366,12 @@ describe('Create SGShardedCluster', () => {
 
         cy.get('select[data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity"]')
             .select('Disable')
+
+        cy.get('select[data-field="spec.nonProductionOptions.disablePatroniResourceRequirements"]')
+            .select('Disable')
+        
+        cy.get('select[data-field="spec.nonProductionOptions.disableClusterResourceRequirements"]')
+            .select('Disable')
         
         // Coordinator section
         cy.get('form#createShardedCluster li.coordinator')
@@ -2191,6 +2197,12 @@ describe('Create SGShardedCluster', () => {
             .its('request.body.spec.nonProductionOptions.disableClusterPodAntiAffinity')
             .should('eq', true)
         cy.get('@postCluster')
+            .its('request.body.spec.nonProductionOptions.disablePatroniResourceRequirements')
+            .should('eq', true)
+        cy.get('@postCluster')
+            .its('request.body.spec.nonProductionOptions.disableClusterResourceRequirements')
+            .should('eq', true)
+        cy.get('@postCluster')
             .its('request.body.spec.coordinator.instances')
             .should('eq', "4")
         cy.get('@postCluster')
@@ -2800,6 +2812,14 @@ describe('Create SGShardedCluster', () => {
             .click()
 
         cy.get('select[data-field="spec.nonProductionOptions.disableClusterPodAntiAffinity"]')
+            .should('have.value', 'true')    
+            .select('Enable')
+        
+        cy.get('select[data-field="spec.nonProductionOptions.disablePatroniResourceRequirements"]')
+            .should('have.value', 'true')    
+            .select('Enable')
+
+        cy.get('select[data-field="spec.nonProductionOptions.disableClusterResourceRequirements"]')
             .should('have.value', 'true')    
             .select('Enable')
         
@@ -4109,6 +4129,12 @@ describe('Create SGShardedCluster', () => {
             .and('nested.include', {"annotations.replicasService.annotation1": 'value1'})
         cy.get('@putCluster')
             .its('request.body.spec.nonProductionOptions.disableClusterPodAntiAffinity')
+            .should('eq', false)
+        cy.get('@putCluster')
+            .its('request.body.spec.nonProductionOptions.disablePatroniResourceRequirements')
+            .should('eq', false)
+        cy.get('@putCluster')
+            .its('request.body.spec.nonProductionOptions.disableClusterResourceRequirements')
             .should('eq', false)
         cy.get('@putCluster')
             .its('request.body.spec.coordinator.instances')
