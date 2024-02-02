@@ -40,14 +40,14 @@ input[type="radio"]:checked {
     background: var(--blue);
 }
 
-#keyword {
+.searchBar.extensions #keyword {
     width: 100%;
     max-width: 100%;
     height: 38px;
     font-size: 100%;
 }
 
-.searchBar {
+.searchBar.extensions {
     position: relative;
     display: block;
     width: 70%;
