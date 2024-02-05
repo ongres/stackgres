@@ -358,7 +358,8 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     return pods.stream()
         .filter(pod -> isNonDisruptable(context, pod))
         .filter(this::hasRoleLabel)
-        .filter(pod -> getPodIndex(pod) != latestPrimaryIndexFromPatroni)
+        .filter(pod -> getPodIndex(pod) + 1 < replicas
+            || getPodIndex(pod) != latestPrimaryIndexFromPatroni)
         .filter(pod -> getPodIndex(pod) < replicas)
         .map(pod -> fixNonDisruptablePod(context, pod))
         .toList();
