@@ -69,7 +69,7 @@ EOF
 
      Now we can push `release-${VERSION}` branch and wait for the pipeline to complete:
     ```
-    git push origin "release-${VERSION}" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true"
+    git push origin "release-${VERSION}" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true" -o ci.variable="DO_RELEASE_IMAGE=true"
     ```
 
 1. [ ] Perform preflight for operator images (make each of them pass pass the index health check by opening each image project):
@@ -121,7 +121,7 @@ EOF
     > git checkout -b "fix-bundle-${VERSION}"
     > git add .
     > git commit -m "fix: operator bundle deployment"
-    > git push origin "fix-bundle-${VERSION}" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true"
+    > git push origin "fix-bundle-${VERSION}" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true" -o ci.variable="DO_RELEASE_IMAGE=true"
     > ```
     > 
     > Repeat the PR creation step above.
@@ -141,7 +141,7 @@ EOF
     > git checkout -b "fix-bundle-${VERSION}"
     > git add .
     > git commit -m "fix: operator bundle deployment"
-    > git push origin "fix-bundle-${VERSION}" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true"
+    > git push origin "fix-bundle-${VERSION}" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true" -o ci.variable="DO_RELEASE_IMAGE=true"
     > ```
     > 
     > Repeat the PR creation step above.
@@ -161,7 +161,7 @@ EOF
     > git checkout -b "fix-bundle-${VERSION}"
     > git add .
     > git commit -m "fix: operator bundle deployment"
-    > git push origin "fix-bundle-${VERSION}" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true"
+    > git push origin "fix-bundle-${VERSION}" -o ci.variable="DO_IMAGES=true" -o ci.variable="DO_NATIVE=true" -o ci.variable="DO_ARM=true" -o ci.variable="DO_RELEASE_IMAGE=true"
     > ```
     > 
     > Repeat the PR creation step above.
@@ -365,7 +365,6 @@ Nothing new here! :eyes:
 
 ## :construction: KNOWN ISSUES
 
-* Major version upgrade fails if some extensions version are not available for the target Postgres version ([#1368](https://gitlab.com/ongresinc/stackgres/-/issues/1368)) 
 * Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
 
 ## :up: UPGRADE

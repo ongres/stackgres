@@ -1,3 +1,99 @@
+# :rocket: Release 1.8.0 (2024-02-05)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.8.0 has landed!  :confetti_ball: :champagne: :rocket: 
+
+We introduced 2 new sharding technologies to our SGShardedCluster:
+
+* [Apache ShardingSphere](https://shardingsphere.apache.org/) (requires installation of the [ShardingSphere operator](https://shardingsphere.apache.org/oncloud/))
+* DDP, an in-house sharding technology based on Postgres partitioning functionality and Postgres Foreign Data Wrapper extension.
+
+This release include also some improvements and bug fixes for SGBackup.
+
+So, what you are waiting for to try this release and have a look to the future of StackGres! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Added support for DDP as a sharding technology based on FDW
+* Added support for ShardingSphere as a sharding technology
+* Added securityUpgrade to SGShardedDbOps
+* Allow to set secretref as source for the admin credentials
+* Add can-i for SGConfig in REST API
+* Validate SGInstanceProfile resources are not negative
+* Changed default initdb auth host to scram-sha-256 and configurable via password_encryption
+* Added timeouts to backups and improved logging and errors
+* Allow operator bootstrap to be retried
+
+## Web Console
+
+* Support spec.profile for sgdistributedlogs
+* Support spec.profile for sgshardedclusters
+* Support K8s snapshots for SGCluster backups configuration
+* Support K8s snapshots for SGShardedCluster backups configuration
+* Support volumeSnapshot spec for SGBackups
+* Graphic PITR selection feature on sgclusters creation form
+
+## :bug: FIXES
+
+* REST API ServiceAccount can not be deleted since owned by OLM
+* Workaround for operator bundle upgrade where service account stackgres-restapi is being deleted somehow
+* Skip SGConfig reconciliation when lock is updated
+* Operator reconcile Web Console nginx ConfigMap in an endless loop when webCertName is set
+* SGBackup is marked as Completed when the backupInformation is not set
+* Relocate binaries fail when cp is interrupted while copying files
+* Postgres exporter uses hardcoded username
+* Connections panel GAUGE bar not working as expected
+
+## Web Console
+
+* Pod selector not working on cluster monitoring tab
+* Replace pod ip with pod's name on sgcluster monitoring url
+* Include dashboard selection dropdown on sgshardecluster monitoring tab
+* Adjust sidebar namespace selector behavior
+* Make sure only one sidebar crd submenu is open at a time
+* Add default state to disableclusterpodantiaffinity field on distributed logs form
+* Add default state to disableclusterpodantiaffinity field on sharded cluster form
+* Show sgbackup tablespaceMap info only when not null
+* Move user suppliedd pods sidecars to sidecars steps on sharded cluster form
+* Make sharded cluster name on breadcrumbs clickable
+* Collapse repeaters on cluster form
+* Add classnames to support tests on cluster form
+* Collapse repeaters on shardedcluster form
+* Hide empty specs on sharded cluster summary
+* Extensions version dropdown won't open on forms
+* Include tooltips and minimal template on sgcluster wizard
+* Set "Db Info" dashboard as default
+* Replace timezone toggle icon
+* Use postgres versions store for version filters
+* Remove unwanted overflow on PITR graph legend
+* Remove "open in new tab" icon from crd tables
+* Support inline backup restoration
+* Odd layout on backups search form
+* Make compressed size the default on sgbackups table listings
+* Misleading info on managedLifecycle description
+* Elapsed time on backups should be timezone independent
+* Set minimum width for timestamp columns
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.8.0/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.8.0)
+
 # :rocket: Release 1.8.0-rc1 (2024-01-29)
 
 ## :notepad_spiral: NOTES
@@ -63,7 +159,6 @@ So, what you are waiting for to try this release and have a look to the future o
 
 ## :construction: KNOWN ISSUES
 
-* Major version upgrade fails if some extensions version are not available for the target Postgres version ([#1368](https://gitlab.com/ongresinc/stackgres/-/issues/1368)) 
 * Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
 
 ## :up: UPGRADE
