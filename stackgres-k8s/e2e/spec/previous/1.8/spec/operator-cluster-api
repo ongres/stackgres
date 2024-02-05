@@ -456,7 +456,7 @@ test_constraint_violation_api_error() {
 
   EXPECTED_ERROR_TYPE="constraint-violation"
   EXPECTED_ERROR_TITLE="do not comply with the syntactic rules"
-  EXPECTED_ERROR_DETAIL="spec.instances in body should be greater than or equal to 1"
+  EXPECTED_ERROR_DETAIL="spec.instances in body should be greater than or equal to 0"
   EXPECTED_ERROR_FIELD="instances"
 
   assert_api_error "$ERROR_RESPONSE"
