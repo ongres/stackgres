@@ -17,9 +17,9 @@ import io.stackgres.common.StackGresUtil;
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true,
-    value = {"annotations", "clusterName", "creationTimestamp", "deletionGracePeriodSeconds",
-        "deletionTimestamp", "finalizers", "generateName", "generation", "labels", "managedFields",
-        "ownerReferences", "resourceVersion", "selfLink"})
+    value = {"clusterName", "deletionGracePeriodSeconds",
+        "finalizers", "generateName", "generation", "managedFields",
+        "selfLink"})
 public class Metadata {
 
   private Map<String, String> annotations;
