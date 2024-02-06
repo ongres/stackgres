@@ -122,10 +122,10 @@ public class StackGresClusterSpec {
   }
 
   @JsonIgnore
-  @AssertTrue(message = "You need at least 1 instance in the cluster",
+  @AssertTrue(message = "instances can not be negative",
       payload = { Instances.class })
   public boolean isInstancesPositive() {
-    return instances > 0;
+    return instances >= 0;
   }
 
   @JsonIgnore
@@ -145,7 +145,8 @@ public class StackGresClusterSpec {
   @AssertTrue(message = "The total number of instances must be greather than the number of"
       + " instances in replication groups", payload = { Instances.class })
   public boolean isSupportingInstancesForInstancesInReplicationGroups() {
-    return instances > getInstancesInReplicationGroups();
+    return instances == 0
+        || instances > getInstancesInReplicationGroups();
   }
 
   @JsonIgnore
@@ -155,12 +156,13 @@ public class StackGresClusterSpec {
     return replication == null
         || !replication.isSynchronousMode()
         || replication.getSyncInstances() == null
+        || instances == 0
         || instances > replication.getSyncInstances();
   }
 
   @JsonIgnore
   public int getInstancesInImplicitReplicationGroup() {
-    return instances - getInstancesInReplicationGroups();
+    return Math.max(0, instances - getInstancesInReplicationGroups());
   }
 
   @JsonIgnore
@@ -185,7 +187,12 @@ public class StackGresClusterSpec {
         .add(implicitGroup)
         .addAll(Optional.ofNullable(replication)
             .map(StackGresClusterReplication::getGroups)
-            .orElse(ImmutableList.of()))
+            .stream()
+            .flatMap(List::stream)
+            .map(group -> new StackGresClusterReplicationGroupBuilder(group)
+                .withInstances(instances == 0 ? instances : group.getInstances())
+                .build())
+            .toList())
         .build();
   }
 

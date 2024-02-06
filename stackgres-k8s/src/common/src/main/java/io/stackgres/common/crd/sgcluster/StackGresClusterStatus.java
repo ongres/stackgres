@@ -25,6 +25,10 @@ import jakarta.validation.Valid;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterStatus {
 
+  private Integer instances;
+
+  private String labelSelector;
+
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   @Valid
   private List<Condition> conditions = new ArrayList<>();
@@ -46,6 +50,22 @@ public class StackGresClusterStatus {
 
   @Valid
   private StackGresClusterServiceBindingStatus binding;
+
+  public Integer getInstances() {
+    return instances;
+  }
+
+  public void setInstances(Integer instances) {
+    this.instances = instances;
+  }
+
+  public String getLabelSelector() {
+    return labelSelector;
+  }
+
+  public void setLabelSelector(String labelSelector) {
+    this.labelSelector = labelSelector;
+  }
 
   public List<Condition> getConditions() {
     return conditions;
@@ -113,8 +133,8 @@ public class StackGresClusterStatus {
 
   @Override
   public int hashCode() {
-    return Objects.hash(arch, conditions, dbOps, labelPrefix, managedSql, os, podStatuses,
-        binding);
+    return Objects.hash(arch, binding, conditions, dbOps, instances, labelPrefix, labelSelector, managedSql, os,
+        podStatuses);
   }
 
   @Override
@@ -126,11 +146,11 @@ public class StackGresClusterStatus {
       return false;
     }
     StackGresClusterStatus other = (StackGresClusterStatus) obj;
-    return Objects.equals(arch, other.arch) && Objects.equals(conditions, other.conditions)
-        && Objects.equals(dbOps, other.dbOps) && Objects.equals(labelPrefix, other.labelPrefix)
-        && Objects.equals(managedSql, other.managedSql) && Objects.equals(os, other.os)
-        && Objects.equals(podStatuses, other.podStatuses)
-        && Objects.equals(binding, other.binding);
+    return Objects.equals(arch, other.arch) && Objects.equals(binding, other.binding)
+        && Objects.equals(conditions, other.conditions) && Objects.equals(dbOps, other.dbOps)
+        && Objects.equals(instances, other.instances) && Objects.equals(labelPrefix, other.labelPrefix)
+        && Objects.equals(labelSelector, other.labelSelector) && Objects.equals(managedSql, other.managedSql)
+        && Objects.equals(os, other.os) && Objects.equals(podStatuses, other.podStatuses);
   }
 
   @Override

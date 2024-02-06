@@ -16,6 +16,10 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ClusterStatus {
 
+  private Integer instances;
+
+  private String labelSelector;
+
   private List<ClusterCondition> conditions = new ArrayList<>();
 
   private List<ClusterPodStatus> podStatuses;
@@ -31,6 +35,22 @@ public class ClusterStatus {
   private String labelPrefix;
 
   private ClusterServiceBindingStatus binding;
+
+  public Integer getInstances() {
+    return instances;
+  }
+
+  public void setInstances(Integer instances) {
+    this.instances = instances;
+  }
+
+  public String getLabelSelector() {
+    return labelSelector;
+  }
+
+  public void setLabelSelector(String labelSelector) {
+    this.labelSelector = labelSelector;
+  }
 
   public List<ClusterCondition> getConditions() {
     return conditions;

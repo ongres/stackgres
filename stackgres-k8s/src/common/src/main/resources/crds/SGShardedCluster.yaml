@@ -867,8 +867,7 @@ spec:
                 properties:
                   instances:
                     type: integer
-                    minimum: 1
-                    maximum: 16
+                    minimum: 0
                     description: |
                       Number of StackGres instances for the cluster. Each instance contains one Postgres server.
                         Out of all of the Postgres servers, one is elected as the primary, the rest remain as read-only replicas.
@@ -1483,14 +1482,12 @@ spec:
                 properties:
                   clusters:
                     type: integer
-                    minimum: 1
-                    maximum: 16
+                    minimum: 0
                     description: |
                       Number of shard's StackGres clusters
                   instancesPerCluster:
                     type: integer
-                    minimum: 1
-                    maximum: 16
+                    minimum: 0
                     description: |
                       Number of StackGres instances per shard's StackGres cluster. Each instance contains one Postgres server.
                         Out of all of the Postgres servers, one is elected as the primary, the rest remain as read-only replicas.
@@ -1763,13 +1760,11 @@ spec:
                         index:
                           type: integer
                           minimum: 0
-                          maximum: 15
                           description: |
                             Identifier of the shard StackGres cluster to override (starting from 0)
                         instancesPerCluster:
                           type: integer
-                          minimum: 1
-                          maximum: 16
+                          minimum: 0
                           description: |
                             Number of StackGres instances per shard's StackGres cluster. Each instance contains one Postgres server.
                               Out of all of the Postgres servers, one is elected as the primary, the rest remain as read-only replicas.

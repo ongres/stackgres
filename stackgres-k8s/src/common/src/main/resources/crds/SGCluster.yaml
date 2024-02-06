@@ -41,6 +41,12 @@ spec:
       type: string
       jsonPath: .spec.configurations.sgPostgresConfig
       priority: 1
+    subresources:
+      # scale enables the scale subresource.
+      scale:
+        specReplicasPath: .spec.instances
+        statusReplicasPath: .status.instances
+        labelSelectorPath: .status.labelSelector
     schema:
       openAPIV3Schema:
         type: object
@@ -221,10 +227,9 @@ spec:
                 required: [ "version" ]
               instances:
                 type: integer
-                minimum: 1
-                maximum: 16
+                minimum: 0
                 description: |
-                  Number of StackGres instances for the cluster. Each instance contains one Postgres server.
+                  Number of instances for the StackGres cluster. Each instance is a Pod containing one Postgres server.
                     Out of all of the Postgres servers, one is elected as the primary, the rest remain as read-only replicas.
               replication:
                 type: object
@@ -341,7 +346,6 @@ spec:
                         instances:
                           type: integer
                           minimum: 1
-                          maximum: 16
                           description: |
                             Number of StackGres instances for this replication group.
                             
@@ -1769,6 +1773,12 @@ spec:
             type: object
             description: Current status of a StackGres cluster.
             properties:
+              instances:
+                type: integer
+                description: Actual number of instances for the StackGres cluster. Each instance is a Pod containing one Postgres server.
+              labelSelector:
+                type: string
+                description: Actual label selector for instances for the StackGres cluster's Pods to be used by autoscaling.
               conditions:
                 type: array
                 items:

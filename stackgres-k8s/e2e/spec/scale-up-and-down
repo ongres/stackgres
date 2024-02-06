@@ -12,6 +12,8 @@ e2e_test_install() {
 e2e_test() {
   run_test "Checking scaledown is working" check_scaledown
 
+  run_test "Checking scalezero is working" check_scalezero
+
   run_test "Checking that scaleup is working" check_scaleup
 
   run_test "Checking that switchover is working" check_switchover
@@ -64,6 +66,73 @@ check_scaledown() {
     echo "SUCCESS. The primary instance was not disposed!"
   else
     echo "FAIL. The primary instance was disposed :("
+    return 1
+  fi
+
+  check_cluster_pod_count 1
+}
+
+check_scalezero() {
+  check_cluster_pod_count 1
+
+  local RESULT
+  local EXIT_CODE
+  try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 0
+  if "$RESULT"
+  then
+    echo "SUCCESS. The number of instances has been changed"
+  else
+    echo "FAIL. Can not change the number of instances"
+    return 1
+  fi
+
+  try_function wait_pods_terminated "$CLUSTER_NAMESPACE" 0 "$CLUSTER_NAME-[01]"
+  if "$RESULT"
+  then
+    echo "SUCCESS. The number of pods has changed"
+  else
+    echo "FAIL. The number of pods did not changed"
+    return 1
+  fi
+
+  if kubectl get pod -n "$CLUSTER_NAMESPACE" -o name | grep -q "^pod/${CLUSTER_NAME}-"
+  then
+    echo "FAIL. Some instance was not disposed :("
+    kubectl get pod -n "$CLUSTER_NAMESPACE" -o name || true
+    return 1
+  else
+    echo "SUCCESS. All instances were disposed!"
+  fi
+
+  check_cluster_pod_count 0
+
+  local RESULT
+  local EXIT_CODE
+  try_function create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 1
+  if "$RESULT"
+  then
+    echo "SUCCESS. The number of instances has been changed"
+  else
+    echo "FAIL. Can not change the number of instances"
+    return 1
+  fi
+
+  try_function wait_pods_running "$CLUSTER_NAMESPACE" 1 "$CLUSTER_NAME-[01]"
+  if "$RESULT"
+  then
+    echo "SUCCESS. The number of pods has changed"
+  else
+    echo "FAIL. The number of pods did not changed"
+    return 1
+  fi
+
+  local AFTER_SCALEDOWN_PRIMARY_NAME
+  AFTER_SCALEDOWN_PRIMARY_NAME="$(kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 --template '{{ .metadata.name }}')"
+  if kubectl get pod -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"-0 --template '{{ .metadata.name }}' | grep -qxF "$CLUSTER_NAME"-0 
+  then
+    echo "SUCCESS. The primary instance $CLUSTER_NAME-0 has been restored!"
+  else
+    echo "FAIL. The primary instance $CLUSTER_NAME-0 was not restored :("
     return 1
   fi
 

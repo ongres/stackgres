@@ -18,7 +18,6 @@ import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.sundr.builder.annotations.Buildable;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 
 @RegisterForReflection
@@ -35,7 +34,7 @@ public class StackGresShardedClusterShard extends StackGresClusterSpec {
   @PositiveOrZero(message = "You need a shard index starting from zero")
   private Integer index;
 
-  @Positive(message = "You need at least 1 instance in each cluster")
+  @PositiveOrZero(message = "instances can not be negative")
   private Integer instancesPerCluster;
 
   @JsonProperty("replication")

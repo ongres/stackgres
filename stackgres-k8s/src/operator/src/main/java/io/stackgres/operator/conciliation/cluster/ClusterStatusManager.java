@@ -12,7 +12,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
@@ -67,7 +66,8 @@ public class ClusterStatusManager
     }
     source.getStatus().setBinding(new StackGresClusterServiceBindingStatus());
     source.getStatus().getBinding().setName(ServiceBindingSecret.name(source));
-    if (isPendingRestart(source)) {
+    StatusContext context = getStatusContext(source);
+    if (isPendingRestart(source, context)) {
       updateCondition(getPodRequiresRestart(), source);
     } else {
       updateCondition(getFalsePendingRestart(), source);
@@ -100,21 +100,21 @@ public class ClusterStatusManager
           .map(t -> t.map2(Optional::get))
           .forEach(t -> t.v1.setBuild(t.v2.getBuild()));
     }
+    source.getStatus().setInstances(context.clusterPods().size());
+    source.getStatus().setLabelSelector(labelFactory.clusterLabels(source)
+        .entrySet()
+        .stream()
+        .map(e -> e.getKey() + "=" + e.getValue())
+        .collect(Collectors.joining(",")));
     return source;
   }
 
   /**
    * Check pending restart status condition.
    */
-  public boolean isPendingRestart(StackGresCluster cluster) {
-    List<StackGresClusterPodStatus> clusterPodStatuses = Optional.ofNullable(cluster.getStatus())
-        .map(StackGresClusterStatus::getPodStatuses)
-        .orElse(ImmutableList.of());
-    Optional<StatefulSet> clusterStatefulSet = getClusterStatefulSet(cluster);
-    List<Pod> clusterPods = clusterStatefulSet.map(sts -> getClusterPods(sts, cluster))
-        .orElse(ImmutableList.of());
+  public boolean isPendingRestart(StackGresCluster cluster, StatusContext context) {
     RestartReasons reasons = ClusterPendingRestartUtil.getRestartReasons(
-        clusterPodStatuses, clusterStatefulSet, clusterPods);
+        context.clusterPodStatuses(), context.clusterStatefulSet(), context.clusterPods());
     for (RestartReason reason : reasons.getReasons()) {
       switch (reason) {
         case PATRONI:
@@ -134,6 +134,17 @@ public class ClusterStatusManager
       }
     }
     return reasons.requiresRestart();
+  }
+
+  private StatusContext getStatusContext(StackGresCluster cluster) {
+    List<StackGresClusterPodStatus> clusterPodStatuses = Optional
+        .ofNullable(cluster.getStatus())
+        .map(StackGresClusterStatus::getPodStatuses)
+        .orElse(List.of());
+    Optional<StatefulSet> clusterStatefulSet = getClusterStatefulSet(cluster);
+    List<Pod> clusterPods = getClusterPods(cluster);
+    StatusContext context = new StatusContext(clusterPodStatuses, clusterStatefulSet, clusterPods);
+    return context;
   }
 
   /**
@@ -168,18 +179,16 @@ public class ClusterStatusManager
         .findFirst();
   }
 
-  private List<Pod> getClusterPods(StatefulSet sts, StackGresCluster cluster) {
+  private List<Pod> getClusterPods(StackGresCluster cluster) {
     final Map<String, String> podClusterLabels =
         labelFactory.clusterLabels(cluster);
 
-    return client.pods().inNamespace(sts.getMetadata().getNamespace())
+    return client.pods().inNamespace(cluster.getMetadata().getNamespace())
         .withLabels(podClusterLabels)
         .list()
-        .getItems().stream()
-        .filter(pod -> pod.getMetadata().getOwnerReferences().stream()
-            .anyMatch(ownerReference -> ownerReference.getKind().equals("StatefulSet")
-                && ownerReference.getName().equals(sts.getMetadata().getName())))
-        .collect(Collectors.toUnmodifiableList());
+        .getItems()
+        .stream()
+        .toList();
   }
 
   @Override
@@ -215,4 +224,11 @@ public class ClusterStatusManager
   protected Condition getClusterRequiresUpgrade() {
     return ClusterStatusCondition.CLUSTER_REQUIRES_UPGRADE.getCondition();
   }
+
+  record StatusContext(
+      List<StackGresClusterPodStatus> clusterPodStatuses,
+      Optional<StatefulSet> clusterStatefulSet,
+      List<Pod> clusterPods) {
+  }
+
 }
