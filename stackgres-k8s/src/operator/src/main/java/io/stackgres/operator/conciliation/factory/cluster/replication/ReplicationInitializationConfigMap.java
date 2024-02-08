@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.restore;
+package io.stackgres.operator.conciliation.factory.cluster.replication;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,14 +20,13 @@ import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterPath;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
-import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackupVolumeSnapshotStatus;
+import io.stackgres.common.crd.sgbackup.StackGresBaseBackupPerformance;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
-import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
-import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplication;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationInitialization;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -43,14 +42,14 @@ import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder
-public class RestoreConfigMap extends AbstractBackupConfigMap
+public class ReplicationInitializationConfigMap extends AbstractBackupConfigMap
     implements VolumeFactory<StackGresClusterContext> {
 
   private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   public static String name(ClusterContext context) {
     final String clusterName = context.getCluster().getMetadata().getName();
-    return StackGresVolume.RESTORE_ENV.getResourceName(clusterName);
+    return StackGresVolume.REPLICATION_INITIALIZATION_ENV.getResourceName(clusterName);
   }
 
   @Override
@@ -64,7 +63,7 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
 
   private Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
-        .withName(StackGresVolume.RESTORE_ENV.getName())
+        .withName(StackGresVolume.REPLICATION_INITIALIZATION_ENV.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
             .withName(name(context))
             .build())
@@ -72,58 +71,63 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
   }
 
   private ConfigMap buildSource(StackGresClusterContext context) {
-    final Optional<StackGresBackup> restoreBackup = context.getRestoreBackup();
     final Map<String, String> data = new HashMap<>();
     final StackGresCluster cluster = context.getSource();
 
-    if (restoreBackup.isPresent()) {
-      final String status = restoreBackup
-          .map(StackGresBackup::getStatus)
-          .map(StackGresBackupStatus::getProcess)
-          .map(StackGresBackupProcess::getStatus)
-          .orElse(BackupStatus.PENDING.status());
+    var replicationInitializationBackup = context.getReplicationInitializationBackup();
+    final StackGresBackup backup = replicationInitializationBackup.get();
+    data.put("REPLICATION_INITIALIZATION_BACKUP_NAME",
+        backup.getStatus().getInternalName());
+    data.put("REPLICATION_INITIALIZATION_VOLUME_SNAPSHOT",
+        Optional.of(backup.getStatus())
+        .map(StackGresBackupStatus::getVolumeSnapshot)
+        .map(ignored -> Boolean.TRUE)
+        .map(String::valueOf)
+        .orElse(Boolean.FALSE.toString()));
+    data.put("REPLICATION_INITIALIZATION_BACKUP_LABEL",
+        Optional.of(backup.getStatus())
+        .map(StackGresBackupStatus::getVolumeSnapshot)
+        .map(StackGresBackupVolumeSnapshotStatus::getBackupLabel)
+        .orElse(""));
+    data.put("REPLICATION_INITIALIZATION_TABLESPACE_MAP",
+        Optional.of(backup.getStatus())
+        .map(StackGresBackupStatus::getVolumeSnapshot)
+        .map(StackGresBackupVolumeSnapshotStatus::getTablespaceMap)
+        .orElse(""));
 
-      if (!BackupStatus.COMPLETED.status().equals(status)) {
-        data.put("RESTORE_BACKUP_ERROR", "Backup is " + status);
-      } else {
-        final StackGresBackup backup = restoreBackup.get();
-        data.put("RESTORE_BACKUP_NAME",
-            backup.getStatus().getInternalName());
-        data.put("RESTORE_VOLUME_SNAPSHOT",
-            Optional.of(backup.getStatus())
-            .map(StackGresBackupStatus::getVolumeSnapshot)
-            .map(ignored -> Boolean.TRUE)
-            .map(String::valueOf)
-            .orElse(Boolean.FALSE.toString()));
-        data.put("RESTORE_BACKUP_LABEL",
-            Optional.of(backup.getStatus())
-            .map(StackGresBackupStatus::getVolumeSnapshot)
-            .map(StackGresBackupVolumeSnapshotStatus::getBackupLabel)
-            .orElse(""));
-        data.put("RESTORE_TABLESPACE_MAP",
-            Optional.of(backup.getStatus())
-            .map(StackGresBackupStatus::getVolumeSnapshot)
-            .map(StackGresBackupVolumeSnapshotStatus::getTablespaceMap)
-            .orElse(""));
+    data.putAll(getBackupEnvVars(context,
+        Optional.of(backup)
+            .map(StackGresBackup::getStatus)
+            .map(StackGresBackupStatus::getBackupPath)
+            .orElseThrow(),
+        backup.getStatus().getSgBackupConfig()));
 
-        data.putAll(getBackupEnvVars(context,
-            Optional.of(backup)
-                .map(StackGresBackup::getStatus)
-                .map(StackGresBackupStatus::getBackupPath)
-                .orElseThrow(),
-            backup.getStatus().getSgBackupConfig()));
+    Optional.ofNullable(cluster.getSpec())
+        .map(StackGresClusterSpec::getReplication)
+        .map(StackGresClusterReplication::getInitialization)
+        .map(StackGresClusterReplicationInitialization::getBackupRestorePerformance)
+        .map(StackGresBaseBackupPerformance::getDownloadConcurrency)
+        .ifPresent(downloadDiskConcurrency -> data.put(
+            "WALG_DOWNLOAD_CONCURRENCY",
+            BackupStorageUtil.convertEnvValue(downloadDiskConcurrency)));
 
-        Optional.ofNullable(cluster.getSpec())
-            .map(StackGresClusterSpec::getInitialData)
-            .map(StackGresClusterInitialData::getRestore)
-            .map(StackGresClusterRestore::getDownloadDiskConcurrency)
-            .ifPresent(downloadDiskConcurrency -> data.put(
-                "WALG_DOWNLOAD_CONCURRENCY",
-                BackupStorageUtil.convertEnvValue(downloadDiskConcurrency)));
-      }
-    } else {
-      data.put("RESTORE_BACKUP_ERROR", "Can not restore from backup. Backup not found!");
-    }
+    context.getReplicationInitializationStorage()
+        .ifPresent(storage -> data.putAll(
+                getBackupEnvVars(
+                    context,
+                    context.getReplicationInitializationPath().orElseThrow(),
+                    storage
+                )
+            )
+        );
+
+    context.getReplicationInitializationConfiguration()
+        .ifPresent(config -> data.putAll(
+                getBackupEnvVars(
+                    config
+                )
+            )
+        );
 
     return new ConfigMapBuilder()
         .withNewMetadata()
@@ -137,13 +141,13 @@ public class RestoreConfigMap extends AbstractBackupConfigMap
 
   @Override
   protected String getAwsS3CompatibleCaCertificateFilePath(ClusterContext context) {
-    return ClusterPath.RESTORE_SECRET_PATH.path(context)
+    return ClusterPath.REPLICATION_INITIALIZATION_SECRET_PATH.path(context)
         + "/" + BackupEnvVarFactory.AWS_S3_COMPATIBLE_CA_CERTIFICATE_FILE_NAME;
   }
 
   @Override
   protected String getGcsCredentialsFilePath(ClusterContext context) {
-    return ClusterPath.RESTORE_SECRET_PATH.path(context)
+    return ClusterPath.REPLICATION_INITIALIZATION_SECRET_PATH.path(context)
         + "/" + BackupEnvVarFactory.GCS_CREDENTIALS_FILE_NAME;
   }
 

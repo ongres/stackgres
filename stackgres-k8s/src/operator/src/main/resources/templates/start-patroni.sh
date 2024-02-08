@@ -4,9 +4,11 @@ export PATRONI_POSTGRESQL_LISTEN="$(eval "echo $PATRONI_POSTGRESQL_LISTEN")"
 export PATRONI_POSTGRESQL_CONNECT_ADDRESS="$(eval "echo $PATRONI_POSTGRESQL_CONNECT_ADDRESS")"
 export PATRONI_RESTAPI_CONNECT_ADDRESS="$(eval "echo $PATRONI_RESTAPI_CONNECT_ADDRESS")"
 
+## Restore
 if [ -n "$RECOVERY_FROM_BACKUP" ]
 then
-  cat << 'PREPARE_RECOVERY_FROM_BACKUP_EOF' > "$PATRONI_CONFIG_PATH/prepare-recovery-from-backup"
+  echo "Creating script for restoring from backup $([ "$RESTORE_VOLUME_SNAPSHOT" = true ] && printf '(snapshot)' || printf '(object storage)')"
+  cat << 'PREPARE_RECOVERY_FROM_BACKUP_EOF' > "$PATRONI_CONFIG_PATH/prepare-recovery-from-backup.sh"
 #!/bin/sh
 
 set -e
@@ -24,11 +26,11 @@ then
   mv "$PG_DATA_PATH" "$PG_DATA_PATH".backup
 fi
 PREPARE_RECOVERY_FROM_BACKUP_EOF
-  chmod 700 "$PATRONI_CONFIG_PATH/prepare-recovery-from-backup"
+  chmod 700 "$PATRONI_CONFIG_PATH/prepare-recovery-from-backup.sh"
 
-  exec-with-env "${RESTORE_ENV}" -- "$PATRONI_CONFIG_PATH/prepare-recovery-from-backup"
+  exec-with-env "${RESTORE_ENV}" -- "$PATRONI_CONFIG_PATH/prepare-recovery-from-backup.sh"
 
-  cat << 'RECOVERY_FROM_BACKUP_EOF' > "$PATRONI_CONFIG_PATH/recovery-from-backup"
+  cat << 'RECOVERY_FROM_BACKUP_EOF' > "$PATRONI_CONFIG_PATH/recovery-from-backup.sh"
 #!/bin/sh
 
 set -e
@@ -58,10 +60,104 @@ then
     chmod 600 "$PG_DATA_PATH"/tablespace_map
   fi
 else
-  wal-g backup-fetch "$PG_DATA_PATH" "$RESTORE_BACKUP_ID"
+  wal-g backup-fetch "$PG_DATA_PATH" "$RESTORE_BACKUP_NAME"
 fi
 RECOVERY_FROM_BACKUP_EOF
-  chmod 700 "$PATRONI_CONFIG_PATH/recovery-from-backup"
+  chmod 700 "$PATRONI_CONFIG_PATH/recovery-from-backup.sh"
+fi
+
+## Replication initialization
+if [ -n "$REPLICATION_INITIALIZATION_FROM_BACKUP" ]
+then
+  echo "Creating script for replication initialization from backup $([ "$REPLICATION_INITIALIZATION_VOLUME_SNAPSHOT" = true ] && printf '(snapshot)' || printf '(object storage)')"
+  cat << 'PREPARE_REPLICATION_INITIALIZATION_FROM_BACKUP_EOF' > "$PATRONI_CONFIG_PATH/prepare-replication-initialization-from-backup.sh"
+#!/bin/sh
+
+set -e
+
+if [ "x$SHELL_XTRACE" = x-x ]
+then
+  set -x
+fi
+
+if [ "$REPLICATION_INITIALIZATION_VOLUME_SNAPSHOT" = true ] \
+  && [ -d "$PG_DATA_PATH" ] \
+  && ! [ -d "$PG_DATA_PATH".backup ] \
+  && ! [ -f "$PG_DATA_PATH".backup/backup_label ]
+then
+  mv "$PG_DATA_PATH" "$PG_DATA_PATH".backup
+fi
+PREPARE_REPLICATION_INITIALIZATION_FROM_BACKUP_EOF
+  chmod 700 "$PATRONI_CONFIG_PATH/prepare-replication-initialization-from-backup.sh"
+
+  exec-with-env "${REPLICATION_INITIALIZATION_ENV}" -- "$PATRONI_CONFIG_PATH/prepare-replication-initialization-from-backup.sh"
+
+  cat << 'REPLICATION_INITIALIZATION_FROM_BACKUP_EOF' > "$PATRONI_CONFIG_PATH/replication-initialization-from-backup.sh"
+#!/bin/sh
+
+set -e
+
+if [ "x$SHELL_XTRACE" = x-x ]
+then
+  set -x
+fi
+
+if [ -z "$REPLICATION_INITIALIZATION_BACKUP" ]
+then
+  echo "Skipping replication initialization from backup since no backup was found or all failed"
+  exit 1
+fi
+
+if [ "$REPLICATION_INITIALIZATION_VOLUME_SNAPSHOT" = true ]
+then
+  if [ -d "$PG_DATA_PATH".backup ]
+  then
+    mv "$PG_DATA_PATH".backup "$PG_DATA_PATH"
+  fi
+  printf %s "$REPLICATION_INITIALIZATION_BACKUP_LABEL" | base64 -d > "$PG_DATA_PATH"/backup_label
+  chmod 600 "$PG_DATA_PATH"/backup_label
+  if [ "x$REPLICATION_INITIALIZATION_TABLESPACE_MAP" != x ]
+  then
+    printf %s "$REPLICATION_INITIALIZATION_TABLESPACE_MAP" | base64 -d > "$PG_DATA_PATH"/tablespace_map
+    chmod 600 "$PG_DATA_PATH"/tablespace_map
+  fi
+else
+  wal-g backup-fetch "$PG_DATA_PATH" "$REPLICATION_INITIALIZATION_BACKUP_NAME"
+fi
+REPLICATION_INITIALIZATION_FROM_BACKUP_EOF
+
+  cat << 'REPLICATION_INITIALIZATION_FROM_BACKUP_EOF' > "$PATRONI_CONFIG_PATH/replication-initialization-from-backup.sh"
+#!/bin/sh
+
+set -e
+
+if [ "x$SHELL_XTRACE" = x-x ]
+then
+  set -x
+fi
+
+if [ -n "$REPLICATION_INITIALIZATION_BACKUPS" ]
+then
+  if ! [ -f "$PG_DATA_PATH/replication/replication-initialization-next-backup" ]
+  then
+    mkdir -p "$PG_DATA_PATH/replication"
+  fi
+  printf %s "$REPLICATION_INITIALIZATION_BACKUPS" \
+    | tr ' ' '\n' \
+    | grep -xF -A 1 "$REPLICATION_INITIALIZATION_BACKUP" \
+    | tail -n 1
+    > "$PG_DATA_PATH/replication/replication-initialization-next-backup"
+  if [ -s "$PG_DATA_PATH/replication/replication-initialization-next-backup" ]
+  then
+    while true
+    do
+      echo "Waiting for the cluster controller to restart the Pod"
+      sleep 300
+    done
+  fi
+fi
+REPLICATION_INITIALIZATION_FROM_BACKUP_EOF
+  chmod 700 "$PATRONI_CONFIG_PATH/replication-initialization-from-backup.sh"
 fi
 
 cat << 'PATRONI_CONFIG_EOF' | exec-with-env "${PATRONI_ENV}" -- sh -e $SHELL_XTRACE
@@ -91,7 +187,7 @@ then
   cat << RECOVERY_EOF
   method: recovery
   recovery:
-    command: 'exec-with-env "${RESTORE_ENV}" -- ${PATRONI_CONFIG_PATH}/recovery-from-backup'
+    command: 'exec-with-env "${RESTORE_ENV}" -- ${PATRONI_CONFIG_PATH}/recovery-from-backup.sh'
     keep_existing_recovery_conf: False
     recovery_conf:
       restore_command: 'exec-with-env "${RESTORE_ENV}" -- wal-g wal-fetch %f %p'
@@ -165,6 +261,7 @@ postgresql:
     unix_socket_directories: '${PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY}'
     dynamic_library_path: '${PG_LIB_PATH}:${PG_EXTRA_LIB_PATH}'
   create_replica_methods:
+  - backup
   - basebackup
   basebackup:
 $(
@@ -173,13 +270,23 @@ $(
 BASEBACKUP_VERBOSE_EOF
 )
     - checkpoint: 'fast'
+  backup:
+    command: 'exec-with-env "${REPLICATION_INITIALIZATION_ENV}" -- ${PATRONI_CONFIG_PATH}/replication-initialization-from-backup.sh'
+    recovery_conf:
+      restore_command: 'exec-with-env "${REPLICATION_INITIALIZATION_ENV}" -- wal-g wal-fetch %f %p'
+      recovery_target_action: 'promote'
+  backup_failover:
+    command: 'exec-with-env "${REPLICATION_INITIALIZATION_ENV}" -- ${PATRONI_CONFIG_PATH}/replication-initialization-failover.sh'
+    recovery_conf:
+      restore_command: 'exec-with-env "${REPLICATION_INITIALIZATION_ENV}" -- wal-g wal-fetch %f %p'
+      recovery_target_action: 'promote'
 $(
 if [ -n "$RECOVERY_FROM_BACKUP" ] \
   && [ -n "$REPLICATE_FROM_BACKUP" ]
 then
   cat << RECOVERY_EOF
   replicate:
-    command: 'exec-with-env "${RESTORE_ENV}" -- ${PATRONI_CONFIG_PATH}/recovery-from-backup'
+    command: 'exec-with-env "${RESTORE_ENV}" -- ${PATRONI_CONFIG_PATH}/recovery-from-backup.sh'
     keep_existing_recovery_conf: False
     recovery_conf:
       restore_command: 'exec-with-env "${RESTORE_ENV}" -- wal-g wal-fetch %f %p'

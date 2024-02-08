@@ -11,6 +11,7 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.Condition;
@@ -47,6 +48,9 @@ public class StackGresClusterStatus {
   private String os;
 
   private String labelPrefix;
+
+  @JsonProperty("replicationInitializationSGBackup")
+  private String replicationInitializationSgBackup;
 
   @Valid
   private StackGresClusterServiceBindingStatus binding;
@@ -131,10 +135,18 @@ public class StackGresClusterStatus {
     this.binding = binding;
   }
 
+  public String getReplicationInitializationSgBackup() {
+    return replicationInitializationSgBackup;
+  }
+
+  public void setReplicationInitializationSgBackup(String replicationInitializationSgBackup) {
+    this.replicationInitializationSgBackup = replicationInitializationSgBackup;
+  }
+
   @Override
   public int hashCode() {
     return Objects.hash(arch, binding, conditions, dbOps, instances, labelPrefix, labelSelector, managedSql, os,
-        podStatuses);
+        podStatuses, replicationInitializationSgBackup);
   }
 
   @Override
@@ -150,7 +162,8 @@ public class StackGresClusterStatus {
         && Objects.equals(conditions, other.conditions) && Objects.equals(dbOps, other.dbOps)
         && Objects.equals(instances, other.instances) && Objects.equals(labelPrefix, other.labelPrefix)
         && Objects.equals(labelSelector, other.labelSelector) && Objects.equals(managedSql, other.managedSql)
-        && Objects.equals(os, other.os) && Objects.equals(podStatuses, other.podStatuses);
+        && Objects.equals(os, other.os) && Objects.equals(podStatuses, other.podStatuses)
+        && Objects.equals(replicationInitializationSgBackup, other.replicationInitializationSgBackup);
   }
 
   @Override

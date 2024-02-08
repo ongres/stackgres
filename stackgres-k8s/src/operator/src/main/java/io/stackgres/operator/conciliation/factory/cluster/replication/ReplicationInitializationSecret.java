@@ -3,11 +3,10 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.operator.conciliation.factory.cluster.restore;
+package io.stackgres.operator.conciliation.factory.cluster.replication;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.Secret;
@@ -18,11 +17,6 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
-import io.stackgres.common.crd.sgbackup.BackupStatus;
-import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackup.StackGresBackupConfigSpec;
-import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
-import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -38,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder
-public class RestoreSecret
+public class ReplicationInitializationSecret
     implements VolumeFactory<StackGresClusterContext> {
 
   private LabelFactoryForCluster<StackGresCluster> labelFactory;
@@ -47,7 +41,7 @@ public class RestoreSecret
 
   public static String name(ClusterContext context) {
     final String clusterName = context.getCluster().getMetadata().getName();
-    return StackGresVolume.RESTORE_CREDENTIALS.getResourceName(clusterName);
+    return StackGresVolume.REPLICATION_INITIALIZATION_CREDENTIALS.getResourceName(clusterName);
   }
 
   @Override
@@ -61,7 +55,7 @@ public class RestoreSecret
 
   private Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
-        .withName(StackGresVolume.RESTORE_CREDENTIALS.getName())
+        .withName(StackGresVolume.REPLICATION_INITIALIZATION_CREDENTIALS.getName())
         .withSecret(new SecretVolumeSourceBuilder()
             .withSecretName(name(context))
             .build())
@@ -69,29 +63,15 @@ public class RestoreSecret
   }
 
   private Secret buildSource(StackGresClusterContext context) {
-    final Optional<StackGresBackup> restoreBackup = context.getRestoreBackup();
-    final Map<String, String> data = new HashMap<>();
-    final StackGresCluster cluster = context.getSource();
+    Map<String, String> data = new HashMap<>();
+    StackGresCluster cluster = context.getSource();
+    final String namespace = cluster.getMetadata().getNamespace();
 
-    if (restoreBackup.isPresent()) {
-      final String status = restoreBackup
-          .map(StackGresBackup::getStatus)
-          .map(StackGresBackupStatus::getProcess)
-          .map(StackGresBackupProcess::getStatus)
-          .orElse(BackupStatus.PENDING.status());
-
-      if (!BackupStatus.COMPLETED.status().equals(status)) {
-        data.put("RESTORE_BACKUP_ERROR", "Backup is " + status);
-      } else {
-        final StackGresBackup backup = restoreBackup.get();
-        String backupNamespace = backup.getMetadata().getNamespace();
-        StackGresBackupConfigSpec backupConfig = backup.getStatus().getSgBackupConfig();
-        data.putAll(envVarFactory.getSecretEnvVar(backupNamespace, backupConfig,
-            context.getRestoreSecrets()));
-      }
-    } else {
-      data.put("RESTORE_BACKUP_ERROR", "Can not restore from backup. Backup not found!");
-    }
+    context.getReplicationInitializationStorage().ifPresent(
+        backupStorage -> data.putAll(
+            envVarFactory.getSecretEnvVar(namespace, backupStorage,
+                context.getReplicationInitializationSecrets())
+        ));
 
     return new SecretBuilder()
         .withNewMetadata()

@@ -14,6 +14,8 @@ public enum StackGresVolume implements StackGresNamedObject {
   BACKUP_ENV("backup-env", "%s-backup"),
   RESTORE_CREDENTIALS("restore-secret", "%s-restore"),
   RESTORE_ENV("restore-env", "%s-restore"),
+  REPLICATION_INITIALIZATION_ENV("replication-init-env", "%s-replication-init"),
+  REPLICATION_INITIALIZATION_CREDENTIALS("replication-init-secret", "%s-replication-init"),
   REPLICATE_CREDENTIALS("replicate-secret", "%s-replicate"),
   REPLICATE_ENV("replicate-env", "%s-replicate"),
   ENVOY("envoy", "%s-envoy-config"),

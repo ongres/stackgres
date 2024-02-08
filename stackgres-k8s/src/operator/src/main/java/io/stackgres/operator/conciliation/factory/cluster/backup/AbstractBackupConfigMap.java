@@ -6,15 +6,22 @@
 package io.stackgres.operator.conciliation.factory.cluster.backup;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.sgbackup.StackGresBackupConfigSpec;
+import io.stackgres.common.crd.sgbackup.StackGresBaseBackupConfig;
+import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.storages.AwsCredentials;
 import io.stackgres.common.crd.storages.AwsS3CompatibleStorage;
 import io.stackgres.common.crd.storages.AwsS3Storage;
@@ -25,6 +32,7 @@ import io.stackgres.common.crd.storages.GoogleCloudCredentials;
 import io.stackgres.common.crd.storages.GoogleCloudStorage;
 import io.stackgres.operator.conciliation.backup.BackupConfiguration;
 import io.stackgres.operator.conciliation.backup.BackupPerformance;
+import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,6 +87,48 @@ public abstract class AbstractBackupConfigMap {
     }
 
     return backupEnvVars.build();
+  }
+
+  protected Map<String, String> getBackupEnvVars(
+      StackGresClusterContext context,
+      String path,
+      StackGresBackupConfigSpec backupConfig) {
+    Map<String, String> result = new HashMap<>(
+        getBackupEnvVars(context,
+            path,
+            backupConfig.getStorage())
+    );
+    if (backupConfig.getBaseBackups() != null) {
+      result.putAll(
+          getBackupEnvVars(new BackupConfiguration(
+              backupConfig.getBaseBackups().getRetention(),
+              backupConfig.getBaseBackups().getCronSchedule(),
+              backupConfig.getBaseBackups().getCompression(),
+              path,
+              Optional.of(backupConfig.getBaseBackups())
+              .map(StackGresBaseBackupConfig::getPerformance)
+              .map(p -> new BackupPerformance(
+                  p.getMaxNetworkBandwidth(),
+                  p.getMaxDiskBandwidth(),
+                  p.getUploadDiskConcurrency(),
+                  p.getUploadConcurrency(),
+                  p.getDownloadConcurrency()))
+              .orElse(null),
+              Optional.of(context.getCluster().getSpec())
+              .map(StackGresClusterSpec::getConfigurations)
+              .map(StackGresClusterConfigurations::getBackups)
+              .filter(Predicates.not(List::isEmpty))
+              .map(backups -> backups.get(0))
+              .map(StackGresClusterBackupConfiguration::getUseVolumeSnapshot)
+              .orElse(false),
+              null,
+              null,
+              null,
+              null
+          ))
+      );
+    }
+    return Map.copyOf(result);
   }
 
   protected Map<String, String> getBackupEnvVars(ClusterContext context,

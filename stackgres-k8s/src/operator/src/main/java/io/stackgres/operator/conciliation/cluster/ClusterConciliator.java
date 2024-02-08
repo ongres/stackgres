@@ -17,6 +17,8 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.StackGresContext;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
@@ -56,6 +58,16 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
     if (foundDeployedResource instanceof Pod foundDeployedResourcePod
         && foundDeployedResourcePod.getMetadata().getName().startsWith(
             config.getMetadata().getName() + "-")) {
+      return true;
+    }
+    if (foundDeployedResource instanceof StackGresBackup foundDeployedResourceBackup
+        && Optional.of(foundDeployedResourceBackup.getMetadata())
+        .map(ObjectMeta::getLabels)
+        .map(labels -> labels.get(
+            StackGresContext.STACKGRES_KEY_PREFIX
+            + StackGresContext.RECONCILIATION_INITIALIZATION_BACKUP_KEY))
+        .filter(StackGresContext.RIGHT_VALUE::equals)
+        .isEmpty()) {
       return true;
     }
     return false;

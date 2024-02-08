@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class FireAndForgetJobReconciliationHandler<T extends CustomResource<?, ?>>
-    implements ReconciliationHandler<T> {
+    extends FireAndForgetReconciliationHandler<T> {
 
   protected static final Logger LOGGER =
       LoggerFactory.getLogger(FireAndForgetJobReconciliationHandler.class);
@@ -62,57 +62,23 @@ public abstract class FireAndForgetJobReconciliationHandler<T extends CustomReso
   }
 
   @Override
-  public HasMetadata create(T context, HasMetadata resource) {
-    if (isAlreadyCompleted(context)) {
-      LOGGER.debug("Skipping creating Job {}.{}",
-          resource.getMetadata().getNamespace(),
-          resource.getMetadata().getName());
-      return resource;
-    }
+  protected HasMetadata doCreate(T context, HasMetadata resource) {
     return concileJob(context, resource, (c, job) -> (Job) handler.create(c, job));
   }
 
   @Override
-  public HasMetadata patch(T context, HasMetadata newResource,
+  protected HasMetadata doPatch(T context, HasMetadata newResource,
       HasMetadata oldResource) {
-    if (isAlreadyCompleted(context)) {
-      LOGGER.debug("Skipping patching Job {}.{}",
-          oldResource.getMetadata().getNamespace(),
-          oldResource.getMetadata().getName());
-      return oldResource;
-    }
     return concileJob(context, newResource, this::updateJob);
   }
 
-  protected abstract boolean isAlreadyCompleted(T resource);
-
   @Override
-  public HasMetadata replace(T context, HasMetadata resource) {
-    LOGGER.warn("Skipping replacing Job {}.{}",
-        resource.getMetadata().getNamespace(),
-        resource.getMetadata().getName());
-    return resource;
-  }
-
-  @Override
-  public void delete(T context, HasMetadata resource) {
-    if (isAlreadyCompleted(context)) {
-      LOGGER.debug("Skipping deleting Job {}.{}",
-          resource.getMetadata().getNamespace(),
-          resource.getMetadata().getName());
-      return;
-    }
+  protected void doDelete(T context, HasMetadata resource) {
     handler.delete(context, safeCast(resource));
   }
 
   @Override
-  public void deleteWithOrphans(T context, HasMetadata resource) {
-    if (isAlreadyCompleted(context)) {
-      LOGGER.debug("Skipping deleting Job {}.{}",
-          resource.getMetadata().getNamespace(),
-          resource.getMetadata().getName());
-      return;
-    }
+  protected void doDeleteWithOrphans(T context, HasMetadata resource) {
     handler.deleteWithOrphans(context, safeCast(resource));
   }
 

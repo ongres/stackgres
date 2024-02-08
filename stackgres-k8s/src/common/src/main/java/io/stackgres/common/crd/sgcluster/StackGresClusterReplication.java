@@ -30,7 +30,7 @@ import jakarta.validation.constraints.Min;
 public class StackGresClusterReplication {
 
   @ValidEnum(enumClass = StackGresReplicationMode.class, allowNulls = false,
-      message = "mode must be async, sync or strict-sync")
+      message = "mode must be async, sync, sync-all, strict-sync or strict-sync-all")
   private String mode;
 
   private String role;
@@ -40,6 +40,9 @@ public class StackGresClusterReplication {
 
   @Valid
   private List<StackGresClusterReplicationGroup> groups;
+
+  @Valid
+  private StackGresClusterReplicationInitialization initialization;
 
   @ReferencedField("role")
   interface Role extends FieldReference { }
@@ -124,9 +127,17 @@ public class StackGresClusterReplication {
     this.groups = groups;
   }
 
+  public StackGresClusterReplicationInitialization getInitialization() {
+    return initialization;
+  }
+
+  public void setInitialization(StackGresClusterReplicationInitialization initialization) {
+    this.initialization = initialization;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(groups, mode, role, syncInstances);
+    return Objects.hash(groups, initialization, mode, role, syncInstances);
   }
 
   @Override
@@ -138,8 +149,9 @@ public class StackGresClusterReplication {
       return false;
     }
     StackGresClusterReplication other = (StackGresClusterReplication) obj;
-    return Objects.equals(groups, other.groups) && Objects.equals(mode, other.mode)
-        && Objects.equals(role, other.role) && Objects.equals(syncInstances, other.syncInstances);
+    return Objects.equals(groups, other.groups) && Objects.equals(initialization, other.initialization)
+        && Objects.equals(mode, other.mode) && Objects.equals(role, other.role)
+        && Objects.equals(syncInstances, other.syncInstances);
   }
 
   public String toString() {

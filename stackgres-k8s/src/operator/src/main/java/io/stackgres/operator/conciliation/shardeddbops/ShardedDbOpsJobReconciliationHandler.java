@@ -5,6 +5,7 @@
 
 package io.stackgres.operator.conciliation.shardeddbops;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.ShardedDbOpsUtil;
@@ -34,7 +35,7 @@ public class ShardedDbOpsJobReconciliationHandler
   }
 
   @Override
-  protected boolean isAlreadyCompleted(StackGresShardedDbOps context) {
+  protected boolean canForget(StackGresShardedDbOps context, HasMetadata resource) {
     return ShardedDbOpsUtil.isAlreadyCompleted(context);
   }
 

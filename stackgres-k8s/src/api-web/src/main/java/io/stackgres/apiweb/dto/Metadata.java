@@ -18,7 +18,7 @@ import io.stackgres.common.StackGresUtil;
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true,
     value = {"clusterName", "deletionGracePeriodSeconds",
-        "finalizers", "generateName", "generation", "managedFields",
+        "generateName", "generation", "managedFields",
         "selfLink"})
 public class Metadata {
 

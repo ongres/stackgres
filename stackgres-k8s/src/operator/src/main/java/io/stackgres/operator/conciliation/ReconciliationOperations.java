@@ -27,6 +27,8 @@ import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackup.StackGresBackupList;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgscript.StackGresScript;
@@ -84,7 +86,9 @@ public interface ReconciliationOperations {
           Map.entry(CronJob.class, client -> client.batch().v1().cronjobs()),
           Map.entry(StatefulSet.class, client -> client.apps().statefulSets()),
           Map.entry(StackGresScript.class, client -> client
-              .resources(StackGresScript.class, StackGresScriptList.class))
+              .resources(StackGresScript.class, StackGresScriptList.class)),
+          Map.entry(StackGresBackup.class, client -> client
+              .resources(StackGresBackup.class, StackGresBackupList.class))
           );
 
   Map<

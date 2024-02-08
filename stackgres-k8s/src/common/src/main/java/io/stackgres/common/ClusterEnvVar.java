@@ -25,6 +25,7 @@ public enum ClusterEnvVar implements EnvVarSource<StackGresCluster, ClusterConte
   PATRONI_ENV("patroni"),
   BACKUP_ENV("backup"),
   RESTORE_ENV("restore"),
+  REPLICATION_INITIALIZATION_ENV("replication-init"),
   REPLICATE_ENV("replicate"),
   POSTGRES_ENTRY_PORT(String.valueOf(EnvoyUtil.PG_ENTRY_PORT)),
   POSTGRES_REPL_ENTRY_PORT(String.valueOf(EnvoyUtil.PG_REPL_ENTRY_PORT)),

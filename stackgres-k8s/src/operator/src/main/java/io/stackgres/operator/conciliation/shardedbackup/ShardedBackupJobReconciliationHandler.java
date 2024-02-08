@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation.shardedbackup;
 
 import java.util.Optional;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
@@ -39,7 +40,7 @@ public class ShardedBackupJobReconciliationHandler
   }
 
   @Override
-  protected boolean isAlreadyCompleted(StackGresShardedBackup context) {
+  protected boolean canForget(StackGresShardedBackup context, HasMetadata resource) {
     return Optional.of(context)
         .map(StackGresShardedBackup::getStatus)
         .map(StackGresShardedBackupStatus::getProcess)
