@@ -5,6 +5,7 @@ set -xe
 for CRD in bundle/manifests/stackgres.io_*
 do
   cp "config/crd/bases/$(yq -r .spec.names.kind "$CRD").yaml" "$CRD"
+  sed -i '/caBundle:/d' "$CRD"
   CRD_NAME="$(yq -r '.metadata.name' "$CRD")"
   CRD_SINGULAR="$(yq -r .spec.names.singular "$CRD")"
   if [ "$CRD_SINGULAR" = sgconfig ]
