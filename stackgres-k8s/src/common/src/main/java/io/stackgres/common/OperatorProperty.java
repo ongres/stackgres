@@ -11,6 +11,7 @@ public enum OperatorProperty implements StackGresPropertyReader {
 
   DISABLE_RECONCILIATION("stackgres.disableReconciliation"),
   RECONCILIATION_PERIOD("stackgres.reconciliationPeriod"),
+  PATRONI_RECONCILIATION_PERIOD("stackgres.patroniReconciliationPeriod"),
   OPERATOR_NAME("stackgres.operatorName"),
   OPERATOR_NAMESPACE("stackgres.operatorNamespace"),
   OPERATOR_IP("stackgres.operatorIP"),

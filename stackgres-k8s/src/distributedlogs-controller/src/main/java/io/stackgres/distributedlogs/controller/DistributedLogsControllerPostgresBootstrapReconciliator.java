@@ -5,11 +5,10 @@
 
 package io.stackgres.distributedlogs.controller;
 
-import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.DistributedLogsControllerProperty;
+import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.common.postgres.PostgresBootstrapReconciliator;
-import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.distributedlogs.common.ClusterBootstrapEventReason;
 import io.stackgres.distributedlogs.configuration.DistributedLogsControllerPropertyContext;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -25,13 +24,13 @@ public class DistributedLogsControllerPostgresBootstrapReconciliator
   @Dependent
   public static class Parameters {
     @Inject EventController eventController;
-    @Inject ResourceFinder<Endpoints> endpointsFinder;
+    @Inject PatroniCtl patroniCtl;
     @Inject DistributedLogsControllerPropertyContext propertyContext;
   }
 
   @Inject
   public DistributedLogsControllerPostgresBootstrapReconciliator(Parameters parameters) {
-    super(parameters.endpointsFinder, parameters.propertyContext
+    super(parameters.patroniCtl, parameters.propertyContext
         .getString(DistributedLogsControllerProperty.DISTRIBUTEDLOGS_CONTROLLER_POD_NAME));
     this.eventController = parameters.eventController;
   }

@@ -128,6 +128,7 @@ public class DistributedLogsDatabaseManager {
     }
   }
 
+  @SuppressWarnings("null")
   private Connection getConnection(StackGresDistributedLogsContext context, String database)
       throws SQLException {
     final String name = context.getCluster().getMetadata().getName();

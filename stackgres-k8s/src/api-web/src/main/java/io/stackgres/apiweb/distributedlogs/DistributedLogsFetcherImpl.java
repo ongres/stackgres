@@ -105,6 +105,7 @@ public class DistributedLogsFetcherImpl implements DistributedLogsFetcher {
     }
   }
 
+  @SuppressWarnings("null")
   private Connection getConnection(ClusterDto cluster) throws SQLException {
     final String distributedLogs = Optional.ofNullable(cluster.getSpec())
         .map(ClusterSpec::getDistributedLogs)

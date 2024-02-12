@@ -83,7 +83,7 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
           "patroni_port", EnvoyUtil.PATRONI_PORT,
           "envoy_port", EnvoyUtil.ENVOY_PORT);
 
-  protected final YamlMapperProvider yamlMapperProvider;
+  protected final YAMLMapper yamlMapper;
   protected final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   private final ObjectMapper objectMapper;
@@ -94,7 +94,7 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
       ObjectMapper jsonMapper,
       LabelFactoryForCluster<StackGresCluster> labelFactory,
       ContainerUserOverrideMounts containerUserOverrideMounts) {
-    this.yamlMapperProvider = yamlMapperProvider;
+    this.yamlMapper = yamlMapperProvider.get();
     this.labelFactory = labelFactory;
     this.objectMapper = jsonMapper;
     this.containerUserOverrideMounts = containerUserOverrideMounts;
@@ -212,7 +212,6 @@ public class Envoy implements ContainerFactory<ClusterContainerContext>,
   private HasMetadata buildSource(StackGresClusterContext context) {
     final StackGresCluster stackGresCluster = context.getSource();
 
-    YAMLMapper yamlMapper = yamlMapperProvider.get();
     final ObjectNode envoyConfig;
     try {
       envoyConfig = (ObjectNode) yamlMapper

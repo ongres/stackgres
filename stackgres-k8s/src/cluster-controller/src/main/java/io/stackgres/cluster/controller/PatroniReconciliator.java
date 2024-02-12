@@ -42,6 +42,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgcluster.StackGresReplicationRole;
 import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
+import io.stackgres.operatorframework.reconciliation.SafeReconciliator;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
@@ -54,7 +55,7 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME",
     justification = "This is not a bug if working with containers")
-public class PatroniReconciliator {
+public class PatroniReconciliator extends SafeReconciliator<StackGresClusterContext, Boolean> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PatroniReconciliator.class);
 
@@ -91,7 +92,8 @@ public class PatroniReconciliator {
     this.eventController = parameters.eventController;
   }
 
-  public ReconciliationResult<Boolean> reconcile(KubernetesClient client,
+  @Override
+  public ReconciliationResult<Boolean> safeReconcile(KubernetesClient client,
       StackGresClusterContext context) {
     if (!reconcilePatroni) {
       return new ReconciliationResult<>(false);

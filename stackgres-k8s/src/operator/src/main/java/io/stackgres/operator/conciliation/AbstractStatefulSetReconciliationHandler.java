@@ -26,8 +26,6 @@ import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Predicates;
-import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.OwnerReference;
@@ -42,6 +40,9 @@ import io.stackgres.common.CdiUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.common.patroni.PatroniCtl;
+import io.stackgres.common.patroni.PatroniCtl.PatroniCtlInstance;
+import io.stackgres.common.patroni.PatroniCtlMember;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -71,7 +72,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
 
   private final ResourceScanner<PersistentVolumeClaim> pvcScanner;
 
-  private final ResourceFinder<Endpoints> endpointsFinder;
+  private final PatroniCtl patroniCtl;
 
   private final ObjectMapper objectMapper;
 
@@ -81,14 +82,14 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
       ResourceFinder<StatefulSet> statefulSetFinder,
       ResourceScanner<Pod> podScanner,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,
-      ResourceFinder<Endpoints> endpointsFinder,
+      PatroniCtl patroniCtl,
       ObjectMapper objectMapper) {
     this.handler = handler;
     this.labelFactory = labelFactory;
     this.statefulSetFinder = statefulSetFinder;
     this.podScanner = podScanner;
     this.pvcScanner = pvcScanner;
-    this.endpointsFinder = endpointsFinder;
+    this.patroniCtl = patroniCtl;
     this.objectMapper = objectMapper;
   }
 
@@ -99,9 +100,11 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     this.statefulSetFinder = null;
     this.podScanner = null;
     this.pvcScanner = null;
-    this.endpointsFinder = null;
+    this.patroniCtl = null;
     this.objectMapper = null;
   }
+
+  protected abstract boolean isPatroniOnKubernetes(T context);
 
   @Override
   public HasMetadata create(T context, HasMetadata resource) {
@@ -179,15 +182,13 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     final StatefulSetSpec spec = requiredSts.getSpec();
     final Map<String, String> appLabel = labelFactory.appLabel();
 
-    final String namespace = requiredSts.getMetadata().getNamespace();
-
     final int desiredReplicas = spec.getReplicas();
     final int lastReplicaIndex = desiredReplicas - 1;
 
-    var patroniConfigEndpoints = endpointsFinder
-        .findByNameAndNamespace(PatroniUtil.configName(context), namespace);
+    final var patroniCtl = this.patroniCtl.instanceFor(context);
+    final var members = patroniCtl.list();
     final int latestPrimaryIndexFromPatroni =
-        PatroniUtil.getLatestPrimaryIndexFromPatroni(patroniConfigEndpoints, objectMapper);
+        PatroniUtil.getLatestPrimaryIndexFromPatroni(patroniCtl);
     if (desiredReplicas > 0) {
       startPrimaryIfRemoved(context, requiredSts, appLabel, latestPrimaryIndexFromPatroni, writer);
     }
@@ -195,10 +196,17 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     var pods = findStatefulSetPods(requiredSts, appLabel);
     if (desiredReplicas > 0) {
       final boolean existsPodWithPrimaryRole =
-          pods.stream().anyMatch(Predicates.and(this::hasRoleLabel, this::isRolePrimary));
+          pods.stream().map(Pod::getMetadata).map(ObjectMeta::getName).anyMatch(
+              podName -> members.stream()
+              .filter(PatroniCtlMember::isPrimary)
+              .map(PatroniCtlMember::getMember)
+              .anyMatch(podName::equals));
       pods.stream()
-          .filter(Predicates.or(Predicates.and(this::hasRoleLabel, this::isRolePrimary),
-              pod -> !existsPodWithPrimaryRole
+          .filter(pod -> members.stream()
+              .filter(PatroniCtlMember::isPrimary)
+              .map(PatroniCtlMember::getMember)
+              .anyMatch(pod.getMetadata().getName()::equals)
+              || (!existsPodWithPrimaryRole
                   && latestPrimaryIndexFromPatroni == getPodIndex(pod)))
           .filter(pod -> getPodIndex(pod) > lastReplicaIndex)
           .filter(pod -> !isNonDisruptable(context, pod))
@@ -218,7 +226,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
 
     removeStatefulSetPlaceholderReplicas(context, requiredSts);
 
-    fixPods(context, requiredSts, updatedSts, appLabel, patroniConfigEndpoints);
+    fixPods(context, requiredSts, updatedSts, appLabel, patroniCtl);
 
     fixPvcs(context, requiredSts, appLabel);
 
@@ -335,29 +343,42 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
 
   private void fixPods(final T context, final StatefulSet statefulSet,
       final StatefulSet deployedStatefulSet, final Map<String, String> appLabel,
-      Optional<Endpoints> patroniConfigEndpoints) {
+      PatroniCtlInstance patroniCtl) {
     var podsToFix = findStatefulSetPods(statefulSet, appLabel);
     List<Pod> disruptablePodsToPatch =
-        fixNonDisruptablePods(context, statefulSet, patroniConfigEndpoints, podsToFix);
+        fixNonDisruptablePods(context, statefulSet, patroniCtl, podsToFix);
+    final List<Pod> podPatroniLabelsToPatch;
+    if (!isPatroniOnKubernetes(context)) {
+      podPatroniLabelsToPatch = fixPodsPatroniLabels(context, statefulSet, patroniCtl, podsToFix);
+    } else {
+      podPatroniLabelsToPatch = List.of();
+    }
     List<Pod> podAnnotationsToPatch = fixPodsAnnotations(statefulSet, podsToFix);
     List<Pod> podOwnerReferencesToPatch = fixPodsOwnerReferences(
         context, deployedStatefulSet, podsToFix);
     List<Pod> podSelectorMatchLabelsToPatch =
         fixPodsSelectorMatchLabels(context, statefulSet, podsToFix);
-    Seq.seq(disruptablePodsToPatch).append(podAnnotationsToPatch)
-        .append(podOwnerReferencesToPatch).append(podSelectorMatchLabelsToPatch)
+    Seq.seq(disruptablePodsToPatch)
+        .append(podPatroniLabelsToPatch)
+        .append(podAnnotationsToPatch)
+        .append(podOwnerReferencesToPatch)
+        .append(podSelectorMatchLabelsToPatch)
         .grouped(pod -> pod.getMetadata().getName()).map(Tuple2::v2).map(Seq::findFirst)
         .map(Optional::get).forEach(pod -> handler.patch(context, pod, null));
   }
 
   private List<Pod> fixNonDisruptablePods(T context, StatefulSet statefulSet,
-      Optional<Endpoints> patroniConfigEndpoints, List<Pod> pods) {
+      PatroniCtlInstance patroniCtl, List<Pod> pods) {
     final int latestPrimaryIndexFromPatroni =
-        PatroniUtil.getLatestPrimaryIndexFromPatroni(patroniConfigEndpoints, objectMapper);
+        PatroniUtil.getLatestPrimaryIndexFromPatroni(patroniCtl);
+    final var members = patroniCtl.list();
     final int replicas = statefulSet.getSpec().getReplicas();
     return pods.stream()
         .filter(pod -> isNonDisruptable(context, pod))
-        .filter(this::hasRoleLabel)
+        .filter(pod -> members.stream()
+            .filter(PatroniCtlMember::isPrimary)
+            .map(PatroniCtlMember::getMember)
+            .anyMatch(pod.getMetadata().getName()::equals))
         .filter(pod -> getPodIndex(pod) + 1 < replicas
             || getPodIndex(pod) != latestPrimaryIndexFromPatroni)
         .filter(pod -> getPodIndex(pod) < replicas)
@@ -376,6 +397,67 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     }
     pod.getMetadata().getLabels().put(labelFactory.labelMapper().disruptableKey(context),
         StackGresContext.RIGHT_VALUE);
+    return pod;
+  }
+
+  private List<Pod> fixPodsPatroniLabels(T context, StatefulSet statefulSet, PatroniCtlInstance patroniCtl,
+      List<Pod> pods) {
+    var roles = patroniCtl.list()
+        .stream()
+        .map(member -> Tuple.tuple(member.getMember(), member.getRole()))
+        .filter(t -> t.v2 != null)
+        .collect(Collectors.toMap(Tuple2::v1, Tuple2::v2));
+
+    return Seq.seq(pods)
+        .filter(pod -> roles.containsKey(pod.getMetadata().getName()))
+        .map(pod -> Tuple.tuple(pod, roles.get(pod.getMetadata().getName())))
+        .filter(t -> Optional.ofNullable(t.v1.getMetadata().getLabels())
+            .stream()
+            .map(Map::entrySet)
+            .flatMap(Set::stream)
+            .noneMatch(Map.entry(PatroniUtil.ROLE_KEY, t.v2)::equals))
+        .map(t -> fixPodPatroniLabels(t.v1, t.v2))
+        .append(pods.stream()
+            .filter(pod -> !roles.containsKey(pod.getMetadata().getName()))
+            .filter(pod -> Optional.ofNullable(pod.getMetadata().getLabels())
+                .stream()
+                .map(Map::keySet)
+                .flatMap(Set::stream)
+                .anyMatch(PatroniUtil.ROLE_KEY::equals))
+            .map(pod -> removePodPatroniLabels(pod)))
+        .toList();
+  }
+
+  private Pod fixPodPatroniLabels(Pod pod, String role) {
+    if (LOGGER.isDebugEnabled()) {
+      final String namespace = pod.getMetadata().getNamespace();
+      final String podName = pod.getMetadata().getName();
+      final String name = podName.substring(0, podName.lastIndexOf("-"));
+      LOGGER.debug("Fixing Patroni {} label for Pod {}.{} for StatefulSet {}.{} to {}",
+          PatroniUtil.ROLE_KEY, namespace, podName, namespace, name, role);
+    }
+    pod.getMetadata().setLabels(Optional.ofNullable(pod.getMetadata().getLabels())
+        .map(Seq::seq)
+        .orElse(Seq.of())
+        .filter(label -> PatroniUtil.ROLE_KEY.equals(label.v1))
+        .append(Tuple.tuple(PatroniUtil.ROLE_KEY, role))
+        .toMap(Tuple2::v1, Tuple2::v2));
+    return pod;
+  }
+
+  private Pod removePodPatroniLabels(Pod pod) {
+    if (LOGGER.isDebugEnabled()) {
+      final String namespace = pod.getMetadata().getNamespace();
+      final String podName = pod.getMetadata().getName();
+      final String name = podName.substring(0, podName.lastIndexOf("-"));
+      LOGGER.debug("Remove Patroni {} label for Pod {}.{} for StatefulSet {}.{}",
+          PatroniUtil.ROLE_KEY, namespace, podName, namespace, name);
+    }
+    pod.getMetadata().setLabels(Optional.ofNullable(pod.getMetadata().getLabels())
+        .map(Seq::seq)
+        .orElse(Seq.of())
+        .filter(label -> PatroniUtil.ROLE_KEY.equals(label.v1))
+        .toMap(Tuple2::v1, Tuple2::v2));
     return pod;
   }
 
@@ -679,16 +761,6 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
             .isPresent())
         .sorted(Comparator.comparing(this::getPodIndex))
         .toList();
-  }
-
-  private boolean hasRoleLabel(Pod pod) {
-    return pod.getMetadata().getLabels().containsKey(PatroniUtil.ROLE_KEY);
-  }
-
-  private boolean isRolePrimary(Pod pod) {
-    return Objects.equals(
-        pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY),
-        PatroniUtil.PRIMARY_ROLE);
   }
 
   private boolean isNonDisruptable(T context, Pod pod) {

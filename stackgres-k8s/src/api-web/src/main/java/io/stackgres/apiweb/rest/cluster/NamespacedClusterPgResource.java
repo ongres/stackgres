@@ -100,7 +100,7 @@ public class NamespacedClusterPgResource {
   @GET
   @SuppressFBWarnings(value = "SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING",
       justification = "False positive")
-  public List<Object> statements(
+  public List<Object> query(
       @PathParam("namespace") String namespace,
       @PathParam("name") String name,
       @QueryParam("named") String named,
@@ -132,7 +132,7 @@ public class NamespacedClusterPgResource {
         .get(StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY);
 
     try (
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings("null")
         Connection connection = postgresConnectionManager.getConnection(
             host,
             port,

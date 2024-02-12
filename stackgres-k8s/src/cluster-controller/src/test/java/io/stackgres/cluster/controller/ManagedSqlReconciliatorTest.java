@@ -9,9 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -26,7 +26,6 @@ import java.util.function.Consumer;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -35,12 +34,15 @@ import io.stackgres.cluster.common.StackGresClusterContext;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.ManagedSqlUtil;
-import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedScriptEntryScriptStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterManagedSqlStatus;
 import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.patroni.PatroniConfig;
+import io.stackgres.common.patroni.PatroniCtl;
+import io.stackgres.common.patroni.PatroniCtlMember;
+import io.stackgres.common.patroni.StandbyCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
@@ -64,7 +66,9 @@ public class ManagedSqlReconciliatorTest {
   @Mock
   ClusterControllerPropertyContext propertyContext;
   @Mock
-  ResourceFinder<Endpoints> endpointsFinder;
+  PatroniCtl patroniCtl;
+  @Mock
+  PatroniCtl.PatroniCtlInstance patroniCtlInstance;
   @Mock
   CustomResourceFinder<StackGresScript> scriptFinder;
   @Mock
@@ -82,8 +86,8 @@ public class ManagedSqlReconciliatorTest {
 
   private StackGresScript script;
   private List<String> scripts;
-  private Endpoints patroniEndpoints;
-  private Endpoints patroniConfigEndpoints;
+  private List<PatroniCtlMember> patroniMembers;
+  private PatroniConfig patroniConfig;
   private ConfigMap configMap;
   private Secret secret;
 
@@ -93,11 +97,16 @@ public class ManagedSqlReconciliatorTest {
   @BeforeEach
   void setUp() throws Exception {
     script = Fixtures.script().loadDefault().get();
-    patroniEndpoints = Fixtures.endpoints().loadPatroni().get();
-    patroniConfigEndpoints = Fixtures.endpoints().loadPatroniConfig().get();
+    patroniMembers = List.of(new PatroniCtlMember());
+    patroniMembers.get(0).setMember("test-0");
+    patroniMembers.get(0).setRole(PatroniCtlMember.LEADER);
+    patroniMembers.get(0).setTimeline("1");
+    patroniConfig = new PatroniConfig();
+    lenient().when(patroniCtl.instanceFor(any()))
+        .thenReturn(patroniCtlInstance);
     when(propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME)).thenReturn(
-            patroniEndpoints.getMetadata().getAnnotations().get(PatroniUtil.LEADER_KEY));
+            patroniMembers.get(0).getMember());
 
     scripts = List.of(script.getSpec().getScripts().get(0).getScript(),
         "CREATE USER test;",
@@ -124,13 +133,12 @@ public class ManagedSqlReconciliatorTest {
     parameters = new ManagedSqlReconciliator.Parameters();
     parameters.managedSqlScriptEntryExecutor = managedSqlScriptEntryExecutor;
     parameters.propertyContext = propertyContext;
-    parameters.endpointsFinder = endpointsFinder;
+    parameters.patroniCtl = patroniCtl;
     parameters.scriptFinder = scriptFinder;
     parameters.secretFinder = secretFinder;
     parameters.configMapFinder = configMapFinder;
     parameters.clusterScheduler = clusterScheduler;
     parameters.eventController = eventController;
-    parameters.objectMapper = JsonUtil.jsonMapper();
 
     reconciliator = new ManagedSqlReconciliator(parameters);
   }
@@ -146,7 +154,8 @@ public class ManagedSqlReconciliatorTest {
     reconciliator = new ManagedSqlReconciliator(parameters);
     reconciliator.reconcile(client, context);
 
-    verify(endpointsFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(patroniCtlInstance, times(0)).showConfig();
+    verify(patroniCtlInstance, times(0)).list();
     verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
@@ -156,18 +165,18 @@ public class ManagedSqlReconciliatorTest {
 
   @Test
   void testReconciliationWhenNotBootstrapped_doesNothing() throws Exception {
-    patroniConfigEndpoints = Fixtures.endpoints().loadPatroniConfig()
-        .getBuilder()
-        .editMetadata()
-        .addToAnnotations(Map.of(PatroniUtil.INITIALIZE_KEY, ""))
-        .endMetadata()
-        .build();
+    patroniMembers.get(0).setTimeline(null);
     final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     when(context.getCluster()).thenReturn(cluster);
+    when(patroniCtlInstance.showConfig())
+        .thenReturn(patroniConfig);
+    when(patroniCtlInstance.list())
+        .thenReturn(patroniMembers);
 
     reconciliator.reconcile(client, context);
 
-    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(patroniCtlInstance, times(1)).showConfig();
+    verify(patroniCtlInstance, times(2)).list();
     verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
@@ -180,16 +189,21 @@ public class ManagedSqlReconciliatorTest {
     reset(propertyContext);
     when(propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME)).thenReturn(
-            patroniEndpoints.getMetadata().getAnnotations().get(PatroniUtil.LEADER_KEY) + "0");
+            "test-1");
     when(propertyContext.getBoolean(
         ClusterControllerProperty.CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL)).thenReturn(true);
     final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     when(context.getCluster()).thenReturn(cluster);
+    when(patroniCtlInstance.showConfig())
+        .thenReturn(patroniConfig);
+    when(patroniCtlInstance.list())
+        .thenReturn(patroniMembers);
 
     reconciliator = new ManagedSqlReconciliator(parameters);
     reconciliator.reconcile(client, context);
 
-    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(patroniCtlInstance, times(1)).showConfig();
+    verify(patroniCtlInstance, times(2)).list();
     verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
@@ -199,13 +213,18 @@ public class ManagedSqlReconciliatorTest {
 
   @Test
   void testReconciliationWhenStandbyLeader_doesNothing() throws Exception {
-    patroniConfigEndpoints = Fixtures.endpoints().loadPatroniConfigWithStandbyCluster().get();
+    patroniConfig.setStandbyCluster(new StandbyCluster());
     final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
+    when(patroniCtlInstance.showConfig())
+        .thenReturn(patroniConfig);
+    when(patroniCtlInstance.list())
+        .thenReturn(patroniMembers);
     when(context.getCluster()).thenReturn(cluster);
 
     reconciliator.reconcile(client, context);
 
-    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(patroniCtlInstance, times(1)).showConfig();
+    verify(patroniCtlInstance, times(2)).list();
     verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
@@ -220,7 +239,8 @@ public class ManagedSqlReconciliatorTest {
 
     reconciliator.reconcile(client, context);
 
-    verify(endpointsFinder, times(0)).findByNameAndNamespace(any(), any());
+    verify(patroniCtlInstance, times(0)).showConfig();
+    verify(patroniCtlInstance, times(0)).list();
     verify(scriptFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
@@ -233,10 +253,10 @@ public class ManagedSqlReconciliatorTest {
     final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
-        .thenReturn(Optional.of(patroniEndpoints));
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
-        .thenReturn(Optional.of(patroniConfigEndpoints));
+    when(patroniCtlInstance.showConfig())
+        .thenReturn(patroniConfig);
+    when(patroniCtlInstance.list())
+        .thenReturn(patroniMembers);
     when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
     when(secretFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(secret));
     when(configMapFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(configMap));
@@ -248,7 +268,8 @@ public class ManagedSqlReconciliatorTest {
 
     reconciliator.reconcile(client, context);
 
-    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(patroniCtlInstance, times(1)).showConfig();
+    verify(patroniCtlInstance, times(2)).list();
     verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(1)).findByNameAndNamespace(any(), any());
@@ -363,10 +384,10 @@ public class ManagedSqlReconciliatorTest {
     cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0).setVersion(0);
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
-        .thenReturn(Optional.of(patroniEndpoints));
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
-        .thenReturn(Optional.of(patroniConfigEndpoints));
+    when(patroniCtlInstance.showConfig())
+        .thenReturn(patroniConfig);
+    when(patroniCtlInstance.list())
+        .thenReturn(patroniMembers);
     when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
     when(secretFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(secret));
     when(configMapFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(configMap));
@@ -378,7 +399,8 @@ public class ManagedSqlReconciliatorTest {
 
     reconciliator.reconcile(client, context);
 
-    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(patroniCtlInstance, times(1)).showConfig();
+    verify(patroniCtlInstance, times(2)).list();
     verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(1)).findByNameAndNamespace(any(), any());
@@ -466,10 +488,10 @@ public class ManagedSqlReconciliatorTest {
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     script.getSpec().getScripts().get(0).setVersion(1);
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
-        .thenReturn(Optional.of(patroniEndpoints));
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
-        .thenReturn(Optional.of(patroniConfigEndpoints));
+    when(patroniCtlInstance.showConfig())
+        .thenReturn(patroniConfig);
+    when(patroniCtlInstance.list())
+        .thenReturn(patroniMembers);
     when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
     when(secretFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(secret));
     when(configMapFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(configMap));
@@ -481,7 +503,8 @@ public class ManagedSqlReconciliatorTest {
 
     reconciliator.reconcile(client, context);
 
-    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(patroniCtlInstance, times(1)).showConfig();
+    verify(patroniCtlInstance, times(2)).list();
     verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(1)).findByNameAndNamespace(any(), any());
@@ -591,10 +614,10 @@ public class ManagedSqlReconciliatorTest {
     final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
-        .thenReturn(Optional.of(patroniEndpoints));
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
-        .thenReturn(Optional.of(patroniConfigEndpoints));
+    when(patroniCtlInstance.showConfig())
+        .thenReturn(patroniConfig);
+    when(patroniCtlInstance.list())
+        .thenReturn(patroniMembers);
     when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
     when(secretFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(secret));
     doNothing().doThrow(new RuntimeException("test"))
@@ -679,7 +702,8 @@ public class ManagedSqlReconciliatorTest {
         ClusterManagedSqlEventReason.CLUSTER_MANAGED_SQL_ERROR),
         eventReasonArgumentCaptor.getAllValues());
 
-    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(patroniCtlInstance, times(1)).showConfig();
+    verify(patroniCtlInstance, times(2)).list();
     verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
@@ -693,15 +717,16 @@ public class ManagedSqlReconciliatorTest {
     final StackGresCluster cluster = Fixtures.cluster().loadManagedSql().get();
     script.getStatus().getScripts().get(0).setHash("wrong");
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
-        .thenReturn(Optional.of(patroniEndpoints));
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
-        .thenReturn(Optional.of(patroniConfigEndpoints));
+    when(patroniCtlInstance.showConfig())
+        .thenReturn(patroniConfig);
+    when(patroniCtlInstance.list())
+        .thenReturn(patroniMembers);
     when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
 
     reconciliator.reconcile(client, context);
 
-    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(patroniCtlInstance, times(1)).showConfig();
+    verify(patroniCtlInstance, times(2)).list();
     verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
@@ -718,10 +743,10 @@ public class ManagedSqlReconciliatorTest {
     script.getSpec().getScripts().get(0).setRetryOnError(true);
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
-        .thenReturn(Optional.of(patroniEndpoints));
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
-        .thenReturn(Optional.of(patroniConfigEndpoints));
+    when(patroniCtlInstance.showConfig())
+        .thenReturn(patroniConfig);
+    when(patroniCtlInstance.list())
+        .thenReturn(patroniMembers);
     when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
     when(secretFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(secret));
     when(configMapFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(configMap));
@@ -735,7 +760,8 @@ public class ManagedSqlReconciliatorTest {
 
     reconciliator.reconcile(client, context);
 
-    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(patroniCtlInstance, times(1)).showConfig();
+    verify(patroniCtlInstance, times(2)).list();
     verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(1)).findByNameAndNamespace(any(), any());
@@ -861,15 +887,16 @@ public class ManagedSqlReconciliatorTest {
     cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
         .setFailure("test");
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
-        .thenReturn(Optional.of(patroniEndpoints));
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
-        .thenReturn(Optional.of(patroniConfigEndpoints));
+    when(patroniCtlInstance.showConfig())
+        .thenReturn(patroniConfig);
+    when(patroniCtlInstance.list())
+        .thenReturn(patroniMembers);
     when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
 
     reconciliator.reconcile(client, context);
 
-    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(patroniCtlInstance, times(1)).showConfig();
+    verify(patroniCtlInstance, times(2)).list();
     verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
@@ -894,15 +921,16 @@ public class ManagedSqlReconciliatorTest {
     cluster.getStatus().getManagedSql().getScripts().get(0).getScripts().get(0)
         .setIntents(1);
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
-        .thenReturn(Optional.of(patroniEndpoints));
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
-        .thenReturn(Optional.of(patroniConfigEndpoints));
+    when(patroniCtlInstance.showConfig())
+        .thenReturn(patroniConfig);
+    when(patroniCtlInstance.list())
+        .thenReturn(patroniMembers);
     when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
 
     reconciliator.reconcile(client, context);
 
-    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(patroniCtlInstance, times(1)).showConfig();
+    verify(patroniCtlInstance, times(2)).list();
     verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
@@ -932,10 +960,10 @@ public class ManagedSqlReconciliatorTest {
         .setFailure("test");
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
-        .thenReturn(Optional.of(patroniEndpoints));
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
-        .thenReturn(Optional.of(patroniConfigEndpoints));
+    when(patroniCtlInstance.showConfig())
+        .thenReturn(patroniConfig);
+    when(patroniCtlInstance.list())
+        .thenReturn(patroniMembers);
     when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
     when(secretFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(secret));
     when(configMapFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(configMap));
@@ -947,7 +975,8 @@ public class ManagedSqlReconciliatorTest {
 
     reconciliator.reconcile(client, context);
 
-    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(patroniCtlInstance, times(1)).showConfig();
+    verify(patroniCtlInstance, times(2)).list();
     verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(1)).findByNameAndNamespace(any(), any());
@@ -1074,10 +1103,10 @@ public class ManagedSqlReconciliatorTest {
         .setFailure("test");
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
-        .thenReturn(Optional.of(patroniEndpoints));
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
-        .thenReturn(Optional.of(patroniConfigEndpoints));
+    when(patroniCtlInstance.showConfig())
+        .thenReturn(patroniConfig);
+    when(patroniCtlInstance.list())
+        .thenReturn(patroniMembers);
     when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
     doThrow(new RuntimeException("test"))
         .when(managedSqlScriptEntryExecutor).executeScriptEntry(any(), any());
@@ -1089,7 +1118,8 @@ public class ManagedSqlReconciliatorTest {
 
     reconciliator.reconcile(client, context);
 
-    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(patroniCtlInstance, times(1)).showConfig();
+    verify(patroniCtlInstance, times(2)).list();
     verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());
@@ -1160,10 +1190,10 @@ public class ManagedSqlReconciliatorTest {
         .setIntents(1);
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
-        .thenReturn(Optional.of(patroniEndpoints));
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
-        .thenReturn(Optional.of(patroniConfigEndpoints));
+    when(patroniCtlInstance.showConfig())
+        .thenReturn(patroniConfig);
+    when(patroniCtlInstance.list())
+        .thenReturn(patroniMembers);
     when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
     when(secretFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(secret));
     when(configMapFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(configMap));
@@ -1175,7 +1205,8 @@ public class ManagedSqlReconciliatorTest {
 
     reconciliator.reconcile(client, context);
 
-    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(patroniCtlInstance, times(1)).showConfig();
+    verify(patroniCtlInstance, times(2)).list();
     verify(scriptFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(1)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(1)).findByNameAndNamespace(any(), any());
@@ -1294,10 +1325,10 @@ public class ManagedSqlReconciliatorTest {
     cluster.getStatus().getManagedSql().getScripts().get(0).setId(1);
     final StackGresCluster originalCluster = JsonUtil.copy(cluster);
     when(context.getCluster()).thenReturn(cluster);
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.readWriteName(cluster)), any()))
-        .thenReturn(Optional.of(patroniEndpoints));
-    when(endpointsFinder.findByNameAndNamespace(eq(PatroniUtil.configName(cluster)), any()))
-        .thenReturn(Optional.of(patroniConfigEndpoints));
+    when(patroniCtlInstance.showConfig())
+        .thenReturn(patroniConfig);
+    when(patroniCtlInstance.list())
+        .thenReturn(patroniMembers);
     when(scriptFinder.findByNameAndNamespace(any(), any())).thenReturn(Optional.of(script));
     doThrow(new RuntimeException("test"))
         .when(managedSqlScriptEntryExecutor).executeScriptEntry(any(), any());
@@ -1309,7 +1340,8 @@ public class ManagedSqlReconciliatorTest {
 
     reconciliator.reconcile(client, context);
 
-    verify(endpointsFinder, times(2)).findByNameAndNamespace(any(), any());
+    verify(patroniCtlInstance, times(1)).showConfig();
+    verify(patroniCtlInstance, times(2)).list();
     verify(scriptFinder, times(2)).findByNameAndNamespace(any(), any());
     verify(secretFinder, times(0)).findByNameAndNamespace(any(), any());
     verify(configMapFinder, times(0)).findByNameAndNamespace(any(), any());

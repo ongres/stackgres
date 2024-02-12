@@ -57,6 +57,7 @@ import org.jooq.lambda.tuple.Tuple2;
 
 public interface StackGresUtil {
 
+  String DISTRIBUTEDLOGS_POSTGRES_VERSION = "12";
   String MD5SUM_KEY = "MD5SUM";
   String MD5SUM_2_KEY = "MD5SUM_2";
   String DATA_SUFFIX = "-data";
@@ -495,6 +496,26 @@ public interface StackGresUtil {
                 + LOCK_SERVICE_ACCOUNT_KEY + " not set"));
   }
 
+  static String getPatroniVersion(StackGresCluster cluster) {
+    return getPatroniVersion(cluster, cluster.getSpec().getPostgres().getVersion());
+  }
+
+  static String getPatroniVersion(StackGresCluster cluster, String postgresVersion) {
+    Component postgresComponentFlavor = getPostgresFlavorComponent(cluster).get(cluster);
+    return StackGresComponent.PATRONI.get(cluster).getVersion(
+        StackGresComponent.LATEST,
+        Map.of(postgresComponentFlavor,
+            postgresVersion));
+  }
+
+  static String getPatroniVersion(StackGresDistributedLogs distributedLogs) {
+    Component postgresComponentFlavor = StackGresComponent.POSTGRESQL.get(distributedLogs);
+    return StackGresComponent.PATRONI.get(distributedLogs).getVersion(
+        StackGresComponent.LATEST,
+        Map.of(postgresComponentFlavor,
+            DISTRIBUTEDLOGS_POSTGRES_VERSION));
+  }
+
   static String getPatroniImageName(StackGresCluster cluster) {
     return getPatroniImageName(cluster, cluster.getSpec().getPostgres().getVersion());
   }
@@ -511,7 +532,7 @@ public interface StackGresUtil {
     return StackGresComponent.PATRONI.get(distributedLogs).getImageName(
         StackGresComponent.LATEST,
         Map.of(StackGresComponent.POSTGRESQL.get(distributedLogs),
-            "12"));
+            DISTRIBUTEDLOGS_POSTGRES_VERSION));
   }
 
   static String getPatroniImageName(StackGresShardedCluster cluster) {

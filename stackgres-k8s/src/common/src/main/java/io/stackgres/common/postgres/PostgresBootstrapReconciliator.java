@@ -6,17 +6,15 @@
 package io.stackgres.common.postgres;
 
 import java.util.Objects;
-import java.util.Optional;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.extension.ExtensionUtil;
-import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,19 +24,19 @@ public abstract class PostgresBootstrapReconciliator {
   private static final Logger LOGGER =
       LoggerFactory.getLogger(PostgresBootstrapReconciliator.class);
 
-  private final ResourceFinder<Endpoints> endpointsFinder;
+  private final PatroniCtl patroniCtl;
   private final String podName;
 
   protected PostgresBootstrapReconciliator(
-      ResourceFinder<Endpoints> endpointsFinder,
+      PatroniCtl patroniCtl,
       String podName) {
-    this.endpointsFinder = endpointsFinder;
+    this.patroniCtl = patroniCtl;
     this.podName = podName;
   }
 
   public PostgresBootstrapReconciliator() {
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
-    this.endpointsFinder = null;
+    this.patroniCtl = null;
     this.podName = null;
   }
 
@@ -64,17 +62,12 @@ public abstract class PostgresBootstrapReconciliator {
             + " but this instance is " + ExtensionUtil.OS_DETECTOR.getArch()
             + "/" + ExtensionUtil.OS_DETECTOR.getOs());
       }
-      final Optional<Endpoints> patroniConfigEndpoints = endpointsFinder
-          .findByNameAndNamespace(PatroniUtil.configName(context.getCluster()),
-              context.getCluster().getMetadata().getNamespace());
-      final boolean isBootstrapped = PatroniUtil.isBootstrapped(patroniConfigEndpoints);
+      var patroniCtl = this.patroniCtl.instanceFor(context.getCluster());
+      final boolean isBootstrapped = PatroniUtil.isBootstrapped(patroniCtl);
       if (!isBootstrapped) {
         return new ReconciliationResult<>(false);
       }
-      final Optional<Endpoints> patroniEndpoints = endpointsFinder
-          .findByNameAndNamespace(PatroniUtil.readWriteName(context.getCluster()),
-              context.getCluster().getMetadata().getNamespace());
-      final boolean isPodPrimary = PatroniUtil.isPrimary(podName, patroniEndpoints);
+      final boolean isPodPrimary = PatroniUtil.isPrimary(podName, patroniCtl);
       boolean result = false;
       if (context.getCluster().getStatus().getPodStatuses()
           .stream()

@@ -11,12 +11,12 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
-public class ReconciliationClockImpl extends AbstractReconciliationClock {
+public class ClusterControllerReconciliationClock extends AbstractReconciliationClock {
 
   private final ClusterControllerReconciliationCycle clusterReconciliationCycle;
 
   @Inject
-  public ReconciliationClockImpl(
+  public ClusterControllerReconciliationClock(
       ClusterControllerReconciliationCycle clusterReconciliationCycle) {
     this.clusterReconciliationCycle = clusterReconciliationCycle;
   }
@@ -25,4 +25,5 @@ public class ReconciliationClockImpl extends AbstractReconciliationClock {
   protected void reconcile() {
     clusterReconciliationCycle.reconcileAll();
   }
+
 }

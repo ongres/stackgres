@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.client.utils.Serialization;
 import io.quarkus.arc.Unremovable;
 import jakarta.inject.Singleton;
 
+@SuppressWarnings("deprecation")
 @Singleton
 @Unremovable
 public class YamlMapperProvider implements Supplier<YAMLMapper> {

@@ -13,8 +13,11 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaimSpec;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
+import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
+import io.stackgres.operatorframework.reconciliation.SafeReconciliator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +33,7 @@ import org.slf4j.LoggerFactory;
  * @param <T> the pod local controller context
  */
 public abstract class PersistentVolumeSizeReconciliator<T extends PodLocalControllerContext>
-    implements AtomicReconciliator {
+    extends SafeReconciliator<T, Void> {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(PersistentVolumeSizeReconciliator.class);
@@ -58,20 +61,12 @@ public abstract class PersistentVolumeSizeReconciliator<T extends PodLocalContro
    */
   protected abstract ResourceWriter<PersistentVolumeClaim> getPvcWriter();
 
-  /**
-   * Returns the component context of the pod local controller.
-   *
-   * @return the component context.
-   */
-  protected abstract T getComponentContext();
-
   @Override
-  public void reconcile() {
+  public ReconciliationResult<Void> safeReconcile(KubernetesClient client, T context) throws Exception {
     LOGGER.info("Reconciling persistent volume claim sizes");
 
-    T componentContext = getComponentContext();
-    String namespace = componentContext.getNamespace();
-    String clusterName = componentContext.getClusterName();
+    String namespace = context.getNamespace();
+    String clusterName = context.getClusterName();
 
     /*
      * We assume here that StatefulSet has the same name of the cluster name,
@@ -91,7 +86,7 @@ public abstract class PersistentVolumeSizeReconciliator<T extends PodLocalContro
           clusterName,
           namespace
       );
-      return;
+      return new ReconciliationResult<>();
     }
 
     StatefulSet sts = stsOpt.get();
@@ -111,7 +106,7 @@ public abstract class PersistentVolumeSizeReconciliator<T extends PodLocalContro
 
     String persistentVolumeClaimName = getPersistentVolumeClaimName(
         clusterName,
-        componentContext.getPodName()
+        context.getPodName()
     );
 
     var pvcFinder = getPvcFinder();
@@ -159,8 +154,9 @@ public abstract class PersistentVolumeSizeReconciliator<T extends PodLocalContro
 
       var pvcWriter = getPvcWriter();
       pvcWriter.update(pvc);
-
     }
+
+    return new ReconciliationResult<>();
   }
 
   private void setNewRequestedSize(PersistentVolumeClaim pvc, Quantity requestedSize) {

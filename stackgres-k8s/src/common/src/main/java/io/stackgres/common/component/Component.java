@@ -381,15 +381,7 @@ public class Component {
   public Optional<String> findImageName(String version,
       Map<Component, String> subComponentVersions) {
     checkSubComponents(subComponentVersions);
-    return streamOrderedComposedVersions()
-        .filter(cv -> isVersion(version, cv.getVersion()))
-        .filter(cv -> Seq.seq(cv.getSubVersions())
-            .zipWithIndex()
-            .map(subVersion -> Tuple.tuple(
-                subComponents.get(subVersion.v2.intValue()).get(subVersion.v1.v1),
-                subVersion.v1.v2))
-            .allMatch(subVersion -> subComponentVersions.containsKey(subVersion.v1)
-                && isVersion(subComponentVersions.get(subVersion.v1), subVersion.v2)))
+    return findComposedVersion(version, subComponentVersions)
         .map(ComposedVersion::getImageName)
         .findFirst();
   }
@@ -419,8 +411,23 @@ public class Component {
         .map(ImageVersion::getVersion);
   }
 
+  public Optional<String> findVersion(String version,
+      Map<Component, String> subComponentVersions) {
+    return findComposedVersion(version, subComponentVersions)
+        .map(ComposedVersion::getVersion)
+        .map(ImageVersion::getVersion)
+        .findFirst();
+  }
+
   public String getVersion(String version) {
     return findVersion(version)
+        .orElseThrow(() -> new IllegalArgumentException(
+            this.name + " version " + version + " not available"));
+  }
+
+  public String getVersion(String version,
+      Map<Component, String> subComponentVersions) {
+    return findVersion(version, subComponentVersions)
         .orElseThrow(() -> new IllegalArgumentException(
             this.name + " version " + version + " not available"));
   }
@@ -454,15 +461,7 @@ public class Component {
   public Optional<String> findBuildVersion(String version,
       Map<Component, String> subComponentVersions) {
     checkSubComponents(subComponentVersions);
-    return streamOrderedComposedVersions()
-        .filter(cv -> isVersion(version, cv.getVersion()))
-        .filter(cv -> Seq.seq(cv.getSubVersions())
-            .zipWithIndex()
-            .map(subVersion -> Tuple.tuple(
-                subComponents.get(subVersion.v2.intValue()).get(subVersion.v1.v1),
-                subVersion.v1.v2))
-            .allMatch(subVersion -> subComponentVersions.containsKey(subVersion.v1)
-                && isVersion(subComponentVersions.get(subVersion.v1), subVersion.v2)))
+    return findComposedVersion(version, subComponentVersions)
         .map(ComposedVersion::getVersion)
         .map(ImageVersion::getBuild)
         .findFirst();
@@ -574,6 +573,19 @@ public class Component {
   @Override
   public String toString() {
     return name;
+  }
+
+  private Seq<ComposedVersion> findComposedVersion(String version, Map<Component, String> subComponentVersions) {
+    checkSubComponents(subComponentVersions);
+    return streamOrderedComposedVersions()
+        .filter(cv -> isVersion(version, cv.getVersion()))
+        .filter(cv -> Seq.seq(cv.getSubVersions())
+            .zipWithIndex()
+            .map(subVersion -> Tuple.tuple(
+                subComponents.get(subVersion.v2.intValue()).get(subVersion.v1.v1),
+                subVersion.v1.v2))
+            .allMatch(subVersion -> subComponentVersions.containsKey(subVersion.v1)
+                && isVersion(subComponentVersions.get(subVersion.v1), subVersion.v2)));
   }
 
   private void checkSubComponents(Map<Component, String> subComponentVersions) {

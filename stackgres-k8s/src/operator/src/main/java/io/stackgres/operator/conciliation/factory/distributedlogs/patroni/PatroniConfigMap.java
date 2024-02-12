@@ -9,8 +9,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -22,6 +22,7 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresDistributedLogsUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
+import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -47,29 +48,22 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
 
   private final LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
 
-  private final ObjectMapper jsonMapper;
+  private final ObjectMapper objectMapper;
+  private final YAMLMapper yamlMapper;
 
   @Inject
-  public PatroniConfigMap(LabelFactoryForCluster<StackGresDistributedLogs> labelFactory,
-      ObjectMapper jsonMapper) {
+  public PatroniConfigMap(
+      LabelFactoryForCluster<StackGresDistributedLogs> labelFactory,
+      ObjectMapper objectMapper,
+      YamlMapperProvider yamlMapperProvider) {
     this.labelFactory = labelFactory;
-    this.jsonMapper = jsonMapper;
+    this.objectMapper = objectMapper;
+    this.yamlMapper = yamlMapperProvider.get();
   }
 
   public static String name(StackGresDistributedLogsContext clusterContext) {
     final String name = clusterContext.getSource().getMetadata().getName();
     return StackGresVolume.PATRONI_ENV.getResourceName(name);
-  }
-
-  public static String getKubernetesPorts(final int pgPort, final int pgRawPort) {
-    return "["
-        + "{\"protocol\":\"TCP\","
-        + "\"name\":\"" + POSTGRES_PORT_NAME + "\","
-        + "\"port\":" + pgPort + "},"
-        + "{\"protocol\":\"TCP\","
-        + "\"name\":\"" + POSTGRES_REPLICATION_PORT_NAME + "\","
-        + "\"port\":" + pgRawPort + "}"
-        + "]";
   }
 
   @Override
@@ -96,28 +90,13 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
     final StackGresDistributedLogs cluster = context.getSource();
     final String pgVersion = StackGresDistributedLogsUtil.getPostgresVersion(context.getSource());
 
-    final String patroniClusterLabelsAsJson;
-    final Map<String, String> patroniClusterLabels = labelFactory.patroniClusterLabels(cluster);
-    try {
-      patroniClusterLabelsAsJson = jsonMapper.writeValueAsString(
-          patroniClusterLabels);
-    } catch (JsonProcessingException ex) {
-      throw new RuntimeException(ex);
-    }
-    final String pgHost = "0.0.0.0"; // NOPMD
-    final int pgRawPort = EnvoyUtil.PG_PORT;
-    final int pgPort = EnvoyUtil.PG_PORT;
     Map<String, String> data = new HashMap<>();
     data.put("PATRONI_CONFIG_FILE", ClusterPath.PATRONI_CONFIG_FILE_PATH.path());
-    data.put("PATRONI_SCOPE", PatroniUtil.clusterScope(cluster));
-    data.put("PATRONI_KUBERNETES_SCOPE_LABEL",
-        labelFactory.labelMapper().clusterScopeKey(cluster));
-    data.put("PATRONI_KUBERNETES_LABELS", patroniClusterLabelsAsJson);
-    data.put("PATRONI_KUBERNETES_USE_ENDPOINTS", "true");
-    data.put("PATRONI_KUBERNETES_PORTS", getKubernetesPorts(pgPort, pgRawPort));
-    data.put("PATRONI_POSTGRESQL_LISTEN", pgHost + ":" + EnvoyUtil.PG_PORT);
+    data.put("PATRONI_INITIAL_CONFIG", PatroniUtil.getInitialConfig(
+        cluster, labelFactory, yamlMapper, objectMapper));
+    data.put("PATRONI_POSTGRESQL_LISTEN", "0.0.0.0:" + EnvoyUtil.PG_PORT);
     data.put("PATRONI_POSTGRESQL_CONNECT_ADDRESS",
-        "${PATRONI_KUBERNETES_POD_IP}:" + pgRawPort);
+        "${PATRONI_KUBERNETES_POD_IP}:" + EnvoyUtil.PG_PORT);
 
     data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:8008");
     data.put("PATRONI_POSTGRESQL_DATA_DIR", ClusterPath.PG_DATA_PATH.path());
@@ -134,7 +113,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
         .withNewMetadata()
         .withNamespace(cluster.getMetadata().getNamespace())
         .withName(name(context))
-        .withLabels(patroniClusterLabels)
+        .withLabels(labelFactory.patroniClusterLabels(cluster))
         .endMetadata()
         .withData(StackGresUtil.addMd5Sum(data))
         .build();

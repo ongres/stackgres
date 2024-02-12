@@ -24,18 +24,14 @@ public class ClusterPersistentVolumeSizeReconciliator extends
 
   private final ResourceWriter<PersistentVolumeClaim> pvcWriter;
 
-  private final ClusterControllerPropertyContext propertyContext;
-
   @Inject
   public ClusterPersistentVolumeSizeReconciliator(
       ResourceFinder<StatefulSet> stsFinder,
       ResourceFinder<PersistentVolumeClaim> pvcFinder,
-      ResourceWriter<PersistentVolumeClaim> pvcWriter,
-      ClusterControllerPropertyContext propertyContext) {
+      ResourceWriter<PersistentVolumeClaim> pvcWriter) {
     this.stsFinder = stsFinder;
     this.pvcFinder = pvcFinder;
     this.pvcWriter = pvcWriter;
-    this.propertyContext = propertyContext;
   }
 
   @Override
@@ -51,11 +47,6 @@ public class ClusterPersistentVolumeSizeReconciliator extends
   @Override
   protected ResourceWriter<PersistentVolumeClaim> getPvcWriter() {
     return pvcWriter;
-  }
-
-  @Override
-  protected ClusterControllerPropertyContext getComponentContext() {
-    return propertyContext;
   }
 
 }

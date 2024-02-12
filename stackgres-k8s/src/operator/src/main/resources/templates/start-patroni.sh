@@ -71,16 +71,8 @@ cat << EOF > "$PATRONI_CONFIG_FILE_PATH"
 $PATRONI_INITIAL_CONFIG
 
 #Reset ignored sections
-consul: null
-etcd: null
-etcdv3: null
-zookeeper: null
-exhibitor: null
-kubernetes: null
-raft: null
 ctl: null
 
-scope: ${PATRONI_SCOPE}
 name: ${PATRONI_NAME}
 
 bootstrap:

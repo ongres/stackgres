@@ -62,7 +62,7 @@ class PostgresSslSecretTest {
         .orElseThrow()
         .getMetadata()
         .getName());
-    Assertions.assertEquals(1, secretVolumePairs.getFirst().getSource()
+    Assertions.assertEquals(2, secretVolumePairs.getFirst().getSource()
         .map(Secret.class::cast)
         .orElseThrow()
         .getData()

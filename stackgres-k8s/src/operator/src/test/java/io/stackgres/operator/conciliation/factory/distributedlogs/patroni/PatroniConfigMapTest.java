@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.LabelFactoryForCluster;
@@ -41,7 +42,9 @@ public class PatroniConfigMapTest {
   @Mock
   private LabelMapperForCluster<StackGresDistributedLogs> labelMapperForCluster;
 
-  private ObjectMapper jsonMapper = JsonUtil.jsonMapper();
+  private ObjectMapper objectMapper = JsonUtil.jsonMapper();
+
+  private YamlMapperProvider yamlMapperProvider = new YamlMapperProvider();
 
   @Mock
   private StackGresDistributedLogsContext context;
@@ -51,8 +54,7 @@ public class PatroniConfigMapTest {
   private PatroniConfigMap patroniConfigMap;
 
   private List<String> expectedEnvVarsConfigMap = List.of("PATRONI_CONFIG_FILE",
-      "PATRONI_SCOPE", "PATRONI_KUBERNETES_SCOPE_LABEL", "PATRONI_KUBERNETES_LABELS",
-      "PATRONI_KUBERNETES_USE_ENDPOINTS", "PATRONI_KUBERNETES_PORTS", "PATRONI_POSTGRESQL_LISTEN",
+      "PATRONI_INITIAL_CONFIG", "PATRONI_POSTGRESQL_LISTEN",
       "PATRONI_POSTGRESQL_CONNECT_ADDRESS", "PATRONI_RESTAPI_LISTEN",
       "PATRONI_POSTGRESQL_DATA_DIR", "PATRONI_POSTGRESQL_BIN_DIR",
       "PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY", "PATRONI_SCRIPTS", StackGresUtil.MD5SUM_KEY);
@@ -63,7 +65,7 @@ public class PatroniConfigMapTest {
 
   @BeforeEach
   void setUp() {
-    patroniConfigMap = new PatroniConfigMap(labelFactoryForCluster, jsonMapper);
+    patroniConfigMap = new PatroniConfigMap(labelFactoryForCluster, objectMapper, yamlMapperProvider);
     stackGresDistributedLogs =  Fixtures.distributedLogs().loadDefault().get();
     when(context.getSource()).thenReturn(stackGresDistributedLogs);
     when(labelFactoryForCluster.labelMapper()).thenReturn(labelMapperForCluster);

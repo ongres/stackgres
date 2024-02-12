@@ -17,8 +17,16 @@ public abstract class AbstractReconciliationClock implements ReconciliationClock
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractReconciliationClock.class);
 
-  private final ScheduledExecutorService scheduledExecutorService =
-      Executors.newScheduledThreadPool(1, r -> new Thread(r, "ReconciliationScheduler"));
+  private final ScheduledExecutorService scheduledExecutorService;
+
+  public AbstractReconciliationClock() {
+    this("ReconciliationScheduler");
+  }
+
+  public AbstractReconciliationClock(String threadName) {
+    this.scheduledExecutorService =
+        Executors.newScheduledThreadPool(1, r -> new Thread(r, threadName));
+  }
 
   @Override
   public void start() {

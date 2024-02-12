@@ -1,7 +1,21 @@
 ARG BASE_IMAGE
 
+FROM quay.io/ongres/patroni:v3.0.2-pg13.7-build-6.22 AS patroni_3_0_2
+FROM quay.io/ongres/patroni:v3.2.0-bf13.9-build-6.29 AS patroni_3_2_0
+
 FROM "$BASE_IMAGE"
   USER root:root
+
+  RUN microdnf install -y python3 libpq
+  COPY --from=patroni_3_0_2 /usr/bin/patronictl /usr/bin/patronictl-3.0.2
+  RUN sed -i "5i sys.path.append('/usr/lib/patroni-3.0.2')" /usr/bin/patronictl-3.0.2
+  COPY --from=patroni_3_0_2 /usr/lib64/python3.9/site-packages /usr/lib/patroni-3.0.2
+  COPY --from=patroni_3_0_2 /usr/lib/python3.9/site-packages /usr/lib/patroni-3.0.2
+  COPY --from=patroni_3_2_0 /usr/bin/patronictl /usr/bin/patronictl-3.2.0
+  RUN sed -i "5i sys.path.append('/usr/lib/patroni-3.2.0')" /usr/bin/patronictl-3.2.0
+  COPY --from=patroni_3_2_0 /usr/lib64/python3.9/site-packages /usr/lib/patroni-3.2.0
+  COPY --from=patroni_3_2_0 /usr/lib/python3.9/site-packages /usr/lib/patroni-3.2.0
+
   WORKDIR '/app/'
 
   COPY 'src/main/docker/LICENCE' '/licenses/stackgres'
@@ -13,12 +27,12 @@ FROM "$BASE_IMAGE"
   COPY 'target/quarkus-app/app/' '/app/app/'
   COPY 'target/quarkus-app/quarkus/' '/app/quarkus/'
 
-  RUN chown -R jboss:jboss '/app'
+  RUN chown -R default:default '/app'
   RUN chmod 755 '/app'
   RUN chmod 755 '/app/stackgres-restapi.sh'
 
   ENV HOME=/app LANG=C.utf8
-  USER jboss:jboss
+  USER default:default
   EXPOSE 8080
   EXPOSE 8443
 

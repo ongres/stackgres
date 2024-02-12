@@ -28,10 +28,12 @@ public class StackGresClusterPatroniConfig extends JsonObject {
     super(m);
   }
 
+  @JsonIgnore
   public String getScope() {
     return (String) get("scope");
   }
 
+  @JsonIgnore
   public Optional<Integer> getCitusGroup() {
     return Optional.of(this)
         .filter(config -> config.hasObject("citus"))
@@ -74,6 +76,16 @@ public class StackGresClusterPatroniConfig extends JsonObject {
     Optional.of(this)
         .filter(config -> config.hasObject("postgresql"))
         .ifPresent(config -> config.remove("postgresql"));
+  }
+
+  @JsonIgnore
+  public boolean isPatroniOnKubernetes() {
+    return !(hasObject("consul")
+        || hasObject("etcd")
+        || hasObject("etcdv3")
+        || hasObject("zookeeper")
+        || hasObject("exhibitor")
+        || hasObject("raft"));
   }
 
   public String toString() {

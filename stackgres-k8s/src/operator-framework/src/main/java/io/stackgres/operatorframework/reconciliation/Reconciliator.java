@@ -13,7 +13,7 @@ public abstract class Reconciliator<T> {
 
   protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-  protected abstract ReconciliationResult<?> reconcile(KubernetesClient client, T context)
+  public abstract ReconciliationResult<?> reconcile(KubernetesClient client, T context)
       throws Exception;
 
 }

@@ -9,13 +9,12 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterBootstrapEventReason;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterControllerProperty;
+import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.common.postgres.PostgresBootstrapReconciliator;
-import io.stackgres.common.resource.ResourceFinder;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
@@ -29,13 +28,13 @@ public class ClusterControllerPostgresBootstrapReconciliator
   @Dependent
   public static class Parameters {
     @Inject EventController eventController;
-    @Inject ResourceFinder<Endpoints> endpointsFinder;
+    @Inject PatroniCtl patroniCtl;
     @Inject ClusterControllerPropertyContext propertyContext;
   }
 
   @Inject
   public ClusterControllerPostgresBootstrapReconciliator(Parameters parameters) {
-    super(parameters.endpointsFinder, parameters.propertyContext
+    super(parameters.patroniCtl, parameters.propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME));
     this.eventController = parameters.eventController;
   }

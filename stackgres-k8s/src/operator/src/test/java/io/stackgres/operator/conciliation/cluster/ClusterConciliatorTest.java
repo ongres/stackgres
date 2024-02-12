@@ -35,6 +35,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
+import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.DeployedResourcesSnapshot;
@@ -61,6 +62,9 @@ class ClusterConciliatorTest {
 
   @Mock
   private AbstractDeployedResourcesScanner<StackGresCluster> deployedResourcesScanner;
+
+  @Mock
+  private PatroniCtl patroniCtl;
 
   private DeployedResourcesCache deployedResourcesCache;
 
@@ -708,7 +712,8 @@ class ClusterConciliatorTest {
     final ClusterConciliator clusterConciliator = new ClusterConciliator(
         null,
         requiredResourceGenerator, deployedResourcesScanner, deployedResourcesCache,
-        new ClusterLabelFactory(new ClusterLabelMapper()));
+        new ClusterLabelFactory(new ClusterLabelMapper()),
+        patroniCtl);
     return clusterConciliator;
   }
 
