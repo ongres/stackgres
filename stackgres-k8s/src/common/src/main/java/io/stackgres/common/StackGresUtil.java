@@ -58,6 +58,7 @@ import org.jooq.lambda.tuple.Tuple2;
 public interface StackGresUtil {
 
   String MD5SUM_KEY = "MD5SUM";
+  String MD5SUM_2_KEY = "MD5SUM_2";
   String DATA_SUFFIX = "-data";
   String BACKUP_SUFFIX = "-backup";
   Pattern EMPTY_LINE_PATTERN = Pattern.compile(
@@ -148,6 +149,20 @@ public interface StackGresUtil {
    * Calculate MD5 hash of all exisitng values ordered by key.
    */
   static Map<String, String> addMd5Sum(Map<String, String> data) {
+    MessageDigest messageDigest2 = Unchecked
+        .supplier(() -> MessageDigest.getInstance("MD5")).get();
+    messageDigest2.update(data.entrySet().stream()
+        .filter(entry -> !entry.getKey().equals(MD5SUM_2_KEY))
+        .sorted(Map.Entry.comparingByKey())
+        .map(e -> e.getKey() + "=" + e.getValue())
+        .collect(Collectors.joining())
+        .getBytes(StandardCharsets.UTF_8));
+    data = ImmutableMap.<String, String>builder()
+        .putAll(data.entrySet().stream()
+            .filter(entry -> !entry.getKey().startsWith(MD5SUM_KEY))
+            .toList())
+        .put(MD5SUM_2_KEY, HexFormat.of().withUpperCase().formatHex(messageDigest2.digest()))
+        .build();
     MessageDigest messageDigest = Unchecked
         .supplier(() -> MessageDigest.getInstance("MD5")).get();
     messageDigest.update(data.entrySet().stream()
