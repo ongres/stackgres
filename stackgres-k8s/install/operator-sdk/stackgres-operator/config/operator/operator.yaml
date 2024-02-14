@@ -1,0 +1,147 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    app: stackgres-operator
+    app.kubernetes.io/name: namespace
+    app.kubernetes.io/instance: system
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/created-by: stackgres
+    app.kubernetes.io/part-of: stackgres
+    app.kubernetes.io/managed-by: kustomize
+  name: system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: operator
+  namespace: system
+  labels:
+    app: stackgres-operator
+    group: stackgres.io
+    app.kubernetes.io/name: deployment
+    app.kubernetes.io/instance: operator
+    app.kubernetes.io/component: operator
+    app.kubernetes.io/created-by: stackgres
+    app.kubernetes.io/part-of: stackgres
+    app.kubernetes.io/managed-by: kustomize
+spec:
+  selector:
+    matchLabels:
+      app: stackgres-operator
+      group: stackgres.io
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: operator
+      labels:
+        app: stackgres-operator
+        group: stackgres.io
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: kubernetes.io/arch
+                  operator: In
+                  values:
+                    - amd64
+                    - arm64
+                - key: kubernetes.io/os
+                  operator: In
+                  values:
+                    - linux
+      securityContext:
+        runAsNonRoot: true
+        # TODO(user): For common cases that do not require escalating privileges
+        # it is recommended to ensure that all your Pods/Containers are restrictive.
+        # More info: https://kubernetes.io/docs/concepts/security/pod-security-standards/#restricted
+        # Please uncomment the following code if your project does NOT have to work on old Kubernetes
+        # versions < 1.19 or on vendors versions which do NOT support this field by default (i.e. Openshift < 4.11 ).
+        # seccompProfile:
+        #   type: RuntimeDefault
+      containers:
+      - name: operator
+        image: operator:latest
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - "ALL"
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+        env:
+          - name: REMOVE_OLD_OPERATOR_BUNDLE_RESOURCES
+            value: "true"
+          - name: INSTALL_CONFIG
+            value: "true"
+          - name: DISABLE_RESTAPI_SERVICE_ACCOUNT
+            value: "true"
+          - name: OPERATOR_CERT_FILE
+            value: /tmp/k8s-webhook-server/serving-certs/tls.crt
+          - name: OPERATOR_KEY_FILE
+            value: /tmp/k8s-webhook-server/serving-certs/tls.key
+          - name: OPERATOR_NAME
+            value: stackgres-operator
+          - name: OPERATOR_NAMESPACE
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.namespace
+          - name: OPERATOR_IMAGE_VERSION
+            value: "1.8.0-snapshot"
+          - name: OPERATOR_SERVICE_ACCOUNT
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: spec.serviceAccountName
+          - name: OPERATOR_POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+          - name: OPERATOR_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: OPERATOR_VERSION
+            value: "1.8.0-SNAPSHOT"
+
+        ports:
+        - containerPort: 8080
+          name: "http"
+          protocol: "TCP"
+        - containerPort: 8443
+          name: "https"
+          protocol: "TCP"
+        livenessProbe:
+          httpGet:
+            path: "/q/health/live"
+            port: 8080
+            scheme: "HTTP"
+          initialDelaySeconds: 10
+          periodSeconds: 60
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: "/q/health/ready"
+            port: 8080
+            scheme: "HTTP"
+          initialDelaySeconds: 0
+          periodSeconds: 2
+          timeoutSeconds: 1
+        # TODO(user): Configure the resources accordingly based on the project requirements.
+        # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+        resources:
+          limits:
+            cpu: 1
+            memory: 512Mi
+          requests:
+            cpu: 10m
+            memory: 128Mi
+      serviceAccountName: operator
+      terminationGracePeriodSeconds: 10

@@ -155,7 +155,7 @@ EOF
    "  > "stackgres-k8s/ci/build/target/$MODULE-build-env"
   # shellcheck disable=SC2046
   docker_run -i $(! test -t 1 || printf %s '-t') --rm \
-    --pull always \
+    $([ "$SKIP_REMOTE_MANIFEST" = true ] || printf %s '--pull always') \
     --volume "/var/run/docker.sock:/var/run/docker.sock" \
     --volume "${PROJECT_PATH:-$(pwd)}:/project" \
     --workdir /project \
@@ -397,7 +397,7 @@ extract_from_image() {
   local IMAGE_PLATFORM
   IMAGE_PLATFORM="$(get_image_platform "$IMAGE_NAME")"
   docker_run --rm --entrypoint /bin/sh --platform "$IMAGE_PLATFORM" \
-    --pull always \
+    $([ "$SKIP_REMOTE_MANIFEST" = true ] || printf %s '--pull always') \
     --user "$(id -u):$(id -g)" \
     --env HOME=/tmp \
     -v "${PROJECT_PATH:-$(pwd)}:/out" \

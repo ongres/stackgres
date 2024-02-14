@@ -1,0 +1,8 @@
+resources:
+- operator.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+images:
+- name: operator
+  newName: quay.io/stackgres/operator
+  newTag: 1.8.0-snapshot

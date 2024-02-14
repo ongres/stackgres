@@ -1,0 +1,418 @@
+---
+---
+# Source: stackgres-operator/templates/mutating-webhook-configuration.yaml
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: stackgres-operator
+  namespace: system
+  annotations:
+    meta.helm.sh/release-name: stackgres-operator
+    meta.helm.sh/release-namespace: system
+  labels:
+    app.kubernetes.io/managed-by: Helm
+webhooks:
+  - name: sgcluster.mutating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgclusters"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/mutation/sgcluster'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgpgconfig.mutating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgpgconfigs"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/mutation/sgpgconfig'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgpoolconfig.mutating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgpoolconfigs"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/mutation/sgpoolconfig'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sginstanceprofile.mutating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sginstanceprofiles"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/mutation/sginstanceprofile'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgbackupconfig.mutating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgbackupconfigs"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/mutation/sgbackupconfig'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgbackup.mutating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgbackups"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/mutation/sgbackup'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgdistributedlogs.mutating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgdistributedlogs"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/mutation/sgdistributedlogs'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgdbops.mutating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgdbops"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/mutation/sgdbops'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgobjectstorage.mutating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgobjectstorages"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/mutation/sgobjectstorage'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgscripts.mutating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgscripts"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/mutation/sgscript'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgshardedclusters.mutating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgshardedclusters"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/mutation/sgshardedcluster'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgshardedbackups.mutating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgshardedbackups"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/mutation/sgshardedbackup'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgshardeddbops.mutating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgshardeddbops"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/mutation/sgshardeddbops'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+---
+---
+# Source: stackgres-operator/templates/validating-webhook-configuration.yaml
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: stackgres-operator
+  namespace: system
+  annotations:
+    meta.helm.sh/release-name: stackgres-operator
+    meta.helm.sh/release-namespace: system
+  labels:
+    app.kubernetes.io/managed-by: Helm
+webhooks:
+  - name: sgcluster.validating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgclusters"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/validation/sgcluster'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgpgconfig.validating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgpgconfigs"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/validation/sgpgconfig'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgpoolconfig.validating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgpoolconfigs"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/validation/sgpoolconfig'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sginstanceprofile.validating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sginstanceprofiles"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/validation/sginstanceprofile'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgbackupconfig.validating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgbackupconfigs"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/validation/sgbackupconfig'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgbackup.validating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgbackups"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/validation/sgbackup'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgdistributedlogs.validating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgdistributedlogs"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/validation/sgdistributedlogs'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgdbops.validating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgdbops"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/validation/sgdbops'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgobjectstorage.validating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgobjectstorages"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/validation/sgobjectstorage'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgscripts.validating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgscripts"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/validation/sgscript'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgshardedclusters.validating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgshardedclusters"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/validation/sgshardedcluster'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgshardedbackups.validating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgshardedbackups"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/validation/sgshardedbackup'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]
+  - name: sgshardeddbops.validating-webhook.stackgres.io
+    sideEffects: None
+    rules:
+      - operations: ["CREATE", "UPDATE", "DELETE"]
+        apiGroups: ["stackgres.io"]
+        apiVersions: ["*"]
+        resources: ["sgshardeddbops"]
+    failurePolicy: Fail
+    clientConfig:
+      service:
+        namespace: system
+        name: stackgres-operator
+        path: '/stackgres/validation/sgshardeddbops'
+      caBundle: Cg==
+    admissionReviewVersions: ["v1"]

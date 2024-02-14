@@ -1,0 +1,369 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: sgbackupconfigs.stackgres.io
+spec:
+  group: stackgres.io
+  scope: Namespaced
+  names:
+    kind: SGBackupConfig
+    listKind: SGBackupConfigList
+    plural: sgbackupconfigs
+    singular: sgbackupconfig
+    shortNames:
+      - sgbac
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    additionalPrinterColumns:
+    - name: type
+      type: string
+      jsonPath: .spec.storage.type
+    - name: compression
+      type: string
+      jsonPath: .spec.baseBackups.compression
+    - name: retention
+      type: string
+      jsonPath: .spec.baseBackups.retention
+    - name: schedule
+      type: string
+      jsonPath: .spec.baseBackups.cronSchedule
+    schema:
+      openAPIV3Schema:
+        type: object
+        required: ["metadata", "spec"]
+        properties:
+          metadata:
+            type: object
+            properties:
+              name:
+                type: string
+                description: |
+                  Name of the Backup Configuration. StackGres supports [Continuous Archiving](https://www.postgresql.org/docs/current/continuous-archiving.html)-based backups which are performed automatically, helping achieve near-zero data loss in case of recovery from a backup. An SGBackupConfig contains the necessary configuration to perform these automatic backups and may be referenced by zero or more SGClusters, and if so it would be referenced by its name. Following [Kubernetes naming conventions](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/architecture/identifiers.md), it must be an rfc1035/rfc1123 subdomain, that is, up to 253 characters consisting of one or more lowercase labels separated by `.`. Where each label is an alphanumeric (a-z, and 0-9) string, with the `-` character allowed anywhere except the first or last character.
+
+                  The name must be unique across all backup configurations in the same namespace.
+          spec:
+            type: object
+            properties:
+              baseBackups:
+                type: object
+                description: |
+                  Back backups configuration.
+                properties:
+                  cronSchedule:
+                    type: string
+                    description: |
+                      Continuous Archiving backups are composed of periodic *base backups* and all the WAL segments produced in between those base backups. This parameter specifies at what time and with what frequency to start performing a new base backup.
+
+                      Use cron syntax (`m h dom mon dow`) for this parameter, i.e., 5 values separated by spaces:
+                      *  `m`: minute, 0 to 59.
+                      *  `h`: hour, 0 to 23.
+                      *  `dom`: day of month, 1 to 31 (recommended not to set it higher than 28).
+                      *  `mon`: month, 1 to 12.
+                      *  `dow`: day of week, 0 to 7 (0 and 7 both represent Sunday).
+
+                      Also ranges of values (`start-end`), the symbol `*` (meaning `first-last`) or even `*/N`, where `N` is a number, meaning ""every `N`, may be used. All times are UTC. It is recommended to avoid 00:00 as base backup time, to avoid overlapping with any other external operations happening at this time.
+
+                      If not set, full backups are performed everyday at 05:00 UTC.
+                  retention:
+                    type: integer
+                    minimum: 1
+                    description: |
+                      Define the number of backups with managed lifecycle to keep, in a sliding window.
+
+                      Consequently, the time range covered by backups is `periodicity*retention`, where `periodicity` is the separation between backups as specified by the `cronSchedule` property.
+
+                      WAL files before the oldest backup with managed lifecycle will also be removed. So that, when retention is applied, the oldest WAL available will be `periodicity*retention` old.
+
+                      Default is 5.
+                  compression:
+                    type: string
+                    description: |
+                      Specifies the backup compression algorithm. Possible options are: lz4, lzma, brotli. The default method is `lz4`. LZ4 is the fastest method, but compression ratio is the worst. LZMA is way slower, but it compresses backups about 6 times better than LZ4. Brotli is a good trade-off between speed and compression ratio, being about 3 times better than LZ4.
+                    enum: ["lz4", "lzma", "brotli"]
+                  performance:
+                    type: object
+                    properties:
+                      maxNetworkBandwitdh:
+                        type: integer
+                        description: |
+                          **Deprecated**: use instead maxNetworkBandwidth.
+
+                          Maximum storage upload bandwidth used when storing a backup. In bytes (per second).
+                      maxDiskBandwitdh:
+                        type: integer
+                        description: |
+                          **Deprecated**: use instead maxDiskBandwidth.
+
+                          Maximum disk read I/O when performing a backup. In bytes (per second).
+                      maxNetworkBandwidth:
+                        type: integer
+                        description: |
+                          Maximum storage upload bandwidth used when storing a backup. In bytes (per second).
+                      maxDiskBandwidth:
+                        type: integer
+                        description: |
+                          Maximum disk read I/O when performing a backup. In bytes (per second).
+                      uploadDiskConcurrency:
+                        type: integer
+                        minimum: 1
+                        description: |
+                          Backup storage may use several concurrent streams to store the data. This parameter configures the number of parallel streams to use. By default, it's set to 1 (use one stream).
+              storage:
+                type: object
+                description: |
+                  Backup storage configuration.
+                properties:
+                  type:
+                    type: string
+                    enum: ["s3", "s3Compatible", "gcs", "azureBlob"]
+                    description: |
+                      Determine the type of object storage used for storing the base backups and WAL segments.
+                      Possible values:
+                      *  `s3`: Amazon Web Services S3 (Simple Storage Service).
+                      *  `s3Compatible`: non-AWS services that implement a compatibility API with AWS S3.
+                      *  `gcs`: Google Cloud Storage.
+                      *  `azureBlob`: Microsoft Azure Blob Storage.
+                  s3:
+                    type: object
+                    description: |
+                      Amazon Web Services S3 configuration.
+                    properties:
+                      bucket:
+                        type: string
+                        pattern: '^((s3|https?)://)?[^/]+(/[^/]*)*$'
+                        description: |
+                          AWS S3 bucket name.
+                      path:
+                        type: string
+                        pattern: '^(/[^/]*)*$'
+                        description: |
+                          Optional path within the S3 bucket. Note that StackGres generates in any case a folder per StackGres cluster, using the `SGCluster.metadata.name`.
+                      region:
+                        type: string
+                        description: |
+                          The AWS S3 region. The Region may be detected using s3:GetBucketLocation, but if you wish to avoid giving permissions to this API call or forbid it from the applicable IAM policy, you must then specify this property.
+                      storageClass:
+                        type: string
+                        description: |
+                          The [Amazon S3 Storage Class](https://aws.amazon.com/s3/storage-classes/) to use for the backup object storage. By default, the `STANDARD` storage class is used. Other supported values include `STANDARD_IA` for Infrequent Access and `REDUCED_REDUNDANCY`.
+                      awsCredentials:
+                        type: object
+                        description: |
+                          The credentials to access AWS S3 for writing and reading.
+                        properties:
+                          secretKeySelectors:
+                            type: object
+                            description: |
+                              Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#secretkeyselector-v1-core)(s) to reference the Secrets that contain the information about the `awsCredentials`. Note that you may use the same or different Secrets for the `accessKeyId` and the `secretAccessKey`. In the former case, the `keys` that identify each must be, obviously, different.
+                            properties:
+                              accessKeyId:
+                                type: object
+                                description: |
+                                  AWS [access key ID](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys). For example, `AKIAIOSFODNN7EXAMPLE`.
+                                properties:
+                                  key:
+                                    type: string
+                                    description: |
+                                      The key of the secret to select from. Must be a valid secret key.
+                                  name:
+                                    type: string
+                                    description: |
+                                      Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                required: ["key", "name"]
+                              secretAccessKey:
+                                type: object
+                                description: |
+                                  AWS [secret access key](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys). For example, `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`.
+                                properties:
+                                  key:
+                                    type: string
+                                    description: |
+                                      The key of the secret to select from. Must be a valid secret key.
+                                  name:
+                                    type: string
+                                    description: |
+                                      Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                required: ["key", "name"]
+                            required: ["accessKeyId", "secretAccessKey"]
+                        required: ["secretKeySelectors"]
+                    required: ["bucket", "awsCredentials"]
+                  s3Compatible:
+                    type: object
+                    description: "AWS S3-Compatible API configuration"
+                    properties:
+                      bucket:
+                        type: string
+                        pattern: '^((s3|https?)://)?[^/]+(/[^/]*)*$'
+                        description: |
+                          Bucket name.
+                      path:
+                        type: string
+                        pattern: '^(/[^/]*)*$'
+                        description: |
+                          Optional path within the S3 bucket. Note that StackGres generates in any case a folder per StackGres cluster, using the `SGCluster.metadata.name`.
+                      enablePathStyleAddressing:
+                        type: boolean
+                        description: |
+                          Enable path-style addressing (i.e. `http://s3.amazonaws.com/BUCKET/KEY`) when connecting to an S3-compatible service that lacks support for sub-domain style bucket URLs (i.e. `http://BUCKET.s3.amazonaws.com/KEY`).
+
+                          Defaults to false.
+                      endpoint:
+                        type: string
+                        description: |
+                          Overrides the default url to connect to an S3-compatible service.
+                          For example: `http://s3-like-service:9000`.
+                      region:
+                        type: string
+                        description: |
+                          The AWS S3 region. The Region may be detected using s3:GetBucketLocation, but if you wish to avoid giving permissions to this API call or forbid it from the applicable IAM policy, you must then specify this property.
+                      storageClass:
+                        type: string
+                        description: |
+                          The [Amazon S3 Storage Class](https://aws.amazon.com/s3/storage-classes/) to use for the backup object storage. By default, the `STANDARD` storage class is used. Other supported values include `STANDARD_IA` for Infrequent Access and `REDUCED_REDUNDANCY`.
+                      awsCredentials:
+                        type: object
+                        description: |
+                          The credentials to access AWS S3 for writing and reading.
+                        properties:
+                          secretKeySelectors:
+                            type: object
+                            description: |
+                              Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#secretkeyselector-v1-core)(s) to reference the Secret(s) that contain the information about the `awsCredentials`. Note that you may use the same or different Secrets for the `accessKeyId` and the `secretAccessKey`. In the former case, the `keys` that identify each must be, obviously, different.
+                            properties:
+                              accessKeyId:
+                                type: object
+                                description: |
+                                  AWS [access key ID](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys). For example, `AKIAIOSFODNN7EXAMPLE`.
+                                properties:
+                                  key:
+                                    type: string
+                                    description: |
+                                      The key of the secret to select from. Must be a valid secret key.
+                                  name:
+                                    type: string
+                                    description: |
+                                      Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                required: ["key", "name"]
+                              secretAccessKey:
+                                type: object
+                                description: |
+                                  AWS [secret access key](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys). For example, `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY`.
+                                properties:
+                                  key:
+                                    type: string
+                                    description: |
+                                      The key of the secret to select from. Must be a valid secret key.
+                                  name:
+                                    type: string
+                                    description: |
+                                      Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                required: ["key", "name"]
+                            required: ["accessKeyId", "secretAccessKey"]
+                        required: ["secretKeySelectors"]
+                    required: ["bucket", "awsCredentials"]
+                  gcs:
+                    type: object
+                    description: |
+                      Google Cloud Storage configuration.
+                    properties:
+                      bucket:
+                        type: string
+                        pattern: "^(gs://)?[^/]+(/[^/]*)*$"
+                        description: |
+                          GCS bucket name.
+                      path:
+                        type: string
+                        pattern: "^(/[^/]*)*$"
+                        description: |
+                          Optional path within the GCS bucket. Note that StackGres generates in any case a folder per StackGres cluster, using the `SGCluster.metadata.name`.
+                      gcpCredentials:
+                        type: object
+                        description: |
+                          The credentials to access GCS for writing and reading.
+                        properties:
+                          fetchCredentialsFromMetadataService:
+                            type: boolean
+                            description: |
+                              If true, the credentials will be fetched from the GCE/GKE metadata service and the field `secretKeySelectors` have to be set to null or omitted.
+
+                              This is useful when running StackGres inside a GKE cluster using [Workload Identity](https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity).
+                          secretKeySelectors:
+                            type: object
+                            description: |
+                              A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#secretkeyselector-v1-core) to reference the Secrets that contain the information about the Service Account to access GCS.
+                            properties:
+                              serviceAccountJSON:
+                                type: object
+                                description: |
+                                  A service account key from GCP. In JSON format, as downloaded from the GCP Console.
+                                properties:
+                                  key:
+                                    type: string
+                                    description: |
+                                      The key of the secret to select from. Must be a valid secret key.
+                                  name:
+                                    type: string
+                                    description: |
+                                      Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                required: ["key", "name"]
+                            required: ["serviceAccountJSON"]
+                    required: ["bucket", "gcpCredentials"]
+                  azureBlob:
+                    type: object
+                    description: |
+                      Azure Blob Storage configuration.
+                    properties:
+                      bucket:
+                        type: string
+                        pattern: "^(azure://)?[^/]+(/[^/]*)*$"
+                        description: |
+                          Azure Blob Storage bucket name.
+                      path:
+                        type: string
+                        pattern: "^(/[^/]*)*$"
+                        description: |
+                          Optional path within the Azure Blob bucket. Note that StackGres generates in any case a folder per StackGres cluster, using the `SGCluster.metadata.name`.
+                      azureCredentials:
+                        type: object
+                        description: |
+                          The credentials to access Azure Blob Storage for writing and reading.
+                        properties:
+                          secretKeySelectors:
+                            type: object
+                            description: |
+                              Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#secretkeyselector-v1-core)(s) to reference the Secret(s) that contain the information about the `azureCredentials`. . Note that you may use the same or different Secrets for the `storageAccount` and the `accessKey`. In the former case, the `keys` that identify each must be, obviously, different.
+                            properties:
+                              storageAccount:
+                                type: object
+                                description: |
+                                  The [Storage Account](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-overview?toc=/azure/storage/blobs/toc.json) that contains the Blob bucket to be used.
+                                properties:
+                                  key:
+                                    type: string
+                                    description: |
+                                      The key of the secret to select from. Must be a valid secret key.
+                                  name:
+                                    type: string
+                                    description: |
+                                      Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                required: ["key", "name"]
+                              accessKey:
+                                type: object
+                                description: |
+                                  The [storage account access key](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-keys-manage?tabs=azure-portal).
+                                properties:
+                                  key:
+                                    type: string
+                                    description: |
+                                      The key of the secret to select from. Must be a valid secret key.
+                                  name:
+                                    type: string
+                                    description: |
+                                      Name of the referent. [More information](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names).
+                                required: ["key", "name"]
+                            required: ["storageAccount", "accessKey"]
+                    required: ["bucket", "azureCredentials"]
+                required: ["type"]
+            required: ["storage"]
