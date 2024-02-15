@@ -8,22 +8,13 @@ package io.stackgres.jobs.dbops.clusterrestart;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.List;
-
-import io.fabric8.kubernetes.api.model.NamespaceBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
+import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.testutil.StringUtils;
 import jakarta.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -35,138 +26,43 @@ class PatroniApiMetadataFinderTest {
   KubernetesClient client;
 
   @Inject
-  PatroniApiMetadataFinder patroniApiFinder;
+  PatroniCtlFinder patroniApiFinder;
 
   String clusterName;
   String namespace;
-  Secret secret;
-  Service patroniService;
+  StackGresCluster cluster;
 
   @BeforeEach
   void setUp() {
     clusterName = StringUtils.getRandomClusterName();
     namespace = StringUtils.getRandomNamespace();
-    secret = Fixtures.secret().loadAuthentication().get();
-    secret.getMetadata().setName(clusterName);
-    secret.getMetadata().setNamespace(namespace);
+    cluster = Fixtures.cluster().loadDefault().get();
+    cluster.getMetadata().setName(clusterName);
+    cluster.getMetadata().setNamespace(namespace);
 
-    patroniService = Fixtures.service().loadPatroniRest().get();
-    patroniService.getMetadata().setNamespace(namespace);
-    patroniService.getMetadata().setName(clusterName + "-rest");
-
-    client.namespaces()
-        .resource(new NamespaceBuilder()
-            .withMetadata(new ObjectMetaBuilder()
-                .withName(namespace)
-                .build())
-            .build())
-        .create();
-    client.secrets().inNamespace(namespace)
-        .resource(secret)
-        .create();
-    client.services().inNamespace(namespace)
-        .resource(patroniService)
+    client.resource(cluster)
         .create();
   }
 
   @Test
-  void givenAValidClusterAndNamespace_shouldBeAbleToReturnThePassword() {
-
-    String password = patroniApiFinder.getPatroniPassword(clusterName, namespace);
-
-    String expectedPassword = getExpectedPassword();
-
-    assertEquals(expectedPassword, password);
+  void givenAValidClusterAndNamespace_shouldBeAbleToReturnThePatroniCtl() {
+    var cluster =
+        patroniApiFinder.findCluster(clusterName, namespace);
+    assertEquals(this.cluster, cluster);
   }
 
   @Test
-  void givenAValidClusterAndNamespace_shouldBeAbleToReturnThePatroniPort() {
-
-    int port = patroniApiFinder.getPatroniPort(clusterName, namespace);
-
-    int expectedPort = getExpectedPort();
-
-    assertEquals(expectedPort, port);
+  void givenABadClusterName_shouldThrowAnException() {
+    var ex = assertThrows(RuntimeException.class,
+        () -> patroniApiFinder.findCluster(StringUtils.getRandomClusterName(), namespace));
+    assertEquals("Can not find SGCluster", ex.getMessage());
   }
 
   @Test
-  void givenAValidClusterAndNamespace_shouldBeAbleToReturnThePatroniApiInfo() {
-
-    PatroniApiMetadata expectedPatroniApiMetadata = ImmutablePatroniApiMetadata.builder()
-        .host(clusterName + "-rest." + namespace)
-        .port(getExpectedPort())
-        .username("superuser")
-        .password(getExpectedPassword())
-        .build();
-
-    PatroniApiMetadata patroniApiMetadata =
-        patroniApiFinder.findPatroniRestApi(clusterName, namespace);
-    assertEquals(expectedPatroniApiMetadata, patroniApiMetadata);
+  void givenABadClusterNamespace_shouldThrowAnException() {
+    var ex = assertThrows(RuntimeException.class,
+        () -> patroniApiFinder.findCluster(clusterName, StringUtils.getRandomClusterName()));
+    assertEquals("Can not find SGCluster", ex.getMessage());
   }
 
-  @Test
-  void givenAnInvalidCluster_shouldFailToFindPort() {
-    var ex = assertThrows(InvalidClusterException.class,
-        () -> patroniApiFinder.getPatroniPort("test", namespace));
-    assertEquals("Could not find service test-rest in namespace "
-        + namespace, ex.getMessage());
-  }
-
-  @Test
-  void givenAnInvalidClusterState_shouldFailToFindPort() {
-    var service = client.services()
-        .inNamespace(namespace)
-        .withName(patroniService.getMetadata().getName())
-        .get();
-    service.getSpec().setPorts(List.of(new ServicePortBuilder()
-        .withName("nopatroni")
-        .withPort(80)
-        .build()));
-    client.services().inNamespace(namespace)
-        .resource(service)
-        .update();
-
-    var ex = assertThrows(InvalidClusterException.class,
-        () -> patroniApiFinder.getPatroniPort(clusterName, namespace));
-    assertEquals("Could not find patroni port in service " + clusterName + "-rest",
-        ex.getMessage());
-  }
-
-  @Test
-  void givenAnInvalidCluster_shouldFailToFindPassword() {
-    var ex = assertThrows(InvalidClusterException.class,
-        () -> patroniApiFinder.getPatroniPassword("test", namespace));
-    assertEquals("Could not find secret test in namespace " + namespace, ex.getMessage());
-  }
-
-  @Test
-  void givenAnInvalidClusterState_shouldToFindPasword() {
-    final String name = secret.getMetadata().getName();
-    Secret secret = client.secrets()
-        .inNamespace(namespace)
-        .withName(name)
-        .get();
-    secret.getData().remove("restapi-password");
-    client.secrets()
-        .inNamespace(namespace)
-        .resource(secret)
-        .update();
-    var ex = assertThrows(InvalidClusterException.class,
-        () -> patroniApiFinder.getPatroniPassword(clusterName, namespace));
-    assertEquals("Could not find restapi-password in secret " + name,
-        ex.getMessage());
-  }
-
-  @NotNull
-  private Integer getExpectedPort() {
-    return patroniService.getSpec().getPorts().stream()
-        .filter(servicePort -> servicePort.getName().equals("patroniport"))
-        .findFirst().orElseThrow().getPort();
-  }
-
-  @NotNull
-  private String getExpectedPassword() {
-    return new String(Base64.getDecoder()
-        .decode(secret.getData().get("restapi-password")), StandardCharsets.UTF_8);
-  }
 }

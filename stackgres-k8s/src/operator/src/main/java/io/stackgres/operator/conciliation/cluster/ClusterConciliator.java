@@ -23,7 +23,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtl;
-import io.stackgres.common.patroni.PatroniCtlMember;
+import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.operator.conciliation.AbstractConciliator;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
 import io.stackgres.operator.conciliation.DeployedResource;
@@ -125,7 +125,7 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
       justification = "False positive")
   private boolean isPodWithWrongOrMissingRole(
       HasMetadata foundDeployedResource,
-      List<PatroniCtlMember> members) {
+      List<PatroniMember> members) {
     return foundDeployedResource instanceof Pod foundDeployedPod
         && !Optional.of(foundDeployedPod.getMetadata())
         .map(ObjectMeta::getLabels)
@@ -133,7 +133,7 @@ public class ClusterConciliator extends AbstractConciliator<StackGresCluster> {
             members.stream()
             .filter(member -> foundDeployedPod.getMetadata().getName().equals(member.getMember())
                 && member.getLabelRole() != null)
-            .map(PatroniCtlMember::getLabelRole)
+            .map(PatroniMember::getLabelRole)
             .findFirst()
             .orElse(null),
             labels.get(PatroniUtil.ROLE_KEY)))

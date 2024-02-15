@@ -94,8 +94,8 @@ public class PatroniEndpointsReconciliator extends SafeReconciliator<ClusterCont
         && patroniEndpoints.getSubsets().size() == 1
         && lastEnpointSubset.get() != null
         && Objects.equals(
-            lastEnpointSubset.get().v1,
-            primarySubset)
+            primarySubset,
+            lastEnpointSubset.get().v1)
         && Objects.equals(
             patroniEndpoints.getSubsets().getFirst(),
             lastEnpointSubset.get().v2)) {

@@ -16,7 +16,7 @@ import io.stackgres.common.StackGresUtil;
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PatroniCtlHistoryEntry {
+public class PatroniHistoryEntry {
 
   @JsonProperty("TL")
   private String timeline;
@@ -83,10 +83,10 @@ public class PatroniCtlHistoryEntry {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof PatroniCtlHistoryEntry)) {
+    if (!(obj instanceof PatroniHistoryEntry)) {
       return false;
     }
-    PatroniCtlHistoryEntry other = (PatroniCtlHistoryEntry) obj;
+    PatroniHistoryEntry other = (PatroniHistoryEntry) obj;
     return Objects.equals(lsn, other.lsn) && Objects.equals(newLeader, other.newLeader)
         && Objects.equals(reason, other.reason) && Objects.equals(timeline, other.timeline)
         && Objects.equals(timestamp, other.timestamp);

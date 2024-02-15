@@ -36,7 +36,6 @@ import io.stackgres.common.crd.sgdbops.StackGresDbOpsRestart;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsSpec;
 import io.stackgres.common.event.EventEmitter;
 import io.stackgres.common.labels.LabelFactoryForCluster;
-import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import io.stackgres.common.resource.ResourceFinder;
@@ -44,6 +43,7 @@ import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestart;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.InvalidClusterException;
+import io.stackgres.jobs.dbops.clusterrestart.PatroniApiHandler;
 import io.stackgres.jobs.dbops.clusterrestart.RestartEvent;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
@@ -74,7 +74,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
   ResourceScanner<Pod> podScanner;
 
   @Inject
-  PatroniCtl patroniCtl;
+  PatroniApiHandler patroniApiHandler;
 
   @Inject
   CustomResourceScheduler<StackGresDbOps> dbOpsScheduler;
@@ -409,8 +409,11 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
   }
 
   protected Pod getPrimaryInstance(List<Pod> pods, StackGresCluster cluster) {
-    Integer latestPrimaryIndex = PatroniUtil.getLatestPrimaryIndexFromPatroni(
-        patroniCtl.instanceFor(cluster));
+    Integer latestPrimaryIndex = patroniApiHandler.getLatestPrimaryIndexFromPatroni(
+        cluster.getMetadata().getName(),
+        cluster.getMetadata().getNamespace())
+        .await()
+        .indefinitely();
     return pods.stream()
         .filter(pod -> PatroniUtil.PRIMARY_ROLE.equals(
             pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY)))

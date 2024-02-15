@@ -7,6 +7,8 @@ package io.stackgres.jobs.dbops.clusterrestart;
 
 import java.util.Optional;
 
+import io.stackgres.common.patroni.PatroniMember.MemberRole;
+import io.stackgres.common.patroni.PatroniMember.MemberState;
 import org.immutables.value.Value;
 
 @Value.Immutable
@@ -15,12 +17,6 @@ public interface PatroniInformation {
   Optional<MemberState> getState();
 
   Optional<MemberRole> getRole();
-
-  Optional<Integer> getServerVersion();
-
-  Optional<String> getPatroniVersion();
-
-  Optional<String> getPatroniScope();
 
   boolean isPendingRestart();
 

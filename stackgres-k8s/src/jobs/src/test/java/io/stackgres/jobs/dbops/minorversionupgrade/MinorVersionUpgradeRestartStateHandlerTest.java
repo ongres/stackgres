@@ -28,12 +28,11 @@ import io.stackgres.common.crd.sgdbops.DbOpsRestartStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdbops.StackGresDbOpsMinorVersionUpgradeStatus;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.jobs.dbops.AbstractRestartStateHandler;
 import io.stackgres.jobs.dbops.ClusterStateHandlerTest;
 import io.stackgres.jobs.dbops.StateHandler;
 import io.stackgres.jobs.dbops.clusterrestart.ImmutablePatroniInformation;
-import io.stackgres.jobs.dbops.clusterrestart.MemberRole;
-import io.stackgres.jobs.dbops.clusterrestart.MemberState;
 import io.stackgres.jobs.dbops.clusterrestart.PatroniApiHandler;
 import io.stackgres.jobs.dbops.lock.LockAcquirer;
 import jakarta.inject.Inject;
@@ -62,19 +61,13 @@ class MinorVersionUpgradeRestartStateHandlerTest extends ClusterStateHandlerTest
         .thenReturn(Uni.createFrom().item(
             List.of(
                 ImmutablePatroniInformation.builder()
-                    .state(MemberState.RUNNING)
-                    .role(MemberRole.LEADER)
-                    .serverVersion(110005)
-                    .patroniVersion("1.6.5")
-                    .patroniScope(clusterName)
+                    .state(PatroniMember.MemberState.RUNNING)
+                    .role(PatroniMember.MemberRole.LEADER)
                     .isPendingRestart(false)
                     .build(),
                 ImmutablePatroniInformation.builder()
-                    .state(MemberState.RUNNING)
-                    .role(MemberRole.REPLICA)
-                    .serverVersion(110005)
-                    .patroniVersion("1.6.5")
-                    .patroniScope(clusterName)
+                    .state(PatroniMember.MemberState.RUNNING)
+                    .role(PatroniMember.MemberRole.REPLICA)
                     .isPendingRestart(false)
                     .build())));
   }

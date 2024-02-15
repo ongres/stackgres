@@ -41,7 +41,7 @@ import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.DistributedLogsLabelFactory;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtl.PatroniCtlInstance;
-import io.stackgres.common.patroni.PatroniCtlHistoryEntry;
+import io.stackgres.common.patroni.PatroniHistoryEntry;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
@@ -219,7 +219,7 @@ public interface PatroniUtil {
     try {
       return Seq.seq(patroniCtl.history())
           .findLast()
-          .map(PatroniCtlHistoryEntry::getNewLeader)
+          .map(PatroniHistoryEntry::getNewLeader)
           .map(getIndexPattern()::matcher)
           .filter(Matcher::find).filter(matcher -> matcher.group(1) != null)
           .map(matcher -> matcher.group(1)).map(Integer::parseInt).orElse(0);

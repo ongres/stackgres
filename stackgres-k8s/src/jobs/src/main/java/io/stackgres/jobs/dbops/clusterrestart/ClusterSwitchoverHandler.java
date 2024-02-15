@@ -10,8 +10,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import io.fabric8.kubernetes.api.model.IntOrString;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.PatroniUtil;
+import io.stackgres.common.patroni.PatroniMember;
+import io.stackgres.common.patroni.PatroniMember.MemberRole;
+import io.stackgres.common.patroni.PatroniMember.MemberState;
 import io.stackgres.jobs.dbops.DbOpsExecutorService;
 import io.stackgres.jobs.dbops.MutinyUtil;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -31,7 +35,7 @@ public class ClusterSwitchoverHandler {
 
   public Uni<Void> performSwitchover(String leader, String clusterName, String clusterNamespace) {
     return patroniApi.getClusterMembers(clusterName, clusterNamespace)
-        .chain(members -> doSwitchover(members, leader))
+        .chain(members -> doSwitchover(members, leader, clusterName, clusterNamespace))
         .onFailure()
         .transform(MutinyUtil.logOnFailureToRetry("performing the switchover"))
         .onFailure()
@@ -40,21 +44,27 @@ public class ClusterSwitchoverHandler {
         .indefinitely();
   }
 
-  private Uni<Void> doSwitchover(List<ClusterMember> members, String givenLeader) {
-    Optional<ClusterMember> candidate = members.stream()
-        .filter(member -> member.getRole().map(MemberRole.REPLICA::equals).orElse(false))
-        .filter(member -> member.getState().map(MemberState.RUNNING::equals).orElse(false))
-        .filter(member -> member.getTags()
+  private Uni<Void> doSwitchover(List<PatroniMember> members, String givenLeader,
+      String clusterName, String clusterNamespace) {
+    Optional<PatroniMember> candidate = members.stream()
+        .filter(member -> Optional.ofNullable(member.getRole()).map(PatroniMember.REPLICA::equals).orElse(false))
+        .filter(member -> Optional.ofNullable(member.getMemberState()).map(MemberState.RUNNING::equals).orElse(false))
+        .filter(member -> Optional.ofNullable(member.getTags())
             .filter(tags -> tags.entrySet().stream().anyMatch(
                 tag -> tag.getKey().equals(PatroniUtil.NOFAILOVER_TAG)
-                && tag.getValue().equals(PatroniUtil.TRUE_TAG_VALUE)))
+                && tag.getValue() != null
+                && Objects.equals(tag.getValue().getValue(), Boolean.TRUE)))
             .isEmpty())
         .min((m1, m2) -> {
-          if (m1.getLag().isPresent() && m2.getLag().isPresent()) {
-            return m1.getLag().get().compareTo(m2.getLag().get());
-          } else if (m1.getLag().isPresent() && m2.getLag().isEmpty()) {
+          var l1 = Optional.ofNullable(m1.getLagInMb())
+              .map(IntOrString::getIntVal);
+          var l2 = Optional.ofNullable(m2.getLagInMb())
+              .map(IntOrString::getIntVal);
+          if (l1.isPresent() && l2.isPresent()) {
+            return l1.get().compareTo(l2.get());
+          } else if (l1.isPresent() && l2.isEmpty()) {
             return -1;
-          } else if (m1.getLag().isEmpty() && m2.getLag().isPresent()) {
+          } else if (l1.isEmpty() && l2.isPresent()) {
             return 1;
           } else {
             return 0;
@@ -64,18 +74,18 @@ public class ClusterSwitchoverHandler {
     if (candidate.isEmpty()) {
       LOGGER.info("No candidate primary found. Skipping switchover");
       return Uni.createFrom().voidItem();
-    } else if (candidate.get().getRole().map(role -> role == MemberRole.LEADER).orElse(false)) {
+    } else if (MemberRole.LEADER.equals(candidate.get().getMemberRole())) {
       LOGGER.info("Candidate is already primary. Skipping switchover");
       return Uni.createFrom().voidItem();
     } else {
-      Optional<ClusterMember> leader = members.stream()
-          .filter(member -> member.getRole().map(MemberRole.LEADER::equals).orElse(false))
+      Optional<PatroniMember> leader = members.stream()
+          .filter(member -> MemberRole.LEADER.equals(member.getMemberRole()))
           .findFirst();
 
       if (leader.isPresent()) {
-        ClusterMember actualLeader = leader.get();
-        if (Objects.equals(actualLeader.getName(), givenLeader)) {
-          return patroniApi.performSwitchover(leader.get(), candidate.get());
+        PatroniMember actualLeader = leader.get();
+        if (Objects.equals(actualLeader.getMember(), givenLeader)) {
+          return patroniApi.performSwitchover(clusterName, clusterNamespace, leader.get(), candidate.get());
         } else {
           LOGGER.info("Leader of the cluster is not {} anymore. Skipping switchover", givenLeader);
           return Uni.createFrom().voidItem();

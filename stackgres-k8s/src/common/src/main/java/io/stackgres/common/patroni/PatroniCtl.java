@@ -16,6 +16,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
@@ -67,11 +68,11 @@ public class PatroniCtl {
 
   public class PatroniCtlInstance {
 
-    private static final TypeReference<List<PatroniCtlMember>> LIST_TYPE_REFERENCE =
-        new TypeReference<List<PatroniCtlMember>>() { };
+    private static final TypeReference<List<PatroniMember>> LIST_TYPE_REFERENCE =
+        new TypeReference<List<PatroniMember>>() { };
 
-    private static final TypeReference<List<PatroniCtlHistoryEntry>> HISTORY_TYPE_REFERENCE =
-        new TypeReference<List<PatroniCtlHistoryEntry>>() { };
+    private static final TypeReference<List<PatroniHistoryEntry>> HISTORY_TYPE_REFERENCE =
+        new TypeReference<List<PatroniHistoryEntry>>() { };
 
     private static final String PYTHON_COMMAND = "python3";
 
@@ -117,8 +118,8 @@ public class PatroniCtl {
       }
     }
 
-    public List<PatroniCtlMember> list() {
-      Output output = patronictl("list", "-f", "json").withoutCloseAfterLast().tryGet();
+    public List<PatroniMember> list() {
+      Output output = patronictl("list", "-f", "json", "-e").withoutCloseAfterLast().tryGet();
       String result = getOutputOrFail(output);
       try {
         return objectMapper.readValue(result, LIST_TYPE_REFERENCE);
@@ -127,7 +128,7 @@ public class PatroniCtl {
       }
     }
 
-    public List<PatroniCtlHistoryEntry> history() {
+    public List<PatroniHistoryEntry> history() {
       Output output = patronictl("history", "-f", "json").withoutCloseAfterLast().tryGet();
       String result = getOutputOrFail(output);
       try {
@@ -146,7 +147,7 @@ public class PatroniCtl {
               .append(list()
                   .stream()
                   .filter(member -> member.isPrimary())
-                  .map(PatroniCtlMember::getMember)))
+                  .map(PatroniMember::getMember)))
           .withoutCloseAfterLast()
           .tryGet();
       getOutputOrFail(output);
@@ -191,6 +192,32 @@ public class PatroniCtl {
             .withoutCloseAfterLast()
             .tryGet();
         getOutputOrFail(output);
+      } catch (IOException ex) {
+        throw new RuntimeException(ex);
+      }
+    }
+
+    public void switchover(String leader, String candidate) {
+      Output output = patronictl("switchover", scope, "--leader", leader, "--candidate", candidate, "--force")
+          .withoutCloseAfterLast()
+          .tryGet();
+      getOutputOrFail(output);
+    }
+
+    public void restart(String member) {
+      Output output = patronictl("restart", scope, member, "--force")
+          .withoutCloseAfterLast()
+          .tryGet();
+      getOutputOrFail(output);
+    }
+
+    public JsonNode queryPrimary(String query) {
+      Output output = patronictl("query", "-c", query, "--primary", "--format", "json")
+          .withoutCloseAfterLast()
+          .tryGet();
+      String result = getOutputOrFail(output);
+      try {
+        return (ObjectNode) objectMapper.readTree(result);
       } catch (IOException ex) {
         throw new RuntimeException(ex);
       }

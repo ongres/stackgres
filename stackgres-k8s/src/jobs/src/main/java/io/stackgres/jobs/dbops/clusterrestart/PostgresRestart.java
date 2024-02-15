@@ -11,6 +11,8 @@ import java.util.Optional;
 import com.google.common.base.Predicates;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.RetryUtil;
+import io.stackgres.common.patroni.PatroniMember;
+import io.stackgres.common.patroni.PatroniMember.MemberState;
 import io.stackgres.jobs.dbops.DbOpsExecutorService;
 import io.stackgres.jobs.dbops.MutinyUtil;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -44,18 +46,20 @@ public class PostgresRestart {
     return patroniApi.getClusterMembers(clusterName, namespace)
         .onItem()
         .transform(members -> members.stream()
-            .filter(member -> member.getName().equals(memberName))
+            .filter(member -> member.getMember().equals(memberName))
             .findFirst().orElseThrow())
-        .chain(this::restartOrWaitUntilNoPendingRestart);
-  }
-
-  private Uni<Object> restartOrWaitUntilNoPendingRestart(ClusterMember member) {
-    return restartOrWaitUntilNoPendingRestart(member, 0, Optional.empty());
+        .chain(member -> restartOrWaitUntilNoPendingRestart(member, clusterName, namespace));
   }
 
   private Uni<Object> restartOrWaitUntilNoPendingRestart(
-      ClusterMember member, int retry, Optional<Throwable> restartThrowable) {
-    return patroniApi.getClusterMemberPatroniInformation(member)
+      PatroniMember member, String clusterName, String namespace) {
+    return restartOrWaitUntilNoPendingRestart(member, 0, Optional.empty(), clusterName, namespace);
+  }
+
+  private Uni<Object> restartOrWaitUntilNoPendingRestart(
+      PatroniMember member, int retry, Optional<Throwable> restartThrowable,
+      String clusterName, String namespace) {
+    return Uni.createFrom().item(patroniApi.getClusterMemberPatroniInformation(member))
         .chain(patroniInformation -> {
           if (patroniInformation.getState()
               .filter(Predicates.or(
@@ -64,7 +68,7 @@ public class PostgresRestart {
               .isPresent()) {
             LOGGER.info("Postgres of Pod {} is already restarting,"
                 + " wait {}.{} seconds for the restart to complete...",
-                member.getName(),
+                member.getMember(),
                 calculateExponentialBackoffDelay(retry).toSeconds(),
                 calculateExponentialBackoffDelay(retry).toMillisPart());
             return Uni.createFrom().voidItem()
@@ -72,20 +76,20 @@ public class PostgresRestart {
                 .delayIt()
                 .by(calculateExponentialBackoffDelay(retry))
                 .chain(() -> restartOrWaitUntilNoPendingRestart(
-                    member, retry + 1, restartThrowable));
+                    member, retry + 1, restartThrowable, clusterName, namespace));
           }
           if (patroniInformation.isPendingRestart()) {
             if (restartThrowable.isPresent()) {
               return Uni.createFrom()
                   .failure(restartThrowable.orElseThrow());
             }
-            return patroniApi.restartPostgres(member)
+            return patroniApi.restartPostgres(clusterName, namespace, member)
                 .onFailure()
                 .call(throwable -> {
                   LOGGER.info("Postgres of Pod {} failed restarting,"
                       + " wait {}.{} seconds for a possible already"
                       + " existing restart operation to complete...",
-                      member.getName(),
+                      member.getMember(),
                       calculateExponentialBackoffDelay(retry).toSeconds(),
                       calculateExponentialBackoffDelay(retry).toMillisPart());
                   return Uni.createFrom().voidItem()
@@ -93,7 +97,7 @@ public class PostgresRestart {
                       .delayIt()
                       .by(calculateExponentialBackoffDelay(retry))
                       .chain(() -> restartOrWaitUntilNoPendingRestart(
-                          member, retry + 1, Optional.of(throwable)));
+                          member, retry + 1, Optional.of(throwable), clusterName, namespace));
                 });
           } else {
             return Uni.createFrom().voidItem();

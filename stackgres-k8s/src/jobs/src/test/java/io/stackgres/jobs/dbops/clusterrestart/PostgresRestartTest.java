@@ -14,9 +14,11 @@ import static org.mockito.Mockito.when;
 import java.time.Duration;
 import java.util.List;
 
+import io.fabric8.kubernetes.api.model.IntOrString;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.smallrye.mutiny.Uni;
+import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.testutil.StringUtils;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,7 +39,7 @@ class PostgresRestartTest {
 
   String memberName;
 
-  List<ClusterMember> clusterMembers;
+  List<PatroniMember> clusterMembers;
 
   PatroniInformation patroniInformation;
 
@@ -47,37 +49,24 @@ class PostgresRestartTest {
     namespace = StringUtils.getRandomNamespace();
     memberName = StringUtils.getRandomClusterName();
 
-    clusterMembers = List.of(
-        ImmutableClusterMember.builder()
-            .name(memberName)
-            .clusterName(clusterName)
-            .namespace(namespace)
-            .state(MemberState.RUNNING)
-            .role(MemberRole.LEADER)
-            .host("127.0.0.1")
-            .apiUrl("http://127.0.0.1:8008/patroni")
-            .port(7433)
-            .timeline(1)
-            .build(),
-        ImmutableClusterMember.builder()
-            .name(StringUtils.getRandomString())
-            .clusterName(clusterName)
-            .namespace(namespace)
-            .state(MemberState.RUNNING)
-            .role(MemberRole.REPLICA)
-            .host("127.0.0.2")
-            .apiUrl("http://127.0.0.2:8008/patroni")
-            .port(7433)
-            .timeline(1)
-            .lag(0)
-            .build());
+    var leader = new PatroniMember();
+    leader.setMember(memberName);
+    leader.setCluster(clusterName);
+    leader.setState(PatroniMember.RUNNING);
+    leader.setRole(PatroniMember.LEADER);
+    leader.setTimeline("1");
+    var replica = new PatroniMember();
+    replica.setMember(StringUtils.getRandomString());
+    replica.setCluster(clusterName);
+    replica.setState(PatroniMember.RUNNING);
+    replica.setRole(PatroniMember.REPLICA);
+    replica.setTimeline("1");
+    replica.setLagInMb(new IntOrString(0));
+    clusterMembers = List.of(leader, replica);
 
     patroniInformation = ImmutablePatroniInformation.builder()
-        .state(MemberState.RUNNING)
-        .role(MemberRole.REPLICA)
-        .patroniScope(clusterName)
-        .patroniVersion("2.1.2")
-        .serverVersion(142000)
+        .state(PatroniMember.MemberState.RUNNING)
+        .role(PatroniMember.MemberRole.REPLICA)
         .isPendingRestart(true)
         .build();
   }
@@ -87,7 +76,7 @@ class PostgresRestartTest {
     when(patroniApiHandler.getClusterMembers(clusterName, namespace))
         .thenReturn(Uni.createFrom().item(clusterMembers));
     when(patroniApiHandler.getClusterMemberPatroniInformation(clusterMembers.getFirst()))
-        .thenReturn(Uni.createFrom().item(patroniInformation));
+        .thenReturn(patroniInformation);
 
     postgresRestart.restartPostgres(memberName, clusterName, namespace)
         .await()
@@ -95,7 +84,7 @@ class PostgresRestartTest {
 
     verify(patroniApiHandler, times(1)).getClusterMembers(any(), any());
     verify(patroniApiHandler, times(1)).getClusterMemberPatroniInformation(any());
-    verify(patroniApiHandler, times(1)).restartPostgres(any());
+    verify(patroniApiHandler, times(1)).restartPostgres(any(), any(), any());
   }
 
   @Test
@@ -103,9 +92,9 @@ class PostgresRestartTest {
     when(patroniApiHandler.getClusterMembers(clusterName, namespace))
         .thenReturn(Uni.createFrom().item(clusterMembers));
     when(patroniApiHandler.getClusterMemberPatroniInformation(clusterMembers.getFirst()))
-        .thenReturn(Uni.createFrom().item(ImmutablePatroniInformation
+        .thenReturn(ImmutablePatroniInformation
             .copyOf(patroniInformation)
-            .withIsPendingRestart(false)));
+            .withIsPendingRestart(false));
 
     postgresRestart.restartPostgresWithoutRetry(memberName, clusterName, namespace)
         .await()
@@ -113,7 +102,7 @@ class PostgresRestartTest {
 
     verify(patroniApiHandler, times(1)).getClusterMembers(any(), any());
     verify(patroniApiHandler, times(1)).getClusterMemberPatroniInformation(any());
-    verify(patroniApiHandler, times(0)).restartPostgres(any());
+    verify(patroniApiHandler, times(0)).restartPostgres(any(), any(), any());
   }
 
   @Test
@@ -121,12 +110,12 @@ class PostgresRestartTest {
     when(patroniApiHandler.getClusterMembers(clusterName, namespace))
         .thenReturn(Uni.createFrom().item(clusterMembers));
     when(patroniApiHandler.getClusterMemberPatroniInformation(clusterMembers.getFirst()))
-        .thenReturn(Uni.createFrom().item(ImmutablePatroniInformation
+        .thenReturn(ImmutablePatroniInformation
             .copyOf(patroniInformation)
-            .withState(MemberState.STARTING)))
-        .thenReturn(Uni.createFrom().item(ImmutablePatroniInformation
+            .withState(PatroniMember.MemberState.STARTING))
+        .thenReturn(ImmutablePatroniInformation
             .copyOf(patroniInformation)
-            .withIsPendingRestart(false)));
+            .withIsPendingRestart(false));
 
     postgresRestart.restartPostgresWithoutRetry(memberName, clusterName, namespace)
         .await()
@@ -134,7 +123,7 @@ class PostgresRestartTest {
 
     verify(patroniApiHandler, times(1)).getClusterMembers(any(), any());
     verify(patroniApiHandler, times(2)).getClusterMemberPatroniInformation(any());
-    verify(patroniApiHandler, times(0)).restartPostgres(any());
+    verify(patroniApiHandler, times(0)).restartPostgres(any(), any(), any());
   }
 
   @Test
@@ -142,12 +131,12 @@ class PostgresRestartTest {
     when(patroniApiHandler.getClusterMembers(clusterName, namespace))
         .thenReturn(Uni.createFrom().item(clusterMembers));
     when(patroniApiHandler.getClusterMemberPatroniInformation(clusterMembers.getFirst()))
-        .thenReturn(Uni.createFrom().item(ImmutablePatroniInformation
+        .thenReturn(ImmutablePatroniInformation
             .copyOf(patroniInformation)
-            .withState(MemberState.RESTARTING)))
-        .thenReturn(Uni.createFrom().item(ImmutablePatroniInformation
+            .withState(PatroniMember.MemberState.RESTARTING))
+        .thenReturn(ImmutablePatroniInformation
             .copyOf(patroniInformation)
-            .withIsPendingRestart(false)));
+            .withIsPendingRestart(false));
 
     postgresRestart.restartPostgresWithoutRetry(memberName, clusterName, namespace)
         .await()
@@ -155,7 +144,7 @@ class PostgresRestartTest {
 
     verify(patroniApiHandler, times(1)).getClusterMembers(any(), any());
     verify(patroniApiHandler, times(2)).getClusterMemberPatroniInformation(any());
-    verify(patroniApiHandler, times(0)).restartPostgres(any());
+    verify(patroniApiHandler, times(0)).restartPostgres(any(), any(), any());
   }
 
   @Test
@@ -163,8 +152,8 @@ class PostgresRestartTest {
     when(patroniApiHandler.getClusterMembers(clusterName, namespace))
         .thenReturn(Uni.createFrom().item(clusterMembers));
     when(patroniApiHandler.getClusterMemberPatroniInformation(clusterMembers.getFirst()))
-        .thenReturn(Uni.createFrom().item(patroniInformation));
-    when(patroniApiHandler.restartPostgres(clusterMembers.getFirst()))
+        .thenReturn(patroniInformation);
+    when(patroniApiHandler.restartPostgres(clusterName, namespace, clusterMembers.getFirst()))
         .thenReturn(Uni.createFrom()
             .failure(() -> new RuntimeException("status 503: null")));
 
@@ -175,7 +164,7 @@ class PostgresRestartTest {
 
     verify(patroniApiHandler, times(1)).getClusterMembers(any(), any());
     verify(patroniApiHandler, times(2)).getClusterMemberPatroniInformation(any());
-    verify(patroniApiHandler, times(1)).restartPostgres(any());
+    verify(patroniApiHandler, times(1)).restartPostgres(any(), any(), any());
   }
 
   @Test
@@ -183,7 +172,7 @@ class PostgresRestartTest {
     when(patroniApiHandler.getClusterMembers(clusterName, namespace))
         .thenReturn(Uni.createFrom().item(clusterMembers));
     when(patroniApiHandler.getClusterMemberPatroniInformation(clusterMembers.getFirst()))
-        .thenReturn(Uni.createFrom().item(patroniInformation));
+        .thenReturn(patroniInformation);
 
     assertThrows(Exception.class, () -> postgresRestart
         .restartPostgresWithoutRetry(StringUtils.getRandomString(), clusterName, namespace)
@@ -192,6 +181,6 @@ class PostgresRestartTest {
 
     verify(patroniApiHandler, times(1)).getClusterMembers(any(), any());
     verify(patroniApiHandler, times(0)).getClusterMemberPatroniInformation(any());
-    verify(patroniApiHandler, times(0)).restartPostgres(any());
+    verify(patroniApiHandler, times(0)).restartPostgres(any(), any(), any());
   }
 }

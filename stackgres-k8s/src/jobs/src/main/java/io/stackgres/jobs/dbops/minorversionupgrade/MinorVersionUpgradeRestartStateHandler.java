@@ -25,7 +25,6 @@ import io.stackgres.jobs.dbops.DbOpsExecutorService;
 import io.stackgres.jobs.dbops.StateHandler;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.PatroniApiHandler;
-import io.stackgres.jobs.dbops.clusterrestart.PatroniInformation;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -63,13 +62,8 @@ public class MinorVersionUpgradeRestartStateHandler extends AbstractRestartState
           if (sourcePostgresVersion.isPresent()) {
             return Uni.createFrom().item(sourcePostgresVersion.get());
           } else {
-            return patroniApi.getClusterMembersPatroniInformation(clusterName, namespace)
-                .onItem().transform(patronis -> patronis.stream()
-                    .map(PatroniInformation::getServerVersion)
-                    .flatMap(Optional::stream)
-                    .min(Integer::compareTo)
-                    .map(MinorVersionUpgradeRestartStateHandler::convertToPostgresVersion)
-                    .orElseThrow());
+            return patroniApi.getClusterPostgresVersion(clusterName, namespace)
+                .onItem().transform(MinorVersionUpgradeRestartStateHandler::convertToPostgresVersion);
           }
         });
   }

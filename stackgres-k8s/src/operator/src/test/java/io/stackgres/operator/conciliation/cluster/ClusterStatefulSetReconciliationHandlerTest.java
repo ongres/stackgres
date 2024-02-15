@@ -51,8 +51,8 @@ import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtl;
-import io.stackgres.common.patroni.PatroniCtlHistoryEntry;
-import io.stackgres.common.patroni.PatroniCtlMember;
+import io.stackgres.common.patroni.PatroniHistoryEntry;
+import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -279,7 +279,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
     final int desiredReplicas = setUpNoScale(
         1, true, 1, PrimaryPosition.FIRST_NONDISRUPTABLE_MISSING);
 
-    var history = List.of(new PatroniCtlHistoryEntry());
+    var history = List.of(new PatroniHistoryEntry());
     history.get(0).setNewLeader(
         requiredStatefulSet.getMetadata().getName()
         + "-" + (desiredReplicas));
@@ -318,7 +318,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
     final int desiredReplicas =
         setUpNoScaleWithPlaceholders(1, true, 1, PrimaryPosition.FIRST_NONDISRUPTABLE);
 
-    var history = List.of(new PatroniCtlHistoryEntry());
+    var history = List.of(new PatroniHistoryEntry());
     history.get(0).setNewLeader(
         requiredStatefulSet.getMetadata().getName()
         + "-" + (desiredReplicas));
@@ -729,17 +729,17 @@ class ClusterStatefulSetReconciliationHandlerTest {
         podList
         .stream()
         .map(pod -> {
-          var member = new PatroniCtlMember();
+          var member = new PatroniMember();
           member.setMember(pod.getMetadata().getName());
           if (Objects.equals(
               PatroniUtil.PRIMARY_ROLE,
               pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))) {
-            member.setRole(PatroniCtlMember.LEADER);
+            member.setRole(PatroniMember.LEADER);
           }
           if (Objects.equals(
               PatroniUtil.REPLICA_ROLE,
               pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))) {
-            member.setRole(PatroniCtlMember.REPLICA);
+            member.setRole(PatroniMember.REPLICA);
           }
           return member;
         })

@@ -20,7 +20,7 @@ import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.patroni.PatroniCtl;
-import io.stackgres.common.patroni.PatroniCtlMember;
+import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
@@ -77,7 +77,7 @@ public class PatroniLabelsReconciliator extends SafeReconciliator<ClusterContext
           .stream()
           .filter(member -> podName.equals(member.getMember()))
           .findFirst()
-          .map(PatroniCtlMember::getLabelRole)
+          .map(PatroniMember::getLabelRole)
           .orElse(null);
       if (role == null) {
         if (Optional.ofNullable(currentPod.getMetadata().getLabels())

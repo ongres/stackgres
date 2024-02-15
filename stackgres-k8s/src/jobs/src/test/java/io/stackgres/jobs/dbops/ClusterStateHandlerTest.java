@@ -40,10 +40,12 @@ import io.stackgres.common.crd.sgdbops.DbOpsRestartStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.event.DbOpsEventEmitter;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.patroni.PatroniCtl.PatroniCtlInstance;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestart;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.ImmutableRestartEventForTest;
 import io.stackgres.jobs.dbops.clusterrestart.InvalidClusterException;
+import io.stackgres.jobs.dbops.clusterrestart.PatroniCtlFinder;
 import io.stackgres.jobs.dbops.clusterrestart.PodTestUtil;
 import io.stackgres.jobs.dbops.clusterrestart.RestartEventType;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
@@ -54,12 +56,18 @@ import org.jooq.lambda.Seq;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
+import org.mockito.Mockito;
 
 @WithKubernetesTestServer
 public abstract class ClusterStateHandlerTest {
 
   @InjectMock
   public ClusterRestart clusterRestart;
+
+  @InjectMock
+  PatroniCtlFinder patroniCtlFinder;
+
+  PatroniCtlInstance patroniCtl = Mockito.mock(PatroniCtlInstance.class);
 
   @Inject
   public PodTestUtil podTestUtil;
@@ -140,6 +148,7 @@ public abstract class ClusterStateHandlerTest {
     dbOps = kubeDb.addOrReplaceDbOps(dbOps);
 
     lenient().doNothing().when(eventEmitter).sendEvent(any(), any(), any());
+    lenient().when(patroniCtlFinder.findPatroniCtl(any(), any())).thenReturn(patroniCtl);
   }
 
   protected abstract StackGresDbOps getDbOps();

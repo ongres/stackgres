@@ -41,7 +41,7 @@ import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.common.patroni.PatroniCtl;
-import io.stackgres.common.patroni.PatroniCtlMember;
+import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.common.patroni.StandbyCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScheduler;
@@ -86,7 +86,7 @@ public class ManagedSqlReconciliatorTest {
 
   private StackGresScript script;
   private List<String> scripts;
-  private List<PatroniCtlMember> patroniMembers;
+  private List<PatroniMember> patroniMembers;
   private PatroniConfig patroniConfig;
   private ConfigMap configMap;
   private Secret secret;
@@ -97,9 +97,9 @@ public class ManagedSqlReconciliatorTest {
   @BeforeEach
   void setUp() throws Exception {
     script = Fixtures.script().loadDefault().get();
-    patroniMembers = List.of(new PatroniCtlMember());
+    patroniMembers = List.of(new PatroniMember());
     patroniMembers.get(0).setMember("test-0");
-    patroniMembers.get(0).setRole(PatroniCtlMember.LEADER);
+    patroniMembers.get(0).setRole(PatroniMember.LEADER);
     patroniMembers.get(0).setTimeline("1");
     patroniConfig = new PatroniConfig();
     lenient().when(patroniCtl.instanceFor(any()))

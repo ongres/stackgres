@@ -42,7 +42,7 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.common.patroni.PatroniCtl.PatroniCtlInstance;
-import io.stackgres.common.patroni.PatroniCtlMember;
+import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -198,13 +198,13 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
       final boolean existsPodWithPrimaryRole =
           pods.stream().map(Pod::getMetadata).map(ObjectMeta::getName).anyMatch(
               podName -> members.stream()
-              .filter(PatroniCtlMember::isPrimary)
-              .map(PatroniCtlMember::getMember)
+              .filter(PatroniMember::isPrimary)
+              .map(PatroniMember::getMember)
               .anyMatch(podName::equals));
       pods.stream()
           .filter(pod -> members.stream()
-              .filter(PatroniCtlMember::isPrimary)
-              .map(PatroniCtlMember::getMember)
+              .filter(PatroniMember::isPrimary)
+              .map(PatroniMember::getMember)
               .anyMatch(pod.getMetadata().getName()::equals)
               || (!existsPodWithPrimaryRole
                   && latestPrimaryIndexFromPatroni == getPodIndex(pod)))
@@ -376,8 +376,8 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     return pods.stream()
         .filter(pod -> isNonDisruptable(context, pod))
         .filter(pod -> members.stream()
-            .filter(PatroniCtlMember::isPrimary)
-            .map(PatroniCtlMember::getMember)
+            .filter(PatroniMember::isPrimary)
+            .map(PatroniMember::getMember)
             .anyMatch(pod.getMetadata().getName()::equals))
         .filter(pod -> getPodIndex(pod) + 1 < replicas
             || getPodIndex(pod) != latestPrimaryIndexFromPatroni)
