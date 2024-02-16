@@ -23,7 +23,6 @@ public interface StackGresPasswordKeys {
   String AUTHENTICATOR_PASSWORD_ENV = "PATRONI_authenticator_PASSWORD";
   String AUTHENTICATOR_USERNAME_KEY = "authenticator-username";
   String AUTHENTICATOR_PASSWORD_KEY = "authenticator-password";
-  String AUTHENTICATOR_OPTIONS_ENV = "PATRONI_authenticator_OPTIONS";
   String PGBOUNCER_ADMIN_USERNAME = "pgbouncer_admin";
   String PGBOUNCER_ADMIN_USERNAME_ENV = "PGBOUNCER_ADMIN_USERNAME";
   String PGBOUNCER_ADMIN_PASSWORD_KEY = "pgbouncer-admin-password";

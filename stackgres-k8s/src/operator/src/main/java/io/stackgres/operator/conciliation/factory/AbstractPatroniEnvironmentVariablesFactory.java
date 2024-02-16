@@ -82,10 +82,6 @@ public abstract class AbstractPatroniEnvironmentVariablesFactory<T>
                         .withKey(StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_KEY)
                         .build())
                 .build())
-            .build(),
-        new EnvVarBuilder().withName(
-            StackGresPasswordKeys.AUTHENTICATOR_OPTIONS_ENV)
-            .withValue("superuser")
             .build());
   }
 }

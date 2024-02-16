@@ -123,8 +123,6 @@ public class PatroniEnvironmentVariablesFactory
         .filter(envVar -> !envVar.getName()
             .equals(StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV))
         .filter(envVar -> !envVar.getName()
-            .equals(StackGresPasswordKeys.AUTHENTICATOR_OPTIONS_ENV))
-        .filter(envVar -> !envVar.getName()
             .equals(StackGresPasswordKeys.RESTAPI_USERNAME_ENV))
         .filter(envVar -> !envVar.getName()
             .equals(StackGresPasswordKeys.RESTAPI_PASSWORD_ENV))

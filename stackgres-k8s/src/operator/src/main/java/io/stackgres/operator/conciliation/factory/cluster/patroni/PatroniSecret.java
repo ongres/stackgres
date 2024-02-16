@@ -175,8 +175,6 @@ public class PatroniSecret
     data.put(AUTHENTICATOR_USERNAME_ENV, data.get(AUTHENTICATOR_USERNAME_KEY));
     final String authenticatorPasswordEnv = AUTHENTICATOR_PASSWORD_ENV
         .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV));
-    final String authenticatorOptionsEnv = AUTHENTICATOR_OPTIONS_ENV
-        .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV));
     data.put(AUTHENTICATOR_PASSWORD_KEY, context.getAuthenticatorPassword()
         .orElse(previousSecretData
             .getOrDefault(AUTHENTICATOR_PASSWORD_KEY, previousSecretData
@@ -184,7 +182,6 @@ public class PatroniSecret
                   context.getGeneratedAuthenticatorPassword()))));
     data.put(authenticatorPasswordEnv, context.getAuthenticatorPassword()
         .orElse(data.get(AUTHENTICATOR_PASSWORD_KEY)));
-    data.put(authenticatorOptionsEnv, "superuser");
   }
 
   private void setBabelfishCredentials(

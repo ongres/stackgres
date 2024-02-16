@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 OnGres, Inc.
+ * Copyright (C) 2024 OnGres, Inc.
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
@@ -26,7 +26,8 @@ import org.jooq.lambda.Unchecked;
 public class ClusterDefaultScripts {
 
   public List<StackGresScriptEntry> getDefaultScripts(StackGresCluster cluster) {
-    return Seq.of(getPostgresExporterInitScript())
+    return Seq.of(getPgBouncerUserAuthenticatorScript())
+        .append(getPostgresExporterInitScript())
         .append(Seq.of(
             getBabelfishUserScript(cluster),
             getBabelfishDatabaseScript(),
@@ -75,6 +76,18 @@ public class ClusterDefaultScripts {
     script.setScript(Unchecked.supplier(() -> Resources
         .asCharSource(ClusterDefaultScripts.class.getResource(
             "/babelfish/init.sql"),
+            StandardCharsets.UTF_8)
+        .read()).get());
+    return script;
+  }
+
+  private StackGresScriptEntry getPgBouncerUserAuthenticatorScript() {
+    final StackGresScriptEntry script = new StackGresScriptEntry();
+    script.setName("pgbouncer-user-authenticator");
+    script.setRetryOnError(true);
+    script.setScript(Unchecked.supplier(() -> Resources
+        .asCharSource(ClusterDefaultScripts.class.getResource(
+            "/pgbouncer/init.sql"),
             StandardCharsets.UTF_8)
         .read()).get());
     return script;
