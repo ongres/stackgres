@@ -5,20 +5,20 @@
 
 package io.stackgres.cluster.controller;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
 import io.stackgres.common.ClusterContext;
+import io.stackgres.common.ClusterControllerProperty;
+import io.stackgres.common.JsonUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.patroni.PatroniConfig;
@@ -43,6 +43,7 @@ public class PatroniConfigReconciliator extends SafeReconciliator<ClusterContext
   private final ResourceFinder<Endpoints> endpointsFinder;
   private final ResourceWriter<Endpoints> endpointsWriter;
   private final ObjectMapper objectMapper;
+  private final String podName;
 
   @Dependent
   public static class Parameters {
@@ -59,6 +60,8 @@ public class PatroniConfigReconciliator extends SafeReconciliator<ClusterContext
     this.endpointsFinder = parameters.endpointsFinder;
     this.endpointsWriter = parameters.endpointsWriter;
     this.objectMapper = parameters.objectMapper;
+    this.podName = parameters.propertyContext
+        .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
   }
 
   public static PatroniConfigReconciliator create(Consumer<Parameters> consumer) {
@@ -71,6 +74,10 @@ public class PatroniConfigReconciliator extends SafeReconciliator<ClusterContext
       throws Exception {
     final StackGresCluster cluster = context.getCluster();
     final var patroniCtl = this.patroniCtl.instanceFor(cluster);
+    final boolean isPrimary = PatroniUtil.isPrimary(podName, patroniCtl);
+    if (!isPrimary) {
+      return new ReconciliationResult<>();
+    }
     var patroniConfigEndpoints = endpointsFinder
         .findByNameAndNamespace(PatroniUtil.configName(cluster), cluster.getMetadata().getNamespace())
         .orElseThrow(() -> new IllegalStateException("Can not find Patroni config endpoints "
@@ -83,7 +90,11 @@ public class PatroniConfigReconciliator extends SafeReconciliator<ClusterContext
       return new ReconciliationResult<>();
     }
     var patroniConfigFound = patroniCtl.showConfigJson();
-    var mergedPatroniConfig = mergeConfig(patroniConfigFound, patroniConfig.get());
+    var mergedPatroniConfig = JsonUtil.mergeJsonObjectsFilteringByModel(
+        patroniConfig.get(), patroniConfigFound, PatroniConfig.class, objectMapper);
+    if (patroniConfigFound.equals(mergedPatroniConfig)) {
+      return new ReconciliationResult<>();
+    }
     patroniCtl.editConfigJson(mergedPatroniConfig);
     endpointsWriter.update(patroniConfigEndpoints, Unchecked.consumer(
         currentPatroniConfigEndpoints -> {
@@ -101,19 +112,6 @@ public class PatroniConfigReconciliator extends SafeReconciliator<ClusterContext
     LOGGER.info("Patroni config was updated");
 
     return new ReconciliationResult<>();
-  }
-
-  private ObjectNode mergeConfig(ObjectNode foundConfig, ObjectNode value) {
-    try {
-      JsonNode previousConfig = objectMapper.valueToTree(
-          objectMapper.readValue(foundConfig.toString(), PatroniConfig.class));
-      previousConfig.fieldNames().forEachRemaining(foundConfig::remove);
-      JsonNode updatedConfig = objectMapper.readerForUpdating(foundConfig)
-          .readTree(value.toString());
-      return (ObjectNode) updatedConfig;
-    } catch (IOException ex) {
-      throw new RuntimeException(ex);
-    }
   }
 
 }

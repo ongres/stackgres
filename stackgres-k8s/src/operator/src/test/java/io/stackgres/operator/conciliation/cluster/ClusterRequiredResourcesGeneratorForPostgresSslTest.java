@@ -16,6 +16,7 @@ import java.util.Optional;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.quarkus.test.junit.QuarkusTest;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresSslSecret;
@@ -222,10 +223,10 @@ class ClusterRequiredResourcesGeneratorForPostgresSslTest
         .thenReturn(Optional.of(new SecretBuilder()
             .withData(Map.ofEntries(
                 Map.entry(
-                    PostgresSslSecret.CERTIFICATE_KEY,
+                    PatroniUtil.CERTIFICATE_KEY,
                     ResourceUtil.encodeSecret("test-certificate")),
                 Map.entry(
-                    PostgresSslSecret.PRIVATE_KEY_KEY,
+                    PatroniUtil.PRIVATE_KEY_KEY,
                     ResourceUtil.encodeSecret("test-private-key"))))
             .build()));
   }

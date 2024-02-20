@@ -516,6 +516,10 @@ public interface StackGresUtil {
             DISTRIBUTEDLOGS_POSTGRES_VERSION));
   }
 
+  static String getLatestPatroniVersion() {
+    return StackGresComponent.PATRONI.getLatest().getLatestVersion();
+  }
+
   static String getPatroniImageName(StackGresCluster cluster) {
     return getPatroniImageName(cluster, cluster.getSpec().getPostgres().getVersion());
   }

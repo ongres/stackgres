@@ -404,7 +404,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
       List<Pod> pods) {
     var roles = patroniCtl.list()
         .stream()
-        .map(member -> Tuple.tuple(member.getMember(), member.getRole()))
+        .map(member -> Tuple.tuple(member.getMember(), member.getLabelRole()))
         .filter(t -> t.v2 != null)
         .collect(Collectors.toMap(Tuple2::v1, Tuple2::v2));
 

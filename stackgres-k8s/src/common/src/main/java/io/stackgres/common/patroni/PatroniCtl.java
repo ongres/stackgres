@@ -85,7 +85,7 @@ public class PatroniCtl {
     PatroniCtlInstance(StackGresCluster cluster) {
       this.customResource = cluster;
       this.scope = PatroniUtil.clusterScope(cluster);
-      this.patroniCtlCommand = "/bin/patronictl-" + StackGresUtil.getPatroniVersion(cluster);
+      this.patroniCtlCommand = patroniCtlCommand(StackGresUtil.getPatroniVersion(cluster));
       this.configPath = getConfigPath();
       this.config = PatroniUtil.getInitialConfig(
           cluster, clusterLabelFactory, yamlMapper, objectMapper);
@@ -94,10 +94,18 @@ public class PatroniCtl {
     PatroniCtlInstance(StackGresDistributedLogs distributedLogs) {
       this.customResource = distributedLogs;
       this.scope = PatroniUtil.clusterScope(distributedLogs);
-      this.patroniCtlCommand = "/bin/patronictl-" + StackGresUtil.getPatroniVersion(distributedLogs);
+      this.patroniCtlCommand = patroniCtlCommand(StackGresUtil.getPatroniVersion(distributedLogs));
       this.configPath = getConfigPath();
       this.config = PatroniUtil.getInitialConfig(
           distributedLogs, distributedLogsLabelFactory, yamlMapper, objectMapper);
+    }
+
+    final String patroniCtlCommand(String version) {
+      String command = "/bin/patronictl-" + version;
+      if (Files.exists(Paths.get(command))) {
+        return command;
+      }
+      return "/bin/patronictl-" + StackGresUtil.getLatestPatroniVersion();
     }
 
     final Path getConfigPath() {
@@ -157,6 +165,9 @@ public class PatroniCtl {
       Output output = patronictl("show-config").withoutCloseAfterLast().tryGet();
       String result = getOutputOrFail(output);
       try {
+        if (result == null || result.isBlank()) {
+          return new PatroniConfig();
+        }
         return yamlMapper.readValue(result, PatroniConfig.class);
       } catch (IOException ex) {
         throw new RuntimeException(ex);
@@ -167,7 +178,11 @@ public class PatroniCtl {
       Output output = patronictl("show-config").withoutCloseAfterLast().tryGet();
       String result = getOutputOrFail(output);
       try {
-        return (ObjectNode) yamlMapper.readTree(result);
+        JsonNode config = yamlMapper.readTree(result);
+        if (config instanceof ObjectNode configObject) {
+          return configObject;
+        }
+        return yamlMapper.createObjectNode();
       } catch (IOException ex) {
         throw new RuntimeException(ex);
       }

@@ -12,8 +12,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.collect.ImmutableMap;
 import com.ongres.pgconfig.validator.GucValidator;
 import com.ongres.pgconfig.validator.PgParameter;
@@ -25,6 +27,7 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresVersion;
+import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
@@ -45,9 +48,8 @@ import io.stackgres.common.patroni.StandbyCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.cluster.PostgresSslSecret;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
+import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresBlocklist;
+import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresDefaultValues;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
@@ -58,14 +60,18 @@ import org.jooq.lambda.Unchecked;
 public class PatroniConfigEndpoints
     implements ResourceGenerator<StackGresClusterContext> {
 
-  private final ObjectMapper objectMapper;
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final ObjectMapper objectMapper;
+  private final YAMLMapper yamlMapper;
 
   @Inject
-  public PatroniConfigEndpoints(ObjectMapper objectMapper,
-                                LabelFactoryForCluster<StackGresCluster> labelFactory) {
-    this.objectMapper = objectMapper;
+  public PatroniConfigEndpoints(
+      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      ObjectMapper objectMapper,
+      YamlMapperProvider yamlMapperProvider) {
     this.labelFactory = labelFactory;
+    this.objectMapper = objectMapper;
+    this.yamlMapper = yamlMapperProvider.get();
   }
 
   @Override
@@ -86,9 +92,20 @@ public class PatroniConfigEndpoints
         .build());
   }
 
-  protected PatroniConfig getPatroniConfig(StackGresClusterContext context) {
+  public String getPatroniConfigAsYamlString(StackGresClusterContext context) {
+    try {
+      return yamlMapper.writeValueAsString(getPatroniConfig(context));
+    } catch (JsonProcessingException ex) {
+      throw new RuntimeException(ex);
+    }
+  }
+
+  PatroniConfig getPatroniConfig(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getCluster();
-    PatroniConfig patroniConf = Optional.of(context.getCluster().getSpec())
+    final StackGresPostgresConfig pgConfig = context.getPostgresConfig();
+    final boolean isBackupConfigurationPresent = context.getBackupStorage().isPresent();
+    final Optional<StackGresCluster> replicateClusterOptional = context.getReplicateCluster();
+    final PatroniConfig patroniConf = Optional.of(cluster.getSpec())
         .map(StackGresClusterSpec::getConfigurations)
         .map(StackGresClusterConfigurations::getPatroni)
         .map(StackGresClusterPatroni::getDynamicConfig)
@@ -123,14 +140,14 @@ public class PatroniConfigEndpoints
         ? Integer.valueOf(cluster.getSpec().getInstances() - 1)
             : cluster.getSpec().getReplication().getSyncInstances());
 
-    context.getReplicateCluster()
+    replicateClusterOptional
         .ifPresent(replicateCluster -> {
           patroniConf.setStandbyCluster(new StandbyCluster());
           patroniConf.getStandbyCluster().setHost(PatroniUtil.readWriteName(replicateCluster));
           patroniConf.getStandbyCluster().setPort(
               String.valueOf(PatroniUtil.REPLICATION_SERVICE_PORT));
           patroniConf.getStandbyCluster().setRestoreCommand("exec-with-env '"
-              + ClusterEnvVar.REPLICATE_ENV.value(context.getSource()) + "'"
+              + ClusterEnvVar.REPLICATE_ENV.value(cluster) + "'"
               + " -- wal-g wal-fetch %f %p");
           patroniConf.getStandbyCluster().setCreateReplicaMethods(
               Seq.<String>of()
@@ -170,12 +187,12 @@ public class PatroniConfigEndpoints
               && Optional.ofNullable(cluster.getStatus())
                   .map(StackGresClusterStatus::getOs)
                   .isEmpty()) {
-            patroniConf.getStandbyCluster().setHost(PatroniServices.readWriteName(context));
+            patroniConf.getStandbyCluster().setHost(PatroniUtil.readWriteName(cluster));
             patroniConf.getStandbyCluster().setPort(
                 String.valueOf(PatroniUtil.REPLICATION_SERVICE_PORT));
           }
           patroniConf.getStandbyCluster().setRestoreCommand("exec-with-env '"
-              + ClusterEnvVar.REPLICATE_ENV.value(context.getSource()) + "'"
+              + ClusterEnvVar.REPLICATE_ENV.value(cluster) + "'"
               + " -- wal-g wal-fetch %f %p");
           patroniConf.getStandbyCluster().setCreateReplicaMethods(
               Seq.<String>of()
@@ -199,23 +216,27 @@ public class PatroniConfigEndpoints
     patroniConf.setPostgresql(new PostgreSql());
     patroniConf.getPostgresql().setUsePgRewind(true);
     patroniConf.getPostgresql().setUseSlots(true);
-    patroniConf.getPostgresql().setParameters(getPostgresConfigValues(context));
-    patroniConf.getPostgresql().setRecoveryConf(getPostgresRecoveryConfigValues(context));
+    patroniConf.getPostgresql().setParameters(
+        getPostgresConfigValues(cluster, pgConfig, isBackupConfigurationPresent));
+    patroniConf.getPostgresql().setRecoveryConf(
+        getPostgresRecoveryConfigValues(cluster, pgConfig, isBackupConfigurationPresent));
     return patroniConf;
   }
 
-  protected Map<String, String> getPostgresConfigValues(StackGresClusterContext context) {
-    StackGresPostgresConfig pgConfig = context.getPostgresConfig();
-
-    Map<String, String> params = getPostgresParameters(context, pgConfig);
+  Map<String, String> getPostgresConfigValues(
+      StackGresCluster cluster,
+      StackGresPostgresConfig pgConfig,
+      boolean isBackupConfigurationPresent) {
+    Map<String, String> params = getPostgresParameters(cluster, pgConfig, isBackupConfigurationPresent);
 
     return normalizeParams(pgConfig.getSpec().getPostgresVersion(), params);
   }
 
-  protected Map<String, String> getPostgresRecoveryConfigValues(StackGresClusterContext context) {
-    StackGresPostgresConfig pgConfig = context.getPostgresConfig();
-
-    Map<String, String> params = getPostgresRecoveryParameters(context);
+  Map<String, String> getPostgresRecoveryConfigValues(
+      StackGresCluster cluster,
+      StackGresPostgresConfig pgConfig,
+      boolean isBackupConfigurationPresent) {
+    Map<String, String> params = getPostgresRecoveryParameters(cluster, isBackupConfigurationPresent);
 
     return normalizeParams(pgConfig.getSpec().getPostgresVersion(), params);
   }
@@ -231,27 +252,28 @@ public class PatroniConfigEndpoints
     return builder.build();
   }
 
-  private Map<String, String> getPostgresParameters(StackGresClusterContext context,
-      StackGresPostgresConfig pgConfig) {
+  private Map<String, String> getPostgresParameters(
+      StackGresCluster cluster,
+      StackGresPostgresConfig pgConfig,
+      boolean isBackupConfigurationPresent) {
     final String version = pgConfig.getSpec().getPostgresVersion();
     Map<String, String> params = new HashMap<>(PostgresDefaultValues.getDefaultValues(
-        StackGresVersion.getStackGresVersion(context.getCluster()), version));
+        StackGresVersion.getStackGresVersion(cluster), version));
     Map<String, String> userParams = pgConfig.getSpec().getPostgresqlConf();
     PostgresBlocklist.getBlocklistParameters().forEach(userParams::remove);
     params.putAll(userParams);
 
     params.put("port", String.valueOf(EnvoyUtil.PG_PORT));
 
-    if (isBackupConfigurationPresent(context)) {
+    if (isBackupConfigurationPresent) {
       params.put("archive_command",
-          "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value(context
-              .getSource()) + "'"
+          "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value(cluster) + "'"
               + " -- wal-g wal-push %p");
     } else {
       params.put("archive_command", "/bin/true");
     }
 
-    if (Optional.ofNullable(context.getSource())
+    if (Optional.ofNullable(cluster)
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getDistributedLogs)
         .map(StackGresClusterDistributedLogs::getSgDistributedLogs).isPresent()) {
@@ -264,14 +286,14 @@ public class PatroniConfigEndpoints
       params.put("log_truncate_on_rotation", "on");
     }
 
-    if (getPostgresFlavorComponent(context.getSource()) == StackGresComponent.BABELFISH) {
+    if (getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH) {
       params.put("shared_preload_libraries", Optional.ofNullable(
           params.get("shared_preload_libraries"))
           .map(sharedPreloadLibraries -> "babelfishpg_tds, " + sharedPreloadLibraries)
           .orElse("babelfishpg_tds"));
     }
 
-    if (Optional.of(context.getSource())
+    if (Optional.of(cluster)
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getPostgres)
         .map(StackGresClusterPostgres::getSsl)
@@ -279,30 +301,26 @@ public class PatroniConfigEndpoints
         .orElse(false)) {
       params.put("ssl", "on");
       params.put("ssl_cert_file",
-          ClusterPath.SSL_PATH.path() + "/" + PostgresSslSecret.CERTIFICATE_KEY);
+          ClusterPath.SSL_PATH.path() + "/" + PatroniUtil.CERTIFICATE_KEY);
       params.put("ssl_key_file",
-          ClusterPath.SSL_PATH.path() + "/" + PostgresSslSecret.PRIVATE_KEY_KEY);
+          ClusterPath.SSL_PATH.path() + "/" + PatroniUtil.PRIVATE_KEY_KEY);
     }
 
     return params;
   }
 
-  private Map<String, String> getPostgresRecoveryParameters(StackGresClusterContext context) {
+  private Map<String, String> getPostgresRecoveryParameters(
+      StackGresCluster cluster,
+      boolean isBackupConfigurationPresent) {
     Map<String, String> params = new HashMap<>();
 
-    if (isBackupConfigurationPresent(context)) {
+    if (isBackupConfigurationPresent) {
       params.put("restore_command",
-          "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value(context
-              .getSource()) + "'"
+          "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value(cluster) + "'"
               + " -- wal-g wal-fetch %f %p");
     }
 
     return params;
-  }
-
-  private boolean isBackupConfigurationPresent(StackGresClusterContext context) {
-    return context.getBackupStorage()
-        .isPresent();
   }
 
 }

@@ -82,7 +82,7 @@ public class StackGresClusterPatroniConfig extends JsonObject {
   public boolean isPatroniOnKubernetes() {
     return !(hasObject("consul")
         || hasObject("etcd")
-        || hasObject("etcdv3")
+        || hasObject("etcd3")
         || hasObject("zookeeper")
         || hasObject("exhibitor")
         || hasObject("raft"));

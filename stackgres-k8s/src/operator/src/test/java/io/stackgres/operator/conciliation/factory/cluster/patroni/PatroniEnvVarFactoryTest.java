@@ -54,14 +54,8 @@ class PatroniEnvVarFactoryTest {
   }
 
   @Test
-  void patroniNamespaceEnvVar_shouldBeReturned() {
-    EnvVar envVar = getEnvVar("PATRONI_KUBERNETES_NAMESPACE");
-    assertFieldRef(envVar, "metadata.namespace");
-  }
-
-  @Test
   void patroniPodIp_shouldBeReturned() {
-    EnvVar envVar = getEnvVar("PATRONI_KUBERNETES_POD_IP");
+    EnvVar envVar = getEnvVar("POD_IP");
     assertFieldRef(envVar, "status.podIP");
   }
 
@@ -80,7 +74,7 @@ class PatroniEnvVarFactoryTest {
   @Test
   void patroniRestApiConnectAddressEnvVar_shouldBeReturned() {
     EnvVar envVar = getEnvVar("PATRONI_RESTAPI_CONNECT_ADDRESS");
-    assertValue(envVar, "${PATRONI_KUBERNETES_POD_IP}:" + EnvoyUtil.PATRONI_PORT);
+    assertValue(envVar, "${POD_IP}:" + EnvoyUtil.PATRONI_PORT);
   }
 
   @Test

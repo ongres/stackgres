@@ -1234,7 +1234,6 @@ spec:
                               
                               * name
                               * namespace
-                              * scope
                               * log
                               * bootstrap
                               * consul

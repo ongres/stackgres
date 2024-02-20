@@ -20,6 +20,7 @@ import java.util.Base64;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.Secret;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.fixture.Fixtures;
@@ -86,25 +87,25 @@ class PostgresSslSecretTest {
     Assertions.assertTrue(secretVolumePairs.getFirst().getSource()
         .map(Secret.class::cast)
         .map(Secret::getData)
-        .map(data -> data.get(PostgresSslSecret.CERTIFICATE_KEY))
+        .map(data -> data.get(PatroniUtil.CERTIFICATE_KEY))
         .isPresent());
     Assertions.assertTrue(secretVolumePairs.getFirst().getSource()
         .map(Secret.class::cast)
         .map(Secret::getData)
-        .map(data -> data.get(PostgresSslSecret.PRIVATE_KEY_KEY))
+        .map(data -> data.get(PatroniUtil.PRIVATE_KEY_KEY))
         .isPresent());
     checkCertificateAndPrivateKey(
         ResourceUtil.decodeSecret(
             secretVolumePairs.getFirst().getSource()
             .map(Secret.class::cast)
             .map(Secret::getData)
-            .map(data -> data.get(PostgresSslSecret.CERTIFICATE_KEY))
+            .map(data -> data.get(PatroniUtil.CERTIFICATE_KEY))
             .orElseThrow()),
         ResourceUtil.decodeSecret(
             secretVolumePairs.getFirst().getSource()
             .map(Secret.class::cast)
             .map(Secret::getData)
-            .map(data -> data.get(PostgresSslSecret.PRIVATE_KEY_KEY))
+            .map(data -> data.get(PatroniUtil.PRIVATE_KEY_KEY))
             .orElseThrow()));
   }
 
@@ -127,26 +128,26 @@ class PostgresSslSecretTest {
     Assertions.assertTrue(secretVolumePairs.getFirst().getSource()
         .map(Secret.class::cast)
         .map(Secret::getData)
-        .map(data -> data.get(PostgresSslSecret.CERTIFICATE_KEY))
+        .map(data -> data.get(PatroniUtil.CERTIFICATE_KEY))
         .isPresent());
     Assertions.assertEquals("test-certificate",
         ResourceUtil.decodeSecret(
         secretVolumePairs.getFirst().getSource()
         .map(Secret.class::cast)
         .map(Secret::getData)
-        .map(data -> data.get(PostgresSslSecret.CERTIFICATE_KEY))
+        .map(data -> data.get(PatroniUtil.CERTIFICATE_KEY))
         .orElseThrow()));
     Assertions.assertTrue(secretVolumePairs.getFirst().getSource()
         .map(Secret.class::cast)
         .map(Secret::getData)
-        .map(data -> data.get(PostgresSslSecret.PRIVATE_KEY_KEY))
+        .map(data -> data.get(PatroniUtil.PRIVATE_KEY_KEY))
         .isPresent());
     Assertions.assertEquals("test-private-key",
         ResourceUtil.decodeSecret(
         secretVolumePairs.getFirst().getSource()
         .map(Secret.class::cast)
         .map(Secret::getData)
-        .map(data -> data.get(PostgresSslSecret.PRIVATE_KEY_KEY))
+        .map(data -> data.get(PatroniUtil.PRIVATE_KEY_KEY))
         .orElseThrow()));
   }
 

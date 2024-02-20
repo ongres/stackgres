@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
@@ -592,10 +593,10 @@ public class ClusterRequiredResourcesGenerator
       return new PostgresSsl(
           getSecretAndKey(clusterNamespace, ssl,
               s -> new SecretKeySelector(
-                  PostgresSslSecret.CERTIFICATE_KEY, PostgresSslSecret.name(cluster))),
+                  PatroniUtil.CERTIFICATE_KEY, PostgresSslSecret.name(cluster))),
           getSecretAndKey(clusterNamespace, ssl,
               s -> new SecretKeySelector(
-                  PostgresSslSecret.PRIVATE_KEY_KEY, PostgresSslSecret.name(cluster))));
+                  PatroniUtil.PRIVATE_KEY_KEY, PostgresSslSecret.name(cluster))));
     }
 
     return new PostgresSsl(Optional.empty(), Optional.empty());

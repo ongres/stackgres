@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
+import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresDefaultValues;
 import io.stackgres.operator.conversion.Conversion;
 import io.stackgres.operator.conversion.Converter;
 import jakarta.enterprise.context.ApplicationScoped;

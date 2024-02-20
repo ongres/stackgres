@@ -96,7 +96,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresDistributedLogsC
         cluster, labelFactory, yamlMapper, objectMapper));
     data.put("PATRONI_POSTGRESQL_LISTEN", "0.0.0.0:" + EnvoyUtil.PG_PORT);
     data.put("PATRONI_POSTGRESQL_CONNECT_ADDRESS",
-        "${PATRONI_KUBERNETES_POD_IP}:" + EnvoyUtil.PG_PORT);
+        "${POD_IP}:" + EnvoyUtil.PG_PORT);
 
     data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:8008");
     data.put("PATRONI_POSTGRESQL_DATA_DIR", ClusterPath.PG_DATA_PATH.path());

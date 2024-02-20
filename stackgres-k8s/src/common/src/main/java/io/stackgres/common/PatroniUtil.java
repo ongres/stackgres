@@ -67,6 +67,9 @@ public interface PatroniUtil {
   String TRUE_TAG_VALUE = "true";
   String FALSE_TAG_VALUE = "false";
 
+  String CERTIFICATE_KEY = "tls.crt";
+  String PRIVATE_KEY_KEY = "tls.key";
+
   String SUFFIX = "-patroni";
   String DEPRECATED_READ_WRITE_SERVICE = "-primary";
   String READ_ONLY_SERVICE = "-replicas";
@@ -305,7 +308,13 @@ public interface PatroniUtil {
             kubernetes.set("labels", getClusterLabelsAsJson(cluster, objectMapper, labelFactory));
             kubernetes.put("use_endpoints", true);
             kubernetes.put("scope_label", labelFactory.labelMapper().clusterScopeKey(cluster));
+            kubernetes.put("pod_ip", "${POD_IP}");
             kubernetes.set("ports", getPatroniEndpointPortsAsJson(cluster, objectMapper));
+            if (config.get("kubernetes") instanceof ObjectNode) {
+              Seq.seq(config.get("kubernetes").fields())
+                  .filter(field -> !kubernetes.has(field.getKey()))
+                  .forEach(field -> kubernetes.set(field.getKey(), field.getValue()));
+            }
             config.set("kubernetes", kubernetes);
           }
           return config;

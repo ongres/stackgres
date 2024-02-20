@@ -68,7 +68,13 @@ cat << 'PATRONI_CONFIG_EOF' | exec-with-env "${PATRONI_ENV}" -- sh -e $SHELL_XTR
 cat << EOF > "$PATRONI_CONFIG_FILE_PATH"
 
 #Custom initial config
+$(
+cat << PATRONI_INITIAL_CONFIG | eval "$(cat)"
+cat << INNER_PATRONI_INITIAL_CONFIG
 $PATRONI_INITIAL_CONFIG
+INNER_PATRONI_INITIAL_CONFIG
+PATRONI_INITIAL_CONFIG
+)
 
 #Reset ignored sections
 ctl: null
@@ -76,6 +82,8 @@ ctl: null
 name: ${PATRONI_NAME}
 
 bootstrap:
+  dcs:
+$(printf %s "$PATRONI_DCS_CONFIG" | sed 's/^/    /')
   post_init: '${LOCAL_BIN_PATH}/post-init.sh'
 $(
 if [ -n "$RECOVERY_FROM_BACKUP" ]

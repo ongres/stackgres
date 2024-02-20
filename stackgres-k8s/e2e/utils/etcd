@@ -1,0 +1,38 @@
+#!/bin/sh
+
+etcd_namespace() {
+  echo "$CLUSTER_NAMESPACE-etcd"
+}
+
+install_etcd() {
+  if [ "$E2E_ENV" = "minishift" ] || [ "$E2E_ENV" = "crc" ] || [ "$E2E_ENV" = "microshift" ]
+  then
+    if [ "$E2E_ENV" = "minishift" ]
+    then
+      eval "$(minishift oc-env)"
+    fi
+    if [ "$E2E_ENV" = "crc" ]
+    then
+      eval "$(crc oc-env)"
+    fi
+    if [ "$E2E_ENV" = "microshift" ]
+    then
+      alias oc="docker exec -ti '$K8S_NAME' oc"
+    fi
+    kubectl create ns "$(etcd_namespace)"
+    oc adm policy add-scc-to-user anyuid -n "$(etcd_namespace)" -z default
+  fi
+
+  helm install etcd "$E2E_PATH/helm/etcd-9.8.1.tgz" \
+    --create-namespace \
+    --namespace "$(etcd_namespace)" \
+    --set string auth.rbac.rootPassword=test \
+    "$@"
+
+  wait_pods_running "$(etcd_namespace)" 1
+}
+
+uninstall_etcd() {
+  helm_cleanup_chart etcd "$(etcd_namespace)"
+  k8s_async_cleanup_namespace "$(etcd_namespace)"
+}

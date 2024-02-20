@@ -57,6 +57,8 @@ Options:
 
                           Will load image with name postgres-util:v15.0-hash-f9b66c957b5e1ff5b59f0310e9a23f38-linux-amd64
                           as it where the image with name postgres-util:v15.0-build-6.17.
+                          
+                          Requires `push` and `--load-components` to work properly.
   --enable-pod-logging    Enable logging of pod resources
   --enable-event-logging  Enable logging of event resources
   --enable-snapshotting   Enable snapshotting of k8s events, pods and resources

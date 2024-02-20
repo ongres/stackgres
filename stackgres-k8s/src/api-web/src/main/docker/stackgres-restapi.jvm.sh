@@ -4,7 +4,7 @@ APP_PATH="${APP_PATH:-/app}"
 if [ "$DEBUG_RESTAPI" = true ]
 then
   set -x
-  DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=$([ "$DEBUG_RESTAPI_SUSPEND" = true ] && echo y || echo n)"
+  DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,address=*:8000,suspend=$([ "$DEBUG_RESTAPI_SUSPEND" = true ] && echo y || echo n)"
 fi
 if [ -n "$RESTAPI_LOG_LEVEL" ]
 then

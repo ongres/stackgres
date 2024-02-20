@@ -4,7 +4,7 @@ APP_PATH="${APP_PATH:-/app}"
 if [ "$DEBUG_OPERATOR" = true ]
 then
   set -x
-  DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=$([ "$DEBUG_OPERATOR_SUSPEND" = true ] && echo y || echo n)"
+  DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,address=*:8000,suspend=$([ "$DEBUG_OPERATOR_SUSPEND" = true ] && echo y || echo n)"
 fi
 if [ -n "$OPERATOR_LOG_LEVEL" ]
 then

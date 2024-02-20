@@ -1,7 +1,7 @@
 ARG BASE_IMAGE
 
-FROM quay.io/ongres/patroni:v3.0.2-pg13.7-build-6.22 AS patroni_3_0_2
-FROM quay.io/ongres/patroni:v3.2.0-bf13.9-build-6.29 AS patroni_3_2_0
+FROM quay.io/ongres/patroni:v3.0.2-pg15.0-build-6.22 AS patroni_3_0_2
+FROM quay.io/ongres/patroni:v3.2.0-pg16.1-build-6.29 AS patroni_3_2_0
 
 FROM "$BASE_IMAGE"
   USER root:root

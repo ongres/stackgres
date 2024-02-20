@@ -188,6 +188,10 @@ public interface ResourceUtil {
     return "^" + Pattern.quote(name) + "-([a-z0-9]+){10}-([a-z0-9]+){5}$";
   }
 
+  static String getNameFromIndexedName(@NotNull String name) {
+    return "^" + Pattern.quote(name) + "-([a-z0-9]+){10}-([a-z0-9]+){5}$";
+  }
+
   /**
    * Get the object reference of any resource.
    */

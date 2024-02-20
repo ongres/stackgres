@@ -9,13 +9,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.IntOrString;
@@ -32,6 +32,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -51,19 +52,23 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class PatroniConfigMapTest {
 
-  private static final JsonMapper JSON_MAPPER = JsonUtil.jsonMapper();
   private final LabelFactoryForCluster<StackGresCluster> labelFactory = new ClusterLabelFactory(
       new ClusterLabelMapper());
   @Mock
   private StackGresClusterContext context;
   private PatroniConfigMap generator;
   private StackGresCluster cluster;
+  private StackGresPostgresConfig postgresConfig;
 
   @BeforeEach
   void setUp() {
-    generator = new PatroniConfigMap(labelFactory, JSON_MAPPER, new YamlMapperProvider());
+    generator = new PatroniConfigMap(
+        labelFactory,
+        JsonUtil.jsonMapper(), new YamlMapperProvider());
     cluster = Fixtures.cluster().loadDefault().get();
+    postgresConfig = Fixtures.postgresConfig().loadDefault().get();
     when(context.getSource()).thenReturn(cluster);
+    lenient().when(context.getPostgresConfig()).thenReturn(postgresConfig);
     cluster.getMetadata().getAnnotations()
         .put(StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     cluster.getSpec().getConfigurations().setPatroni(new StackGresClusterPatroni());
@@ -86,6 +91,7 @@ class PatroniConfigMapTest {
                 stackgres.io/cluster-scope: "stackgres"
               use_endpoints: true
               scope_label: "stackgres.io/cluster-scope"
+              pod_ip: "${POD_IP}"
               ports:
               - name: "pgport"
                 port: 7432
@@ -112,6 +118,7 @@ class PatroniConfigMapTest {
                 stackgres.io/cluster-scope: "stackgres"
               use_endpoints: true
               scope_label: "stackgres.io/cluster-scope"
+              pod_ip: "${POD_IP}"
               ports:
               - name: "pgport"
                 port: 7432
@@ -143,6 +150,7 @@ class PatroniConfigMapTest {
               stackgres.io/cluster-scope: "test"
             use_endpoints: true
             scope_label: "stackgres.io/cluster-scope"
+            pod_ip: "${POD_IP}"
             ports:
             - name: "pgport"
               port: 7432
@@ -184,6 +192,7 @@ class PatroniConfigMapTest {
                 stackgres.io/cluster-scope: "%1$s"
               use_endpoints: true
               scope_label: "stackgres.io/cluster-scope"
+              pod_ip: "${POD_IP}"
               ports:
               - name: "pgport"
                 port: 7432
