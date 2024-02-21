@@ -6,7 +6,6 @@
 package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
 import static io.stackgres.common.StringUtil.generateRandom;
-import static io.stackgres.common.patroni.StackGresPasswordKeys.AUTHENTICATOR_OPTIONS_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_ENV;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.AUTHENTICATOR_PASSWORD_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.AUTHENTICATOR_USERNAME;
@@ -120,8 +119,6 @@ class PatroniSecretTest {
     assertTrue(data.containsKey(AUTHENTICATOR_USERNAME_KEY));
     assertTrue(data.containsKey(AUTHENTICATOR_PASSWORD_ENV
         .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV))));
-    assertTrue(data.containsKey(AUTHENTICATOR_OPTIONS_ENV
-        .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV))));
     assertTrue(data.containsKey(AUTHENTICATOR_PASSWORD_KEY));
     assertTrue(data.containsKey(PGBOUNCER_ADMIN_PASSWORD_KEY));
     assertTrue(data.containsKey(PGBOUNCER_STATS_PASSWORD_KEY));
@@ -175,8 +172,6 @@ class PatroniSecretTest {
     assertTrue(data.containsKey(AUTHENTICATOR_USERNAME_ENV));
     assertTrue(data.containsKey(AUTHENTICATOR_USERNAME_KEY));
     assertTrue(data.containsKey(AUTHENTICATOR_PASSWORD_ENV
-        .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV))));
-    assertTrue(data.containsKey(AUTHENTICATOR_OPTIONS_ENV
         .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV))));
     assertTrue(data.containsKey(AUTHENTICATOR_PASSWORD_KEY));
     assertTrue(data.containsKey(PGBOUNCER_ADMIN_PASSWORD_KEY));
@@ -253,8 +248,6 @@ class PatroniSecretTest {
     assertTrue(data.containsKey(AUTHENTICATOR_USERNAME_KEY));
     assertTrue(data.containsKey(AUTHENTICATOR_PASSWORD_ENV
         .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV))));
-    assertTrue(data.containsKey(AUTHENTICATOR_OPTIONS_ENV
-        .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV))));
     assertTrue(data.containsKey(AUTHENTICATOR_PASSWORD_KEY));
     assertTrue(data.containsKey(PGBOUNCER_ADMIN_PASSWORD_KEY));
     assertTrue(data.containsKey(PGBOUNCER_STATS_PASSWORD_KEY));
@@ -308,8 +301,6 @@ class PatroniSecretTest {
     assertTrue(data.containsKey(AUTHENTICATOR_USERNAME_ENV));
     assertTrue(data.containsKey(AUTHENTICATOR_USERNAME_KEY));
     assertTrue(data.containsKey(AUTHENTICATOR_PASSWORD_ENV
-        .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV))));
-    assertTrue(data.containsKey(AUTHENTICATOR_OPTIONS_ENV
         .replace(AUTHENTICATOR_USERNAME, data.get(AUTHENTICATOR_USERNAME_ENV))));
     assertTrue(data.containsKey(AUTHENTICATOR_PASSWORD_KEY));
     assertTrue(data.containsKey(PGBOUNCER_ADMIN_PASSWORD_KEY));
