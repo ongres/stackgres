@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
@@ -41,9 +42,7 @@ class StackGresUtilTest {
   void getPort_shouldReturn80IfNoPortIsSpecified() throws MalformedURLException {
     String url = "http://stackgres-bucket.s3.amazonaws.com/";
     int port = StackGresUtil.getPortFromUrl(url);
-
     assertEquals(80, port);
-
   }
 
   @Test
@@ -51,7 +50,6 @@ class StackGresUtilTest {
     String url = "https://stackgres-bucket.s3.amazonaws.com/";
     int port = StackGresUtil.getPortFromUrl(url);
     assertEquals(443, port);
-
   }
 
   @Test
@@ -59,7 +57,6 @@ class StackGresUtilTest {
     String url = "http://stackgres-cluster-minio.database:9000";
     int port = StackGresUtil.getPortFromUrl(url);
     assertEquals(9000, port);
-
   }
 
   @Test
@@ -148,6 +145,45 @@ class StackGresUtilTest {
 
     var wrongFile = ResolvConfResolverConfig.getSearchPath("src/test/resources/test.tgz");
     assertThat(wrongFile).isEmpty();
+  }
+
+  @Test
+  void shouldGenerateDifferentMd5SumForDifferentKeys() {
+    Map<String, String> mapa = Map.of(
+        "test", "test");
+    var map1 = StackGresUtil.addMd5Sum(mapa);
+    Map<String, String> mapb = Map.of(
+        "toast", "test");
+    var map2 = StackGresUtil.addMd5Sum(mapb);
+    assertThat(map1).containsAtLeastEntriesIn(mapa);
+    assertThat(map2).containsAtLeastEntriesIn(mapb);
+    assertThat(map1).containsKey(StackGresUtil.MD5SUM_KEY);
+    assertThat(map1.get(StackGresUtil.MD5SUM_KEY)).isNotNull();
+    assertThat(map1.get(StackGresUtil.MD5SUM_KEY)).isNotEqualTo(map2.get(StackGresUtil.MD5SUM_KEY));
+    assertThat(map1).containsKey(StackGresUtil.MD5SUM_2_KEY);
+    assertThat(map1.get(StackGresUtil.MD5SUM_2_KEY)).isNotNull();
+    assertThat(map1.get(StackGresUtil.MD5SUM_2_KEY)).isNotEqualTo(map2.get(StackGresUtil.MD5SUM_2_KEY));
+  }
+
+  @Test
+  void shouldGenerateSameMd5SumForSameMapWithMd5SumAdded() {
+    Map<String, String> map = Map.of(
+        "test", "test",
+        "toast", "toast",
+        "awesome", "awesome");
+    var map1 = StackGresUtil.addMd5Sum(map);
+    assertThat(map1).containsAtLeastEntriesIn(map);
+    assertThat(map1).containsKey(StackGresUtil.MD5SUM_KEY);
+    assertThat(map1.get(StackGresUtil.MD5SUM_KEY)).isNotNull();
+    assertThat(map1).containsKey(StackGresUtil.MD5SUM_2_KEY);
+    assertThat(map1.get(StackGresUtil.MD5SUM_2_KEY)).isNotNull();
+    var map2 = StackGresUtil.addMd5Sum(map1);
+    assertThat(map1).containsKey(StackGresUtil.MD5SUM_KEY);
+    assertThat(map1.get(StackGresUtil.MD5SUM_KEY)).isNotNull();
+    assertThat(map1.get(StackGresUtil.MD5SUM_KEY)).isEqualTo(map2.get(StackGresUtil.MD5SUM_KEY));
+    assertThat(map1).containsKey(StackGresUtil.MD5SUM_2_KEY);
+    assertThat(map1.get(StackGresUtil.MD5SUM_2_KEY)).isNotNull();
+    assertThat(map1.get(StackGresUtil.MD5SUM_2_KEY)).isEqualTo(map2.get(StackGresUtil.MD5SUM_2_KEY));
   }
 
 }

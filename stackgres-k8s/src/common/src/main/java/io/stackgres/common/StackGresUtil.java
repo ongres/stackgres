@@ -29,6 +29,7 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
@@ -59,7 +60,7 @@ public interface StackGresUtil {
 
   String DISTRIBUTEDLOGS_POSTGRES_VERSION = "12";
   String MD5SUM_KEY = "MD5SUM";
-  String MD5SUM_2_KEY = "MD5SUM_2";
+  String MD5SUM_2_KEY = MD5SUM_KEY + "_2";
   String DATA_SUFFIX = "-data";
   String BACKUP_SUFFIX = "-backup";
   Pattern EMPTY_LINE_PATTERN = Pattern.compile(
@@ -153,7 +154,7 @@ public interface StackGresUtil {
     MessageDigest messageDigest2 = Unchecked
         .supplier(() -> MessageDigest.getInstance("MD5")).get();
     messageDigest2.update(data.entrySet().stream()
-        .filter(entry -> !entry.getKey().equals(MD5SUM_2_KEY))
+        .filter(entry -> !entry.getKey().startsWith(MD5SUM_KEY))
         .sorted(Map.Entry.comparingByKey())
         .map(e -> e.getKey() + "=" + e.getValue())
         .collect(Collectors.joining())
@@ -188,7 +189,12 @@ public interface StackGresUtil {
         .supplier(() -> MessageDigest.getInstance("MD5")).get();
     Seq.of(paths)
         .sorted()
-        .map(Unchecked.function(Files::readAllBytes))
+        .flatMap(path -> Stream.concat(
+            Stream.of(path.toString()
+                .getBytes(StandardCharsets.UTF_8)),
+            Optional.of(path)
+            .map(Unchecked.function(Files::readAllBytes))
+            .stream()))
         .forEach(messageDigest::update);
     return HexFormat.of().withUpperCase().formatHex(messageDigest.digest());
   }
