@@ -1,10 +1,13 @@
 #!/bin/sh
 
 . "$SPEC_PATH/abstract/patroni"
+. "$SPEC_PATH/abstract/metrics"
 
 e2e_test_extra_hash() {
   "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
     "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/patroni")"
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/metrics")"
 }
 
 e2e_test_install() {
@@ -28,6 +31,8 @@ e2e_test() {
   run_test "Check that patroni management endpoints are not accesible" patroni_management_check
 
   run_test "Check that patroni is not accisible directly" patroni_direct_check
+
+  run_test "Check pgbouncer metrics are not configured" pgbouncer_metrics_check
 }
 
 ports_check() {
@@ -87,4 +92,8 @@ check_no_pgbouncer() {
       echo "SUCCESS: pgbouncer connections are closed"
     fi
   fi
+}
+
+pgbouncer_metrics_check() {
+  check_metrics
 }

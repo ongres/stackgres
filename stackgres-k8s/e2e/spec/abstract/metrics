@@ -8,16 +8,45 @@ check_metrics() {
     -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" \
     -o=jsonpath='{ .items[].status.podIP }')"
   CLUSTER_POD_IP="$(printf %s "$CLUSTER_POD_IP" | head -n 1)"
-  for METRIC in pg_settings_shared_buffers_bytes pg_stat_activity_count node_filesystem_size_bytes \
-    pgbouncer_show_stats_total_query_count pg_table_bloat_real_size
+  DISABLE_CONNECTION_POOLING="$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    -o=jsonpath='{ .spec.pods.disableConnectionPooling }')"
+
+  if wait_until eval 'kubectl exec -i -n "$CLUSTER_NAMESPACE" curl \
+        -- curl -s -f "http://$CLUSTER_POD_IP:9187/metrics" \
+        | grep -q "^pg_table_bloat_real_size"'
+  then
+    echo "Exporter metric $METRIC was found"
+  else
+    echo "Exporter metric $METRIC wasn't found"
+    return 1
+  fi
+  if [ "$DISABLE_CONNECTION_POOLING" = true ]
+  then
+    METRIC_LIST=pg_settings_shared_buffers_bytes:true pg_stat_activity_count:true node_filesystem_size_bytes:true \
+                pgbouncer_show_stats_total_query_count:false pg_table_bloat_real_size:true
+  else
+    METRIC_LIST=pg_settings_shared_buffers_bytes:true pg_stat_activity_count:true node_filesystem_size_bytes:true \
+                pgbouncer_show_stats_total_query_count:true pg_table_bloat_real_size:true
+  fi
+  for METRIC in $METRIC_LIST
   do
-    if wait_until eval 'kubectl exec -i -n "$CLUSTER_NAMESPACE" curl \
+    VERIFY_CHECK_PRESENCE="${METRIC#*:}"
+    METRIC="${METRIC%:*}"
+    if kubectl exec -i -n "$CLUSTER_NAMESPACE" curl \
           -- curl -s -f "http://$CLUSTER_POD_IP:9187/metrics" \
-          | grep -q "^$METRIC"'
+          | grep -q "^$METRIC"
     then
       echo "Exporter metric $METRIC was found"
+      if ! "$VERIFY_CHECK_PRESENCE"
+      then
+        return 1
+      fi
     else
       echo "Exporter metric $METRIC wasn't found"
+      if "$VERIFY_CHECK_PRESENCE"
+      then
+        return 1
+      fi
     fi
   done
 
