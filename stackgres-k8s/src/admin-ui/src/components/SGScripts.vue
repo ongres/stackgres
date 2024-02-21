@@ -84,7 +84,6 @@
                                         </router-link>
                                     </td>
 									<td class="actions">
-										<router-link :to="'/' + $route.params.namespace + '/sgscript/' + baseScript.name" target="_blank" class="newTab"></router-link>
 										<router-link v-if="iCan('patch','sgscripts',$route.params.namespace)" :to="'/' + $route.params.namespace + '/sgscript/' + baseScript.name + '/edit'" title="Edit Script" class="editCRD" :class="isDefaultScript(baseScript) && 'disabled'"></router-link>
 										<a v-if="iCan('create','sgscripts',$route.params.namespace)" @click="cloneCRD('SGScripts', $route.params.namespace, baseScript.name)" class="cloneCRD" title="Clone Script"></a>
 										<a v-if="iCan('delete','sgscripts',$route.params.namespace)" @click="deleteCRD('sgscripts',$route.params.namespace, baseScript.name)" class="delete deleteCRD" title="Delete Script" :class="isDefaultScript(baseScript) && 'disabled'"></a>

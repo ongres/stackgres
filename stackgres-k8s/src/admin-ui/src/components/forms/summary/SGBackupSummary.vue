@@ -134,10 +134,10 @@
                             <template v-if="duration.length">
                                 <span class="value timestamp"> :
                                     <span class='time'>
-                                        {{ duration | formatTimestamp('time') }}
+                                        {{ duration | formatTimestamp('time', false) }}
                                     </span>
                                     <span class='ms'>
-                                        {{ duration | formatTimestamp('ms') }}
+                                        {{ duration | formatTimestamp('ms', false) }}
                                     </span>
                                 </span>
                             </template>

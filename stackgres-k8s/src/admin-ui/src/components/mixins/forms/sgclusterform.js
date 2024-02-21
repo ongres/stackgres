@@ -20,7 +20,7 @@ export const sgclusterform = {
             name: vc.$route.params.hasOwnProperty('name') ? vc.$route.params.name : '',
             namespace: vc.$route.params.hasOwnProperty('namespace') ? vc.$route.params.namespace : '',
             babelfishFeatureGates: false,
-            postgresVersion: 'latest',
+            postgresVersion: vc.$route.query.hasOwnProperty('postgresVersion') ? vc.$route.query.postgresVersion : 'latest',
             flavor: 'vanilla',
             ssl: {
                 enabled: false,
@@ -131,30 +131,6 @@ export const sgclusterform = {
 
         connPoolConf () {
             return store.state.sgpoolconfigs
-        },
-
-        pitrBackups () {
-            return store.state.sgbackups.filter( backup => ( 
-                (backup.data.metadata.namespace == this.$route.params.namespace) && 
-                (this.hasProp(backup, 'data.status.process.status')) && 
-                (backup.data.status.process.status === 'Completed') && 
-                (backup.data.status.backupInformation.postgresVersion.substring(0,2) == this.shortPostgresVersion)
-            )).sort(
-                (a,b) => (
-                    new Date(a.data.status.process.timing.stored).getTime() - new Date(b.data.status.process.timing.stored).getTime()
-                )
-            ).map(
-                (bk) => { 
-                    return { 
-                        x: bk.data.status.process.timing.stored,
-                        y: 1,
-                        name: bk.name,
-                        cluster: bk.data.spec.sgCluster,
-                        uid: bk.data.metadata.uid,
-                        isSnapshot: bk.data.status.hasOwnProperty('volumeSnapshot')
-                    }
-                }
-            );
         },
         
         sgobjectstorages () {

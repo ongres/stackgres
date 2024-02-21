@@ -22,18 +22,23 @@
             >
                 <br/><br/>
                 <p>
-                    To create your cluster easily, you can choose a template from our predefined express setups or select "Custom" for personalized and advanced settings.
+                    To create your cluster easily, you can choose a template from our predefined express setups or select <strong>"Custom"</strong> for personalized and advanced settings.
                 </p>
                 <br/><br/>
 
                 <div class="optionBoxes withLogos">
-                    <label for="basicWizard" data-field="formTemplate.basic" :class="( (formTemplate == 'basic') && 'active' )" tabindex="0">
+                    <label for="minimalWizard" data-field="formTemplate.minimal" :class="( (formTemplate == 'minimal') && 'active' )" tabindex="0">
                         <svg xmlns="http://www.w3.org/2000/svg" width="39.999" height="40"><g fill="#36a8ff" transform="translate(17620 11563)"><rect width="10.37" height="26.667" rx="2" transform="translate(-17620 -11549.667)"/><rect width="10.37" height="32.593" opacity=".25" rx="2" transform="translate(-17605.186 -11555.593)"/><rect width="10.37" height="40" opacity=".25" rx="2" transform="translate(-17590.371 -11563)"/></g></svg>
+                        Minimal
+                        <input type="radio" name="flavor" v-model="formTemplate" value="minimal" id="minimalWizard" @change="setupTemplate()">
+                    </label>
+                    <label for="basicWizard" data-field="formTemplate.basic" :class="( (formTemplate == 'basic') && 'active' )" tabindex="0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="39.999" height="40"><g fill="#36a8ff" transform="translate(17620 11563)"><rect width="10.37" height="26.667" rx="2" transform="translate(-17620 -11549.667)"/><rect width="10.37" height="32.593" rx="2" transform="translate(-17605.186 -11555.593)"/><rect width="10.37" height="40" opacity=".25" rx="2" transform="translate(-17590.371 -11563)"/></g></svg>
                         Basic
                         <input type="radio" name="flavor" v-model="formTemplate" value="basic" id="basicWizard" @change="setupTemplate()">
                     </label>
                     <label for="fullWizard" data-field="formTemplate.full" :class="( (formTemplate == 'full') && 'active' )">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="39.999" height="40"><g fill="#36a8ff" transform="translate(17620 11563)"><rect width="10.37" height="26.667" rx="2" transform="translate(-17620 -11549.667)"/><rect width="10.37" height="32.593" rx="2" transform="translate(-17605.186 -11555.593)"/><rect width="10.37" height="40" opacity=".25" rx="2" transform="translate(-17590.371 -11563)"/></g></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="39.999" height="40"><g fill="#36a8ff" transform="translate(17620 11563)"><rect width="10.37" height="26.667" rx="2" transform="translate(-17620 -11549.667)"/><rect width="10.37" height="32.593" rx="2" transform="translate(-17605.186 -11555.593)"/><rect width="10.37" height="40" rx="2" transform="translate(-17590.371 -11563)"/></g></svg>
                         Full
                         <input type="radio" name="flavor" v-model="formTemplate" value="full" id="fullWizard" @change="setupTemplate()">
                     </label>
@@ -42,9 +47,35 @@
                         Custom
                         <input type="radio" name="flavor" v-model="formTemplate" value="custom" id="customWizard" @change="setupTemplate()">
                     </label>
+                    <span class="helpTooltip" :data-tooltip="`Express templates provide predefined specs to suit most needs:
+                                \n* **Minimal:** includes basic features, ideal for development or testing purposes on minimal environments
+                                    \n  * **Cluster Profile:** Development
+                                    \n  * **Instance Profile:** Cores: 1, RAM: 2GiB
+                                    \n  * **Volume Size:** 1GiB
+                                    \n  * **Connection Pooling:** Disabled
+                                    \n  * **Postgres Extensions:** Not available
+                                \n* **Basic:** includes the most standard features and some customizable specs, ideal for testing purposes
+                                    \n  * **Cluster Profile:** Testing (customizable)
+                                    \n  * **Instance Profile:** Cores: 1, RAM: 2GiB (customizable)
+                                    \n  * **Volume Size:** 1GiB
+                                    \n  * **Distributed Logs:** Enabled
+                                    \n  * **Connection Pooling:** Enabled
+                                    \n  * **Postgres Extensions:** Available
+                                \n* **Full:** packed with fully customizable standard features, ideal for testing or production purposes
+                                    \n  * **Cluster Profile:** Production (customizable)
+                                    \n  * **Instance Profile:** Cores: 1, RAM: 2GiB (customizable)
+                                    \n  * **Volume Size:** 1Gib (customizable)
+                                    \n  * **Distributed Logs:** Enabled (customizable)
+                                    \n  * **Postgres Extensions:** Available
+                                    \n  * **Postgres Configuration:** Customizable
+                                    \n  * **Connection Pooling:** Enabled
+                                    \n  * **Connection Pooling Configuration:** Customizable
+                                \n* **Custom:** fully customizable cluster creation packed with every feature available. Includes both, basic and advanced specs, ideal for development, testing or production environments.
+                        `
+                    "></span>
                 </div>
             </div>
-            <div class="stepsContainer" v-if="!isNull(formTemplate)">
+            <div class="stepsContainer" v-if="!isNull(formTemplate) && (formTemplate !== 'minimal')">
                 <ul class="steps">
                     <button type="button" class="btn arrow prev" @click="currentStep = formSteps[formTemplate][(currentStepIndex - 1)]" :disabled="( currentStepIndex == 0 )"></button>
             
@@ -62,7 +93,7 @@
 
             <template v-if="formTemplate !== 'custom'">
                 <fieldset class="step" :class="(currentStep == 'information') && 'active'" data-fieldset="information">
-                    <div class="header">
+                    <div class="header" v-if="formTemplate !== 'minimal'">
                         <h2>Cluster Information</h2>
                     </div>
 
@@ -78,7 +109,7 @@
                                 </span>
                             </div>
 
-                            <div class="col">
+                            <div class="col" v-if="formTemplate !== 'minimal'">
                                 <label for="spec.profile">Profile</label>
                                 <select v-model="profile" data-field="spec.profile" class="capitalize">
                                     <option v-for="profile in clusterProfiles">{{ profile }}</option>
@@ -97,7 +128,7 @@
                                 <input type="number" v-model="instances" required data-field="spec.instances" min="0">
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.instances')"></span>
                             </div>
-                            <div class="col">
+                            <div class="col" v-if="formTemplate !== 'minimal'">
                                 <label for="spec.sgInstanceProfile">Instance Profile</label>  
                                 <select v-model="resourceProfile" class="resourceProfile" data-field="spec.sgInstanceProfile" @change="(resourceProfile == 'createNewResource') && createNewResource('sginstanceprofiles')" :set="( (resourceProfile == 'createNewResource') && (resourceProfile = '') )">
                                     <option selected value="">Default (Cores: 1, RAM: 2GiB)</option>
@@ -148,6 +179,27 @@
 
                         <template v-if="formTemplate === 'full'">
                             <hr style="margin-top: -15px;" />
+
+                            
+                            <div class="row-50">
+                                <h3>Pods Storage</h3>
+
+                                <div class="col">
+                                    <div class="unit-select">
+                                        <label for="spec.pods.persistentVolume.size">Volume Size <span class="req">*</span></label>  
+                                        <input v-model="volumeSize" class="size" required data-field="spec.pods.persistentVolume.size" type="number">
+                                        <select v-model="volumeUnit" class="unit" required data-field="spec.pods.persistentVolume.size" >
+                                            <option disabled value="">Select Unit</option>
+                                            <option value="Mi">MiB</option>
+                                            <option value="Gi">GiB</option>
+                                            <option value="Ti">TiB</option>   
+                                        </select>
+                                        <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.size')"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr/>
                         
                             <div class="row-50">
                                 <h3>Sidecars</h3>
@@ -444,7 +496,7 @@
                 
                 <div class="fields">
                     <div class="toolbar">
-                        <div class="searchBar">
+                        <div class="searchBar extensions">
                             <label for="keyword">Search Extensions</label>
                             <input id="keyword" v-model="searchExtension" class="search" placeholder="Enter text..." autocomplete="off" data-field="spec.postgres.extensions">
                             <a @click="clearExtFilters()" class="btn clear border keyword" v-if="searchExtension.length">CLEAR</a>
@@ -472,55 +524,82 @@
                         <li class="extension notFound">
                             {{ searchExtension.length ? 'No extensions match your search terms...' : 'No extensions available for the postgres specs you selected...' }}
                         </li>
-                        <li v-for="(ext, index) in extensionsList[flavor][postgresVersion]" 
-                            v-if="( ( (extLicense == 'opensource') && (ext.name != 'timescaledb_tsl') ) || ( (extLicense == 'nonopensource') && (ext.name == 'timescaledb_tsl') ) ) && (!searchExtension.length || (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)) && ext.versions.length" 
-                            class="extension" 
-                            :class="( (viewExtension == index) && 'show')">
-                            <label><input type="checkbox" class="plain enableExtension" @change="setExtension(index)" :checked="(extIsSet(ext.name) !== -1)" :disabled="!ext.versions.length || !ext.selectedVersion.length" :data-field="'spec.postgres.extensions.' + ext.name" /></label>
-                            <span class="extInfo" @click.stop.prevent="viewExt(index)">
-                                <span class="hasTooltip extName">
-                                    <span class="name">
-                                        <span>{{ ext.name }}</span>
-                                        <a v-if="ext.hasOwnProperty('url') && ext.url" :href="ext.url" class="newTab" target="_blank"></a>
+                        <template v-for="(ext, index) in extensionsList[flavor][postgresVersion]" >
+                            <li 
+                                :key="'extension-' + index"
+                                v-if="
+                                    ( 
+                                        ( (extLicense == 'opensource') && (ext.name != 'timescaledb_tsl') ) ||
+                                        ( (extLicense == 'nonopensource') && (ext.name == 'timescaledb_tsl') ) 
+                                    ) &&
+                                    (
+                                        !searchExtension.length ||
+                                        (ext.name+ext.description+ext.tags.toString()).includes(searchExtension)
+                                    ) && 
+                                    ext.versions.length
+                                " 
+                                class="extension" 
+                                :class="( (viewExtension == index) && 'show')"
+                            >
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        class="plain enableExtension"
+                                        @change="setExtension(index)"
+                                        :checked="(extIsSet(ext.name) !== -1)"
+                                        :disabled="!ext.versions.length || !ext.selectedVersion.length"
+                                        :data-field="'spec.postgres.extensions.' + ext.name"
+                                    />
+                                </label>
+                                <span class="extInfo">
+                                    <span class="hasTooltip extName" @click.stop.prevent="viewExt(index)">
+                                        <span class="name">
+                                            <span>{{ ext.name }}</span>
+                                            <a v-if="ext.hasOwnProperty('url') && ext.url" :href="ext.url" class="newTab" target="_blank"></a>
+                                        </span>
                                     </span>
-                                </span>
-                                <span class="version">
-                                    <select v-model="ext.selectedVersion" class="extVersion" @change="updateExtVersion(ext.name, ext.selectedVersion)">
-                                        <option v-if="!ext.versions.length" selected>Not available for this postgres version</option>
-                                        <option v-else value="">Select version...</option>
-                                        <option v-for="v in ext.versions">{{ v }}</option>
-                                    </select>
-                                </span>
-                                <span class="hasTooltip">
-                                    <span class="description firstLetter">
-                                        <span>{{ ext.abstract }}</span>
+                                    <span class="version">
+                                        <select v-model="ext.selectedVersion" class="extVersion" @change="updateExtVersion(ext.name, ext.selectedVersion)">
+                                            <option v-if="!ext.versions.length" selected>Not available for this postgres version</option>
+                                            <option v-else value="">Select version...</option>
+                                            <option v-for="v in ext.versions">{{ v }}</option>
+                                        </select>
                                     </span>
+                                    <span class="hasTooltip" @click.stop.prevent="viewExt(index)">
+                                        <span class="description firstLetter">
+                                            <span>{{ ext.abstract }}</span>
+                                        </span>
+                                    </span>
+                                    <button
+                                        type="button"
+                                        class="textBtn anchor toggleExt"
+                                        @click.stop.prevent="viewExt(index)"
+                                    ></button>
                                 </span>
-                                <button type="button" class="textBtn anchor toggleExt">-</button>
-                            </span>
 
-                            <div v-if="(viewExtension == index)" class="extDetails">
-                                <div class="header">
-                                    <h3>{{ ext.name }}</h3>
-                                </div>
-                                <div class="description">
-                                    {{ ext.description }}
-                                </div>
-                                <div class="header">
-                                    <h3>Tags</h3>
-                                </div>
-                                <div class="tags" v-if="ext.tags.length">
-                                    <span v-for="tag in ext.tags" class="extTag">
-                                        {{ tag }}
-                                    </span>
-                                </div>
+                                <div v-if="(viewExtension == index)" class="extDetails">
+                                    <div class="header">
+                                        <h3>{{ ext.name }}</h3>
+                                    </div>
+                                    <div class="description">
+                                        {{ ext.description }}
+                                    </div>
+                                    <div class="header">
+                                        <h3>Tags</h3>
+                                    </div>
+                                    <div class="tags" v-if="ext.tags.length">
+                                        <span v-for="tag in ext.tags" class="extTag">
+                                            {{ tag }}
+                                        </span>
+                                    </div>
 
-                                <div class="header">
-                                    <h3>Source:</h3>
+                                    <div class="header">
+                                        <h3>Source:</h3>
+                                    </div>
+                                    <a :href="ext.source" target="_blank">{{ ext.source }}</a>
                                 </div>
-                                <a :href="ext.source" target="_blank">{{ ext.source }}</a>
-                            </div>
-                        </li>
+                            </li>
+                        </template>
                     </ul>
                 </div>
                 <div id="nameTooltip">
@@ -823,12 +902,14 @@
                             >
                                 <component :is="`style`">
                                     <template v-for="(bk, index) in pitrBackups">
-                                        #apexchartsarea-datetime .apexcharts-series-markers:nth-child({{index}}) > circle {
-                                            stroke: {{ bk.isSnapshot ? '#FABE25' : '#16A085' }};
-                                        }
+                                        <template v-if="bk.isSnapshot">
+                                            #apexchartsarea-datetime .apexcharts-series-markers circle[rel="{{index}}"] {
+                                                stroke: #FABE25;
+                                            }
+                                        </template>
                                     </template>
                                 </component>
-                                <div class="apexcharts-legend">
+                                <div class="pitr-legend">
                                     <ul>
                                         <li class="snapshot">
                                             Snapshot
@@ -838,88 +919,98 @@
                                         </li>
                                     </ul>
                                 </div>
-                                <apexchart 
-                                    type="line"
-                                    :key="'pitrgraph-' + pitrBackups.length"
-                                    :options="{
-                                        theme: {
-                                            mode: theme
-                                        },
-                                        chart: {
-                                            id: 'area-datetime',
-                                            type: 'area',
-                                            height: 250,
-                                            zoom: {
-                                                autoScaleYaxis: false
+                                <div class="apexcharts-container">
+                                    <apexchart 
+                                        type="line"
+                                        :key="'pitrgraph-' + pitrBackups.length"
+                                        :options="{
+                                            theme: {
+                                                mode: theme
                                             },
-                                            toolbar: {
-                                                    tools: {
-                                                    download: false,
+                                            chart: {
+                                                id: 'area-datetime',
+                                                type: 'area',
+                                                height: 250,
+                                                zoom: {
+                                                    autoScaleYaxis: false
+                                                },
+                                                toolbar: {
+                                                        tools: {
+                                                        download: false,
+                                                    }
+                                                },
+                                                events: {
+                                                    mounted: function(chartContext, config) { 
+                                                        if($route.query.hasOwnProperty('restoreFromBackup')) {
+                                                            const backupName = $route.query.restoreFromBackup;
+                                                            const backupIndex = pitrBackups.findIndex( bk => bk.name == backupName);
+                                                            chartContext.toggleDataPointSelection(0, backupIndex);
+                                                            name = 'restore-from-' + restoreBackup + '-' + (new Date().getTime());
+                                                        }
+                                                    },
+                                                    dataPointSelection: function(event, chartContext, config) {
+                                                        setPitrBackup(chartContext, config)
+                                                    }
                                                 }
                                             },
-                                            events: {
-                                                dataPointSelection: function(event, chartContext, config) {
-                                                    setPitrBackup(event, chartContext, config)
+                                            stroke: {
+                                                width: 2,
+                                                curve: 'straight',
+                                                colors: ['#36A8FF']
+                                            },
+                                            xaxis: {
+                                                type: 'datetime',
+                                                max: new Date().getTime(),
+                                                tooltip: {
+                                                    enabled: false
                                                 }
-                                            }
-                                        },
-                                        stroke: {
-                                            width: 2,
-                                            curve: 'straight',
-                                            colors: ['#36A8FF']
-                                        },
-                                        xaxis: {
-                                            type: 'datetime',
-                                            max: new Date().getTime(),
+                                            },
+                                            yaxis: {
+                                                show: false,
+                                                max: 2
+                                            },
+                                            grid: {
+                                                show: false
+                                            },
+                                            fill: {
+                                                opacity: 0,
+                                            },
+                                            markers: {
+                                                size: 5,
+                                                style: 'hollow',
+                                                colors: [ (theme == 'dark') ? '#171717': '#fff'],
+                                                hover: {
+                                                    sizeOffset: 0
+                                                }
+                                            },
+                                            annotations: pitrAnnotations,
                                             tooltip: {
-                                                enabled: false
+                                                enabled: true,
+                                                intersect: true,
+                                                shared: false,
+                                                custom: function({series, seriesIndex, dataPointIndex, w}) {
+                                                    var data = w.globals.initialSeries[seriesIndex].data[dataPointIndex];
+                                                    
+                                                    return `
+                                                        <ul>
+                                                            <li>
+                                                                <strong>Name:</strong> ${data.name}
+                                                            </li>
+                                                            <li>
+                                                                <strong>Timestamp:</strong> ${data.x}
+                                                            </li>
+                                                            <li>
+                                                                <strong>Cluster:</strong> ${data.cluster}
+                                                            </li>
+                                                        </ul>
+                                                    `;
+                                                }
                                             }
-                                        },
-                                        yaxis: {
-                                            show: false,
-                                            max: 2
-                                        },
-                                        grid: {
-                                            show: false
-                                        },
-                                        fill: {
-                                            opacity: 0,
-                                        },
-                                        markers: {
-                                            size: 5,
-                                            style: 'hollow',
-                                            colors: [ (theme == 'dark') ? '#171717': '#fff'],
-                                            hover: {
-                                                sizeOffset: 0
-                                            }
-                                        },
-                                        annotations: pitrAnnotations,
-                                        tooltip: {
-                                            enabled: true,
-                                            intersect: true,
-                                            shared: false,
-                                            custom: function({series, seriesIndex, dataPointIndex, w}) {
-                                                var data = w.globals.initialSeries[seriesIndex].data[dataPointIndex];
-                                                
-                                                return `
-                                                    <ul>
-                                                        <li>
-                                                            <strong>Name:</strong> ${data.name}
-                                                        </li>
-                                                        <li>
-                                                            <strong>Timestamp:</strong> ${data.x}
-                                                        </li>
-                                                        <li>
-                                                            <strong>Cluster:</strong> ${data.cluster}
-                                                        </li>
-                                                    </ul>
-                                                `;
-                                            }
-                                        }
-                                    }"
-                                    :series="[{ data: pitrBackups }]"
-                                >
-                                </apexchart>
+                                        }"
+                                        :series="[{ data: pitrBackups }]"
+                                    >
+                                    </apexchart>
+                                </div>
                             </template>
 
                             <fieldset class="row-50" :class="!restoreBackup.length && 'hidden'">
@@ -3389,6 +3480,7 @@
             return {
                 formTemplate: (vc.$route.name === 'EditCluster') ? 'custom' : null,
                 formSteps: {
+                    minimal: ['information'],
                     basic: ['information', 'extensions'],
                     full: ['information', 'extensions', 'configurations'],
                     custom: ['cluster', 'extensions', 'backups', 'initialization', 'replicate-from', 'scripts', 'sidecars', 'pods-replication', 'services', 'metadata', 'scheduling', 'non-production']
@@ -3622,6 +3714,31 @@
                 return nameColission
             },
 
+            pitrBackups () {
+                return store.state.sgbackups.filter( backup => ( 
+                    (backup.data.metadata.namespace == this.$route.params.namespace) && 
+                    (this.hasProp(backup, 'data.status.process.status')) && 
+                    (backup.data.status.process.status === 'Completed') && 
+                    (backup.data.status.backupInformation.postgresVersion.substring(0,2) == this.shortPostgresVersion)
+                )).map(
+                    (bk) => { 
+                        return { 
+                            x: bk.data.status.process.timing.stored,
+                            y: 1,
+                            name: bk.name,
+                            cluster: bk.data.spec.sgCluster,
+                            uid: bk.data.metadata.uid,
+                            isSnapshot: bk.data.status.hasOwnProperty('volumeSnapshot')
+                        }
+                    }
+                )
+                .sort(
+                    (a,b) => (
+                        a.x - b.x
+                    )
+                );
+            },
+
             pitrAnnotations() {
                 let xAnnotations = [
                     {
@@ -3670,10 +3787,11 @@
                 return pitr.length ? ( (store.state.timezone == 'local') ? moment.utc(pitr).local().format('YYYY-MM-DD HH:mm:ss') : moment.utc(pitr).format('YYYY-MM-DD HH:mm:ss') ) : '';
             },
 
-            setPitrBackup(event, chartContext, config) {
+            setPitrBackup(chartContext, config, fromRestore = false) {
                 if(config.dataPointIndex != -1) { // Clicking on backup
                     chartContext.removeAnnotation('pitr');
-                    if(config.dataPointIndex == this.restoreBackupIndex) {
+
+                    if(!fromRestore && (config.dataPointIndex == this.restoreBackupIndex)) {
                         this.restoreBackup = '';
                         this.restoreBackupIndex = -1;
                         this.enablePITR = false;
@@ -3988,13 +4106,16 @@
                     require('daterangepicker');
 
                     $('.daterangepicker').remove();
-                    $(document).find('.datePicker').daterangepicker({
+                    let datePicker = $(document).find('.datePicker');
+                    datePicker.removeClass('ready');
+                    datePicker.daterangepicker({
                         "autoApply": false,
                         "autoUpdateInput": false,
                         "singleDatePicker": true,
                         "timePicker": true,
                         "opens": "right",
                         "drops": "auto",
+                        "startDate": minDate,
                         "minDate": minDate,
                         "maxDate": maxDate,
                         "timePicker24Hour": true,
@@ -4013,6 +4134,7 @@
                         vc.pitr = '';
                     });
 
+                    datePicker.addClass('ready');
                 }
             },
 
@@ -4087,6 +4209,7 @@
                 if(reset) { // Reset template specs
                     vc.formTemplate = null;
                     vc.currentStep = null;
+                    vc.profile = 'production';
                     vc.pgConfig = null;
                     vc.connectionPoolingConfig = null;
                     vc.enableDistributedLogs = false;
@@ -4097,7 +4220,18 @@
                 } else { // Set template-based specs
                     vc.currentStep = vc.formSteps[vc.formTemplate][0];
 
-                    if (vc.formTemplate !== 'custom') {
+                    switch(vc.formTemplate) {
+                        case 'minimal':
+                            vc.connPooling = false;
+                            vc.profile = 'development';
+                            break;
+
+                        case 'basic':
+                            vc.profile = 'testing';
+                            break;
+                    }
+
+                    if (!['minimal','custom'].includes(vc.formTemplate)) {
                         vc.enableMonitoring = true;
                         vc.prometheusAutobind = true;
                         vc.metricsExporter = true;
@@ -4187,9 +4321,23 @@
                         vc.notify(error.response.data, 'error', 'sgpoolconfigs');
                     });
                 }          
-            }
+            },
 
         },
+
+        mounted() {
+            const vc = this;
+
+            // Check if form should set initialization from a backup
+            if(vc.$route.query.hasOwnProperty('restoreFromBackup')) {
+                vc.advancedMode = true;
+                vc.formTemplate = 'custom';
+                vc.setupTemplate();
+
+                let initializationStep = vc.formSteps[vc.formTemplate].indexOf('initialization');
+                vc.currentStep = vc.formSteps[vc.formTemplate][initializationStep];
+            }
+        }
 
     }
 </script>
@@ -4234,6 +4382,15 @@
     #apexchartsarea-datetime {
         transform: translateY(-45px);
     }
+    
+    #apexchartsarea-datetime, #apexchartsarea-datetime > svg {
+        max-height: 250px;
+    }
+
+    .apexcharts-container > div {
+        max-height: 265px;
+        min-height: auto !important;
+    }
 
     #apexchartsarea-datetime:before {
         content: " ";
@@ -4253,6 +4410,7 @@
     #apexchartsarea-datetime .apexcharts-series-markers > circle {
         filter: none !important;
         cursor: pointer;
+        stroke: #16A085;
     }
 
     #apexchartsarea-datetime .apexcharts-series-markers > circle[selected="true"] {
@@ -4261,13 +4419,13 @@
         opacity: 1 !important;
     }
 
-    .apexcharts-legend li.base:before {
+    .pitr-legend li.base:before {
         border-color: var(--green);
     }
-    .apexcharts-legend li.snapshot:before {
+    .pitr-legend li.snapshot:before {
         border-color: var(--yellow);
     }
-    .apexcharts-legend li:before {
+    .pitr-legend li:before {
         content: " ";
         width: 8px;
         height: 8px;
@@ -4276,11 +4434,11 @@
         display: inline-block;
         transform: translateY(1px);
     }
-    .apexcharts-legend li {
+    .pitr-legend li {
         display: inline-block;
         margin-right: 20px;
     }
-    .apexcharts-legend {
+    .pitr-legend {
         position: absolute;
     }
     
