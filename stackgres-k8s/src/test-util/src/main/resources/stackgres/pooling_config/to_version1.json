@@ -26,7 +26,7 @@
       "defaultParameters": {
         "admin_users": "pgbouncer_admin",
         "application_name_add_host": "1",
-        "auth_query": "SELECT usename, passwd FROM pg_shadow WHERE usename=$1",
+        "auth_query": "SELECT p_user, p_password FROM public.lookup($1)",
         "auth_type": "md5",
         "auth_user": "authenticator",
         "default_pool_size": "1000",
