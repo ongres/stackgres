@@ -153,6 +153,7 @@ postgresql:
   use_unix_socket: true
   connect_address: '${PATRONI_KUBERNETES_POD_IP}:5432'
   listen: 0.0.0.0:5432
+  pg_ctl_timeout: $PATRONI_PG_CTL_TIMEOUT
   authentication:
     superuser:
       username: '${PATRONI_SUPERUSER_USERNAME}'

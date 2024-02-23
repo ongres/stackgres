@@ -32,8 +32,12 @@ import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.ClusterPath;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPodStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationGroup;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgcluster.StackGresReplicationRole;
 import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
@@ -61,6 +65,7 @@ public class PatroniReconciliator {
           + "/last-" + ClusterPath.PATRONI_CONFIG_FILE_PATH.filename());
 
   private static final Pattern TAGS_LINE_PATTERN = Pattern.compile("^tags:.*$");
+  private static final Pattern PG_CTL_TIMEOUT_LINE_PATTERN = Pattern.compile("^ pg_ctl_timeout:.*$");
 
   private static final String NOLOADBALANCE_TAG = PatroniUtil.NOLOADBALANCE_TAG;
   private static final String NOFAILOVER_TAG = PatroniUtil.NOFAILOVER_TAG;
@@ -159,11 +164,18 @@ public class PatroniReconciliator {
     final Map<String, String> tagsMap =
         getPatroniTagsForReplicationRole(podReplicationRole.get().v1);
     final String tags = getTagsAsYamlString(tagsMap);
-    boolean needsUpdate = Seq.seq(Files.readAllLines(PATRONI_CONFIG_PATH))
+    boolean tagsNeedsUpdate = Seq.seq(Files.readAllLines(PATRONI_CONFIG_PATH))
         .filter(line -> TAGS_LINE_PATTERN.matcher(line).matches())
         .noneMatch(tags::equals);
-    if (needsUpdate) {
+    if (tagsNeedsUpdate) {
       replacePatroniTags(tags);
+    }
+    final String pgCtlTimeout = getPgCtlTimeoutAsYamlString(cluster);
+    boolean pgCtlTimeoutNeedsUpdate = Seq.seq(Files.readAllLines(PATRONI_CONFIG_PATH))
+        .filter(line -> PG_CTL_TIMEOUT_LINE_PATTERN.matcher(line).matches())
+        .noneMatch(pgCtlTimeout::equals);
+    if (pgCtlTimeoutNeedsUpdate) {
+      addOrReplacePatroniPostgresqlPgCtlTimeout(pgCtlTimeout);
     }
     if (configChanged(PATRONI_CONFIG_PATH, LAST_PATRONI_CONFIG_PATH)) {
       PatroniCommandUtil.reloadPatroniConfig();
@@ -259,6 +271,32 @@ public class PatroniReconciliator {
         PATRONI_CONFIG_PATH.toString()).join();
   }
 
+  private String getPgCtlTimeoutAsYamlString(final StackGresCluster cluster) {
+    return String.format("  pg_ctl_timeout: %s",
+        Optional.of(cluster.getSpec())
+        .map(StackGresClusterSpec::getConfigurations)
+        .map(StackGresClusterConfigurations::getPatroni)
+        .map(StackGresClusterPatroni::getInitialConfig)
+        .map(StackGresClusterPatroniConfig::getPgCtlTimeout)
+        .map(String::valueOf)
+        .orElse("60"));
+  }
+
+  private void addOrReplacePatroniPostgresqlPgCtlTimeout(final String pgCtlTimeout) {
+    var hasPgCtlTimeout =
+        FluentProcess.start("grep", "-q", "^ *pg_ctl_timeout:.*$",
+        PATRONI_CONFIG_PATH.toString()).tryGet();
+    if (hasPgCtlTimeout.exception().isEmpty()) {
+      FluentProcess.start("sed", "-i",
+          String.format("s/^ *pg_ctl_timeout:.*$/%s/", pgCtlTimeout),
+          PATRONI_CONFIG_PATH.toString()).join();
+    } else {
+      FluentProcess.start("sed", "-i",
+          String.format("s/^postgresql:$/postgresql:\\n%s/", pgCtlTimeout),
+          PATRONI_CONFIG_PATH.toString()).join();
+    }
+  }
+
   private void setPatroniTagsAsPodLabels(KubernetesClient client, final StackGresCluster cluster,
       final Map<String, String> tagsMap) {
     KubernetesClientUtil.retryOnConflict(() -> {
@@ -277,7 +315,7 @@ public class PatroniReconciliator {
       client.pods()
           .resource(pod)
           .lockResourceVersion(pod.getMetadata().getResourceVersion())
-          .replace();
+          .update();
       return null;
     });
   }
