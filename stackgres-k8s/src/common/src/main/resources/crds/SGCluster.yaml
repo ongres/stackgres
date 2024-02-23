@@ -319,7 +319,6 @@ spec:
                     description: |
                       Number of synchronous standby instances. Must be less than the total number of instances. It is set to 1 by default.
                         Only setteable if mode is `sync` or `strict-sync`.
-                    default: 1
                   groups:
                     type: array
                     description: |
