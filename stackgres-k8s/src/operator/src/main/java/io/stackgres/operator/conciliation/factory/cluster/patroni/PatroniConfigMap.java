@@ -41,9 +41,11 @@ import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.CustomContainer;
 import io.stackgres.common.crd.CustomServicePort;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterDistributedLogs;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresServices;
@@ -213,6 +215,12 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
         .filter(Predicate.not(ObjectNode::isEmpty))
         .map(Unchecked.function(yamlMapper::writeValueAsString))
         .orElse(""));
+    data.put("PATRONI_PG_CTL_TIMEOUT", Optional.ofNullable(cluster.getSpec().getConfigurations())
+        .map(StackGresClusterConfigurations::getPatroni)
+        .map(StackGresClusterPatroni::getInitialConfig)
+        .flatMap(StackGresClusterPatroniConfig::getPgCtlTimeout)
+        .map(Object::toString)
+        .orElse("60"));
     data.put("PATRONI_KUBERNETES_SCOPE_LABEL",
         labelFactory.labelMapper().clusterScopeKey(cluster));
     data.put("PATRONI_KUBERNETES_LABELS", patroniClusterLabelsAsJson);
