@@ -238,21 +238,31 @@ public class ModelTestUtil {
   @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
       justification = "False positive")
   private static ParameterizedType getParameterizedType(Class<?> clazz, Type genericType) {
-    final ParameterizedType parameterizedType;
     if (genericType instanceof ParameterizedType currentGenericType) {
-      parameterizedType = currentGenericType;
+      return currentGenericType;
     } else {
       Class<?> currentClazz = clazz;
-      while (!(currentClazz.getGenericSuperclass() instanceof ParameterizedType)) {
+      while (true) {
+        if (currentClazz.getGenericSuperclass() instanceof ParameterizedType) {
+          return (ParameterizedType) currentClazz.getGenericSuperclass();
+        }
+        var currentInterfaces = Arrays.asList(currentClazz.getGenericInterfaces());
+        if (currentInterfaces.stream()
+            .anyMatch(ParameterizedType.class::isInstance)) {
+          return currentInterfaces.stream()
+              .filter(ParameterizedType.class::isInstance)
+              .map(ParameterizedType.class::cast)
+              .findFirst()
+              .orElseThrow();
+        }
         currentClazz = currentClazz.getSuperclass();
         if (currentClazz == Object.class) {
-          throw new RuntimeException(
-              "Class " + clazz.getName() + " do not have any generics!");
+          break;
         }
       }
-      parameterizedType = (ParameterizedType) currentClazz.getGenericSuperclass();
+      throw new RuntimeException(
+          "Class " + clazz.getName() + " do not have any generics!");
     }
-    return parameterizedType;
   }
 
   private static boolean isValueType(Class<?> type) {
