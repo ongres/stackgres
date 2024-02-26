@@ -1196,7 +1196,7 @@ spec:
                               * exhibitor
                               * kubernetes
                               * raft
-                              * postgresql
+                              * postgresql # with the exception of postgresql.pg_ctl_timeout
                               * restapi
                               * ctl
                               * watchdog

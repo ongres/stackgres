@@ -153,6 +153,7 @@ postgresql:
   use_unix_socket: true
   connect_address: '${PATRONI_KUBERNETES_POD_IP}:5432'
   listen: 0.0.0.0:5432
+  pg_ctl_timeout: $PATRONI_PG_CTL_TIMEOUT
   authentication:
     superuser:
       username: '${PATRONI_SUPERUSER_USERNAME}'
@@ -230,7 +231,7 @@ chmod 600 "$PATRONI_CONFIG_FILE_PATH"
 
 cat << EOF > "${LOCAL_BIN_PATH}/postgres"
 #!/bin/sh
-chmod -R 700 "$PG_DATA_PATH"
+chmod 700 "$PG_DATA_PATH"
 exec "$PG_BIN_PATH/postgres" "\$@"
 EOF
 chmod 755 "${LOCAL_BIN_PATH}/postgres"
