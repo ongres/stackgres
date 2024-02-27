@@ -1,0 +1,21 @@
+apiVersion: stackgres.io/v1alpha1
+kind: SGShardedCluster
+metadata:
+  namespace: sharding
+  name: ddp
+spec:
+  type: ddp
+  database: db
+  postgres:
+    version: '16'
+  coordinator:
+    instances: 1
+    pods:
+      persistentVolume:
+        size: '10Gi'
+  shards:
+    clusters: 3
+    instancesPerCluster: 2
+    pods:
+      persistentVolume:
+        size: '10Gi'
