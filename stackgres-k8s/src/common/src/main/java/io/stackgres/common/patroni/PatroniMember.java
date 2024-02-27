@@ -66,7 +66,7 @@ public class PatroniMember {
 
   @JsonIgnore
   public boolean isPrimary() {
-    return Objects.equals(LEADER, role);
+    return MemberRole.LEADER == getMemberRole();
   }
 
   @JsonIgnore

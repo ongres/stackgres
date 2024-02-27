@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -27,6 +28,10 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
+import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -78,6 +83,7 @@ public class PatroniCtl {
 
     final CustomResource<?, ?> customResource;
     final String scope;
+    final Integer group;
     final String patroniCtlCommand;
     final Path configPath;
     final String config;
@@ -85,6 +91,12 @@ public class PatroniCtl {
     PatroniCtlInstance(StackGresCluster cluster) {
       this.customResource = cluster;
       this.scope = PatroniUtil.clusterScope(cluster);
+      this.group = Optional.of(cluster.getSpec())
+          .map(StackGresClusterSpec::getConfigurations)
+          .map(StackGresClusterConfigurations::getPatroni)
+          .map(StackGresClusterPatroni::getInitialConfig)
+          .flatMap(StackGresClusterPatroniConfig::getCitusGroup)
+          .orElse(null);
       this.patroniCtlCommand = patroniCtlCommand(StackGresUtil.getPatroniVersion(cluster));
       this.configPath = getConfigPath();
       this.config = PatroniUtil.getInitialConfig(
@@ -94,6 +106,7 @@ public class PatroniCtl {
     PatroniCtlInstance(StackGresDistributedLogs distributedLogs) {
       this.customResource = distributedLogs;
       this.scope = PatroniUtil.clusterScope(distributedLogs);
+      this.group = null;
       this.patroniCtlCommand = patroniCtlCommand(StackGresUtil.getPatroniVersion(distributedLogs));
       this.configPath = getConfigPath();
       this.config = PatroniUtil.getInitialConfig(
@@ -244,6 +257,7 @@ public class PatroniCtl {
               .append("-c", configPath.toString())
               .append(command)
               .append(args)
+              .append(group != null ? Seq.of("--group", group.toString()) : Seq.of())
               .toArray(String[]::new));
     }
 
