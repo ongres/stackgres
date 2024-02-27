@@ -1,0 +1,27 @@
+apiVersion: stackgres.io/v1alpha1
+kind: SGShardedCluster
+metadata:
+  namespace: sharding
+  name: shardingsphere
+spec:
+  type: shardingsphere
+  database: db
+  postgres:
+    version: '16'
+  coordinator:
+    instances: 1
+    pods:
+      persistentVolume:
+        size: '10Gi'
+    configurations:
+      shardingSphere:
+        mode:
+          type: 'Cluster'
+          repository:
+            type: 'Etcd'
+  shards:
+    clusters: 3
+    instancesPerCluster: 2
+    pods:
+      persistentVolume:
+        size: '10Gi'
