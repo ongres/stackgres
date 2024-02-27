@@ -57,6 +57,7 @@ public class DefaultOperatorBootstrap implements OperatorBootstrap {
     certInstaller.waitForCertificate();
   }
 
+  @Override
   public void bootstrap() {
     if (!OperatorProperty.INSTALL_CERTS.getBoolean()) {
       retryWithLimit(this::installOrUpdateConfig, ex -> true, 10, 10000, 20000, 2000);

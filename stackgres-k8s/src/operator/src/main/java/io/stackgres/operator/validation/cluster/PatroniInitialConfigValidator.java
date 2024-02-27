@@ -43,6 +43,18 @@ public class PatroniInitialConfigValidator implements ClusterValidator {
           .map(StackGresClusterConfigurations::getPatroni)
           .map(StackGresClusterPatroni::getInitialConfig);
 
+      var pgCtlTimeout = patroniInitialConfig
+          .flatMap(StackGresClusterPatroniConfig::getPgCtlTimeout);
+      var oldPgCtlTimeout = oldPatroniInitialConfig
+          .flatMap(StackGresClusterPatroniConfig::getPgCtlTimeout);
+          
+      if (!Objects.equals(pgCtlTimeout, oldPgCtlTimeout)) {
+        pgCtlTimeout
+            .ifPresentOrElse(
+                value -> oldPatroniInitialConfig.ifPresent(config -> config.setPgCtlTimeout(value)),
+                () -> oldPatroniInitialConfig.ifPresent(config -> config.removePostgresql()));
+      }
+
       if (!Objects.equals(oldPatroniInitialConfig, patroniInitialConfig)) {
         fail(errorCrReferencerUri, "Cannot update cluster's patroni initial configuration");
       }

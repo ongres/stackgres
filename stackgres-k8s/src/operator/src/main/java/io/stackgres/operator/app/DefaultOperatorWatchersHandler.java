@@ -345,7 +345,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   }
 
   private BiConsumer<Action, StackGresProfile> reconcileInstanceProfileClusters() {
-    return (action, instanceProfile) -> clusters.values()
+    return (action, instanceProfile) -> synchronizedCopyOfValues(clusters)
         .stream()
         .filter(cluster -> Objects.equals(
             cluster.getMetadata().getNamespace(),
@@ -357,7 +357,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   }
 
   private BiConsumer<Action, StackGresPostgresConfig> reconcilePostgresConfigClusters() {
-    return (action, postgresConfig) -> clusters.values()
+    return (action, postgresConfig) -> synchronizedCopyOfValues(clusters)
         .stream()
         .filter(cluster -> Objects.equals(
             cluster.getMetadata().getNamespace(),
@@ -369,7 +369,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   }
 
   private BiConsumer<Action, StackGresPoolingConfig> reconcilePoolingConfigClusters() {
-    return (action, poolingConfig) -> clusters.values()
+    return (action, poolingConfig) -> synchronizedCopyOfValues(clusters)
         .stream()
         .filter(cluster -> Objects.equals(
             cluster.getMetadata().getNamespace(),
@@ -381,7 +381,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   }
 
   private BiConsumer<Action, StackGresObjectStorage> reconcileObjectStorageClusters() {
-    return (action, objectStorage) -> clusters.values()
+    return (action, objectStorage) -> synchronizedCopyOfValues(clusters)
         .stream()
         .filter(cluster -> Objects.equals(
             cluster.getMetadata().getNamespace(),
@@ -396,7 +396,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   }
 
   private BiConsumer<Action, StackGresProfile> reconcileInstanceProfileDistributedLogs() {
-    return (action, instanceProfile) -> distributedLogs.values()
+    return (action, instanceProfile) -> synchronizedCopyOfValues(distributedLogs)
         .stream()
         .filter(cluster -> Objects.equals(
             cluster.getMetadata().getNamespace(),
@@ -408,7 +408,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   }
 
   private BiConsumer<Action, StackGresPostgresConfig> reconcilePostgresConfigDistributedLogs() {
-    return (action, postgresConfig) -> distributedLogs.values()
+    return (action, postgresConfig) -> synchronizedCopyOfValues(distributedLogs)
         .stream()
         .filter(cluster -> Objects.equals(
             cluster.getMetadata().getNamespace(),
@@ -420,7 +420,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   }
 
   private BiConsumer<Action, StackGresProfile> reconcileInstanceProfileShardedClusters() {
-    return (action, instanceProfile) -> shardedClusters.values()
+    return (action, instanceProfile) -> synchronizedCopyOfValues(shardedClusters)
         .stream()
         .filter(cluster -> Objects.equals(
             cluster.getMetadata().getNamespace(),
@@ -441,7 +441,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   }
 
   private BiConsumer<Action, StackGresPostgresConfig> reconcilePostgresConfigShardedClusters() {
-    return (action, postgresConfig) -> shardedClusters.values()
+    return (action, postgresConfig) -> synchronizedCopyOfValues(shardedClusters)
         .stream()
         .filter(cluster -> Objects.equals(
             cluster.getMetadata().getNamespace(),
@@ -462,7 +462,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   }
 
   private BiConsumer<Action, StackGresPoolingConfig> reconcilePoolingConfigShardedClusters() {
-    return (action, poolingConfig) -> shardedClusters.values()
+    return (action, poolingConfig) -> synchronizedCopyOfValues(shardedClusters)
         .stream()
         .filter(cluster -> Objects.equals(
             cluster.getMetadata().getNamespace(),
@@ -485,7 +485,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   }
 
   private BiConsumer<Action, StackGresObjectStorage> reconcileObjectStorageShardedClusters() {
-    return (action, objectStorage) -> shardedClusters.values()
+    return (action, objectStorage) -> synchronizedCopyOfValues(shardedClusters)
         .stream()
         .filter(cluster -> Objects.equals(
             cluster.getMetadata().getNamespace(),
@@ -503,7 +503,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   private BiConsumer<Action, Endpoints> reconcileEndpointsShardedClusters() {
     String clusterScopeKey =
         StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.CLUSTER_SCOPE_KEY;
-    return (action, endpoints) -> shardedClusters.values()
+    return (action, endpoints) -> synchronizedCopyOfValues(shardedClusters)
         .stream()
         .filter(cluster -> Objects.equals(
             cluster.getMetadata().getNamespace(),
@@ -518,7 +518,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   private BiConsumer<Action, Pod> reconcilePodClusters() {
     String clusterNameKey =
         StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.CLUSTER_NAME_KEY;
-    return (action, pod) -> clusters.values()
+    return (action, pod) -> synchronizedCopyOfValues(clusters)
         .stream()
         .filter(cluster -> Objects.equals(
             cluster.getMetadata().getNamespace(),
@@ -533,7 +533,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   private BiConsumer<Action, Pod> reconcilePodDistributedLogs() {
     String distributedLogsNameKey =
         StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.DISTRIBUTED_LOGS_CLUSTER_NAME_KEY;
-    return (action, pod) -> distributedLogs.values()
+    return (action, pod) -> synchronizedCopyOfValues(distributedLogs)
         .stream()
         .filter(cluster -> Objects.equals(
             cluster.getMetadata().getNamespace(),
@@ -548,7 +548,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   private BiConsumer<Action, Pod> reconcilePodBackups() {
     String backupNameKey =
         StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.BACKUP_NAME_KEY;
-    return (action, pod) -> backups.values()
+    return (action, pod) -> synchronizedCopyOfValues(backups)
         .stream()
         .filter(cluster -> Objects.equals(
             cluster.getMetadata().getNamespace(),
@@ -563,7 +563,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   private BiConsumer<Action, Pod> reconcilePodDbOps() {
     String dbOpsNameKey =
         StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.DBOPS_NAME_KEY;
-    return (action, pod) -> dbOps.values()
+    return (action, pod) -> synchronizedCopyOfValues(dbOps)
         .stream()
         .filter(cluster -> Objects.equals(
             cluster.getMetadata().getNamespace(),
@@ -578,7 +578,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   private BiConsumer<Action, Pod> reconcilePodShardedBackups() {
     String backupNameKey =
         StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.SHARDED_BACKUP_NAME_KEY;
-    return (action, pod) -> shardedBackups.values()
+    return (action, pod) -> synchronizedCopyOfValues(shardedBackups)
         .stream()
         .filter(cluster -> Objects.equals(
             cluster.getMetadata().getNamespace(),
@@ -593,7 +593,7 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   private BiConsumer<Action, Pod> reconcilePodShardedDbOps() {
     String dbOpsNameKey =
         StackGresContext.STACKGRES_KEY_PREFIX + StackGresContext.SHARDED_DBOPS_NAME_KEY;
-    return (action, pod) -> shardedDbOps.values()
+    return (action, pod) -> synchronizedCopyOfValues(shardedDbOps)
         .stream()
         .filter(cluster -> Objects.equals(
             cluster.getMetadata().getNamespace(),
@@ -608,6 +608,12 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
   @Override
   public void stopWatchers() {
     monitors.forEach(WatcherMonitor::close);
+  }
+
+  private <T> List<T> synchronizedCopyOfValues(Map<?, T> map) {
+    synchronized (map) {
+      return List.copyOf(map.values());
+    }
   }
 
 }

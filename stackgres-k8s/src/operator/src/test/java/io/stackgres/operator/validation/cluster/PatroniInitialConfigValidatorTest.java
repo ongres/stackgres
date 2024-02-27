@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.validation.cluster;
 
+import java.util.Map;
+
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.operator.common.StackGresClusterReview;
@@ -76,13 +78,42 @@ class PatroniInitialConfigValidatorTest {
   }
 
   @Test
-  void givenAnUpdate_shouldFail() {
+  void givenAnUpdateWithPatroniInitialConfigChanged_shouldFail() {
     final StackGresClusterReview review = getUpdateReview();
     review.getRequest().getObject().getSpec().getConfigurations()
         .getPatroni().getInitialConfig().put("test", true);
 
     ValidationUtils.assertValidationFailed(() -> validator.validate(review),
         "Cannot update cluster's patroni initial configuration");
+  }
+
+  @Test
+  void givenAnUpdateWithPatroniInitialConfigWithPgCtlTimeoutChanged_shouldPass() throws ValidationFailed {
+    final StackGresClusterReview review = getUpdateReview();
+    review.getRequest().getOldObject().getSpec().getConfigurations()
+        .getPatroni().getInitialConfig().put("postgresql", Map.of("pg_ctl_timeout", 90));
+    review.getRequest().getObject().getSpec().getConfigurations()
+        .getPatroni().getInitialConfig().put("postgresql", Map.of("pg_ctl_timeout", 120));
+
+    validator.validate(review);
+  }
+
+  @Test
+  void givenAnUpdateWithPatroniInitialConfigWithPgCtlTimeoutAdded_shouldPass() throws ValidationFailed {
+    final StackGresClusterReview review = getUpdateReview();
+    review.getRequest().getObject().getSpec().getConfigurations()
+    .getPatroni().getInitialConfig().put("postgresql", Map.of("pg_ctl_timeout", 120));
+
+    validator.validate(review);
+  }
+
+  @Test
+  void givenAnUpdateWithPatroniInitialConfigWithPgCtlTimeoutRemoved_shouldPass() throws ValidationFailed {
+    final StackGresClusterReview review = getUpdateReview();
+    review.getRequest().getOldObject().getSpec().getConfigurations()
+        .getPatroni().getInitialConfig().put("postgresql", Map.of("pg_ctl_timeout", 90));
+
+    validator.validate(review);
   }
 
   private StackGresClusterReview getCreationReview() {

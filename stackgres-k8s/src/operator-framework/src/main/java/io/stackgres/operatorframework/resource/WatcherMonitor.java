@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 
 public class WatcherMonitor<T> implements AutoCloseable {
 
-  private static final int MAX_BACKOFF_SLEEP_SECONDS = 60_000;
+  private static final int MAX_BACKOFF_SLEEP_SECONDS = 300;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(WatcherMonitor.class);
 

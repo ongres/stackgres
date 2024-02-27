@@ -8,7 +8,7 @@ showToc: true
 
 In this how-to guide, we'll walk you through the whole process of setting up [Metis](https://www.metisdata.io/) on a Kubernetes cluster using [StackGres](https://stackgres.io/). This guide is also available as a [video](https://www.youtube.com/watch?v=neB0JH7hfjE)
 
-> This post has been published with explicit permission from Metis Data. It's a copy of [an article](https://www.metisdata.io/blog/how-to-run-metis-on-top-of-stackgres) originally published on Metis Data's website on **February 12, 2024**.
+> This post has been published with explicit permission from Metis. It's a copy of [an article](https://www.metisdata.io/blog/how-to-run-metis-on-top-of-stackgres) originally published on Metis Data's website on **February 12, 2024**.
 
 
 Setting Up Metis On Top Of StackGres
@@ -371,3 +371,5 @@ You can also go to **_Top Queries_** widget and notice that new queries are flow
 ![Metis Top Queries](metis-top-queries.png "Metis Top Queries")
 
 Metis captures the live activity of your database and can suggest how to improve things.
+
+*   [Metis Discord](https://metisdata.io/metis-discord)
