@@ -28,6 +28,14 @@
 # bash <(curl -sL https://raw.githubusercontent.com/redhat-openshift-ecosystem/community-operators-pipeline/ci/latest/ci/scripts/opp.sh) all operators/stackgres/"<latest version>"
 # ```
 #
+# To have a look to what is happening with k9s:
+#
+# ```
+# export VAGRANT_VAGRANTFILE=Vagrantfile.operatorhub-test-suite
+# vagrant ssh
+# # Then inside the ssh shell
+# k9s
+# ```
 ###
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
