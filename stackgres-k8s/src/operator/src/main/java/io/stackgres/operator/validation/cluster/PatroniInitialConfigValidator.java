@@ -38,8 +38,9 @@ public class PatroniInitialConfigValidator implements ClusterValidator {
           .map(StackGresClusterConfigurations::getPatroni)
           .map(StackGresClusterPatroni::getInitialConfig);
 
+      StackGresClusterSpec oldSpec = review.getRequest().getOldObject().getSpec();
       Optional<StackGresClusterPatroniConfig> oldPatroniInitialConfig = Optional
-          .ofNullable(review.getRequest().getOldObject().getSpec().getConfigurations())
+          .ofNullable(oldSpec.getConfigurations())
           .map(StackGresClusterConfigurations::getPatroni)
           .map(StackGresClusterPatroni::getInitialConfig);
 
@@ -49,10 +50,26 @@ public class PatroniInitialConfigValidator implements ClusterValidator {
           .flatMap(StackGresClusterPatroniConfig::getPgCtlTimeout);
           
       if (!Objects.equals(pgCtlTimeout, oldPgCtlTimeout)) {
+        if (pgCtlTimeout.isPresent() && oldPatroniInitialConfig.isEmpty()) {
+          if (oldSpec.getConfigurations() == null) {
+            oldSpec.setConfigurations(new StackGresClusterConfigurations());
+          }
+          if (oldSpec.getConfigurations().getPatroni() == null) {
+            oldSpec.getConfigurations().setPatroni(new StackGresClusterPatroni());
+          }
+          if (oldSpec.getConfigurations().getPatroni().getInitialConfig() == null) {
+            oldSpec.getConfigurations().getPatroni().setInitialConfig(new StackGresClusterPatroniConfig());
+          }
+          oldPatroniInitialConfig = Optional
+              .ofNullable(oldSpec.getConfigurations())
+              .map(StackGresClusterConfigurations::getPatroni)
+              .map(StackGresClusterPatroni::getInitialConfig);
+        }
+        final Optional<StackGresClusterPatroniConfig> modifiableOldPatroniInitialConfig = oldPatroniInitialConfig;
         pgCtlTimeout
             .ifPresentOrElse(
-                value -> oldPatroniInitialConfig.ifPresent(config -> config.setPgCtlTimeout(value)),
-                () -> oldPatroniInitialConfig.ifPresent(config -> config.removePostgresql()));
+                value -> modifiableOldPatroniInitialConfig.ifPresent(config -> config.setPgCtlTimeout(value)),
+                () -> modifiableOldPatroniInitialConfig.ifPresent(config -> config.removePostgresql()));
       }
 
       if (!Objects.equals(oldPatroniInitialConfig, patroniInitialConfig)) {

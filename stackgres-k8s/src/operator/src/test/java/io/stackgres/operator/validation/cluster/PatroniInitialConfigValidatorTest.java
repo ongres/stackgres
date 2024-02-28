@@ -108,6 +108,18 @@ class PatroniInitialConfigValidatorTest {
   }
 
   @Test
+  void givenAnUpdateWithPatroniInitialConfigWithPgCtlTimeoutAddedFromScratch_shouldPass() throws ValidationFailed {
+    final StackGresClusterReview review = getUpdateReview();
+    review.getRequest().getOldObject().getSpec().getConfigurations().getPatroni().setInitialConfig(null);
+    review.getRequest().getObject().getSpec().getConfigurations().getPatroni()
+        .setInitialConfig(new StackGresClusterPatroniConfig());
+    review.getRequest().getObject().getSpec().getConfigurations()
+        .getPatroni().getInitialConfig().put("postgresql", Map.of("pg_ctl_timeout", 120));
+
+    validator.validate(review);
+  }
+
+  @Test
   void givenAnUpdateWithPatroniInitialConfigWithPgCtlTimeoutRemoved_shouldPass() throws ValidationFailed {
     final StackGresClusterReview review = getUpdateReview();
     review.getRequest().getOldObject().getSpec().getConfigurations()
