@@ -279,7 +279,7 @@ public class PatroniReconciliator extends SafeReconciliator<StackGresClusterCont
         .map(StackGresClusterSpec::getConfigurations)
         .map(StackGresClusterConfigurations::getPatroni)
         .map(StackGresClusterPatroni::getInitialConfig)
-        .map(StackGresClusterPatroniConfig::getPgCtlTimeout)
+        .flatMap(StackGresClusterPatroniConfig::getPgCtlTimeout)
         .map(String::valueOf)
         .orElse("60"));
   }
