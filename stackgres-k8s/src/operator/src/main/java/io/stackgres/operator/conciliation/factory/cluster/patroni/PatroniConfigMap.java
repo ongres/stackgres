@@ -39,6 +39,7 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
+import jakarta.enterprise.inject.Any;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
@@ -54,14 +55,18 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
   private static final Logger PATRONI_LOGGER = LoggerFactory.getLogger("io.stackgres.patroni");
 
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+  private final PatroniConfigEndpoints patroniConfigEndpoints;
   private final ObjectMapper objectMapper;
   private final YAMLMapper yamlMapper;
 
   @Inject
-  public PatroniConfigMap(LabelFactoryForCluster<StackGresCluster> labelFactory,
+  public PatroniConfigMap(
+      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      @Any PatroniConfigEndpoints patroniConfigEndpoints,
       ObjectMapper objectMapper,
       YamlMapperProvider yamlMapperProvider) {
     this.labelFactory = labelFactory;
+    this.patroniConfigEndpoints = patroniConfigEndpoints;
     this.objectMapper = objectMapper;
     this.yamlMapper = yamlMapperProvider.get();
   }
@@ -99,7 +104,8 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
     Map<String, String> data = new HashMap<>();
     data.put("PATRONI_CONFIG_FILE", ClusterPath.PATRONI_CONFIG_FILE_PATH.path());
     data.put("PATRONI_INITIAL_CONFIG", PatroniUtil.getInitialConfig(
-            cluster, labelFactory, yamlMapper, objectMapper));
+        cluster, labelFactory, yamlMapper, objectMapper));
+    data.put("PATRONI_DCS_CONFIG", patroniConfigEndpoints.getPatroniConfigAsYamlString(context));
     data.put("PATRONI_PG_CTL_TIMEOUT", Optional.ofNullable(cluster.getSpec().getConfigurations())
         .map(StackGresClusterConfigurations::getPatroni)
         .map(StackGresClusterPatroni::getInitialConfig)
@@ -108,7 +114,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
         .orElse("60"));
     data.put("PATRONI_POSTGRESQL_LISTEN", "127.0.0.1:" + EnvoyUtil.PG_PORT);
     data.put("PATRONI_POSTGRESQL_CONNECT_ADDRESS",
-        "${PATRONI_KUBERNETES_POD_IP}:" + EnvoyUtil.PG_REPL_ENTRY_PORT);
+        "${POD_IP}:" + EnvoyUtil.PG_REPL_ENTRY_PORT);
 
     data.put("PATRONI_RESTAPI_LISTEN", "0.0.0.0:" + EnvoyUtil.PATRONI_PORT);
     data.put("PATRONI_POSTGRESQL_DATA_DIR", ClusterPath.PG_DATA_PATH.path());

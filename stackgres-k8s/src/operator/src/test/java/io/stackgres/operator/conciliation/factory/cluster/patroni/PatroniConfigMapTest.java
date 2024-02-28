@@ -62,8 +62,10 @@ class PatroniConfigMapTest {
 
   @BeforeEach
   void setUp() {
+    var patroniConfigEndpoints = new PatroniConfigEndpoints(
+        labelFactory, JsonUtil.jsonMapper(), new YamlMapperProvider());
     generator = new PatroniConfigMap(
-        labelFactory,
+        labelFactory, patroniConfigEndpoints,
         JsonUtil.jsonMapper(), new YamlMapperProvider());
     cluster = Fixtures.cluster().loadDefault().get();
     postgresConfig = Fixtures.postgresConfig().loadDefault().get();
