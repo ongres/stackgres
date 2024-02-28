@@ -11,3 +11,4 @@ openshift-operator-bundle/manifests/stackgres.clusterserviceversion.yaml
 config/operator/operator.yaml
 config/webhook/manifests.yaml
 config/rbac/role.yaml
+.vagrant

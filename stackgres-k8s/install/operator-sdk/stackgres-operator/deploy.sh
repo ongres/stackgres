@@ -80,11 +80,24 @@ rm -rf "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"
 mkdir -p "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"
 cd "$FORK_GIT_PATH/operators/$PROJECT_NAME/$STACKGRES_VERSION"
 docker pull quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG
-docker save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar tv | tr -s ' ' | cut -d ' ' -f 6 | grep -F layer.tar \
-  | while read LAYER
-    do
-      docker save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar xO "$LAYER" | tar xv
-    done
+if docker save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar tv | tr -s ' ' | cut -d ' ' -f 6 | grep -qF layer.tar
+then
+  docker save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar tv | tr -s ' ' | cut -d ' ' -f 6 | grep -F layer.tar \
+    | while read LAYER
+      do
+        docker save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar xO "$LAYER" | tar xv
+      done
+else
+  docker save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar tv | tr -s ' ' | cut -d ' ' -f 6 | grep -F manifest.json \
+    | while read MANIFEST
+      do
+        docker save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar xO "$MANIFEST" | jq -r '.[]|.Layers[]' \
+          | while read LAYER
+            do
+              docker save quay.io/stackgres/operator-bundle:$OPERATOR_BUNDLE_IMAGE_TAG | tar xO "$LAYER" | tar xv
+            done
+      done
+fi
 )
 find "$FORK_GIT_PATH" -name '.wh*' \
   | while read FILE
