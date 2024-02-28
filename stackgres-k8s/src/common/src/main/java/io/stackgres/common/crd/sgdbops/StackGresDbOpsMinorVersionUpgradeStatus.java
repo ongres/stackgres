@@ -46,24 +46,23 @@ public class StackGresDbOpsMinorVersionUpgradeStatus extends DbOpsRestartStatus 
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof DbOpsRestartStatus)) {
+    if (!super.equals(obj)) {
       return false;
     }
-    DbOpsRestartStatus other = (DbOpsRestartStatus) obj;
-    return Objects.equals(getFailure(), other.getFailure())
-        && Objects.equals(getInitialInstances(), other.getInitialInstances())
-        && Objects.equals(getPendingToRestartInstances(), other.getPendingToRestartInstances())
-        && Objects.equals(getPrimaryInstance(), other.getPrimaryInstance())
-        && Objects.equals(getRestartedInstances(), other.getRestartedInstances())
-        && Objects.equals(getSwitchoverFinalized(), other.getSwitchoverFinalized())
-        && Objects.equals(getSwitchoverInitiated(), other.getSwitchoverInitiated());
+    if (!(obj instanceof StackGresDbOpsMinorVersionUpgradeStatus)) {
+      return false;
+    }
+    StackGresDbOpsMinorVersionUpgradeStatus other = (StackGresDbOpsMinorVersionUpgradeStatus) obj;
+    return Objects.equals(sourcePostgresVersion, other.sourcePostgresVersion)
+        && Objects.equals(targetPostgresVersion, other.targetPostgresVersion);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getFailure(), getInitialInstances(), getPendingToRestartInstances(),
-        getPrimaryInstance(), getRestartedInstances(), getSwitchoverFinalized(),
-        getSwitchoverInitiated());
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + Objects.hash(sourcePostgresVersion, targetPostgresVersion);
+    return result;
   }
 
   @Override

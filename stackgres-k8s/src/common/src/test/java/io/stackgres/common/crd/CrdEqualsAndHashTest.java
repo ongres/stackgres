@@ -5,8 +5,6 @@
 
 package io.stackgres.common.crd;
 
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -41,10 +39,7 @@ public class CrdEqualsAndHashTest {
       StackGresShardedDbOps.class,
   })
   void crdShouldHaveEqualsAndHash(Class<?> resourceClazz) {
-    var resource = ModelTestUtil.createWithRandomData(resourceClazz);
-    ModelTestUtil.assertEqualsAndHashCode(resource);
-    var anotherResource = ModelTestUtil.createWithRandomData(resourceClazz);
-    assertNotEquals(anotherResource, resource);
+    ModelTestUtil.assertEqualsAndHashCode(resourceClazz);
   }
 
 }

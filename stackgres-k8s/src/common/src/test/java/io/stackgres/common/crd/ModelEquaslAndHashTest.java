@@ -5,8 +5,6 @@
 
 package io.stackgres.common.crd;
 
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.stackgres.testutil.ModelTestUtil;
@@ -21,9 +19,6 @@ public class ModelEquaslAndHashTest {
       VolumeMount.class
   })
   void shouldHaveEqualsAndHash(Class<?> resourceClazz) {
-    var resource = ModelTestUtil.createWithRandomData(resourceClazz);
-    ModelTestUtil.assertEqualsAndHashCode(resource);
-    var anotherResource = ModelTestUtil.createWithRandomData(resourceClazz);
-    assertNotEquals(anotherResource, resource);
+    ModelTestUtil.assertEqualsAndHashCode(resourceClazz);
   }
 }
