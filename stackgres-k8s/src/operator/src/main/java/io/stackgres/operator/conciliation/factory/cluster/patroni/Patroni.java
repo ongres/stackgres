@@ -7,6 +7,7 @@ package io.stackgres.operator.conciliation.factory.cluster.patroni;
 
 import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,7 +44,6 @@ import io.stackgres.operator.conciliation.factory.LocalBinMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
-import io.stackgres.operator.conciliation.factory.VolumeDiscoverer;
 import io.stackgres.operator.conciliation.factory.cluster.BackupVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.HugePagesMounts;
@@ -68,7 +68,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
   private final ReplicateVolumeMounts replicateMounts;
   private final PatroniVolumeMounts patroniMounts;
   private final HugePagesMounts hugePagesMounts;
-  private final VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer;
+  private final PatroniConfigMap patroniConfigMap;
 
   @Inject
   public Patroni(
@@ -81,7 +81,8 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
       ReplicateVolumeMounts replicateMounts,
       PatroniVolumeMounts patroniMounts,
       HugePagesMounts hugePagesMounts,
-      VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer) {
+      @OperatorVersionBinder
+      PatroniConfigMap patroniConfigMap) {
     super();
     this.patroniEnvironmentVariables = patroniEnvironmentVariables;
     this.postgresSocket = postgresSocket;
@@ -92,7 +93,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
     this.replicateMounts = replicateMounts;
     this.patroniMounts = patroniMounts;
     this.hugePagesMounts = hugePagesMounts;
-    this.volumeDiscoverer = volumeDiscoverer;
+    this.patroniConfigMap = patroniConfigMap;
   }
 
   @Override
@@ -172,12 +173,14 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
             .build())
         .addToEnv(new EnvVarBuilder()
             .withName("PATRONI_CONFIG_MD5SUM")
-            .withValue(volumeDiscoverer.discoverVolumes(clusterContext)
-                .get(StackGresVolume.PATRONI_ENV.getName())
-                .getSource()
-                .map(ConfigMap.class::cast)
+            .withValue(Optional.of(patroniConfigMap.buildSource(context.getClusterContext()))
                 .map(ConfigMap::getData)
-                .map(data -> data.get(StackGresUtil.MD5SUM_KEY))
+                .map(data -> {
+                  var dataWithoutDcs = new HashMap<>(data);
+                  dataWithoutDcs.remove(PatroniConfigMap.PATRONI_DCS_CONFIG_ENV_NAME);
+                  return StackGresUtil.addMd5Sum(dataWithoutDcs);
+                })
+                .map(data -> data.get(StackGresUtil.MD5SUM_2_KEY))
                 .orElseThrow())
             .build())
         .withLivenessProbe(new ProbeBuilder()

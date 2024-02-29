@@ -15,6 +15,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -22,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.ongres.process.FluentProcess;
+import com.ongres.process.FluentProcessBuilder;
 import com.ongres.process.Output;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.PatroniUtil;
@@ -72,6 +75,8 @@ public class PatroniCtl {
   }
 
   public class PatroniCtlInstance {
+
+    private static final Pattern ERROR_PATTERN = Pattern.compile("error", Pattern.CASE_INSENSITIVE);
 
     private static final TypeReference<List<PatroniMember>> LIST_TYPE_REFERENCE =
         new TypeReference<List<PatroniMember>>() { };
@@ -140,7 +145,10 @@ public class PatroniCtl {
     }
 
     public List<PatroniMember> list() {
-      Output output = patronictl("list", "-f", "json", "-e").withoutCloseAfterLast().tryGet();
+      Output output = patronictl("list", "-f", "json", "-e")
+          .start()
+          .withoutCloseAfterLast()
+          .tryGet();
       String result = getOutputOrFail(output);
       try {
         return objectMapper.readValue(result, LIST_TYPE_REFERENCE);
@@ -150,7 +158,10 @@ public class PatroniCtl {
     }
 
     public List<PatroniHistoryEntry> history() {
-      Output output = patronictl("history", "-f", "json").withoutCloseAfterLast().tryGet();
+      Output output = patronictl("history", "-f", "json")
+          .start()
+          .withoutCloseAfterLast()
+          .tryGet();
       String result = getOutputOrFail(output);
       try {
         return objectMapper.readValue(result, HISTORY_TYPE_REFERENCE);
@@ -161,6 +172,7 @@ public class PatroniCtl {
 
     public void remove() {
       Output output = patronictl("remove", scope)
+          .start()
           .inputStream(
               Seq.of(
                   scope,
@@ -172,10 +184,19 @@ public class PatroniCtl {
           .withoutCloseAfterLast()
           .tryGet();
       getOutputOrFail(output);
+      if (output.error()
+          .map(ERROR_PATTERN::matcher)
+          .filter(Matcher::find)
+          .isPresent()) {
+        throw new RuntimeException(output.error().get());
+      }
     }
 
     public PatroniConfig showConfig() {
-      Output output = patronictl("show-config").withoutCloseAfterLast().tryGet();
+      Output output = patronictl("show-config")
+          .start()
+          .withoutCloseAfterLast()
+          .tryGet();
       String result = getOutputOrFail(output);
       try {
         if (result == null || result.isBlank()) {
@@ -188,7 +209,10 @@ public class PatroniCtl {
     }
 
     public ObjectNode showConfigJson() {
-      Output output = patronictl("show-config").withoutCloseAfterLast().tryGet();
+      Output output = patronictl("show-config")
+          .start()
+          .withoutCloseAfterLast()
+          .tryGet();
       String result = getOutputOrFail(output);
       try {
         JsonNode config = yamlMapper.readTree(result);
@@ -204,6 +228,7 @@ public class PatroniCtl {
     public void editConfig(PatroniConfig patroniConfig) {
       try (InputStream in = new ByteArrayInputStream(yamlMapper.writeValueAsBytes(patroniConfig))) {
         Output output = patronictl("edit-config", scope, "--apply", "-")
+            .start()
             .inputStream(in)
             .withoutCloseAfterLast()
             .tryGet();
@@ -216,6 +241,7 @@ public class PatroniCtl {
     public void editConfigJson(ObjectNode patroniConfig) {
       try (InputStream in = new ByteArrayInputStream(patroniConfig.toString().getBytes(StandardCharsets.UTF_8))) {
         Output output = patronictl("edit-config", scope, "--apply", "-")
+            .start()
             .inputStream(in)
             .withoutCloseAfterLast()
             .tryGet();
@@ -227,6 +253,7 @@ public class PatroniCtl {
 
     public void switchover(String leader, String candidate) {
       Output output = patronictl("switchover", scope, "--leader", leader, "--candidate", candidate, "--force")
+          .start()
           .withoutCloseAfterLast()
           .tryGet();
       getOutputOrFail(output);
@@ -234,26 +261,29 @@ public class PatroniCtl {
 
     public void restart(String member) {
       Output output = patronictl("restart", scope, member, "--force")
+          .start()
           .withoutCloseAfterLast()
           .tryGet();
       getOutputOrFail(output);
     }
 
-    public JsonNode queryPrimary(String query) {
-      Output output = patronictl("query", "-c", query, "--primary", "--format", "json")
+    public JsonNode queryPrimary(String query, String username, String password) {
+      Output output = patronictl("query", "-c", query, "-U", username, "-r", "primary", "--format", "json")
+          .environment("PGPASSWORD", password)
+          .start()
           .withoutCloseAfterLast()
           .tryGet();
       String result = getOutputOrFail(output);
       try {
-        return (ObjectNode) objectMapper.readTree(result);
+        return objectMapper.readTree(result);
       } catch (IOException ex) {
         throw new RuntimeException(ex);
       }
     }
 
-    private FluentProcess patronictl(String command, String... args) {
+    private FluentProcessBuilder patronictl(String command, String... args) {
       return FluentProcess
-          .start(PYTHON_COMMAND, Seq.of(patroniCtlCommand)
+          .builder(PYTHON_COMMAND, Seq.of(patroniCtlCommand)
               .append("-c", configPath.toString())
               .append(command)
               .append(args)

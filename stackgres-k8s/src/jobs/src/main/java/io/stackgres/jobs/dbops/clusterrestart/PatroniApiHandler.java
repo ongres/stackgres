@@ -39,9 +39,10 @@ public class PatroniApiHandler {
   }
 
   public Uni<Integer> getClusterPostgresVersion(String name, String namespace) {
-    return executorService.itemAsync(() -> ctlFinder.findPatroniCtl(name, namespace)
-        .queryPrimary("SHOW server_version_num")
-        .get(0).get("server_version_num").intValue());
+    return executorService.itemAsync(() -> ctlFinder.getSuperuserCredentials(name, namespace))
+        .chain(credentials -> executorService.itemAsync(() -> ctlFinder.findPatroniCtl(name, namespace)
+            .queryPrimary("SHOW server_version_num", credentials.v1, credentials.v2)
+            .get(0).get("server_version_num").intValue()));
   }
 
   private Uni<List<PatroniInformation>> getPatroniInformationForClusterMembers(

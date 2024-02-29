@@ -6,7 +6,7 @@
 package io.stackgres.distributedlogs.controller;
 
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY;
-import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME;
+import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME_KEY;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -128,7 +128,6 @@ public class DistributedLogsDatabaseManager {
     }
   }
 
-  @SuppressWarnings("null")
   private Connection getConnection(StackGresDistributedLogsContext context, String database)
       throws SQLException {
     final String name = context.getCluster().getMetadata().getName();
@@ -140,7 +139,8 @@ public class DistributedLogsDatabaseManager {
     return postgresConnectionManager.getConnection(
         serviceName + "." + namespace, EnvoyUtil.PG_PORT,
         database,
-        SUPERUSER_USERNAME,
+        ResourceUtil.decodeSecret(secret.getData()
+            .get(SUPERUSER_USERNAME_KEY)),
         ResourceUtil.decodeSecret(secret.getData()
             .get(SUPERUSER_PASSWORD_KEY)));
   }

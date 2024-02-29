@@ -16,6 +16,7 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
@@ -42,15 +43,11 @@ public class PatroniSecret
   private LabelFactoryForCluster<StackGresCluster> labelFactory;
 
   public static String name(StackGresClusterContext clusterContext) {
-    return ResourceUtil.resourceName(clusterContext.getSource().getMetadata().getName());
+    return PatroniUtil.secretName(clusterContext.getSource().getMetadata().getName());
   }
 
   public static String name(StackGresCluster cluster) {
-    return name(cluster.getMetadata().getName());
-  }
-
-  public static String name(String clusterName) {
-    return ResourceUtil.resourceName(clusterName);
+    return PatroniUtil.secretName(cluster.getMetadata().getName());
   }
 
   @Override

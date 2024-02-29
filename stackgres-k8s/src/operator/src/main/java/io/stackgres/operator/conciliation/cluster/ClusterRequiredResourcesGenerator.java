@@ -65,7 +65,6 @@ import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresSslSecret;
 import io.stackgres.operator.conciliation.factory.cluster.backup.BackupEnvVarFactory;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -363,7 +362,7 @@ public class ClusterRequiredResourcesGenerator
         .map(StackGresClusterReplicateFrom::getInstance)
         .map(StackGresClusterReplicateFromInstance::getSgCluster)
         .orElseThrow();
-    final String secretName = PatroniSecret.name(replicateFromCluster);
+    final String secretName = PatroniUtil.secretName(replicateFromCluster);
     final Secret replicateFromClusterSecret = secretFinder
         .findByNameAndNamespace(secretName, clusterNamespace)
         .orElseThrow(() -> new IllegalArgumentException(

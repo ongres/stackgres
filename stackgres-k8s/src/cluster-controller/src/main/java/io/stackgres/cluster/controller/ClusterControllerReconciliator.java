@@ -39,7 +39,7 @@ public class ClusterControllerReconciliator
   private final PatroniReconciliator patroniReconciliator;
   private final ManagedSqlReconciliator managedSqlReconciliator;
   private final PostgresSslReconciliator postgresSslReconciliator;
-  private final PatroniStandbyHistoryReconciliator patroniStandbyHistoryReconciliator;
+  private final PatroniResetReconciliator patroniStandbyHistoryReconciliator;
   private final PatroniConfigReconciliator patroniConfigReconciliator;
   private final ClusterControllerPropertyContext propertyContext;
   private final String podName;
@@ -203,7 +203,7 @@ public class ClusterControllerReconciliator
     @Inject PatroniReconciliator patroniReconciliator;
     @Inject ManagedSqlReconciliator managedSqlReconciliator;
     @Inject PostgresSslReconciliator postgresSslReconciliator;
-    @Inject PatroniStandbyHistoryReconciliator patroniStandbyHistoryReconciliator;
+    @Inject PatroniResetReconciliator patroniStandbyHistoryReconciliator;
     @Inject PatroniConfigReconciliator patroniConfigReconciliator;
   }
 

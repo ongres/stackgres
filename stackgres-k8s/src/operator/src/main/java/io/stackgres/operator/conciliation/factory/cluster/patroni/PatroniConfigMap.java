@@ -39,7 +39,6 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
-import jakarta.enterprise.inject.Any;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
@@ -50,6 +49,7 @@ import org.slf4j.LoggerFactory;
 @OperatorVersionBinder
 public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> {
 
+  public static final String PATRONI_DCS_CONFIG_ENV_NAME = "PATRONI_DCS_CONFIG";
   public static final int PATRONI_LOG_FILE_SIZE = 256 * 1024 * 1024;
 
   private static final Logger PATRONI_LOGGER = LoggerFactory.getLogger("io.stackgres.patroni");
@@ -62,7 +62,8 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
   @Inject
   public PatroniConfigMap(
       LabelFactoryForCluster<StackGresCluster> labelFactory,
-      @Any PatroniConfigEndpoints patroniConfigEndpoints,
+      @OperatorVersionBinder
+      PatroniConfigEndpoints patroniConfigEndpoints,
       ObjectMapper objectMapper,
       YamlMapperProvider yamlMapperProvider) {
     this.labelFactory = labelFactory;
@@ -105,7 +106,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
     data.put("PATRONI_CONFIG_FILE", ClusterPath.PATRONI_CONFIG_FILE_PATH.path());
     data.put("PATRONI_INITIAL_CONFIG", PatroniUtil.getInitialConfig(
         cluster, labelFactory, yamlMapper, objectMapper));
-    data.put("PATRONI_DCS_CONFIG", patroniConfigEndpoints.getPatroniConfigAsYamlString(context));
+    data.put(PATRONI_DCS_CONFIG_ENV_NAME, patroniConfigEndpoints.getPatroniConfigAsYamlString(context));
     data.put("PATRONI_PG_CTL_TIMEOUT", Optional.ofNullable(cluster.getSpec().getConfigurations())
         .map(StackGresClusterConfigurations::getPatroni)
         .map(StackGresClusterPatroni::getInitialConfig)

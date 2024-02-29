@@ -383,12 +383,12 @@ public interface PatroniUtil {
     List<EndpointPort> patroniEndpointPorts = new ArrayList<>();
     patroniEndpointPorts.add(new EndpointPortBuilder()
         .withName(EnvoyUtil.POSTGRES_PORT_NAME)
-        .withPort(EnvoyUtil.PG_ENTRY_PORT)
+        .withPort(EnvoyUtil.PG_PORT)
         .withProtocol("TCP")
         .build());
     patroniEndpointPorts.add(new EndpointPortBuilder()
         .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
-        .withPort(EnvoyUtil.PG_REPL_ENTRY_PORT)
+        .withPort(EnvoyUtil.PG_PORT)
         .withProtocol("TCP")
         .build());
     return patroniEndpointPorts;

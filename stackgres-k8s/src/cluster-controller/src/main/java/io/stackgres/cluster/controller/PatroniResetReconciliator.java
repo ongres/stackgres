@@ -24,14 +24,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-public class PatroniStandbyHistoryReconciliator {
+public class PatroniResetReconciliator {
 
   private static final Logger LOGGER =
-      LoggerFactory.getLogger(PatroniStandbyHistoryReconciliator.class);
+      LoggerFactory.getLogger(PatroniResetReconciliator.class);
 
   private final EventController eventController;
   private final PatroniCtl patroniCtl;
   private final String podName;
+  private final boolean isReconcilePatroniAfterMajorVersionUpgrade;
 
   @Dependent
   public static class Parameters {
@@ -41,16 +42,19 @@ public class PatroniStandbyHistoryReconciliator {
   }
 
   @Inject
-  public PatroniStandbyHistoryReconciliator(Parameters parameters) {
+  public PatroniResetReconciliator(Parameters parameters) {
     this.eventController = parameters.eventController;
     this.patroniCtl = parameters.patroniCtl;
     this.podName = parameters.propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
+    this.isReconcilePatroniAfterMajorVersionUpgrade = parameters.propertyContext
+        .getBoolean(ClusterControllerProperty
+            .CLUSTER_CONTROLLER_RECONCILE_PATRONI_AFTER_MAJOR_VERSION_UPGRADE);
   }
 
-  public static PatroniStandbyHistoryReconciliator create(Consumer<Parameters> consumer) {
+  public static PatroniResetReconciliator create(Consumer<Parameters> consumer) {
     Stream<Parameters> parameters = Optional.of(new Parameters()).stream().peek(consumer);
-    return new PatroniStandbyHistoryReconciliator(parameters.findAny().get());
+    return new PatroniResetReconciliator(parameters.findAny().get());
   }
 
   public ReconciliationResult<Void> reconcile(KubernetesClient client, ClusterContext context)
@@ -78,8 +82,13 @@ public class PatroniStandbyHistoryReconciliator {
     final boolean isPodPrimary = PatroniUtil.isPrimary(podName, patroniCtl);
     final boolean isStandbyCluster = PatroniUtil.isStandbyCluster(patroniCtl);
     final boolean hasAnyHistory = !patroniCtl.history().isEmpty();
-    if (isPodPrimary && isBootstrapped && isStandbyCluster && hasAnyHistory) {
-      LOGGER.info("Cleaning patroni history for standby cluster");
+    if (isReconcilePatroniAfterMajorVersionUpgrade
+        || (isPodPrimary && isBootstrapped && isStandbyCluster && hasAnyHistory)) {
+      if (isReconcilePatroniAfterMajorVersionUpgrade) {
+        LOGGER.info("Reset patroni state for major version upgrade");
+      } else {
+        LOGGER.info("Reset patroni state for standby cluster");
+      }
       patroniCtl.remove();
     }
   }
