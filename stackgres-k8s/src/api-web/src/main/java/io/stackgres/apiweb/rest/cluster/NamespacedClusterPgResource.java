@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.Secret;
@@ -124,11 +125,11 @@ public class NamespacedClusterPgResource {
     final String serviceName = PatroniUtil.readWriteName(stackGresCluster);
     final String host = String.format("%s.%s", serviceName, namespace);
     final int port = EnvoyUtil.PG_PORT;
-    final String username = ResourceUtil
-        .decodeSecret(secret.getData())
+    Map<String, String> secretData = ResourceUtil
+        .decodeSecret(secret.getData());
+    final String username = secretData
         .get(StackGresPasswordKeys.SUPERUSER_USERNAME_KEY);
-    final String password = ResourceUtil
-        .decodeSecret(secret.getData())
+    final String password = secretData
         .get(StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY);
 
     try (

@@ -6,7 +6,6 @@
 package io.stackgres.distributedlogs.controller;
 
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY;
-import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME_KEY;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -14,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import com.google.common.collect.ImmutableMap;
@@ -128,6 +128,7 @@ public class DistributedLogsDatabaseManager {
     }
   }
 
+  @SuppressWarnings("null")
   private Connection getConnection(StackGresDistributedLogsContext context, String database)
       throws SQLException {
     final String name = context.getCluster().getMetadata().getName();
@@ -136,13 +137,12 @@ public class DistributedLogsDatabaseManager {
     Secret secret = secretFinder.findByNameAndNamespace(name, namespace)
         .orElseThrow(() -> new NotFoundException(
             "Secret with username and password for user postgres can not be found."));
+    Map<String, String> secretData = ResourceUtil.decodeSecret(secret.getData());
     return postgresConnectionManager.getConnection(
         serviceName + "." + namespace, EnvoyUtil.PG_PORT,
         database,
-        ResourceUtil.decodeSecret(secret.getData()
-            .get(SUPERUSER_USERNAME_KEY)),
-        ResourceUtil.decodeSecret(secret.getData()
-            .get(SUPERUSER_PASSWORD_KEY)));
+        "postgres",
+        secretData.get(SUPERUSER_PASSWORD_KEY));
   }
 
 }
