@@ -7,10 +7,11 @@ package io.stackgres.jobs.dbops.minorversionupgrade;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -32,9 +33,8 @@ import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.jobs.dbops.AbstractRestartStateHandler;
 import io.stackgres.jobs.dbops.ClusterStateHandlerTest;
 import io.stackgres.jobs.dbops.StateHandler;
-import io.stackgres.jobs.dbops.clusterrestart.ImmutablePatroniInformation;
-import io.stackgres.jobs.dbops.clusterrestart.PatroniApiHandler;
 import io.stackgres.jobs.dbops.lock.LockAcquirer;
+import io.stackgres.testutil.JsonUtil;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -48,28 +48,26 @@ class MinorVersionUpgradeRestartStateHandlerTest extends ClusterStateHandlerTest
   @StateHandler("minorVersionUpgrade")
   MinorVersionUpgradeRestartStateHandler restartStateHandler;
 
-  @InjectMock
-  PatroniApiHandler patroniApi;
-
   @Override
   @BeforeEach
   public void setUp() {
     super.setUp();
     lenient().when(lockAcquirer.lockRun(any(), any()))
         .then(invocation -> (Uni<?>) invocation.getArguments()[1]);
-    lenient().when(patroniApi.getClusterMembersPatroniInformation(anyString(), anyString()))
-        .thenReturn(Uni.createFrom().item(
-            List.of(
-                ImmutablePatroniInformation.builder()
-                    .state(PatroniMember.MemberState.RUNNING)
-                    .role(PatroniMember.MemberRole.LEADER)
-                    .isPendingRestart(false)
-                    .build(),
-                ImmutablePatroniInformation.builder()
-                    .state(PatroniMember.MemberState.RUNNING)
-                    .role(PatroniMember.MemberRole.REPLICA)
-                    .isPendingRestart(false)
-                    .build())));
+    PatroniMember primary = new PatroniMember();
+    primary.setState(PatroniMember.RUNNING);
+    primary.setRole(PatroniMember.LEADER);
+    primary.setPendingRestart(null);
+    PatroniMember replica = new PatroniMember();
+    replica.setState(PatroniMember.RUNNING);
+    replica.setRole(PatroniMember.REPLICA);
+    primary.setPendingRestart("true");
+    lenient().when(patroniCtl.list())
+        .thenReturn(List.of(
+            primary,
+            replica));
+    lenient().when(patroniCtl.queryPrimary(eq("SHOW server_version_num"), any(), any()))
+        .thenReturn(JsonUtil.toJson(List.of(Map.of("server_version_num", 1))));
   }
 
   @Override

@@ -12,6 +12,8 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -172,6 +174,15 @@ public interface ResourceUtil {
     return INDEX_PATTERN;
   }
 
+  static int getIndexFromNameWithIndex(String name) {
+    return Optional.of(name)
+        .map(INDEX_PATTERN::matcher)
+        .filter(Matcher::find)
+        .map(matcher -> matcher.group(1))
+        .map(Integer::parseInt)
+        .orElse(0);
+  }
+
   static Pattern getNameWithIndexPattern(String name) {
     return Pattern.compile(getNameWithIndexPatternString(name));
   }
@@ -188,7 +199,7 @@ public interface ResourceUtil {
     return "^" + Pattern.quote(name) + "-([a-z0-9]+){10}-([a-z0-9]+){5}$";
   }
 
-  static String getNameFromIndexedName(@NotNull String name) {
+  static String getNameFromIndexedNamePatternString(@NotNull String name) {
     return "^" + Pattern.quote(name) + "-([a-z0-9]+){10}-([a-z0-9]+){5}$";
   }
 
@@ -260,4 +271,5 @@ public interface ResourceUtil {
   static String getServiceAccountFromUsername(String username) {
     return username.split(":")[3];
   }
+
 }

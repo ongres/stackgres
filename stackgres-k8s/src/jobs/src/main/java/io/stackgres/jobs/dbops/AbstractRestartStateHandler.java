@@ -45,7 +45,6 @@ import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.InvalidClusterException;
 import io.stackgres.jobs.dbops.clusterrestart.PatroniApiHandler;
 import io.stackgres.jobs.dbops.clusterrestart.RestartEvent;
-import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -298,9 +297,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
             .map(ObjectMeta::getName)
             .sorted(String::compareTo)
             .collect(Collectors.toList()));
-    restartStatus.setPrimaryInstance(
-        clusterRestartState.getPrimaryInstance()
-            .getMetadata().getName());
+    restartStatus.setPrimaryInstance(clusterRestartState.getPrimaryInstance());
     return Uni.createFrom().voidItem();
   }
 
@@ -340,7 +337,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
     final DbOpsRestartStatus restartStatus = getDbOpRestartStatus(dbOps);
     final Map<String, Pod> podsDict = clusterPods.stream()
         .collect(Collectors.toMap(pod -> pod.getMetadata().getName(), Function.identity()));
-    final Pod primaryInstance = getPrimaryInstance(clusterPods, cluster);
+    final String primaryInstance = getPrimaryInstance(clusterPods, cluster);
     final var initialInstances = Optional.ofNullable(restartStatus.getInitialInstances())
         .map(instances -> instances.stream().map(podsDict::get)
             .toList())
@@ -361,7 +358,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
         .map(HasMetadata::getMetadata)
         .map(ObjectMeta::getName)
         .collect(Collectors.joining(" ")));
-    LOGGER.info("Primary instance: {}", primaryInstance.getMetadata().getName());
+    LOGGER.info("Primary instance: {}", primaryInstance);
     LOGGER.info("Initial pods: {}", initialInstances.stream()
         .map(HasMetadata::getMetadata)
         .map(ObjectMeta::getName)
@@ -408,25 +405,18 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
         ImmutableList.of(pod));
   }
 
-  protected Pod getPrimaryInstance(List<Pod> pods, StackGresCluster cluster) {
-    Integer latestPrimaryIndex = patroniApiHandler.getLatestPrimaryIndexFromPatroni(
-        cluster.getMetadata().getName(),
-        cluster.getMetadata().getNamespace())
-        .await()
-        .indefinitely();
+  protected String getPrimaryInstance(List<Pod> pods, StackGresCluster cluster) {
     return pods.stream()
+        .filter(pod -> pod.getMetadata().getLabels() != null)
         .filter(pod -> PatroniUtil.PRIMARY_ROLE.equals(
             pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY)))
         .findFirst()
-        .or(() -> pods.stream()
-            .filter(pod -> ResourceUtil.getIndexPattern()
-                .matcher(pod.getMetadata().getName()).results()
-                .findFirst()
-                .map(result -> result.group(1))
-                .map(Integer::parseInt)
-                .filter(latestPrimaryIndex::equals)
-                .isPresent())
-            .findFirst())
+        .map(pod -> pod.getMetadata().getName())
+        .or(() -> patroniApiHandler.getLatestPrimaryFromPatroni(
+            cluster.getMetadata().getName(),
+            cluster.getMetadata().getNamespace())
+            .await()
+            .indefinitely())
         .orElseThrow(() -> new InvalidClusterException("Cluster has no primary pod"));
   }
 
@@ -441,8 +431,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
             .map(ObjectMeta::getName)
             .sorted(String::compareTo)
             .collect(Collectors.toList()));
-    restartStatus.setPrimaryInstance(clusterRestartState.getPrimaryInstance()
-        .getMetadata().getName());
+    restartStatus.setPrimaryInstance(clusterRestartState.getPrimaryInstance());
     return Uni.createFrom().voidItem();
   }
 

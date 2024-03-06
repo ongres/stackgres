@@ -6,7 +6,6 @@
 package io.stackgres.common;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
-import static io.stackgres.operatorframework.resource.ResourceUtil.getIndexPattern;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +13,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.regex.Matcher;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,6 +40,7 @@ import io.stackgres.common.labels.DistributedLogsLabelFactory;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtl.PatroniCtlInstance;
 import io.stackgres.common.patroni.PatroniHistoryEntry;
+import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
@@ -218,18 +217,19 @@ public interface PatroniUtil {
     return patroniCtl.showConfig().getStandbyCluster() != null;
   }
 
-  static int getLatestPrimaryIndexFromPatroni(PatroniCtlInstance patroniCtl) {
+  static Optional<String> getLatestPrimaryFromPatroni(PatroniCtlInstance patroniCtl) {
     try {
       return Seq.seq(patroniCtl.history())
           .findLast()
           .map(PatroniHistoryEntry::getNewLeader)
-          .map(getIndexPattern()::matcher)
-          .filter(Matcher::find).filter(matcher -> matcher.group(1) != null)
-          .map(matcher -> matcher.group(1)).map(Integer::parseInt).orElse(0);
+          .or(() -> patroniCtl.list().stream()
+              .filter(PatroniMember::isPrimary)
+              .map(PatroniMember::getMember)
+              .findAny());
     } catch (RuntimeException ex) {
       LoggerFactory.getLogger(PatroniUtil.class)
           .warn("Unable to parse patroni history to indentify previous primary instance", ex);
-      return 0;
+      return Optional.empty();
     }
   }
 

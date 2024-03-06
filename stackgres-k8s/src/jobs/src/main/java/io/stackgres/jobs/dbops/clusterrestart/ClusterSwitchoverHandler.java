@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Matcher;
 
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.smallrye.mutiny.Uni;
@@ -18,6 +19,7 @@ import io.stackgres.common.patroni.PatroniMember.MemberRole;
 import io.stackgres.common.patroni.PatroniMember.MemberState;
 import io.stackgres.jobs.dbops.DbOpsExecutorService;
 import io.stackgres.jobs.dbops.MutinyUtil;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.slf4j.Logger;
@@ -47,6 +49,11 @@ public class ClusterSwitchoverHandler {
   private Uni<Void> doSwitchover(List<PatroniMember> members, String givenLeader,
       String clusterName, String clusterNamespace) {
     Optional<PatroniMember> candidate = members.stream()
+        .filter(member -> Optional.of(member)
+            .map(PatroniMember::getMember)
+            .map(ResourceUtil.getNameWithIndexPattern(clusterName)::matcher)
+            .filter(Matcher::find)
+            .isPresent())
         .filter(member -> Optional.ofNullable(member.getRole()).map(PatroniMember.REPLICA::equals).orElse(false))
         .filter(member -> Optional.ofNullable(member.getMemberState()).map(MemberState.RUNNING::equals).orElse(false))
         .filter(member -> Optional.ofNullable(member.getTags())

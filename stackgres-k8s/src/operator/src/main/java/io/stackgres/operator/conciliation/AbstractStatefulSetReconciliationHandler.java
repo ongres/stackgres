@@ -186,28 +186,16 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     final int lastReplicaIndex = desiredReplicas - 1;
 
     final var patroniCtl = this.patroniCtl.instanceFor(context);
-    final var members = patroniCtl.list();
-    final int latestPrimaryIndexFromPatroni =
-        PatroniUtil.getLatestPrimaryIndexFromPatroni(patroniCtl);
+    final Optional<String> latestPrimaryFromPatroni =
+        PatroniUtil.getLatestPrimaryFromPatroni(patroniCtl);
     if (desiredReplicas > 0) {
-      startPrimaryIfRemoved(context, requiredSts, appLabel, latestPrimaryIndexFromPatroni, writer);
+      startPrimaryIfRemoved(context, requiredSts, appLabel, latestPrimaryFromPatroni, writer);
     }
 
     var pods = findStatefulSetPods(requiredSts, appLabel);
     if (desiredReplicas > 0) {
-      final boolean existsPodWithPrimaryRole =
-          pods.stream().map(Pod::getMetadata).map(ObjectMeta::getName).anyMatch(
-              podName -> members.stream()
-              .filter(PatroniMember::isPrimary)
-              .map(PatroniMember::getMember)
-              .anyMatch(podName::equals));
       pods.stream()
-          .filter(pod -> members.stream()
-              .filter(PatroniMember::isPrimary)
-              .map(PatroniMember::getMember)
-              .anyMatch(pod.getMetadata().getName()::equals)
-              || (!existsPodWithPrimaryRole
-                  && latestPrimaryIndexFromPatroni == getPodIndex(pod)))
+          .filter(pod -> latestPrimaryFromPatroni.map(pod.getMetadata().getName()::equals).orElse(false))
           .filter(pod -> getPodIndex(pod) > lastReplicaIndex)
           .filter(pod -> !isNonDisruptable(context, pod))
           .forEach(pod -> makePrimaryPodNonDisruptable(context, pod));
@@ -234,31 +222,37 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
   }
 
   private void startPrimaryIfRemoved(T context, StatefulSet requiredSts,
-      Map<String, String> appLabel, int latestPrimaryIndexFromPatroni,
+      Map<String, String> appLabel, Optional<String> latestPrimaryFromPatroni,
       BiFunction<T, StatefulSet, StatefulSet> writer) {
     final String namespace = requiredSts.getMetadata().getNamespace();
     final String name = requiredSts.getMetadata().getName();
-    if (latestPrimaryIndexFromPatroni <= 0) {
+    if (latestPrimaryFromPatroni.map(ResourceUtil::getIndexFromNameWithIndex).orElse(0) <= 0) {
       return;
     }
     var pods = findStatefulSetPods(requiredSts, appLabel);
-    if (pods.stream()
-        .noneMatch(pod -> getPodIndex(pod) == latestPrimaryIndexFromPatroni)) {
-      LOGGER.debug("Detected missing primary Pod that was at index {} for StatefulSet {}.{}",
-          latestPrimaryIndexFromPatroni, namespace, name);
+    if (latestPrimaryFromPatroni
+        .map(ResourceUtil.getNameWithIndexPattern(name)::matcher)
+        .map(Matcher::find)
+        .orElse(false)
+        && pods.stream()
+        .noneMatch(pod -> latestPrimaryFromPatroni.map(pod.getMetadata().getName()::equals).orElse(false))) {
+      LOGGER.debug("Detected missing primary Pod {} for StatefulSet {}.{}",
+          latestPrimaryFromPatroni, namespace, name);
       final String podManagementPolicy = requiredSts.getSpec().getPodManagementPolicy();
       final var nodeSelector = requiredSts.getSpec().getTemplate().getSpec().getNodeSelector();
       LOGGER.debug("Create placeholder Pods before primary Pod that was at index {}"
-          + " for StatefulSet {}.{}", latestPrimaryIndexFromPatroni, namespace, name);
+          + " for StatefulSet {}.{}", latestPrimaryFromPatroni, namespace, name);
       requiredSts.getSpec().setPodManagementPolicy("Parallel");
       requiredSts.getSpec().getTemplate().getSpec().setNodeSelector(PLACEHOLDER_NODE_SELECTOR);
-      requiredSts.getSpec().setReplicas(latestPrimaryIndexFromPatroni);
+      requiredSts.getSpec().setReplicas(
+          latestPrimaryFromPatroni.map(ResourceUtil::getIndexFromNameWithIndex).orElse(0));
       writer.apply(context, requiredSts);
       waitStatefulSetReplicasToBeCreated(requiredSts);
-      LOGGER.debug("Creating primary Pod that was at index {} for StatefulSet {}.{}",
-          latestPrimaryIndexFromPatroni, namespace, name);
+      LOGGER.debug("Creating primary Pod that was {} for StatefulSet {}.{}",
+          latestPrimaryFromPatroni, namespace, name);
       requiredSts.getSpec().getTemplate().getSpec().setNodeSelector(nodeSelector);
-      requiredSts.getSpec().setReplicas(latestPrimaryIndexFromPatroni + 1);
+      requiredSts.getSpec().setReplicas(
+          latestPrimaryFromPatroni.map(ResourceUtil::getIndexFromNameWithIndex).orElse(0) + 1);
       writer.apply(context, requiredSts);
       waitStatefulSetReplicasToBeCreated(requiredSts);
       requiredSts.getSpec().setPodManagementPolicy(podManagementPolicy);
@@ -369,8 +363,8 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
 
   private List<Pod> fixNonDisruptablePods(T context, StatefulSet statefulSet,
       PatroniCtlInstance patroniCtl, List<Pod> pods) {
-    final int latestPrimaryIndexFromPatroni =
-        PatroniUtil.getLatestPrimaryIndexFromPatroni(patroniCtl);
+    final Optional<String> latestPrimaryFromPatroni =
+        PatroniUtil.getLatestPrimaryFromPatroni(patroniCtl);
     final var members = patroniCtl.list();
     final int replicas = statefulSet.getSpec().getReplicas();
     return pods.stream()
@@ -380,7 +374,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
             .map(PatroniMember::getMember)
             .anyMatch(pod.getMetadata().getName()::equals))
         .filter(pod -> getPodIndex(pod) + 1 < replicas
-            || getPodIndex(pod) != latestPrimaryIndexFromPatroni)
+            || latestPrimaryFromPatroni.map(pod.getMetadata().getName()::equals).orElse(false))
         .filter(pod -> getPodIndex(pod) < replicas)
         .map(pod -> fixNonDisruptablePod(context, pod))
         .toList();

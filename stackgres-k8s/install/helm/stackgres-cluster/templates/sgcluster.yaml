@@ -30,6 +30,14 @@ spec:
     {{- end }}
     {{- end }}
     {{- end }}
+    {{- with .Values.cluster.configurations.patroni }}
+    patroni:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.cluster.configurations.credentials }}
+    credentials:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
   sgInstanceProfile: {{ quote .Values.cluster.sgInstanceProfile }}
   {{- with .Values.cluster.initialData }}
   initialData:

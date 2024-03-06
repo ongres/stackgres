@@ -43,7 +43,7 @@ public class PatroniCtlFinder {
         .orElseThrow(() -> new RuntimeException("Can not find SGCluster " + clusterName));
   }
 
-  Tuple2<String, String> getSuperuserCredentials(String clusterName, String namespace) {
+  public Tuple2<String, String> getSuperuserCredentials(String clusterName, String namespace) {
     return Optional.ofNullable(client.secrets()
         .inNamespace(namespace)
         .withName(PatroniUtil.secretName(clusterName))

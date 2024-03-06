@@ -10,7 +10,6 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
-import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.crd.sgcluster.ClusterDbOpsRestartStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -29,9 +28,6 @@ import jakarta.inject.Inject;
 
 @QuarkusTest
 class ClusterRestartStateHandlerTest extends ClusterStateHandlerTest {
-
-  @InjectMock
-  PatroniApiHandler patroniApiHandler;
 
   @Inject
   @StateHandler("restart")

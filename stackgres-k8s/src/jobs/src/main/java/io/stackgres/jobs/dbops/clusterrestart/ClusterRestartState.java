@@ -32,7 +32,7 @@ public interface ClusterRestartState {
 
   boolean isOnlyPendingRestart();
 
-  Pod getPrimaryInstance();
+  String getPrimaryInstance();
 
   boolean isSwitchoverInitiated();
 
@@ -48,8 +48,6 @@ public interface ClusterRestartState {
 
   @Value.Check
   default void check() {
-    Preconditions.checkState(getTotalInstances().stream()
-        .anyMatch(getPrimaryInstance()::equals));
     Preconditions.checkState(getInitialInstances().stream()
         .allMatch(initialInstance -> getTotalInstances().stream()
             .anyMatch(initialInstance::equals)));

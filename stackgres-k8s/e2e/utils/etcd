@@ -26,7 +26,7 @@ install_etcd() {
   helm install etcd "$E2E_PATH/helm/etcd-9.8.1.tgz" \
     --create-namespace \
     --namespace "$(etcd_namespace)" \
-    --set string auth.rbac.rootPassword=test \
+    --set-string auth.rbac.rootPassword=test \
     "$@"
 
   wait_pods_running "$(etcd_namespace)" 1

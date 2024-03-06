@@ -91,7 +91,7 @@ public class PatroniConfigReconciliator extends SafeReconciliator<ClusterContext
     }
     var patroniConfigFound = patroniCtl.showConfigJson();
     var mergedPatroniConfig = JsonUtil.mergeJsonObjectsFilteringByModel(
-        patroniConfig.get(), patroniConfigFound, PatroniConfig.class, objectMapper);
+        patroniConfig.get(), patroniConfigFound, PatroniConfig.class);
     if (patroniConfigFound.equals(mergedPatroniConfig)) {
       return new ReconciliationResult<>();
     }

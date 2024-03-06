@@ -41,13 +41,13 @@ class ClusterSwitchoverHandlerTest {
   @Test
   void switchover_shouldScanTheMembersBeforeDoASwitchOver() {
     final PatroniMember leader = new PatroniMember();
-    leader.setMember("member-0");
+    leader.setMember(TEST_CLUSTER_NAME + "-0");
     leader.setCluster(TEST_CLUSTER_NAME);
     leader.setState(PatroniMember.RUNNING);
     leader.setRole(PatroniMember.LEADER);
     leader.setTimeline("1");
     final PatroniMember replica = new PatroniMember();
-    replica.setMember("member-1");
+    replica.setMember(TEST_CLUSTER_NAME + "-1");
     replica.setCluster(TEST_CLUSTER_NAME);
     replica.setState(PatroniMember.RUNNING);
     replica.setRole(PatroniMember.REPLICA);
@@ -73,32 +73,32 @@ class ClusterSwitchoverHandlerTest {
   @Test
   void switchover_shouldPickTheRunningReplicaWithLeastAmountOfLag() {
     final PatroniMember leader = new PatroniMember();
-    leader.setMember("member-0");
+    leader.setMember(TEST_CLUSTER_NAME + "-0");
     leader.setCluster(TEST_CLUSTER_NAME);
     leader.setState(PatroniMember.RUNNING);
     leader.setRole(PatroniMember.LEADER);
     leader.setTimeline("1");
     final PatroniMember replica = new PatroniMember();
-    replica.setMember("member-1");
+    replica.setMember(TEST_CLUSTER_NAME + "-1");
     replica.setCluster(TEST_CLUSTER_NAME);
     replica.setState(PatroniMember.RUNNING);
     replica.setRole(PatroniMember.REPLICA);
     replica.setTimeline("1");
     replica.setLagInMb(new IntOrString(1));
     final PatroniMember candidate = new PatroniMember();
-    candidate.setMember("member-2");
+    candidate.setMember(TEST_CLUSTER_NAME + "-2");
     candidate.setCluster(TEST_CLUSTER_NAME);
     candidate.setState(PatroniMember.RUNNING);
     candidate.setRole(PatroniMember.REPLICA);
     candidate.setTimeline("1");
     candidate.setLagInMb(new IntOrString(0));
     final PatroniMember stoppedReplica = new PatroniMember();
-    stoppedReplica.setMember("member-3");
+    stoppedReplica.setMember(TEST_CLUSTER_NAME + "-3");
     stoppedReplica.setCluster(TEST_CLUSTER_NAME);
     stoppedReplica.setState(PatroniMember.STOPPED);
     stoppedReplica.setRole(PatroniMember.REPLICA);
     final PatroniMember initializingReplica = new PatroniMember();
-    initializingReplica.setMember("member-4");
+    initializingReplica.setMember(TEST_CLUSTER_NAME + "-4");
     initializingReplica.setCluster(TEST_CLUSTER_NAME);
     initializingReplica.setRole(PatroniMember.REPLICA);
 
@@ -124,7 +124,7 @@ class ClusterSwitchoverHandlerTest {
   @Test
   void switchoverWithASingleMember_shouldNotBeExecuted() {
     final PatroniMember leader = new PatroniMember();
-    leader.setMember("member-0");
+    leader.setMember(TEST_CLUSTER_NAME + "-0");
     leader.setCluster(TEST_CLUSTER_NAME);
     leader.setState(PatroniMember.RUNNING);
     leader.setRole(PatroniMember.LEADER);
@@ -133,7 +133,7 @@ class ClusterSwitchoverHandlerTest {
     when(patroniApiHandler.getClusterMembers(any(), any()))
         .thenReturn(Uni.createFrom().item(List.of(leader)));
 
-    switchoverHandler.performSwitchover("member-0", TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME)
+    switchoverHandler.performSwitchover(TEST_CLUSTER_NAME + "-0", TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME)
         .await().indefinitely();
 
     verify(patroniApiHandler).getClusterMembers(any(), any());
@@ -143,19 +143,19 @@ class ClusterSwitchoverHandlerTest {
   @Test
   void switchoverWithNoHealthyReplicas_switchoverShouldBeSkipped() {
     final PatroniMember leader = new PatroniMember();
-    leader.setMember("member-0");
+    leader.setMember(TEST_CLUSTER_NAME + "-0");
     leader.setCluster(TEST_CLUSTER_NAME);
     leader.setState(PatroniMember.RUNNING);
     leader.setRole(PatroniMember.LEADER);
     leader.setTimeline("1");
     final PatroniMember replica = new PatroniMember();
-    replica.setMember("member-1");
+    replica.setMember(TEST_CLUSTER_NAME + "-1");
     replica.setCluster(TEST_CLUSTER_NAME);
     replica.setState(PatroniMember.STOPPED);
     replica.setRole(PatroniMember.REPLICA);
     replica.setTimeline("1");
     final PatroniMember noFilover = new PatroniMember();
-    noFilover.setMember("member-2");
+    noFilover.setMember(TEST_CLUSTER_NAME + "-2");
     noFilover.setCluster(TEST_CLUSTER_NAME);
     noFilover.setState(PatroniMember.RUNNING);
     noFilover.setRole(PatroniMember.REPLICA);
@@ -165,7 +165,7 @@ class ClusterSwitchoverHandlerTest {
     when(patroniApiHandler.getClusterMembers(any(), any()))
         .thenReturn(Uni.createFrom().item(List.of(leader, replica, noFilover)));
 
-    switchoverHandler.performSwitchover("member-0", TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME)
+    switchoverHandler.performSwitchover(TEST_CLUSTER_NAME + "-0", TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME)
         .await().indefinitely();
 
     verify(patroniApiHandler).getClusterMembers(TEST_CLUSTER_NAME, TEST_NAMESPACE_NAME);
@@ -175,13 +175,13 @@ class ClusterSwitchoverHandlerTest {
   @Test
   void ifTheLeaderNameDoesNotMatch_switchoverShouldBeSkipped() {
     final PatroniMember leader = new PatroniMember();
-    leader.setMember("member-0");
+    leader.setMember(TEST_CLUSTER_NAME + "-0");
     leader.setCluster(TEST_CLUSTER_NAME);
     leader.setState(PatroniMember.RUNNING);
     leader.setRole(PatroniMember.LEADER);
     leader.setTimeline("1");
     final PatroniMember replica = new PatroniMember();
-    replica.setMember("member-1");
+    replica.setMember(TEST_CLUSTER_NAME + "-1");
     replica.setCluster(TEST_CLUSTER_NAME);
     replica.setState(PatroniMember.RUNNING);
     replica.setRole(PatroniMember.REPLICA);

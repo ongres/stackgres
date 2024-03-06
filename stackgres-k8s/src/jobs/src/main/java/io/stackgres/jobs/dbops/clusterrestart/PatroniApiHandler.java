@@ -6,6 +6,7 @@
 package io.stackgres.jobs.dbops.clusterrestart;
 
 import java.util.List;
+import java.util.Optional;
 
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
@@ -33,9 +34,9 @@ public class PatroniApiHandler {
     return clusterMembers.chain(this::getPatroniInformationForClusterMembers);
   }
 
-  public Uni<Integer> getLatestPrimaryIndexFromPatroni(String name, String namespace) {
+  public Uni<Optional<String>> getLatestPrimaryFromPatroni(String name, String namespace) {
     return executorService.itemAsync(() -> PatroniUtil
-        .getLatestPrimaryIndexFromPatroni(ctlFinder.findPatroniCtl(name, namespace)));
+        .getLatestPrimaryFromPatroni(ctlFinder.findPatroniCtl(name, namespace)));
   }
 
   public Uni<Integer> getClusterPostgresVersion(String name, String namespace) {
