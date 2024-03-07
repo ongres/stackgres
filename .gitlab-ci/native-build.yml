@@ -9,10 +9,8 @@
   timeout: 1 hour
   script:
     - |
-      flock "/tmp/stackgres-build$NATIVE_IMAGE_EXTRA_PREFIX-native-executable" \
-        timeout -s KILL 3600 \
-        sh stackgres-k8s/ci/build/build-gitlab.sh build \
-          "$MODULE"
+      sh stackgres-k8s/ci/build/build-gitlab.sh build \
+        "$MODULE"
   retry:
     max: 2
     when: [ unknown_failure, api_failure, stuck_or_timeout_failure, runner_system_failure, runner_unsupported,
