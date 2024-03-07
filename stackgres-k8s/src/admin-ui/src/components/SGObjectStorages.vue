@@ -1,5 +1,5 @@
 <template>
-	<div id="object-storage" v-if="loggedIn && isReady && !notFound">
+	<div id="object-storage" v-if="iCanLoad">
 		<div class="content">
 			<template v-if="!$route.params.hasOwnProperty('name')">
 				<table id="objectStorage" class="configurations resizable fullWidth" v-columns-resizable>
