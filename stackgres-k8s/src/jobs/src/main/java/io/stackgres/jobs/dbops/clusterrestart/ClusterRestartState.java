@@ -7,6 +7,7 @@ package io.stackgres.jobs.dbops.clusterrestart;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.base.Preconditions;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -32,7 +33,7 @@ public interface ClusterRestartState {
 
   boolean isOnlyPendingRestart();
 
-  String getPrimaryInstance();
+  Optional<String> getPrimaryInstance();
 
   boolean isSwitchoverInitiated();
 

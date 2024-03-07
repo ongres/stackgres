@@ -956,7 +956,7 @@ class ClusterRestartTest {
             .asStream()
             .count());
 
-    assertEquals(String.format("Restart of instance %s failed", primaryName),
+    assertEquals(String.format("Restart of primary instance in Pod %s failed", primaryName),
         failure.getMessage());
     assertEquals("woops!",
         failure.getCause().getMessage());

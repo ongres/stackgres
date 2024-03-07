@@ -9,14 +9,13 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.common.patroni.PatroniMember.MemberRole;
-import io.stackgres.common.patroni.PatroniMember.MemberState;
 import io.stackgres.jobs.dbops.DbOpsExecutorService;
 import io.stackgres.jobs.dbops.MutinyUtil;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -48,14 +47,11 @@ public class ClusterSwitchoverHandler {
 
   private Uni<Void> doSwitchover(List<PatroniMember> members, String givenLeader,
       String clusterName, String clusterNamespace) {
+    Pattern nameWithIndexPattern = ResourceUtil.getNameWithIndexPattern(clusterName);
     Optional<PatroniMember> candidate = members.stream()
-        .filter(member -> Optional.of(member)
-            .map(PatroniMember::getMember)
-            .map(ResourceUtil.getNameWithIndexPattern(clusterName)::matcher)
-            .filter(Matcher::find)
-            .isPresent())
-        .filter(member -> Optional.ofNullable(member.getRole()).map(PatroniMember.REPLICA::equals).orElse(false))
-        .filter(member -> Optional.ofNullable(member.getMemberState()).map(MemberState.RUNNING::equals).orElse(false))
+        .filter(member -> nameWithIndexPattern.matcher(member.getMember()).find())
+        .filter(PatroniMember::isReplica)
+        .filter(PatroniMember::isRunning)
         .filter(member -> Optional.ofNullable(member.getTags())
             .filter(tags -> tags.entrySet().stream().anyMatch(
                 tag -> tag.getKey().equals(PatroniUtil.NOFAILOVER_TAG)

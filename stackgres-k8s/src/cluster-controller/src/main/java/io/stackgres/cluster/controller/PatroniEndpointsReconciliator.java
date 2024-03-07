@@ -94,7 +94,7 @@ public class PatroniEndpointsReconciliator extends SafeReconciliator<ClusterCont
       final Pattern nameWithIndexPattern =
           ResourceUtil.getNameWithIndexPattern(cluster.getMetadata().getName());
       if (patroniEndpoints.getSubsets() != null
-          && patroniEndpoints.getSubsets().size() > 1
+          && !patroniEndpoints.getSubsets().isEmpty()
           && members.stream()
           .filter(PatroniMember::isPrimary)
           .map(PatroniMember::getMember)
@@ -104,7 +104,7 @@ public class PatroniEndpointsReconciliator extends SafeReconciliator<ClusterCont
             members.stream().map(PatroniMember::getMember).collect(Collectors.joining(" ")));
         endpointsWriter.update(patroniEndpoints, currentPatroniEndpoints -> {
           if (currentPatroniEndpoints.getSubsets() != null
-              && currentPatroniEndpoints.getSubsets().size() > 1) {
+              && !currentPatroniEndpoints.getSubsets().isEmpty()) {
             currentPatroniEndpoints.setSubsets(null);
           }
         });

@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterControllerEventReason;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
@@ -16,10 +17,14 @@ import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterControllerProperty;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.patroni.PatroniCtl;
+import io.stackgres.common.patroni.StackGresPasswordKeys;
+import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
+import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
+import org.jooq.lambda.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +36,7 @@ public class PatroniResetReconciliator {
 
   private final EventController eventController;
   private final PatroniCtl patroniCtl;
+  private final ResourceFinder<Secret> secretFinder;
   private final String podName;
   private final boolean isReconcilePatroniAfterMajorVersionUpgrade;
 
@@ -38,6 +44,7 @@ public class PatroniResetReconciliator {
   public static class Parameters {
     @Inject EventController eventController;
     @Inject PatroniCtl patroniCtl;
+    @Inject ResourceFinder<Secret> secretFinder;
     @Inject ClusterControllerPropertyContext propertyContext;
   }
 
@@ -45,6 +52,7 @@ public class PatroniResetReconciliator {
   public PatroniResetReconciliator(Parameters parameters) {
     this.eventController = parameters.eventController;
     this.patroniCtl = parameters.patroniCtl;
+    this.secretFinder = parameters.secretFinder;
     this.podName = parameters.propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
     this.isReconcilePatroniAfterMajorVersionUpgrade = parameters.propertyContext
@@ -89,7 +97,24 @@ public class PatroniResetReconciliator {
       } else {
         LOGGER.info("Reset patroni state for standby cluster");
       }
-      patroniCtl.remove();
+      String clusterName = context.getCluster().getMetadata().getName();
+      var credentials = secretFinder.findByNameAndNamespace(
+          PatroniUtil.secretName(context.getCluster().getMetadata().getName()),
+          context.getCluster().getMetadata().getNamespace())
+          .map(Secret::getData)
+          .map(ResourceUtil::decodeSecret)
+          .map(date -> Tuple.tuple(
+              Optional.ofNullable(date.get(StackGresPasswordKeys.RESTAPI_USERNAME_KEY))
+              .orElseThrow(() -> new RuntimeException("Can not find key "
+                  + StackGresPasswordKeys.RESTAPI_USERNAME_KEY
+                  + " in Secret " + PatroniUtil.secretName(clusterName))),
+              Optional.ofNullable(date.get(StackGresPasswordKeys.RESTAPI_PASSWORD_KEY))
+              .orElseThrow(() -> new RuntimeException("Can not find key "
+                  + StackGresPasswordKeys.RESTAPI_PASSWORD_KEY
+                  + " in Secret " + PatroniUtil.secretName(clusterName)))))
+          .orElseThrow(() -> new RuntimeException(
+              "Can not find Secret " + PatroniUtil.secretName(clusterName)));
+      patroniCtl.remove(credentials.v1, credentials.v2);
     }
   }
 

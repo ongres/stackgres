@@ -70,6 +70,16 @@ public class PatroniMember {
   }
 
   @JsonIgnore
+  public boolean isReplica() {
+    return MemberRole.REPLICA == getMemberRole();
+  }
+
+  @JsonIgnore
+  public boolean isRunning() {
+    return MemberState.RUNNING == getMemberState();
+  }
+
+  @JsonIgnore
   public String getLabelRole() {
     if (role == null) {
       return null;

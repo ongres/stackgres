@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -27,6 +28,7 @@ import com.ongres.process.FluentProcess;
 import com.ongres.process.FluentProcessBuilder;
 import com.ongres.process.Output;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.YamlMapperProvider;
@@ -76,14 +78,15 @@ public class PatroniCtl {
 
   public class PatroniCtlInstance {
 
+    private static final Pattern SWITCHOVER_FAILED_PATTERN =
+        Pattern.compile(".*(^Switchover failed.*$).*", Pattern.MULTILINE);
+    private static final Pattern RESTART_FAILED_PATTERN =
+        Pattern.compile(".*(^Failed: .*$).*", Pattern.MULTILINE);
     private static final Pattern ERROR_PATTERN = Pattern.compile("error", Pattern.CASE_INSENSITIVE);
-
     private static final TypeReference<List<PatroniMember>> LIST_TYPE_REFERENCE =
         new TypeReference<List<PatroniMember>>() { };
-
     private static final TypeReference<List<PatroniHistoryEntry>> HISTORY_TYPE_REFERENCE =
         new TypeReference<List<PatroniHistoryEntry>>() { };
-
     private static final String PYTHON_COMMAND = "python3";
 
     final CustomResource<?, ?> customResource;
@@ -92,6 +95,10 @@ public class PatroniCtl {
     final String patroniCtlCommand;
     final Path configPath;
     final String config;
+    final Duration patroniCtlTimeout = Duration
+        .ofSeconds(OperatorProperty.PATRONI_CTL_TIMEOUT.get()
+        .map(Long::parseLong)
+        .orElse(60L));
 
     PatroniCtlInstance(StackGresCluster cluster) {
       this.customResource = cluster;
@@ -147,6 +154,7 @@ public class PatroniCtl {
     public List<PatroniMember> list() {
       Output output = patronictl("list", "-f", "json", "-e")
           .start()
+          .withTimeout(patroniCtlTimeout)
           .withoutCloseAfterLast()
           .tryGet();
       String result = getOutputOrFail(output);
@@ -160,6 +168,7 @@ public class PatroniCtl {
     public List<PatroniHistoryEntry> history() {
       Output output = patronictl("history", "-f", "json")
           .start()
+          .withTimeout(patroniCtlTimeout)
           .withoutCloseAfterLast()
           .tryGet();
       String result = getOutputOrFail(output);
@@ -170,31 +179,10 @@ public class PatroniCtl {
       }
     }
 
-    public void remove() {
-      Output output = patronictl("remove", scope)
-          .start()
-          .inputStream(
-              Seq.of(
-                  scope,
-                  "Yes I am aware")
-              .append(list()
-                  .stream()
-                  .filter(member -> member.isPrimary())
-                  .map(PatroniMember::getMember)))
-          .withoutCloseAfterLast()
-          .tryGet();
-      getOutputOrFail(output);
-      if (output.error()
-          .map(ERROR_PATTERN::matcher)
-          .filter(Matcher::find)
-          .isPresent()) {
-        throw new RuntimeException(output.error().get());
-      }
-    }
-
     public PatroniConfig showConfig() {
       Output output = patronictl("show-config")
           .start()
+          .withTimeout(patroniCtlTimeout)
           .withoutCloseAfterLast()
           .tryGet();
       String result = getOutputOrFail(output);
@@ -211,6 +199,7 @@ public class PatroniCtl {
     public ObjectNode showConfigJson() {
       Output output = patronictl("show-config")
           .start()
+          .withTimeout(patroniCtlTimeout)
           .withoutCloseAfterLast()
           .tryGet();
       String result = getOutputOrFail(output);
@@ -230,6 +219,7 @@ public class PatroniCtl {
         Output output = patronictl("edit-config", scope, "--apply", "-")
             .start()
             .inputStream(in)
+            .withTimeout(patroniCtlTimeout)
             .withoutCloseAfterLast()
             .tryGet();
         getOutputOrFail(output);
@@ -243,6 +233,7 @@ public class PatroniCtl {
         Output output = patronictl("edit-config", scope, "--apply", "-")
             .start()
             .inputStream(in)
+            .withTimeout(patroniCtlTimeout)
             .withoutCloseAfterLast()
             .tryGet();
         getOutputOrFail(output);
@@ -251,26 +242,72 @@ public class PatroniCtl {
       }
     }
 
-    public void switchover(String leader, String candidate) {
-      Output output = patronictl("switchover", scope, "--leader", leader, "--candidate", candidate, "--force")
+    public void restart(String username, String password, String member) {
+      Output output = patronictl("restart", scope, member, "--force")
+          .environment("PATRONI_RESTAPI_USERNAME", username)
+          .environment("PATRONI_RESTAPI_PASSWORD", password)
           .start()
+          .withTimeout(patroniCtlTimeout)
           .withoutCloseAfterLast()
           .tryGet();
       getOutputOrFail(output);
+      output.output()
+          .map(RESTART_FAILED_PATTERN::matcher)
+          .filter(Matcher::find)
+          .map(matcher -> matcher.group(1))
+          .ifPresent(error -> {
+            throw new RuntimeException(error);
+          });
     }
 
-    public void restart(String member) {
-      Output output = patronictl("restart", scope, member, "--force")
+    public void switchover(String username, String password, String leader, String candidate) {
+      Output output = patronictl("switchover", scope, "--leader", leader, "--candidate", candidate, "--force")
+          .environment("PATRONI_RESTAPI_USERNAME", username)
+          .environment("PATRONI_RESTAPI_PASSWORD", password)
           .start()
+          .withTimeout(patroniCtlTimeout)
           .withoutCloseAfterLast()
           .tryGet();
       getOutputOrFail(output);
+      output.output()
+          .map(SWITCHOVER_FAILED_PATTERN::matcher)
+          .filter(Matcher::find)
+          .map(matcher -> matcher.group(1))
+          .ifPresent(error -> {
+            throw new RuntimeException(error);
+          });
+    }
+
+    public void remove(String username, String password) {
+      Output output = patronictl("remove", scope)
+          .environment("PATRONI_RESTAPI_USERNAME", username)
+          .environment("PATRONI_RESTAPI_PASSWORD", password)
+          .start()
+          .inputStream(
+              Seq.of(
+                  scope,
+                  "Yes I am aware")
+              .append(list()
+                  .stream()
+                  .filter(member -> member.isPrimary())
+                  .map(PatroniMember::getMember)))
+          .withTimeout(patroniCtlTimeout)
+          .withoutCloseAfterLast()
+          .tryGet();
+      getOutputOrFail(output);
+      if (output.error()
+          .map(ERROR_PATTERN::matcher)
+          .filter(Matcher::find)
+          .isPresent()) {
+        throw new RuntimeException(output.error().get());
+      }
     }
 
     public JsonNode queryPrimary(String query, String username, String password) {
       Output output = patronictl("query", "-c", query, "-U", username, "-r", "primary", "--format", "json")
           .environment("PGPASSWORD", password)
           .start()
+          .withTimeout(patroniCtlTimeout)
           .withoutCloseAfterLast()
           .tryGet();
       String result = getOutputOrFail(output);

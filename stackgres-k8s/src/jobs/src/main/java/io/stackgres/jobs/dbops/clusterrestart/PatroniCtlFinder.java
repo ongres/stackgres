@@ -63,4 +63,24 @@ public class PatroniCtlFinder {
             "Can not find Secret " + PatroniUtil.secretName(clusterName)));
   }
 
+  public Tuple2<String, String> getPatroniCredentials(String clusterName, String namespace) {
+    return Optional.ofNullable(client.secrets()
+        .inNamespace(namespace)
+        .withName(PatroniUtil.secretName(clusterName))
+        .get())
+        .map(Secret::getData)
+        .map(ResourceUtil::decodeSecret)
+        .map(date -> Tuple.tuple(
+            Optional.ofNullable(date.get(StackGresPasswordKeys.RESTAPI_USERNAME_KEY))
+            .orElseThrow(() -> new RuntimeException("Can not find key "
+                + StackGresPasswordKeys.RESTAPI_USERNAME_KEY
+                + " in Secret " + PatroniUtil.secretName(clusterName))),
+            Optional.ofNullable(date.get(StackGresPasswordKeys.RESTAPI_PASSWORD_KEY))
+            .orElseThrow(() -> new RuntimeException("Can not find key "
+                + StackGresPasswordKeys.RESTAPI_PASSWORD_KEY
+                + " in Secret " + PatroniUtil.secretName(clusterName)))))
+        .orElseThrow(() -> new RuntimeException(
+            "Can not find Secret " + PatroniUtil.secretName(clusterName)));
+  }
+
 }

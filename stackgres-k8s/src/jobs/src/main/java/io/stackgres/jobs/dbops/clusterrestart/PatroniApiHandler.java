@@ -68,18 +68,18 @@ public class PatroniApiHandler {
       String namespace,
       PatroniMember leader,
       PatroniMember candidate) {
-    return executorService.invokeAsync(() -> ctlFinder
-        .findPatroniCtl(name, namespace)
-        .switchover(leader.getMember(), candidate.getMember()));
+    return executorService.itemAsync(() -> ctlFinder.getPatroniCredentials(name, namespace))
+        .chain(credentials -> executorService.invokeAsync(() -> ctlFinder.findPatroniCtl(name, namespace)
+            .switchover(credentials.v1, credentials.v2, leader.getMember(), candidate.getMember())));
   }
 
   public Uni<Void> restartPostgres(
       String name,
       String namespace,
       PatroniMember member) {
-    return executorService.invokeAsync(() -> ctlFinder
-        .findPatroniCtl(name, namespace)
-        .restart(member.getMember()));
+    return executorService.itemAsync(() -> ctlFinder.getPatroniCredentials(name, namespace))
+        .chain(credentials -> executorService.invokeAsync(() -> ctlFinder.findPatroniCtl(name, namespace)
+            .restart(credentials.v1, credentials.v2, member.getMember())));
   }
 
 }

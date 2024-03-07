@@ -16,6 +16,7 @@ import io.stackgres.common.patroni.PatroniCtl.PatroniCtlInstance;
 import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.testutil.StringUtils;
 import jakarta.inject.Inject;
+import org.jooq.lambda.tuple.Tuple;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -23,7 +24,7 @@ import org.mockito.Mockito;
 class PatroniApiHandlerTest {
 
   @InjectMock
-  PatroniCtlFinder patroniApiFinder;
+  PatroniCtlFinder patroniCtlFinder;
 
   @Inject
   PatroniApiHandler patroniApiHandler;
@@ -34,7 +35,7 @@ class PatroniApiHandlerTest {
   String namespace = StringUtils.getRandomString();
 
   private void preparePatroniMetadata() {
-    when(patroniApiFinder.findPatroniCtl(any(), any()))
+    when(patroniCtlFinder.findPatroniCtl(any(), any()))
         .thenReturn(patroniCtl);
   }
 
@@ -61,6 +62,9 @@ class PatroniApiHandlerTest {
   void givenValidCredentials_shouldPerformSwitchOver() {
     preparePatroniMetadata();
 
+    when(patroniCtlFinder.getPatroniCredentials(any(), any()))
+        .thenReturn(Tuple.tuple("test", "test"));
+
     PatroniMember leader = new PatroniMember();
     leader.setCluster(clusterName);
     leader.setMember("leader-member");
@@ -80,6 +84,9 @@ class PatroniApiHandlerTest {
   @Test
   void givenValidCredentials_shouldRestartPostgres() {
     preparePatroniMetadata();
+
+    when(patroniCtlFinder.getPatroniCredentials(any(), any()))
+        .thenReturn(Tuple.tuple("test", "test"));
 
     PatroniMember leader = new PatroniMember();
     leader.setCluster(clusterName);
