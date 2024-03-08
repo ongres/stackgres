@@ -1,5 +1,5 @@
 <template>
-    <div id="edit-sgconfig" v-if="iCanLoad">
+    <div id="edit-sgconfig" v-if="iCan('patch', 'sgconfigs', sgConfig.metadata.namespace)">
         <!-- Vue reactivity hack -->
         <template v-if="((typeof sgConfig) !== 'undefined')"></template>
 
