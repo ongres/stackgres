@@ -1,7 +1,17 @@
 <template>
-    <div id="sgConfig" v-if="iCanLoad">
+    <div id="sgConfig">
         <div class="content">
-            <h2>Configuration Details</h2>
+            <h2>
+                Operator Configuration Details
+                <router-link
+                    v-if="iCan('patch', 'sgconfigs', crd.data.metadata.namespace)"
+                    :to="'/sgconfig/' + $route.params.name + '/edit'"
+                    title="Edit SGConfig"
+                    class="floatRight"
+                >
+                    EDIT
+                </router-link>
+            </h2>
 					
             <div class="configurationDetails">                      
                 <CRDSummary :crd="crd" kind="SGConfig" :details="true"></CRDSummary>
