@@ -47,7 +47,7 @@
         computed: {
 
             nameColission() {
-                return store.state.namespaces.includes(this.name)
+                return store.state.allNamespaces.includes(this.name)
             }
 
         },
