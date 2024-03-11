@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -22,6 +23,7 @@ import io.fabric8.kubernetes.api.model.SecretVolumeSource;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigCert;
 import io.stackgres.common.crd.sgconfig.StackGresConfigCertManager;
@@ -108,8 +110,20 @@ public class CertificateInstaller {
     if (certSecretGenerated.isPresent()
         && certSecretFound
         .map(certSecret -> !Objects.equals(
-            certSecret.getData(),
-            certSecretGenerated.get().getData()))
+            certSecret.getData()
+                .entrySet()
+                .stream()
+                .filter(entry -> entry.getKey().equals(PatroniUtil.CERTIFICATE_KEY)
+                    || entry.getKey().equals(PatroniUtil.PRIVATE_KEY_KEY))
+                .sorted(Map.Entry.comparingByKey())
+                .toList(),
+            certSecretGenerated.get().getData()
+                .entrySet()
+                .stream()
+                .filter(entry -> entry.getKey().equals(PatroniUtil.CERTIFICATE_KEY)
+                    || entry.getKey().equals(PatroniUtil.PRIVATE_KEY_KEY))
+                .sorted(Map.Entry.comparingByKey())
+                .toList()))
         .orElse(true)) {
       if (certSecretFound.isEmpty()) {
         secretWriter.create(certSecretGenerated.get());

@@ -16,6 +16,9 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.smallrye.mutiny.Uni;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.common.patroni.PatroniMember;
+import io.stackgres.common.patroni.PatroniMember.MemberRole;
+import io.stackgres.common.patroni.PatroniMember.MemberState;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.jobs.dbops.DbOpsExecutorService;
@@ -44,28 +47,24 @@ public class ClusterWatcher {
   @Inject
   DbOpsExecutorService executorService;
 
-  private static boolean isPrimaryReady(List<ClusterMember> members) {
+  private static boolean isPrimaryReady(List<PatroniMember> members) {
     return members.stream().anyMatch(ClusterWatcher::isPrimaryReady);
   }
 
-  private static boolean isPrimaryReady(ClusterMember member) {
-    if (member.getRole().map(MemberRole.LEADER::equals).orElse(false)) {
-      final boolean ready = member.getState().map(MemberState.RUNNING::equals).orElse(false)
-          && member.getApiUrl().isPresent()
-          && member.getPort().isPresent()
-          && member.getTimeline().isPresent()
-          && member.getHost().isPresent();
+  private static boolean isPrimaryReady(PatroniMember member) {
+    if (MemberRole.LEADER.equals(member.getMemberRole())) {
+      final boolean ready = MemberState.RUNNING.equals(member.getMemberState())
+          && member.getTimeline() != null
+          && member.getHost() != null;
       if (!ready) {
         LOGGER.debug("Leader pod not ready, state: {}", member);
       }
       return ready;
     } else {
-      final boolean ready = member.getState().map(MemberState.RUNNING::equals).orElse(false)
-          && member.getApiUrl().isPresent()
-          && member.getPort().isPresent()
-          && member.getTimeline().isPresent()
-          && member.getHost().isPresent()
-          && member.getLag().isPresent();
+      final boolean ready = MemberState.RUNNING.equals(member.getMemberState())
+          && member.getTimeline() != null
+          && member.getHost() != null
+          && member.getLagInMb() != null;
       if (!ready) {
         LOGGER.debug("Non leader pod not ready, state: {}", member);
       }
@@ -117,7 +116,7 @@ public class ClusterWatcher {
     });
   }
 
-  private Uni<List<ClusterMember>> getClusterMembers(StackGresCluster cluster) {
+  private Uni<List<PatroniMember>> getClusterMembers(StackGresCluster cluster) {
     final String name = cluster.getMetadata().getName();
     LOGGER.debug("Looking for cluster members of cluster {}", name);
     return patroniApiHandler.getClusterMembers(name,
@@ -130,7 +129,7 @@ public class ClusterWatcher {
           } else {
             var primaryNotReady = members.stream()
                 .filter(Predicate.not(ClusterWatcher::isPrimaryReady))
-                .map(ClusterMember::getName)
+                .map(PatroniMember::getMember)
                 .collect(Collectors.joining());
             LOGGER.debug("Primary {} is not ready",
                 primaryNotReady);
@@ -152,9 +151,9 @@ public class ClusterWatcher {
             .filter(m -> failure == null)
             .stream()
             .flatMap(List::stream)
-            .filter(member -> member.getRole().map(role -> role == MemberRole.LEADER).orElse(false)
-                && member.getState().map(state -> state == MemberState.RUNNING).orElse(false))
-            .map(ClusterMember::getName)
+            .filter(member -> MemberRole.LEADER.equals(member.getMemberRole())
+                && MemberState.RUNNING.equals(member.getMemberState()))
+            .map(PatroniMember::getMember)
             .findAny());
   }
 

@@ -26,6 +26,7 @@ import java.time.Instant;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
@@ -109,6 +110,8 @@ class DbOpsLauncherTest {
 
   private Uni<ClusterRestartState> getClusterRestartStateUni() {
     Pod primary = new Pod();
+    primary.setMetadata(new ObjectMeta());
+    primary.getMetadata().setName(dbOps.getMetadata().getName() + "-0");
     return Uni.createFrom().item(
         ClusterRestartState.builder()
             .namespace(dbOps.getMetadata().getNamespace())
@@ -119,7 +122,7 @@ class DbOpsLauncherTest {
             .isSwitchoverInitiated(false)
             .isSwitchoverFinalized(false)
             .restartMethod(DbOpsMethodType.IN_PLACE)
-            .primaryInstance(primary)
+            .primaryInstance(primary.getMetadata().getName())
             .initialInstances(ImmutableList.of(primary))
             .totalInstances(ImmutableList.of(primary))
             .podRestartReasonsMap(ImmutableMap.of(primary, RestartReasons.of()))

@@ -16,11 +16,11 @@ import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
-import io.stackgres.testutil.SetterGetterTestCase;
+import io.stackgres.testutil.ModelTestUtil;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-class CrdSetterGetterTest extends SetterGetterTestCase {
+class CrdSetterGetterTest {
 
   @ParameterizedTest
   @ValueSource(classes = {
@@ -36,9 +36,8 @@ class CrdSetterGetterTest extends SetterGetterTestCase {
       StackGresShardedBackup.class,
       StackGresShardedDbOps.class,
   })
-  @Override
-  protected void assertSettersAndGetters(Class<?> sourceClazz) {
-    super.assertSettersAndGetters(sourceClazz);
+  void assertSettersAndGetters(Class<?> sourceClazz) {
+    ModelTestUtil.assertSettersAndGetters(sourceClazz);
   }
 
 }

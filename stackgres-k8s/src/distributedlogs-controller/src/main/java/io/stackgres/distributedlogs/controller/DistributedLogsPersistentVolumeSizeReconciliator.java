@@ -24,18 +24,14 @@ public class DistributedLogsPersistentVolumeSizeReconciliator extends
 
   private final ResourceWriter<PersistentVolumeClaim> pvcWriter;
 
-  private final DistributedLogsControllerPropertyContext podContext;
-
   @Inject
   public DistributedLogsPersistentVolumeSizeReconciliator(
       ResourceFinder<StatefulSet> stsFinder,
       ResourceFinder<PersistentVolumeClaim> pvcFinder,
-      ResourceWriter<PersistentVolumeClaim> pvcWriter,
-      DistributedLogsControllerPropertyContext podContext) {
+      ResourceWriter<PersistentVolumeClaim> pvcWriter) {
     this.stsFinder = stsFinder;
     this.pvcFinder = pvcFinder;
     this.pvcWriter = pvcWriter;
-    this.podContext = podContext;
   }
 
   @Override
@@ -53,8 +49,4 @@ public class DistributedLogsPersistentVolumeSizeReconciliator extends
     return pvcWriter;
   }
 
-  @Override
-  protected DistributedLogsControllerPropertyContext getComponentContext() {
-    return podContext;
-  }
 }

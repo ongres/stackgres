@@ -540,6 +540,13 @@ public interface StackGresShardedClusterForCitusUtil extends StackGresShardedClu
         spec.getPods().setCustomInitContainers(
             specOverride.getPodsForShards().getCustomInitContainers());
       }
+      if (specOverride.getPodsForShards().getCustomVolumeMounts() != null) {
+        spec.getPods().setCustomVolumeMounts(specOverride.getPodsForShards().getCustomVolumeMounts());
+      }
+      if (specOverride.getPodsForShards().getCustomInitVolumeMounts() != null) {
+        spec.getPods().setCustomInitVolumeMounts(
+            specOverride.getPodsForShards().getCustomInitVolumeMounts());
+      }
     }
   }
 

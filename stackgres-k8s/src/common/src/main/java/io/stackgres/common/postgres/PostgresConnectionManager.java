@@ -8,28 +8,36 @@ package io.stackgres.common.postgres;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import jakarta.inject.Singleton;
-import jakarta.validation.constraints.NotNull;
 
 @Singleton
 public class PostgresConnectionManager {
 
-  @SuppressWarnings("unchecked")
   public Connection getConnection(
-      @NotNull String host,
-      @NotNull int port,
-      @NotNull String database,
-      @NotNull String username,
-      @NotNull String password,
-      @SuppressWarnings("uncheked") Map.Entry<String, String>...extraProperties)
-          throws SQLException {
+      @Nonnull String host,
+      int port,
+      @Nonnull String database,
+      @Nonnull String username,
+      @Nonnull String password) throws SQLException {
+    return getConnection(host, port, database, username, password, null);
+  }
+      
+  public Connection getConnection(
+      @Nonnull String host,
+      int port,
+      @Nonnull String database,
+      @Nonnull String username,
+      @Nonnull String password,
+      @Nullable Map<String, String> extraProperties) throws SQLException {
     Properties properties = new Properties();
     if (extraProperties != null) {
-      Arrays.stream(extraProperties)
+      extraProperties.entrySet().stream()
               .forEach(extraProperty -> properties.put(
                       extraProperty.getKey(), extraProperty.getValue()));
     }
@@ -40,11 +48,11 @@ public class PostgresConnectionManager {
   }
 
   public Connection getUnixConnection(
-      @NotNull String path,
-      @NotNull int port,
-      @NotNull String database,
-      @NotNull String username,
-      @NotNull String password)
+      @Nonnull String path,
+      int port,
+      @Nonnull String database,
+      @Nonnull String username,
+      @Nonnull String password)
       throws SQLException {
     Properties properties = new Properties();
     properties.setProperty("user", username);

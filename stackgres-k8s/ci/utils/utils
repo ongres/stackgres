@@ -10,21 +10,41 @@ fi
 cd "$(dirname "$0")"
 mkdir -p target
 
+export CI_UTILS_PATH="${CI_UTILS_PATH:-.}"
+export PROJECT_PATH="${PROJECT_PATH:-$CI_UTILS_PATH/../../..}"
+
 if [ -z "$K8S_VERSION" ]
 then
-  echo "You must set K8S_VERSION" >&2
-  return 1
+  K8S_VERSION="$(yq -r '.kubeVersion|match("^[^ ]+ - ([^.]+\\.[^.]+)\\..*$").captures[0].string' "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/Chart.yaml)"
 fi
 
 SWAGGER_FILE="target/swagger-$K8S_VERSION.json"
 REMOVED_PATHS_SWAGGER_FILE="target/removed-paths-swagger-$K8S_VERSION.json"
 MERGED_DEFINITIONS_SWAGGER_FILE="target/merged-definitions-swagger-$K8S_VERSION.json"
 
-get_k8s_object_as_yaml() {
- jq ".definitions[\"$1\"]" "$MERGED_DEFINITIONS_SWAGGER_FILE" | yq -y . | sed "s/^/$(seq 1 "${2:-0}" | xargs -I % printf ' ')/"
+update_k8s_swagger() {
+  if [ ! -s "$SWAGGER_FILE" ] || ! jq . "$SWAGGER_FILE" > /dev/null
+  then
+    wget "https://github.com/kubernetes/kubernetes/blob/release-$K8S_VERSION/api/openapi-spec/swagger.json?raw=true" -O "$SWAGGER_FILE"
+  fi
+  
+  if [ ! -s "$REMOVED_PATHS_SWAGGER_FILE" ] || ! jq . "$REMOVED_PATHS_SWAGGER_FILE" > /dev/null
+  then
+    jq --argjson debug "$DEBUG" -f remove-paths.jq "$SWAGGER_FILE" > "$REMOVED_PATHS_SWAGGER_FILE"
+  fi
+  
+  if [ ! -s "$MERGED_DEFINITIONS_SWAGGER_FILE" ] || ! jq . "$MERGED_DEFINITIONS_SWAGGER_FILE" > /dev/null
+  then
+    jq --argjson debug "$DEBUG" -f merge-definitions.jq "$REMOVED_PATHS_SWAGGER_FILE" > "$MERGED_DEFINITIONS_SWAGGER_FILE"
+  fi
 }
 
-if [ "$#" -gt 0 ]
+get_k8s_object_as_yaml() {
+  update_k8s_swagger
+  jq ".definitions[\"$1\"]" "$MERGED_DEFINITIONS_SWAGGER_FILE" | yq -y . | sed "s/^/$(seq 1 "${2:-0}" | xargs -I % printf ' ')/"
+}
+
+if [ "${0##*/}" = utils ]
 then
   "$@"
 fi

@@ -6,12 +6,12 @@
 package io.stackgres.operator.conciliation.distributedlogs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operator.conciliation.AbstractStatefulSetReconciliationHandler;
@@ -33,9 +33,14 @@ public class DistributedLogsStatefulSetReconciliationHandler
       ResourceFinder<StatefulSet> statefulSetFinder,
       ResourceScanner<Pod> podScanner,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,
-      ResourceFinder<Endpoints> endpointsFinder, ObjectMapper objectMapper) {
+      PatroniCtl patroniCtl, ObjectMapper objectMapper) {
     super(handler, labelFactory, statefulSetFinder, podScanner, pvcScanner,
-        endpointsFinder, objectMapper);
+        patroniCtl, objectMapper);
+  }
+
+  @Override
+  protected boolean isPatroniOnKubernetes(StackGresDistributedLogs context) {
+    return true;
   }
 
 }

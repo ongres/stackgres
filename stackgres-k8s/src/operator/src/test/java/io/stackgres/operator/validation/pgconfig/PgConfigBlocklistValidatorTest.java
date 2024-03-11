@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.common.PgConfigReview;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
+import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresBlocklist;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;

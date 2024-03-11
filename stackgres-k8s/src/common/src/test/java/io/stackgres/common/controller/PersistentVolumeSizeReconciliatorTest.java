@@ -5,8 +5,8 @@
 
 package io.stackgres.common.controller;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -85,11 +85,6 @@ class PersistentVolumeSizeReconciliatorTest {
       protected ResourceWriter<PersistentVolumeClaim> getPvcWriter() {
         return pvcWriter;
       }
-
-      @Override
-      protected PodLocalControllerContext getComponentContext() {
-        return podContext;
-      }
     };
 
     clusterName = StringUtils.getRandomClusterName(10);
@@ -99,7 +94,7 @@ class PersistentVolumeSizeReconciliatorTest {
 
   @Test
   @DisplayName("Given a valid StatefulSet and PVC it should be able to increase the PV size it")
-  void testSuccessfulIncrease() {
+  void testSuccessfulIncrease() throws Exception {
 
     /*
      * This sections prepares the StatefulSet and Persistent Volume Claims to be found by the
@@ -109,7 +104,7 @@ class PersistentVolumeSizeReconciliatorTest {
     var pvc = preparePvcRead(clusterName, podName, namespace, "256Mi");
     var pvcCaptor = preparePvcWrite(pvc);
 
-    pvcReconciliator.reconcile();
+    pvcReconciliator.reconcile(null, podContext);
 
     /*
      * This section checks that written pvc has the correct volume size
@@ -130,7 +125,7 @@ class PersistentVolumeSizeReconciliatorTest {
 
   @Test
   @DisplayName("Given a valid StatefulSet and PVC it should be able to decrease the PV size it")
-  void testSuccessfulDecrease() {
+  void testSuccessfulDecrease() throws Exception {
     /*
      * This sections prepares the StatefulSet and Persistent Volume Claims to be found by the
      * finders and the pvc writer
@@ -139,7 +134,7 @@ class PersistentVolumeSizeReconciliatorTest {
     var pvc = preparePvcRead(clusterName, podName, namespace, "500Mi");
     var pvcCaptor = preparePvcWrite(pvc);
 
-    pvcReconciliator.reconcile();
+    pvcReconciliator.reconcile(null, podContext);
 
     /*
      * This section checks that written pvc has the correct volume size
@@ -159,7 +154,7 @@ class PersistentVolumeSizeReconciliatorTest {
 
   @Test
   @DisplayName("Given a valid StatefulSet and PVC it should not updated if there is no change")
-  void testNotChange() {
+  void testNotChange() throws Exception {
     /*
      * This sections prepares the StatefulSet and Persistent Volume Claims to be found by the
      * finders
@@ -167,7 +162,7 @@ class PersistentVolumeSizeReconciliatorTest {
     prepareSts(clusterName, namespace, "256Mi");
     preparePvcRead(clusterName, podName, namespace, "256Mi");
 
-    pvcReconciliator.reconcile();
+    pvcReconciliator.reconcile(null, podContext);
 
     verifyAbortedWrite();
 
@@ -175,20 +170,20 @@ class PersistentVolumeSizeReconciliatorTest {
 
   @Test
   @DisplayName("Given a not found sts it should do anything")
-  void testStsNotFound() {
+  void testStsNotFound() throws Exception {
     /*
      * This prepares that no StatefulSets can be found by the stsFinder
      */
     prepareNoStsFound();
 
-    pvcReconciliator.reconcile();
+    pvcReconciliator.reconcile(null, podContext);
 
     verifyReconliationAborted();
   }
 
   @Test
   @DisplayName("Given a StatefulSet in a Illegal state it should throw an exception")
-  void testIIllegalSts() {
+  void testIIllegalSts() throws Exception {
     /*
      * This sections prepares a sts that has a misconfiguration in the PVC templates
      */
@@ -197,26 +192,28 @@ class PersistentVolumeSizeReconciliatorTest {
     sts.getSpec().getVolumeClaimTemplates().forEach(pvc ->
         pvc.getMetadata().setName(pvcName));
 
-    var ex = assertThrows(IllegalStateException.class, pvcReconciliator::reconcile);
+    var result = pvcReconciliator.reconcile(null, podContext);
 
+    assertFalse(result.success());
     assertEquals(
         "Illegal StatefulSet, the persistent volume claim template "
             + clusterName + "-data could not be found in the StatefulSet " + clusterName,
-        ex.getMessage());
+        result.getException().getMessage());
 
     verifyReconliationAborted();
   }
 
   @Test
   @DisplayName("Given a StatefulSet in a Illegal state it should throw an exception")
-  void testPvcNotFound() {
+  void testPvcNotFound() throws Exception {
     prepareSts(clusterName, namespace, "500Mi");
     String pvdName = getPersistentVolumeClaimName(clusterName, podName);
     when(pvcReader.findByNameAndNamespace(pvdName, namespace)).thenReturn(Optional.empty());
 
-    var ex = assertThrows(IllegalStateException.class, pvcReconciliator::reconcile);
+    var result = pvcReconciliator.reconcile(null, podContext);
+    assertFalse(result.success());
     assertEquals("The persistent volume claim of this pod could not be found",
-        ex.getMessage());
+        result.getException().getMessage());
 
     verifyAbortedWrite();
   }

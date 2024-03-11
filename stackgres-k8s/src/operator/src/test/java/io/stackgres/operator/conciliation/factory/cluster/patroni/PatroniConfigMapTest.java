@@ -9,14 +9,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.IntOrString;
@@ -33,6 +32,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.crd.sgcluster.StackGresPostgresFlavor;
+import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
@@ -52,19 +52,25 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class PatroniConfigMapTest {
 
-  private static final JsonMapper JSON_MAPPER = JsonUtil.jsonMapper();
   private final LabelFactoryForCluster<StackGresCluster> labelFactory = new ClusterLabelFactory(
       new ClusterLabelMapper());
   @Mock
   private StackGresClusterContext context;
   private PatroniConfigMap generator;
   private StackGresCluster cluster;
+  private StackGresPostgresConfig postgresConfig;
 
   @BeforeEach
   void setUp() {
-    generator = new PatroniConfigMap(labelFactory, JSON_MAPPER, new YamlMapperProvider());
+    var patroniConfigEndpoints = new PatroniConfigEndpoints(
+        labelFactory, JsonUtil.jsonMapper(), new YamlMapperProvider());
+    generator = new PatroniConfigMap(
+        labelFactory, patroniConfigEndpoints,
+        JsonUtil.jsonMapper(), new YamlMapperProvider());
     cluster = Fixtures.cluster().loadDefault().get();
+    postgresConfig = Fixtures.postgresConfig().loadDefault().get();
     when(context.getSource()).thenReturn(cluster);
+    lenient().when(context.getPostgresConfig()).thenReturn(postgresConfig);
     cluster.getMetadata().getAnnotations()
         .put(StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion());
     cluster.getSpec().getConfigurations().setPatroni(new StackGresClusterPatroni());
@@ -77,11 +83,25 @@ class PatroniConfigMapTest {
     when(context.getCluster()).thenReturn(cluster);
     ConfigMap configMap = generator.buildSource(context);
 
-    assertEquals(cluster.getMetadata().getName(),
-        configMap.getData().get("PATRONI_SCOPE"));
-    assertEquals(JSON_MAPPER.writeValueAsString(labelFactory.patroniClusterLabels(cluster)),
-        configMap.getData().get("PATRONI_KUBERNETES_LABELS"));
-    assertEquals("",
+    assertEquals("""
+            scope: "stackgres"
+            kubernetes:
+              namespace: "stackgres"
+              labels:
+                app: "StackGresCluster"
+                stackgres.io/cluster: "true"
+                stackgres.io/cluster-scope: "stackgres"
+              use_endpoints: true
+              scope_label: "stackgres.io/cluster-scope"
+              pod_ip: "${POD_IP}"
+              ports:
+              - name: "pgport"
+                port: 7432
+                protocol: "TCP"
+              - name: "pgreplication"
+                port: 7433
+                protocol: "TCP"
+            """,
         configMap.getData().get("PATRONI_INITIAL_CONFIG"));
   }
 
@@ -90,11 +110,25 @@ class PatroniConfigMapTest {
     when(context.getCluster()).thenReturn(cluster);
     ConfigMap configMap = generator.buildSource(context);
 
-    assertEquals(cluster.getMetadata().getName(),
-        configMap.getData().get("PATRONI_SCOPE"));
-    assertEquals(JSON_MAPPER.writeValueAsString(labelFactory.patroniClusterLabels(cluster)),
-        configMap.getData().get("PATRONI_KUBERNETES_LABELS"));
-    assertEquals("",
+    assertEquals("""
+            scope: "stackgres"
+            kubernetes:
+              namespace: "stackgres"
+              labels:
+                app: "StackGresCluster"
+                stackgres.io/cluster: "true"
+                stackgres.io/cluster-scope: "stackgres"
+              use_endpoints: true
+              scope_label: "stackgres.io/cluster-scope"
+              pod_ip: "${POD_IP}"
+              ports:
+              - name: "pgport"
+                port: 7432
+                protocol: "TCP"
+              - name: "pgreplication"
+                port: 7433
+                protocol: "TCP"
+            """,
         configMap.getData().get("PATRONI_INITIAL_CONFIG"));
   }
 
@@ -107,11 +141,26 @@ class PatroniConfigMapTest {
         .getInitialConfig().put("test", true);
     ConfigMap configMap = generator.buildSource(context);
 
-    assertEquals("test",
-        configMap.getData().get("PATRONI_SCOPE"));
-    assertEquals(JSON_MAPPER.writeValueAsString(labelFactory.patroniClusterLabels(cluster)),
-        configMap.getData().get("PATRONI_KUBERNETES_LABELS"));
-    assertEquals("test: true\n",
+    assertEquals("""
+          test: true
+          scope: "test"
+          kubernetes:
+            namespace: "stackgres"
+            labels:
+              app: "StackGresCluster"
+              stackgres.io/cluster: "true"
+              stackgres.io/cluster-scope: "test"
+            use_endpoints: true
+            scope_label: "stackgres.io/cluster-scope"
+            pod_ip: "${POD_IP}"
+            ports:
+            - name: "pgport"
+              port: 7432
+              protocol: "TCP"
+            - name: "pgreplication"
+              port: 7433
+              protocol: "TCP"
+            """,
         configMap.getData().get("PATRONI_INITIAL_CONFIG"));
   }
 
@@ -132,12 +181,36 @@ class PatroniConfigMapTest {
         .getInitialConfig().put(key, ModelTestUtil.createWithRandomData(String.class)));
     ConfigMap configMap = generator.buildSource(context);
 
-    assertEquals("validKey1: true\nvalidKey2: 1\nvalidKey3: \"stringValue\"\n",
+    assertEquals("""
+            validKey1: true
+            validKey2: 1
+            validKey3: "stringValue"
+            scope: "%1$s"
+            kubernetes:
+              namespace: "stackgres"
+              labels:
+                app: "StackGresCluster"
+                stackgres.io/cluster: "true"
+                stackgres.io/cluster-scope: "%1$s"
+              use_endpoints: true
+              scope_label: "stackgres.io/cluster-scope"
+              pod_ip: "${POD_IP}"
+              ports:
+              - name: "pgport"
+                port: 7432
+                protocol: "TCP"
+              - name: "pgreplication"
+                port: 7433
+                protocol: "TCP"
+              - name: "babelfish"
+                port: 7434
+                protocol: "TCP"
+            """.formatted(PatroniUtil.clusterScope(cluster)),
         configMap.getData().get("PATRONI_INITIAL_CONFIG"));
   }
 
   @Test
-  void getConfigMapWithBabelfishFlavor_shouldReturnBabelfishInformationPort() {
+  void getConfigMapWithBabelfishFlavor_shouldReturnBabelfishInformationPort() throws Exception {
     when(context.getCluster()).thenReturn(cluster);
     cluster.getSpec().getPostgres().setVersion(
         StackGresComponent.BABELFISH.getLatest().streamOrderedVersions().findFirst().get());
@@ -145,8 +218,10 @@ class PatroniConfigMapTest {
 
     ConfigMap configMap = generator.buildSource(context);
     @SuppressWarnings("unchecked")
-    List<Map<String, String>> kubernetesPorts = JsonUtil.fromJson(
-        configMap.getData().get("PATRONI_KUBERNETES_PORTS"), List.class);
+    List<Map<String, String>> kubernetesPorts = JsonUtil.fromJson(JsonUtil.yamlMapper()
+        .readTree(configMap.getData().get("PATRONI_INITIAL_CONFIG"))
+        .get("kubernetes")
+        .get("ports"), List.class);
     Optional<Map<String, String>> babelfishEndpointPort = kubernetesPorts.stream()
         .filter(ep -> StackGresPostgresFlavor.BABELFISH.toString().equals(ep.get("name")))
         .findFirst();
@@ -188,7 +263,7 @@ class PatroniConfigMapTest {
   }
 
   @Test
-  void getConfigMapWhenExistOneCustomServiceWithIntegerTypePort() {
+  void getConfigMapWhenExistOneCustomServiceWithIntegerTypePort() throws Exception {
     when(context.getCluster()).thenReturn(cluster);
     CustomServicePort csPort = ModelTestUtil.createWithRandomData(CustomServicePort.class);
     csPort.setTargetPort(new IntOrString(Integer.valueOf("8080")));
@@ -196,8 +271,10 @@ class PatroniConfigMapTest {
 
     ConfigMap configMap = generator.buildSource(context);
     @SuppressWarnings("unchecked")
-    List<Map<String, String>> kubernetesPorts = JsonUtil.fromJson(
-        configMap.getData().get("PATRONI_KUBERNETES_PORTS"), ArrayList.class);
+    List<Map<String, String>> kubernetesPorts = JsonUtil.fromJson(JsonUtil.yamlMapper()
+        .readTree(configMap.getData().get("PATRONI_INITIAL_CONFIG"))
+        .get("kubernetes")
+        .get("ports"), List.class);
     Optional<Map<String, String>> customPortIntValue = kubernetesPorts.stream()
         .filter(ep -> "custom-".concat(csPort.getName()).equals(ep.get("name").toString()))
         .findFirst();
@@ -217,7 +294,7 @@ class PatroniConfigMapTest {
   }
 
   @Test
-  void getConfigMapWhenExistOneCustomServiceWithStringTypePort() {
+  void getConfigMapWhenExistOneCustomServiceWithStringTypePort() throws Exception {
     when(context.getCluster()).thenReturn(cluster);
     String customContainerPortName = "portName";
     ContainerPort containerPort = ModelTestUtil.createWithRandomData(ContainerPort.class);
@@ -232,8 +309,10 @@ class PatroniConfigMapTest {
 
     ConfigMap configMap = generator.buildSource(context);
     @SuppressWarnings("unchecked")
-    List<Map<String, String>> kubernetesPorts = JsonUtil.fromJson(
-        configMap.getData().get("PATRONI_KUBERNETES_PORTS"), ArrayList.class);
+    List<Map<String, String>> kubernetesPorts = JsonUtil.fromJson(JsonUtil.yamlMapper()
+        .readTree(configMap.getData().get("PATRONI_INITIAL_CONFIG"))
+        .get("kubernetes")
+        .get("ports"), List.class);
     Optional<Map<String, String>> customPortIntValue = kubernetesPorts.stream()
         .filter(ep -> "custom-".concat(csPort.getName()).equals(ep.get("name").toString()))
         .findFirst();

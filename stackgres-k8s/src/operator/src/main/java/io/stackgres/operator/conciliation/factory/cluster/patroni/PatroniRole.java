@@ -99,7 +99,7 @@ public class PatroniRole implements
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(HasMetadata.getGroup(Endpoints.class))
             .withResources(HasMetadata.getPlural(Endpoints.class))
-            .withVerbs("get", "list", "patch", "update", "watch")
+            .withVerbs("get", "list", "patch", "update", "watch", "deletecollection")
             .build())
         .addToRules(new PolicyRuleBuilder()
             .withApiGroups(HasMetadata.getGroup(ConfigMap.class))

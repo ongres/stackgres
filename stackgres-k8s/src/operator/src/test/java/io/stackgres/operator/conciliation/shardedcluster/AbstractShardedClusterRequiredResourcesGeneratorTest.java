@@ -30,7 +30,7 @@ import io.stackgres.common.resource.ClusterFinder;
 import io.stackgres.common.resource.ConfigScanner;
 import io.stackgres.common.resource.PostgresConfigFinder;
 import io.stackgres.common.resource.SecretFinder;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
+import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresDefaultValues;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;

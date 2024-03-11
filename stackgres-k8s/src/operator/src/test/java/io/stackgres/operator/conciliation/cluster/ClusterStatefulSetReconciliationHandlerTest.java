@@ -5,7 +5,6 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
-import static io.stackgres.common.PatroniUtil.HISTORY_KEY;
 import static io.stackgres.operator.conciliation.AbstractStatefulSetReconciliationHandler.PLACEHOLDER_NODE_SELECTOR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -26,14 +25,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
-import io.fabric8.kubernetes.api.model.Endpoints;
-import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.OwnerReference;
@@ -52,6 +50,9 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.common.labels.ClusterLabelFactory;
 import io.stackgres.common.labels.ClusterLabelMapper;
 import io.stackgres.common.labels.LabelFactoryForCluster;
+import io.stackgres.common.patroni.PatroniCtl;
+import io.stackgres.common.patroni.PatroniHistoryEntry;
+import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -93,7 +94,10 @@ class ClusterStatefulSetReconciliationHandlerTest {
   private ResourceFinder<StatefulSet> statefulSetFinder;
 
   @Mock
-  private ResourceFinder<Endpoints> endpointsFinder;
+  private PatroniCtl patroniCtl;
+
+  @Mock
+  private PatroniCtl.PatroniCtlInstance patroniCtlInstance;
 
   @Mock
   private ClusterDefaultReconciliationHandler defaultHandler;
@@ -116,7 +120,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
   void setUp() {
     handler = new ClusterStatefulSetReconciliationHandler(
         defaultHandler, labelFactory, statefulSetFinder,
-        podScanner, pvcScanner, endpointsFinder, objectMapper);
+        podScanner, pvcScanner, patroniCtl, objectMapper);
     requiredStatefulSet = Fixtures.statefulSet().loadRequired().get();
 
     cluster = new StackGresCluster();
@@ -128,6 +132,8 @@ class ClusterStatefulSetReconciliationHandlerTest {
     deployedStatefulSet = Fixtures.statefulSet().loadDeployed().get();
     lenient().when(defaultHandler.patch(any(), any(StatefulSet.class), any()))
         .then(invocationOnMock -> invocationOnMock.getArgument(1));
+    lenient().when(patroniCtl.instanceFor(any()))
+        .thenReturn(patroniCtlInstance);
   }
 
   @Test
@@ -209,6 +215,15 @@ class ClusterStatefulSetReconciliationHandlerTest {
     lenient().when(defaultHandler.patch(any(), any(Pod.class), any()))
         .then(invocationOnMock -> invocationOnMock.getArgument(1));
 
+    var history = List.of(new PatroniHistoryEntry());
+    history.get(0).setNewLeader(
+        this.podList.stream()
+        .filter(pod -> pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY)
+            .equals(PatroniUtil.PRIMARY_ROLE))
+        .findFirst().get().getMetadata().getName());
+    when(patroniCtlInstance.history())
+        .thenReturn(history);
+
     StatefulSet sts = (StatefulSet) handler.patch(
         cluster, requiredStatefulSet, deployedStatefulSet);
 
@@ -223,7 +238,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
       assertEquals(StackGresContext.RIGHT_VALUE, disruptableValue);
     }
 
-    verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
+    verify(podScanner, times(5)).findByLabelsAndNamespace(anyString(), anyMap());
     verify(defaultHandler).patch(any(), any(StatefulSet.class), any());
     verify(defaultHandler, atMostOnce()).patch(any(), any(Pod.class), any());
     verify(defaultHandler, never()).delete(any(), any(StatefulSet.class));
@@ -259,7 +274,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
     assertEquals(StackGresContext.WRONG_VALUE, disruptableValue);
     assertEquals(PatroniUtil.PRIMARY_ROLE, podRole);
 
-    verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
+    verify(podScanner, times(5)).findByLabelsAndNamespace(anyString(), anyMap());
     verify(defaultHandler).patch(any(), any(StatefulSet.class), any());
     verify(defaultHandler, never()).delete(any(), any(StatefulSet.class));
     verify(defaultHandler, never()).patch(any(), any(PersistentVolumeClaim.class), any());
@@ -273,17 +288,12 @@ class ClusterStatefulSetReconciliationHandlerTest {
     final int desiredReplicas = setUpNoScale(
         1, true, 1, PrimaryPosition.FIRST_NONDISRUPTABLE_MISSING);
 
-    when(endpointsFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(new EndpointsBuilder()
-            .withNewMetadata()
-            .withAnnotations(ImmutableMap.of(HISTORY_KEY,
-                "[[1,25987816,"
-                + "\"no recovery target specified\","
-                + "\"2021-10-18T23:31:45.550086+00:00\","
-                + "\"" + requiredStatefulSet.getMetadata().getName()
-                + "-" + (desiredReplicas) + "\"]]"))
-            .endMetadata()
-            .build()));
+    var history = List.of(new PatroniHistoryEntry());
+    history.get(0).setNewLeader(
+        requiredStatefulSet.getMetadata().getName()
+        + "-" + (desiredReplicas));
+    when(patroniCtlInstance.history())
+        .thenReturn(history);
     when(defaultHandler.patch(any(), any(StatefulSet.class), any()))
         .then(invocationOnMock -> {
           int podIndex = desiredReplicas - 1;
@@ -317,17 +327,12 @@ class ClusterStatefulSetReconciliationHandlerTest {
     final int desiredReplicas =
         setUpNoScaleWithPlaceholders(1, true, 1, PrimaryPosition.FIRST_NONDISRUPTABLE);
 
-    when(endpointsFinder.findByNameAndNamespace(any(), any()))
-        .thenReturn(Optional.of(new EndpointsBuilder()
-            .withNewMetadata()
-            .withAnnotations(ImmutableMap.of(HISTORY_KEY,
-                "[[1,25987816,"
-                + "\"no recovery target specified\","
-                + "\"2021-10-18T23:31:45.550086+00:00\","
-                + "\"" + requiredStatefulSet.getMetadata().getName()
-                + "-" + (desiredReplicas) + "\"]]"))
-            .endMetadata()
-            .build()));
+    var history = List.of(new PatroniHistoryEntry());
+    history.get(0).setNewLeader(
+        requiredStatefulSet.getMetadata().getName()
+        + "-" + (desiredReplicas));
+    when(patroniCtlInstance.history())
+        .thenReturn(history);
 
     StatefulSet sts = (StatefulSet) handler.patch(
         cluster, requiredStatefulSet, deployedStatefulSet);
@@ -353,7 +358,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     assertEquals(desiredReplicas, sts.getSpec().getReplicas());
 
-    verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
+    verify(podScanner, times(5)).findByLabelsAndNamespace(anyString(), anyMap());
     verify(defaultHandler).patch(any(), any(StatefulSet.class), any());
     verify(defaultHandler, times(1)).patch(any(), any(Pod.class), any());
     verify(defaultHandler, never()).delete(any(), any(StatefulSet.class));
@@ -372,7 +377,7 @@ class ClusterStatefulSetReconciliationHandlerTest {
 
     assertEquals(desiredReplicas, sts.getSpec().getReplicas());
 
-    verify(podScanner, times(4)).findByLabelsAndNamespace(anyString(), anyMap());
+    verify(podScanner, times(5)).findByLabelsAndNamespace(anyString(), anyMap());
     verify(defaultHandler).patch(any(), any(StatefulSet.class), any());
     verify(defaultHandler, times(1)).patch(any(), any(Pod.class), any());
     verify(defaultHandler, never()).delete(any(), any(StatefulSet.class));
@@ -728,6 +733,26 @@ class ClusterStatefulSetReconciliationHandlerTest {
       podList.remove(arguments.getArgument(0));
       return null;
     }).when(defaultHandler).delete(any(), any(Pod.class));
+
+    lenient().when(patroniCtlInstance.list()).thenReturn(
+        podList
+        .stream()
+        .map(pod -> {
+          var member = new PatroniMember();
+          member.setMember(pod.getMetadata().getName());
+          if (Objects.equals(
+              PatroniUtil.PRIMARY_ROLE,
+              pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))) {
+            member.setRole(PatroniMember.LEADER);
+          }
+          if (Objects.equals(
+              PatroniUtil.REPLICA_ROLE,
+              pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))) {
+            member.setRole(PatroniMember.REPLICA);
+          }
+          return member;
+        })
+        .toList());
   }
 
   private int getPrimaryIndex(int desiredReplicas, boolean nonDisruptablePod,

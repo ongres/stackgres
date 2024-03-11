@@ -57,6 +57,8 @@ Options:
 
                           Will load image with name postgres-util:v15.0-hash-f9b66c957b5e1ff5b59f0310e9a23f38-linux-amd64
                           as it where the image with name postgres-util:v15.0-build-6.17.
+                          
+                          Requires `push` and `--load-components` to work properly.
   --enable-pod-logging    Enable logging of pod resources
   --enable-event-logging  Enable logging of event resources
   --enable-snapshotting   Enable snapshotting of k8s events, pods and resources
@@ -530,7 +532,7 @@ cli_init_e2e_variables() {
   E2E_SKIP_LOAD_COMPONENTS=true
   E2E_SKIP_LOAD_EXTENSIONS=true
   E2E_SKIP_UPGRADE_FROM_PREVIOUS_OPERATOR=true
-  E2E_OPERATOR_OPTS="--set-string authentication.password=st4ckgr3s --set-string adminui.service.type=NodePort --set adminui.service.nodePort=30100 --set developer.enableJvmDebug=true"
+  E2E_OPERATOR_OPTS="--set-string authentication.password=st4ckgr3s --set-string adminui.service.type=NodePort --set adminui.service.nodePort=30100 --set developer.enableJvmDebug=true $E2E_OPERATOR_OPTS"
   E2E_OPERATOR_BUNDLE_SGCONFIG='{"spec":{"authentication":{"password":"st4ckgr3s"},"adminui":{"service":{"type":"NodePort","nodePort":30100}},"developer":{"enableJvmDebug":true}}}'
   E2E_OPERATOR_BUNDLE_EXTRA_ENV_JSON='{"name":"DEBUG_OPERATOR","value":"true"},'
   E2E_DISABLE_CACHE=true

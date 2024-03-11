@@ -11,7 +11,7 @@ e2e_test_install() {
 
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
     --set-string 'cluster.postgres.extensions[0].name=pg_repack' \
-    --set-string postgres.extensions.version="$PG_REPACK_VERSION"
+    --set-string 'cluster.postgres.extensions[0].version'="$PG_REPACK_VERSION"
 
   deploy_curl_pod "$CLUSTER_NAMESPACE"
 

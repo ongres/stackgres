@@ -1,27 +1,42 @@
 #!/bin/sh
 
-if [ -z "$1" ]
-then
-  echo "You must specifiy the kubernetes version (e.g. 1.25)"
-  exit 1
-fi
-
-K8S_VERSION="$1"
+set -e
 
 . "$(dirname "$0")/utils"
 
-if [ ! -s "$SWAGGER_FILE" ] || ! jq . "$SWAGGER_FILE" > /dev/null
-then
-  wget "https://github.com/kubernetes/kubernetes/blob/release-$K8S_VERSION/api/openapi-spec/swagger.json?raw=true" -O "$SWAGGER_FILE"
-fi
+KUBERNETES_API_BASE_URL='https://kubernetes.io/docs/reference/generated/kubernetes-api'
 
-if [ ! -s "$REMOVED_PATHS_SWAGGER_FILE" ] || ! jq . "$REMOVED_PATHS_SWAGGER_FILE" > /dev/null
-then
-  jq --argjson debug "$DEBUG" -f remove-paths.jq "$SWAGGER_FILE" > "$REMOVED_PATHS_SWAGGER_FILE"
-fi
+update_k8s_swagger
 
-if [ ! -s "$MERGED_DEFINITIONS_SWAGGER_FILE" ] || ! jq . "$MERGED_DEFINITIONS_SWAGGER_FILE" > /dev/null
-then
-  jq --argjson debug "$DEBUG" -f merge-definitions.jq "$REMOVED_PATHS_SWAGGER_FILE" > "$MERGED_DEFINITIONS_SWAGGER_FILE"
-fi
-
+for CRD in "$PROJECT_PATH"/stackgres-k8s/src/common/src/main/resources/crds/*.yaml
+do
+  grep -n '#!jq_placeholder' "$CRD" \
+    | sed 's/^\([^:]\+\):.*#!jq_placeholder \+\([^ ]\+\)\( \+\([^ ]\+\)\)\? *$/\1 \2 \4/' \
+    | {
+      PREV_LINE_NUMBER=0
+      while read LINE_NUMBER JQ_EXPRESSION K8S_WEB_HASH
+      do
+        if [ "x$LINE_NUMBER" = x ] || [ "x$JQ_EXPRESSION" = x ]
+        then
+          echo "Bad jq_placeholder: LINE_NUMBER=$LINE_NUMBER JQ_EXPRESSION=$JQ_EXPRESSION K8S_WEB_HASH=$K8S_WEB_HASH"
+          exit 1
+        fi
+        head -n "$LINE_NUMBER" "$CRD" | tail -n "$((LINE_NUMBER - PREV_LINE_NUMBER))" \
+          | sed "s|$KUBERNETES_API_BASE_URL/[^/]\+/|$KUBERNETES_API_BASE_URL/v$K8S_VERSION/|g"
+        head -n "$((LINE_NUMBER+1))" "$CRD" | tail -n 1 | sed 's/^\( *\).*$/\1/' | tr -d '\n'
+        if [ "x$K8S_WEB_HASH" != x ]
+        then
+          jq -M -c "$JQ_EXPRESSION
+            | if has(\"description\")
+              then .description = .description + \"\n\nSee $KUBERNETES_API_BASE_URL/v$K8S_VERSION/$K8S_WEB_HASH\"
+              else . end" "$MERGED_DEFINITIONS_SWAGGER_FILE"
+        else
+          jq -M -c "$JQ_EXPRESSION" "$MERGED_DEFINITIONS_SWAGGER_FILE"
+        fi
+        PREV_LINE_NUMBER="$((LINE_NUMBER+1))"
+      done
+      tail -n +"$((PREV_LINE_NUMBER+1))" "$CRD" \
+          | sed "s|$KUBERNETES_API_BASE_URL/[^/]\+/|$KUBERNETES_API_BASE_URL/v$K8S_VERSION/|g"
+      } > "$CRD".tmp
+  mv "$CRD".tmp "$CRD"
+done

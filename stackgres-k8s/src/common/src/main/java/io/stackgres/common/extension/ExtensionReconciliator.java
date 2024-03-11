@@ -22,10 +22,12 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.extension.ExtensionManager.ExtensionInstaller;
 import io.stackgres.common.extension.ExtensionManager.ExtensionUninstaller;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
+import io.stackgres.operatorframework.reconciliation.SafeReconciliator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorContext> {
+public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorContext>
+    extends SafeReconciliator<T, Boolean> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ExtensionReconciliator.class);
 
@@ -55,7 +57,7 @@ public abstract class ExtensionReconciliator<T extends ExtensionReconciliatorCon
 
   @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",
       justification = "False positives")
-  public ReconciliationResult<Boolean> reconcile(KubernetesClient client, T context)
+  public ReconciliationResult<Boolean> safeReconcile(KubernetesClient client, T context)
       throws Exception {
     final ImmutableList.Builder<Exception> exceptions = ImmutableList.builder();
     final StackGresCluster cluster = context.getCluster();

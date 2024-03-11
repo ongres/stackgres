@@ -298,11 +298,11 @@ public abstract class ExtensionManager {
       BiFunction<TarArchiveInputStream, Path, T> visitor,
       T initialValue, BiFunction<T, T, T> accumulator) throws Exception {
     try (TarArchiveInputStream tarEntryInputStream = new TarArchiveInputStream(inputStream)) {
-      TarArchiveEntry tarArchiveEntry = tarEntryInputStream.getNextTarEntry();
+      TarArchiveEntry tarArchiveEntry = tarEntryInputStream.getNextEntry();
       if (tarArchiveEntry == null) {
         throw new IllegalStateException("Can not find any entry in the output");
       }
-      for (; tarArchiveEntry != null; tarArchiveEntry = tarEntryInputStream.getNextTarEntry()) {
+      for (; tarArchiveEntry != null; tarArchiveEntry = tarEntryInputStream.getNextEntry()) {
         final Path entryPath = Paths.get(tarArchiveEntry.getName());
         final Path targetPath;
         if (entryPath.isAbsolute()) {

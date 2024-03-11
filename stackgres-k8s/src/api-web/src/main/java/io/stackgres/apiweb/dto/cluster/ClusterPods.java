@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.dto.cluster;
 
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -13,6 +14,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CustomContainer;
 import io.stackgres.common.crd.CustomVolume;
+import io.stackgres.common.crd.CustomVolumeMount;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -39,6 +41,10 @@ public class ClusterPods {
   private List<CustomContainer> customContainers;
 
   private List<CustomContainer> customInitContainers;
+
+  private Map<String, CustomVolumeMount> customVolumeMounts;
+
+  private Map<String, CustomVolumeMount> customInitVolumeMounts;
 
   public ClusterPodPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -118,6 +124,22 @@ public class ClusterPods {
 
   public void setCustomInitContainers(List<CustomContainer> customInitContainers) {
     this.customInitContainers = customInitContainers;
+  }
+
+  public Map<String, CustomVolumeMount> getCustomVolumeMounts() {
+    return customVolumeMounts;
+  }
+
+  public void setCustomVolumeMounts(Map<String, CustomVolumeMount> customVolumeMounts) {
+    this.customVolumeMounts = customVolumeMounts;
+  }
+
+  public Map<String, CustomVolumeMount> getCustomInitVolumeMounts() {
+    return customInitVolumeMounts;
+  }
+
+  public void setCustomInitVolumeMounts(Map<String, CustomVolumeMount> customInitVolumeMounts) {
+    this.customInitVolumeMounts = customInitVolumeMounts;
   }
 
   @Override

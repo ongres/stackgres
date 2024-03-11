@@ -40,6 +40,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
 import io.stackgres.common.postgres.PostgresConnectionManager;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
+import io.stackgres.operatorframework.reconciliation.SafeReconciliator;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
@@ -52,7 +53,7 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 @SuppressFBWarnings(value = "DMI_HARDCODED_ABSOLUTE_FILENAME",
     justification = "This is not a bug if working with containers")
-public class PostgresSslReconciliator {
+public class PostgresSslReconciliator extends SafeReconciliator<StackGresClusterContext, Void> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresSslReconciliator.class);
 
@@ -74,8 +75,9 @@ public class PostgresSslReconciliator {
     this.postgresConnectionManager = parameters.postgresConnectionManager;
   }
 
-  public ReconciliationResult<Void> reconcile(KubernetesClient client,
-      StackGresClusterContext context) {
+  @Override
+  public ReconciliationResult<Void> safeReconcile(KubernetesClient client,
+      StackGresClusterContext context) throws Exception {
     try {
       reconcilePostgresSsl(client, context);
       return new ReconciliationResult<>();
@@ -162,7 +164,7 @@ public class PostgresSslReconciliator {
     }
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("null")
   private boolean testPostgresSsl(ClusterContext context) {
     var postgresCredentials = PostgresUtil.getPostgresCredentials(context, secretFinder);
     try (Connection connection = postgresConnectionManager.getConnection(
@@ -171,7 +173,7 @@ public class PostgresSslReconciliator {
         "postgres",
         postgresCredentials.username(),
         postgresCredentials.password(),
-        Map.entry("sslmode", "require"))) {
+        Map.of("sslmode", "require"))) {
       return true;
     } catch (SQLException ex) {
       return false;

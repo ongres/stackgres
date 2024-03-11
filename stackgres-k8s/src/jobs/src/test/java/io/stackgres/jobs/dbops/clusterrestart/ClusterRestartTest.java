@@ -119,7 +119,7 @@ class ClusterRestartTest {
         .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(DbOpsMethodType.IN_PLACE)
         .isOnlyPendingRestart(false)
-        .primaryInstance(primary)
+        .primaryInstance(primary.getMetadata().getName())
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2)
         .putAllPodRestartReasonsMap(ImmutableMap.of(
@@ -194,7 +194,7 @@ class ClusterRestartTest {
         .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(DbOpsMethodType.IN_PLACE)
         .isOnlyPendingRestart(false)
-        .primaryInstance(primary)
+        .primaryInstance(primary.getMetadata().getName())
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2)
         .putAllPodRestartReasonsMap(ImmutableMap.of(
@@ -267,7 +267,7 @@ class ClusterRestartTest {
         .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(DbOpsMethodType.IN_PLACE)
         .isOnlyPendingRestart(false)
-        .primaryInstance(primary)
+        .primaryInstance(primary.getMetadata().getName())
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2)
         .putAllPodRestartReasonsMap(ImmutableMap.of(
@@ -322,7 +322,7 @@ class ClusterRestartTest {
         .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(DbOpsMethodType.IN_PLACE)
         .isOnlyPendingRestart(false)
-        .primaryInstance(primary)
+        .primaryInstance(primary.getMetadata().getName())
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2)
         .addRestartedInstances(replica1)
@@ -391,7 +391,7 @@ class ClusterRestartTest {
         .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(DbOpsMethodType.IN_PLACE)
         .isOnlyPendingRestart(true)
-        .primaryInstance(primary)
+        .primaryInstance(primary.getMetadata().getName())
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2)
         .addRestartedInstances()
@@ -447,7 +447,7 @@ class ClusterRestartTest {
         .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(DbOpsMethodType.IN_PLACE)
         .isOnlyPendingRestart(true)
-        .primaryInstance(primary)
+        .primaryInstance(primary.getMetadata().getName())
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2)
         .addRestartedInstances()
@@ -514,7 +514,7 @@ class ClusterRestartTest {
         .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(DbOpsMethodType.IN_PLACE)
         .isOnlyPendingRestart(false)
-        .primaryInstance(primary)
+        .primaryInstance(primary.getMetadata().getName())
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2)
         .addRestartedInstances(replica1, replica2)
@@ -581,7 +581,7 @@ class ClusterRestartTest {
         .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(DbOpsMethodType.IN_PLACE)
         .isOnlyPendingRestart(false)
-        .primaryInstance(primary)
+        .primaryInstance(primary.getMetadata().getName())
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2)
         .addRestartedInstances(replica1, replica2)
@@ -646,7 +646,7 @@ class ClusterRestartTest {
         .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(DbOpsMethodType.REDUCED_IMPACT)
         .isOnlyPendingRestart(false)
-        .primaryInstance(primary)
+        .primaryInstance(primary.getMetadata().getName())
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2)
         .putAllPodRestartReasonsMap(ImmutableMap.of(
@@ -730,7 +730,7 @@ class ClusterRestartTest {
         .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(DbOpsMethodType.REDUCED_IMPACT)
         .isOnlyPendingRestart(false)
-        .primaryInstance(primary)
+        .primaryInstance(primary.getMetadata().getName())
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2, additionalPod)
         .addRestartedInstances(replica1, additionalPod)
@@ -807,7 +807,7 @@ class ClusterRestartTest {
         .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(DbOpsMethodType.REDUCED_IMPACT)
         .isOnlyPendingRestart(false)
-        .primaryInstance(primary)
+        .primaryInstance(primary.getMetadata().getName())
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2, additionalPod)
         .addRestartedInstances(additionalPod, replica1, replica2)
@@ -871,7 +871,7 @@ class ClusterRestartTest {
         .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(DbOpsMethodType.REDUCED_IMPACT)
         .isOnlyPendingRestart(false)
-        .primaryInstance(primary)
+        .primaryInstance(primary.getMetadata().getName())
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2)
         .addRestartedInstances(replica1, replica2, primary)
@@ -929,7 +929,7 @@ class ClusterRestartTest {
         .clusterName(dbOps.getSpec().getSgCluster())
         .restartMethod(DbOpsMethodType.IN_PLACE)
         .isOnlyPendingRestart(false)
-        .primaryInstance(primary)
+        .primaryInstance(primary.getMetadata().getName())
         .addInitialInstances(primary, replica1, replica2)
         .addTotalInstances(primary, replica1, replica2)
         .putAllPodRestartReasonsMap(ImmutableMap.of(
@@ -956,7 +956,7 @@ class ClusterRestartTest {
             .asStream()
             .count());
 
-    assertEquals(String.format("Restart of instance %s failed", primaryName),
+    assertEquals(String.format("Restart of primary instance in Pod %s failed", primaryName),
         failure.getMessage());
     assertEquals("woops!",
         failure.getCause().getMessage());
@@ -966,14 +966,18 @@ class ClusterRestartTest {
     assertEquals(times,
         events.stream().filter(event -> event.getEventType() == RestartEventType.POD_RESTARTED)
             .count(),
-        "it should " + (times > 0 ? " " : "not ") + "send an event for every pod restart");
+        "it should " + (times > 0 ? " " : "not ") + "send an event for every pod restart:\n"
+            + events.stream().map(RestartEvent::getEventType)
+            .map(Object::toString).collect(Collectors.joining("\n")));
   }
 
   private void assertRestartingPodEventCount(List<RestartEvent> events, int times) {
     assertEquals(times,
         events.stream().filter(event -> event.getEventType() == RestartEventType.RESTARTING_POD)
             .count(),
-        "it should " + (times > 0 ? " " : "not ") + "send an event for every pod restart");
+        "it should " + (times > 0 ? " " : "not ") + "send an event for every pod restart:\n"
+            + events.stream().map(RestartEvent::getEventType)
+            .map(Object::toString).collect(Collectors.joining("\n")));
   }
 
   private void assertSwitchoverFinalizedEvent(List<RestartEvent> events, boolean expected) {
@@ -981,7 +985,9 @@ class ClusterRestartTest {
         events.stream()
             .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_FINALIZED)
             .count(),
-        "it should " + (expected ? " " : "not ") + "finalize a switchover");
+        "it should " + (expected ? " " : "not ") + "finalize a switchover:\n"
+            + events.stream().map(RestartEvent::getEventType)
+            .map(Object::toString).collect(Collectors.joining("\n")));
   }
 
   private void assertSwitchoverInitializedEvent(List<RestartEvent> events, boolean expected) {
@@ -989,7 +995,9 @@ class ClusterRestartTest {
         events.stream()
             .filter(event -> event.getEventType() == RestartEventType.SWITCHOVER_INITIATED)
             .count(),
-        "it should " + (expected ? " " : "not ") + "initiate a switchover");
+        "it should " + (expected ? " " : "not ") + "initiate a switchover:\n"
+            + events.stream().map(RestartEvent::getEventType)
+            .map(Object::toString).collect(Collectors.joining("\n")));
   }
 
   private void assertInstancesDecreasedEvent(List<RestartEvent> events, boolean expected) {
@@ -997,7 +1005,9 @@ class ClusterRestartTest {
         events.stream()
             .filter(event -> event.getEventType() == RestartEventType.INSTANCES_DECREASED)
             .count(),
-        "it should " + (expected ? " " : "not ") + "delete a pod in InPlace restart");
+        "it should " + (expected ? " " : "not ") + "delete a pod in InPlace restart:\n"
+            + events.stream().map(RestartEvent::getEventType)
+            .map(Object::toString).collect(Collectors.joining("\n")));
   }
 
   private void assertDecreasingInstanceEvent(List<RestartEvent> events, boolean expected) {
@@ -1005,7 +1015,9 @@ class ClusterRestartTest {
         events.stream()
             .filter(event -> event.getEventType() == RestartEventType.DECREASING_INSTANCES)
             .count(),
-        "it should " + (expected ? " " : "not ") + "delete a pod in InPlace restart");
+        "it should " + (expected ? " " : "not ") + "delete a pod in InPlace restart:\n"
+            + events.stream().map(RestartEvent::getEventType)
+            .map(Object::toString).collect(Collectors.joining("\n")));
   }
 
   private void assertInstancesIncreasedEvent(List<RestartEvent> events, boolean expected) {
@@ -1013,7 +1025,9 @@ class ClusterRestartTest {
         events.stream()
             .filter(event -> event.getEventType() == RestartEventType.INSTANCES_INCREASED)
             .count(),
-        "it should " + (expected ? " " : "not ") + "create a pod in InPlace restart");
+        "it should " + (expected ? " " : "not ") + "create a pod in InPlace restart:\n"
+            + events.stream().map(RestartEvent::getEventType)
+            .map(Object::toString).collect(Collectors.joining("\n")));
   }
 
   private void assertIncreasingInstanceEvent(List<RestartEvent> events, boolean expected) {
@@ -1021,14 +1035,18 @@ class ClusterRestartTest {
         events.stream()
             .filter(event -> event.getEventType() == RestartEventType.INCREASING_INSTANCES)
             .count(),
-        "it should " + (expected ? " " : "not ") + "create a pod in InPlace restart");
+        "it should " + (expected ? " " : "not ") + "create a pod in InPlace restart:\n"
+            + events.stream().map(RestartEvent::getEventType)
+            .map(Object::toString).collect(Collectors.joining("\n")));
   }
 
   private void assertPostgresRestartedEvent(List<RestartEvent> events, boolean expected) {
     assertEquals(expected ? 1 : 0,
         events.stream().filter(event -> event.getEventType() == RestartEventType.POSTGRES_RESTARTED)
             .count(),
-        "it should " + (expected ? " " : "not ") + "restart the primary postgres");
+        "it should " + (expected ? " " : "not ") + "restart the primary postgres:\n"
+            + events.stream().map(RestartEvent::getEventType)
+            .map(Object::toString).collect(Collectors.joining("\n")));
   }
 
   private void assertRestartingPostgresEvent(List<RestartEvent> events, boolean expected) {
@@ -1037,7 +1055,9 @@ class ClusterRestartTest {
             .filter(event -> event.getEventType() == RestartEventType.RESTARTING_POSTGRES)
             .count(),
         "it should " + (expected ? " " : "not ")
-        + "notify that the primary postgres has been restarted");
+        + "notify that the primary postgres has been restarted:\n"
+            + events.stream().map(RestartEvent::getEventType)
+            .map(Object::toString).collect(Collectors.joining("\n")));
   }
 
   private void assertPrimaryAvailableEvent(List<RestartEvent> events, boolean expected) {
@@ -1045,17 +1065,23 @@ class ClusterRestartTest {
         events.stream()
             .filter(event -> event.getEventType() == RestartEventType.PRIMARY_AVAILABLE)
             .count(),
-        "it should " + (expected ? " " : "not ") + "detect primary as available");
+        "it should " + (expected ? " " : "not ") + "detect primary as available:\n"
+            + events.stream().map(RestartEvent::getEventType)
+            .map(Object::toString).collect(Collectors.joining("\n")));
     assertEquals(expected ? 0 : 1,
         events.stream()
             .filter(event -> event.getEventType() == RestartEventType.PRIMARY_NOT_AVAILABLE)
             .count(),
-        "it should " + (!expected ? " " : "not ") + "detect primary as unavailable");
+        "it should " + (!expected ? " " : "not ") + "detect primary as unavailable:\n"
+            + events.stream().map(RestartEvent::getEventType)
+            .map(Object::toString).collect(Collectors.joining("\n")));
     assertEquals(0,
         events.stream()
             .filter(event -> event.getEventType() == RestartEventType.PRIMARY_CHANGED)
             .count(),
-        "it should not detect primary as changed");
+        "it should not detect primary as changed: "
+            + events.stream().map(RestartEvent::getEventType)
+            .map(Object::toString).collect(Collectors.joining("\n")));
   }
 
   private void assertPrimaryChangedEvent(List<RestartEvent> events) {
@@ -1063,17 +1089,23 @@ class ClusterRestartTest {
         events.stream()
             .filter(event -> event.getEventType() == RestartEventType.PRIMARY_CHANGED)
             .count(),
-        "it should detect primary as changed");
+        "it should detect primary as changed:\n"
+            + events.stream().map(RestartEvent::getEventType)
+            .map(Object::toString).collect(Collectors.joining("\n")));
     assertEquals(0,
         events.stream()
             .filter(event -> event.getEventType() == RestartEventType.PRIMARY_AVAILABLE)
             .count(),
-        "it should not detect primary as available");
+        "it should not detect primary as available:\n"
+            + events.stream().map(RestartEvent::getEventType)
+            .map(Object::toString).collect(Collectors.joining("\n")));
     assertEquals(0,
         events.stream()
             .filter(event -> event.getEventType() == RestartEventType.PRIMARY_NOT_AVAILABLE)
             .count(),
-        "it should not detect primary as unavailable");
+        "it should not detect primary as unavailable:\n"
+            + events.stream().map(RestartEvent::getEventType)
+            .map(Object::toString).collect(Collectors.joining("\n")));
   }
 
 }

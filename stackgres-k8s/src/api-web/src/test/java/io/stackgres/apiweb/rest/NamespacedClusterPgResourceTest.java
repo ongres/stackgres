@@ -5,6 +5,9 @@
 
 package io.stackgres.apiweb.rest;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+
 import java.sql.SQLException;
 import java.util.Base64;
 import java.util.List;
@@ -33,13 +36,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings("uncheked")
 public class NamespacedClusterPgResourceTest {
 
   @Mock
@@ -70,7 +71,7 @@ public class NamespacedClusterPgResourceTest {
           .thenReturn(Optional.empty());
 
     Assertions.assertThrows(IllegalArgumentException.class,
-          () -> endpoint.statements("namespace",
+          () -> endpoint.query("namespace",
               "name",
               "named", 0,
               "sort",
@@ -90,7 +91,7 @@ public class NamespacedClusterPgResourceTest {
         .thenReturn(Optional.empty());
 
     Assertions.assertThrows(IllegalArgumentException.class, ()
-            -> endpoint.statements("namespace",
+            -> endpoint.query("namespace",
             "name",
             "named",
             0,
@@ -121,16 +122,12 @@ public class NamespacedClusterPgResourceTest {
         )
               .thenReturn(Optional.of(cluster));
 
-    Mockito.when(postgresConnectionManager.getConnection(Mockito.anyString(),
-                      Mockito.anyInt(),
-                      Mockito.anyString(),
-                      Mockito.anyString(),
-                      Mockito.anyString(),
-                      Mockito.isNull()))
-              .thenThrow(new SQLException("Could not connect to the database"));
+    Mockito.doThrow(new SQLException("Could not connect to the database"))
+        .when(postgresConnectionManager).getConnection(
+            any(), anyInt(), any(), any(), any());
 
     Assertions.assertThrows(RuntimeException.class, () ->
-              endpoint.statements("namespace",
+              endpoint.query("namespace",
                       "name",
                       "named", 0,
                       "sort",
@@ -171,16 +168,12 @@ public class NamespacedClusterPgResourceTest {
         )
               .thenReturn(Optional.of(cluster));
 
-    final ArgumentCaptor<String> hostCapture = ArgumentCaptor.forClass(String.class);
-    Mockito.when(postgresConnectionManager.getConnection(Mockito.anyString(),
-                      Mockito.anyInt(),
-                      Mockito.anyString(),
-                      Mockito.anyString(),
-                      Mockito.anyString()))
-              .thenReturn(connection);
+    Mockito.when(postgresConnectionManager.getConnection(
+        any(), anyInt(), any(), any(), any()))
+        .thenReturn(connection);
 
     final List<Object> statements =
-              endpoint.statements("namespace",
+              endpoint.query("namespace",
                       "name",
                       NamespacedClusterPgResource.TOP_PG_STAT_STATEMENTS,
                       20,
@@ -227,15 +220,12 @@ public class NamespacedClusterPgResourceTest {
         )
               .thenReturn(Optional.of(cluster));
 
-    Mockito.when(postgresConnectionManager.getConnection(Mockito.anyString(),
-                      Mockito.anyInt(),
-                      Mockito.anyString(),
-                      Mockito.anyString(),
-                      Mockito.anyString()))
-              .thenReturn(mockConnection);
+    Mockito.when(postgresConnectionManager.getConnection(
+        any(), anyInt(), any(), any(), any()))
+        .thenReturn(mockConnection);
 
     final List<Object> statements =
-              endpoint.statements("namespace",
+              endpoint.query("namespace",
                       "name",
                       NamespacedClusterPgResource.TOP_PG_STAT_STATEMENTS,
                       20,
@@ -278,15 +268,12 @@ public class NamespacedClusterPgResourceTest {
         )
             .thenReturn(Optional.of(cluster));
 
-    Mockito.when(postgresConnectionManager.getConnection(Mockito.anyString(),
-                      Mockito.anyInt(),
-                      Mockito.anyString(),
-                      Mockito.anyString(),
-                      Mockito.anyString()))
-              .thenReturn(mockConnection);
+    Mockito.when(postgresConnectionManager.getConnection(
+        any(), anyInt(), any(), any(), any()))
+        .thenReturn(mockConnection);
 
     final List<Object> statements =
-            endpoint.statements("namespace",
+            endpoint.query("namespace",
                     "name",
                     NamespacedClusterPgResource.TOP_PG_STAT_STATEMENTS,
                     20,

@@ -40,10 +40,13 @@ import io.stackgres.common.crd.sgdbops.DbOpsRestartStatus;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.event.DbOpsEventEmitter;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.patroni.PatroniCtl.PatroniCtlInstance;
+import io.stackgres.common.patroni.PatroniHistoryEntry;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestart;
 import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.ImmutableRestartEventForTest;
 import io.stackgres.jobs.dbops.clusterrestart.InvalidClusterException;
+import io.stackgres.jobs.dbops.clusterrestart.PatroniCtlFinder;
 import io.stackgres.jobs.dbops.clusterrestart.PodTestUtil;
 import io.stackgres.jobs.dbops.clusterrestart.RestartEventType;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
@@ -51,15 +54,22 @@ import io.stackgres.testutil.StringUtils;
 import jakarta.inject.Inject;
 import org.apache.commons.compress.utils.Lists;
 import org.jooq.lambda.Seq;
+import org.jooq.lambda.tuple.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
+import org.mockito.Mockito;
 
 @WithKubernetesTestServer
 public abstract class ClusterStateHandlerTest {
 
   @InjectMock
   public ClusterRestart clusterRestart;
+
+  @InjectMock
+  PatroniCtlFinder patroniCtlFinder;
+
+  protected PatroniCtlInstance patroniCtl = Mockito.mock(PatroniCtlInstance.class);
 
   @Inject
   public PodTestUtil podTestUtil;
@@ -86,7 +96,7 @@ public abstract class ClusterStateHandlerTest {
     assertEquals(expected.getClusterName(), actual.getClusterName());
     assertEquals(expected.getNamespace(), actual.getNamespace());
 
-    assertPodEquals(expected.getPrimaryInstance(), actual.getPrimaryInstance());
+    assertEquals(expected.getPrimaryInstance(), actual.getPrimaryInstance());
 
     var expectedInitialInstances = expected.getInitialInstances()
         .stream().sorted(Comparator.comparing(pod -> pod.getMetadata().getName()))
@@ -140,6 +150,9 @@ public abstract class ClusterStateHandlerTest {
     dbOps = kubeDb.addOrReplaceDbOps(dbOps);
 
     lenient().doNothing().when(eventEmitter).sendEvent(any(), any(), any());
+    lenient().when(patroniCtlFinder.findPatroniCtl(any(), any())).thenReturn(patroniCtl);
+    lenient().when(patroniCtlFinder.getSuperuserCredentials(any(), any()))
+        .thenReturn(Tuple.tuple("test", "test"));
   }
 
   protected abstract StackGresDbOps getDbOps();
@@ -312,6 +325,10 @@ public abstract class ClusterStateHandlerTest {
         .filter(pod -> pod.getMetadata().getName().endsWith("-0"))
         .findAny().get();
 
+    var patroniHistoryEntry = new PatroniHistoryEntry();
+    patroniHistoryEntry.setNewLeader(primaryPod.getMetadata().getName());
+    when(patroniCtl.history()).thenReturn(List.of(patroniHistoryEntry));
+
     final Pod replica1Pod = pods.stream()
         .filter(pod -> pod.getMetadata().getName().endsWith("-1"))
         .findAny().get();
@@ -327,7 +344,7 @@ public abstract class ClusterStateHandlerTest {
         .restartMethod(getRestartMethod(dbOps))
         .isSwitchoverInitiated(Boolean.FALSE)
         .isSwitchoverFinalized(Boolean.FALSE)
-        .primaryInstance(primaryPod)
+        .primaryInstance(primaryPod.getMetadata().getName())
         .addInitialInstances(primaryPod, replica1Pod)
         .addRestartedInstances(replica1Pod)
         .addAllTotalInstances(pods)
@@ -353,6 +370,10 @@ public abstract class ClusterStateHandlerTest {
         .filter(pod -> pod.getMetadata().getName().endsWith("-0"))
         .findAny().get();
 
+    var patroniHistoryEntry = new PatroniHistoryEntry();
+    patroniHistoryEntry.setNewLeader(primaryPod.getMetadata().getName());
+    when(patroniCtl.history()).thenReturn(List.of(patroniHistoryEntry));
+
     final Pod replica1Pod = pods.stream()
         .filter(pod -> pod.getMetadata().getName().endsWith("-1"))
         .findAny().get();
@@ -368,7 +389,7 @@ public abstract class ClusterStateHandlerTest {
         .restartMethod(getRestartMethod(dbOps))
         .isSwitchoverInitiated(Boolean.FALSE)
         .isSwitchoverFinalized(Boolean.FALSE)
-        .primaryInstance(primaryPod)
+        .primaryInstance(primaryPod.getMetadata().getName())
         .addInitialInstances(primaryPod, replica1Pod)
         .addRestartedInstances(replica1Pod)
         .addAllTotalInstances(pods)

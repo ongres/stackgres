@@ -437,12 +437,12 @@ spec:
                                 secretKeySelectors:
                                   type: object
                                   description: |
-                                    Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#secretkeyselector-v1-core)s to reference the Secrets that contain the information about the `awsCredentials`.
+                                    Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#secretkeyselector-v1-core)s to reference the Secrets that contain the information about the `awsCredentials`.
                                   properties:
                                     accessKeyId:
                                       type: object
                                       description: |
-                                        [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#secretkeyselector-v1-core) containing the AWS Access Key ID secret.
+                                        [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#secretkeyselector-v1-core) containing the AWS Access Key ID secret.
                                       properties:
                                         key:
                                           type: string
@@ -456,7 +456,7 @@ spec:
                                     secretAccessKey:
                                       type: object
                                       description: |
-                                        [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#secretkeyselector-v1-core) containing the AWS Secret Access Key secret.
+                                        [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#secretkeyselector-v1-core) containing the AWS Secret Access Key secret.
                                       properties:
                                         key:
                                           type: string
@@ -509,12 +509,12 @@ spec:
                                 secretKeySelectors:
                                   type: object
                                   description: |
-                                    A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#secretkeyselector-v1-core) to reference the Secrets that contain the information about the `awsCredentials`.
+                                    A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#secretkeyselector-v1-core) to reference the Secrets that contain the information about the `awsCredentials`.
                                   properties:
                                     accessKeyId:
                                       type: object
                                       description: |
-                                        [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#secretkeyselector-v1-core) containing the AWS Access Key ID secret.
+                                        [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#secretkeyselector-v1-core) containing the AWS Access Key ID secret.
                                       properties:
                                         key:
                                           type: string
@@ -528,7 +528,7 @@ spec:
                                     secretAccessKey:
                                       type: object
                                       description: |
-                                        [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#secretkeyselector-v1-core) containing the AWS Secret Access Key secret.
+                                        [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#secretkeyselector-v1-core) containing the AWS Secret Access Key secret.
                                       properties:
                                         key:
                                           type: string
@@ -571,7 +571,7 @@ spec:
                                 secretKeySelectors:
                                   type: object
                                   description: |
-                                    A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#secretkeyselector-v1-core) to reference the Secrets that contain the information about the Service Account to access GCS.
+                                    A Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#secretkeyselector-v1-core) to reference the Secrets that contain the information about the Service Account to access GCS.
                                   properties:
                                     serviceAccountJSON:
                                       type: object
@@ -612,12 +612,12 @@ spec:
                                 secretKeySelectors:
                                   type: object
                                   description: |
-                                    Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#secretkeyselector-v1-core)s to reference the Secrets that contain the information about the `azureCredentials`.
+                                    Kubernetes [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#secretkeyselector-v1-core)s to reference the Secrets that contain the information about the `azureCredentials`.
                                   properties:
                                     storageAccount:
                                       type: object
                                       description: |
-                                        [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#secretkeyselector-v1-core) containing the name of the storage account.
+                                        [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#secretkeyselector-v1-core) containing the name of the storage account.
                                       properties:
                                         key:
                                           type: string
@@ -631,7 +631,7 @@ spec:
                                     accessKey:
                                       type: object
                                       description: |
-                                        [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/#secretkeyselector-v1-core) containing the primary or secondary access key for the storage account.
+                                        [SecretKeySelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.28/#secretkeyselector-v1-core) containing the primary or secondary access key for the storage account.
                                       properties:
                                         key:
                                           type: string

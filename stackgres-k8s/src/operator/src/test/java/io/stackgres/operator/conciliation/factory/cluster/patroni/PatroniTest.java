@@ -18,7 +18,6 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
-import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterPath;
 import io.stackgres.common.EnvoyUtil;
@@ -28,11 +27,9 @@ import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.LocalBinMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.ResourceFactory;
-import io.stackgres.operator.conciliation.factory.VolumeDiscoverer;
 import io.stackgres.operator.conciliation.factory.cluster.BackupVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.HugePagesMounts;
@@ -70,9 +67,8 @@ class PatroniTest {
   PatroniVolumeMounts patroniMounts;
   @Mock
   HugePagesMounts hugePagesMounts;
-
   @Mock
-  VolumeDiscoverer<StackGresClusterContext> volumeDiscoverer;
+  PatroniConfigMap patroniConfigMap;
 
   private Patroni patroni;
 
@@ -91,23 +87,15 @@ class PatroniTest {
   void setUp() {
     patroni = new Patroni(patroniEnvironmentVariables,
         postgresSocket, postgresExtensions, localBinMounts, restoreMounts, backupMounts,
-        replicateMounts, patroniMounts, hugePagesMounts, volumeDiscoverer);
+        replicateMounts, patroniMounts, hugePagesMounts, patroniConfigMap);
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(POSTGRES_VERSION);
     when(clusterContainerContext.getClusterContext()).thenReturn(clusterContext);
     when(patroniEnvironmentVariables.createResource(clusterContext)).thenReturn(List.of());
-    when(volumeDiscoverer.discoverVolumes(clusterContext))
-        .thenReturn(Map.of(StackGresVolume.PATRONI_ENV.getName(),
-            ImmutableVolumePair.builder()
-            .volume(new VolumeBuilder()
-                .withNewConfigMap()
-                .withName("test")
-                .endConfigMap()
-                .build())
-            .source(new ConfigMapBuilder()
+    when(patroniConfigMap.buildSource(clusterContext))
+        .thenReturn(new ConfigMapBuilder()
                 .withData(Map.of(StackGresUtil.MD5SUM_KEY, "test"))
-                .build())
-            .build()));
+                .build());
     when(clusterContext.getSource()).thenReturn(cluster);
     when(clusterContext.getCluster()).thenReturn(cluster);
   }

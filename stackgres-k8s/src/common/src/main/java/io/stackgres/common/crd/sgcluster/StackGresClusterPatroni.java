@@ -17,15 +17,15 @@ import io.stackgres.common.StackGresUtil;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class StackGresClusterPatroni {
 
-  private StackGresClusterPatroniConfig dynamicConfig;
+  private StackGresClusterPatroniDynamicConfig dynamicConfig;
 
   private StackGresClusterPatroniConfig initialConfig;
 
-  public StackGresClusterPatroniConfig getDynamicConfig() {
+  public StackGresClusterPatroniDynamicConfig getDynamicConfig() {
     return dynamicConfig;
   }
 
-  public void setDynamicConfig(StackGresClusterPatroniConfig dynamicConfig) {
+  public void setDynamicConfig(StackGresClusterPatroniDynamicConfig dynamicConfig) {
     this.dynamicConfig = dynamicConfig;
   }
 

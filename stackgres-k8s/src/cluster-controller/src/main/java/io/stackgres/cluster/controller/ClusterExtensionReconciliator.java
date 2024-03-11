@@ -14,6 +14,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.extension.ExtensionEventEmitter;
 import io.stackgres.common.extension.ExtensionManager;
 import io.stackgres.common.extension.ExtensionReconciliator;
+import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
@@ -86,6 +87,12 @@ public class ClusterExtensionReconciliator
     } catch (Exception rex) {
       LOGGER.error("Failed sending event while reconciling extension {}", extension, rex);
     }
+  }
+
+  @Override
+  public ReconciliationResult<Boolean> safeReconcile(KubernetesClient client, StackGresClusterContext context)
+      throws Exception {
+    return super.safeReconcile(client, context);
   }
 
 }

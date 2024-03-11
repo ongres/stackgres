@@ -27,6 +27,9 @@ import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresController;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPatroni;
+import io.stackgres.common.crd.sgcluster.StackGresClusterPatroniConfig;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeveloper;
@@ -91,6 +94,13 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
                 .build())
             .build(),
             new EnvVarBuilder()
+            .withName(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_IP
+                .getEnvironmentVariableName())
+            .withValueFrom(new EnvVarSourceBuilder()
+                .withFieldRef(new ObjectFieldSelector("v1", "status.podIP"))
+                .build())
+            .build(),
+            new EnvVarBuilder()
             .withName(ClusterControllerProperty.CLUSTER_CONTROLLER_EXTENSIONS_REPOSITORY_URLS
                 .getEnvironmentVariableName())
             .withValue(OperatorProperty.EXTENSIONS_REPOSITORY_URLS
@@ -122,9 +132,28 @@ public class ClusterController implements ContainerFactory<ClusterContainerConte
             .build(),
             new EnvVarBuilder()
             .withName(ClusterControllerProperty
+                .CLUSTER_CONTROLLER_RECONCILE_PATRONI_LABELS
+                .getEnvironmentVariableName())
+            .withValue(Optional
+                .ofNullable(context.getClusterContext().getCluster().getSpec().getConfigurations())
+                .map(StackGresClusterConfigurations::getPatroni)
+                .map(StackGresClusterPatroni::getInitialConfig)
+                .map(StackGresClusterPatroniConfig::isPatroniOnKubernetes)
+                .map(isPatroniOnKubernetes -> !isPatroniOnKubernetes)
+                .map(String::valueOf)
+                .orElse("false"))
+            .build(),
+            new EnvVarBuilder()
+            .withName(ClusterControllerProperty
                 .CLUSTER_CONTROLLER_RECONCILE_MANAGED_SQL
                 .getEnvironmentVariableName())
             .withValue(Boolean.TRUE.toString())
+            .build(),
+            new EnvVarBuilder()
+            .withName(ClusterControllerProperty
+                .CLUSTER_CONTROLLER_RECONCILE_PATRONI_AFTER_MAJOR_VERSION_UPGRADE
+                .getEnvironmentVariableName())
+            .withValue(Boolean.FALSE.toString())
             .build(),
             new EnvVarBuilder()
             .withName("CLUSTER_CONTROLLER_LOG_LEVEL")

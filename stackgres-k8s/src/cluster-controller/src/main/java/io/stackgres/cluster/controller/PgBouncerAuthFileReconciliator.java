@@ -125,6 +125,7 @@ public class PgBouncerAuthFileReconciliator {
         .orElseGet(List::of);
   }
 
+  @SuppressWarnings("null")
   private String extractAuthFileSectionForUsers(
       String postgresUser,
       String postgresPassword,

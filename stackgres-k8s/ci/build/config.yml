@@ -1,7 +1,7 @@
 .images:
   ci_image: &ci_image registry.gitlab.com/ongresinc/stackgres/ci:1.24
   jdk_build_image: &jdk_build_image registry.gitlab.com/ongresinc/stackgres/builder:1.8
-  jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi8/openjdk-21-runtime:1.18-2.1705519635
+  jdk_runtime_image: &jdk_runtime_image registry.access.redhat.com/ubi9/openjdk-21:1.17-2.1705482269
   ubi8_micro_image: &ubi8_micro_image registry.access.redhat.com/ubi8-micro:8.9-7
   ubi9_minimal_image: &ubi9_minimal_image registry.access.redhat.com/ubi9-minimal:9.3-1552
   admin_ui_build_image: &admin_ui_build_image registry.access.redhat.com/ubi8/nodejs-16:1-145
@@ -102,7 +102,8 @@ modules:
     filtered_sources:
       - sh stackgres-k8s/ci/build/redact-version.sh operator
     sources:
-      - stackgres-k8s/src/operator/src/main
+      - stackgres-k8s/src/operator/src/main/java
+      - stackgres-k8s/src/operator/src/main/resources
     artifacts:
       - stackgres-k8s/src/operator/target
       - .m2/repository/io/stackgres/stackgres-operator
@@ -121,7 +122,9 @@ modules:
     filtered_sources:
       - sh stackgres-k8s/ci/build/redact-version.sh api-web
     sources:
-      - stackgres-k8s/src/api-web/src/main
+      - stackgres-k8s/src/api-web/src/main/java
+      - stackgres-k8s/src/api-web/src/main/resources
+      - stackgres-k8s/src/api-web/src/main/swagger
     post_build_commands:
       - 'sh $SHELL_XTRACE stackgres-k8s/src/api-web/src/main/swagger/build.sh'
     artifacts:
@@ -142,7 +145,8 @@ modules:
     filtered_sources:
       - sh stackgres-k8s/ci/build/redact-version.sh jobs
     sources:
-      - stackgres-k8s/src/jobs/src/main
+      - stackgres-k8s/src/jobs/src/main/java
+      - stackgres-k8s/src/jobs/src/main/resources
     artifacts:
       - stackgres-k8s/src/jobs/target
       - .m2/repository/io/stackgres/stackgres-jobs
@@ -161,7 +165,8 @@ modules:
     filtered_sources:
       - sh stackgres-k8s/ci/build/redact-version.sh cluster-controller
     sources:
-      - stackgres-k8s/src/cluster-controller/src/main
+      - stackgres-k8s/src/cluster-controller/src/main/java
+      - stackgres-k8s/src/cluster-controller/src/main/resources
     artifacts:
       - stackgres-k8s/src/cluster-controller/target
       - .m2/repository/io/stackgres/stackgres-cluster-controller
@@ -180,7 +185,8 @@ modules:
     filtered_sources:
       - sh stackgres-k8s/ci/build/redact-version.sh distributedlogs-controller
     sources:
-      - stackgres-k8s/src/distributedlogs-controller/src/main
+      - stackgres-k8s/src/distributedlogs-controller/src/main/java
+      - stackgres-k8s/src/distributedlogs-controller/src/main/resources
     artifacts:
       - stackgres-k8s/src/distributedlogs-controller/target
       - .m2/repository/io/stackgres/stackgres-distributedlogs-controller

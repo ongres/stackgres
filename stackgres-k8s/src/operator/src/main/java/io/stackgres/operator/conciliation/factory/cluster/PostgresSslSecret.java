@@ -16,6 +16,7 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -38,9 +39,6 @@ import org.jetbrains.annotations.NotNull;
 @OperatorVersionBinder
 public class PostgresSslSecret
     implements VolumeFactory<StackGresClusterContext> {
-
-  public static final String CERTIFICATE_KEY = "tls.crt";
-  public static final String PRIVATE_KEY_KEY = "tls.key";
 
   private static final String SSL_SUFFIX = "-ssl";
 
@@ -118,8 +116,8 @@ public class PostgresSslSecret
       certificate = Optional.of(certificateAndPrivateKey.v1);
       privateKey = Optional.of(certificateAndPrivateKey.v2);
     }
-    data.put(CERTIFICATE_KEY, certificate.orElseThrow());
-    data.put(PRIVATE_KEY_KEY, privateKey.orElseThrow());
+    data.put(PatroniUtil.CERTIFICATE_KEY, certificate.orElseThrow());
+    data.put(PatroniUtil.PRIVATE_KEY_KEY, privateKey.orElseThrow());
   }
 
 }

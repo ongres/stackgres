@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
@@ -64,7 +65,6 @@ import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresSslSecret;
 import io.stackgres.operator.conciliation.factory.cluster.backup.BackupEnvVarFactory;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -362,7 +362,7 @@ public class ClusterRequiredResourcesGenerator
         .map(StackGresClusterReplicateFrom::getInstance)
         .map(StackGresClusterReplicateFromInstance::getSgCluster)
         .orElseThrow();
-    final String secretName = PatroniSecret.name(replicateFromCluster);
+    final String secretName = PatroniUtil.secretName(replicateFromCluster);
     final Secret replicateFromClusterSecret = secretFinder
         .findByNameAndNamespace(secretName, clusterNamespace)
         .orElseThrow(() -> new IllegalArgumentException(
@@ -592,10 +592,10 @@ public class ClusterRequiredResourcesGenerator
       return new PostgresSsl(
           getSecretAndKey(clusterNamespace, ssl,
               s -> new SecretKeySelector(
-                  PostgresSslSecret.CERTIFICATE_KEY, PostgresSslSecret.name(cluster))),
+                  PatroniUtil.CERTIFICATE_KEY, PostgresSslSecret.name(cluster))),
           getSecretAndKey(clusterNamespace, ssl,
               s -> new SecretKeySelector(
-                  PostgresSslSecret.PRIVATE_KEY_KEY, PostgresSslSecret.name(cluster))));
+                  PatroniUtil.PRIVATE_KEY_KEY, PostgresSslSecret.name(cluster))));
     }
 
     return new PostgresSsl(Optional.empty(), Optional.empty());

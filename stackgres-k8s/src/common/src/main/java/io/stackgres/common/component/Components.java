@@ -17,7 +17,7 @@ public enum Components {
 
   V_1_7(StackGresVersion.V_1_7, ComponentsV17.values()),
   V_1_8(StackGresVersion.V_1_8, ComponentsV18.values()),
-  V_1_9(StackGresVersion.V_1_9, ComponentsV18.values());
+  V_1_9(StackGresVersion.V_1_9, ComponentsV19.values());
 
   final StackGresVersion version;
   final List<ComponentWrapper> components;

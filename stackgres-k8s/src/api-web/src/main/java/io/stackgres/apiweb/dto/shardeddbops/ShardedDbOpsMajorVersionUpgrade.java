@@ -47,7 +47,7 @@ public class ShardedDbOpsMajorVersionUpgrade {
     return backupPaths;
   }
 
-  public void setBackupPath(List<String> backupPaths) {
+  public void setBackupPaths(List<String> backupPaths) {
     this.backupPaths = backupPaths;
   }
 

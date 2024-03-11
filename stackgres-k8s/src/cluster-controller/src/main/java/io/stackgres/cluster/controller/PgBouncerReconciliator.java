@@ -33,6 +33,7 @@ import io.stackgres.common.postgres.PostgresConnectionManager;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operatorframework.reconciliation.ReconciliationResult;
+import io.stackgres.operatorframework.reconciliation.SafeReconciliator;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
@@ -40,7 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-public class PgBouncerReconciliator {
+public class PgBouncerReconciliator extends SafeReconciliator<ClusterContext, Void> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(PgBouncerReconciliator.class);
   private static final Path PGBOUNCER_CONFIG_PATH =
@@ -86,7 +87,8 @@ public class PgBouncerReconciliator {
     return new PgBouncerReconciliator(parameters.findAny().get());
   }
 
-  public ReconciliationResult<Void> reconcile(KubernetesClient client, ClusterContext context)
+  @Override
+  public ReconciliationResult<Void> safeReconcile(KubernetesClient client, ClusterContext context)
       throws Exception {
     if (pgbouncerReconciliationEnabled) {
       try {

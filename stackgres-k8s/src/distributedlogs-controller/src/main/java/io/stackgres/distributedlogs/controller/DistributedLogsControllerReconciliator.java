@@ -77,7 +77,7 @@ public class DistributedLogsControllerReconciliator
   @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",
       justification = "False positives")
   @Override
-  protected ReconciliationResult<Void> reconcile(KubernetesClient client,
+  public ReconciliationResult<Void> reconcile(KubernetesClient client,
       StackGresDistributedLogsContext context) throws Exception {
     final StackGresCluster cluster = context.getCluster();
     final boolean podStatusMissing = Optional.ofNullable(cluster.getStatus())

@@ -66,18 +66,18 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
 
   public void stop() {
     close = true;
-    reconcile(ImmutableList.of());
+    reconcile(List.of());
     executorService.shutdown();
-    reconcile(ImmutableList.of());
+    reconcile(List.of());
     stopped.join();
   }
 
   public void reconcileAll() {
-    reconcile(ImmutableList.of(Optional.empty()));
+    reconcile(List.of(Optional.empty()));
   }
 
   public void reconcile(H existingContextResource) {
-    reconcile(ImmutableList.of(Optional.of(existingContextResource)));
+    reconcile(List.of(Optional.of(existingContextResource)));
   }
 
   @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED_BAD_PRACTICE",
@@ -226,7 +226,7 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
 
   public static class ReconciliationCycleResult<T extends CustomResource<?, ?>> {
     private final List<T> contextResources;
-    private final ImmutableMap<T, Exception> contextResourceExceptions;
+    private final Map<T, Exception> contextResourceExceptions;
     private final Exception exception;
 
     public ReconciliationCycleResult(List<T> contextResources,
@@ -237,8 +237,8 @@ public abstract class ReconciliationCycle<T extends ResourceHandlerContext,
     }
 
     public ReconciliationCycleResult(Exception exception) {
-      this.contextResources = ImmutableList.of();
-      this.contextResourceExceptions = ImmutableMap.of();
+      this.contextResources = List.of();
+      this.contextResourceExceptions = Map.of();
       this.exception = exception;
     }
 

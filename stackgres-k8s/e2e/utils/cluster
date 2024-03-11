@@ -1,7 +1,7 @@
 #!/bin/sh
 
 export E2E_DISABLE_RESOURCE_REQUIREMENTS="${E2E_DISABLE_RESOURCE_REQUIREMENTS:-true}"
-export E2E_POSTGRES_VERSION="${E2E_POSTGRES_VERSION:-15.2}"
+export E2E_POSTGRES_VERSION="${E2E_POSTGRES_VERSION:-15.3}"
 export E2E_POSTGRES_BABELFISH_VERSION="${E2E_POSTGRES_BABELFISH_VERSION:-15.3}"
 
 create_or_replace_cluster_without_defaults() {
@@ -79,10 +79,52 @@ wait_cluster() {
     wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$RELEASE-0" \
       --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
     wait_until eval '! kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
-      patronictl switchover "$RELEASE" --primary "$LEADER" --candidate "$RELEASE-0" --force \
+      patronictl switchover "$RELEASE" --master "$LEADER" --candidate "$RELEASE-0" --force \
       | grep -q "^Switchover failed"'
     wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$LEADER" \
       --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
+  fi
+}
+
+wait_cluster_external_dcs() {
+  local RELEASE="$1"
+  local NAMESPACE="$2"
+  local SCOPE="$3"
+  local SWITCHOVER_TO_FIRST="${4:-true}"
+  local LEADER
+
+  echo "Wait release $RELEASE with scope $SCOPE"
+  wait_until eval 'kubectl exec --namespace "$NAMESPACE" "$RELEASE-0" -c patroni \
+    -- sh -c "patronictl list -f json 2>/dev/null" \
+      | jq -r ".[]|select(.Role == \"Leader\").Member" \
+      | grep -q .'
+  LEADER="$(kubectl exec --namespace "$NAMESPACE" "$RELEASE-0" -c patroni \
+    -- sh -c 'patronictl list -f json 2>/dev/null' \
+      | jq -r '.[]|select(.Role == "Leader").Member')"
+
+  if [ "${LEADER%-*}" = "$RELEASE" ]
+  then
+    wait_until eval '[ "$(kubectl get endpoints --namespace "$NAMESPACE" "$SCOPE" \
+      --template="{{ range .subsets }}{{ range .addresses }}{{ printf \"%s\n\" .ip }}{{ end }}{{ end }}" 2>/dev/null \
+      | wc -l)" -ge 1 ]'
+  fi
+
+  if [ "$LEADER" != "$RELEASE-0" ]
+  then
+    wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$RELEASE-0" \
+      --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
+  fi
+
+  if [ "$SWITCHOVER_TO_FIRST" = true ] && [ "$LEADER" != "$RELEASE-0" ]
+  then
+    wait_until eval '! kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
+      patronictl switchover "$SCOPE" --master "$LEADER" --candidate "$RELEASE-0" --force \
+      | grep -q "^Switchover failed"'
+    if [ "${LEADER%-*}" = "$RELEASE" ]
+    then
+      wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$LEADER" \
+        --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
+    fi
   fi
 }
 
@@ -272,7 +314,7 @@ wait_sharded_cluster() {
       wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$RELEASE-0" \
         --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
       wait_until eval '! kubectl exec -n "$NAMESPACE" "$RELEASE-0" -c patroni -- \
-        patronictl switchover "$CLUSTER_SCOPE" $PATRONICTL_OPTS --primary "$LEADER" --candidate "$RELEASE-0" --force \
+        patronictl switchover "$CLUSTER_SCOPE" $PATRONICTL_OPTS --master "$LEADER" --candidate "$RELEASE-0" --force \
         | grep -q "^Switchover failed"'
       wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$LEADER" \
         --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'

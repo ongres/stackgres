@@ -23,8 +23,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
-public class ClusterControllerWatchersHandlerImpl
-    implements ClusterControllerWatcherHandler {
+public class ClusterControllerWatchersHandler {
 
   private final List<WatcherMonitor<?>> monitors = new ArrayList<>();
 
@@ -33,7 +32,7 @@ public class ClusterControllerWatchersHandlerImpl
   private final ResourceWatcherFactory watcherFactory;
 
   @Inject
-  public ClusterControllerWatchersHandlerImpl(KubernetesClient client,
+  public ClusterControllerWatchersHandler(KubernetesClient client,
       ClusterControllerReconciliationCycle clusterReconciliationCycle,
       ResourceWatcherFactory watcherFactory) {
     this.client = client;
@@ -41,7 +40,6 @@ public class ClusterControllerWatchersHandlerImpl
     this.watcherFactory = watcherFactory;
   }
 
-  @Override
   public void startWatchers() {
     monitors.add(createWatcher(
         StackGresCluster.class,
@@ -74,7 +72,6 @@ public class ClusterControllerWatchersHandlerImpl
     return (action, cluster) -> clusterReconciliationCycle.reconcile(cluster);
   }
 
-  @Override
   public void stopWatchers() {
     monitors.forEach(WatcherMonitor::close);
   }

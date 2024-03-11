@@ -11,6 +11,7 @@ public enum OperatorProperty implements StackGresPropertyReader {
 
   DISABLE_RECONCILIATION("stackgres.disableReconciliation"),
   RECONCILIATION_PERIOD("stackgres.reconciliationPeriod"),
+  PATRONI_RECONCILIATION_PERIOD("stackgres.patroniReconciliationPeriod"),
   OPERATOR_NAME("stackgres.operatorName"),
   OPERATOR_NAMESPACE("stackgres.operatorNamespace"),
   OPERATOR_IP("stackgres.operatorIP"),
@@ -32,7 +33,8 @@ public enum OperatorProperty implements StackGresPropertyReader {
   INSTALL_WEBHOOKS("stackgres.installWebhooks"),
   CERTIFICATE_TIMEOUT("stackgres.certificateTimeout"),
   OPERATOR_CERT_SECRET_NAME("stackgres.operatorCertSecretName"),
-  DISABLE_RESTAPI_SERVICE_ACCOUNT_IF_NOT_EXISTS("stackgres.disableRestapiServiceAccountIfNotExists");
+  DISABLE_RESTAPI_SERVICE_ACCOUNT_IF_NOT_EXISTS("stackgres.disableRestapiServiceAccountIfNotExists"),
+  PATRONI_CTL_TIMEOUT("stackgres.patroniCtlTimeout");
 
   private static final Properties APPLICATION_PROPERTIES =
       StackGresPropertyReader.readApplicationProperties(OperatorProperty.class);

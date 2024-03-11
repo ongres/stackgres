@@ -29,6 +29,7 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
@@ -57,7 +58,9 @@ import org.jooq.lambda.tuple.Tuple2;
 
 public interface StackGresUtil {
 
+  String DISTRIBUTEDLOGS_POSTGRES_VERSION = "12";
   String MD5SUM_KEY = "MD5SUM";
+  String MD5SUM_2_KEY = MD5SUM_KEY + "_2";
   String DATA_SUFFIX = "-data";
   String BACKUP_SUFFIX = "-backup";
   Pattern EMPTY_LINE_PATTERN = Pattern.compile(
@@ -148,6 +151,20 @@ public interface StackGresUtil {
    * Calculate MD5 hash of all exisitng values ordered by key.
    */
   static Map<String, String> addMd5Sum(Map<String, String> data) {
+    MessageDigest messageDigest2 = Unchecked
+        .supplier(() -> MessageDigest.getInstance("MD5")).get();
+    messageDigest2.update(data.entrySet().stream()
+        .filter(entry -> !entry.getKey().startsWith(MD5SUM_KEY))
+        .sorted(Map.Entry.comparingByKey())
+        .map(e -> e.getKey() + "=" + e.getValue())
+        .collect(Collectors.joining())
+        .getBytes(StandardCharsets.UTF_8));
+    data = ImmutableMap.<String, String>builder()
+        .putAll(data.entrySet().stream()
+            .filter(entry -> !entry.getKey().startsWith(MD5SUM_KEY))
+            .toList())
+        .put(MD5SUM_2_KEY, HexFormat.of().withUpperCase().formatHex(messageDigest2.digest()))
+        .build();
     MessageDigest messageDigest = Unchecked
         .supplier(() -> MessageDigest.getInstance("MD5")).get();
     messageDigest.update(data.entrySet().stream()
@@ -172,7 +189,12 @@ public interface StackGresUtil {
         .supplier(() -> MessageDigest.getInstance("MD5")).get();
     Seq.of(paths)
         .sorted()
-        .map(Unchecked.function(Files::readAllBytes))
+        .flatMap(path -> Stream.concat(
+            Stream.of(path.toString()
+                .getBytes(StandardCharsets.UTF_8)),
+            Optional.of(path)
+            .map(Unchecked.function(Files::readAllBytes))
+            .stream()))
         .forEach(messageDigest::update);
     return HexFormat.of().withUpperCase().formatHex(messageDigest.digest());
   }
@@ -480,6 +502,30 @@ public interface StackGresUtil {
                 + LOCK_SERVICE_ACCOUNT_KEY + " not set"));
   }
 
+  static String getPatroniVersion(StackGresCluster cluster) {
+    return getPatroniVersion(cluster, cluster.getSpec().getPostgres().getVersion());
+  }
+
+  static String getPatroniVersion(StackGresCluster cluster, String postgresVersion) {
+    Component postgresComponentFlavor = getPostgresFlavorComponent(cluster).get(cluster);
+    return StackGresComponent.PATRONI.get(cluster).getVersion(
+        StackGresComponent.LATEST,
+        Map.of(postgresComponentFlavor,
+            postgresVersion));
+  }
+
+  static String getPatroniVersion(StackGresDistributedLogs distributedLogs) {
+    Component postgresComponentFlavor = StackGresComponent.POSTGRESQL.get(distributedLogs);
+    return StackGresComponent.PATRONI.get(distributedLogs).getVersion(
+        StackGresComponent.LATEST,
+        Map.of(postgresComponentFlavor,
+            DISTRIBUTEDLOGS_POSTGRES_VERSION));
+  }
+
+  static String getLatestPatroniVersion() {
+    return StackGresComponent.PATRONI.getLatest().getLatestVersion();
+  }
+
   static String getPatroniImageName(StackGresCluster cluster) {
     return getPatroniImageName(cluster, cluster.getSpec().getPostgres().getVersion());
   }
@@ -496,7 +542,7 @@ public interface StackGresUtil {
     return StackGresComponent.PATRONI.get(distributedLogs).getImageName(
         StackGresComponent.LATEST,
         Map.of(StackGresComponent.POSTGRESQL.get(distributedLogs),
-            "12"));
+            DISTRIBUTEDLOGS_POSTGRES_VERSION));
   }
 
   static String getPatroniImageName(StackGresShardedCluster cluster) {

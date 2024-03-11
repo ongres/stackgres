@@ -65,7 +65,7 @@ class ShardedPostgresSslSecretTest {
         generateResources.getFirst()
         .getMetadata()
         .getName());
-    Assertions.assertEquals(1, Optional.of(generateResources.getFirst())
+    Assertions.assertEquals(2, Optional.of(generateResources.getFirst())
         .map(Secret.class::cast)
         .orElseThrow()
         .getData()

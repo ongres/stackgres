@@ -12,8 +12,10 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
+import io.fabric8.kubernetes.api.model.IntOrString;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.WithKubernetesTestServer;
@@ -23,6 +25,7 @@ import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.jobs.dbops.lock.MockKubeDb;
 import io.stackgres.testutil.StringUtils;
 import jakarta.inject.Inject;
@@ -69,22 +72,11 @@ class ClusterWatcherTest {
     when(patroniApiHandler.getClusterMembers(clusterName, namespace)).thenReturn(
         Uni.createFrom().item(() -> podTestUtil.getClusterPods(cluster),
             (pods) -> pods.stream()
-                .map(pod -> ImmutableClusterMember.builder()
-                    .clusterName(clusterName)
-                    .namespace(namespace)
-                    .apiUrl("http://" + pod.getMetadata().getName() + ":8008/patroni")
-                    .name(pod.getMetadata().getName())
-                    .port(5432)
-                    .host(pod.getMetadata().getName())
-                    .state(MemberState.RUNNING)
-                    .role(PatroniUtil.PRIMARY_ROLE
-                        .equals(pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))
-                            ? MemberRole.LEADER
-                            : MemberRole.REPLICA)
-                    .lag(0)
-                    .timeline(1)
-                    .build())
-                .collect(Collectors.toUnmodifiableList())));
+                .map(pod -> createMember(
+                    pod,
+                    role -> PatroniMember.RUNNING,
+                    role -> PatroniUtil.PRIMARY_ROLE.equals(role) ? PatroniMember.LEADER : PatroniMember.REPLICA))
+                .toList()));
 
     clusterWatcher.waitUntilIsReady(clusterName, namespace)
         .await().atMost(Duration.ofSeconds(1));
@@ -98,22 +90,11 @@ class ClusterWatcherTest {
     when(patroniApiHandler.getClusterMembers(clusterName, namespace)).thenReturn(
         Uni.createFrom().item(() -> podTestUtil.getClusterPods(cluster),
             (pods) -> pods.stream()
-                .map(pod -> ImmutableClusterMember.builder()
-                    .clusterName(clusterName)
-                    .namespace(namespace)
-                    .apiUrl("http://" + pod.getMetadata().getName() + ":8008/patroni")
-                    .name(pod.getMetadata().getName())
-                    .port(5432)
-                    .host(pod.getMetadata().getName())
-                    .state(MemberState.RUNNING)
-                    .role(PatroniUtil.PRIMARY_ROLE
-                        .equals(pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))
-                            ? MemberRole.LEADER
-                            : MemberRole.REPLICA)
-                    .lag(0)
-                    .timeline(1)
-                    .build())
-                .collect(Collectors.toUnmodifiableList())));
+            .map(pod -> createMember(
+                pod,
+                role -> PatroniMember.RUNNING,
+                role -> PatroniUtil.PRIMARY_ROLE.equals(role) ? PatroniMember.LEADER : PatroniMember.REPLICA))
+            .toList()));
 
     assertThrows(TimeoutException.class,
         () -> clusterWatcher.waitUntilIsReady(clusterName, namespace)
@@ -128,22 +109,11 @@ class ClusterWatcherTest {
     when(patroniApiHandler.getClusterMembers(clusterName, namespace)).thenReturn(
         Uni.createFrom().item(() -> podTestUtil.getClusterPods(cluster),
             (pods) -> pods.stream()
-                .map(pod -> ImmutableClusterMember.builder()
-                    .clusterName(clusterName)
-                    .namespace(namespace)
-                    .apiUrl("http://" + pod.getMetadata().getName() + ":8008/patroni")
-                    .name(pod.getMetadata().getName())
-                    .port(5432)
-                    .host(pod.getMetadata().getName())
-                    .state(MemberState.RUNNING)
-                    .role(PatroniUtil.PRIMARY_ROLE
-                        .equals(pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))
-                            ? MemberRole.LEADER
-                            : MemberRole.REPLICA)
-                    .lag(0)
-                    .timeline(1)
-                    .build())
-                .collect(Collectors.toUnmodifiableList())));
+            .map(pod -> createMember(
+                pod,
+                role -> PatroniMember.RUNNING,
+                role -> PatroniUtil.PRIMARY_ROLE.equals(role) ? PatroniMember.LEADER : PatroniMember.REPLICA))
+            .toList()));
 
     CompletableFuture<StackGresCluster> clusterReady = new CompletableFuture<>();
 
@@ -156,7 +126,8 @@ class ClusterWatcherTest {
     podTestUtil.createPod(replicaPod);
 
     Uni.createFrom().completionStage(clusterReady)
-        .await().atMost(Duration.ofSeconds(3));
+        .await()
+        .atMost(Duration.ofSeconds(3));
   }
 
   @Test
@@ -166,25 +137,11 @@ class ClusterWatcherTest {
     when(patroniApiHandler.getClusterMembers(clusterName, namespace)).thenReturn(
         Uni.createFrom().item(() -> podTestUtil.getClusterPods(cluster),
             (pods) -> pods.stream()
-                .map(pod -> ImmutableClusterMember.builder()
-                    .clusterName(clusterName)
-                    .namespace(namespace)
-                    .apiUrl("http://" + pod.getMetadata().getName() + ":8008/patroni")
-                    .name(pod.getMetadata().getName())
-                    .port(5432)
-                    .host(pod.getMetadata().getName())
-                    .state(PatroniUtil.PRIMARY_ROLE
-                        .equals(pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))
-                            ? MemberState.RUNNING
-                            : MemberState.STOPPED)
-                    .role(PatroniUtil.PRIMARY_ROLE
-                        .equals(pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))
-                            ? MemberRole.LEADER
-                            : MemberRole.REPLICA)
-                    .lag(0)
-                    .timeline(1)
-                    .build())
-                .collect(Collectors.toUnmodifiableList())));
+            .map(pod -> createMember(
+                pod,
+                role -> PatroniUtil.PRIMARY_ROLE.equals(role) ? PatroniMember.RUNNING : PatroniMember.STOPPED,
+                role -> PatroniUtil.PRIMARY_ROLE.equals(role) ? PatroniMember.LEADER : PatroniMember.REPLICA))
+            .toList()));
 
     clusterWatcher.waitUntilIsReady(clusterName, namespace)
         .await().atMost(Duration.ofSeconds(1));
@@ -197,25 +154,11 @@ class ClusterWatcherTest {
     when(patroniApiHandler.getClusterMembers(clusterName, namespace)).thenReturn(
         Uni.createFrom().item(() -> podTestUtil.getClusterPods(cluster),
             (pods) -> pods.stream()
-                .map(pod -> ImmutableClusterMember.builder()
-                    .clusterName(clusterName)
-                    .namespace(namespace)
-                    .apiUrl("http://" + pod.getMetadata().getName() + ":8008/patroni")
-                    .name(pod.getMetadata().getName())
-                    .port(5432)
-                    .host(pod.getMetadata().getName())
-                    .state(PatroniUtil.PRIMARY_ROLE
-                        .equals(pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))
-                            ? MemberState.RUNNING
-                            : MemberState.STOPPED)
-                    .role(PatroniUtil.PRIMARY_ROLE
-                        .equals(pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))
-                            ? MemberRole.LEADER
-                            : MemberRole.REPLICA)
-                    .lag(0)
-                    .timeline(1)
-                    .build())
-                .collect(Collectors.toUnmodifiableList())));
+            .map(pod -> createMember(
+                pod,
+                role -> PatroniUtil.PRIMARY_ROLE.equals(role) ? PatroniMember.RUNNING : PatroniMember.STOPPED,
+                role -> PatroniUtil.PRIMARY_ROLE.equals(role) ? PatroniMember.LEADER : PatroniMember.REPLICA))
+            .toList()));
 
     clusterWatcher.getAvailablePrimary(clusterName, namespace)
         .subscribe()
@@ -236,22 +179,11 @@ class ClusterWatcherTest {
     when(patroniApiHandler.getClusterMembers(clusterName, namespace)).thenReturn(
         Uni.createFrom().item(() -> podTestUtil.getClusterPods(cluster),
             (pods) -> pods.stream()
-                .map(pod -> ImmutableClusterMember.builder()
-                    .clusterName(clusterName)
-                    .namespace(namespace)
-                    .apiUrl("http://" + pod.getMetadata().getName() + ":8008/patroni")
-                    .name(pod.getMetadata().getName())
-                    .port(5432)
-                    .host(pod.getMetadata().getName())
-                    .state(PatroniUtil.PRIMARY_ROLE
-                        .equals(pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY))
-                            ? MemberState.RUNNING
-                            : MemberState.STOPPED)
-                    .role(MemberRole.REPLICA)
-                    .lag(0)
-                    .timeline(1)
-                    .build())
-                .collect(Collectors.toUnmodifiableList())));
+            .map(pod -> createMember(
+                pod,
+                role -> PatroniUtil.PRIMARY_ROLE.equals(role) ? PatroniMember.RUNNING : PatroniMember.STOPPED,
+                role -> PatroniMember.REPLICA))
+            .toList()));
 
     clusterWatcher.getAvailablePrimary(clusterName, namespace)
         .subscribe()
@@ -259,6 +191,22 @@ class ClusterWatcherTest {
         .awaitItem()
         .assertCompleted()
         .assertItem(Optional.empty());
+  }
+
+  private PatroniMember createMember(
+      Pod pod,
+      Function<String, String> stateForRole,
+      Function<String, String> roleForRole) {
+    final String role = pod.getMetadata().getLabels().get(PatroniUtil.ROLE_KEY);
+    final var member = new PatroniMember();
+    member.setCluster(clusterName);
+    member.setMember(pod.getMetadata().getName());
+    member.setHost(pod.getMetadata().getName());
+    member.setState(stateForRole.apply(role));
+    member.setRole(roleForRole.apply(role));
+    member.setLagInMb(new IntOrString(0));
+    member.setTimeline("1");
+    return member;
   }
 
 }

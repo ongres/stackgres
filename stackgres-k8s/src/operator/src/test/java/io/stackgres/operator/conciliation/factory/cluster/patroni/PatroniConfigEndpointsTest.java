@@ -21,7 +21,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -30,6 +29,7 @@ import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.StringUtil;
+import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromExternal;
@@ -45,8 +45,8 @@ import io.stackgres.common.labels.ClusterLabelMapper;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniConfig;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresBlocklist;
-import io.stackgres.operator.conciliation.factory.cluster.patroni.parameters.PostgresDefaultValues;
+import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresBlocklist;
+import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresDefaultValues;
 import io.stackgres.testutil.JsonUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,7 +57,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class PatroniConfigEndpointsTest {
 
-  private static final JsonMapper JSON_MAPPER = JsonUtil.jsonMapper();
   private final LabelFactoryForCluster<StackGresCluster> labelFactory = new ClusterLabelFactory(
       new ClusterLabelMapper());
   @Mock
@@ -69,7 +68,8 @@ class PatroniConfigEndpointsTest {
 
   @BeforeEach
   void setUp() {
-    generator = new PatroniConfigEndpoints(JSON_MAPPER, labelFactory);
+    generator = new PatroniConfigEndpoints(
+        labelFactory, JsonUtil.jsonMapper(), new YamlMapperProvider());
 
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getMetadata().getAnnotations()
@@ -92,92 +92,6 @@ class PatroniConfigEndpointsTest {
   }
 
   @Test
-  void getPostgresConfigValues_shouldConfigureBackupParametersIfArePresent() {
-    when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
-    when(context.getBackupStorage()).thenCallRealMethod();
-    when(context.getPostgresConfig()).thenReturn(postgresConfig);
-    when(context.getSource()).thenReturn(cluster);
-    when(context.getCluster()).thenReturn(cluster);
-
-    Map<String, String> pgParams = generator.getPostgresConfigValues(context);
-
-    assertTrue(pgParams.containsKey("archive_command"));
-    final String expected = "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value(cluster)
-        + "' -- wal-g wal-push %p";
-    assertEquals(expected, pgParams.get("archive_command"));
-  }
-
-  @Test
-  void getPostgresRecoveryConfigValues_shouldConfigureBackupParametersIfArePresent() {
-    when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
-    when(context.getBackupStorage()).thenCallRealMethod();
-    when(context.getPostgresConfig()).thenReturn(postgresConfig);
-    when(context.getSource()).thenReturn(cluster);
-
-    Map<String, String> pgRecoveryParams = generator.getPostgresRecoveryConfigValues(context);
-
-    assertTrue(pgRecoveryParams.containsKey("restore_command"));
-    final String expected = "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value(cluster)
-        + "' -- wal-g wal-fetch %f %p";
-    assertEquals(expected, pgRecoveryParams.get("restore_command"));
-  }
-
-  @Test
-  void getPostgresConfigValues_shouldNotConfigureBackupParametersIfAreNotPresent() {
-    when(context.getBackupStorage()).thenReturn(Optional.empty());
-    when(context.getPostgresConfig()).thenReturn(postgresConfig);
-    when(context.getSource()).thenReturn(cluster);
-    when(context.getCluster()).thenReturn(cluster);
-
-    Map<String, String> pgParams = generator.getPostgresConfigValues(context);
-
-    assertTrue(pgParams.containsKey("archive_command"));
-    assertEquals("/bin/true", pgParams.get("archive_command"));
-  }
-
-  @Test
-  void getPostgresConfigValues_shouldConfigurePgParameters() {
-    when(context.getObjectStorage()).thenReturn(Optional.of(objectStorage));
-    when(context.getBackupStorage()).thenCallRealMethod();
-    when(context.getPostgresConfig()).thenReturn(postgresConfig);
-    when(context.getSource()).thenReturn(cluster);
-    when(context.getCluster()).thenReturn(cluster);
-
-    Map<String, String> pgParams = generator.getPostgresConfigValues(context);
-
-    postgresConfig.getSpec().getPostgresqlConf().forEach((key, value) -> {
-      assertTrue(pgParams.containsKey(key));
-      assertEquals(value, pgParams.get(key));
-    });
-  }
-
-  @Test
-  void getPostgresConfigValues_shouldNotModifyBlockedValuesIfArePresent() {
-    when(context.getBackupStorage()).thenReturn(Optional.empty());
-    when(context.getPostgresConfig()).thenReturn(postgresConfig);
-    when(context.getSource()).thenReturn(cluster);
-    when(context.getCluster()).thenReturn(cluster);
-
-    final String version = postgresConfig.getSpec().getPostgresVersion();
-    Map<String, String> defValues = PostgresDefaultValues.getDefaultValues(version);
-
-    defValues.forEach((key, value) -> {
-      postgresConfig.getSpec().getPostgresqlConf().put(key, StringUtil.generateRandom());
-    });
-
-    Map<String, String> pgParams = generator.getPostgresConfigValues(context);
-
-    Set<String> blocklistedKeys = PostgresBlocklist.getBlocklistParameters();
-    defValues.forEach((key, value) -> {
-      assertTrue(pgParams.containsKey(key));
-      if (blocklistedKeys.contains(key)) {
-        assertEquals(value, pgParams.get(key), "Blocklisted parameter " + key + " with value "
-            + value + " has been modified with value " + pgParams.get(key));
-      }
-    });
-  }
-
-  @Test
   void generateResource_shouldSetLabelsFromLabelFactory() {
     Endpoints endpoints = generateEndpoint();
     assertEquals(labelFactory.clusterLabels(cluster), endpoints.getMetadata().getLabels());
@@ -191,7 +105,7 @@ class PatroniConfigEndpointsTest {
     final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
     assertTrue(annotations.containsKey(PatroniUtil.CONFIG_KEY));
 
-    PatroniConfig patroniConfig = JSON_MAPPER
+    PatroniConfig patroniConfig = JsonUtil.jsonMapper()
         .readValue(annotations.get(PatroniUtil.CONFIG_KEY),
             PatroniConfig.class);
     final String version = postgresConfig.getSpec().getPostgresVersion();
@@ -222,7 +136,7 @@ class PatroniConfigEndpointsTest {
     final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
     assertTrue(annotations.containsKey(PatroniUtil.CONFIG_KEY));
 
-    PatroniConfig patroniConfig = JSON_MAPPER
+    PatroniConfig patroniConfig = JsonUtil.jsonMapper()
         .readValue(annotations.get(PatroniUtil.CONFIG_KEY),
             PatroniConfig.class);
     final String version = postgresConfig.getSpec().getPostgresVersion();
@@ -260,7 +174,7 @@ class PatroniConfigEndpointsTest {
     final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
     assertTrue(annotations.containsKey(PatroniUtil.CONFIG_KEY));
 
-    PatroniConfig patroniConfig = JSON_MAPPER
+    PatroniConfig patroniConfig = JsonUtil.jsonMapper()
         .readValue(annotations.get(PatroniUtil.CONFIG_KEY),
             PatroniConfig.class);
     final String version = postgresConfig.getSpec().getPostgresVersion();
@@ -299,7 +213,7 @@ class PatroniConfigEndpointsTest {
     final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
     assertTrue(annotations.containsKey(PatroniUtil.CONFIG_KEY));
 
-    PatroniConfig patroniConfig = JSON_MAPPER
+    PatroniConfig patroniConfig = JsonUtil.jsonMapper()
         .readValue(annotations.get(PatroniUtil.CONFIG_KEY),
             PatroniConfig.class);
     final String version = postgresConfig.getSpec().getPostgresVersion();
@@ -341,7 +255,7 @@ class PatroniConfigEndpointsTest {
     final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
     assertTrue(annotations.containsKey(PatroniUtil.CONFIG_KEY));
 
-    PatroniConfig patroniConfig = JSON_MAPPER
+    PatroniConfig patroniConfig = JsonUtil.jsonMapper()
         .readValue(annotations.get(PatroniUtil.CONFIG_KEY),
             PatroniConfig.class);
     final String version = postgresConfig.getSpec().getPostgresVersion();
@@ -385,7 +299,7 @@ class PatroniConfigEndpointsTest {
     final Map<String, String> annotations = endpoints.getMetadata().getAnnotations();
     assertTrue(annotations.containsKey(PatroniUtil.CONFIG_KEY));
 
-    PatroniConfig patroniConfig = JSON_MAPPER
+    PatroniConfig patroniConfig = JsonUtil.jsonMapper()
         .readValue(annotations.get(PatroniUtil.CONFIG_KEY),
             PatroniConfig.class);
     final String version = postgresConfig.getSpec().getPostgresVersion();
@@ -426,6 +340,70 @@ class PatroniConfigEndpointsTest {
     assertNotNull(endpoint.getMetadata().getLabels());
     assertNotNull(endpoint.getMetadata().getAnnotations());
     return endpoint;
+  }
+
+  @Test
+  void getPostgresConfigValues_shouldConfigureBackupParametersIfArePresent() {
+    Map<String, String> pgParams = generator.getPostgresConfigValues(
+        cluster, postgresConfig, true);
+
+    assertTrue(pgParams.containsKey("archive_command"));
+    final String expected = "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value(cluster)
+        + "' -- wal-g wal-push %p";
+    assertEquals(expected, pgParams.get("archive_command"));
+  }
+
+  @Test
+  void getPostgresRecoveryConfigValues_shouldConfigureBackupParametersIfArePresent() {
+    Map<String, String> pgRecoveryParams = generator.getPostgresRecoveryConfigValues(
+        cluster, postgresConfig, true);
+
+    assertTrue(pgRecoveryParams.containsKey("restore_command"));
+    final String expected = "exec-with-env '" + ClusterEnvVar.BACKUP_ENV.value(cluster)
+        + "' -- wal-g wal-fetch %f %p";
+    assertEquals(expected, pgRecoveryParams.get("restore_command"));
+  }
+
+  @Test
+  void getPostgresConfigValues_shouldNotConfigureBackupParametersIfAreNotPresent() {
+    Map<String, String> pgParams = generator.getPostgresConfigValues(
+        cluster, postgresConfig, false);
+
+    assertTrue(pgParams.containsKey("archive_command"));
+    assertEquals("/bin/true", pgParams.get("archive_command"));
+  }
+
+  @Test
+  void getPostgresConfigValues_shouldConfigurePgParameters() {
+    Map<String, String> pgParams = generator.getPostgresConfigValues(
+        cluster, postgresConfig, true);
+
+    postgresConfig.getSpec().getPostgresqlConf().forEach((key, value) -> {
+      assertTrue(pgParams.containsKey(key));
+      assertEquals(value, pgParams.get(key));
+    });
+  }
+
+  @Test
+  void getPostgresConfigValues_shouldNotModifyBlockedValuesIfArePresent() {
+    final String version = postgresConfig.getSpec().getPostgresVersion();
+    Map<String, String> defValues = PostgresDefaultValues.getDefaultValues(version);
+
+    defValues.forEach((key, value) -> {
+      postgresConfig.getSpec().getPostgresqlConf().put(key, StringUtil.generateRandom());
+    });
+
+    Map<String, String> pgParams = generator.getPostgresConfigValues(
+        cluster, postgresConfig, false);
+
+    Set<String> blocklistedKeys = PostgresBlocklist.getBlocklistParameters();
+    defValues.forEach((key, value) -> {
+      assertTrue(pgParams.containsKey(key));
+      if (blocklistedKeys.contains(key)) {
+        assertEquals(value, pgParams.get(key), "Blocklisted parameter " + key + " with value "
+            + value + " has been modified with value " + pgParams.get(key));
+      }
+    });
   }
 
 }

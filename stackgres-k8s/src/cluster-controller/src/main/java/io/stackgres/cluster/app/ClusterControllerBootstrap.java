@@ -5,8 +5,40 @@
 
 package io.stackgres.cluster.app;
 
-public interface ClusterControllerBootstrap {
+import java.net.SocketTimeoutException;
 
-  void bootstrap();
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientException;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@ApplicationScoped
+public class ClusterControllerBootstrap {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(
+      ClusterControllerBootstrap.class);
+
+  private final KubernetesClient client;
+
+  @Inject
+  public ClusterControllerBootstrap(KubernetesClient client) {
+    this.client = client;
+  }
+
+  public void bootstrap() {
+    try {
+      if (client.getKubernetesVersion() != null) {
+        LOGGER.info("Kubernetes version: {}", client.getKubernetesVersion().getGitVersion());
+      }
+      LOGGER.info("URL of this Kubernetes cluster: {}", client.getMasterUrl());
+    } catch (KubernetesClientException e) {
+      if (e.getCause() instanceof SocketTimeoutException) {
+        LOGGER.error("Kubernetes cluster is not reachable, check your connection.");
+      }
+      throw e;
+    }
+  }
 
 }

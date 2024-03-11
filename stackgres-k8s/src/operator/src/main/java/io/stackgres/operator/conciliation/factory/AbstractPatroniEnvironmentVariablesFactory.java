@@ -28,15 +28,7 @@ public abstract class AbstractPatroniEnvironmentVariablesFactory<T>
                         .withFieldPath("metadata.name").build())
                 .build())
             .build(),
-        new EnvVarBuilder().withName("PATRONI_KUBERNETES_NAMESPACE")
-            .withValueFrom(new EnvVarSourceBuilder()
-                .withFieldRef(
-                    new ObjectFieldSelectorBuilder()
-                        .withFieldPath("metadata.namespace")
-                        .build())
-                .build())
-            .build(),
-        new EnvVarBuilder().withName("PATRONI_KUBERNETES_POD_IP")
+        new EnvVarBuilder().withName("POD_IP")
             .withValueFrom(
                 new EnvVarSourceBuilder()
                     .withFieldRef(
@@ -65,7 +57,7 @@ public abstract class AbstractPatroniEnvironmentVariablesFactory<T>
             .build(),
         new EnvVarBuilder()
             .withName("PATRONI_RESTAPI_CONNECT_ADDRESS")
-            .withValue("${PATRONI_KUBERNETES_POD_IP}:" + EnvoyUtil.PATRONI_PORT)
+            .withValue("${POD_IP}:" + EnvoyUtil.PATRONI_PORT)
             .build(),
         new EnvVarBuilder()
             .withName("PATRONI_RESTAPI_USERNAME")

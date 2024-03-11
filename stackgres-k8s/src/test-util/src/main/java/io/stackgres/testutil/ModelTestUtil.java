@@ -6,11 +6,14 @@
 package io.stackgres.testutil;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -22,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 import java.util.function.Predicate;
@@ -30,6 +34,7 @@ import java.util.stream.Stream;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.Quantity;
@@ -38,15 +43,153 @@ public class ModelTestUtil {
 
   private static final Random RANDOM = new Random(7);
 
-  public static <T> void assertEqualsAndHashCode(T target) {
-    var targetCopy1 = JsonUtil.fromJson(JsonUtil.toJson(target), target.getClass());
-    var targetCopy2 = JsonUtil.fromJson(JsonUtil.toJson(target), target.getClass());
+  public static <T> void assertEqualsAndHashCode(Class<T> targetClazz) {
+    visit(new CheckEqualsAndHashCodeVisitor(), targetClazz);
+  }
 
-    assertEquals(targetCopy1, targetCopy2, "Type "
-        + target.getClass() + " has not correctly implemented equals method.");
+  public static class CheckEqualsAndHashCodeVisitor implements ResourceVisitor<Void> {
+    @Override
+    public Void onObject(Class<?> clazz, List<Field> fields) {
+      for (Field field : fields) {
+        visit(this, field.getType(), field.getGenericType());
+      }
 
-    assertEquals(targetCopy1.hashCode(), targetCopy2.hashCode(), "Type "
-        + target.getClass() + " has not correctly implemented hash method.");
+      if (clazz.getPackage().getName().startsWith("io.stackgres.")) {
+        var target = createWithRandomData(clazz);
+        JsonNode targetJsonCopy = JsonUtil.toJson(target);
+        var targetCopy1 = JsonUtil.fromJson(targetJsonCopy, target.getClass());
+        var targetCopy2 = JsonUtil.fromJson(targetJsonCopy, target.getClass());
+  
+        assertEquals(targetCopy1, targetCopy2, "Type "
+            + target.getClass() + " has not correctly implemented equals method.");
+  
+        assertEquals(targetCopy1.hashCode(), targetCopy2.hashCode(), "Type "
+            + target.getClass() + " has not correctly implemented hash method.");
+  
+        var resource = ModelTestUtil.createWithRandomData(clazz);
+        var anotherResource = ModelTestUtil.createWithRandomData(clazz);
+        JsonNode resourceJsonCopy = JsonUtil.toJson(resource);
+        JsonNode anotherResourceJsonCopy = JsonUtil.toJson(anotherResource);
+
+        if (!Objects.equals(resourceJsonCopy, anotherResourceJsonCopy)) {
+          assertNotEquals(anotherResource, resource, "Type "
+              + target.getClass() + " has not correctly implemented equals method"
+              + " since different objects are see as equals:\n" + resourceJsonCopy
+              + "\n is seen equals as \n" + anotherResourceJsonCopy);
+        }
+      }
+
+      return null;
+    }
+
+    @Override
+    public Void onList(Class<?> clazz, Class<?> elementClazz) {
+      return visit(this, elementClazz);
+    }
+
+    @Override
+    public Void onMap(Class<?> clazz, Class<?> keyClazz, Class<?> valueClazz, Type genericType) {
+      return visit(this, valueClazz, genericType);
+    }
+
+    @Override
+    public Void onValue(Class<?> clazz) {
+      return null;
+    }
+  }
+
+  public static <T> void assertSettersAndGetters(Class<T> targetClazz) {
+    visit(new CheckSettersAndGettersVisitor(), targetClazz);
+  }
+
+  public static class CheckSettersAndGettersVisitor implements ResourceVisitor<Void> {
+    @Override
+    public Void onObject(Class<?> clazz, List<Field> fields) {
+      if (clazz.getPackage().getName().startsWith("io.stackgres.")) {
+        for (Field field : fields) {
+          String fieldName = field.getName();
+          String pascalCaseFieldName =
+              fieldName.substring(0, 1).toUpperCase(Locale.US)
+              + fieldName.substring(1);
+  
+          final String setMethodName = "set" + pascalCaseFieldName;
+          Method setMethod = findMethod(
+              clazz,
+              setMethodName,
+              field.getType());
+          final String getMethodName = "get" + pascalCaseFieldName;
+          final String isMethodName = "is" + pascalCaseFieldName;
+          Method getMethod = findMethod(
+              clazz,
+              getMethodName);
+          Method isMethod = findMethod(
+              clazz,
+              isMethodName);
+          assertNotNull(setMethod, "Set method " + setMethodName + " with parameter type "
+              + field.getType() + " was not found in class "
+              + clazz.getName() + " and field " + fieldName);
+          if (isBoolean(field.getType())) {
+            assertTrue(getMethod != null || isMethod != null, "Get method " + getMethodName + " or "
+                + isMethodName + " not found in class "
+                + clazz.getName() + " and field " + fieldName);
+            @SuppressWarnings("null")
+            Class<?> getMethodReturnType =
+                getMethod != null ? getMethod.getReturnType() : isMethod.getReturnType();
+            assertSame(field.getType(), getMethodReturnType, "Get method " + getMethodName
+                + " return type " + getMethodReturnType.getName() + " should be of type "
+                + field.getType().getName() + " in class "
+                + clazz.getName() + " and field " + fieldName);
+          } else {
+            assertNotNull(getMethod, "Get method " + getMethodName + " not found in class "
+                + clazz.getName() + " and field " + fieldName);
+            assertSame(field.getType(), getMethod.getReturnType(), "Get method " + getMethodName
+                + " return type " + getMethod.getReturnType().getName() + " should be of type "
+                + field.getType().getName() + " in class "
+                + clazz.getName() + " and field " + fieldName);
+          }
+        }
+      }
+
+      for (Field field : fields) {
+        visit(this, field.getType(), field.getGenericType());
+      }
+
+      return null;
+    }
+
+    private boolean isBoolean(Class<?> valueClass) {
+      if (valueClass.isPrimitive()
+          && valueClass.getName().equals("boolean")) {
+        return true;
+      } else if (valueClass == Boolean.class) {
+        return true;
+      }
+      return false;
+    }
+
+    private Method findMethod(Class<?> targetClazz, String name, Class<?>... parameterTypes)
+        throws SecurityException {
+      try {
+        return targetClazz.getMethod(name, parameterTypes);
+      } catch (NoSuchMethodException e) {
+        return null;
+      }
+    }
+
+    @Override
+    public Void onList(Class<?> clazz, Class<?> elementClazz) {
+      return visit(this, elementClazz);
+    }
+
+    @Override
+    public Void onMap(Class<?> clazz, Class<?> keyClazz, Class<?> valueClazz, Type genericType) {
+      return visit(this, valueClazz, genericType);
+    }
+
+    @Override
+    public Void onValue(Class<?> clazz) {
+      return null;
+    }
   }
 
   public static void assertJsonInoreUnknownProperties(Class<?> targetClazz) {
@@ -283,7 +426,23 @@ public class ModelTestUtil {
           .map(JsonIgnoreProperties::value)
           .map(Arrays::asList)
           .orElse(List.of());
-      return Stream.concat(Arrays.stream(declaredFields), parentFields.stream())
+      return Stream
+          .concat(
+              Arrays.stream(declaredFields),
+              parentFields.stream()
+              .filter(parentField -> Optional.ofNullable(parentField.getAnnotation(JsonProperty.class))
+                  .map(JsonProperty::value)
+                  .filter(Predicate.not(JsonProperty.USE_DEFAULT_NAME::equals))
+                  .or(() -> Optional.of(parentField.getName()))
+                  .stream()
+                  .noneMatch(parentFieldName -> Arrays.stream(declaredFields)
+                      .filter(field -> !Modifier.isStatic(field.getModifiers()))
+                      .filter(field -> !Modifier.isFinal(field.getModifiers()))
+                      .map(field -> Optional.ofNullable(field.getAnnotation(JsonProperty.class))
+                          .map(JsonProperty::value)
+                          .filter(Predicate.not(JsonProperty.USE_DEFAULT_NAME::equals))
+                          .orElse(field.getName()))
+                      .anyMatch(parentFieldName::equals))))
           .filter(field -> !Modifier.isStatic(field.getModifiers()))
           .filter(field -> !Modifier.isFinal(field.getModifiers()))
           .filter(field -> !field.isAnnotationPresent(JsonIgnore.class))

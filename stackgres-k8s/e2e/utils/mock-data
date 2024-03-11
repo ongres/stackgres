@@ -42,7 +42,7 @@ read_mock_table(){
     esac
   done
 
-  run_query -c "$CLUSTER_NAME" -p 5432 -h "$CLUSTER_NAME$SERVER" -i "$INSTANCE" -d "test" -q "SELECT SUM(num) FROM fibonacci;"
+  run_query -c "$CLUSTER_NAME" -p 5432 -h "${CLUSTER_HOST:-$CLUSTER_NAME$SERVER}" -i "$INSTANCE" -d "test" -q "SELECT SUM(num) FROM fibonacci;"
 }
 
 check_mock_data_samehost(){

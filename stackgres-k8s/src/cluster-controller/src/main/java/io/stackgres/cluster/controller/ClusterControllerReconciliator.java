@@ -39,7 +39,9 @@ public class ClusterControllerReconciliator
   private final PatroniReconciliator patroniReconciliator;
   private final ManagedSqlReconciliator managedSqlReconciliator;
   private final PostgresSslReconciliator postgresSslReconciliator;
-  private final PatroniStandbyHistoryReconciliator patroniStandbyHistoryReconciliator;
+  private final PatroniResetReconciliator patroniStandbyHistoryReconciliator;
+  private final PatroniConfigReconciliator patroniConfigReconciliator;
+  private final ClusterControllerPropertyContext propertyContext;
   private final String podName;
 
   @Inject
@@ -53,6 +55,8 @@ public class ClusterControllerReconciliator
     this.managedSqlReconciliator = parameters.managedSqlReconciliator;
     this.postgresSslReconciliator = parameters.postgresSslReconciliator;
     this.patroniStandbyHistoryReconciliator = parameters.patroniStandbyHistoryReconciliator;
+    this.patroniConfigReconciliator = parameters.patroniConfigReconciliator;
+    this.propertyContext = parameters.propertyContext;
     this.podName = parameters.propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
   }
@@ -69,13 +73,15 @@ public class ClusterControllerReconciliator
     this.managedSqlReconciliator = null;
     this.postgresSslReconciliator = null;
     this.patroniStandbyHistoryReconciliator = null;
+    this.patroniConfigReconciliator = null;
+    this.propertyContext = null;
     this.podName = null;
   }
 
   @SuppressFBWarnings(value = "REC_CATCH_EXCEPTION",
       justification = "False positives")
   @Override
-  protected ReconciliationResult<?> reconcile(KubernetesClient client,
+  public ReconciliationResult<Void> reconcile(KubernetesClient client,
       StackGresClusterContext context) throws Exception {
     final StackGresCluster cluster = context.getCluster();
     final boolean podStatusMissing = Optional.ofNullable(cluster.getStatus())
@@ -112,6 +118,8 @@ public class ClusterControllerReconciliator
         postgresSslReconciliator.reconcile(client, context);
     ReconciliationResult<Void> patroniStandbyHistoryReconciliatorResult =
         patroniStandbyHistoryReconciliator.reconcile(client, context);
+    ReconciliationResult<Void> patroniConfigReconciliationResult =
+        patroniConfigReconciliator.reconcile(client, context);
 
     if (podStatusMissing
         || postgresBootstrapReconciliatorResult.result().orElse(false)
@@ -139,7 +147,7 @@ public class ClusterControllerReconciliator
           }));
     }
 
-    pvcSizeReconciliator.reconcile();
+    var pvcSizeReconciliatorResult = pvcSizeReconciliator.reconcile(client, propertyContext);
 
     return postgresBootstrapReconciliatorResult
         .join(extensionReconciliationResult)
@@ -147,7 +155,9 @@ public class ClusterControllerReconciliator
         .join(patroniReconciliationResult)
         .join(managedSqlReconciliationResult)
         .join(postgresSslReconciliationResult)
-        .join(patroniStandbyHistoryReconciliatorResult);
+        .join(patroniStandbyHistoryReconciliatorResult)
+        .join(patroniConfigReconciliationResult)
+        .join(pvcSizeReconciliatorResult);
   }
 
   private void updateClusterPodStatus(StackGresCluster currentCluster,
@@ -193,7 +203,8 @@ public class ClusterControllerReconciliator
     @Inject PatroniReconciliator patroniReconciliator;
     @Inject ManagedSqlReconciliator managedSqlReconciliator;
     @Inject PostgresSslReconciliator postgresSslReconciliator;
-    @Inject PatroniStandbyHistoryReconciliator patroniStandbyHistoryReconciliator;
+    @Inject PatroniResetReconciliator patroniStandbyHistoryReconciliator;
+    @Inject PatroniConfigReconciliator patroniConfigReconciliator;
   }
 
 }

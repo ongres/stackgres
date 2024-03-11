@@ -170,10 +170,23 @@ EOF
 }
 
 check_major_version_upgrade_creation_fail_on_missing_extension_version() {
-  local E2E_MAJOR_SOURCE_POSTGRES_VERSION=14
-  local E2E_MAJOR_TARGET_POSTGRES_VERSION=15
-  local SOURCE_PG_REPACK_VERSION
-  SOURCE_PG_REPACK_VERSION="$(get_oldest_version_of_extension pg_repack "${E2E_MAJOR_SOURCE_POSTGRES_VERSION%.*}")"
+  local E2E_MAJOR_SOURCE_POSTGRES_VERSION=14.10
+  local E2E_MAJOR_TARGET_POSTGRES_VERSION=15.5
+  local SOURCE_POSTGIS_VERSION \
+    TARGET_POSTGIS_VERSION \
+    SOURCE_TIMESCALE_VERSION \
+    TARGET_TIMESCALE_VERSION \
+    SOURCE_PG_REPACK_VERSION \
+    TARGET_PG_REPACK_VERSION \
+    SOURCE_ADMINPACK_VERSION
+    
+  SOURCE_POSTGIS_VERSION="$(get_latest_version_of_extension postgis "${E2E_MAJOR_SOURCE_POSTGRES_VERSION%.*}" || true)"
+  TARGET_POSTGIS_VERSION="$(get_latest_version_of_extension postgis "${E2E_MAJOR_TARGET_POSTGRES_VERSION%.*}" || true)"
+  SOURCE_TIMESCALE_VERSION="$(get_latest_version_of_extension timescaledb "${E2E_MAJOR_SOURCE_POSTGRES_VERSION%.*}" || true)"
+  TARGET_TIMESCALE_VERSION="$(get_latest_version_of_extension timescaledb "${E2E_MAJOR_TARGET_POSTGRES_VERSION%.*}" || true)"
+  SOURCE_PG_REPACK_VERSION="$(get_latest_version_of_extension pg_repack "${E2E_MAJOR_SOURCE_POSTGRES_VERSION%.*}" || true)"
+  TARGET_PG_REPACK_VERSION="$(get_latest_version_of_extension pg_repack "${E2E_MAJOR_TARGET_POSTGRES_VERSION%.*}" || true)"
+  SOURCE_ADMINPACK_VERSION="$(get_latest_version_of_extension adminpack "$E2E_MAJOR_SOURCE_POSTGRES_VERSION" || true)"
 
   reset_cluster_only_pg_repack
 
