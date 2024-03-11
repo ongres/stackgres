@@ -201,7 +201,7 @@ $(
     * [ ] Edit file `stackgres-k8s/src/common/src/main/java/io/stackgres/common/component/Components.java` to add version ${NEXT_MINOR_VERSION} and fix the failing code and tests
     * [ ] Edit file `stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/conciliation/factory/cluster/patroni/parameters/PostgresDefaultValues.java` to add version ${NEXT_MINOR_VERSION} and fix the failing code and tests
     * [ ] Edit file `stackgres-k8s/install/helm/stackgres-operator/templates/check-upgrade.yaml` to add support for upgrade from version ${NEXT_MINOR_VERSION} and remove support to upgrade from version ${TO_REMOVE_MINOR_VERSION}
-    * [ ] Update the e2e test `stackgres-k8s/e2e/spec/operator` to check support for upgrade from version ${MINOR_VERSION} and remove check for support to upgrade from version ${TO_REMOVE_MINOR_VERSION}.
+    * [ ] Update the e2e test `stackgres-k8s/e2e/spec/operator-helm` to check support for upgrade from version ${MINOR_VERSION} and remove check for support to upgrade from version ${TO_REMOVE_MINOR_VERSION}.
     * [ ] Add support for previous version ${MINOR_VERSION} in e2e tests
         ```
         mkdir -p stackgres-k8s/e2e/spec/previous/${MINOR_VERSION}/spec
@@ -233,9 +233,8 @@ $(
     ```
     git push
     ```
-1. [ ] Change scheduled pipeline to test previous version `${TO_REMOVE_MINOR_VERSION}` to use branch `main-${MINOR_VERSION}`: https://gitlab.com/ongresinc/stackgres/-/pipeline_schedules
-1. [ ] Create scheduled pipeline to test previous version `${MINOR_VERSION}`: https://gitlab.com/ongresinc/stackgres/-/pipeline_schedules
-1. [ ] Remove scheduled pipeline to test previous version `${TO_REMOVE_FROM_SCHEDULED_MINOR_VERSION}`: https://gitlab.com/ongresinc/stackgres/-/pipeline_schedules
+1. [ ] Change scheduled pipeline description and `STACKGRES_PREVIOUS_VERSION` environment variable to test upgrade from version `${TO_REMOVE_MINOR_VERSION}` to version `${MINOR_VERSION}`: https://gitlab.com/ongresinc/stackgres/-/pipeline_schedules/237754/edit?id=237754
+1. [ ] Change scheduled pipeline description and `STACKGRES_VERSION` environment variable to test from version `${TO_REMOVE_MINOR_VERSION}` to version `${MINOR_VERSION}`: https://gitlab.com/ongresinc/stackgres/-/pipeline_schedules/262456/edit?id=262456 or https://gitlab.com/ongresinc/stackgres/-/pipeline_schedules/235791/edit?id=235791
 EOF
   else
     cat << EOF
