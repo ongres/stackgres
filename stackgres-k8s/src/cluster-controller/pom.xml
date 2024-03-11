@@ -11,7 +11,7 @@
   <parent>
     <groupId>io.stackgres</groupId>
     <artifactId>stackgres-parent</artifactId>
-    <version>1.9.0-rc1</version>
+    <version>1.9.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>stackgres-cluster-controller</artifactId>
