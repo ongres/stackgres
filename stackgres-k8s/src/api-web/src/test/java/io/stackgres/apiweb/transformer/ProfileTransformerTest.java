@@ -38,7 +38,7 @@ class ProfileTransformerTest {
     target.setSpec(spec.target());
 
     target.setStatus(new ProfileStatus());
-    target.getStatus().setClusters(List.of(StringUtils.getRandomClusterName()));
+    target.getStatus().setClusters(List.of(StringUtils.getRandomResourceName()));
 
     return new TransformerTuple<>(target, source);
   }

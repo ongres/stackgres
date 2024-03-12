@@ -45,9 +45,9 @@ class PostgresRestartTest {
 
   @BeforeEach
   void setUp() {
-    clusterName = StringUtils.getRandomClusterName();
+    clusterName = StringUtils.getRandomResourceName();
     namespace = StringUtils.getRandomNamespace();
-    memberName = StringUtils.getRandomClusterName();
+    memberName = StringUtils.getRandomResourceName();
 
     var leader = new PatroniMember();
     leader.setMember(memberName);

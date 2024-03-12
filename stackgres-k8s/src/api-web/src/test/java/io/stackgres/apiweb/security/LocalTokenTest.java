@@ -12,6 +12,7 @@ import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
+import io.fabric8.kubernetes.client.dsl.Replaceable;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.kubernetes.client.KubernetesTestServer;
@@ -77,13 +78,13 @@ class LocalTokenTest {
 
     mockServer.getClient().secrets().inNamespace(namespace)
         .resource(demoUser)
-        .createOrReplace();
+        .createOr(Replaceable::update);
     mockServer.getClient().secrets().inNamespace(namespace)
         .resource(demoUserNoLabels)
-        .createOrReplace();
+        .createOr(Replaceable::update);
     mockServer.getClient().secrets().inNamespace(namespace)
         .resource(demoUserNoApiUser)
-        .createOrReplace();
+        .createOr(Replaceable::update);
   }
 
   @AfterEach

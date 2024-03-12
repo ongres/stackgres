@@ -98,7 +98,7 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
      */
     configureVolumeChange(clusterReview, "1Gi", "2Gi");
     configureStorageClassName(clusterReview, null);
-    var storageClassName = StringUtils.getRandomClusterName();
+    var storageClassName = StringUtils.getRandomResourceName();
     allowStorageClassVolumeExpansion(storageClassName);
 
     /*
@@ -219,8 +219,8 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
     setupLabelFactory(cluster, clusterLabels);
     String clusterNamespace = getClusterNamespace(clusterReview);
 
-    String expandableStorageClassName = StringUtils.getRandomClusterName();
-    String nonExpandableStorageClassName = StringUtils.getRandomClusterName();
+    String expandableStorageClassName = StringUtils.getRandomResourceName();
+    String nonExpandableStorageClassName = StringUtils.getRandomResourceName();
 
     configureMixedPvcScanner(cluster, clusterLabels,
         clusterNamespace, expandableStorageClassName,
@@ -348,19 +348,19 @@ public abstract class PersistentVolumeSizeExpansionValidatorTest<T extends Admis
 
   private Map<String, String> getRandomClusterLabels() {
     return Map.of(
-        StringUtils.getRandomString(), StringUtils.getRandomClusterName()
+        StringUtils.getRandomString(), StringUtils.getRandomResourceName()
     );
   }
 
   private void setupVolumeExpansion(T review) {
-    final String storageClassName = StringUtils.getRandomClusterName();
+    final String storageClassName = StringUtils.getRandomResourceName();
 
     configureStorageClassName(review, storageClassName);
     configureVolumeChange(review, "500Mi", "1Gi");
   }
 
   private void setupUnalteredVolumeSize(T review) {
-    final String storageClassName = StringUtils.getRandomClusterName();
+    final String storageClassName = StringUtils.getRandomResourceName();
 
     configureVolumeChange(review, "500Mi", "500Mi");
     configureStorageClassName(review, storageClassName);

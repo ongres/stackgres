@@ -50,7 +50,7 @@ class PodWatcherTest {
   @BeforeEach
   void setUp() {
     namespace = StringUtils.getRandomNamespace();
-    clusterName = StringUtils.getRandomClusterName();
+    clusterName = StringUtils.getRandomResourceName();
     podName = clusterName + "-" + new Random().nextInt(128);
     client.namespaces()
         .resource(new NamespaceBuilder()
