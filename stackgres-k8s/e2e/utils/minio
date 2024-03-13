@@ -1,6 +1,18 @@
 #!/bin/sh
 
-install_minio(){
+is_minio_installed() {
+  MINIO_NAME="${MINIO_NAME:-$CLUSTER_NAME-minio}"
+  MINIO_NAMESPACE="${MINIO_NAMESPACE:-$CLUSTER_NAMESPACE}"
+  helm list -A | tail -n +2 | tr -s '\t ' ' ' | grep -q "$MINIO_NAME $MINIO_NAMESPACE "
+}
+
+uninstall_minio() {
+  MINIO_NAME="${MINIO_NAME:-$CLUSTER_NAME-minio}"
+  MINIO_NAMESPACE="${MINIO_NAMESPACE:-$CLUSTER_NAMESPACE}"
+  helm uninstall --namespace "$MINIO_NAMESPACE" "$MINIO_NAME"
+}
+
+install_minio() {
   MINIO_NAME="${MINIO_NAME:-$CLUSTER_NAME-minio}"
   BUCKET_NAME="${BUCKET_NAME:-stackgres}"
   MINIO_NAMESPACE="${MINIO_NAMESPACE:-$CLUSTER_NAMESPACE}"
@@ -55,5 +67,6 @@ EOF
   fi
 
   helm install --namespace "$MINIO_NAMESPACE" "$MINIO_NAME" \
-    "$E2E_PATH/helm/minio-8.0.10.tgz" -f "$LOG_PATH/minio.yaml"
+    "$E2E_PATH/helm/minio-8.0.10.tgz" -f "$LOG_PATH/minio.yaml" \
+    "$@"
 }
