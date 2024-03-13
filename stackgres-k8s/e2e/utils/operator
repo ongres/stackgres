@@ -265,45 +265,49 @@ setup_operator() {
     E2E_BEFORE_RUN_TEST_FUNCTION="$E2E_BEFORE_RUN_TEST_FUNCTION e2e_before_run_test_upgrade_k8s"
   fi
 
-  if ! is_operator_installed \
-    || {
-      [ "$E2E_USE_EXTERNAL_OPERATOR" != true ] \
-      && [ "$E2E_REUSE_OPERATOR_PODS" != true ]
-    } \
-    || [ "$(get_operator_namespace)" != "$OPERATOR_NAMESPACE" ]
+  if [ "$E2E_SKIP_CLEANUP" != true ]
   then
-    if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" != true ] \
-        && [ "$E2E_SKIP_OPERATOR_LOAD" != true ]
+    if ! is_operator_installed \
+      || {
+        [ "$E2E_USE_EXTERNAL_OPERATOR" != true ] \
+        && [ "$E2E_REUSE_OPERATOR_PODS" != true ]
+      } \
+      || [ "$(get_operator_namespace)" != "$OPERATOR_NAMESPACE" ]
     then
-      load_operator_k8s
-    fi
+      if [ "$E2E_USE_INTERMIDIATE_PRIVATE_REPO" != true ] \
+          && [ "$E2E_SKIP_OPERATOR_LOAD" != true ]
+      then
+        load_operator_k8s
+      fi
 
-    echo "Performing full cleanup"
-    k8s_webhook_cleanup
-    helm_cleanup
-    k8s_async_cleanup
-    echo "Full cleanup completed"
+      echo "Performing full cleanup"
+      k8s_webhook_cleanup
+      helm_cleanup
+      k8s_async_cleanup
+      echo "Full cleanup completed"
 
-    if [ "$E2E_SKIP_OPERATOR_INSTALL" != true ]
-    then
-      install_operator
-      store_operator_values
+      if [ "$E2E_SKIP_OPERATOR_INSTALL" != true ]
+      then
+        install_operator
+        store_operator_values
+      fi
+    else
+      echo "Performing cleanup skipping operator"
+      helm_cleanup_but_operator
+      k8s_async_cleanup_but_operator
+      echo "Cleanup skipping operator completed"
     fi
-  else
-    echo "Performing cleanup skipping operator"
-    helm_cleanup_but_operator
-    k8s_async_cleanup_but_operator
-    echo "Cleanup skipping operator completed"
   fi
 }
 
 is_operator_installed() {
-  helm list -A | grep -q '^stackgres-operator[[:space:]]'
+  helm list -A | tail -n +2 | tr -s '\t ' ' ' \
+    | grep -q '^stackgres-operator stackgres-[^ ]\+ '
 }
 
 get_operator_namespace() {
-  helm list -A | grep '^stackgres-operator[[:space:]]' \
-    | sed 's/[[:space:]]\+/ /g' | cut -d ' ' -f 2
+  helm list -A | tail -n +2 | tr -s '\t ' ' ' \
+    | grep '^stackgres-operator stackgres-[^ ]\+ ' | cut -d ' ' -f 2
 }
 
 load_operator_k8s() {
@@ -860,8 +864,10 @@ reinstall_operator_if_not_as_expected() {
     if [ -f "$TARGET_PATH/operator-values.json" ]
     then
       install_operator_only -f "$TARGET_PATH/operator-values.json"
+      store_operator_values
     else
       install_operator_only
+      store_operator_values
     fi
   fi
 }
