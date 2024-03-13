@@ -5,11 +5,9 @@ K8S_EKS_REGION="${K8S_EKS_REGION:-us-west-2}"
 K8S_EKS_NODE_TYPE="${K8S_EKS_NODE_TYPE:-m5.large}"
 K8S_EKS_NODES="${K8S_EKS_NODES:-1}"
 K8S_EKS_DISK_SIZE="${K8S_EKS_DISK_SIZE:-20}"
+K8S_EKS_USE_SPOT="${K8S_EKS_USE_SPOT:-true}"
 K8S_EKS_OPTS="$K8S_EKS_OPTS"
 EKS_EXPANDABLE_STORAGE_CLASSNAME="${EXPANDABLE_STORAGE_CLASSNAME:-expandable-sc}"
-
-export E2E_USE_INTERMIDIATE_PRIVATE_REPO="${E2E_USE_INTERMIDIATE_PRIVATE_REPO:-true}"
-export E2E_OPERATOR_PULL_POLICY=Always
 
 export K8S_EKS_NAME K8S_VERSION K8S_EKS_REGION K8S_EKS_NODE_LOCATIONS K8S_EKS_NODE_TYPE K8S_EKS_OPTS
 
@@ -30,6 +28,32 @@ reuse_k8s() {
   echo "Reusing eks environment $K8S_EKS_NAME"
 
   aws eks update-kubeconfig --name "$K8S_EKS_NAME" --region "$K8S_EKS_REGION"
+
+  create_and_use_cluster_admin_fast
+}
+
+create_and_use_cluster_admin_fast() {
+  kubectl create sa cluster-admin-fast 2>/dev/null || true
+  kubectl create clusterrolebinding cluster-admin-fast --clusterrole=cluster-admin --serviceaccount=default:cluster-admin-fast 2>/dev/null || true
+  SECRET="$(kubectl get sa cluster-admin-fast -o json | jq -r '.secrets[].name')"
+  kubectl get secret "$SECRET" -o json | jq -r '.data["ca.crt"]' | base64 -d > "$TARGET_PATH/eks-ca.crt"
+  USER_TOKEN=$(kubectl get secret "$SECRET" -o json | jq -r '.data["token"]' | base64 -d)
+  CURRENT_CONTEXT="$(kubectl config current-context)"
+  CURRENT_CONTEXT_CLUSTER="$(kubectl config get-contexts "$CURRENT_CONTEXT" | tail -n +2 | tr -s ' \t' ' ' | cut -d ' ' -f 3 | tail -n 1)"
+  CURRENT_CONTEXT_ENDPOINT="$(kubectl config view -o jsonpath="{.clusters[?(@.name == \"$CURRENT_CONTEXT_CLUSTER\")].cluster.server}")"
+  kubectl config delete-cluster "$CURRENT_CONTEXT_CLUSTER-fast" 2>/dev/null || true
+  kubectl config set-cluster "$CURRENT_CONTEXT_CLUSTER-fast" \
+    --embed-certs=true \
+    --server="$CURRENT_CONTEXT_ENDPOINT" \
+    --certificate-authority="$TARGET_PATH/eks-ca.crt"
+  kubectl config delete-user "$CURRENT_CONTEXT-fast" 2>/dev/null || true
+  kubectl config set-credentials "$CURRENT_CONTEXT-fast" \
+    --token="$USER_TOKEN"
+  kubectl config set-context "$CURRENT_CONTEXT-fast" \
+    --cluster="$CURRENT_CONTEXT_CLUSTER-fast" \
+    --user="$CURRENT_CONTEXT-fast" \
+    --namespace=default
+  kubectl config use-context "$CURRENT_CONTEXT-fast"
 }
 
 reset_k8s() {
@@ -38,7 +62,7 @@ reset_k8s() {
   delete_k8s
 
   eksctl create cluster --name "$K8S_EKS_NAME" \
-    --spot \
+    $([ "$K8S_EKS_USE_SPOT" != true ] || printf %s --spot) \
     --region "$K8S_EKS_REGION" \
     --node-type "$K8S_EKS_NODE_TYPE" \
     --node-volume-size "$K8S_EKS_DISK_SIZE" \
