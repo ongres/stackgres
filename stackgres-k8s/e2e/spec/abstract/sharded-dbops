@@ -15,7 +15,7 @@ wait_dbops_is_completed() {
 
 wait_sharded_dbops_is_completed() {
   local SHARDED_DBOPS_NAME="$1"
-  if wait_until eval 'kubectl get sgshardeddbops -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" \
+  if wait_until -t "$((E2E_TIMEOUT * 4))" eval 'kubectl get sgshardeddbops -n "$CLUSTER_NAMESPACE" "$SHARDED_DBOPS_NAME" \
     --template "{{ range .status.conditions }}{{ if eq .status \"True\" }}{{ .type }}{{ end }}{{ end }}" \
     | grep -q "^Completed$"'
   then
