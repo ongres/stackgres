@@ -119,10 +119,6 @@
             "cpu": "500m",
             "memory": "512Mi"
           },
-          "setup-scripts": {
-            "cpu": "500m",
-            "memory": "512Mi"
-          },
           "dbops.set-dbops-running": {
             "cpu": "1",
             "memory": "256Mi"
@@ -203,10 +199,6 @@
               "memory": "512Mi"
             },
             "setup-arbitrary-user": {
-              "cpu": "500m",
-              "memory": "512Mi"
-            },
-            "setup-scripts": {
               "cpu": "500m",
               "memory": "512Mi"
             },
@@ -309,10 +301,6 @@
             "cpu": "500m",
             "memory": "512Mi"
           },
-          "setup-scripts": {
-            "cpu": "500m",
-            "memory": "512Mi"
-          },
           "dbops.set-dbops-running": {
             "cpu": "1",
             "memory": "256Mi"
@@ -393,10 +381,6 @@
               "memory": "512Mi"
             },
             "setup-arbitrary-user": {
-              "cpu": "500m",
-              "memory": "512Mi"
-            },
-            "setup-scripts": {
               "cpu": "500m",
               "memory": "512Mi"
             },

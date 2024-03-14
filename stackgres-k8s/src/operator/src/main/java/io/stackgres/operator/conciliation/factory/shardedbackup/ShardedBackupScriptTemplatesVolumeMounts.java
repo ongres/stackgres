@@ -26,14 +26,14 @@ public class ShardedBackupScriptTemplatesVolumeMounts
     return List.of(
         new VolumeMountBuilder()
             .withName(StackGresVolume.SCRIPT_TEMPLATES.getName())
-            .withSubPath(ShardedClusterPath.LOCAL_BIN_CREATE_SHARDED_BACKUP_SH_PATH.filename())
             .withMountPath(ShardedClusterPath.LOCAL_BIN_CREATE_SHARDED_BACKUP_SH_PATH.path())
+            .withSubPath(ShardedClusterPath.LOCAL_BIN_CREATE_SHARDED_BACKUP_SH_PATH.filename())
             .withReadOnly(true)
             .build(),
         new VolumeMountBuilder()
             .withName(StackGresVolume.SCRIPT_TEMPLATES.getName())
-            .withSubPath(ShardedClusterPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
             .withMountPath(ShardedClusterPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
+            .withSubPath(ShardedClusterPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
             .withReadOnly(true)
             .build()
     );

@@ -7,11 +7,10 @@ package io.stackgres.operator.conciliation.factory.shardeddbops;
 
 import java.util.stream.Stream;
 
-import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
-import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ShardedClusterContext;
 import io.stackgres.common.StackGresVolume;
+import io.stackgres.operator.conciliation.factory.AbstractTemplatesVolumeFactory;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
@@ -21,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped
 public class ShardedDbOpsTemplatesVolumeFactory
+    extends AbstractTemplatesVolumeFactory
     implements VolumeFactory<StackGresShardedDbOpsContext> {
 
   public static String name(ShardedClusterContext context) {
@@ -37,13 +37,7 @@ public class ShardedDbOpsTemplatesVolumeFactory
   }
 
   private Volume buildVolume(StackGresShardedDbOpsContext context) {
-    return new VolumeBuilder()
-        .withName(StackGresVolume.SCRIPT_TEMPLATES.getName())
-        .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withName(name(context))
-            .withDefaultMode(0444)
-            .build())
-        .build();
+    return buildVolumeForShardedCluster(context);
   }
 
 }

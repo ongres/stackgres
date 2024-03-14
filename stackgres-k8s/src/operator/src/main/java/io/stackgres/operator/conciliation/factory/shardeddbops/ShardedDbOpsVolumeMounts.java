@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.shardeddbops;
 
-import static io.stackgres.operator.conciliation.factory.AbstractTemplatesConfigMap.SHARDED_CLUSTER_TEMPLATE_PATHS;
+import static io.stackgres.operator.conciliation.factory.AbstractTemplatesVolumeFactory.SHARDED_CLUSTER_TEMPLATE_PATHS;
 
 import java.util.List;
 

@@ -31,7 +31,7 @@ public class ScriptTemplatesVolumeMounts implements VolumeMountsProvider<Contain
   @Override
   public List<EnvVar> getDerivedEnvVars(ContainerContext context) {
     return Seq.of(ClusterPath.TEMPLATES_PATH.envVar())
-        .append(AbstractTemplatesConfigMap.CLUSTER_TEMPLATE_PATHS.stream()
+        .append(AbstractTemplatesVolumeFactory.CLUSTER_TEMPLATE_PATHS.stream()
             .map(ClusterPath::envVar))
         .toList();
   }

@@ -25,14 +25,14 @@ public class BackupScriptTemplatesVolumeMounts
     return List.of(
         new VolumeMountBuilder()
             .withName(StackGresVolume.SCRIPT_TEMPLATES.getName())
-            .withSubPath(ClusterPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.filename())
             .withMountPath(ClusterPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.path())
+            .withSubPath(ClusterPath.LOCAL_BIN_CREATE_BACKUP_SH_PATH.filename())
             .withReadOnly(true)
             .build(),
         new VolumeMountBuilder()
             .withName(StackGresVolume.SCRIPT_TEMPLATES.getName())
-            .withSubPath(ClusterPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
             .withMountPath(ClusterPath.LOCAL_BIN_SHELL_UTILS_PATH.path())
+            .withSubPath(ClusterPath.LOCAL_BIN_SHELL_UTILS_PATH.filename())
             .withReadOnly(true)
             .build()
     );

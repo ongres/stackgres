@@ -15,7 +15,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.labels.LabelFactoryForShardedCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
-import io.stackgres.operator.conciliation.factory.AbstractTemplatesConfigMap;
+import io.stackgres.operator.conciliation.factory.AbstractTemplatesVolumeFactory;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
@@ -23,7 +23,7 @@ import jakarta.inject.Singleton;
 @Singleton
 @OperatorVersionBinder
 public class ShardedBackupTemplatesConfigMap
-    extends AbstractTemplatesConfigMap
+    extends AbstractTemplatesVolumeFactory
     implements ResourceGenerator<StackGresShardedClusterContext> {
 
   private LabelFactoryForShardedCluster labelFactory;

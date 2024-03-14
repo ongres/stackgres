@@ -9,16 +9,14 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
-import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
-import io.stackgres.operator.conciliation.factory.AbstractTemplatesConfigMap;
+import io.stackgres.operator.conciliation.factory.AbstractTemplatesVolumeFactory;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
@@ -29,15 +27,10 @@ import org.jetbrains.annotations.NotNull;
 @Singleton
 @OperatorVersionBinder
 public class PatroniTemplatesConfigMap
-    extends AbstractTemplatesConfigMap
+    extends AbstractTemplatesVolumeFactory
     implements VolumeFactory<StackGresDistributedLogsContext> {
 
   private LabelFactoryForCluster<StackGresDistributedLogs> labelFactory;
-
-  private static String name(StackGresDistributedLogsContext context) {
-    final String clusterName = context.getSource().getMetadata().getName();
-    return StackGresVolume.SCRIPT_TEMPLATES.getResourceName(clusterName);
-  }
 
   @Override
   public @NotNull Stream<VolumePair> buildVolumes(StackGresDistributedLogsContext context) {
@@ -50,14 +43,7 @@ public class PatroniTemplatesConfigMap
   }
 
   public @NotNull Volume buildVolume(StackGresDistributedLogsContext context) {
-    return new VolumeBuilder()
-        .withName(StackGresVolume.SCRIPT_TEMPLATES.getName())
-        .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withName(name(context))
-            .withDefaultMode(0440)
-            .withOptional(false)
-            .build())
-        .build();
+    return buildVolumeForDistributedLogs(context);
   }
 
   public @NotNull HasMetadata buildSource(StackGresDistributedLogsContext context) {

@@ -5,7 +5,7 @@
 
 package io.stackgres.operator.conciliation.factory.dbops;
 
-import static io.stackgres.operator.conciliation.factory.AbstractTemplatesConfigMap.CLUSTER_TEMPLATE_PATHS;
+import static io.stackgres.operator.conciliation.factory.AbstractTemplatesVolumeFactory.CLUSTER_TEMPLATE_PATHS;
 
 import java.util.List;
 

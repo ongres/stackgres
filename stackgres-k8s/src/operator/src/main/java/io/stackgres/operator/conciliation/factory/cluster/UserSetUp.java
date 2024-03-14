@@ -57,7 +57,10 @@ public class UserSetUp implements ContainerFactory<ClusterContainerContext> {
             ClusterPath.TEMPLATES_PATH.path()
                 + "/" + ClusterPath.LOCAL_BIN_SETUP_ARBITRARY_USER_SH_PATH.filename())
         .withEnv(getClusterEnvVars(context))
-        .addToEnv(new EnvVarBuilder().withName("HOME").withValue("/tmp").build())
+        .addToEnv(new EnvVarBuilder()
+            .withName("HOME")
+            .withValue("/tmp")
+            .build())
         .withVolumeMounts(scriptTemplateMounts.getVolumeMounts(context))
         .addToVolumeMounts(
             new VolumeMountBuilder()
@@ -69,11 +72,10 @@ public class UserSetUp implements ContainerFactory<ClusterContainerContext> {
   }
 
   private List<EnvVar> getClusterEnvVars(ClusterContainerContext context) {
-
     return ImmutableList.<EnvVar>builder()
         .addAll(scriptTemplateMounts.getDerivedEnvVars(context))
         .addAll(postgresDataMounts.getDerivedEnvVars(context))
         .build();
-
   }
+
 }

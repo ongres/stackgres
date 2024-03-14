@@ -10,17 +10,15 @@ import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Volume;
-import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
-import io.stackgres.operator.conciliation.factory.AbstractTemplatesConfigMap;
+import io.stackgres.operator.conciliation.factory.AbstractTemplatesVolumeFactory;
 import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
@@ -30,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder
-public class TemplatesConfigMap extends AbstractTemplatesConfigMap
+public class TemplatesConfigMap extends AbstractTemplatesVolumeFactory
     implements VolumeFactory<StackGresClusterContext> {
 
   private LabelFactoryForCluster<StackGresCluster> labelFactory;
@@ -50,13 +48,7 @@ public class TemplatesConfigMap extends AbstractTemplatesConfigMap
   }
 
   public @NotNull Volume buildVolume(StackGresClusterContext context) {
-    return new VolumeBuilder()
-        .withName(StackGresVolume.SCRIPT_TEMPLATES.getName())
-        .withConfigMap(new ConfigMapVolumeSourceBuilder()
-            .withName(name(context))
-            .withDefaultMode(0444)
-            .build())
-        .build();
+    return buildVolumeForCluster(context);
   }
 
   public @NotNull HasMetadata buildSource(StackGresClusterContext context) {
