@@ -50,18 +50,23 @@ public class UserTransformer
     }
     transformation.getMetadata().getLabels().putAll(
         Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
-    Map<String, String> data = new HashMap<>();
+    Map<String, String> data = new HashMap<>(
+        Optional.ofNullable(original)
+        .map(Secret::getData)
+        .map(ResourceUtil::decodeSecret)
+        .orElse(Map.of()));
     Optional.ofNullable(source.getK8sUsername())
         .ifPresent(k8sUsername -> data.put(StackGresContext.REST_K8SUSER_KEY, k8sUsername));
     Optional.ofNullable(source.getApiUsername())
         .ifPresent(apiUsername -> data.put(StackGresContext.REST_APIUSER_KEY, apiUsername));
     Optional.ofNullable(source.getPassword())
         .filter(password -> Objects.nonNull(source.getK8sUsername()))
-        .ifPresent(password -> data.put(StackGresContext.REST_PASSWORD_KEY,
-            TokenUtils.sha256(
-                Optional.ofNullable(source.getApiUsername())
-                .orElse(source.getK8sUsername())
-                + password)));
+        .ifPresent(
+            password -> data.put(StackGresContext.REST_PASSWORD_KEY,
+                TokenUtils.sha256(
+                    Optional.ofNullable(source.getApiUsername())
+                    .orElse(source.getK8sUsername())
+                    + password)));
     transformation.setData(ResourceUtil.encodeSecret(data));
     return transformation;
   }
@@ -104,7 +109,7 @@ public class UserTransformer
             .anyMatch(userSubject::equals))
         .forEach(roleBinding -> user.getRoles().add(
             new UserRoleRef(
-                user.getMetadata().getNamespace(),
+                roleBinding.getMetadata().getNamespace(),
                 roleBinding.getRoleRef().getName())));
   }
 

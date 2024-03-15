@@ -6,7 +6,7 @@
 package io.stackgres.operator.conciliation;
 
 import static io.stackgres.operator.validation.CrdMatchTestHelper.getMaxLengthResourceNameFrom;
-import static io.stackgres.testutil.StringUtils.getRandomClusterNameWithExactlySize;
+import static io.stackgres.testutil.StringUtils.getRandomResourceNameWithExactlySize;
 import static java.lang.String.format;
 import static org.junit.Assert.assertThrows;
 
@@ -48,7 +48,7 @@ public abstract class AbstractRequiredResourceGeneratorTest<T> {
   @Test
   void shouldCreateResourceSuccessfully_OnceUsingTheCurrentCrdMaxLength() throws IOException {
     String validClusterName =
-        getRandomClusterNameWithExactlySize(getMaxLengthResourceNameFrom(usingKind()));
+        getRandomResourceNameWithExactlySize(getMaxLengthResourceNameFrom(usingKind()));
     getResource().getMetadata().setName(validClusterName);
 
     List<HasMetadata> decorateResources =
@@ -60,7 +60,7 @@ public abstract class AbstractRequiredResourceGeneratorTest<T> {
   void shouldGetAnExceededNameMessage_OnceUsingAnExceededMaxLengthName()
       throws JsonProcessingException, IOException {
     String invalidClusterName =
-        getRandomClusterNameWithExactlySize(getMaxLengthResourceNameFrom(usingKind()) + 1);
+        getRandomResourceNameWithExactlySize(getMaxLengthResourceNameFrom(usingKind()) + 1);
     getResource().getMetadata().setName(invalidClusterName);
 
     assertThrows(AssertionFailedError.class, () -> {

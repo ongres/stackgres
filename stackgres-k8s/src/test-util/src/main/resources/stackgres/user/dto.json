@@ -1,0 +1,20 @@
+{
+  "metadata": {
+    "name": "stackgres-restapi-admin",
+    "namespace": "stackgres",
+    "uid": "52c9583d-9cb7-438e-a049-f02d9f9a8eb7"
+  },
+  "k8sUsername": "admin",
+  "password": "test",
+  "roles": [
+    {
+      "namespace": "test",
+      "name": "test"
+    }
+  ],
+  "clusterRoles": [
+    {
+      "name": "test"
+    }
+  ]
+}

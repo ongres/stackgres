@@ -87,7 +87,7 @@ class DbOpsLauncherTest {
   void setUp() {
     namespace = StringUtils.getRandomNamespace();
     randomDbOpsName = StringUtils.getRandomString();
-    randomClusterName = StringUtils.getRandomClusterName();
+    randomClusterName = StringUtils.getRandomResourceName();
 
     dbOps = Fixtures.dbOps().loadSecurityUpgrade().get();
 

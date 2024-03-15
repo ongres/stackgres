@@ -34,7 +34,7 @@ public class ObjectStorageTransformerTest {
     dto.setSpec(specTuple.target());
 
     dto.setStatus(new ObjectStorageStatus());
-    dto.getStatus().setClusters(List.of(StringUtils.getRandomClusterName()));
+    dto.getStatus().setClusters(List.of(StringUtils.getRandomResourceName()));
     return new TransformerTuple<>(dto, crd);
   }
 

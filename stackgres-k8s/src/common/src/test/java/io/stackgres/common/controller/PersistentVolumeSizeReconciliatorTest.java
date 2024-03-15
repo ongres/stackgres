@@ -87,9 +87,9 @@ class PersistentVolumeSizeReconciliatorTest {
       }
     };
 
-    clusterName = StringUtils.getRandomClusterName(10);
+    clusterName = StringUtils.getRandomResourceName(10);
     namespace = StringUtils.getRandomString(10);
-    podName = StringUtils.getRandomClusterName(10);
+    podName = StringUtils.getRandomResourceName(10);
   }
 
   @Test

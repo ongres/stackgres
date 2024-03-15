@@ -55,4 +55,8 @@ public interface DtoFixtures {
     return new ShardedDbOpsDtoFixture();
   }
 
+  static UserDtoFixture user() {
+    return new UserDtoFixture();
+  }
+
 }

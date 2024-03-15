@@ -48,12 +48,13 @@ class ConfigMapResourceTest implements AuthenticatedResourceTest {
     final String randomPlainValue = StringUtil.generateRandom();
 
     mockServer.getClient().configMaps().inNamespace("test")
-        .create(new ConfigMapBuilder()
+        .resource(new ConfigMapBuilder()
             .withData(ImmutableMap.of("testKey", randomPlainValue))
             .withNewMetadata()
             .withName("testConfigMaps")
             .endMetadata()
-            .build());
+            .build())
+        .create();
 
     given()
         .when()

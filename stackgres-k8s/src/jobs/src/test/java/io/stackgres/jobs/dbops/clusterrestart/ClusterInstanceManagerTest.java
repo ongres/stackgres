@@ -70,7 +70,7 @@ class ClusterInstanceManagerTest {
   @BeforeEach
   void setUp() {
     namespace = StringUtils.getRandomNamespace();
-    clusterName = StringUtils.getRandomClusterName();
+    clusterName = StringUtils.getRandomResourceName();
 
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getMetadata().setName(clusterName);

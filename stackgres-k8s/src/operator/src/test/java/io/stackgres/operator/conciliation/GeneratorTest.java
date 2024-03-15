@@ -34,8 +34,8 @@ import org.junit.jupiter.api.BeforeEach;
 
 public abstract class GeneratorTest {
 
-  protected static final String CLUSTER_NAME = StringUtils.getRandomClusterName(10);
-  protected static final String CLUSTER_NAMESPACE = StringUtils.getRandomClusterName(10);
+  protected static final String CLUSTER_NAME = StringUtils.getRandomResourceName(10);
+  protected static final String CLUSTER_NAMESPACE = StringUtils.getRandomResourceName(10);
   protected static final String CLUSTER_UID = UUID.randomUUID().toString();
   protected StackGresCluster cluster;
   protected StackGresProfile stackGresProfile;
