@@ -10,7 +10,7 @@ e2e_test_install() {
 e2e_test() {
   run_test "Namespace endpoint should be available" check_namespace_status
 
-  run_test "Namespace endpoint should return all kubernetes storage classes" check_namespace
+  run_test "Namespace endpoint should return all kubernetes namespaces" check_namespace
 
   run_test "User with wrong credentials should not be authenticated" test_authentication_api_error
 }
