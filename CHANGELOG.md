@@ -1,3 +1,67 @@
+# :rocket: Release 1.9.0 (2024-03-18)
+
+## :notepad_spiral: NOTES
+
+StackGres 1.9.0 is finally out! This release offers some long-waited features like the possibility to downscale to 0 instances or the support for scaling instances using [HorizontalPodAutoscaler](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/) or [KEDA](https://keda.sh/) (more on this on next releases). And least but not last the new ability to use external DCS (like etcd, ZooKeeper and others) thanks to enabling them for the [patroni initial configurations](https://stackgres.io/doc/1.9/reference/crd/sgcluster/#sgclusterspecconfigurationspatroni). This last change open the door to a lot of possibility like having a base for a multi-kubernetes cluster. :tada: :comet: :rocket: :arrow_up:
+
+https://gitlab.com/ongresinc/stackgres/-/releases/1.9.0So, what you are waiting for to try this release and have a look to the future of StackGres! 
+
+## :sparkles: NEW FEATURES AND CHANGES
+
+* Added PostgreSQL 12.18, 13.14, 14.11, 15.6 and 16.2
+* Support PgBouncer 1.22.1
+* Support external DCS for patroni
+* Allow to set postgresql.pg_ctl_timeout for patroni initial config
+* Support for custom volume mounts
+* Allow to reduce SGCluster and SGShardedCluster instances to 0
+* Support scale subresource
+
+## Web Console
+
+* Support inline backup restoration
+
+## :bug: FIXES
+
+* Removed caBundle placeholder from CRDs conversion webhooks to speed up installation of operator bundle
+* ConcurrentModificationException thrown while watching resources
+* Avoid patroni to restart due to timeout in postgres script
+* Misleading info on managedLifecycle description
+* SGCluster do not scale up when primary is latest Pod
+* REST API users endpoints do not allow to update and delete omitting the password (to avoid change it when updating or avoid looking it up when deleting)
+
+## Web Console
+
+* Extensions version dropdown won't open on forms
+* Include tooltips and minimal template on sgcluster wizard
+* Set "Db Info" dashboard as default
+* Replace timezone toggle icon
+* Use postgres versions store for version filters
+* Remove unwanted overflow on pitr graph legend
+* Remove "open in new tab" icon from crd tables
+* Odd layout on backups search form
+* Make compressed size the default on sgbackups table listings
+* Elapsed time on backups should be timezone independent
+* Set minimum width for timestamp columns
+
+## :construction: KNOWN ISSUES
+
+* Backups may be restored with inconsistencies when performed with a Postgres instance running on a different architecture ([#1539](https://gitlab.com/ongresinc/stackgres/-/issues/1539))
+
+## :up: UPGRADE
+
+To upgrade from a previous installation of the StackGres operator's helm chart you will have to upgrade the helm chart release.
+ For more detailed information please refer to [our documentation](https://stackgres.io/doc/latest/install/helm/upgrade/#upgrade-operator).
+
+To upgrade StackGres operator's (upgrade only works starting from 1.1 version or above) helm chart issue the following commands (replace namespace and release name if you used something different):
+
+`helm upgrade -n "stackgres" "stackgres-operator" https://stackgres.io/downloads/stackgres-k8s/stackgres/1.9.0-rc1/helm/stackgres-operator.tgz`
+
+> IMPORTANT: This release is incompatible with previous `alpha` or `beta` versions. Upgrading from those versions will require uninstalling completely StackGres including all clusters and StackGres CRDs (those in `stackgres.io` group) first.
+
+Thank you for all the issues created, ideas, and code contributions by the StackGres Community!
+
+## :twisted_rightwards_arrows: [FULL LIST OF COMMITS](https://gitlab.com/ongresinc/stackgres/-/commits/1.9.0)
+
 # :rocket: Release 1.9.0-rc1 (2024-03-05)
 
 ## :notepad_spiral: NOTES
