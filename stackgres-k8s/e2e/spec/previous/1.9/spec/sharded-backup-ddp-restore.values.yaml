@@ -1,0 +1,26 @@
+configurations:
+  postgresconfig:
+    postgresql.conf:
+      shared_buffers: '32MB'
+  objectstorage:
+    create: true
+cluster:
+  pods:
+    persistentVolume:
+      size: 128Mi
+    managementPolicy: Parallel
+  configurations:
+    backups:
+      sgObjectStorage: backupconf
+  prometheusAutobind: false
+  disableBackups: true
+shardedCluster:
+  type: ddp
+  database: ddp
+  shards:
+    pods:
+      persistentVolume:
+        size: 128Mi
+      managementPolicy: Parallel
+nonProductionOptions:
+  disableClusterPodAntiAffinity: true
