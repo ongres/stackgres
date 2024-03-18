@@ -161,7 +161,7 @@ EOF
 
   generate_mock_data "$CLUSTER_NAME"
   check_mock_data_samehost "$CLUSTER_NAME"
-  check_mock_data_replication "$CLUSTER_NAME"
+  wait_until check_mock_data_replication "$CLUSTER_NAME"
 
   if kubectl patch sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
     -p "$(cat << EOF
