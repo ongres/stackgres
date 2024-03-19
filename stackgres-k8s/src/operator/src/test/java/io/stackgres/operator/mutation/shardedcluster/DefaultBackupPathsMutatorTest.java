@@ -69,12 +69,13 @@ class DefaultBackupPathsMutatorTest {
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
         .get(cluster)
         .getMajorVersion(postgresVersion);
+    final String creationTimestamp = cluster.getMetadata().getCreationTimestamp();
     assertEquals(
         Seq.range(0, cluster.getSpec().getShards().getClusters() + 1)
         .map(index -> BackupStorageUtil.getPath(
             cluster.getMetadata().getNamespace(),
             StackGresShardedClusterUtil.getClusterName(cluster, index),
-            postgresMajorVersion))
+            postgresMajorVersion) + "/" + creationTimestamp)
         .toList(),
         actualCluster.getSpec().getConfigurations().getBackups().get(0).getPaths());
   }
@@ -106,13 +107,14 @@ class DefaultBackupPathsMutatorTest {
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
         .get(cluster)
         .getMajorVersion(postgresVersion);
+    final String creationTimestamp = cluster.getMetadata().getCreationTimestamp();
     assertEquals(
         Seq.of("test-0", "test-1")
         .append(Seq.range(2, cluster.getSpec().getShards().getClusters() + 1)
             .map(index -> BackupStorageUtil.getPath(
                 cluster.getMetadata().getNamespace(),
                 StackGresShardedClusterUtil.getClusterName(cluster, index),
-                postgresMajorVersion)))
+                postgresMajorVersion) + "/" + creationTimestamp))
         .toList(),
         actualCluster.getSpec().getConfigurations().getBackups().get(0).getPaths());
   }

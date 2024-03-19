@@ -51,7 +51,7 @@ class DefaultBackupPathMutatorTest {
   @Test
   void clusterWithoutBackupPath_shouldSetIt() {
     final StackGresCluster cluster = review.getRequest().getObject();
-    final String uid = cluster.getMetadata().getUid();
+    final String creationTimestamp = cluster.getMetadata().getCreationTimestamp();
     cluster.getMetadata().setAnnotations(
         Map.of(StackGresContext.VERSION_KEY, StackGresVersion.LATEST.getVersion()));
     var backupConfiguration = new StackGresClusterBackupConfiguration();
@@ -70,7 +70,7 @@ class DefaultBackupPathMutatorTest {
             cluster.getMetadata().getNamespace(),
             cluster.getMetadata().getName(),
             postgresMajorVersion)
-            + "/" + uid,
+            + "/" + creationTimestamp,
         actualCluster.getSpec().getConfigurations().getBackups().get(0).getPath());
   }
 
