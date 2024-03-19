@@ -155,6 +155,17 @@ EOF
   cat << EOF > "$TARGET_PATH/kind-config.yaml"
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
+featureGates:
+  HPAContainerMetrics: true
+$(
+  if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -ge "$(echo "1.27" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  then
+    cat << INNER_INNER_EOF
+  InPlacePodVerticalScaling: true
+INNER_INNER_EOF
+  fi
+)
 $(
   if [ -n "$KIND_CONTAINERD_CACHE_PATH" ] || \
     docker system info 2> /dev/null | grep -q "Backing Filesystem: \(zfs\|btrfs\)"
