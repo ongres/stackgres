@@ -388,7 +388,7 @@ public class UserResource {
       RoleBinding roleBinding) {
     return roleBinding.getMetadata().getNamespace().equals(namespace)
         && roleBinding.getRoleRef().getKind().equals(HasMetadata.getKind(Role.class))
-        && roleBinding.getRoleRef().getApiGroup().equals(HasMetadata.getApiVersion(Role.class))
+        && roleBinding.getRoleRef().getApiGroup().equals(HasMetadata.getGroup(Role.class))
         && roleBinding.getRoleRef().getName().equals(userRoleRef.getName())
         && Optional.ofNullable(roleBinding.getSubjects()).stream()
             .flatMap(List::stream)
@@ -397,7 +397,7 @@ public class UserResource {
 
   private RoleRef getRoleRef(UserRoleRef userRoleRef) {
     return new RoleRefBuilder()
-        .withApiGroup(HasMetadata.getApiVersion(Role.class))
+        .withApiGroup(HasMetadata.getGroup(Role.class))
         .withKind(HasMetadata.getKind(Role.class))
         .withName(userRoleRef.getName())
         .build();
@@ -469,7 +469,7 @@ public class UserResource {
       Subject userSubject,
       ClusterRoleBinding clusterRoleBinding) {
     return clusterRoleBinding.getRoleRef().getKind().equals(HasMetadata.getKind(ClusterRole.class))
-        && clusterRoleBinding.getRoleRef().getApiGroup().equals(HasMetadata.getApiVersion(ClusterRole.class))
+        && clusterRoleBinding.getRoleRef().getApiGroup().equals(HasMetadata.getGroup(ClusterRole.class))
         && clusterRoleBinding.getRoleRef().getName().equals(userRoleRef.getName())
         && Optional.ofNullable(clusterRoleBinding.getSubjects()).stream()
             .flatMap(List::stream)
@@ -478,7 +478,7 @@ public class UserResource {
 
   private RoleRef getClusterRoleRef(UserRoleRef userRoleRef) {
     return new RoleRefBuilder()
-        .withApiGroup(HasMetadata.getApiVersion(ClusterRole.class))
+        .withApiGroup(HasMetadata.getGroup(ClusterRole.class))
         .withKind(HasMetadata.getKind(ClusterRole.class))
         .withName(userRoleRef.getName())
         .build();
