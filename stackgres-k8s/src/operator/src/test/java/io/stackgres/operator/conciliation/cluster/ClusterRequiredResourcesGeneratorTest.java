@@ -18,10 +18,10 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.quarkus.test.junit.QuarkusTest;
 import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.crd.external.prometheus.PodMonitor;
+import io.stackgres.common.crd.external.prometheus.Prometheus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.common.fixture.Fixtures;
-import io.stackgres.common.prometheus.PodMonitor;
-import io.stackgres.common.prometheus.Prometheus;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest

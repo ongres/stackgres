@@ -48,6 +48,10 @@ spec:
   {{- end }}
   coordinator:
     instances: {{ .Values.cluster.instances }}
+    {{- with .Values.cluster.autoscaling }}
+    autoscaling:
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
     configurations: 
       sgPostgresConfig: {{ quote .Values.cluster.configurations.sgPostgresConfig }}
       sgPoolingConfig: {{ quote .Values.cluster.configurations.sgPoolingConfig }}
@@ -111,6 +115,10 @@ spec:
   shards:
     clusters: {{ .Values.shardedCluster.shards.clusters }}
     instancesPerCluster: {{ .Values.shardedCluster.shards.instancesPerCluster }}
+    {{- with .Values.shardedCluster.shards.autoscaling }}
+    autoscaling:
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
     configurations: 
       sgPostgresConfig: {{ quote .Values.shardedCluster.shards.configurations.sgPostgresConfig }}
       sgPoolingConfig: {{ quote .Values.shardedCluster.shards.configurations.sgPoolingConfig }}
@@ -165,6 +173,10 @@ spec:
       {{- end }}
     {{- with .Values.shardedCluster.shards.replication }}
     replication:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.shardedCluster.shards.overrides }}
+    overrides:
       {{- toYaml . | nindent 6 }}
     {{- end }}
   {{- if .Values.distributedLogs.enabled }}

@@ -232,6 +232,152 @@ spec:
                 description: |
                   Number of instances for the StackGres cluster. Each instance is a Pod containing one Postgres server.
                     Out of all of the Postgres servers, one is elected as the primary, the rest remain as read-only replicas.
+              autoscaling:
+                type: object
+                description: |
+                  This section allows to configure horizontal and vertical Pod autoscaling for the SGCluster's Pods.
+                  
+                  Horizontal Pod Autoscaling will use replicas connections usage (active connections / max connections) as the metric to control the upscale or downscale of the replicas.
+                  Horizontal Pod Autoscaling require the [KEDA operator](https://github.com/kedacore/keda) to be installed in the Kuberentes cluster.
+                  
+                  Vertical Pod Autoscaling will use cpu and memory usage as the metric to control the upscale or downscale of the Pod requests and limits resources.
+                  Vertical Pod Autoscaling requires the [Vertical Pod Autoscaler operator](https://github.com/kubernetes/autoscaler/tree/master/vertical-pod-autoscaler) to be installed in the Kuberentes cluster.
+                properties:
+                  mode:
+                    type: string
+                    description: |
+                      Allow to enable or disable any of horizontal and vertical Pod autoscaling.
+                      
+                      Possible values are:
+                      * `all`: both horizontal and vertical Pod autoscaling will be enabled (default)
+                      * `horizontal`: only horizontal Pod autoscaling will be enabled
+                      * `vertical`: only vertical Pod autoscaling will be enabled
+                      * `none`: all autoscaling will be disabled
+                    default: all
+                  minInstances:
+                    type: integer
+                    description: |
+                      The total minimum number of instances that the SGCluster will have (including the primary instance).
+                      
+                      This field is ignored when horizontal Pod autoscaling is disabled.
+                    minimum: 2
+                  maxInstances:
+                    type: integer
+                    description: |
+                      The total maximum number of instances that the SGCluster will have (including the primary instance).
+                      
+                      This field is ignored when horizontal Pod autoscaling is disabled.
+                    minimum: 2
+                  minAllowed:
+                    type: object
+                    description: |
+                      Allow to define the lower bound for Pod resources of patroni, pgbouncer and envoy containers
+                    properties:
+                      patroni:
+                        type: object
+                        description: |
+                          Allow to define the lower bound for Pod resources of patroni container
+                        properties:
+                          cpu:
+                            type: string
+                            description: The minimum allowed CPU for the patroni container
+                          memory:
+                            type: string
+                            description: The minimum allowed memory for the patroni container
+                      pgbouncer:
+                        type: object
+                        description: |
+                          Allow to define the lower bound for Pod resources of pgbouncer container
+                        properties:
+                          cpu:
+                            type: string
+                            description: The minimum allowed CPU for the pgbouncer container
+                          memory:
+                            type: string
+                            description: The minimum allowed memory for the pgbouncer container
+                      envoy:
+                        type: object
+                        description: |
+                          Allow to define the lower bound for Pod resources of envoy container
+                        properties:
+                          cpu:
+                            type: string
+                            description: The minimum allowed CPU for the envoy container
+                          memory:
+                            type: string
+                            description: The minimum allowed memory for the envoy container
+                  maxAllowed:
+                    type: object
+                    description: |
+                      Allow to define the higher bound for Pod resources of patroni, pgbouncer and envoy containers
+                    properties:
+                      patroni:
+                        type: object
+                        description: |
+                          Allow to define the higher bound for Pod resources of patroni container
+                        properties:
+                          cpu:
+                            type: string
+                            description: The maximum allowed CPU for the patroni container
+                          memory:
+                            type: string
+                            description: The maximum allowed memory for the patroni container
+                      pgbouncer:
+                        type: object
+                        description: |
+                          Allow to define the higher bound for Pod resources of pgbouncer container
+                        properties:
+                          cpu:
+                            type: string
+                            description: The maximum allowed CPU for the pgbouncer container
+                          memory:
+                            type: string
+                            description: The maximum allowed memory for the pgbouncer container
+                      envoy:
+                        type: object
+                        description: |
+                          Allow to define the higher bound for Pod resources of envoy container
+                        properties:
+                          cpu:
+                            type: string
+                            description: The maximum allowed CPU for the envoy container
+                          memory:
+                            type: string
+                            description: The maximum allowed memory for the envoy container
+                  horizontal:
+                    type: object
+                    description: |
+                      Section to configure horizontal Pod autoscaling aspects.
+                    properties:
+                      replicasConnectionsUsageTarget:
+                        type: string
+                        description: |
+                          The target value for replicas connections used in order to trigger the upscale of replica instances.
+                        default: "0.8"
+                      replicasConnectionsUsageMetricType:
+                        type: string
+                        description: |
+                          The metric type for connections used metric. See https://keda.sh/docs/latest/concepts/scaling-deployments/#triggers
+                        default: AverageValue
+                      cooldownPeriod:
+                        type: integer
+                        description: |
+                          The period in seconds before the downscale of replica instances can be triggered.
+                        default: 300
+                      pollingInterval:
+                        type: integer
+                        description: |
+                          The interval in seconds to check if the scaleup or scaledown have to be triggered.
+                        default: 30
+                  vertical:
+                    type: object
+                    description: |
+                      Section to configure vertical Pod autoscaling aspects.
+                    properties:
+                      recommender:
+                        type: string
+                        description: |
+                          Recommender responsible for generating recommendation for vertical Pod autoscaling. If not specified the default one will be used.
               replication:
                 type: object
                 description: |
@@ -350,8 +496,22 @@ spec:
                           description: |
                             Number of StackGres instances for this replication group.
                             
-                            The total number of instance of a cluster is always `.spec.instances`. The sum of the instances in the replication group must be
+                            The total number of instance of a cluster is always `.spec.instances`. The sum of the instances in all the replication groups must be
                               less than the total number of instances.
+                        minInstances:
+                          type: integer
+                          minimum: 1
+                          description: |
+                            Minimum number of StackGres instances for this replication group. It is ignored when horizontal Pod autoscaling is disabled (see `.spec.autoscaling`)
+                            
+                            The total minimum number of instance of a cluster is always `.spec.autoscaling.minInstances`. The sum of the minimum instances in all the replication groups must be
+                              less than the total minimum number of instances.
+                            
+                            When this field is set the instances value that is provided by the user it is overwritten using the following formula to calculate it:
+                            
+                            ```
+                            <instances> = max(<minInstances>, <minInstances> * <cluster instances> / <cluster autoscaling minInstances>)
+                            ```
               sgInstanceProfile:
                 type: string
                 description: |

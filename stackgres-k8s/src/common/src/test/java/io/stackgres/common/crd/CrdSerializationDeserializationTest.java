@@ -5,8 +5,17 @@
 
 package io.stackgres.common.crd;
 
+import java.util.Iterator;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.common.JsonMapperCustomizer;
+import io.stackgres.common.crd.external.autoscaling.VerticalPodAutoscaler;
+import io.stackgres.common.crd.external.keda.ScaledObject;
+import io.stackgres.common.crd.external.keda.TriggerAuthentication;
+import io.stackgres.common.crd.external.prometheus.PodMonitor;
+import io.stackgres.common.crd.external.prometheus.ServiceMonitor;
+import io.stackgres.common.crd.external.shardingsphere.ComputeNode;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -38,6 +47,12 @@ class CrdSerializationDeserializationTest {
       StackGresShardedCluster.class,
       StackGresShardedBackup.class,
       StackGresShardedDbOps.class,
+      PodMonitor.class,
+      ServiceMonitor.class,
+      ComputeNode.class,
+      ScaledObject.class,
+      TriggerAuthentication.class,
+      VerticalPodAutoscaler.class,
   })
   protected void assertSerializationAndDeserialization(Class<?> sourceClazz) throws Exception {
     ObjectMapper objectMapper = new ObjectMapper();
@@ -46,7 +61,21 @@ class CrdSerializationDeserializationTest {
     var jsonObject = objectMapper.valueToTree(object);
     var objectCopy = objectMapper.readValue(jsonObject.toString(), sourceClazz);
     var jsonObjectCopy = objectMapper.valueToTree(objectCopy);
+    stripNulls(jsonObject);
+    stripNulls(jsonObjectCopy);
     JsonUtil.assertJsonEquals(jsonObject, jsonObjectCopy);
+  }
+
+  public static void stripNulls(JsonNode node) {
+    Iterator<JsonNode> it = node.iterator();
+    while (it.hasNext()) {
+      JsonNode child = it.next();
+      if (child.isNull()) {
+        it.remove();
+      } else {
+        stripNulls(child);
+      }
+    }
   }
 
 }

@@ -37,7 +37,7 @@ public abstract class AbstractDeployedResourcesScanner<T extends CustomResource<
 
     final KubernetesClient client = getClient();
 
-    final var inNamepspaceResourceOperations = getInNamepspaceResourceOperations();
+    final var inNamepspaceResourceOperations = getInNamepspaceResourceOperations(config);
     final List<HasMetadata> inNamespace = inNamepspaceResourceOperations
         .values()
         .stream()
@@ -172,7 +172,8 @@ public abstract class AbstractDeployedResourcesScanner<T extends CustomResource<
   protected Map<Class<? extends HasMetadata>,
       Function<KubernetesClient, MixedOperation<? extends HasMetadata,
           ? extends KubernetesResourceList<? extends HasMetadata>,
-              ? extends Resource<? extends HasMetadata>>>> getInNamepspaceResourceOperations() {
+              ? extends Resource<? extends HasMetadata>>>> getInNamepspaceResourceOperations(
+                  T config) {
     return Map.of();
   }
 

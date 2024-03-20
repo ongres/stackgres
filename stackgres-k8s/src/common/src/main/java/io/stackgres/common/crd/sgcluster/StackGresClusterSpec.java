@@ -40,6 +40,9 @@ public class StackGresClusterSpec {
   private Integer instances;
 
   @Valid
+  private StackGresClusterAutoscaling autoscaling;
+
+  @Valid
   private StackGresClusterReplication replication;
 
   @Valid
@@ -84,6 +87,9 @@ public class StackGresClusterSpec {
 
   @ReferencedField("instances")
   interface Instances extends FieldReference { }
+
+  @ReferencedField("autoscaling.minInstances")
+  interface MinInstances extends FieldReference { }
 
   @ReferencedField("sgInstanceProfile")
   interface SgInstanceProfile extends FieldReference { }
@@ -150,6 +156,16 @@ public class StackGresClusterSpec {
   }
 
   @JsonIgnore
+  @AssertTrue(message = "The total number of minInstances must be greather than the number of"
+      + " autoscaling minInstances in replication groups", payload = { MinInstances.class })
+  public boolean isSupportingMinInstancesForMinInstancesInReplicationGroups() {
+    return instances == 0
+        || autoscaling == null
+        || autoscaling.getMinInstances() == null
+        || autoscaling.getMinInstances() > getMinInstancesInReplicationGroups();
+  }
+
+  @JsonIgnore
   @AssertTrue(message = "The total number of instances must be greather than the number of"
       + " synchronous replicas", payload = { Instances.class })
   public boolean isSupportingRequiredSynchronousReplicas() {
@@ -174,6 +190,18 @@ public class StackGresClusterSpec {
     return replication.getGroups().stream()
         .map(StackGresClusterReplicationGroup::getInstances)
         .reduce(0, (sum, instances) -> sum + instances, (u, v) -> v);
+  }
+
+  @JsonIgnore
+  public int getMinInstancesInReplicationGroups() {
+    if (replication == null
+        || replication.getGroups() == null) {
+      return 0;
+    }
+    return replication.getGroups().stream()
+        .map(StackGresClusterReplicationGroup::getMinInstances)
+        .filter(Objects::nonNull)
+        .reduce(0, (sum, minInstances) -> sum + minInstances, (u, v) -> v);
   }
 
   @JsonIgnore
@@ -218,6 +246,14 @@ public class StackGresClusterSpec {
 
   public void setInstances(Integer instances) {
     this.instances = instances;
+  }
+
+  public StackGresClusterAutoscaling getAutoscaling() {
+    return autoscaling;
+  }
+
+  public void setAutoscaling(StackGresClusterAutoscaling autoscaling) {
+    this.autoscaling = autoscaling;
   }
 
   public StackGresClusterReplication getReplication() {
@@ -327,10 +363,9 @@ public class StackGresClusterSpec {
 
   @Override
   public int hashCode() {
-    return Objects.hash(configurations, distributedLogs, initialData, instances, managedSql,
-        metadata, nonProductionOptions, pods, postgres, postgresServices, profile,
-        prometheusAutobind, replicateFrom, replication, sgInstanceProfile,
-        toInstallPostgresExtensions);
+    return Objects.hash(autoscaling, configurations, distributedLogs, initialData, instances, managedSql, metadata,
+        nonProductionOptions, pods, postgres, postgresServices, profile, prometheusAutobind, replicateFrom, replication,
+        sgInstanceProfile, toInstallPostgresExtensions);
   }
 
   @Override
@@ -342,20 +377,14 @@ public class StackGresClusterSpec {
       return false;
     }
     StackGresClusterSpec other = (StackGresClusterSpec) obj;
-    return Objects.equals(configurations, other.configurations)
-        && Objects.equals(distributedLogs, other.distributedLogs)
-        && Objects.equals(initialData, other.initialData)
-        && Objects.equals(instances, other.instances)
-        && Objects.equals(managedSql, other.managedSql)
-        && Objects.equals(metadata, other.metadata)
-        && Objects.equals(nonProductionOptions, other.nonProductionOptions)
-        && Objects.equals(pods, other.pods)
-        && Objects.equals(postgres, other.postgres)
-        && Objects.equals(postgresServices, other.postgresServices)
-        && Objects.equals(profile, other.profile)
+    return Objects.equals(autoscaling, other.autoscaling) && Objects.equals(configurations, other.configurations)
+        && Objects.equals(distributedLogs, other.distributedLogs) && Objects.equals(initialData, other.initialData)
+        && Objects.equals(instances, other.instances) && Objects.equals(managedSql, other.managedSql)
+        && Objects.equals(metadata, other.metadata) && Objects.equals(nonProductionOptions, other.nonProductionOptions)
+        && Objects.equals(pods, other.pods) && Objects.equals(postgres, other.postgres)
+        && Objects.equals(postgresServices, other.postgresServices) && Objects.equals(profile, other.profile)
         && Objects.equals(prometheusAutobind, other.prometheusAutobind)
-        && Objects.equals(replicateFrom, other.replicateFrom)
-        && Objects.equals(replication, other.replication)
+        && Objects.equals(replicateFrom, other.replicateFrom) && Objects.equals(replication, other.replication)
         && Objects.equals(sgInstanceProfile, other.sgInstanceProfile)
         && Objects.equals(toInstallPostgresExtensions, other.toInstallPostgresExtensions);
   }

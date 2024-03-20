@@ -5,7 +5,7 @@
 
 package io.stackgres.common.fixture;
 
-import io.stackgres.common.prometheus.PrometheusList;
+import io.stackgres.common.crd.external.prometheus.PrometheusList;
 import io.stackgres.testutil.fixture.Fixture;
 
 public class PrometheusListFixture extends Fixture<PrometheusList> {

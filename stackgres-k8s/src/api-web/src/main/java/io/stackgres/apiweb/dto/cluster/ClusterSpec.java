@@ -21,6 +21,8 @@ public class ClusterSpec {
 
   private Integer instances;
 
+  private ClusterAutoscaling autoscaling;
+
   private ClusterReplication replication;
 
   private ClusterConfigurations configurations;
@@ -69,6 +71,14 @@ public class ClusterSpec {
 
   public void setInstances(Integer instances) {
     this.instances = instances;
+  }
+
+  public ClusterAutoscaling getAutoscaling() {
+    return autoscaling;
+  }
+
+  public void setAutoscaling(ClusterAutoscaling autoscaling) {
+    this.autoscaling = autoscaling;
   }
 
   public ClusterReplication getReplication() {
