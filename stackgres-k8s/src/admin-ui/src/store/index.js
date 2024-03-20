@@ -23,6 +23,9 @@ export default new Vuex.Store({
     currentPods: [],
     namespaces: [],
     allNamespaces: [],
+    roles: [],
+    clusterroles: [],
+    users: [],
     sgclusters: [],
     sgshardedclusters: [],
     sgbackups: [],
@@ -97,9 +100,10 @@ export default new Vuex.Store({
       state.authType = authType;
     },
 
-    setTheme (state, theme) {
-      state.theme = theme;
-      document.cookie = "sgTheme="+theme+"; Path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=Strict;";
+    setTheme (state, theme = '') {
+      state.theme = theme.length ? theme : ( (state.theme === 'light') ? 'dark' : 'light');
+      document.cookie = "sgTheme=" + state.theme + "; Path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT; SameSite=Strict;";
+      $("body").toggleClass("darkmode");
     },
 
     setCurrentPath (state, path) {
@@ -116,6 +120,18 @@ export default new Vuex.Store({
 
     addNamespaces (state, namespacesList) {
       state.allNamespaces = [...namespacesList];
+    },
+
+    setRoles (state, roles) {
+      state.roles = [...roles];
+    },
+
+    setClusterRoles (state, roles) {
+      state.clusterroles = [...roles];
+    },
+
+    setUsers (state, users) {
+      state.users = [...users];
     },
 
     addLogsClusters (state, logsClusters) {
@@ -267,7 +283,11 @@ export default new Vuex.Store({
       
       if(!item.kind.length) { // Item has been deleted succesfuly, remove from store
         let kind = state.deleteItem.kind;
-        state[kind].splice(state[kind].findIndex( el => (el.name == state.deleteItem.name) && (el.data.metadata.namespace == state.deleteItem.namespace) ), 1);
+        state[kind] = state[kind].filter( el => !(
+            (el.hasOwnProperty('name') ? el.name : el.metadata.name) == state.deleteItem.name && 
+            (el.hasOwnProperty('data') ? el.data.metadata.namespace : el.metadata.namespace) == state.deleteItem.namespace
+          )
+        );
       }
 
       state.deleteItem = item;

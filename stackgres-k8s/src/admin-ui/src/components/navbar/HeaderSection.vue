@@ -1,6 +1,6 @@
 <template>
     <header id="header" v-if="loggedIn && !notFound" :class="(($route.meta.componentName == 'SGCluster') && ((!$route.name.includes('Create') && (!$route.name.includes('Edit')) && ($route.name != 'ClusterOverview')))? 'clusterHeader' : '')">
-        <ul class="breadcrumbs">
+        <ul class="breadcrumbs" v-if="!['SGConfig', 'User', 'Role', 'ClusterRole'].includes($route.meta.componentName)">
 
             <!--Namespace-->
             <li class="namespace" v-if="$route.name.includes('GlobalDashboard') || $route.params.hasOwnProperty('namespace')">
@@ -20,7 +20,7 @@
                 </template>
             </li>
 
-            <template v-if="!$route.params.hasOwnProperty('namespace') && iCan('create', 'namespaces') && ($route.name !== 'CreateNamespace')">
+            <template v-if="!notFound && !$route.params.hasOwnProperty('namespace') && iCan('create', 'namespaces') && ($route.name !== 'CreateNamespace')">
                 <router-link to="/namespaces/new" class="floatRight add" data-field="CreateNamespace">
                     Create Namespace
                 </router-link>
@@ -31,13 +31,13 @@
 
             <template v-if="$route.params.hasOwnProperty('namespace') && $route.meta.hasOwnProperty('componentName')">
                 <!--Kind-->
-                <template v-if="($route.name != 'NamespaceOverview') && ($route.name != 'GlobalDashboard')">
+                <template v-if="!['NamespaceOverview', 'GlobalDashboard'].includes($route.name)">
                     <li>
                         <span class="component" :class="$route.meta.componentName.toLowerCase()"></span>
 
                         <template v-if="($route.meta.componentName !== 'SGConfig') && (currentPath.name || $route.name.startsWith('Create') || $route.params.hasOwnProperty('backupname'))">
-                            <template v-if="iCan('list', $route.meta.componentName.toLowerCase() + 's', $route.params.namespace)">
-                                <router-link :to="'/' + currentPath.namespace + '/' + $route.meta.componentName.toLowerCase() + 's'" :title="$route.meta.componentName + 's'">
+                            <template v-if="( ( (kind === 'users') && havePermissionsTo.get.users ) || iCan('list', kind, $route.params.namespace))">
+                                <router-link :to="'/' + currentPath.namespace + '/' + kind" :title="$route.meta.componentName + 's'">
                                     {{ $route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName + 's' : $route.meta.componentName + 's' }}
                                 </router-link>
                             </template>
@@ -146,7 +146,7 @@
         </ul>
 
         <template v-if="$route.params.hasOwnProperty('namespace') && $route.meta.hasOwnProperty('componentName')">
-            <div class="actions">
+            <div class="actions" v-if="!['User', 'Role', 'ClusterRole'].includes($route.meta.componentName)">
                 <!--Docs Links-->
                 <template v-if="currentPath.component == 'BabelfishCompass'">
                     <a class="documentation" href="https://github.com/babelfish-for-postgresql/babelfish_compass/" target="_blank" title="Babelfish Compass Documentation">Babelfish Compass Documentation</a>
@@ -154,58 +154,52 @@
                 <template v-else-if="($route.meta.componentName == 'SGDistributedLog') || ($route.meta.componentName == 'SGDbOp')">
                     <a class="documentation" :href="'https://stackgres.io/doc/latest/reference/crd/' + $route.meta.componentName.toLowerCase() + 's'" target="_blank" :title="$route.meta.componentName + 's Documentation'">{{ $route.meta.componentName }}s Documentation</a>
                 </template>
-                <template v-else-if="$route.params.hasOwnProperty('namespace')">
+                <template v-else-if="$route.params.hasOwnProperty('namespace') && (kind !== 'users')">
                     <a class="documentation" :href="'https://stackgres.io/doc/latest/reference/crd/' + ($route.meta.customComponentName == 'SGPoolingConfig' ? $route.meta.customComponentName.toLowerCase() : $route.meta.componentName.toLowerCase())" target="_blank" :title="$route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName + ' Documentation': $route.meta.componentName + ' Documentation'">{{ $route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName : $route.meta.componentName }} Documentation</a>
                 </template>
 
                 <!--Actions-->
-                <div class="crdActionLinks" v-if="!$route.name.includes('Create') && !$route.name.includes('Edit')">
-                    
-                    <template v-if="$route.meta.componentName == 'SGConfig'">
-                        <router-link v-if="iCan('patch', 'sgconfigs')" :to="'/sgconfig/' + $route.params.name + '/edit'" title="Edit SGConfig">
-                            Edit
+                <div class="crdActionLinks" v-if="!['Create', 'Edit'].includes($route.name)">
+                    <template v-if="!$route.params.hasOwnProperty('name') && !$route.params.hasOwnProperty('backupname') && $route.name != 'BabelfishCompass'">
+                        <router-link 
+                            v-if="(kind !== 'users') && iCan('create', kind, $route.params.namespace)"
+                            :to="'/' + $route.params.namespace + '/' + kind + '/new'" class="add" :title="'Add New ' + getSuffix($route.meta.componentName)">
+                            Add New
                         </router-link>
                     </template>
-                    <template v-else>
-                        <template v-if="!$route.params.hasOwnProperty('name') && !$route.params.hasOwnProperty('backupname') && $route.name != 'BabelfishCompass'">
-                            <router-link v-if="iCan('create', ($route.meta.componentName.toLowerCase() + 's'), $route.params.namespace)" :to="'/' + $route.params.namespace + '/' + $route.meta.componentName.toLowerCase() + 's/new'" class="add" :title="'Add New ' + getSuffix($route.meta.componentName)">
-                                Add New
+                    <template v-if="($route.params.hasOwnProperty('name') || $route.params.hasOwnProperty('backupname'))">
+                        <template v-if="($route.name == 'SingleClusterBackups')">
+                            <router-link v-if="iCan('patch', kind, $route.params.namespace)" :to="'/' + $route.params.namespace + '/sgcluster/' +  $route.params.name + '/sgbackup/' + $route.params.backupname + '/edit'" :title="'Edit ' + getSuffix($route.meta.componentName)" :class="$route.name.includes('Script') && isDefaultScript($route.params.name) && 'disabled'">
+                                Edit
                             </router-link>
                         </template>
-                        <template v-if="($route.params.hasOwnProperty('name') || $route.params.hasOwnProperty('backupname'))">
-                            <template v-if="($route.name == 'SingleClusterBackups')">
-                                <router-link v-if="iCan('patch', ($route.meta.componentName.toLowerCase() + 's'), $route.params.namespace)" :to="'/' + $route.params.namespace + '/sgcluster/' +  $route.params.name + '/sgbackup/' + $route.params.backupname + '/edit'" :title="'Edit ' + getSuffix($route.meta.componentName)" :class="$route.name.includes('Script') && isDefaultScript($route.params.name) && 'disabled'">
-                                    Edit
-                                </router-link>
-                            </template>
-                            <template v-else-if="($route.name == 'SingleBackups')">
-                                <router-link v-if="iCan('patch', ($route.meta.componentName.toLowerCase() + 's'), $route.params.namespace)" :to="'/' + $route.params.namespace + '/sgbackup/' + $route.params.backupname + '/edit'" :title="'Edit ' + getSuffix($route.meta.componentName)" :class="$route.name.includes('Script') && isDefaultScript($route.params.name) && 'disabled'">
-                                    Edit
-                                </router-link>
-                            </template>
-                            <template v-else-if="!$route.name.includes('DbOp')">
-                                <router-link v-if="iCan('patch', ($route.meta.componentName.toLowerCase() + 's'), $route.params.namespace)" :to="'/' + $route.params.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name + '/edit'" :title="'Edit ' + getSuffix($route.meta.componentName)" :class="$route.name.includes('Script') && isDefaultScript($route.params.name) && 'disabled'">
-                                    Edit
-                                </router-link>
-                            </template>
-                            <template v-if="!$route.name.includes('DbOp') && ($route.name != 'SingleBackups')">
-                                <a v-if="iCan('create', ($route.meta.componentName.toLowerCase() + 's'), $route.params.namespace)" @click="cloneCRD((($route.meta.hasOwnProperty('customComponentName')) ? ($route.meta.customComponentName + 's') : ($route.meta.componentName + 's') ), $route.params.namespace, $route.params.name)" class="cloneCRD" :title="(($route.meta.componentName == 'SGCluster') ? ('Clone ' + getSuffix($route.meta.componentName) + ' Configuration') : ('Clone ' + getSuffix($route.meta.componentName)))">
-                                    Clone
-                                </a>
-                            </template>
-                            <a v-if="iCan('delete', ($route.meta.componentName.toLowerCase() + 's'), $route.params.namespace)" @click="deleteCRD(($route.meta.componentName.toLowerCase() + 's'), $route.params.namespace, $route.params.name, '/' + $route.params.namespace + '/' + ($route.meta.componentName.toLowerCase() + 's'))" class="deleteCRD" :title="'Delete ' + getSuffix($route.meta.componentName)" :class="!isDeletable ? 'disabled' : ''">
-                                Delete
+                        <template v-else-if="($route.name == 'SingleBackups')">
+                            <router-link v-if="iCan('patch', kind, $route.params.namespace)" :to="'/' + $route.params.namespace + '/sgbackup/' + $route.params.backupname + '/edit'" :title="'Edit ' + getSuffix($route.meta.componentName)" :class="$route.name.includes('Script') && isDefaultScript($route.params.name) && 'disabled'">
+                                Edit
+                            </router-link>
+                        </template>
+                        <template v-else-if="!$route.name.includes('DbOp')">
+                            <router-link v-if="( ( (kind === 'users') && havePermissionsTo.patch.users ) || iCan('patch', kind, $route.params.namespace) )" :to="'/' + $route.params.namespace + '/' + $route.meta.componentName.toLowerCase() + '/' + $route.params.name + '/edit'" :title="'Edit ' + getSuffix($route.meta.componentName)" :class="$route.name.includes('Script') && isDefaultScript($route.params.name) && 'disabled'">
+                                Edit
+                            </router-link>
+                        </template>
+                        <template v-if="!$route.name.includes('DbOp') && ($route.name != 'SingleBackups')">
+                            <a v-if="( ( (kind === 'users') && havePermissionsTo.create.users ) || iCan('create', kind, $route.params.namespace) )" @click="cloneCRD((($route.meta.hasOwnProperty('customComponentName')) ? ($route.meta.customComponentName + 's') : ($route.meta.componentName + 's') ), $route.params.namespace, $route.params.name)" class="cloneCRD" :title="(($route.meta.componentName == 'SGCluster') ? ('Clone ' + getSuffix($route.meta.componentName) + ' Configuration') : ('Clone ' + getSuffix($route.meta.componentName)))">
+                                Clone
                             </a>
-                            <template v-if="$route.meta.componentName == 'SGCluster'">
-                                <a @click="setRestartCluster($route.params.namespace, $route.params.name)" class="restartCluster lastItem" title="Restart Cluster">
-                                    Restart
-                                </a>
-                            </template>
-                            
-                            <router-link :to="'/' + $route.params.namespace + '/' + ($route.meta.componentName.toLowerCase() + 's')" :title="$route.meta.hasOwnProperty('customComponentName') ? 'Go to ' + $route.meta.customComponentName +'s List' : 'Go to ' + $route.meta.componentName + 's List'" class="lastItem">
-                                Go to {{ $route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName : $route.meta.componentName }}s List
-                            </router-link>
                         </template>
+                        <a v-if="( ( (kind === 'users') && havePermissionsTo.delete.users ) || iCan('delete', kind, $route.params.namespace) )" @click="deleteCRD(kind, $route.params.namespace, $route.params.name, '/' + $route.params.namespace + '/' + kind)" class="deleteCRD" :title="'Delete ' + getSuffix($route.meta.componentName)" :class="!isDeletable ? 'disabled' : ''">
+                            Delete
+                        </a>
+                        <template v-if="$route.meta.componentName == 'SGCluster'">
+                            <a @click="setRestartCluster($route.params.namespace, $route.params.name)" class="restartCluster lastItem" title="Restart Cluster">
+                                Restart
+                            </a>
+                        </template>
+                        
+                        <router-link :to="'/' + $route.params.namespace + '/' + kind" :title="$route.meta.hasOwnProperty('customComponentName') ? 'Go to ' + $route.meta.customComponentName +'s List' : 'Go to ' + $route.meta.componentName + 's List'" class="lastItem">
+                            Go to {{ $route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName : $route.meta.componentName }}s List
+                        </router-link>
                     </template>
                 </div>
             </div>
@@ -247,6 +241,10 @@
         mixins: [mixin],
 
         computed: {
+
+            kind () {
+                return (this.$route.meta.componentName.toLowerCase() + 's');
+            },
 
 			currentPath () {
 				return store.state.currentPath
@@ -303,7 +301,7 @@
             hasMonitoring () {
                 const vc = this;
 
-                let cluster = store.state[vc.$route.meta.componentName.toLowerCase() + 's'].find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name) && c.data.hasOwnProperty('grafanaEmbedded') && c.data.grafanaEmbedded)
+                let cluster = store.state[vc.kind].find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name) && c.data.hasOwnProperty('grafanaEmbedded') && c.data.grafanaEmbedded)
 
                 return (typeof cluster !== 'undefined');
             }
@@ -409,6 +407,10 @@
 
     .component.sgconfig {
         background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCI+PHBhdGggZmlsbD0iIzM2QThGRiIgZD0iTTEzLjE5MyAxMEEzLjE5MyAzLjE5MyAwIDEwMTAgMTMuMmEzLjIgMy4yIDAgMDAzLjE5My0zLjJ6bS0xLjgwOSAwQTEuMzg0IDEuMzg0IDAgMTExMCA4LjYxNCAxLjM4NiAxLjM4NiAwIDAxMTEuMzg0IDEweiIgY2xhc3M9ImEiPjwvcGF0aD48cGF0aCBmaWxsPSIjMzZBOEZGIiBkPSJNMTYuOTYxIDEyLjgzNWEuNDQzLjQ0MyAwIDAxLjQ0LS4yNDYgMi42IDIuNiAwIDAwMC01LjJoLS4xMzZhLjQuNCAwIDAxLS4zMTgtLjE1Ny45ODguOTg4IDAgMDAtLjA1NS0uMTY0LjQyNy40MjcgMCAwMS4xMjItLjQ4NkEyLjYgMi42IDAgMTAxMy4zIDIuOTM3YS40MTQuNDE0IDAgMDEtLjI4Ny4xMTYuNC40IDAgMDEtLjI5Mi0uMTIuNDU1LjQ1NSAwIDAxLS4xMjMtLjM1NyAyLjU5MSAyLjU5MSAwIDAwLS43NjItMS44NCAyLjY1OSAyLjY1OSAwIDAwLTMuNjc1IDAgMi42IDIuNiAwIDAwLS43NiAxLjg0di4xMzdhLjQwNi40MDYgMCAwMS0uMTU4LjMxOCAxLjA3OCAxLjA3OCAwIDAwLS4xNjMuMDU1LjQxLjQxIDAgMDEtLjQ2NS0uMWwtLjA3Ni0uMDc3YTIuNSAyLjUgMCAwMC0xLjg1My0uNzI5IDIuNTc2IDIuNTc2IDAgMDAtMS44MjIuOCAyLjYzMiAyLjYzMiAwIDAwLjEgMy43MS40MzQuNDM0IDAgMDEuMDU4LjUuNDIzLjQyMyAwIDAxLS40MjIuMjY1IDIuNiAyLjYgMCAwMDAgNS4yaC4xMzNhLjQxLjQxIDAgMDEuMjg1LjExNy40My40MyAwIDAxLS4wMzUuNjI5bC0uMDc5LjA3OXYuMDA1QTIuNjEgMi42MSAwIDAwMyAxNy4xMzVhMi40NzkgMi40NzkgMCAwMDEuODUzLjcyOCAyLjYxNCAyLjYxNCAwIDAwMS44NDctLjgyNy40MjkuNDI5IDAgMDEuNS0uMDU3LjQxOS40MTkgMCAwMS4yNjQuNDIgMi42IDIuNiAwIDEwNS4yIDB2LS4xMzJhLjQxNC40MTQgMCAwMS4xMTYtLjI4NC40MjEuNDIxIDAgMDEuMy0uMTI2LjM1Ni4zNTYgMCAwMS4yNzguMTEzbC4xLjFhMi43MzEgMi43MzEgMCAwMDEuODUyLjcyOCAyLjYgMi42IDAgMDAyLjU1LTIuNjUgMi42MTEgMi42MTEgMCAwMC0uODI1LTEuODU3LjQuNCAwIDAxLS4wODEtLjQ0NHptLTYuMiA0LjQyMnYuMTQzYS42OTEuNjkxIDAgMDEtLjY5LjY5MS43MTguNzE4IDAgMDEtLjY5Mi0uNzg4IDIuMjg5IDIuMjg5IDAgMDAtMS40NTctMi4wOTUgMi4yNzQgMi4yNzQgMCAwMC0uOTE5LS4yIDIuNDI3IDIuNDI3IDAgMDAtMS43LjcyOC43LjcgMCAwMS0uNS4yMTMuNjUyLjY1MiAwIDAxLS40ODItLjE5NC42NzYuNjc2IDAgMDEtLjIwOC0uNDc3Ljc0OS43NDkgMCAwMS4yMTctLjUzbC4wNjQtLjA2NGEyLjMyMyAyLjMyMyAwIDAwLTEuNjU0LTMuOTM4SDIuNmEuNjkyLjY5MiAwIDAxLS40ODktMS4xOC43NTUuNzU1IDAgMDEuNTg3LS4yQTIuMjg2IDIuMjg2IDAgMDA0Ljc4OCA3LjlhMi4zMDYgMi4zMDYgMCAwMC0uNDY3LTIuNTU2bC0uMDY5LS4wNjlhLjY5My42OTMgMCAwMS40NzgtMS4xOTEuNjU1LjY1NSAwIDAxLjUuMjEzbC4wNjkuMDcxYTIuMjU3IDIuMjU3IDAgMDAyLjMzNC41MzYuOTIuOTIgMCAwMC4yNy0uMDcxIDIuMzEyIDIuMzEyIDAgMDAxLjQtMi4xMjF2LS4xMzRhLjY4Ny42ODcgMCAwMS4yLS40ODkuNzA1LjcwNSAwIDAxLjk3NyAwIC43NTEuNzUxIDAgMDEuMi41NzEgMi4zIDIuMyAwIDAwLjcwNSAxLjY0IDIuMzMxIDIuMzMxIDAgMDAxLjY0OS42NjUgMi4zNjkgMi4zNjkgMCAwMDEuNjUyLS43MTMuNjkxLjY5MSAwIDAxMS4xODEuNDg4Ljc1My43NTMgMCAwMS0uMjU5LjU0NyAyLjI1MyAyLjI1MyAwIDAwLS41MzggMi4zMzQuOTMyLjkzMiAwIDAwLjA3Mi4yNzQgMi4zMTMgMi4zMTMgMCAwMDIuMTE5IDEuNGguMTM5YS42OTEuNjkxIDAgMDEuNjkuNjkyLjcxNy43MTcgMCAwMS0uNzY4LjY5MSAyLjMxMiAyLjMxMiAwIDAwLTIuMTEzIDEuMzk1IDIuMzQ1IDIuMzQ1IDAgMDAuNTMzIDIuNjE5LjY5My42OTMgMCAwMS0uNDUgMS4xOTIuNzQ5Ljc0OSAwIDAxLS41MDYtLjE5bC0uMS0uMWEyLjQgMi40IDAgMDAtMS42NTMtLjY1NCAyLjMyNSAyLjMyNSAwIDAwLTIuMjgzIDIuMzEyek01LjUgNC4xNzd6IiBjbGFzcz0iYSI+PC9wYXRoPjwvc3ZnPg==");
+    }
+
+    .component.user, .component.role, .component.clusterrole {
+        background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOSIgaGVpZ2h0PSIxNS45MDkiPjxnIGZpbGw9IiMzNmE4ZmYiPjxwYXRoIGQ9Ik0xMy4zNjQgMTUuOTA5YTEgMSAwIDAgMS0xLTF2LTEuNTQ1YTIuMDkzIDIuMDkzIDAgMCAwLTIuMDkxLTIuMDkxSDQuMDkxQTIuMDkgMi4wOSAwIDAgMCAyIDEzLjM2NHYxLjU0NWExIDEgMCAwIDEtMiAwdi0xLjU0NWE0LjA5IDQuMDkgMCAwIDEgNC4wOTEtNC4wOTFoNi4xODJhNC4xIDQuMSAwIDAgMSA0LjA5MSA0LjA5MXYxLjU0NWExIDEgMCAwIDEtMSAxTTcuMTgyIDBhNC4wOTEgNC4wOTEgMCAxIDEtNC4wOTEgNC4wOTFBNC4xIDQuMSAwIDAgMSA3LjE4MiAwbTAgNi4xODJhMi4wOTEgMi4wOTEgMCAxIDAtMi4wOTEtMi4wOTEgMi4wOTMgMi4wOTMgMCAwIDAgMi4wOTEgMi4wOTFNMTggMTUuOTA5YTEgMSAwIDAgMS0xLTF2LTEuNTQ2YTIuMDkgMi4wOSAwIDAgMC0xLjU2OC0yLjAyMiAxIDEgMCAxIDEgLjUtMS45MzZBNC4wOSA0LjA5IDAgMCAxIDE5IDEzLjM2M3YxLjU0NmExIDEgMCAwIDEtMSAxIi8+PHBhdGggZD0iTTEyLjU5MSA4LjA4OWExIDEgMCAwIDEtLjI0Ny0xLjk2OSAyLjA5MSAyLjA5MSAwIDAgMCAwLTQuMDUxIDEgMSAwIDEgMSAuNS0xLjkzNyA0LjA5MSA0LjA5MSAwIDAgMSAwIDcuOTI2IDEgMSAwIDAgMS0uMjUzLjAzMSIvPjwvZz48L3N2Zz4=");
     }
 
 </style>

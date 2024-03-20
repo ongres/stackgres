@@ -142,8 +142,6 @@ Vue.directive('columns-resizable', {
 if ( getCookie('sgTheme') === 'dark' ) {
   console.log('Switching to darkmode');
   store.commit('setTheme', 'dark');
-  $('body').addClass('darkmode');
-  $('#darkmode').addClass('active');
 }
 
 // Check timezone preferences
@@ -416,33 +414,9 @@ $(document).ready(function(){
     $(this).parent().toggleClass("open");
   })
 
-  
-  
-  $("#darkmode").click(function(){
-    $("body").toggleClass("darkmode");
-    $(this).toggleClass("active");
-
-    if($("body").hasClass("darkmode")) {
-      store.commit('setTheme', 'dark');
-      
-      if($('#grafana').length)
-        $('#grafana').attr("src", $('#grafana').attr("src").replace('light','dark'));
-    }
-    else {
-      store.commit('setTheme', 'light');
-
-      if($('#grafana').length)
-        $('#grafana').attr("src", $('#grafana').attr("src").replace('dark','light'));
-    }
-
-    
-  });
-
   $(document).on('click', 'ul.select .selected', function(){
     $(this).parent().toggleClass('active');
-  });
-
-  
+  });  
 
   $('form.noSubmit').on('submit',function(e){
     e.preventDefault
