@@ -26,6 +26,8 @@ import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterServiceBinding;
 import io.stackgres.common.fixture.Fixtures;
+import io.stackgres.common.labels.ClusterLabelFactory;
+import io.stackgres.common.labels.ClusterLabelMapper;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,7 +52,8 @@ public class ServiceBindingSecretTest {
 
   private StackGresCluster cluster;
 
-  private ServiceBindingSecret serviceBindingSecret = new ServiceBindingSecret();
+  private ServiceBindingSecret serviceBindingSecret = new ServiceBindingSecret(
+      new ClusterLabelFactory(new ClusterLabelMapper()));
 
   @BeforeEach
   void setUp() {

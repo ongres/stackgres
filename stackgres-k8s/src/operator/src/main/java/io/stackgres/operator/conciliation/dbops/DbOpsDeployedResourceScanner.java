@@ -64,7 +64,8 @@ public class DbOpsDeployedResourceScanner extends AbstractDeployedResourcesScann
   protected Map<Class<? extends HasMetadata>,
       Function<KubernetesClient, MixedOperation<? extends HasMetadata,
           ? extends KubernetesResourceList<? extends HasMetadata>,
-              ? extends Resource<? extends HasMetadata>>>> getInNamepspaceResourceOperations() {
+              ? extends Resource<? extends HasMetadata>>>> getInNamepspaceResourceOperations(
+                  StackGresDbOps config) {
     return IN_NAMESPACE_RESOURCE_OPERATIONS;
   }
 

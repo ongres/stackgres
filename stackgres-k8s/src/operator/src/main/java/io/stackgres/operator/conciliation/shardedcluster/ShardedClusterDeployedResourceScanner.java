@@ -22,6 +22,8 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.crd.external.shardingsphere.ComputeNode;
+import io.stackgres.common.crd.external.shardingsphere.ComputeNodeList;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
@@ -30,8 +32,6 @@ import io.stackgres.common.crd.sgscript.StackGresScript;
 import io.stackgres.common.crd.sgscript.StackGresScriptList;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.labels.LabelFactoryForShardedCluster;
-import io.stackgres.common.shardingsphere.ComputeNode;
-import io.stackgres.common.shardingsphere.ComputeNodeList;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
 import io.stackgres.operator.conciliation.ReconciliationOperations;
@@ -77,7 +77,8 @@ public class ShardedClusterDeployedResourceScanner
   protected Map<Class<? extends HasMetadata>,
       Function<KubernetesClient, MixedOperation<? extends HasMetadata,
           ? extends KubernetesResourceList<? extends HasMetadata>,
-              ? extends Resource<? extends HasMetadata>>>> getInNamepspaceResourceOperations() {
+              ? extends Resource<? extends HasMetadata>>>> getInNamepspaceResourceOperations(
+                  StackGresShardedCluster config) {
     return IN_NAMESPACE_RESOURCE_OPERATIONS;
   }
 

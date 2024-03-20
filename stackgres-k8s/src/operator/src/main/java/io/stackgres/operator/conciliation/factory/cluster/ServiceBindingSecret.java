@@ -16,11 +16,13 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterServiceBinding;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import io.stackgres.operatorframework.resource.ResourceUtil;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 @Singleton
@@ -33,6 +35,13 @@ public class ServiceBindingSecret implements ResourceGenerator<StackGresClusterC
 
   public static String name(StackGresCluster cluster) {
     return ResourceUtil.resourceName(cluster.getMetadata().getName() + "-binding");
+  }
+
+  private LabelFactoryForCluster<StackGresCluster> labelFactory;
+
+  @Inject
+  public ServiceBindingSecret(LabelFactoryForCluster<StackGresCluster> labelFactory) {
+    this.labelFactory = labelFactory;
   }
 
   @Override
@@ -50,6 +59,7 @@ public class ServiceBindingSecret implements ResourceGenerator<StackGresClusterC
     return Stream.of(new SecretBuilder()
       .withType(getServiceBindingType())
       .withNewMetadata()
+      .withLabels(labelFactory.genericLabels(cluster))
       .withName(name(cluster))
       .withNamespace(cluster.getMetadata().getNamespace())
       .endMetadata()

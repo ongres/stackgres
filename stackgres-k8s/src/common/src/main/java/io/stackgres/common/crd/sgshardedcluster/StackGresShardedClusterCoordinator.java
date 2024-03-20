@@ -65,6 +65,11 @@ public class StackGresShardedClusterCoordinator extends StackGresClusterSpec {
   }
 
   @Override
+  public boolean isSupportingMinInstancesForMinInstancesInReplicationGroups() {
+    return true;
+  }
+
+  @Override
   public boolean isSupportingRequiredSynchronousReplicas() {
     return true;
   }

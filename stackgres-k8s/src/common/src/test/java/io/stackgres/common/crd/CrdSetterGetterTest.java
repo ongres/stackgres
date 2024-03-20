@@ -5,6 +5,12 @@
 
 package io.stackgres.common.crd;
 
+import io.stackgres.common.crd.external.autoscaling.VerticalPodAutoscaler;
+import io.stackgres.common.crd.external.keda.ScaledObject;
+import io.stackgres.common.crd.external.keda.TriggerAuthentication;
+import io.stackgres.common.crd.external.prometheus.PodMonitor;
+import io.stackgres.common.crd.external.prometheus.ServiceMonitor;
+import io.stackgres.common.crd.external.shardingsphere.ComputeNode;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
@@ -35,6 +41,12 @@ class CrdSetterGetterTest {
       StackGresShardedCluster.class,
       StackGresShardedBackup.class,
       StackGresShardedDbOps.class,
+      PodMonitor.class,
+      ServiceMonitor.class,
+      ComputeNode.class,
+      ScaledObject.class,
+      TriggerAuthentication.class,
+      VerticalPodAutoscaler.class,
   })
   void assertSettersAndGetters(Class<?> sourceClazz) {
     ModelTestUtil.assertSettersAndGetters(sourceClazz);

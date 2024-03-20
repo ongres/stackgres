@@ -213,3 +213,27 @@ rules:
   - create
   - delete
   - patch
+- apiGroups: ["keda.sh"]
+  resources:
+  - scaledobjects
+  - triggerauthentications
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - create
+  - delete
+  - patch
+- apiGroups: ["autoscaling.k8s.io"]
+  resources:
+  - verticalpodautoscalers
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - create
+  - delete
+  - patch
+  

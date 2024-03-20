@@ -13,8 +13,8 @@ e2e_test_install() {
     --set-string instanceProfiles[0].memory=2Gi \
     --set nonProductionOptions.disablePatroniResourceRequirements=false \
     --set nonProductionOptions.disableClusterResourceRequirements=true \
-    --set-string configurations.postgresconfig.postgresql\.conf.max_connections=104 \
-    --set-string configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100
+    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections=104' \
+    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100'
 
   deploy_psql_pod "$CLUSTER_NAMESPACE"
 
@@ -30,7 +30,7 @@ e2e_test_install() {
 e2e_test_uninstall() {
   k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
   k8s_async_cleanup_namespace "$(metric_server_namespace)"
-  # k8s_async_cleanup_namespace "$(keda_namespace)"
+  k8s_async_cleanup_namespace "$(keda_namespace)"
   k8s_async_cleanup_namespace "$(vertical_pod_autoscaler_namespace)"
 }
 
@@ -101,6 +101,14 @@ EOF
 check_keda_is_working_for_connections() {
   cat << EOF | kubectl create -f -
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: $CLUSTER_NAMESPACE
+  name: $CLUSTER_NAME-autoscaling
+stringData:
+  connection: postgresql://postgres:$PGPASSWORD@$CLUSTER_NAME-replicas.$CLUSTER_NAMESPACE:5432?sslmode=prefer&default_query_exec_mode=exec
+---
 apiVersion: keda.sh/v1alpha1
 kind: TriggerAuthentication
 metadata:
@@ -108,9 +116,9 @@ metadata:
   name: $CLUSTER_NAME
 spec:
   secretTargetRef:
-  - parameter: password
-    name: $CLUSTER_NAME
-    key: superuser-password
+  - parameter: connection
+    name: $CLUSTER_NAME-autoscaling
+    key: connection
 ---
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
@@ -135,20 +143,27 @@ spec:
       query: |
         WITH
           max_connections (size) AS (
-            SELECT setting::numeric
-            FROM pg_settings
-            WHERE name = 'max_connections'),
-          required_connections (size) AS (
-            SELECT COUNT(*)::numeric
-            FROM pg_stat_activity
-            WHERE state = 'active'
-            AND backend_type = 'client backend')
-        SELECT required_connections.size / max_connections.size AS connection_usage
-        FROM max_connections, required_connections; 
-      host: $CLUSTER_NAME-replicas.$CLUSTER_NAMESPACE
-      port: "5432"
-      dbName: postgres
-      userName: postgres
+            SELECT SUM(_.pool_size)::numeric
+            FROM dblink(
+              'host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer',
+              'show databases'::text)
+            AS _(
+              name text, host text, port integer, database text,
+              force_user text, pool_size integer, min_pool_size integer,
+              reserve_pool integer, pool_mode text, max_connections integer,
+              current_connections integer, paused boolean, disabled boolean)),
+          active_connections (size) AS (
+            SELECT SUM(_.current_connections)::numeric
+            FROM dblink(
+              'host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer',
+              'show databases'::text)
+            AS _(
+              name text, host text, port integer, database text,
+              force_user text, pool_size integer, min_pool_size integer,
+              reserve_pool integer, pool_mode text, max_connections integer,
+              current_connections integer, paused boolean, disabled boolean))
+        SELECT active_connections.size / max_connections.size AS connection_usage
+        FROM max_connections, active_connections; 
       sslmode: disable
     authenticationRef:
       name: $CLUSTER_NAME
@@ -261,7 +276,6 @@ EOF
   kill "$CPU_BENCH_PID" || true
   kubectl exec -n "$CLUSTER_NAMESPACE" psql \
     -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
-  kubectl delete -n "$CLUSTER_NAMESPACE" verticalpodautoscaler "$CLUSTER_NAME"
   cat "$SPEC_PATH/abstract/quantity.jq" > "$LOG_PATH/get-pod-name-with-patroni-container-that-has-500m-cpu.jq"
   echo '.items[]|select(.spec.containers|any(.name == "patroni" and (.resources.limits.cpu | quantity) == 0.5))|.metadata.name' \
     >> "$LOG_PATH/get-pod-name-with-patroni-container-that-has-500m-cpu.jq"
@@ -269,6 +283,7 @@ EOF
     -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME" -o json \
     | jq -f "$LOG_PATH/get-pod-name-with-patroni-container-that-has-500m-cpu.jq" \
     | wc -l | grep -qxF 2'
+  kubectl delete -n "$CLUSTER_NAMESPACE" verticalpodautoscaler "$CLUSTER_NAME"
 }
 
 check_keda_and_vertical_pod_autoscaler_are_working() {

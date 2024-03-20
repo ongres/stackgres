@@ -5,6 +5,12 @@
 
 package io.stackgres.common.crd;
 
+import io.stackgres.common.crd.external.autoscaling.VerticalPodAutoscaler;
+import io.stackgres.common.crd.external.keda.ScaledObject;
+import io.stackgres.common.crd.external.keda.TriggerAuthentication;
+import io.stackgres.common.crd.external.prometheus.PodMonitor;
+import io.stackgres.common.crd.external.prometheus.ServiceMonitor;
+import io.stackgres.common.crd.external.shardingsphere.ComputeNode;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
@@ -37,6 +43,12 @@ public class CrdEqualsAndHashTest {
       StackGresShardedCluster.class,
       StackGresShardedBackup.class,
       StackGresShardedDbOps.class,
+      PodMonitor.class,
+      ServiceMonitor.class,
+      ComputeNode.class,
+      ScaledObject.class,
+      TriggerAuthentication.class,
+      VerticalPodAutoscaler.class,
   })
   void crdShouldHaveEqualsAndHash(Class<?> resourceClazz) {
     ModelTestUtil.assertEqualsAndHashCode(resourceClazz);

@@ -38,14 +38,27 @@ public class DefaultReplicationMutator implements ClusterMutator {
       replication.setSyncInstances(1);
     }
     if (replication.getGroups() != null) {
-      Seq.seq(replication.getGroups()).zipWithIndex().forEach(group -> {
-        if (group.v1.getName() == null) {
-          group.v1.setName("group-" + (group.v2 + 1));
-        }
-        if (group.v1.getRole() == null) {
-          group.v1.setRole(StackGresMainReplicationRole.HA_READ.toString());
-        }
-      });
+      Seq.seq(replication.getGroups()).zipWithIndex()
+          .forEach(group -> {
+            if (group.v1.getName() == null) {
+              group.v1.setName("group-" + (group.v2 + 1));
+            }
+            if (group.v1.getRole() == null) {
+              group.v1.setRole(StackGresMainReplicationRole.HA_READ.toString());
+            }
+          });
+    }
+    if (replication.getGroups() != null
+        && resource.getSpec().getAutoscaling() != null
+        && resource.getSpec().getAutoscaling().getMinInstances() != null) {
+      Seq.seq(replication.getGroups())
+          .filter(group -> group.getMinInstances() != null)
+          .forEach(group -> {
+            group.setInstances(group.getMinInstances()
+                * resource.getSpec().getInstances()
+                / resource.getSpec().getAutoscaling().getMinInstances());
+          });
+      
     }
 
     return resource;

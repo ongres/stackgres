@@ -941,6 +941,134 @@ spec:
                       If sharding type is `shardingsphere` then, instead of an SGCluster a ComputeNode will be created.
                       
                       See also https://shardingsphere.apache.org/oncloud/current/en/user-manual/cn-sn-operator/#computenode 
+                  autoscaling: &autoscaling
+                    type: object
+                    description: |
+                      This section allows to configure vertical Pod autoscaling for the SGCluster's Pods.
+                      
+                      Vertical Pod Autoscaling will use cpu and memory usage as the metric to control the upscale or downscale of the Pod requests and limits resources.
+                      Vertical Pod Autoscaling requires the [Vertical Pod Autoscaler operator](https://github.com/kubernetes/autoscaler/tree/master/vertical-pod-autoscaler) to be installed in the Kuberentes cluster.
+                    properties:
+                      mode:
+                        type: string
+                        description: |
+                          Allow to enable or disable any of horizontal and vertical Pod autoscaling.
+                          
+                          Possible values are:
+                          * `vertical`: only vertical Pod autoscaling will be enabled (default)
+                          * `none`: all autoscaling will be disabled
+                        enum: [ "vertical", "none" ]
+                        default: vertical
+                      minAllowed:
+                        type: object
+                        description: |
+                          Allow to define the lower bound for Pod resources of patroni, pgbouncer and envoy containers
+                        properties:
+                          patroni:
+                            type: object
+                            description: |
+                              Allow to define the lower bound for Pod resources of patroni container
+                            properties:
+                              cpu:
+                                type: string
+                                description: The minimum allowed CPU for the patroni container
+                              memory:
+                                type: string
+                                description: The minimum allowed memory for the patroni container
+                          pgbouncer:
+                            type: object
+                            description: |
+                              Allow to define the lower bound for Pod resources of pgbouncer container
+                            properties:
+                              cpu:
+                                type: string
+                                description: The minimum allowed CPU for the pgbouncer container
+                              memory:
+                                type: string
+                                description: The minimum allowed memory for the pgbouncer container
+                          envoy:
+                            type: object
+                            description: |
+                              Allow to define the lower bound for Pod resources of envoy container
+                            properties:
+                              cpu:
+                                type: string
+                                description: The minimum allowed CPU for the envoy container
+                              memory:
+                                type: string
+                                description: The minimum allowed memory for the envoy container
+                      maxAllowed:
+                        type: object
+                        description: |
+                          Allow to define the higher bound for Pod resources of patroni, pgbouncer and envoy containers
+                        properties:
+                          patroni:
+                            type: object
+                            description: |
+                              Allow to define the higher bound for Pod resources of patroni container
+                            properties:
+                              cpu:
+                                type: string
+                                description: The maximum allowed CPU for the patroni container
+                              memory:
+                                type: string
+                                description: The maximum allowed memory for the patroni container
+                          pgbouncer:
+                            type: object
+                            description: |
+                              Allow to define the higher bound for Pod resources of pgbouncer container
+                            properties:
+                              cpu:
+                                type: string
+                                description: The maximum allowed CPU for the pgbouncer container
+                              memory:
+                                type: string
+                                description: The maximum allowed memory for the pgbouncer container
+                          envoy:
+                            type: object
+                            description: |
+                              Allow to define the higher bound for Pod resources of envoy container
+                            properties:
+                              cpu:
+                                type: string
+                                description: The maximum allowed CPU for the envoy container
+                              memory:
+                                type: string
+                                description: The maximum allowed memory for the envoy container
+                      horizontal:
+                        type: object
+                        description: |
+                          Section to configure horizontal Pod autoscaling aspects.
+                        properties:
+                          eplicasConnectionsUsageTarget:
+                            type: string
+                            description: |
+                              The target value for replicas connections used in order to trigger the upscale of replica instances.
+                            default: "0.8"
+                          replicasConnectionsUsageMetricType:
+                            type: string
+                            description: |
+                              The metric type for connections used metric. See https://keda.sh/docs/latest/concepts/scaling-deployments/#triggers
+                            default: AverageValue
+                          cooldownPeriod:
+                            type: integer
+                            description: |
+                              The period in seconds before the downscale of replica instances can be triggered.
+                            default: 300
+                          pollingInterval:
+                            type: integer
+                            description: |
+                              The interval in seconds to check if the scaleup or scaledown have to be triggered.
+                            default: 30
+                      vertical:
+                        type: object
+                        description: |
+                          Section to configure vertical Pod autoscaling aspects.
+                        properties:
+                          recommender:
+                            type: string
+                            description: |
+                              Recommender responsible for generating recommendation for vertical Pod autoscaling. If not specified the default one will be used.
                   sgInstanceProfile:
                     type: string
                     description: |
@@ -1633,6 +1761,7 @@ spec:
                     description: |
                       Number of StackGres instances per shard's StackGres cluster. Each instance contains one Postgres server.
                         Out of all of the Postgres servers, one is elected as the primary, the rest remain as read-only replicas.
+                  autoscaling: *autoscaling
                   sgInstanceProfile:
                     type: string
                     description: |
@@ -1925,6 +2054,7 @@ spec:
                           description: |
                             Number of StackGres instances per shard's StackGres cluster. Each instance contains one Postgres server.
                               Out of all of the Postgres servers, one is elected as the primary, the rest remain as read-only replicas.
+                        autoscaling: *autoscaling
                         sgInstanceProfile:
                           type: string
                           description: |
