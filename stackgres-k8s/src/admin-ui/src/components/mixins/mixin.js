@@ -55,7 +55,7 @@ export const mixin = {
         return ( vc.loggedIn && vc.isReady && !vc.notFound && 
           ( 
             ( (kind === 'users') && vc.havePermissionsTo.get.users ) ||
-            ( (kind === 'clusterroles') && vc.iCan(action, kind) ) ||
+            ( ['clusterroles', 'namespaces'].includes(kind) && vc.iCan(action, kind) ) ||
             vc.iCan(action, kind, namespace)
           )
         )
