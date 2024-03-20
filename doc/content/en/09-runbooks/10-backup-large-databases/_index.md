@@ -1,7 +1,7 @@
 ---
 title: Backup Large databases
-weight: 16
-url: /features/backup-large-databases
+weight: 10
+url: /runbooks/backup-large-databases
 description: Backing up large database in seconds using snapshots
 ---
 
@@ -17,7 +17,7 @@ The first problem you will encounter when creating backups of large databases is
 
 So here come snapshots, ultimately they are photos of the current state of your file system, saving all file change operations. Because they don't have a full copy of your files they don't take long to execute, hence the name "snapshots", they are extremely quick.
 
-# StackGres
+## StackGres
 
 In StackGres, we provide the user with automated backups for PostgreSQL, those backups can be created using snapshots or using Wal-G. The latter option works very well but is constricted to the issues mentioned above when used against very large databases. A way to circumvent that is by using snapshots. Snapshots are provided in StackGres by using Kubernetes VolumeSnapshots called through the CSI driver of your storage of choice.
 In this example we have are using ZFS as our filesystem and OpenEBS with a ZFS CSI driver and MinIO to schedule backups using snapshots and doing PTIR (point-in-time-recovery).
@@ -119,7 +119,7 @@ spec:
   s3Compatible:
     bucket: test
     enablePathStyleAddressing: true
-    endpoint: http://minio:9000
+    endpoint: http://minio.minio:9000
     awsCredentials:
       secretKeySelectors:
         accessKeyId:
@@ -160,7 +160,7 @@ metadata:
   name: my-db
 spec:
   postgres:
-    version: '15.5'
+    version: '16'
   instances: 1
   pods:
     persistentVolume:
