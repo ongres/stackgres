@@ -57,7 +57,8 @@ public class DefaultBackupPathsMutator implements ShardedClusterMutator {
         .map(index -> BackupStorageUtil.getPath(
             cluster.getMetadata().getNamespace(),
             StackGresShardedClusterUtil.getClusterName(cluster, index),
-            postgresMajorVersion) + "/" + creationTimestamp)
+            postgresMajorVersion,
+            cluster.getMetadata().getCreationTimestamp()))
         .toList();
   }
 

@@ -91,7 +91,8 @@ public class ShardedDbOpsMajorVersionUpgradeMutator implements ShardedDbOpsMutat
         .map(index -> BackupStorageUtil.getPath(
             cluster.getMetadata().getNamespace(),
             StackGresShardedClusterUtil.getClusterName(cluster, index),
-            postgresMajorVersion))
+            postgresMajorVersion,
+            cluster.getMetadata().getCreationTimestamp()))
         .toList();
   }
 

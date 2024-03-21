@@ -47,8 +47,8 @@ public class DefaultBackupPathMutator implements ClusterMutator {
     return BackupStorageUtil.getPath(
         cluster.getMetadata().getNamespace(),
         cluster.getMetadata().getName(),
-        postgresMajorVersion)
-        + "/" + cluster.getMetadata().getCreationTimestamp();
+        postgresMajorVersion,
+        cluster.getMetadata().getCreationTimestamp());
   }
 
 }

@@ -59,12 +59,23 @@ public interface BackupStorageUtil {
     return prefix + "/" + path;
   }
 
+  @Deprecated
   static String getPath(
       String namespace,
       String name,
       String postgresMajorVersion) {
     return HasMetadata.getFullResourceName(StackGresBackup.class) + "/"
         + namespace + "/" + name + "/" + postgresMajorVersion;
+  }
+
+  static String getPath(
+    String namespace,
+    String name,
+    String postgresMajorVersion,
+    String creationTimestamp
+  ) {
+    return HasMetadata.getFullResourceName(StackGresBackup.class) + "/"
+      + namespace + "/" + name + "/" + postgresMajorVersion + "/" + creationTimestamp;
   }
 
   static <T> Optional<T> getStorageFor(

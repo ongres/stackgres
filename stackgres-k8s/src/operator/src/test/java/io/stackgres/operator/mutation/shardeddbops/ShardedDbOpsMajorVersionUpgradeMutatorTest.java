@@ -102,12 +102,14 @@ class ShardedDbOpsMajorVersionUpgradeMutatorTest {
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
         .get(cluster)
         .getMajorVersion(postgresVersion);
+    final String creationTimestamp = cluster.getMetadata().getCreationTimestamp();
     assertEquals(
         Seq.range(0, cluster.getSpec().getShards().getClusters() + 1)
             .map(index -> BackupStorageUtil.getPath(
                 cluster.getMetadata().getNamespace(),
                 StackGresShardedClusterUtil.getClusterName(cluster, index),
-                postgresMajorVersion))
+                postgresMajorVersion,
+                creationTimestamp))
         .toList(),
         actualDbOps.getSpec().getMajorVersionUpgrade().getBackupPaths());
   }
@@ -138,13 +140,15 @@ class ShardedDbOpsMajorVersionUpgradeMutatorTest {
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
         .get(cluster)
         .getMajorVersion(postgresVersion);
+    final String creationTimestamp = cluster.getMetadata().getCreationTimestamp();
     assertEquals(
         Seq.of("test", "test0")
         .append(Seq.range(2, cluster.getSpec().getShards().getClusters() + 1)
             .map(index -> BackupStorageUtil.getPath(
                 cluster.getMetadata().getNamespace(),
                 StackGresShardedClusterUtil.getClusterName(cluster, index),
-                postgresMajorVersion)))
+                postgresMajorVersion,
+                creationTimestamp)))
         .toList(),
         actualDbOps.getSpec().getMajorVersionUpgrade().getBackupPaths());
   }

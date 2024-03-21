@@ -99,11 +99,13 @@ class DbOpsMajorVersionUpgradeMutatorTest {
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
         .get(cluster)
         .getMajorVersion(postgresVersion);
+    final String creationTimestamp = dbOps.getMetadata().getCreationTimestamp();
     assertEquals(
         BackupStorageUtil.getPath(
             dbOps.getMetadata().getNamespace(),
             dbOps.getSpec().getSgCluster(),
-            postgresMajorVersion),
+            postgresMajorVersion,
+            creationTimestamp),
         actualDbOps.getSpec().getMajorVersionUpgrade().getBackupPath());
   }
 
