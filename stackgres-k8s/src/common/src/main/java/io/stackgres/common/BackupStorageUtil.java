@@ -69,10 +69,10 @@ public interface BackupStorageUtil {
   }
 
   static String getPath(
-    String namespace,
-    String name,
-    String postgresMajorVersion,
-    String creationTimestamp
+      String namespace,
+      String name,
+      String postgresMajorVersion,
+      String creationTimestamp
   ) {
     return HasMetadata.getFullResourceName(StackGresBackup.class) + "/"
       + namespace + "/" + name + "/" + postgresMajorVersion + "/" + creationTimestamp;
