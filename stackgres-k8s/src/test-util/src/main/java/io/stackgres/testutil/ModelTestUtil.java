@@ -408,7 +408,7 @@ public class ModelTestUtil {
     }
   }
 
-  private static boolean isValueType(Class<?> type) {
+  public static boolean isValueType(Class<?> type) {
     return Quantity.class.isAssignableFrom(type)
         || String.class == type
         || Number.class.isAssignableFrom(type)
@@ -417,7 +417,7 @@ public class ModelTestUtil {
         || Object.class == type;
   }
 
-  private static List<Field> getRepresentativeFields(Class<?> clazz) {
+  public static List<Field> getRepresentativeFields(Class<?> clazz) {
     if (clazz != null) {
       Field[] declaredFields = clazz.getDeclaredFields();
       List<Field> parentFields = getRepresentativeFields(clazz.getSuperclass());
@@ -430,31 +430,33 @@ public class ModelTestUtil {
           .concat(
               Arrays.stream(declaredFields),
               parentFields.stream()
-              .filter(parentField -> Optional.ofNullable(parentField.getAnnotation(JsonProperty.class))
-                  .map(JsonProperty::value)
-                  .filter(Predicate.not(JsonProperty.USE_DEFAULT_NAME::equals))
+              .filter(parentField -> getOverriddenJsonFieldName(parentField)
                   .or(() -> Optional.of(parentField.getName()))
                   .stream()
                   .noneMatch(parentFieldName -> Arrays.stream(declaredFields)
                       .filter(field -> !Modifier.isStatic(field.getModifiers()))
                       .filter(field -> !Modifier.isFinal(field.getModifiers()))
-                      .map(field -> Optional.ofNullable(field.getAnnotation(JsonProperty.class))
-                          .map(JsonProperty::value)
-                          .filter(Predicate.not(JsonProperty.USE_DEFAULT_NAME::equals))
-                          .orElse(field.getName()))
+                      .map(field -> getJsonFieldName(field))
                       .anyMatch(parentFieldName::equals))))
           .filter(field -> !Modifier.isStatic(field.getModifiers()))
           .filter(field -> !Modifier.isFinal(field.getModifiers()))
           .filter(field -> !field.isAnnotationPresent(JsonIgnore.class))
-          .filter(field -> !ignoredFields.contains(
-              Optional.ofNullable(field.getAnnotation(JsonProperty.class))
-              .map(JsonProperty::value)
-              .filter(Predicate.not(JsonProperty.USE_DEFAULT_NAME::equals))
-              .orElse(field.getName())))
+          .filter(field -> !ignoredFields.contains(getJsonFieldName(field)))
           .toList();
     } else {
       return List.of();
     }
+  }
+
+  public static String getJsonFieldName(Field field) {
+    return getOverriddenJsonFieldName(field)
+    .orElse(field.getName());
+  }
+
+  public static Optional<String> getOverriddenJsonFieldName(Field field) {
+    return Optional.ofNullable(field.getAnnotation(JsonProperty.class))
+    .map(JsonProperty::value)
+    .filter(Predicate.not(JsonProperty.USE_DEFAULT_NAME::equals));
   }
 
   static final String[] QUANTITY_UNITS = new String[] {

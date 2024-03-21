@@ -49,8 +49,8 @@ public class StackGresClusterStatus {
 
   private String labelPrefix;
 
-  @JsonProperty("replicationInitializationSGBackup")
-  private String replicationInitializationSgBackup;
+  @JsonProperty("replicationInitializationFailedSGBackup")
+  private String replicationInitializationFailedSgBackup;
 
   @Valid
   private StackGresClusterServiceBindingStatus binding;
@@ -135,18 +135,18 @@ public class StackGresClusterStatus {
     this.binding = binding;
   }
 
-  public String getReplicationInitializationSgBackup() {
-    return replicationInitializationSgBackup;
+  public String getReplicationInitializationFailedSgBackup() {
+    return replicationInitializationFailedSgBackup;
   }
 
-  public void setReplicationInitializationSgBackup(String replicationInitializationSgBackup) {
-    this.replicationInitializationSgBackup = replicationInitializationSgBackup;
+  public void setReplicationInitializationFailedSgBackup(String replicationInitializationFailedSgBackup) {
+    this.replicationInitializationFailedSgBackup = replicationInitializationFailedSgBackup;
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(arch, binding, conditions, dbOps, instances, labelPrefix, labelSelector, managedSql, os,
-        podStatuses, replicationInitializationSgBackup);
+        podStatuses, replicationInitializationFailedSgBackup);
   }
 
   @Override
@@ -163,7 +163,7 @@ public class StackGresClusterStatus {
         && Objects.equals(instances, other.instances) && Objects.equals(labelPrefix, other.labelPrefix)
         && Objects.equals(labelSelector, other.labelSelector) && Objects.equals(managedSql, other.managedSql)
         && Objects.equals(os, other.os) && Objects.equals(podStatuses, other.podStatuses)
-        && Objects.equals(replicationInitializationSgBackup, other.replicationInitializationSgBackup);
+        && Objects.equals(replicationInitializationFailedSgBackup, other.replicationInitializationFailedSgBackup);
   }
 
   @Override

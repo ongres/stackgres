@@ -75,6 +75,7 @@ class PostgresExporterTest {
             .source(getDefaultCluster())
             .postgresConfig(new StackGresPostgresConfig())
             .profile(new StackGresProfile())
+            .currentInstances(0)
             .build())
         .dataVolumeName("test")
         .build();

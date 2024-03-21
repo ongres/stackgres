@@ -52,6 +52,9 @@ public enum ClusterPath implements EnvVarPathSource<StackGresCluster> {
   PG_BASE_PATH("/var/lib/postgresql"),
   PG_DATA_PATH(PG_BASE_PATH, "data"),
   PG_EXTENSIONS_BASE_PATH(PG_BASE_PATH, "extensions"),
+  PG_REPLICATION_BASE_PATH(PG_BASE_PATH, "replication"),
+  PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH(
+      PG_REPLICATION_BASE_PATH, "initialization-failed-backup"),
   PG_EXTENSIONS_PATH(PG_EXTENSIONS_BASE_PATH,
       ClusterEnvVar.POSTGRES_MAJOR_VERSION.substVar(),
       ClusterEnvVar.BUILD_MAJOR_VERSION.substVar()),

@@ -90,4 +90,13 @@ public abstract class AbstractLabelFactoryForCluster<T extends CustomResource<?,
         .build();
   }
 
+  @Override
+  public Map<String, String> replicationInitializationBackupLabels(T resource) {
+    return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
+        .put(labelMapper().resourceScopeKey(resource), labelValue(resourceScope(resource)))
+        .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
+        .put(labelMapper().replicationInitializationBackupKey(resource), StackGresContext.RIGHT_VALUE)
+        .build();
+  }
+
 }

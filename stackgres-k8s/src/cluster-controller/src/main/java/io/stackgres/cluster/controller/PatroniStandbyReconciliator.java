@@ -6,8 +6,6 @@
 package io.stackgres.cluster.controller;
 
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -29,16 +27,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @ApplicationScoped
-public class PatroniResetReconciliator {
+public class PatroniStandbyReconciliator {
 
   private static final Logger LOGGER =
-      LoggerFactory.getLogger(PatroniResetReconciliator.class);
+      LoggerFactory.getLogger(PatroniStandbyReconciliator.class);
 
   private final EventController eventController;
   private final PatroniCtl patroniCtl;
   private final ResourceFinder<Secret> secretFinder;
   private final String podName;
-  private final boolean isReconcilePatroniAfterMajorVersionUpgrade;
 
   @Dependent
   public static class Parameters {
@@ -49,20 +46,12 @@ public class PatroniResetReconciliator {
   }
 
   @Inject
-  public PatroniResetReconciliator(Parameters parameters) {
+  public PatroniStandbyReconciliator(Parameters parameters) {
     this.eventController = parameters.eventController;
     this.patroniCtl = parameters.patroniCtl;
     this.secretFinder = parameters.secretFinder;
     this.podName = parameters.propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
-    this.isReconcilePatroniAfterMajorVersionUpgrade = parameters.propertyContext
-        .getBoolean(ClusterControllerProperty
-            .CLUSTER_CONTROLLER_RECONCILE_PATRONI_AFTER_MAJOR_VERSION_UPGRADE);
-  }
-
-  public static PatroniResetReconciliator create(Consumer<Parameters> consumer) {
-    Stream<Parameters> parameters = Optional.of(new Parameters()).stream().peek(consumer);
-    return new PatroniResetReconciliator(parameters.findAny().get());
   }
 
   public ReconciliationResult<Void> reconcile(KubernetesClient client, ClusterContext context)
@@ -90,13 +79,8 @@ public class PatroniResetReconciliator {
     final boolean isPodPrimary = PatroniUtil.isPrimary(podName, patroniCtl);
     final boolean isStandbyCluster = PatroniUtil.isStandbyCluster(patroniCtl);
     final boolean hasAnyHistory = !patroniCtl.history().isEmpty();
-    if (isReconcilePatroniAfterMajorVersionUpgrade
-        || (isPodPrimary && isBootstrapped && isStandbyCluster && hasAnyHistory)) {
-      if (isReconcilePatroniAfterMajorVersionUpgrade) {
-        LOGGER.info("Reset patroni state for major version upgrade");
-      } else {
-        LOGGER.info("Reset patroni state for standby cluster");
-      }
+    if (isPodPrimary && isBootstrapped && isStandbyCluster && hasAnyHistory) {
+      LOGGER.info("Reset patroni state for standby cluster");
       String clusterName = context.getCluster().getMetadata().getName();
       var credentials = secretFinder.findByNameAndNamespace(
           PatroniUtil.secretName(context.getCluster().getMetadata().getName()),

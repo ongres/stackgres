@@ -7,17 +7,11 @@ package io.stackgres.apiweb.dto.shardeddbops;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
-@JsonIgnoreProperties(ignoreUnknown = true)
-@Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
-    lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
-    builderPackage = "io.fabric8.kubernetes.api.builder")
 public class ShardedDbOpsRestartStatus {
 
   private List<String> pendingToRestartSgClusters;

@@ -19,13 +19,12 @@ import java.util.function.Function;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
-import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplication;
-import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationInitialization;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestorePitr;
@@ -37,7 +36,6 @@ import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.AbstractPatroniEnvironmentVariablesFactory;
 import jakarta.inject.Singleton;
-import org.jooq.lambda.Seq;
 
 @Singleton
 public class PatroniEnvironmentVariablesFactory
@@ -49,25 +47,28 @@ public class PatroniEnvironmentVariablesFactory
 
     List<EnvVar> additionalEnvVars = new ArrayList<>();
 
-    var replicaInitialization = Optional.ofNullable(cluster.getSpec())
-        .map(StackGresClusterSpec::getReplication)
-        .map(StackGresClusterReplication::getInitialization);
+    additionalEnvVars.add(new EnvVarBuilder()
+        .withName(PatroniUtil.PATRONI_READ_ONLY_SERVICE_NAME)
+        .withValue(PatroniUtil.readOnlyName(cluster))
+        .build());
+    additionalEnvVars.add(new EnvVarBuilder()
+        .withName(PatroniUtil.REPLICATION_SERVICE_PORT_ENV)
+        .withValue(String.valueOf(PatroniUtil.REPLICATION_SERVICE_PORT))
+        .build());
+    var replication = Optional.ofNullable(cluster.getSpec())
+        .map(StackGresClusterSpec::getReplication);
     appendEnvVarIfPresent("REPLICATION_INITIALIZATION_FROM_BACKUP",
-        context.getReplicationInitializationBackup(), additionalEnvVars,
-        Function.<StackGresBackup>identity(),
-        Function.<StackGresBackup>identity()
-        .andThen(value -> Boolean.TRUE.toString()));
-    appendEnvVarIfPresent("REPLICA_INITIALIZATION_MODE",
-        replicaInitialization, additionalEnvVars,
-        StackGresClusterReplicationInitialization::getMode,
-        Function.identity(),
-        StackGresReplicationInitializationMode.FROM_EXISTING_BACKUP.toString());
-    additionalEnvVars.addAll(Seq.seq(StackGresReplicationInitializationMode.values())
-        .map(mode -> new EnvVarBuilder()
-            .withName("REPLICA_INITIALIZATION_MODE_" + mode.name())
-            .withValue(mode.mode())
-            .build())
-        .toList());
+        replication, additionalEnvVars,
+        Function.<StackGresClusterReplication>identity()
+        .andThen(StackGresClusterReplication::getInitializationModeOrDefault)
+        .andThen(mode -> StackGresReplicationInitializationMode.FROM_EXISTING_BACKUP.ordinal() >= mode.ordinal()),
+        Object::toString);
+    appendEnvVarIfPresent("REPLICATION_INITIALIZATION_FROM_REPLICA",
+        replication, additionalEnvVars,
+        Function.<StackGresClusterReplication>identity()
+        .andThen(StackGresClusterReplication::getInitializationModeOrDefault)
+        .andThen(mode -> StackGresReplicationInitializationMode.FROM_REPLICA.ordinal() >= mode.ordinal()),
+        Object::toString);
 
     var replicateFrom = Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getReplicateFrom);
@@ -177,19 +178,4 @@ public class PatroniEnvironmentVariablesFactory
         .ifPresent(additionalEnvVars::add);
   }
 
-  private <S, T> void appendEnvVarIfPresent(String name,
-      Optional<S> source, List<EnvVar> additionalEnvVars,
-      Function<S, T> extractvalue,
-      Function<T, String> convertValue,
-      String defaultValue) {
-    source
-        .map(extractvalue)
-        .map(convertValue)
-        .or(() -> Optional.of(defaultValue))
-        .map(value -> new EnvVarBuilder()
-            .withName(name)
-            .withValue(value)
-            .build())
-        .ifPresent(additionalEnvVars::add);
-  }
 }

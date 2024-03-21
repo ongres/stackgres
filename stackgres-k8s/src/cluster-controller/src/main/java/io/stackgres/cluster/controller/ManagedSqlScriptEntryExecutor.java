@@ -229,6 +229,7 @@ public class ManagedSqlScriptEntryExecutor {
     }
   }
 
+  @SuppressWarnings("null")
   protected Connection getConnection(String database, String user)
       throws SQLException {
     return postgresConnectionManager.getUnixConnection(

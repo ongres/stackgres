@@ -33,5 +33,9 @@ public interface LabelMapperForCluster<T extends CustomResource<?, ?>>
     return labelKey(resourceScopeKey(resource));
   }
 
+  default String replicationInitializationBackupKey(T resource) {
+    return getKeyPrefix(resource) + StackGresContext.RECONCILIATION_INITIALIZATION_BACKUP_KEY;
+  }
+
   String resourceScopeKey(T resource);
 }

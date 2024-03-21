@@ -7,13 +7,10 @@ package io.stackgres.cluster.controller;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.EndpointAddressBuilder;
 import io.fabric8.kubernetes.api.model.EndpointSubset;
@@ -70,11 +67,6 @@ public class PatroniEndpointsReconciliator extends SafeReconciliator<ClusterCont
     this.endpointsFinder = parameters.endpointsFinder;
     this.endpointsWriter = parameters.endpointsWriter;
     this.lastEnpointSubset = new AtomicReference<>();
-  }
-
-  public static PatroniEndpointsReconciliator create(Consumer<Parameters> consumer) {
-    Stream<Parameters> parameters = Optional.of(new Parameters()).stream().peek(consumer);
-    return new PatroniEndpointsReconciliator(parameters.findAny().get());
   }
 
   @Override

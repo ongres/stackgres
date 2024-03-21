@@ -47,6 +47,7 @@ public abstract class FireAndForgetJobReconciliationHandler<T extends CustomReso
       LabelFactory<T> labelFactory,
       ResourceFinder<Job> jobFinder,
       ResourceScanner<Pod> podScanner) {
+    super(handler);
     this.handler = handler;
     this.labelFactory = labelFactory;
     this.jobFinder = jobFinder;

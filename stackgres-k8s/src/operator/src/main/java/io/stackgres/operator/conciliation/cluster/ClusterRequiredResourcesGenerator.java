@@ -7,13 +7,10 @@ package io.stackgres.operator.conciliation.cluster;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -25,16 +22,15 @@ import java.util.stream.Stream;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.PatroniUtil;
-import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.SecretKeySelector;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
-import io.stackgres.common.crd.sgbackup.StackGresBackupBuilder;
 import io.stackgres.common.crd.sgbackup.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
@@ -67,6 +63,7 @@ import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 import io.stackgres.common.prometheus.Prometheus;
 import io.stackgres.common.prometheus.PrometheusInstallation;
@@ -74,6 +71,7 @@ import io.stackgres.common.prometheus.PrometheusSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operator.common.PrometheusContext;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
@@ -83,6 +81,7 @@ import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
@@ -117,6 +116,10 @@ public class ClusterRequiredResourcesGenerator
 
   private final CustomResourceScanner<StackGresBackup> backupScanner;
 
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+
+  private final ResourceScanner<Pod> podScanner;
+
   private final BackupEnvVarFactory backupEnvVarFactory;
 
   private final OperatorPropertyContext operatorContext;
@@ -136,6 +139,8 @@ public class ClusterRequiredResourcesGenerator
       ResourceFinder<Secret> secretFinder,
       CustomResourceScanner<Prometheus> prometheusScanner,
       CustomResourceScanner<StackGresBackup> backupScanner,
+      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      ResourceScanner<Pod> podScanner,
       BackupEnvVarFactory backupEnvVarFactory,
       OperatorPropertyContext operatorContext,
       ResourceGenerationDiscoverer<StackGresClusterContext> discoverer) {
@@ -150,6 +155,8 @@ public class ClusterRequiredResourcesGenerator
     this.secretFinder = secretFinder;
     this.prometheusScanner = prometheusScanner;
     this.backupScanner = backupScanner;
+    this.labelFactory = labelFactory;
+    this.podScanner = podScanner;
     this.backupEnvVarFactory = backupEnvVarFactory;
     this.operatorContext = operatorContext;
     this.discoverer = discoverer;
@@ -213,18 +220,35 @@ public class ClusterRequiredResourcesGenerator
 
     final Set<String> clusterBackupNamespaces = getClusterBackupNamespaces(clusterNamespace);
 
-    final List<StackGresBackup> replicationInitializationBackups =
-        getReplicationInitializationBackups(cluster);
-    final Optional<StackGresBackup> replicationInitializationBackup =
-        getReplicationInitializationBackup(cluster, replicationInitializationBackups);
-    final Optional<StackGresBackup> replicationInitializationBackupToCreate =
-        getReplicationInitializationBackupToCreate(cluster, replicationInitializationBackups);
-
     final Optional<Secret> databaseSecret =
         secretFinder.findByNameAndNamespace(clusterName, clusterNamespace);
 
     final Map<String, Secret> backupSecrets = backupStorageObject
         .map(StackGresObjectStorage::getSpec)
+        .stream()
+        .flatMap(backupEnvVarFactory::streamStorageSecretReferences)
+        .map(secretKeySelector -> secretKeySelector.getName())
+        .collect(Collectors.groupingBy(Function.identity()))
+        .keySet()
+        .stream()
+        .map(name -> Tuple.tuple(
+            name,
+            secretFinder
+            .findByNameAndNamespace(name, clusterNamespace)
+            .orElseThrow(() -> new IllegalArgumentException(
+                "Secret " + name + " not found"))))
+        .collect(Collectors.toMap(Tuple2::v1, Tuple2::v2));
+
+    final Optional<StackGresBackup> replicationInitializationBackup =
+        getReplicationInitializationBackup(cluster);
+    final Optional<StackGresBackup> replicationInitializationBackupToCreate =
+        getReplicationInitializationBackupToCreate(cluster);
+    final int currentInstances = countCurrentInstances(cluster);
+
+    final Map<String, Secret> replicationInitializationSecrets = replicationInitializationBackup
+        .map(StackGresBackup::getStatus)
+        .map(StackGresBackupStatus::getSgBackupConfig)
+        .map(StackGresBackupConfigSpec::getStorage)
         .stream()
         .flatMap(backupEnvVarFactory::streamStorageSecretReferences)
         .map(secretKeySelector -> secretKeySelector.getName())
@@ -321,16 +345,15 @@ public class ClusterRequiredResourcesGenerator
         .poolingConfig(pooling)
         .backupSecrets(backupSecrets)
         .replicationInitializationBackup(replicationInitializationBackup)
-        .replicationInitializationObjectStorageConfig(replicateObjectStorage)
         .replicationInitializationBackupToCreate(replicationInitializationBackupToCreate)
+        .replicationInitializationSecrets(replicationInitializationSecrets)
+        .currentInstances(currentInstances)
         .restoreBackup(restoreBackup)
         .restoreSecrets(restoreSecrets)
-        .replicateSecrets(replicateSecrets)
-        .prometheusContext(getPrometheusContext(cluster))
-        .clusterBackupNamespaces(clusterBackupNamespaces)
         .databaseSecret(databaseSecret)
         .replicateCluster(replicateCluster)
         .replicateObjectStorageConfig(replicateObjectStorage)
+        .replicateSecrets(replicateSecrets)
         .superuserUsername(credentials.superuserUsername)
         .superuserPassword(credentials.superuserPassword)
         .replicationUsername(credentials.replicationUsername)
@@ -341,18 +364,25 @@ public class ClusterRequiredResourcesGenerator
         .userPasswordForBinding(userPasswordForBinding)
         .postgresSslCertificate(postgresSsl.certificate)
         .postgresSslPrivateKey(postgresSsl.privateKey)
+        .prometheusContext(getPrometheusContext(cluster))
+        .clusterBackupNamespaces(clusterBackupNamespaces)
         .build();
 
     return discoverer.generateResources(context);
   }
 
-  private List<StackGresBackup> getReplicationInitializationBackups(StackGresCluster cluster) {
-    var backupNewerThan = Optional.of(cluster.getSpec().getReplication().getInitialization())
+  private Optional<StackGresBackup> getReplicationInitializationBackup(
+      StackGresCluster cluster) {
+    if (StackGresReplicationInitializationMode.FROM_EXISTING_BACKUP.ordinal()
+        > cluster.getSpec().getReplication().getInitializationModeOrDefault().ordinal()) {
+      return Optional.empty();
+    }
+
+    var backupNewerThan = Optional.ofNullable(cluster.getSpec().getReplication().getInitialization())
         .map(StackGresClusterReplicationInitialization::getBackupNewerThan)
         .map(Duration::parse)
         .map(Instant.now()::minus);
-    return backupScanner.getResources(cluster.getMetadata().getNamespace())
-        .stream()
+    return Seq.seq(backupScanner.getResources(cluster.getMetadata().getNamespace()))
         .filter(backup -> backup.getSpec().getSgCluster().equals(
             cluster.getMetadata().getName()))
         .filter(backup -> Optional.ofNullable(backup.getStatus())
@@ -365,7 +395,7 @@ public class ClusterRequiredResourcesGenerator
             .map(StackGresBackupProcess::getTiming)
             .map(StackGresBackupTiming::getEnd)
             .map(Instant::parse)
-            .filter(end -> backupNewerThan.map(end::isBefore).orElse(true))
+            .filter(end -> backupNewerThan.map(end::isAfter).orElse(true))
             .isPresent())
         .sorted(Comparator.comparing(backup -> Optional.ofNullable(backup.getStatus())
             .map(StackGresBackupStatus::getProcess)
@@ -373,59 +403,57 @@ public class ClusterRequiredResourcesGenerator
             .map(StackGresBackupTiming::getEnd)
             .map(Instant::parse)
             .get()))
-        .toList();
-  }
-
-  private Optional<StackGresBackup> getReplicationInitializationBackup(
-      StackGresCluster cluster,
-      List<StackGresBackup> replicationInitializationBackups) {
-    return replicationInitializationBackups
-        .stream()
-        .filter(backup -> Objects.equals(
-            Optional.of(cluster)
+        .skipUntil(backup -> Optional.of(cluster)
             .map(StackGresCluster::getStatus)
-            .map(StackGresClusterStatus::getReplicationInitializationSgBackup)
-            .orElse(null),
-            backup.getMetadata().getName()))
+            .map(StackGresClusterStatus::getReplicationInitializationFailedSgBackup)
+            .map(backup.getMetadata().getName()::equals)
+            .orElse(true))
+        .skip(Optional.of(cluster)
+            .map(StackGresCluster::getStatus)
+            .map(StackGresClusterStatus::getReplicationInitializationFailedSgBackup)
+            .map(ignore -> 1)
+            .orElse(0))
         .findFirst();
   }
 
   private Optional<StackGresBackup> getReplicationInitializationBackupToCreate(
-      StackGresCluster cluster,
-      List<StackGresBackup> replicationInitializationBackups) {
+      StackGresCluster cluster) {
     if (!StackGresReplicationInitializationMode.FROM_NEWLY_CREATED_BACKUP.equals(
-            StackGresReplicationInitializationMode.fromString(
-                cluster.getSpec().getReplication().getInitialization().getMode()))) {
+        cluster.getSpec().getReplication().getInitializationModeOrDefault())) {
       return Optional.empty();
     }
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy")
-        .withZone(ZoneId.systemDefault());
-    return replicationInitializationBackups
-        .stream()
-        .filter(backup -> Objects.equals(
-            Optional.of(cluster)
-            .map(StackGresCluster::getStatus)
-            .map(StackGresClusterStatus::getReplicationInitializationSgBackup)
-            .orElse(null),
-            backup.getMetadata().getName()))
-        .filter(backup -> Optional.of(backup.getMetadata())
-            .map(ObjectMeta::getLabels)
-            .map(labels -> labels.get(
-                StackGresContext.STACKGRES_KEY_PREFIX
-                + StackGresContext.RECONCILIATION_INITIALIZATION_BACKUP_KEY))
-            .filter(StackGresContext.RIGHT_VALUE::equals)
+    var now = Instant.now();
+    var backupNewerThan = Optional.ofNullable(cluster.getSpec().getReplication().getInitialization())
+        .map(StackGresClusterReplicationInitialization::getBackupNewerThan)
+        .map(Duration::parse)
+        .map(now::minus);
+    return Seq.seq(backupScanner
+        .getResourcesWithLabels(
+            cluster.getMetadata().getNamespace(),
+            labelFactory.replicationInitializationBackupLabels(cluster)))
+        .filter(backup -> backup.getSpec().getSgCluster().equals(
+            cluster.getMetadata().getName()))
+        .filter(backup -> Optional.ofNullable(backup.getStatus())
+            .map(StackGresBackupStatus::getProcess)
+            .map(StackGresBackupProcess::getTiming)
+            .map(StackGresBackupTiming::getEnd)
+            .map(Instant::parse)
+            .or(() -> Optional.of(now))
+            .filter(end -> backupNewerThan.map(end::isAfter).orElse(true))
             .isPresent())
-        .findFirst()
-        .or(() -> Optional.of(new StackGresBackupBuilder()
-            .withNewMetadata()
-            .withNamespace(cluster.getMetadata().getNamespace())
-            .withName(cluster.getMetadata().getName() + "-" + formatter.format(Instant.now()))
-            .endMetadata()
-            .withNewSpec()
-            .withSgCluster(cluster.getMetadata().getName())
-            .withManagedLifecycle(true)
-            .endSpec()
-            .build()));
+        .findFirst();
+  }
+
+  private int countCurrentInstances(StackGresCluster cluster) {
+    var clusterLabels = labelFactory.clusterLabels(cluster);
+    return (int) podScanner.findByLabelsAndNamespace(
+        cluster.getMetadata().getNamespace(),
+        clusterLabels)
+        .stream()
+        .filter(pod -> Optional.ofNullable(pod.getMetadata())
+            .map(ObjectMeta::getDeletionTimestamp)
+            .isEmpty())
+        .count();
   }
 
   record Credentials(

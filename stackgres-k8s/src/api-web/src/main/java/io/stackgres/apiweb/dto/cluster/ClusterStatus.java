@@ -37,8 +37,8 @@ public class ClusterStatus {
 
   private ClusterServiceBindingStatus binding;
 
-  @JsonProperty("replicationInitializationSGBackup")
-  private String replicationInitializationSgBackup;
+  @JsonProperty("replicationInitializationFailedSGBackup")
+  private String replicationInitializationFailedSgBackup;
 
   public Integer getInstances() {
     return instances;
@@ -120,12 +120,12 @@ public class ClusterStatus {
     this.binding = binding;
   }
 
-  public String getReplicationInitializationSgBackup() {
-    return replicationInitializationSgBackup;
+  public String getReplicationInitializationFailedSgBackup() {
+    return replicationInitializationFailedSgBackup;
   }
 
-  public void setReplicationInitializationSgBackup(String replicationInitializationSgBackup) {
-    this.replicationInitializationSgBackup = replicationInitializationSgBackup;
+  public void setReplicationInitializationFailedSgBackup(String replicationInitializationFailedSgBackup) {
+    this.replicationInitializationFailedSgBackup = replicationInitializationFailedSgBackup;
   }
 
   @Override

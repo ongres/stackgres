@@ -19,6 +19,13 @@ then
 fi
 
 if [ "$RESTORE_VOLUME_SNAPSHOT" = true ] \
+  && [ -d "$PG_DATA_PATH".failed ] \
+  && ! [ -d "$PG_DATA_PATH" ]
+then
+  mv "$PG_DATA_PATH".failed "$PG_DATA_PATH"
+fi
+
+if [ "$RESTORE_VOLUME_SNAPSHOT" = true ] \
   && [ -d "$PG_DATA_PATH" ] \
   && ! [ -d "$PG_DATA_PATH".backup ] \
   && ! [ -f "$PG_DATA_PATH".backup/backup_label ]
@@ -66,7 +73,7 @@ RECOVERY_FROM_BACKUP_EOF
   chmod 700 "$PATRONI_CONFIG_PATH/recovery-from-backup.sh"
 fi
 
-## Replication initialization
+## Replication initialization from backup
 if [ -n "$REPLICATION_INITIALIZATION_FROM_BACKUP" ]
 then
   echo "Creating script for replication initialization from backup $([ "$REPLICATION_INITIALIZATION_VOLUME_SNAPSHOT" = true ] && printf '(snapshot)' || printf '(object storage)')"
@@ -78,6 +85,13 @@ set -e
 if [ "x$SHELL_XTRACE" = x-x ]
 then
   set -x
+fi
+
+if [ "$REPLICATION_INITIALIZATION_VOLUME_SNAPSHOT" = true ] \
+  && [ -d "$PG_DATA_PATH".failed ] \
+  && ! [ -d "$PG_DATA_PATH" ]
+then
+  mv "$PG_DATA_PATH".failed "$PG_DATA_PATH"
 fi
 
 if [ "$REPLICATION_INITIALIZATION_VOLUME_SNAPSHOT" = true ] \
@@ -125,8 +139,9 @@ else
   wal-g backup-fetch "$PG_DATA_PATH" "$REPLICATION_INITIALIZATION_BACKUP_NAME"
 fi
 REPLICATION_INITIALIZATION_FROM_BACKUP_EOF
+  chmod 700 "$PATRONI_CONFIG_PATH/replication-initialization-from-backup.sh"
 
-  cat << 'REPLICATION_INITIALIZATION_FROM_BACKUP_EOF' > "$PATRONI_CONFIG_PATH/replication-initialization-from-backup.sh"
+  cat << 'REPLICATION_INITIALIZATION_FROM_BACKUP_FAILOVER_EOF' > "$PATRONI_CONFIG_PATH/replication-initialization-from-backup-failover.sh"
 #!/bin/sh
 
 set -e
@@ -136,34 +151,67 @@ then
   set -x
 fi
 
-if [ -n "$REPLICATION_INITIALIZATION_BACKUPS" ]
+if [ -z "$REPLICATION_INITIALIZATION_BACKUP" ]
 then
-  if ! [ -f "$PG_DATA_PATH/replication/replication-initialization-next-backup" ]
-  then
-    mkdir -p "$PG_DATA_PATH/replication"
-  fi
-  printf %s "$REPLICATION_INITIALIZATION_BACKUPS" \
-    | tr ' ' '\n' \
-    | grep -xF -A 1 "$REPLICATION_INITIALIZATION_BACKUP" \
-    | tail -n 1
-    > "$PG_DATA_PATH/replication/replication-initialization-next-backup"
-  if [ -s "$PG_DATA_PATH/replication/replication-initialization-next-backup" ]
-  then
-    while true
-    do
-      echo "Waiting for the cluster controller to restart the Pod"
-      sleep 300
-    done
-  fi
-fi
-REPLICATION_INITIALIZATION_FROM_BACKUP_EOF
-  chmod 700 "$PATRONI_CONFIG_PATH/replication-initialization-from-backup.sh"
+  echo "Skipping replication initialization from backup failover since no backup was found or all failed"
+  exit 1
 fi
 
+if ! [ -f "$PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH" ]
+then
+  mkdir -p "$PG_REPLICATION_BASE_PATH"
+fi
+printf %s "$REPLICATION_INITIALIZATION_BACKUP" \
+  > "$PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH"
+while true
+do
+  echo "Waiting for the cluster controller to restart the Pod"
+  sleep 300
+done
+REPLICATION_INITIALIZATION_FROM_BACKUP_FAILOVER_EOF
+  chmod 700 "$PATRONI_CONFIG_PATH/replication-initialization-from-backup-failover.sh"
+fi
+
+## Replication initialization from replica
+if [ -n "$REPLICATION_INITIALIZATION_FROM_REPLICA" ]
+then
+  echo "Creating script for replication initialization from replica"
+  cat << 'REPLICATION_INITIALIZATION_FROM_REPLICA_EOF' > "$PATRONI_CONFIG_PATH/replication-initialization-from-replica.sh"
+#!/bin/sh
+
+set -e
+
+if [ "x$SHELL_XTRACE" = x-x ]
+then
+  set -x
+fi
+
+printf %s:%s: \
+  "${PATRONI_READ_ONLY_SERVICE_NAME}" \
+  "${REPLICATION_SERVICE_PORT}" \
+  > "$PG_BASE_PATH/pgpass-replicas"
+cat "$PG_BASE_PATH/pgpass" \
+  | cut -d : -f 3- \
+  >> "$PG_BASE_PATH/pgpass-replicas"
+chmod 600 "$PG_BASE_PATH/pgpass-replicas"
+
+PGPASSFILE="$PG_BASE_PATH/pgpass-replicas" \
+  pg_basebackup \
+  --pgdata "$PG_DATA_PATH" \
+  -X stream \
+  --dbname postgres://${PATRONI_REPLICATION_USERNAME}@${PATRONI_READ_ONLY_SERVICE_NAME}:${REPLICATION_SERVICE_PORT}/postgres \
+  $([ "$PATRONI_LOG_LEVEL" != DEVEL ] || printf %s --verbose) \
+  --checkpoint='fast'
+REPLICATION_INITIALIZATION_FROM_REPLICA_EOF
+  chmod 700 "$PATRONI_CONFIG_PATH/replication-initialization-from-replica.sh"
+fi
+
+## Patroni configuration 
+echo "Creating patroni configuration"
 cat << 'PATRONI_CONFIG_EOF' | exec-with-env "${PATRONI_ENV}" -- sh -e $SHELL_XTRACE
 cat << EOF > "$PATRONI_CONFIG_FILE_PATH"
 
-#Custom initial config
+# Custom initial config
 $(
 cat << PATRONI_INITIAL_CONFIG | eval "$(cat)"
 cat << INNER_PATRONI_INITIAL_CONFIG
@@ -261,25 +309,41 @@ postgresql:
     unix_socket_directories: '${PATRONI_POSTGRES_UNIX_SOCKET_DIRECTORY}'
     dynamic_library_path: '${PG_LIB_PATH}:${PG_EXTRA_LIB_PATH}'
   create_replica_methods:
+$(
+  [ -z "$REPLICATION_INITIALIZATION_FROM_BACKUP" ] || cat << REPLICATION_INITIALIZATION_EOF
   - backup
+  - backup_failover
+REPLICATION_INITIALIZATION_EOF
+)
+$(
+  [ -z "$REPLICATION_INITIALIZATION_FROM_REPLICA" ] || cat << REPLICATION_INITIALIZATION_EOF
+  - replica_basebackup
+REPLICATION_INITIALIZATION_EOF
+)
   - basebackup
   basebackup:
-$(
-  [ "$PATRONI_LOG_LEVEL" != DEVEL ] || cat << 'BASEBACKUP_VERBOSE_EOF'
-    - verbose
-BASEBACKUP_VERBOSE_EOF
-)
+$([ "$PATRONI_LOG_LEVEL" != DEVEL ] || printf %s '- verbose')
     - checkpoint: 'fast'
+$(
+  [ -z "$REPLICATION_INITIALIZATION_FROM_REPLICA" ] || cat << REPLICATION_INITIALIZATION_EOF
+  replica_basebackup:
+    command: 'exec-with-env "${PATRONI_ENV}" -- ${PATRONI_CONFIG_PATH}/replication-initialization-from-replica.sh'
+REPLICATION_INITIALIZATION_EOF
+)
+$(
+  [ -z "$REPLICATION_INITIALIZATION_FROM_BACKUP" ] || cat << REPLICATION_INITIALIZATION_EOF
   backup:
     command: 'exec-with-env "${REPLICATION_INITIALIZATION_ENV}" -- ${PATRONI_CONFIG_PATH}/replication-initialization-from-backup.sh'
     recovery_conf:
       restore_command: 'exec-with-env "${REPLICATION_INITIALIZATION_ENV}" -- wal-g wal-fetch %f %p'
       recovery_target_action: 'promote'
   backup_failover:
-    command: 'exec-with-env "${REPLICATION_INITIALIZATION_ENV}" -- ${PATRONI_CONFIG_PATH}/replication-initialization-failover.sh'
+    command: 'exec-with-env "${REPLICATION_INITIALIZATION_ENV}" -- ${PATRONI_CONFIG_PATH}/replication-initialization-from-backup-failover.sh'
     recovery_conf:
       restore_command: 'exec-with-env "${REPLICATION_INITIALIZATION_ENV}" -- wal-g wal-fetch %f %p'
       recovery_target_action: 'promote'
+REPLICATION_INITIALIZATION_EOF
+)
 $(
 if [ -n "$RECOVERY_FROM_BACKUP" ] \
   && [ -n "$REPLICATE_FROM_BACKUP" ]

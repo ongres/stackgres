@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
+import io.stackgres.common.crd.sgbackup.StackGresBackupConfigSpec;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -65,13 +66,14 @@ public class ReplicationInitializationSecret
   private Secret buildSource(StackGresClusterContext context) {
     Map<String, String> data = new HashMap<>();
     StackGresCluster cluster = context.getSource();
-    final String namespace = cluster.getMetadata().getNamespace();
 
-    context.getReplicationInitializationStorage().ifPresent(
-        backupStorage -> data.putAll(
-            envVarFactory.getSecretEnvVar(namespace, backupStorage,
-                context.getReplicationInitializationSecrets())
-        ));
+    context.getReplicationInitializationBackup()
+        .ifPresent(backup -> {
+          String backupNamespace = backup.getMetadata().getNamespace();
+          StackGresBackupConfigSpec backupConfig = backup.getStatus().getSgBackupConfig();
+          data.putAll(envVarFactory.getSecretEnvVar(backupNamespace, backupConfig,
+              context.getReplicationInitializationSecrets()));
+        });
 
     return new SecretBuilder()
         .withNewMetadata()

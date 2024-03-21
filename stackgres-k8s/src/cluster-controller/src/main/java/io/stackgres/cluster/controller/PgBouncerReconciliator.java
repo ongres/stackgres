@@ -12,10 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import com.ongres.process.FluentProcess;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -80,11 +77,6 @@ public class PgBouncerReconciliator extends SafeReconciliator<ClusterContext, Vo
         parameters.propertyContext.getPodName(), parameters.podFinder,
         parameters.poolingConfigFinder, parameters.secretFinder,
         parameters.postgresConnectionManager, new FileSystemHandler());
-  }
-
-  public static PgBouncerReconciliator create(Consumer<Parameters> consumer) {
-    Stream<Parameters> parameters = Optional.of(new Parameters()).stream().peek(consumer);
-    return new PgBouncerReconciliator(parameters.findAny().get());
   }
 
   @Override

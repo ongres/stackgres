@@ -28,6 +28,7 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromStorage;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationInitialization;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
@@ -67,8 +68,6 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
   Optional<StackGresObjectStorage> getObjectStorage();
 
   Optional<StackGresCluster> getReplicateCluster();
-
-  Optional<StackGresObjectStorage> getReplicationInitializationObjectStorageConfig();
 
   Optional<StackGresObjectStorage> getReplicateObjectStorageConfig();
 
@@ -153,6 +152,8 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
 
   Optional<StackGresBackup> getReplicationInitializationBackupToCreate();
 
+  int getCurrentInstances();
+
   default Optional<String> getBackupPath() {
     Optional<@NotNull StackGresClusterConfigurations> config = Optional.of(getCluster())
         .map(StackGresCluster::getSpec)
@@ -216,12 +217,6 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
         .map(ObjectMeta::getResourceVersion);
   }
 
-  default Optional<String> getReplicationInitializationPath() {
-    return getReplicationInitializationBackup()
-        .map(StackGresBackup::getStatus)
-        .map(StackGresBackupStatus::getBackupPath);
-  }
-
   default Optional<String> getReplicatePath() {
     return getReplicateCluster()
         .map(StackGresCluster::getSpec)
@@ -236,11 +231,6 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
             .map(StackGresClusterSpec::getReplicateFrom)
             .map(StackGresClusterReplicateFrom::getStorage)
             .map(StackGresClusterReplicateFromStorage::getPath));
-  }
-
-  default Optional<BackupStorage> getReplicationInitializationStorage() {
-    return getReplicationInitializationObjectStorageConfig()
-        .map(CustomResource::getSpec);
   }
 
   default Optional<BackupStorage> getReplicateStorage() {
@@ -258,7 +248,8 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
             null,
             path,
             Optional.ofNullable(getCluster().getSpec().getReplication()
-                .getInitialization().getBackupRestorePerformance())
+                .getInitialization())
+            .map(StackGresClusterReplicationInitialization::getBackupRestorePerformance)
             .map(bp -> new BackupPerformance(
                 bp.getMaxNetworkBandwidth(),
                 bp.getMaxDiskBandwidth(),

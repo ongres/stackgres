@@ -9,8 +9,8 @@ import org.jetbrains.annotations.NotNull;
 
 public enum StackGresReplicationInitializationMode {
 
-  BACKUP_FROM_PRIMARY("BackupFromPrimary"),
-  BACKUP_FROM_REPLICA("BackupFromReplica"),
+  FROM_PRIMARY("FromPrimary"),
+  FROM_REPLICA("FromReplica"),
   FROM_EXISTING_BACKUP("FromExistingBackup"),
   FROM_NEWLY_CREATED_BACKUP("FromNewlyCreatedBackup");
 

@@ -35,6 +35,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackupVolumeSnapshotStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresPodPersistentVolume;
+import io.stackgres.common.crd.sgcluster.StackGresReplicationInitializationMode;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.ResourceGenerator;
@@ -44,11 +45,16 @@ import io.stackgres.operator.conciliation.factory.VolumeDiscoverer;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 @OperatorVersionBinder
 public class ClusterStatefulSet
     implements ResourceGenerator<StackGresClusterContext> {
+
+  protected static final Logger LOGGER =
+      LoggerFactory.getLogger(ClusterStatefulSet.class);
 
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
 
@@ -77,7 +83,6 @@ public class ClusterStatefulSet
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
-
     final StackGresCluster cluster = context.getSource();
     final ObjectMeta metadata = cluster.getMetadata();
     final String name = metadata.getName();
@@ -104,6 +109,8 @@ public class ClusterStatefulSet
         .withResources(dataStorageConfig.getResourceRequirements())
         .withStorageClassName(dataStorageConfig.getStorageClass())
         .withDataSource(context.getRestoreBackup()
+            .filter(backpup -> context.getCurrentInstances() > 0)
+            .or(() -> context.getReplicationInitializationBackup())
             .map(StackGresBackup::getStatus)
             .filter(status -> Optional.of(status)
                 .map(StackGresBackupStatus::getProcess)
@@ -142,6 +149,21 @@ public class ClusterStatefulSet
 
     PodTemplateResult podTemplateSpec = podTemplateSpecFactory.getPodTemplateSpec(containerContext);
 
+    Integer instances = cluster.getSpec().getInstances();
+    if (StackGresReplicationInitializationMode.FROM_NEWLY_CREATED_BACKUP.equals(
+        context.getCluster().getSpec().getReplication().getInitializationModeOrDefault())
+        && context.getReplicationInitializationBackup().isEmpty()
+        && context.getReplicationInitializationBackupToCreate()
+            .map(StackGresBackup::getStatus)
+            .map(StackGresBackupStatus::getProcess)
+            .map(StackGresBackupProcess::getStatus)
+            .map(BackupStatus::fromStatus)
+            .filter(BackupStatus.FAILED::equals)
+            .isEmpty()
+        && Optional.of(instances).orElse(0).intValue() > context.getCurrentInstances()) {
+      instances = context.getCurrentInstances();
+      LOGGER.info("Skipping upscale while waiting for a fresh SGBackup to be created");
+    }
     StatefulSet clusterStatefulSet = new StatefulSetBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
@@ -152,7 +174,7 @@ public class ClusterStatefulSet
         .withPodManagementPolicy(Optional
             .ofNullable(cluster.getSpec().getPods().getManagementPolicy())
             .orElse("OrderedReady"))
-        .withReplicas(cluster.getSpec().getInstances())
+        .withReplicas(instances)
         .withSelector(new LabelSelectorBuilder()
             .addToMatchLabels(customPodLabels)
             .addToMatchLabels(podLabels)

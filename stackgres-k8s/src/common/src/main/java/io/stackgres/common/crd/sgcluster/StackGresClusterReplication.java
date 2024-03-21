@@ -7,6 +7,7 @@ package io.stackgres.common.crd.sgcluster;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -95,6 +96,13 @@ public class StackGresClusterReplication {
     return Objects.equals(StackGresReplicationMode.STRICT_SYNC_ALL.toString(), mode);
   }
 
+  @JsonIgnore
+  public StackGresReplicationInitializationMode getInitializationModeOrDefault() {
+    return Optional.ofNullable(initialization)
+        .map(StackGresClusterReplicationInitialization::getModeOrDefault)
+        .orElse(StackGresClusterReplicationInitialization.DEFAULT_MODE);
+  }
+
   public String getMode() {
     return mode;
   }
@@ -157,4 +165,5 @@ public class StackGresClusterReplication {
   public String toString() {
     return StackGresUtil.toPrettyYaml(this);
   }
+
 }

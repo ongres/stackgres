@@ -8,6 +8,7 @@ package io.stackgres.common.crd.sgcluster;
 import java.time.Duration;
 import java.time.format.DateTimeParseException;
 import java.util.Objects;
+import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -30,8 +31,11 @@ import jakarta.validation.constraints.AssertTrue;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresClusterReplicationInitialization {
 
+  public static final StackGresReplicationInitializationMode DEFAULT_MODE =
+      StackGresReplicationInitializationMode.FROM_EXISTING_BACKUP;
+
   @ValidEnum(enumClass = StackGresReplicationInitializationMode.class, allowNulls = false,
-      message = "mode must be BackupFromPrimary, BackupFromReplica,"
+      message = "mode must be FromPrimary, FromReplica,"
           + " FromExistingBackup or FromNewlyCreatedBackup")
   private String mode;
 
@@ -56,6 +60,13 @@ public class StackGresClusterReplicationInitialization {
     } catch (DateTimeParseException ex) {
       return false;
     }
+  }
+
+  @JsonIgnore
+  public StackGresReplicationInitializationMode getModeOrDefault() {
+    return Optional.ofNullable(mode)
+        .map(StackGresReplicationInitializationMode::fromString)
+        .orElse(DEFAULT_MODE);
   }
 
   public String getMode() {

@@ -7,7 +7,6 @@ package io.stackgres.cluster.controller;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -62,11 +61,6 @@ public class PatroniConfigReconciliator extends SafeReconciliator<ClusterContext
     this.objectMapper = parameters.objectMapper;
     this.podName = parameters.propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
-  }
-
-  public static PatroniConfigReconciliator create(Consumer<Parameters> consumer) {
-    Stream<Parameters> parameters = Optional.of(new Parameters()).stream().peek(consumer);
-    return new PatroniConfigReconciliator(parameters.findAny().get());
   }
 
   @Override

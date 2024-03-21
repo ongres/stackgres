@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.BackupStorageUtil;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.ClusterPath;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
@@ -74,34 +75,43 @@ public class ReplicationInitializationConfigMap extends AbstractBackupConfigMap
     final Map<String, String> data = new HashMap<>();
     final StackGresCluster cluster = context.getSource();
 
-    var replicationInitializationBackup = context.getReplicationInitializationBackup();
-    final StackGresBackup backup = replicationInitializationBackup.get();
-    data.put("REPLICATION_INITIALIZATION_BACKUP_NAME",
-        backup.getStatus().getInternalName());
-    data.put("REPLICATION_INITIALIZATION_VOLUME_SNAPSHOT",
-        Optional.of(backup.getStatus())
-        .map(StackGresBackupStatus::getVolumeSnapshot)
-        .map(ignored -> Boolean.TRUE)
-        .map(String::valueOf)
-        .orElse(Boolean.FALSE.toString()));
-    data.put("REPLICATION_INITIALIZATION_BACKUP_LABEL",
-        Optional.of(backup.getStatus())
-        .map(StackGresBackupStatus::getVolumeSnapshot)
-        .map(StackGresBackupVolumeSnapshotStatus::getBackupLabel)
-        .orElse(""));
-    data.put("REPLICATION_INITIALIZATION_TABLESPACE_MAP",
-        Optional.of(backup.getStatus())
-        .map(StackGresBackupStatus::getVolumeSnapshot)
-        .map(StackGresBackupVolumeSnapshotStatus::getTablespaceMap)
-        .orElse(""));
-
-    data.putAll(getBackupEnvVars(context,
-        Optional.of(backup)
-            .map(StackGresBackup::getStatus)
-            .map(StackGresBackupStatus::getBackupPath)
-            .orElseThrow(),
-        backup.getStatus().getSgBackupConfig()));
-
+    data.put(
+        ClusterPath.PG_REPLICATION_BASE_PATH.name(),
+        ClusterPath.PG_REPLICATION_BASE_PATH.path());
+    data.put(
+        ClusterPath.PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH.name(),
+        ClusterPath.PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH.path());
+    context.getReplicationInitializationBackup()
+        .ifPresent(backup -> {
+          data.put(PatroniUtil.REPLICATION_INITIALIZATION_BACKUP,
+              backup.getMetadata().getName());
+          data.put("REPLICATION_INITIALIZATION_BACKUP_NAME",
+              backup.getStatus().getInternalName());
+          data.put("REPLICATION_INITIALIZATION_VOLUME_SNAPSHOT",
+              Optional.of(backup.getStatus())
+              .map(StackGresBackupStatus::getVolumeSnapshot)
+              .map(ignored -> Boolean.TRUE)
+              .map(String::valueOf)
+              .orElse(Boolean.FALSE.toString()));
+          data.put("REPLICATION_INITIALIZATION_BACKUP_LABEL",
+              Optional.of(backup.getStatus())
+              .map(StackGresBackupStatus::getVolumeSnapshot)
+              .map(StackGresBackupVolumeSnapshotStatus::getBackupLabel)
+              .orElse(""));
+          data.put("REPLICATION_INITIALIZATION_TABLESPACE_MAP",
+              Optional.of(backup.getStatus())
+              .map(StackGresBackupStatus::getVolumeSnapshot)
+              .map(StackGresBackupVolumeSnapshotStatus::getTablespaceMap)
+              .orElse(""));
+      
+          data.putAll(getBackupEnvVars(context,
+              Optional.of(backup)
+                  .map(StackGresBackup::getStatus)
+                  .map(StackGresBackupStatus::getBackupPath)
+                  .orElseThrow(),
+              backup.getStatus().getSgBackupConfig()));
+        });
+  
     Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getReplication)
         .map(StackGresClusterReplication::getInitialization)
@@ -111,17 +121,7 @@ public class ReplicationInitializationConfigMap extends AbstractBackupConfigMap
             "WALG_DOWNLOAD_CONCURRENCY",
             BackupStorageUtil.convertEnvValue(downloadDiskConcurrency)));
 
-    context.getReplicationInitializationStorage()
-        .ifPresent(storage -> data.putAll(
-                getBackupEnvVars(
-                    context,
-                    context.getReplicationInitializationPath().orElseThrow(),
-                    storage
-                )
-            )
-        );
-
-    context.getReplicationInitializationConfiguration()
+    context.getReplicateConfiguration()
         .ifPresent(config -> data.putAll(
                 getBackupEnvVars(
                     config

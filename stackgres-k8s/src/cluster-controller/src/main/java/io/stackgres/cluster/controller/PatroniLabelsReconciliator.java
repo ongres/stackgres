@@ -8,7 +8,6 @@ package io.stackgres.cluster.controller;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -56,11 +55,6 @@ public class PatroniLabelsReconciliator extends SafeReconciliator<ClusterContext
     this.patroniCtl = parameters.patroniCtl;
     this.podFinder = parameters.podFinder;
     this.podWriter = parameters.podWriter;
-  }
-
-  public static PatroniLabelsReconciliator create(Consumer<Parameters> consumer) {
-    Stream<Parameters> parameters = Optional.of(new Parameters()).stream().peek(consumer);
-    return new PatroniLabelsReconciliator(parameters.findAny().get());
   }
 
   public ReconciliationResult<Boolean> safeReconcile(KubernetesClient client, ClusterContext context)
