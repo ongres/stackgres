@@ -14,7 +14,8 @@ e2e_test_install() {
     --set nonProductionOptions.disablePatroniResourceRequirements=false \
     --set nonProductionOptions.disableClusterResourceRequirements=true \
     --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections=104' \
-    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100'
+    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100' \
+    --set-string 'cluster.autoscaling.mode=none'
 
   deploy_psql_pod "$CLUSTER_NAMESPACE"
 
@@ -35,139 +36,28 @@ e2e_test_uninstall() {
 }
 
 e2e_test() {
-  # run_test "Checking that keda can be used to scale based on CPU" check_keda_is_working_for_cpu
+  run_test "Checking that autoscaling can be used to scale horizontally" check_horizontal_autoscaling
 
-  run_test "Checking that keda can be used to scale based on connections" check_keda_is_working_for_connections
+  run_test "Checking that autoscaling can be user to scale vertically" check_vertical_autoscaling
 
-  run_test "Checking that vertical pod autoscaler can be used to scale based on CPU" check_vertical_pod_autoscaler_is_working_for_cpu
-
-  run_test "Checking that keda can be used together with vertical pod autoscaler" check_keda_and_vertical_pod_autoscaler_are_working
+  # run_test "Checking that autoscaling can be user to scale horizontally and vertically" check_all_autoscaling
 }
 
-check_keda_is_working_for_cpu() {
-  cat << EOF | kubectl create -f -
----
-apiVersion: keda.sh/v1alpha1
-kind: ScaledObject
-metadata:
-  namespace: $CLUSTER_NAMESPACE
-  name: $CLUSTER_NAME
-spec:
-  scaleTargetRef:
-    apiVersion: stackgres.io/v1
-    kind: SGCluster
-    name: $CLUSTER_NAME
-  minReplicaCount: 2
-  maxReplicaCount: 3
-  pollingInterval: 2
-  cooldownPeriod: 2
-  triggers:
-  - name: external-cpu
-    type: cpu
-    metricType: AverageValue
-    metadata:
-      value: "200m"
-      containerName: patroni
-EOF
-
-  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql \
-    -- bash -c "PGPASSWORD=$PGPASSWORD psql -h autoscaling-replicas -c 'SELECT 1'"
-  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
-    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -C -c 10 -j 10 -h autoscaling-replicas -S" > "$LOG_PATH/cpu-bench" 2>&1 &
-  CPU_BENCH_PID="$!"
-  trap_kill "$CPU_BENCH_PID"
-  if wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=replica" -o name \
-    | wc -l | grep -qxF 2'
-  then
-    echo "SUCCESS: KEDA can scale the cluster based on CPU"
-  else
-    echo "FAIL: KEDA can not scale the cluster based on CPU"
-    kill "$CPU_BENCH_PID" || true
-    kubectl exec -n "$CLUSTER_NAMESPACE" psql \
-      -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
-    return 1
-  fi
-  kill "$CPU_BENCH_PID" || true
-  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
-    -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
-  kubectl delete -n "$CLUSTER_NAMESPACE" scaledobject "$CLUSTER_NAME"
-  kubectl scale --replicas=2 sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
-  wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=replica" -o name \
-    | wc -l | grep -qxF 1'
-}
-
-check_keda_is_working_for_connections() {
-  cat << EOF | kubectl create -f -
----
-apiVersion: v1
-kind: Secret
-metadata:
-  namespace: $CLUSTER_NAMESPACE
-  name: $CLUSTER_NAME-autoscaling
-stringData:
-  connection: postgresql://postgres:$PGPASSWORD@$CLUSTER_NAME-replicas.$CLUSTER_NAMESPACE:5432?sslmode=prefer&default_query_exec_mode=exec
----
-apiVersion: keda.sh/v1alpha1
-kind: TriggerAuthentication
-metadata:
-  namespace: $CLUSTER_NAMESPACE
-  name: $CLUSTER_NAME
-spec:
-  secretTargetRef:
-  - parameter: connection
-    name: $CLUSTER_NAME-autoscaling
-    key: connection
----
-apiVersion: keda.sh/v1alpha1
-kind: ScaledObject
-metadata:
-  namespace: $CLUSTER_NAMESPACE
-  name: $CLUSTER_NAME
-spec:
-  scaleTargetRef:
-    apiVersion: stackgres.io/v1
-    kind: SGCluster
-    name: $CLUSTER_NAME
-  minReplicaCount: 2
-  maxReplicaCount: 3
-  pollingInterval: 2
-  cooldownPeriod: 2
-  triggers:
-  - name: external-connections-usage
-    type: postgresql
-    metricType: AverageValue
-    metadata:
-      targetQueryValue: "0.05"
-      query: |
-        WITH
-          max_connections (size) AS (
-            SELECT SUM(_.pool_size)::numeric
-            FROM dblink(
-              'host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer',
-              'show databases'::text)
-            AS _(
-              name text, host text, port integer, database text,
-              force_user text, pool_size integer, min_pool_size integer,
-              reserve_pool integer, pool_mode text, max_connections integer,
-              current_connections integer, paused boolean, disabled boolean)),
-          active_connections (size) AS (
-            SELECT SUM(_.current_connections)::numeric
-            FROM dblink(
-              'host=/var/run/postgresql port=6432 dbname=pgbouncer user=pgbouncer',
-              'show databases'::text)
-            AS _(
-              name text, host text, port integer, database text,
-              force_user text, pool_size integer, min_pool_size integer,
-              reserve_pool integer, pool_mode text, max_connections integer,
-              current_connections integer, paused boolean, disabled boolean))
-        SELECT active_connections.size / max_connections.size AS connection_usage
-        FROM max_connections, active_connections; 
-      sslmode: disable
-    authenticationRef:
-      name: $CLUSTER_NAME
-EOF
+check_horizontal_autoscaling() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string instanceProfiles[0].name=size-s \
+    --set-string instanceProfiles[0].cpu=500m \
+    --set-string instanceProfiles[0].memory=2Gi \
+    --set nonProductionOptions.disablePatroniResourceRequirements=false \
+    --set nonProductionOptions.disableClusterResourceRequirements=true \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections=104' \
+    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100' \
+    --set-string 'cluster.autoscaling.mode=horizontal' \
+    --set 'cluster.autoscaling.minInstances=2' \
+    --set 'cluster.autoscaling.maxInstances=3' \
+    --set 'cluster.autoscaling.horizontal.pollingInterval=2' \
+    --set 'cluster.autoscaling.horizontal.cooldownPeriod=2' \
+    --set-string 'cluster.autoscaling.horizontal.replicasConnectionsUsageTarget=0.05'
 
   wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql \
     -- bash -c "PGPASSWORD=$PGPASSWORD psql -h autoscaling-replicas -c 'SELECT 1'"
@@ -192,42 +82,30 @@ EOF
   kill "$CONNECTION_BENCH_PID" || true
   kubectl exec -n "$CLUSTER_NAMESPACE" psql \
     -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
-  kubectl delete -n "$CLUSTER_NAMESPACE" triggerauthentication "$CLUSTER_NAME"
-  kubectl delete -n "$CLUSTER_NAMESPACE" scaledobject "$CLUSTER_NAME"
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string instanceProfiles[0].name=size-s \
+    --set-string instanceProfiles[0].cpu=500m \
+    --set-string instanceProfiles[0].memory=2Gi \
+    --set nonProductionOptions.disablePatroniResourceRequirements=false \
+    --set nonProductionOptions.disableClusterResourceRequirements=true \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections=104' \
+    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100' \
+    --set-string 'cluster.autoscaling.mode=none'
   kubectl scale --replicas=2 sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
 }
 
-check_vertical_pod_autoscaler_is_working_for_cpu() {
-  cat << EOF | kubectl create -f -
----
-apiVersion: autoscaling.k8s.io/v1
-kind: VerticalPodAutoscaler
-metadata:
-  namespace: $CLUSTER_NAMESPACE
-  name: $CLUSTER_NAME
-spec:
-  targetRef:
-    apiVersion: stackgres.io/v1
-    kind: SGCluster
-    name: $CLUSTER_NAME
-  updatePolicy:
-    # updateMode: InPlaceOnly
-    updateMode: Auto
-    minReplicas: 1
-  resourcePolicy:
-    containerPolicies:
-    - containerName: '*'
-      controlledResources: []
-    - containerName: patroni
-      mode: Auto
-      controlledResources:
-      - cpu
-      controlledValues: RequestsAndLimits
-      minAllowed:
-        cpu: 500m
-      maxAllowed:
-        cpu: 2    
-EOF
+check_vertical_autoscaling() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string instanceProfiles[0].name=size-s \
+    --set-string instanceProfiles[0].cpu=500m \
+    --set-string instanceProfiles[0].memory=2Gi \
+    --set nonProductionOptions.disablePatroniResourceRequirements=false \
+    --set nonProductionOptions.disableClusterResourceRequirements=true \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections=104' \
+    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100' \
+    --set-string 'cluster.autoscaling.mode=vertical' \
+    --set-string 'cluster.autoscaling.minAllowed.patroni.cpu=500m' \
+    --set-string 'cluster.autoscaling.maxAllowed.patroni.cpu=2'
 
   kubectl exec -n "$CLUSTER_NAMESPACE" psql \
     -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -C -c 10 -j 10 -h autoscaling" > "$LOG_PATH/cpu-bench" 2>&1 &
@@ -244,7 +122,7 @@ EOF
     echo "SUCCESS: VerticalPodAutoscaler can scale vertically the primary of the cluster based on CPU"
   else
     echo "FAIL: VerticalPodAutoscaler can not scale vertically the primary of the cluster based on CPU"
-    kubectl top pod --containers -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME" || true
+    kubectl top pod --containers -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" || true
     kill "$CPU_BENCH_PID" || true
     kubectl exec -n "$CLUSTER_NAMESPACE" psql \
       -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
@@ -267,7 +145,7 @@ EOF
     echo "SUCCESS: VerticalPodAutoscaler can scale vertically the replicas of the cluster based on CPU"
   else
     echo "FAIL: VerticalPodAutoscaler can not scale vertically the replicas of the cluster based on CPU"
-    kubectl top pod --containers -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME" || true
+    kubectl top pod --containers -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" || true
     kill "$CPU_BENCH_PID" || true
     kubectl exec -n "$CLUSTER_NAMESPACE" psql \
       -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
@@ -276,109 +154,52 @@ EOF
   kill "$CPU_BENCH_PID" || true
   kubectl exec -n "$CLUSTER_NAMESPACE" psql \
     -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string instanceProfiles[0].name=size-s \
+    --set-string instanceProfiles[0].cpu=500m \
+    --set-string instanceProfiles[0].memory=2Gi \
+    --set nonProductionOptions.disablePatroniResourceRequirements=false \
+    --set nonProductionOptions.disableClusterResourceRequirements=true \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections=104' \
+    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100' \
+    --set-string 'cluster.autoscaling.mode=none'
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true"
   cat "$SPEC_PATH/abstract/quantity.jq" > "$LOG_PATH/get-pod-name-with-patroni-container-that-has-500m-cpu.jq"
   echo '.items[]|select(.spec.containers|any(.name == "patroni" and (.resources.limits.cpu | quantity) == 0.5))|.metadata.name' \
     >> "$LOG_PATH/get-pod-name-with-patroni-container-that-has-500m-cpu.jq"
   wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
-    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME" -o json \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" -o json \
     | jq -f "$LOG_PATH/get-pod-name-with-patroni-container-that-has-500m-cpu.jq" \
     | wc -l | grep -qxF 2'
-  kubectl delete -n "$CLUSTER_NAMESPACE" verticalpodautoscaler "$CLUSTER_NAME"
 }
 
-check_keda_and_vertical_pod_autoscaler_are_working() {
-  cat << EOF | kubectl create -f -
----
-apiVersion: keda.sh/v1alpha1
-kind: TriggerAuthentication
-metadata:
-  namespace: $CLUSTER_NAMESPACE
-  name: $CLUSTER_NAME
-spec:
-  secretTargetRef:
-  - parameter: password
-    name: $CLUSTER_NAME
-    key: superuser-password
----
-apiVersion: keda.sh/v1alpha1
-kind: ScaledObject
-metadata:
-  namespace: $CLUSTER_NAMESPACE
-  name: $CLUSTER_NAME
-spec:
-  scaleTargetRef:
-    apiVersion: stackgres.io/v1
-    kind: SGCluster
-    name: $CLUSTER_NAME
-  minReplicaCount: 2
-  maxReplicaCount: 3
-  pollingInterval: 2
-  cooldownPeriod: 2
-  triggers:
-  - name: external-connections-usage
-    type: postgresql
-    metricType: AverageValue
-    metadata:
-      targetQueryValue: "0.05"
-      query: |
-        WITH
-          max_connections (size) AS (
-            SELECT setting::numeric
-            FROM pg_settings
-            WHERE name = 'max_connections'),
-          required_connections (size) AS (
-            SELECT COUNT(*)::numeric
-            FROM pg_stat_activity
-            WHERE state = 'active'
-            AND backend_type = 'client backend')
-        SELECT required_connections.size / max_connections.size AS connection_usage
-        FROM max_connections, required_connections; 
-      host: $CLUSTER_NAME-replicas.$CLUSTER_NAMESPACE
-      port: "5432"
-      dbName: postgres
-      userName: postgres
-      sslmode: disable
-    authenticationRef:
-      name: $CLUSTER_NAME
----
-apiVersion: autoscaling.k8s.io/v1
-kind: VerticalPodAutoscaler
-metadata:
-  namespace: $CLUSTER_NAMESPACE
-  name: $CLUSTER_NAME
-spec:
-  targetRef:
-    apiVersion: stackgres.io/v1
-    kind: SGCluster
-    name: $CLUSTER_NAME
-  updatePolicy:
-    # updateMode: InPlaceOnly
-    updateMode: Auto
-    minReplicas: 1
-  resourcePolicy:
-    containerPolicies:
-    - containerName: '*'
-      controlledResources: []
-    - containerName: patroni
-      mode: Auto
-      controlledResources:
-      - cpu
-      controlledValues: RequestsAndLimits
-      minAllowed:
-        cpu: 500m
-      maxAllowed:
-        cpu: 2    
-EOF
+check_all_autoscaling() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string instanceProfiles[0].name=size-s \
+    --set-string instanceProfiles[0].cpu=500m \
+    --set-string instanceProfiles[0].memory=2Gi \
+    --set nonProductionOptions.disablePatroniResourceRequirements=false \
+    --set nonProductionOptions.disableClusterResourceRequirements=true \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections=104' \
+    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100' \
+    --set-string 'cluster.autoscaling.mode=all' \
+    --set 'cluster.autoscaling.minInstances=2' \
+    --set 'cluster.autoscaling.maxInstances=3' \
+    --set 'cluster.autoscaling.horizontal.pollingInterval=2' \
+    --set 'cluster.autoscaling.horizontal.cooldownPeriod=2' \
+    --set-string 'cluster.autoscaling.horizontal.replicasConnectionsUsageTarget=0.05' \
+    --set-string 'cluster.autoscaling.minAllowed.patroni.cpu=500m' \
+    --set-string 'cluster.autoscaling.maxAllowed.patroni.cpu=2'
 
   wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql \
     -- bash -c "PGPASSWORD=$PGPASSWORD psql -h autoscaling-replicas -c 'SELECT 1'"
   kubectl exec -n "$CLUSTER_NAMESPACE" psql \
-    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -C -c 20 -j 20 -h autoscaling-replicas -S" > "$LOG_PATH/cpu-bench" 2>&1 &
+    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -C -c 25 -j 25 -h autoscaling-replicas -S" > "$LOG_PATH/cpu-bench" 2>&1 &
   CPU_BENCH_PID="$!"
   trap_kill "$CPU_BENCH_PID"
-  cat "$SPEC_PATH/abstract/quantity.jq" > "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq"
-  echo '.items[]|select(.spec.containers|any(.name == "patroni" and (.resources.limits.cpu | quantity) > 0.5))|.metadata.name' \
-    >> "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq"
+  cat "$SPEC_PATH/abstract/quantity.jq" > "$LOG_PATH/get-pod-name-with-patroni-container-more-than-600m-cpu.jq"
+  echo '.items[]|select(.spec.containers|any(.name == "patroni" and (.resources.limits.cpu | quantity) > 0.6))|.metadata.name' \
+    >> "$LOG_PATH/get-pod-name-with-patroni-container-more-than-600m-cpu.jq"
   if wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
     -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=replica" -o name \
     | wc -l | grep -qxF 2'
@@ -393,13 +214,13 @@ EOF
   fi
   if wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
     -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=replica" -o json \
-    | jq -f "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq" \
+    | jq -f "$LOG_PATH/get-pod-name-with-patroni-container-more-than-600m-cpu.jq" \
     | wc -l | grep -qxF 2'
   then
     echo "SUCCESS: VerticalPodAutoscaler can scale vertically the replicas of the cluster based on CPU"
   else
     echo "FAIL: VerticalPodAutoscaler can not scale vertically the replicas of the cluster based on CPU"
-    kubectl top pod --containers -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME" || true
+    kubectl top pod --containers -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" || true
     kill "$CPU_BENCH_PID" || true
     kubectl exec -n "$CLUSTER_NAMESPACE" psql \
       -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
@@ -408,4 +229,13 @@ EOF
   kill "$CPU_BENCH_PID" || true
   kubectl exec -n "$CLUSTER_NAMESPACE" psql \
     -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string instanceProfiles[0].name=size-s \
+    --set-string instanceProfiles[0].cpu=500m \
+    --set-string instanceProfiles[0].memory=2Gi \
+    --set nonProductionOptions.disablePatroniResourceRequirements=false \
+    --set nonProductionOptions.disableClusterResourceRequirements=true \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections=104' \
+    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100' \
+    --set-string 'cluster.autoscaling.mode=none'
 }
