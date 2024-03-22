@@ -38,7 +38,7 @@ class PgBouncerConfigResourceQuarkusTest implements AuthenticatedResourceTest {
   void setUp() {
     StackGresPoolingConfig customResource = getCustomResource();
     customResource.getMetadata().setNamespace(StringUtils.getRandomNamespace());
-    customResource.getMetadata().setName(StringUtils.getRandomClusterName());
+    customResource.getMetadata().setName(StringUtils.getRandomResourceName());
     customResource.getMetadata().setSelfLink(null);
     this.resource = mockServer.getClient().resources(
         StackGresPoolingConfig.class,

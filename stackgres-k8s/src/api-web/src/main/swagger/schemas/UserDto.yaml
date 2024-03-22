@@ -30,11 +30,11 @@ schema:
       apiUsername:
         type: string
         description: |
-          The username used to authneticate an user. If not specified `k8sUsername` will be used instead.
+          The username used to authenticate an user. If not specified `k8sUsername` will be used instead.
       password:
         type: string
         description: |
-          Password of the user to be authneticated.
+          Password of the user to be authenticated.
       roles:
         type: array
         description: |

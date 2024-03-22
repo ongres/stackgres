@@ -42,7 +42,7 @@ class PatroniApiMetadataFinderTest {
 
   @BeforeEach
   void setUp() {
-    clusterName = StringUtils.getRandomClusterName();
+    clusterName = StringUtils.getRandomResourceName();
     namespace = StringUtils.getRandomNamespace();
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getMetadata().setName(clusterName);
@@ -72,7 +72,7 @@ class PatroniApiMetadataFinderTest {
 
   @Test
   void givenAMissingCluster_shouldThrowAnException() {
-    String clusterName = StringUtils.getRandomClusterName();
+    String clusterName = StringUtils.getRandomResourceName();
     var ex = assertThrows(RuntimeException.class,
         () -> patroniApiFinder.findCluster(clusterName, namespace));
     assertEquals("Can not find SGCluster " + clusterName, ex.getMessage());
@@ -81,7 +81,7 @@ class PatroniApiMetadataFinderTest {
   @Test
   void givenAMissingClusterNamespace_shouldThrowAnException() {
     var ex = assertThrows(RuntimeException.class,
-        () -> patroniApiFinder.findCluster(clusterName, StringUtils.getRandomClusterName()));
+        () -> patroniApiFinder.findCluster(clusterName, StringUtils.getRandomResourceName()));
     assertEquals("Can not find SGCluster " + clusterName, ex.getMessage());
   }
 
@@ -94,7 +94,7 @@ class PatroniApiMetadataFinderTest {
 
   @Test
   void givenAMissingSecret_shouldThrowAnException() {
-    String clusterName = StringUtils.getRandomClusterName();
+    String clusterName = StringUtils.getRandomResourceName();
     var ex = assertThrows(RuntimeException.class,
         () -> patroniApiFinder.getSuperuserCredentials(clusterName, namespace));
     assertEquals("Can not find Secret " + clusterName, ex.getMessage());
@@ -103,7 +103,7 @@ class PatroniApiMetadataFinderTest {
   @Test
   void givenAMissingSecretClusterNamespace_shouldThrowAnException() {
     var ex = assertThrows(RuntimeException.class,
-        () -> patroniApiFinder.getSuperuserCredentials(clusterName, StringUtils.getRandomClusterName()));
+        () -> patroniApiFinder.getSuperuserCredentials(clusterName, StringUtils.getRandomResourceName()));
     assertEquals("Can not find Secret " + clusterName, ex.getMessage());
   }
 

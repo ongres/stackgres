@@ -49,7 +49,7 @@ public class StringUtils {
   }
 
   @NotNull
-  public static String getRandomClusterName() {
+  public static String getRandomResourceName() {
     String clusterName = sanitize(getRandomString());
     clusterName = clusterName.replaceAll("^\\d", "a");
     if (clusterName.length() >= 53) {
@@ -59,7 +59,7 @@ public class StringUtils {
   }
 
   @NotNull
-  public static String getRandomClusterName(int size) {
+  public static String getRandomResourceName(int size) {
     String clusterName = sanitize(sanitize(getRandomString(size)));
     clusterName = clusterName.replaceAll("^\\d", "a");
     if (clusterName.length() >= size) {
@@ -69,7 +69,7 @@ public class StringUtils {
   }
 
   @NotNull
-  public static String getRandomClusterNameWithExactlySize(int size) {
+  public static String getRandomResourceNameWithExactlySize(int size) {
     String clusterName = sanitize(sanitize(getRandomString(size)));
     clusterName = clusterName.replaceAll("^\\d", "a");
     return clusterName;

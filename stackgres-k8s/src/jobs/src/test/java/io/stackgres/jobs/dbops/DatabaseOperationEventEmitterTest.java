@@ -33,8 +33,8 @@ class DatabaseOperationEventEmitterTest {
   @Inject
   public MockKubeDb kubeDb;
   public String namespace = StringUtils.getRandomNamespace();
-  public String dbOpsName = StringUtils.getRandomClusterName();
-  public String clusterName = StringUtils.getRandomClusterName();
+  public String dbOpsName = StringUtils.getRandomResourceName();
+  public String clusterName = StringUtils.getRandomResourceName();
   public StackGresDbOps dbOps;
   @Inject
   DatabaseOperationEventEmitter databaseOperationEventEmitter;
@@ -45,7 +45,7 @@ class DatabaseOperationEventEmitterTest {
   void setUp() {
 
     namespace = StringUtils.getRandomNamespace();
-    clusterName = StringUtils.getRandomClusterName();
+    clusterName = StringUtils.getRandomResourceName();
 
     dbOps = Fixtures.dbOps().loadSecurityUpgrade().get();
 

@@ -99,6 +99,7 @@ public class NamespacedClusterPgResourceTest {
             "dir"));
   }
 
+  @SuppressWarnings("null")
   @Test
   @DisplayName("Connection to postgres fails")
   void test_connection_fails() throws SQLException {
@@ -134,6 +135,7 @@ public class NamespacedClusterPgResourceTest {
                       "dir"));
   }
 
+  @SuppressWarnings("null")
   @Test
   @DisplayName("pg_stat_statements query returns successfully result")
   void test_pg_stat_statements_query() throws SQLException {
@@ -185,6 +187,7 @@ public class NamespacedClusterPgResourceTest {
               statements.get(0));
   }
 
+  @SuppressWarnings("null")
   @Test
   @DisplayName("pg_stat_activity query returns successfully result")
   void test_pg_stat_activity_query() throws SQLException {
@@ -237,6 +240,7 @@ public class NamespacedClusterPgResourceTest {
               statements.get(0));
   }
 
+  @SuppressWarnings("null")
   @Test
   @DisplayName("pg_locks query returns successfully result")
   void test_pg_locks_query() throws SQLException {

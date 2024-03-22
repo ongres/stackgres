@@ -49,21 +49,65 @@ export const mixin = {
         const vc = this;
 
         let kind = (vc.$route.meta.componentName + 's').toLowerCase();
+        let action = vc.$route.name.startsWith('Create') ? 'create' : (vc.$route.name.startsWith('Edit') ? 'patch' : 'list');
+        let namespace = vc.$route.params.hasOwnProperty('namespace') ? vc.$route.params.namespace : 'any';
 
         return ( vc.loggedIn && vc.isReady && !vc.notFound && 
           ( 
-            ( vc.$route.name.startsWith('Create') && vc.iCan('create', kind, vc.$route.params.namespace) ) || 
-            ( vc.$route.name.startsWith('Edit') && vc.iCan('patch', kind, vc.$route.params.namespace) ) ||
-            ( ( !vc.$route.name.startsWith('Edit') && !vc.$route.name.startsWith('Create') ) && vc.iCan('list', kind, vc.$route.params.namespace) )
+            ( (kind === 'users') && vc.havePermissionsTo.get.users ) ||
+            ( ['clusterroles', 'namespaces'].includes(kind) && vc.iCan(action, kind) ) ||
+            vc.iCan(action, kind, namespace)
           )
         )
-      }
+      },
+
+      havePermissionsTo() {
+        const vc = this;
+        const namespace = vc.$route.params.hasOwnProperty('namespace') ? vc.$route.params.namespace : 'any';
+        return {
+            get: {
+                users: vc.iCan('list', 'secrets', 'any') &&
+                    vc.iCan('list', 'rolebindings', 'any') &&
+                    vc.iCan('list', 'clusterrolebindings')
+            },
+            patch: {
+                users: vc.iCan('get', 'secrets', namespace) &&
+                    vc.iCan('patch', 'secrets', namespace) &&
+                    vc.iCan('list', 'rolebindings', namespace) &&
+                    vc.iCan('create', 'rolebindings', namespace) &&
+                    vc.iCan('patch', 'rolebindings', namespace) &&
+                    vc.iCan('delete', 'rolebindings', namespace) &&
+                    vc.iCan('list', 'clusterrolebindings') &&
+                    vc.iCan('create', 'clusterrolebindings') &&
+                    vc.iCan('patch', 'clusterrolebindings') &&
+                    vc.iCan('delete', 'clusterrolebindings') 
+            },
+            create: {
+                users: vc.iCan('create', 'secrets', namespace) &&
+                    vc.iCan('list', 'rolebindings', namespace) &&
+                    vc.iCan('create', 'rolebindings', namespace) &&
+                    vc.iCan('patch', 'rolebindings', namespace) &&
+                    vc.iCan('list', 'clusterrolebindings') &&
+                    vc.iCan('create', 'clusterrolebindings') &&
+                    vc.iCan('patch', 'clusterrolebindings')
+            },
+            delete: {
+                users: vc.iCan('delete', 'secrets', namespace) &&
+                    vc.iCan('list', 'rolebindings', namespace) &&
+                    vc.iCan('patch', 'rolebindings', namespace) &&
+                    vc.iCan('delete', 'rolebindings', namespace) &&
+                    vc.iCan('list', 'clusterrolebindings') &&
+                    vc.iCan('patch', 'clusterrolebindings') &&
+                    vc.iCan('delete', 'clusterrolebindings')
+            }
+        }
+      },
   
     },
     methods: {
 
       isNull(el) {
-        return ( (el === null) || ( (typeof el === 'string') && !el.length ) || (Array.isArray(el) && !el.length) || ((typeof el === 'object') && !Object.keys(el).length) );
+        return ( (el === null) || ( (typeof el === 'string') && !el.length ) || (Array.isArray(el) && !el.length) || ((typeof el === 'object') && !Object.keys(el).length) || (typeof el === 'undefined') );
       },
 
       isNullObject(obj) {
@@ -194,7 +238,7 @@ export const mixin = {
               });
             }
       
-            if ( vc.iCan('list', 'sgclusters') && ( !kind.length || (kind == 'sgclusters') ) ){
+            if ( vc.iCan('list', 'sgclusters', 'all') && ( !kind.length || (kind == 'sgclusters') ) ){
               /* Clusters Data */
               sgApi
               .get('sgclusters')
@@ -211,7 +255,7 @@ export const mixin = {
                     status: {}
                   };
                   
-                  if(!store.state.namespaces.includes(item.metadata.namespace))
+                  if(!store.state.allNamespaces.includes(item.metadata.namespace))
                     store.commit('updateNamespaces', item.metadata.namespace);
     
                   store.commit('updateClusters', cluster);
@@ -241,7 +285,7 @@ export const mixin = {
       
             }
 
-            if ( vc.iCan('list', 'sgshardedclusters') && ( !kind.length || (kind == 'sgshardedclusters') ) ){
+            if ( vc.iCan('list', 'sgshardedclusters', 'all') && ( !kind.length || (kind == 'sgshardedclusters') ) ){
               /* Clusters Data */
               sgApi
               .get('sgshardedclusters')
@@ -266,7 +310,7 @@ export const mixin = {
                     console.log(err);
                   });
 
-                  if(!store.state.namespaces.includes(item.metadata.namespace))
+                  if(!store.state.allNamespaces.includes(item.metadata.namespace))
                     store.commit('updateNamespaces', item.metadata.namespace);
     
                   store.commit('updateShardedClusters', cluster);
@@ -280,7 +324,7 @@ export const mixin = {
       
             }
       
-            if ( vc.iCan('list', 'sgbackups') && ( !kind.length || (kind == 'sgbackups') )) {
+            if ( vc.iCan('list', 'sgbackups', 'all') && ( !kind.length || (kind == 'sgbackups') )) {
               
               /* Backups */
               sgApi
@@ -293,7 +337,7 @@ export const mixin = {
       
                   response.data.forEach( function(item, index) {
                     
-                    if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
+                    if(store.state.allNamespaces.indexOf(item.metadata.namespace) === -1)
                       store.commit('updateNamespaces', item.metadata.namespace);
     
                     if(!index)
@@ -321,7 +365,7 @@ export const mixin = {
               });
             }
       
-            if ( vc.iCan('list', 'sgpgconfigs') && (!kind.length || (kind == 'sgpgconfigs') ) ){
+            if ( vc.iCan('list', 'sgpgconfigs', 'all') && (!kind.length || (kind == 'sgpgconfigs') ) ){
       
               /* PostgreSQL Config */
               sgApi
@@ -332,7 +376,7 @@ export const mixin = {
       
                 response.data.forEach( function(item, index) {
                     
-                  if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
+                  if(store.state.allNamespaces.indexOf(item.metadata.namespace) === -1)
                     store.commit('updateNamespaces', item.metadata.namespace);
                   
                   if(!index)
@@ -351,7 +395,7 @@ export const mixin = {
               });
             }
       
-            if ( vc.iCan('get', 'sgpoolconfigs') && ( !kind.length || (kind == 'sgpoolconfig') ) ){
+            if ( vc.iCan('get', 'sgpoolconfigs', 'all') && ( !kind.length || (kind == 'sgpoolconfig') ) ){
       
               /* Connection Pooling Config */
               sgApi
@@ -362,7 +406,7 @@ export const mixin = {
       
                 response.data.forEach( function(item, index) {
                     
-                    if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
+                    if(store.state.allNamespaces.indexOf(item.metadata.namespace) === -1)
                       store.commit('updateNamespaces', item.metadata.namespace);
                     
                     if(!index)
@@ -381,7 +425,7 @@ export const mixin = {
               });
             }
       
-            if ( vc.iCan('list', 'sginstanceprofiles') && (!kind.length || (kind == 'sginstanceprofiles') ) ) {
+            if ( vc.iCan('list', 'sginstanceprofiles', 'all') && (!kind.length || (kind == 'sginstanceprofiles') ) ) {
       
               /* Profiles */
               sgApi
@@ -392,7 +436,7 @@ export const mixin = {
       
                 response.data.forEach( function(item, index) {
                     
-                  if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
+                  if(store.state.allNamespaces.indexOf(item.metadata.namespace) === -1)
                     store.commit('updateNamespaces', item.metadata.namespace);
                   
                   if(!index)
@@ -425,7 +469,7 @@ export const mixin = {
               });
             }
       
-            if ( vc.iCan('list', 'sgdistributedlogs') && ( !kind.length || (kind == 'sgdistributedlogs') ) ){
+            if ( vc.iCan('list', 'sgdistributedlogs', 'all') && ( !kind.length || (kind == 'sgdistributedlogs') ) ){
               /* Distributed Logs Data */
               sgApi
               .get('sgdistributedlogs')
@@ -450,7 +494,7 @@ export const mixin = {
               });
             }
     
-            if ( vc.iCan('list', 'sgdbops') && ( !kind.length || (kind == 'sgdbops') ) ){
+            if ( vc.iCan('list', 'sgdbops', 'all') && ( !kind.length || (kind == 'sgdbops') ) ){
               /* DbOps Data */
               sgApi
               .get('sgdbops')
@@ -475,7 +519,7 @@ export const mixin = {
               });
             }
 
-            if ( vc.iCan('list', 'sgobjectstorages') && ( !kind.length || (kind == 'sgobjectstorages') ) ){
+            if ( vc.iCan('list', 'sgobjectstorages', 'all') && ( !kind.length || (kind == 'sgobjectstorages') ) ){
               /* Distributed Logs Data */
               sgApi
               .get('sgobjectstorages')
@@ -486,7 +530,7 @@ export const mixin = {
                 var sgobjectstorages = [];
       
                 response.data.forEach(function(item, index){
-                  if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
+                  if(store.state.allNamespaces.indexOf(item.metadata.namespace) === -1)
                     store.commit('updateNamespaces', item.metadata.namespace);
                   
                   if(!index)
@@ -504,7 +548,7 @@ export const mixin = {
               });
             }
 
-            if ( vc.iCan('list', 'sgscripts') && ( !kind.length || (kind == 'sgscripts') ) ){
+            if ( vc.iCan('list', 'sgscripts', 'all') && ( !kind.length || (kind == 'sgscripts') ) ){
               /* Scripts Data */
               sgApi
               .get('sgscripts')
@@ -515,7 +559,7 @@ export const mixin = {
                 var sgscripts = [];
       
                 response.data.forEach(function(item, index){
-                  if(store.state.namespaces.indexOf(item.metadata.namespace) === -1)
+                  if(store.state.allNamespaces.indexOf(item.metadata.namespace) === -1)
                     store.commit('updateNamespaces', item.metadata.namespace);
                   
                   if(!index)
@@ -720,31 +764,31 @@ export const mixin = {
         const vc = this;
 
         if(namespace.length) { // If filtered by namespace
-
-          let permissions = store.state.permissions.allowed.namespaced.find(p => (p.namespace == namespace));
-          return (
-            (typeof permissions != 'undefined') &&
-              (
-                ( (action == 'any') && permissions.resources[kind].length) ||
-                ( (action != 'any') && permissions.resources[kind].includes(action) 
+          if(namespace === 'all') {
+            return (store.state.permissions.allowed.namespaced.filter(n => 
+              (n.resources[kind].includes(action)) ).length == store.state.permissions.allowed.namespaced.length
+            );
+          } else if ( (namespace === 'any') && (kind !== 'clusterroles') ) {
+            return typeof (store.state.permissions.allowed.namespaced.find(n => 
+              (n.resources[kind].includes(action)) )
+            ) !== 'undefined';
+          } else if (kind === 'clusterroles') {
+            return vc.havePermissionsTo.get.users
+          } else {
+            let permissions = store.state.permissions.allowed.namespaced.find(p => (p.namespace == namespace));
+            return (
+              (typeof permissions != 'undefined') &&
+                (
+                  ( (action == 'any') && permissions.resources[kind].length) ||
+                  ( (action != 'any') && permissions.resources[kind].includes(action) 
+                )
               )
             )
-          )
+          }
 
-        } else if( !['namespaces', 'storageclasses', 'sgconfigs'].includes(kind) && (action != 'any') ) { // For CRDs when no namespace indicated
-          
-          return (store.state.permissions.allowed.namespaced.filter(n => 
-            (n.resources[kind].includes(action)) ).length == store.state.permissions.allowed.namespaced.length
-          );
-
-        } else if(['namespaces', 'storageclasses'].includes(kind)) {
-
-          return store.state.permissions.allowed.unnamespaced.hasOwnProperty(kind) && store.state.permissions.allowed.unnamespaced[kind].includes(action);
-        
         } else {
-          
-          return !store.state.permissions.forbidden.includes(kind)
-          
+          return store.state.permissions.allowed.unnamespaced.hasOwnProperty(kind) && 
+            ( (action === 'any') || store.state.permissions.allowed.unnamespaced[kind].includes(action) )
         }
   
       },
@@ -871,7 +915,10 @@ export const mixin = {
             break;
           
           default:
-            crd = JSON.parse(JSON.stringify(store.state[kind.toLowerCase()].find(c => ( (namespace == c.data.metadata.namespace) && (name == c.name) ))))
+            crd = JSON.parse(JSON.stringify(store.state[kind.toLowerCase()].find(c => ( 
+              (namespace == (c.hasOwnProperty('data') ? c.data.metadata.namespace : c.metadata.namespace)) && 
+              (name == (c.hasOwnProperty('name') ? c.name : c.metadata.name) ) 
+            ))))
             break;
         }
         
@@ -1452,15 +1499,17 @@ export const mixin = {
     mounted: function() {
       const vc = this;
 
-      $(window).on('resize', function() {
-        vc.pagination.rows = parseInt(($(window).innerHeight() - 480)/40)
-        vc.pagination.rows = (vc.pagination.rows <= 0) ? 1 : vc.pagination.rows
-        vc.pageChange({
-          pageNumber: 1,
-          pageSize: vc.pagination.rows
-        })
-      });
-      $(window).resize()
+      if(vc.hasOwnProperty('pagination')) {
+        $(window).on('resize', function() {
+          vc.pagination.rows = parseInt(($(window).innerHeight() - 480)/40)
+          vc.pagination.rows = (vc.pagination.rows <= 0) ? 1 : vc.pagination.rows
+          vc.pageChange({
+            pageNumber: 1,
+            pageSize: vc.pagination.rows
+          })
+        });
+        $(window).resize()
+      }
 
       // Setup currentPath for sidebar use
       store.commit('setCurrentPath', {

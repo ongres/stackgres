@@ -972,13 +972,7 @@ spec:
                           * namespace
                           * log
                           * bootstrap
-                          * consul
-                          * etcd
-                          * etcdv3
-                          * zookeeper
-                          * exhibitor
-                          * kubernetes
-                          * raft
+                          * citus
                           * postgresql # with the exception of postgresql.pg_ctl_timeout
                           * restapi
                           * ctl

@@ -65,7 +65,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
 
     clusterDto.getMetadata().setNamespace("test");
     cluster.getMetadata().setNamespace("test");
-    cluster.getMetadata().setName(StringUtils.getRandomClusterName());
+    cluster.getMetadata().setName(StringUtils.getRandomResourceName());
     cluster.getSpec().setConfigurations(new StackGresClusterConfigurations());
     mockServer.getClient().resources(
         StackGresCluster.class,
@@ -321,7 +321,7 @@ class ClusterResourceQuarkusTest implements AuthenticatedResourceTest {
 
   @Test
   void givenACreationWithBackups_shouldNotFail() {
-    clusterDto.getMetadata().setName(StringUtils.getRandomClusterName());
+    clusterDto.getMetadata().setName(StringUtils.getRandomResourceName());
     ClusterSpec spec = clusterDto.getSpec();
     spec.setInitialData(null);
     spec.setConfigurations(new ClusterConfigurations());

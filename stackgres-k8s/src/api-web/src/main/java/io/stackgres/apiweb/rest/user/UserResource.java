@@ -10,9 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.rbac.ClusterRole;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBinding;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBindingBuilder;
+import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleRef;
@@ -20,6 +23,7 @@ import io.fabric8.kubernetes.api.model.rbac.RoleRefBuilder;
 import io.fabric8.kubernetes.api.model.rbac.Subject;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.quarkus.security.Authenticated;
+import io.stackgres.apiweb.ValidationGroups;
 import io.stackgres.apiweb.config.WebApiProperty;
 import io.stackgres.apiweb.dto.user.UserDto;
 import io.stackgres.apiweb.dto.user.UserRoleRef;
@@ -34,12 +38,14 @@ import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
+import jakarta.validation.groups.ConvertGroup;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.QueryParam;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -158,7 +164,8 @@ public class UserResource {
       * clusterrolebinding update
       """)
   @POST
-  public UserDto create(@Valid UserDto resource, @Nullable Boolean dryRun) {
+  public UserDto create(@Valid @ConvertGroup(to = ValidationGroups.Post.class) UserDto resource,
+      @Nullable @QueryParam("dryRun") Boolean dryRun) {
     if (resource.getMetadata() != null) {
       resource.getMetadata().setNamespace(namespace);
     }
@@ -198,7 +205,7 @@ public class UserResource {
       * clusterrolebinding delete
       """)
   @DELETE
-  public void delete(@Valid UserDto resource, @Nullable Boolean dryRun) {
+  public void delete(@Valid UserDto resource, @Nullable @QueryParam("dryRun") Boolean dryRun) {
     if (resource.getMetadata() != null) {
       resource.getMetadata().setNamespace(namespace);
     }
@@ -246,7 +253,7 @@ public class UserResource {
       * clusterrolebinding delete
       """)
   @PUT
-  public UserDto update(@Valid UserDto resource, @Nullable Boolean dryRun) {
+  public UserDto update(@Valid UserDto resource, @Nullable @QueryParam("dryRun") Boolean dryRun) {
     if (resource.getMetadata() != null) {
       resource.getMetadata().setNamespace(namespace);
     }
@@ -306,6 +313,7 @@ public class UserResource {
 
   private void updateSpec(
       Secret resourceToUpdate, Secret resource) {
+    resourceToUpdate.getMetadata().setLabels(resource.getMetadata().getLabels());
     resourceToUpdate.setData(resource.getData());
   }
 
@@ -318,7 +326,7 @@ public class UserResource {
             userRoleRef, namespace, userSubject, roleBinding))) {
       return;
     }
-    String name = "stackgres-" + user.getMetadata().getName() + "-" + userRoleRef.getName();
+    String name = getRoleName(user, userRoleRef.getName());
     var userRoleBinding = new RoleBindingBuilder()
         .withNewMetadata()
         .withNamespace(namespace)
@@ -379,8 +387,8 @@ public class UserResource {
       Subject userSubject,
       RoleBinding roleBinding) {
     return roleBinding.getMetadata().getNamespace().equals(namespace)
-        && roleBinding.getRoleRef().getKind().equals("Role")
-        && roleBinding.getRoleRef().getApiGroup().equals("rbac.authorization.k8s.io")
+        && roleBinding.getRoleRef().getKind().equals(HasMetadata.getKind(Role.class))
+        && roleBinding.getRoleRef().getApiGroup().equals(HasMetadata.getGroup(Role.class))
         && roleBinding.getRoleRef().getName().equals(userRoleRef.getName())
         && Optional.ofNullable(roleBinding.getSubjects()).stream()
             .flatMap(List::stream)
@@ -389,8 +397,8 @@ public class UserResource {
 
   private RoleRef getRoleRef(UserRoleRef userRoleRef) {
     return new RoleRefBuilder()
-        .withApiGroup("rbac.authorization.k8s.io")
-        .withKind("Role")
+        .withApiGroup(HasMetadata.getGroup(Role.class))
+        .withKind(HasMetadata.getKind(Role.class))
         .withName(userRoleRef.getName())
         .build();
   }
@@ -403,10 +411,9 @@ public class UserResource {
             roleRef, userSubject, clusterRoleBinding))) {
       return;
     }
-    String name = "stackgres-" + user.getMetadata().getName() + "-" + roleRef.getName();
+    String name = getRoleName(user, roleRef.getName());
     var userClusterRoleBinding = new ClusterRoleBindingBuilder()
         .withNewMetadata()
-        .withNamespace(namespace)
         .withName(name)
         .withLabels(Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE))
         .endMetadata()
@@ -461,8 +468,8 @@ public class UserResource {
       UserRoleRef userRoleRef,
       Subject userSubject,
       ClusterRoleBinding clusterRoleBinding) {
-    return clusterRoleBinding.getRoleRef().getKind().equals("ClusterRole")
-        && clusterRoleBinding.getRoleRef().getApiGroup().equals("rbac.authorization.k8s.io")
+    return clusterRoleBinding.getRoleRef().getKind().equals(HasMetadata.getKind(ClusterRole.class))
+        && clusterRoleBinding.getRoleRef().getApiGroup().equals(HasMetadata.getGroup(ClusterRole.class))
         && clusterRoleBinding.getRoleRef().getName().equals(userRoleRef.getName())
         && Optional.ofNullable(clusterRoleBinding.getSubjects()).stream()
             .flatMap(List::stream)
@@ -471,10 +478,14 @@ public class UserResource {
 
   private RoleRef getClusterRoleRef(UserRoleRef userRoleRef) {
     return new RoleRefBuilder()
-        .withApiGroup("rbac.authorization.k8s.io")
-        .withKind("ClusterRole")
+        .withApiGroup(HasMetadata.getGroup(ClusterRole.class))
+        .withKind(HasMetadata.getKind(ClusterRole.class))
         .withName(userRoleRef.getName())
         .build();
+  }
+
+  public static String getRoleName(UserDto user, String roleName) {
+    return "stackgres-" + user.getMetadata().getName() + "-" + roleName;
   }
 
 }

@@ -51,7 +51,7 @@ class RestartJobTest {
   void setUp() {
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getMetadata().setName("test-" + clusterNr.incrementAndGet());
-    clusterName = StringUtils.getRandomClusterName();
+    clusterName = StringUtils.getRandomResourceName();
     clusterNamespace = StringUtils.getRandomNamespace();
     cluster.getMetadata().setName(clusterName);
     cluster.getMetadata().setNamespace(clusterNamespace);

@@ -58,7 +58,7 @@ class ClusterMutatorPipelineTest {
 
   @Test
   void givenBackups_setDefaultPath() {
-    String backupName = StringUtils.getRandomClusterName();
+    String backupName = StringUtils.getRandomResourceName();
     final StackGresCluster cluster = review.getRequest().getObject();
     StackGresClusterBackupConfiguration bckConf = new StackGresClusterBackupConfiguration();
     bckConf.setSgObjectStorage(backupName);

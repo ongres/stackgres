@@ -136,13 +136,13 @@ traceable_k8s_unnamespaced_cleanup() {
     | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
   echo "Cleanup of k8s clusterrolebindings"
   kubectl get clusterrolebinding -o name \
-    | grep -v "^[^/]\+/\(system:.*\|kubeadm:.*\|cluster-admin\|kindnet\)$" \
+    | grep -v "^[^/]\+/\(system:.*\|kubeadm:.*\|cluster-admin\|cluster-admin-fast\|kindnet\)$" \
     | grep -v "^[^/]\+/\($(excluded_clusterrolebindings | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_clusterrolebindings | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
   echo "Cleanup of k8s clusterroles"
   kubectl get clusterrole -o name \
-    | grep -v "^[^/]\+/\(system:.*\|admin\|cluster-admin\|edit\|kindnet\|view\)$" \
+    | grep -v "^[^/]\+/\(system:.*\|admin\|cluster-admin\|cluster-admin-fast\|edit\|kindnet\|view\)$" \
     | grep -v "^[^/]\+/\($(excluded_clusterroles | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_clusterroles | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
