@@ -25,7 +25,7 @@ e2e_test_install() {
   PGPASSWORD="$(kubectl get secret -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
     --template '{{ (index .data "superuser-password") | base64decode }}')"
   kubectl exec -n "$CLUSTER_NAMESPACE" psql \
-    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -i -h autoscaling"
+    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -i -h $CLUSTER_NAME"
 }
 
 e2e_test_uninstall() {
@@ -60,13 +60,13 @@ check_horizontal_autoscaling() {
     --set-string 'cluster.autoscaling.horizontal.replicasConnectionsUsageTarget=0.05'
 
   wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql \
-    -- bash -c "PGPASSWORD=$PGPASSWORD psql -h autoscaling-replicas -c 'SELECT 1'"
+    -- bash -c "PGPASSWORD=$PGPASSWORD psql -h $CLUSTER_NAME-replicas -c 'SELECT 1'"
   kubectl exec -n "$CLUSTER_NAMESPACE" psql \
     -- bash -c "echo 'SELECT pg_sleep(10)' > /tmp/pgsleep.sql"
   kubectl exec -n "$CLUSTER_NAMESPACE" psql \
-    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -C -c 10 -j 10 -h autoscaling-replicas -f /tmp/pgsleep.sql" > "$LOG_PATH/connection-bench" 2>&1 &
-  CONNECTION_BENCH_PID="$!"
-  trap_kill "$CONNECTION_BENCH_PID"
+    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -C -c 10 -j 10 -h $CLUSTER_NAME-replicas -f /tmp/pgsleep.sql" > "$LOG_PATH/horizontal-bench" 2>&1 &
+  BENCH_PID="$!"
+  trap_kill "$BENCH_PID"
   if wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
     -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=replica" -o name \
     | wc -l | grep -qxF 2'
@@ -74,12 +74,12 @@ check_horizontal_autoscaling() {
     echo "SUCCESS: KEDA can scale the cluster based on connections"
   else
     echo "FAIL: KEDA can not scale the cluster based on connections"
-    kill "$CONNECTION_BENCH_PID" || true
+    kill "$BENCH_PID" || true
     kubectl exec -n "$CLUSTER_NAMESPACE" psql \
       -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
     return 1
   fi
-  kill "$CONNECTION_BENCH_PID" || true
+  kill "$BENCH_PID" || true
   kubectl exec -n "$CLUSTER_NAMESPACE" psql \
     -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
@@ -108,9 +108,9 @@ check_vertical_autoscaling() {
     --set-string 'cluster.autoscaling.maxAllowed.patroni.cpu=2'
 
   kubectl exec -n "$CLUSTER_NAMESPACE" psql \
-    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -C -c 10 -j 10 -h autoscaling" > "$LOG_PATH/cpu-bench" 2>&1 &
-  CPU_BENCH_PID="$!"
-  trap_kill "$CPU_BENCH_PID"
+    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -C -c 10 -j 10 -h $CLUSTER_NAME" > "$LOG_PATH/vertical-bench" 2>&1 &
+  BENCH_PID="$!"
+  trap_kill "$BENCH_PID"
   cat "$SPEC_PATH/abstract/quantity.jq" > "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq"
   echo '.items[]|select(.spec.containers|any(.name == "patroni" and (.resources.limits.cpu | quantity) > 0.5))|.metadata.name' \
     >> "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq"
@@ -123,20 +123,20 @@ check_vertical_autoscaling() {
   else
     echo "FAIL: VerticalPodAutoscaler can not scale vertically the primary of the cluster based on CPU"
     kubectl top pod --containers -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" || true
-    kill "$CPU_BENCH_PID" || true
+    kill "$BENCH_PID" || true
     kubectl exec -n "$CLUSTER_NAMESPACE" psql \
       -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
     return 1
   fi
-  kill "$CPU_BENCH_PID" || true
+  kill "$BENCH_PID" || true
   kubectl exec -n "$CLUSTER_NAMESPACE" psql \
     -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
   wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql \
     -- bash -c "PGPASSWORD=$PGPASSWORD psql -h autoscaling-replicas -c 'SELECT 1'"
   kubectl exec -n "$CLUSTER_NAMESPACE" psql \
-    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -C -c 10 -j 10 -h autoscaling-replicas -S" >> "$LOG_PATH/cpu-bench" 2>&1 &
-  CPU_BENCH_PID="$!"
-  trap_kill "$CPU_BENCH_PID"
+    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -C -c 10 -j 10 -h $CLUSTER_NAME-replicas -S" >> "$LOG_PATH/vertical-bench-2" 2>&1 &
+  BENCH_PID="$!"
+  trap_kill "$BENCH_PID"
   if wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
     -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=replica" -o json \
     | jq -f "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq" \
@@ -146,12 +146,12 @@ check_vertical_autoscaling() {
   else
     echo "FAIL: VerticalPodAutoscaler can not scale vertically the replicas of the cluster based on CPU"
     kubectl top pod --containers -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" || true
-    kill "$CPU_BENCH_PID" || true
+    kill "$BENCH_PID" || true
     kubectl exec -n "$CLUSTER_NAMESPACE" psql \
       -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
     return 1
   fi
-  kill "$CPU_BENCH_PID" || true
+  kill "$BENCH_PID" || true
   kubectl exec -n "$CLUSTER_NAMESPACE" psql \
     -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
@@ -192,11 +192,11 @@ check_all_autoscaling() {
     --set-string 'cluster.autoscaling.maxAllowed.patroni.cpu=2'
 
   wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql \
-    -- bash -c "PGPASSWORD=$PGPASSWORD psql -h autoscaling-replicas -c 'SELECT 1'"
+    -- bash -c "PGPASSWORD=$PGPASSWORD psql -h $CLUSTER_NAME-replicas -c 'SELECT 1'"
   kubectl exec -n "$CLUSTER_NAMESPACE" psql \
-    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -C -c 25 -j 25 -h autoscaling-replicas -S" > "$LOG_PATH/cpu-bench" 2>&1 &
-  CPU_BENCH_PID="$!"
-  trap_kill "$CPU_BENCH_PID"
+    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -C -c 25 -j 25 -h $CLUSTER_NAME-replicas -S" > "$LOG_PATH/all-bench" 2>&1 &
+  BENCH_PID="$!"
+  trap_kill "$BENCH_PID"
   cat "$SPEC_PATH/abstract/quantity.jq" > "$LOG_PATH/get-pod-name-with-patroni-container-more-than-600m-cpu.jq"
   echo '.items[]|select(.spec.containers|any(.name == "patroni" and (.resources.limits.cpu | quantity) > 0.6))|.metadata.name' \
     >> "$LOG_PATH/get-pod-name-with-patroni-container-more-than-600m-cpu.jq"
@@ -207,7 +207,7 @@ check_all_autoscaling() {
     echo "SUCCESS: KEDA can scale the cluster based on connections"
   else
     echo "FAIL: KEDA can not scale the cluster based on connections"
-    kill "$CPU_BENCH_PID" || true
+    kill "$BENCH_PID" || true
     kubectl exec -n "$CLUSTER_NAMESPACE" psql \
       -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
     return 1
@@ -221,12 +221,12 @@ check_all_autoscaling() {
   else
     echo "FAIL: VerticalPodAutoscaler can not scale vertically the replicas of the cluster based on CPU"
     kubectl top pod --containers -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" || true
-    kill "$CPU_BENCH_PID" || true
+    kill "$BENCH_PID" || true
     kubectl exec -n "$CLUSTER_NAMESPACE" psql \
       -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
     return 1
   fi
-  kill "$CPU_BENCH_PID" || true
+  kill "$BENCH_PID" || true
   kubectl exec -n "$CLUSTER_NAMESPACE" psql \
     -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
   create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \

@@ -25,6 +25,8 @@ Options:
   --excluded-tests <test> [<test> ...]: Specify the list of tests or test's paths to exclude from running
   --retry <number>        Specify the number of retries for failed tests. If
                            not specified, failed tests will not be retried
+  --timeout <number>      Specify the timeout in seconds that the tests uses to consider an action failed.
+                           It can be used to increase toleration to resource usage on some evironments.
   --parallelism <number>  Specify the parallelism that will be used for
                            running multiple e2e tests in parallel (when
                            possible) and other operations
@@ -138,6 +140,7 @@ EOF
           --debug
           --use-cache
           --retry
+          --timeout
           --parallelism
           --env
           --reset-env
@@ -238,6 +241,11 @@ cli() {
       cli_set_parameter_value "$@"
       shift "$(cli_get_parameter_shifts "$@")"
       E2E_RETRY="$VALUE"
+      ;;
+      ('--timeout')
+      cli_set_parameter_value "$@"
+      shift "$(cli_get_parameter_shifts "$@")"
+      E2E_TIMEOUT="$VALUE"
       ;;
       ('--parallelism')
       cli_set_parameter_value "$@"
@@ -518,6 +526,7 @@ cli_init_e2e_variables() {
   E2E_BUILD_IMAGES=false
   E2E_PUSH_IMAGES=false
   E2E_RETRY=1
+  E2E_TIMEOUT=180
   E2E_PARALLELISM="$(nproc)"
   K8S_REUSE=true
   K8S_EXTRA_PORT=30100:9443:0.0.0.0:tcp
@@ -555,6 +564,7 @@ cli_export_e2e_variables() {
   export \
     E2E_PARALLELISM \
     E2E_RETRY \
+    E2E_TIMEOUT \
     E2E_BUILD_IMAGES \
     E2E_PUSH_IMAGES \
     E2E_USE_TEST_CACHE \

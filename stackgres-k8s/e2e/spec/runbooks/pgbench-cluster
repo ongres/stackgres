@@ -1,0 +1,63 @@
+#!/bin/sh
+
+e2e_test_install() {
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string instanceProfiles[0].name=size-s \
+    --set-string instanceProfiles[0].cpu=500m \
+    --set-string instanceProfiles[0].memory=2Gi \
+    --set nonProductionOptions.disablePatroniResourceRequirements=false \
+    --set nonProductionOptions.disableClusterResourceRequirements=true \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections=104' \
+    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100' \
+    --set-string 'cluster.autoscaling.mode=none'
+
+  deploy_psql_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  PGPASSWORD="$(kubectl get secret -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template '{{ (index .data "superuser-password") | base64decode }}')"
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -i -h $CLUSTER_NAME -s 10"
+}
+
+e2e_test_uninstall() {
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
+}
+
+e2e_test() {
+  run_test "Benchmarking cluster" benchmark_cluster
+}
+
+benchmark_cluster() {
+  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c "PGPASSWORD=$PGPASSWORD psql -h $CLUSTER_NAME-replicas -c 'SELECT 1'"
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT / 2))' -C -c 20 -j 20 --progress=5 --log --log-prefix=/tmp/pgbench_log --failures-detailed --aggregate-interval='$((E2E_TIMEOUT / 20))' -h $CLUSTER_NAME" 2>&1 | tee "$LOG_PATH/bench" &
+  BENCH_PID="$!"
+  trap_kill "$BENCH_PID"
+  if wait_until eval '! kill -0 "$BENCH_PID"' \
+    && ! grep -q '^command terminated with exit code [1-9]' "$LOG_PATH/bench"
+  then
+    echo "SUCCESS: Benchmark terminated succesfully"
+  else
+    echo "FAIL: Benchmark not terminated succesfully"
+    kill "$BENCH_PID" || true
+    kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+      -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+    return 1
+  fi
+  kill "$BENCH_PID" || true
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql -- bash -c 'cat /tmp/pgbench_log*' > "$LOG_PATH/pgbench-transactions"
+  echo "Test results"
+  echo
+  cat "$LOG_PATH/bench"
+  echo
+  echo "Transactions"
+  echo
+  cat "$LOG_PATH/pgbench-transactions"
+}
