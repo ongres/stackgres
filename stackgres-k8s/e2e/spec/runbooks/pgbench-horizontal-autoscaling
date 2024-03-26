@@ -1,0 +1,100 @@
+#!/bin/sh
+
+e2e_test_install() {
+  install_metric_server
+  install_keda
+  install_vertical_pod_autoscaler \
+    --set-string updater.extraArgs.in-recommendation-bounds-eviction-lifetime-threshold=2s
+
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string instanceProfiles[0].name=size-s \
+    --set-string instanceProfiles[0].cpu=500m \
+    --set-string instanceProfiles[0].memory=2Gi \
+    --set nonProductionOptions.disablePatroniResourceRequirements=false \
+    --set nonProductionOptions.disableClusterResourceRequirements=true \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections=104' \
+    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100' \
+    --set-string 'cluster.autoscaling.mode=none'
+
+  deploy_psql_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  PGPASSWORD="$(kubectl get secret -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template '{{ (index .data "superuser-password") | base64decode }}')"
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -i -h $CLUSTER_NAME -s 10"
+}
+
+e2e_test_uninstall() {
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
+}
+
+e2e_test() {
+  run_test "Benchmarking cluster with horizontal autoscaling" benchmark_cluster_horizontal_autoscaling
+}
+
+benchmark_cluster_horizontal_autoscaling() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string instanceProfiles[0].name=size-s \
+    --set-string instanceProfiles[0].cpu=500m \
+    --set-string instanceProfiles[0].memory=2Gi \
+    --set nonProductionOptions.disablePatroniResourceRequirements=false \
+    --set nonProductionOptions.disableClusterResourceRequirements=true \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections=104' \
+    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100' \
+    --set-string 'cluster.autoscaling.mode=horizontal' \
+    --set 'cluster.autoscaling.minInstances=2' \
+    --set 'cluster.autoscaling.maxInstances=3' \
+    --set 'cluster.autoscaling.horizontal.pollingInterval=2' \
+    --set 'cluster.autoscaling.horizontal.cooldownPeriod=2' \
+    --set-string 'cluster.autoscaling.horizontal.replicasConnectionsUsageTarget=0.05'
+
+  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c "PGPASSWORD=$PGPASSWORD psql -h $CLUSTER_NAME-replicas -c 'SELECT 1'"
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT / 2))' -C -c 20 -j 20 --progress=5 --log --log-prefix=/tmp/pgbench_log --failures-detailed --aggregate-interval='$((E2E_TIMEOUT / 20))' -h $CLUSTER_NAME-replicas -S" 2>&1 | tee "$LOG_PATH/bench" &
+  CONNECTION_BENCH_PID="$!"
+  trap_kill "$CONNECTION_BENCH_PID"
+
+  if wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=replica" -o name \
+    | wc -l | grep -qxF 2'
+  then
+    AUTOSCALE_START="$(date +%s)"
+    echo "SUCCESS: KEDA can scale the cluster based on connections"
+  else
+    echo "FAIL: KEDA can not scale the cluster based on connections"
+    kill "$CONNECTION_BENCH_PID" || true
+    kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+      -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+    return 1
+  fi
+
+  if wait_until eval '! kill -0 "$CONNECTION_BENCH_PID"' \
+    && ! grep -q '^command terminated with exit code [1-9]' "$LOG_PATH/bench"
+  then
+    echo "SUCCESS: Benchmark terminated succesfully"
+  else
+    echo "FAIL: Benchmark not terminated succesfully"
+    kill "$CONNECTION_BENCH_PID" || true
+    kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+      -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+    return 1
+  fi
+  kill "$CONNECTION_BENCH_PID" || true
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql -- bash -c 'cat /tmp/pgbench_log*' > "$LOG_PATH/pgbench-transactions"
+  echo "Test results"
+  echo
+  cat "$LOG_PATH/bench"
+  echo
+  echo "Transactions"
+  echo
+  cat "$LOG_PATH/pgbench-transactions"
+  echo
+  echo "Autoscaling completed at $AUTOSCALE_START"
+}
