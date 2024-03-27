@@ -158,6 +158,22 @@ public class StackGresClusterAutoscaling {
   }
 
   @JsonIgnore
+  public String getMaxAllowedForPatroniCpu() {
+    return Optional.ofNullable(maxAllowed)
+        .map(maxAllowed -> maxAllowed.get(StackGresContainer.PATRONI.getName()))
+        .map(StackGresClusterAutoscalingVerticalBound::getCpu)
+        .orElse(null);
+  }
+
+  @JsonIgnore
+  public String getMaxAllowedForPatroniMemory() {
+    return Optional.ofNullable(maxAllowed)
+        .map(maxAllowed -> maxAllowed.get(StackGresContainer.PATRONI.getName()))
+        .map(StackGresClusterAutoscalingVerticalBound::getMemory)
+        .orElse(null);
+  }
+
+  @JsonIgnore
   public String getMinAllowedForPgbouncerCpu() {
     return Optional.ofNullable(minAllowed)
         .map(minAllowed -> minAllowed.get(StackGresContainer.PGBOUNCER.getName()))
@@ -174,6 +190,22 @@ public class StackGresClusterAutoscaling {
   }
 
   @JsonIgnore
+  public String getMaxAllowedForPgbouncerCpu() {
+    return Optional.ofNullable(maxAllowed)
+        .map(maxAllowed -> maxAllowed.get(StackGresContainer.PGBOUNCER.getName()))
+        .map(StackGresClusterAutoscalingVerticalBound::getCpu)
+        .orElse(null);
+  }
+
+  @JsonIgnore
+  public String getMaxAllowedForPgbouncerMemory() {
+    return Optional.ofNullable(maxAllowed)
+        .map(maxAllowed -> maxAllowed.get(StackGresContainer.PGBOUNCER.getName()))
+        .map(StackGresClusterAutoscalingVerticalBound::getMemory)
+        .orElse(null);
+  }
+
+  @JsonIgnore
   public String getMinAllowedForEnvoyCpu() {
     return Optional.ofNullable(minAllowed)
         .map(minAllowed -> minAllowed.get(StackGresContainer.ENVOY.getName()))
@@ -185,6 +217,22 @@ public class StackGresClusterAutoscaling {
   public String getMinAllowedForEnvoyMemory() {
     return Optional.ofNullable(minAllowed)
         .map(minAllowed -> minAllowed.get(StackGresContainer.ENVOY.getName()))
+        .map(StackGresClusterAutoscalingVerticalBound::getMemory)
+        .orElse(null);
+  }
+
+  @JsonIgnore
+  public String getMaxAllowedForEnvoyCpu() {
+    return Optional.ofNullable(maxAllowed)
+        .map(maxAllowed -> maxAllowed.get(StackGresContainer.ENVOY.getName()))
+        .map(StackGresClusterAutoscalingVerticalBound::getCpu)
+        .orElse(null);
+  }
+
+  @JsonIgnore
+  public String getMaxAllowedForEnvoyMemory() {
+    return Optional.ofNullable(maxAllowed)
+        .map(maxAllowed -> maxAllowed.get(StackGresContainer.ENVOY.getName()))
         .map(StackGresClusterAutoscalingVerticalBound::getMemory)
         .orElse(null);
   }
