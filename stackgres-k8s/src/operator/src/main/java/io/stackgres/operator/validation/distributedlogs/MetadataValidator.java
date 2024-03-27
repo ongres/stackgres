@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.validation.distributedlogs;
 
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -67,15 +69,21 @@ public class MetadataValidator implements DistributedLogsValidator {
         if (maybeAnnotations.isPresent()) {
           final StackGresDistributedLogsSpecAnnotations annotations = maybeAnnotations.get();
 
-          for (var entry : annotations.getServices().entrySet()) {
+          final Map<String, String> services =
+            Objects.requireNonNullElseGet(annotations.getServices(), Map::of);
+          for (var entry : services.entrySet()) {
             checkAnnotation(annotationServicesPath, entry.getKey());
           }
 
-          for (var entry : annotations.getAllResources().entrySet()) {
+          final Map<String, String> allResources =
+            Objects.requireNonNullElseGet(annotations.getAllResources(), Map::of);
+          for (var entry : allResources.entrySet()) {
             checkAnnotation(annotationAllResourcesPath, entry.getKey());
           }
 
-          for (var entry : annotations.getPods().entrySet()) {
+          final Map<String, String> pods =
+            Objects.requireNonNullElseGet(annotations.getPods(), Map::of);
+          for (var entry : pods.entrySet()) {
             checkAnnotation(annotationPodsPath, entry.getKey());
           }
         }
