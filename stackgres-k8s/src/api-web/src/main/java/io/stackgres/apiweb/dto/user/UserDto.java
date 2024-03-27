@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.fabric8.kubernetes.api.model.rbac.Subject;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.apiweb.ValidationGroups;
 import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.FieldReference;
@@ -27,7 +28,7 @@ public class UserDto extends ResourceDto {
 
   private String apiUsername;
 
-  @NotBlank(message = "password is required and can not be blank")
+  @NotBlank(message = "password is required and can not be blank", groups = ValidationGroups.Post.class)
   private String password;
 
   private List<UserRoleRef> roles;

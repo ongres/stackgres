@@ -82,9 +82,9 @@ public abstract class ClusterStateHandlerTest {
 
   public String namespace = StringUtils.getRandomNamespace();
 
-  public String dbOpsName = StringUtils.getRandomClusterName();
+  public String dbOpsName = StringUtils.getRandomResourceName();
 
-  public String clusterName = StringUtils.getRandomClusterName();
+  public String clusterName = StringUtils.getRandomResourceName();
 
   public StackGresDbOps dbOps;
 
@@ -133,7 +133,7 @@ public abstract class ClusterStateHandlerTest {
   @BeforeEach
   public void setUp() {
     namespace = StringUtils.getRandomNamespace();
-    clusterName = StringUtils.getRandomClusterName();
+    clusterName = StringUtils.getRandomResourceName();
 
     dbOps = getDbOps();
 

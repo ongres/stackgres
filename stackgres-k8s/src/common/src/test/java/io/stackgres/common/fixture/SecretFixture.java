@@ -37,7 +37,12 @@ public class SecretFixture extends Fixture<Secret> {
   }
 
   public SecretFixture loadAuthentication() {
-    fixture = readFromJson(SECRET_PATRONI_JSON);
+    fixture = readFromJson(SECRET_AUTHENTICATION_JSON);
+    return this;
+  }
+
+  public SecretFixture loadUser() {
+    fixture = readFromJson(SECRET_USER_JSON);
     return this;
   }
 

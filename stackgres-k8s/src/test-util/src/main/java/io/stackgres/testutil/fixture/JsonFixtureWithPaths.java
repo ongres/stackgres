@@ -74,6 +74,8 @@ public interface JsonFixtureWithPaths {
 
   String SECRET_SECRET_JSON = "secret/secret.json";
 
+  String SECRET_USER_JSON = "secret/user.json";
+
   String SERVICE_DEPLOYED_JSON = "service/deployed.json";
 
   String SERVICE_PATRONI_REST_JSON = "service/patroni-rest.json";
@@ -579,6 +581,8 @@ public interface JsonFixtureWithPaths {
 
   String STACKGRES_SHARDED_DB_OPS_SECURITY_UPGRADE_JSON =
       "stackgres/sharded_db_ops/security_upgrade.json";
+
+  String STACKGRES_USER_DTO_JSON = "stackgres/user/dto.json";
 
   String STATEFULSET_0_9_5_JSON = "statefulset/0.9.5.json";
 

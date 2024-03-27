@@ -58,6 +58,7 @@ class ResourcesSerializationTest {
         });
   }
 
+  @SuppressWarnings("unchecked")
   @Test
   void parametersOfGenericReturnTypesOfRestResponses_mustBeAnnotatedWithRegisterForReflection() {
 

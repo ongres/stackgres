@@ -42,7 +42,7 @@ class ScriptTransformerTest {
     source.setStatus(status.source());
 
     target.setStatus(status.target());
-    target.getStatus().setClusters(List.of(StringUtils.getRandomClusterName()));
+    target.getStatus().setClusters(List.of(StringUtils.getRandomResourceName()));
 
     return new TransformerTuple<>(target, source);
   }

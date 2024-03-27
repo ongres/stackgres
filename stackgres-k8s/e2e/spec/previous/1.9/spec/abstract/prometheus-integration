@@ -98,7 +98,7 @@ check_envoy_pod_monitor() {
   fi
 
   if wait_until kubectl exec -i -n "$CLUSTER_NAMESPACE" curl -- \
-    curl "http://$(prometheus_service).$(prometheus_namespace):9090/api/v1/query?query=envoy_cluster_upstream_cx_rx_bytes_total"
+    curl -f -s "http://$(prometheus_service).$(prometheus_namespace):9090/api/v1/query?query=envoy_cluster_upstream_cx_rx_bytes_total"
   then
     echo "Envoy metrics was found on prometheus"
   else

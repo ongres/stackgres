@@ -22,6 +22,9 @@ const resources = {
   extensions: '/extensions',
   applications: '/applications',
   sgconfigs: '/sgconfigs',
+  users: '/users',
+  roles: '/roles',
+  clusterroles: '/clusterroles'
 };
 
 export default {

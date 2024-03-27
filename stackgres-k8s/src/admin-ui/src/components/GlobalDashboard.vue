@@ -142,7 +142,7 @@
             <div class="textCenter pad">
                 <select class="plain" v-model="selectedNamespace" @change="goTo(selectedNamespace)">
                     <option disabled selected value="">{{ usedNamespaces.length ? 'Or select a namespace...' : 'Namespaces' }}</option>
-                    <option v-for="namespace in namespaces" :value="'/' + namespace">
+                    <option v-for="namespace in allNamespaces" :value="'/' + namespace">
                         {{ namespace }}
                     </option>
                 </select>
@@ -171,7 +171,7 @@ export default {
     },
 
     computed: {
-        namespaces () {
+        allNamespaces () {
             return store.state.allNamespaces
         },
 
@@ -216,25 +216,14 @@ export default {
         },
 
         usedNamespaces() {
-            const vc = this;
-            const usedNamespaces = [];
-
-            store.state.namespaces.forEach(function(namespace) {
-                const namespaceHasCrd = store.state.sgclusters.filter(c => c.data.metadata.namespace == namespace).length ||
-                    store.state.sginstanceprofiles.filter(c => c.data.metadata.namespace == namespace).length ||
-                    store.state.sgpgconfigs.filter(c => c.data.metadata.namespace == namespace).length ||
-                    store.state.sgpoolconfigs.filter(c => c.data.metadata.namespace == namespace).length ||
-                    store.state.sgdistributedlogs.filter(c => c.data.metadata.namespace == namespace).length ||
-                    store.state.sgbackups.filter(c => c.data.metadata.namespace == namespace).length ||
-                    store.state.sgdbops.filter(c => c.data.metadata.namespace == namespace).length ||
-                    store.state.sgobjectstorages.filter(c => c.data.metadata.namespace == namespace).length ||
-                    store.state.sgscripts.filter(c => c.data.metadata.namespace == namespace).length;
-
-                if(namespaceHasCrd)
-                    usedNamespaces.push(namespace)
-
-            })
-
+            const kinds = ['sgclusters', 'sgshardedclusters', 'sginstanceprofiles', 'sgpgconfigs', 'sgpoolconfigs', 'sgobjectstorages', 'sgdistributedlogs', 'sgbackups', 'sgdbops', 'sgobjectstorages', 'sgscripts'];
+            const usedNamespaces = store.state.allNamespaces.filter( ns => (
+                typeof kinds.find( k => (
+                        typeof store.state[k].find( crd => crd.data.metadata.namespace === ns) !== 'undefined'
+                    )
+                ) !== 'undefined'
+            ))
+            
             if(!usedNamespaces.length)
                 $('#header').addClass('hide')
             else

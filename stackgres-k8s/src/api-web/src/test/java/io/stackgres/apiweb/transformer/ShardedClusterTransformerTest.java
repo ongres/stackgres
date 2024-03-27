@@ -47,7 +47,7 @@ class ShardedClusterTransformerTest {
             ShardedClusterStatus.class,
             StackGresShardedClusterStatus.class
         );
-    status.target().setClusters(List.of(StringUtils.getRandomClusterName()));
+    status.target().setClusters(List.of(StringUtils.getRandomResourceName()));
     source.setStatus(status.source());
     target.setStatus(status.target());
 

@@ -115,7 +115,7 @@ public class TransformerTestUtil {
   }
 
   public static TransformerTuple<Metadata, ObjectMeta> createMetadataTuple() {
-    final String clusterName = StringUtils.getRandomClusterName();
+    final String clusterName = StringUtils.getRandomResourceName();
     final String namespace = StringUtils.getRandomNamespace();
     var crdMetadata = new ObjectMetaBuilder()
         .withName(clusterName)

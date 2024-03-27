@@ -54,6 +54,13 @@ import BabelfishCompass from '../components/applications/BabelfishCompass.vue'
 import SGConfig from '../components/SGConfig.vue'
 import EditSGConfig from '../components/forms/EditSGConfig.vue'
 
+// Users
+import UserManagement from '../components/users/UserManagement.vue'
+import CreateRole from '../components/forms/CreateRole.vue'
+import CreateUser from '../components/forms/CreateUser.vue'
+import SGUser from '../components/users/SGUser.vue'
+import SGRole from '../components/users/SGRole.vue'
+
 Vue.use(VueRouter);
 
 const routes = [
@@ -62,7 +69,6 @@ const routes = [
     component: CreateCluster,
     name: 'CreateCluster',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGCluster' 
     },
   },
@@ -71,7 +77,6 @@ const routes = [
     component: CreateCluster,
     name: 'EditCluster',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGCluster'
     },
   },
@@ -80,7 +85,6 @@ const routes = [
     component: CreateShardedCluster,
     name: 'CreateShardedCluster',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGShardedCluster' 
     },
   },
@@ -89,7 +93,6 @@ const routes = [
     component: CreateShardedCluster,
     name: 'EditShardedCluster',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGShardedCluster'
     },
   },
@@ -98,7 +101,6 @@ const routes = [
     component: CreateProfile,
     name: 'CreateProfile',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGInstanceProfile'
     },
   },
@@ -107,7 +109,6 @@ const routes = [
     component: CreateProfile,
     name: 'EditProfile',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGInstanceProfile'
     },
   },
@@ -116,7 +117,6 @@ const routes = [
     component: CreatePgConfig,
     name: 'CreatePgConfig',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGPgConfig', 
       customComponentName: 'SGPostgresConfig'
     },
@@ -126,7 +126,6 @@ const routes = [
     component: CreatePgConfig,
     name: 'EditPgConfig',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGPgConfig', 
       customComponentName: 'SGPostgresConfig'
     },
@@ -136,7 +135,6 @@ const routes = [
     component: CreatePoolConfig,
     name: 'CreatePoolConfig',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGPoolConfig', 
       customComponentName: 'SGPoolingConfig'
     },
@@ -146,7 +144,6 @@ const routes = [
     component: CreatePoolConfig,
     name: 'EditPoolConfig',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGPoolConfig', 
       customComponentName: 'SGPoolingConfig'
     },
@@ -156,7 +153,6 @@ const routes = [
     component: CreateObjectStorage,
     name: 'CreateObjectStorage',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGObjectStorage'
     },
   },
@@ -165,7 +161,6 @@ const routes = [
     component: CreateObjectStorage,
     name: 'EditObjectStorage',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGObjectStorage'
     },
   },
@@ -174,7 +169,6 @@ const routes = [
     component: CreateScript,
     name: 'CreateScript',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGScript'
     },
   },
@@ -183,7 +177,6 @@ const routes = [
     component: CreateScript,
     name: 'EditScript',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGScript'
     },
   },
@@ -192,7 +185,6 @@ const routes = [
     component: CreateBackup,
     name: 'CreateBackups',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGBackup'
     },
   },
@@ -201,7 +193,6 @@ const routes = [
     component: CreateBackup,
     name: 'CreateClusterBackup',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGCluster'
     },
   },
@@ -210,7 +201,6 @@ const routes = [
     component: CreateBackup,
     name: 'CreateShardedClusterBackup',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGShardedCluster'
     },
   },
@@ -219,7 +209,6 @@ const routes = [
     component: CreateBackup,
     name: 'EditBackup',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGBackup'
     },
   },
@@ -228,7 +217,6 @@ const routes = [
     component: CreateBackup,
     name: 'EditClusterBackup',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGCluster'
     },
   },
@@ -237,7 +225,6 @@ const routes = [
     component: CreateBackup,
     name: 'EditShardedClusterBackup',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGShardedCluster'
     },
   },
@@ -246,7 +233,6 @@ const routes = [
     component: CreateLogsServer,
     name: 'CreateLogsServer',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGDistributedLog'
     },
   },
@@ -255,7 +241,6 @@ const routes = [
     component: CreateLogsServer,
     name: 'EditLogsServer',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGDistributedLog'
     },
   },
@@ -264,7 +249,6 @@ const routes = [
     component: CreateDbOps,
     name: 'CreateDbOps',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGDbOp'
     },
   },
@@ -272,32 +256,22 @@ const routes = [
     path: '/', 
     component: GlobalDashboard,
     name: 'GlobalDashboard',
-    meta: {
-      conditionalRoute: false
-    },
   },
   { 
     path: '/index.html', 
     component: GlobalDashboard,
     name: 'GlobalDashboardIndex',
-    meta: {
-      conditionalRoute: false
-    },
   },
   {
     path: '/:namespace',
     component: NamespaceOverview,
     name: 'NamespaceOverview',
-    meta: {
-      conditionalRoute: false
-    },
   },
   {
     path: '/namespaces/new',
     component: CreateNamespace,
     name: 'CreateNamespace',
     meta: {
-      conditionalRoute: false,
       componentName: 'Namespace'
     },
   },
@@ -306,7 +280,6 @@ const routes = [
     component: ClusterOverview,
     name: 'ClusterOverview',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGCluster'
     },
   },
@@ -315,7 +288,6 @@ const routes = [
     component: ClusterInfo,
     name: 'ClusterInfo',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGCluster'
     },
   },
@@ -324,7 +296,6 @@ const routes = [
     component: ClusterStatus,
     name: 'ClusterStatus',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGCluster'
     },
   },
@@ -333,7 +304,6 @@ const routes = [
     component: ClusterLogs,
     name: 'ClusterLogs',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGCluster'
     },
   },
@@ -342,7 +312,6 @@ const routes = [
     component: ClusterEvents,
     name: 'ClusterEvents',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGCluster'
     },
   },
@@ -351,7 +320,6 @@ const routes = [
     component: ClusterEvents,
     name: 'SingleClusterEvents',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGCluster'
     },
   },
@@ -360,7 +328,6 @@ const routes = [
     component: ShardedClusterOverview,
     name: 'ShardedClusterOverview',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGShardedCluster'
     },
   },
@@ -369,7 +336,6 @@ const routes = [
     component: ShardedClusterConfig,
     name: 'ShardedClusterConfig',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGShardedCluster'
     },
   },
@@ -378,7 +344,6 @@ const routes = [
     component: ShardedClusterStatus,
     name: 'ShardedClusterStatus',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGShardedCluster'
     },
   },
@@ -387,7 +352,6 @@ const routes = [
     component: ClusterLogs,
     name: 'ShardedClusterLogs',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGShardedCluster'
     },
   },
@@ -396,7 +360,6 @@ const routes = [
     component: ClusterEvents,
     name: 'ShardedClusterEvents',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGShardedCluster'
     },
   },
@@ -405,7 +368,6 @@ const routes = [
     component: ClusterEvents,
     name: 'SingleShardedClusterEvents',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGShardedCluster'
     },
   },
@@ -414,7 +376,6 @@ const routes = [
     component: SGBackups,
     name: 'NamespaceBackups',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGBackup'
     },
   },
@@ -423,7 +384,6 @@ const routes = [
     component: SGBackups,
     name: 'SingleBackups',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGBackup'
     },
   },
@@ -432,7 +392,6 @@ const routes = [
     component: SGBackups,
     name: 'ClusterBackups',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGCluster'
     },
   },
@@ -441,7 +400,6 @@ const routes = [
     component: SGBackups,
     name: 'SingleClusterBackups',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGCluster'
     },
   },
@@ -450,7 +408,6 @@ const routes = [
     component: SGBackups,
     name: 'ShardedClusterBackups',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGShardedCluster'
     },
   },
@@ -459,7 +416,6 @@ const routes = [
     component: SGBackups,
     name: 'SingleShardedClusterBackups',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGShardedCluster'
     },
   },
@@ -468,7 +424,6 @@ const routes = [
     component: SGPgConfigs,
     name: 'PgConfig',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGPgConfig', 
       customComponentName: 'SGPostgresConfig'
     },
@@ -478,7 +433,6 @@ const routes = [
     component: SGPgConfigs,
     name: 'SinglePgConfig',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGPgConfig', 
       customComponentName: 'SGPostgresConfig'
     },
@@ -488,7 +442,6 @@ const routes = [
     component: SGPoolConfigs,
     name: 'PoolConfig',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGPoolConfig', 
       customComponentName: 'SGPoolingConfig'
     },
@@ -498,7 +451,6 @@ const routes = [
     component: SGPoolConfigs,
     name: 'SinglePoolConfig',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGPoolConfig', 
       customComponentName: 'SGPoolingConfig'
     },
@@ -508,7 +460,6 @@ const routes = [
     component: SGObjectStorages,
     name: 'SGObjectStorages',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGObjectStorage'
     },
   },
@@ -517,7 +468,6 @@ const routes = [
     component: SGObjectStorages,
     name: 'SingleObjectStorages',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGObjectStorage'
     },
   },
@@ -526,7 +476,6 @@ const routes = [
     component: SGScripts,
     name: 'SGScripts',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGScript'
     },
   },
@@ -535,7 +484,6 @@ const routes = [
     component: SGScripts,
     name: 'SingleScripts',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGScript'
     },
   },
@@ -544,7 +492,6 @@ const routes = [
     component: SGInstanceProfiles,
     name: 'InstanceProfile',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGInstanceProfile'
     },
   },
@@ -553,7 +500,6 @@ const routes = [
     component: SGInstanceProfiles,
     name: 'SingleInstanceProfile',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGInstanceProfile'
     },
   },
@@ -562,7 +508,6 @@ const routes = [
     component: SGDistributedLogs,
     name: 'LogsServer',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGDistributedLog'
     },
   },
@@ -571,7 +516,6 @@ const routes = [
     component: SGDistributedLogs,
     name: 'SingleLogsServer',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGDistributedLog'
     },
   },
@@ -580,7 +524,6 @@ const routes = [
     component: SGDbOps,
     name: 'DbOps',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGDbOp'
     },
   },
@@ -589,7 +532,6 @@ const routes = [
     component: SGDbOps,
     name: 'SingleDbOps',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGDbOp'
     },
   },
@@ -598,7 +540,6 @@ const routes = [
     component: SGDbOps,
     name: 'SingleDbOpsEvents',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGDbOp'
     },
   },
@@ -607,7 +548,6 @@ const routes = [
     component: Grafana,
     name: 'ClusterMonitor',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGCluster'
     },
   },
@@ -616,7 +556,6 @@ const routes = [
     component: Grafana,
     name: 'SingleClusterMonitor',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGCluster'
     },
   },
@@ -625,7 +564,6 @@ const routes = [
     component: Grafana,
     name: 'SingleClusterMonitorDashboard',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGCluster'
     },
   },
@@ -634,7 +572,6 @@ const routes = [
     component: Grafana,
     name: 'SingleClusterMonitorRange',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGCluster'
     },
   },
@@ -643,7 +580,6 @@ const routes = [
     component: Grafana,
     name: 'SingleClusterMonitorDashboardRange',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGCluster'
     },
   },
@@ -652,7 +588,6 @@ const routes = [
     component: ShardedClusterMonitoring,
     name: 'ShardedClusterMonitor',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGShardedCluster'
     },
   },
@@ -661,7 +596,6 @@ const routes = [
     component: ShardedClusterMonitoring,
     name: 'SingleShardedClusterMonitor',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGShardedCluster'
     },
   },
@@ -670,7 +604,6 @@ const routes = [
     component: ShardedClusterMonitoring,
     name: 'SingleShardedClusterMonitorDashboard',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGShardedCluster'
     },
   },
@@ -679,7 +612,6 @@ const routes = [
     component: ShardedClusterMonitoring,
     name: 'SingleShardedClusterMonitorRange',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGShardedCluster'
     },
   },
@@ -688,7 +620,6 @@ const routes = [
     component: ShardedClusterMonitoring,
     name: 'SingleShardedClusterMonitorDashboardRange',
     meta: {
-      conditionalRoute: false,
       componentName: 'SGShardedCluster'
     },
   },
@@ -696,8 +627,7 @@ const routes = [
     path: '/:namespace/application/babelfish-compass/', 
     component: BabelfishCompass,
     name: 'BabelfishCompass',
-    meta: {
-      conditionalRoute: false, 
+    meta: { 
       componentName: 'Application'
     },
   },
@@ -705,8 +635,7 @@ const routes = [
     path: '/sgconfig/:name', 
     component: SGConfig,
     name: 'SGConfig',
-    meta: {
-      conditionalRoute: false, 
+    meta: { 
       componentName: 'SGConfig'
     },
   },
@@ -715,9 +644,88 @@ const routes = [
     path: '/sgconfig/:name/edit', 
     component: EditSGConfig,
     name: 'EditSGConfig',
-    meta: {
-      conditionalRoute: false, 
+    meta: { 
       componentName: 'SGConfig'
+    },
+  },
+  {
+    path: '/manage/users', 
+    component: UserManagement,
+    name: 'UserManagement',
+    meta: { 
+      componentName: 'User'
+    },
+  },
+  {
+    path: '/manage/user/:name', 
+    component: SGUser,
+    name: 'SingleUser',
+    meta: { 
+      componentName: 'User'
+    },
+  },
+  {
+    path: '/manage/users/new', 
+    component: CreateUser,
+    name: 'CreateUser',
+    meta: { 
+      componentName: 'User'
+    },
+  },
+  {
+    path: '/manage/user/:name/edit', 
+    component: CreateUser,
+    name: 'EditUser',
+    meta: { 
+      componentName: 'User'
+    },
+  },
+  {
+    path: '/manage/roles/new', 
+    component: CreateRole,
+    name: 'CreateRole',
+    meta: { 
+      componentName: 'Role'
+    },
+  },
+  {
+    path: '/manage/role/:name/edit', 
+    component: CreateRole,
+    name: 'EditRole',
+    meta: { 
+      componentName: 'Role'
+    },
+  },
+  {
+    path: '/manage/role/:name', 
+    component: SGRole,
+    name: 'SingleRole',
+    meta: { 
+      componentName: 'Role'
+    },
+  },
+  {
+    path: '/manage/clusterroles/new', 
+    component: CreateRole,
+    name: 'CreateClusterRole',
+    meta: { 
+      componentName: 'ClusterRole'
+    },
+  },
+  {
+    path: '/manage/clusterrole/:name/edit', 
+    component: CreateRole,
+    name: 'EditClusterRole',
+    meta: { 
+      componentName: 'ClusterRole'
+    },
+  },
+  {
+    path: '/manage/clusterrole/:name', 
+    component: SGRole,
+    name: 'SingleClusterRole',
+    meta: { 
+      componentName: 'ClusterRole'
     },
   },
   {
@@ -791,15 +799,34 @@ function checkAuthError(error) {
 }
 
 function iCan( action = 'any', kind, namespace = '' ) {
-  let permissions = store.state.permissions.allowed.namespaced.find(p => (p.namespace == namespace));
-  return (
-    (typeof permissions != 'undefined') &&
-      (
-        ( (action == 'any') && permissions.resources[kind].length) ||
-        ( (action != 'any') && permissions.resources[kind].includes(action) 
+  if(namespace.length) { // If filtered by namespace
+
+    if(namespace === 'all') {
+      return (store.state.permissions.allowed.namespaced.filter(n => 
+          (n.resources[kind].includes(action)) 
+        ).length == store.state.permissions.allowed.namespaced.length
+      );
+    } else if(namespace === 'any') {
+      return (typeof store.state.permissions.allowed.namespaced.find(n => 
+          n.resources[kind].includes(action)
+        ) !== 'undefined'
+      );
+    } else {
+      let permissions = store.state.permissions.allowed.namespaced.find(p => (p.namespace == namespace));
+      return (
+        (typeof permissions != 'undefined') &&
+          (
+            ( (action == 'any') && permissions.resources[kind].length) ||
+            ( (action != 'any') && permissions.resources[kind].includes(action) 
+          )
+        )
       )
-    )
-  )
+    }
+
+  } else {
+    return store.state.permissions.allowed.unnamespaced.hasOwnProperty(kind) && 
+      ( (action === 'any') || store.state.permissions.allowed.unnamespaced[kind].includes(action) )
+  }
 }
 
 function actionForbidden() {
@@ -826,14 +853,15 @@ router.beforeResolve((to, from, next) => {
   if( from.path == '/') {
     
     let kind = 
-      to.matched[0].meta.hasOwnProperty('componentName') ? 
-        (to.matched[0].meta.componentName.toLowerCase() + 's') : (
-          to.matched[0].components.default.name.startsWith('Cluster') ? 
-            'sgclusters' : 
-            ( 
-              to.matched[0].components.default.name.startsWith('Create') ? 
-                to.matched[0].components.default.name.replace('Create', '') : 
-                to.matched[0].components.default.name 
+      to.matched[0].meta.hasOwnProperty('componentName')
+        ? (to.matched[0].meta.componentName.toLowerCase() + 's')
+        : (
+          to.matched[0].components.default.name.startsWith('Cluster')
+            ? 'sgclusters'
+            : ( 
+              to.matched[0].components.default.name.startsWith('Create') 
+                ? to.matched[0].components.default.name.replace('Create', '')
+                : to.matched[0].components.default.name 
             )
         );
 
@@ -849,9 +877,8 @@ router.beforeResolve((to, from, next) => {
       store.commit('setPermissions', response.data);
     })
     .then( function() {
-      
       /* First check if Namespace exist */
-      if(to.params.hasOwnProperty('namespace') && (kind != 'applications' && kind != 'BabelfishCompass')) {
+      if(to.params.hasOwnProperty('namespace') && !['applications','users','BabelfishCompass', 'roles', 'clusterroles'].includes(kind)) {
 
         let namespaceName = to.params.namespace;
         
@@ -867,7 +894,10 @@ router.beforeResolve((to, from, next) => {
             if(to.params.hasOwnProperty('name') || to.params.hasOwnProperty('backupname')) {
               
               if ( 
-                  ( ( to.params.hasOwnProperty('name') || to.params.hasOwnProperty('backupname') ) && to.name.startsWith('Edit') && !iCan('patch', kind.toLowerCase(), to.params.namespace) ) ||
+                  ( 
+                    ( to.params.hasOwnProperty('name') || to.params.hasOwnProperty('backupname') ) && 
+                    to.name.startsWith('Edit') && !iCan('patch', kind.toLowerCase(), to.params.namespace) 
+                  ) ||
                   ( to.name.startsWith('Create') && !iCan('create', kind.toLowerCase(), to.params.namespace) )                  
               ) {
                 actionForbidden();
@@ -943,7 +973,6 @@ router.beforeResolve((to, from, next) => {
 })
 
 export default router;
-
 
 // Prevent router "Navigation Duplicated" error
 const originalPush = VueRouter.prototype.push

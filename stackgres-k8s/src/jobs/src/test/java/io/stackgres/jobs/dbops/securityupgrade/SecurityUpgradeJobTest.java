@@ -64,7 +64,7 @@ class SecurityUpgradeJobTest {
     cluster = Fixtures.cluster().loadDefault().get();
     statefulSet = Fixtures.statefulSet().load0_9_5().get();
     cluster.getMetadata().setName("test-" + clusterNr.incrementAndGet());
-    clusterName = StringUtils.getRandomClusterName();
+    clusterName = StringUtils.getRandomResourceName();
     clusterNamespace = StringUtils.getRandomNamespace();
     cluster.getMetadata().setName(clusterName);
     cluster.getMetadata().setNamespace(clusterNamespace);
