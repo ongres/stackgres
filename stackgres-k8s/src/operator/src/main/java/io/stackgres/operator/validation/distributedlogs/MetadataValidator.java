@@ -70,19 +70,19 @@ public class MetadataValidator implements DistributedLogsValidator {
           final StackGresDistributedLogsSpecAnnotations annotations = maybeAnnotations.get();
 
           final Map<String, String> services =
-            Objects.requireNonNullElseGet(annotations.getServices(), Map::of);
+              Objects.requireNonNullElseGet(annotations.getServices(), Map::of);
           for (var entry : services.entrySet()) {
             checkAnnotation(annotationServicesPath, entry.getKey());
           }
 
           final Map<String, String> allResources =
-            Objects.requireNonNullElseGet(annotations.getAllResources(), Map::of);
+              Objects.requireNonNullElseGet(annotations.getAllResources(), Map::of);
           for (var entry : allResources.entrySet()) {
             checkAnnotation(annotationAllResourcesPath, entry.getKey());
           }
 
           final Map<String, String> pods =
-            Objects.requireNonNullElseGet(annotations.getPods(), Map::of);
+              Objects.requireNonNullElseGet(annotations.getPods(), Map::of);
           for (var entry : pods.entrySet()) {
             checkAnnotation(annotationPodsPath, entry.getKey());
           }
