@@ -5,7 +5,6 @@
 
 package io.stackgres.common.crd.sgcluster;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -34,10 +33,6 @@ public class StackGresClusterSpecAnnotations {
   private Map<String, String> replicasService;
 
   public Map<String, String> getAllResources() {
-    if (allResources == null) {
-      allResources = new HashMap<>();
-    }
-
     return allResources;
   }
 
@@ -46,10 +41,6 @@ public class StackGresClusterSpecAnnotations {
   }
 
   public Map<String, String> getClusterPods() {
-    if (clusterPods == null) {
-      clusterPods = new HashMap<>();
-    }
-
     return clusterPods;
   }
 
@@ -58,10 +49,6 @@ public class StackGresClusterSpecAnnotations {
   }
 
   public Map<String, String> getServices() {
-    if (services == null) {
-      services = new HashMap<>();
-    }
-
     return services;
   }
 
@@ -70,10 +57,6 @@ public class StackGresClusterSpecAnnotations {
   }
 
   public Map<String, String> getPrimaryService() {
-    if (primaryService == null) {
-      primaryService = new HashMap<>();
-    }
-
     return primaryService;
   }
 
@@ -82,10 +65,6 @@ public class StackGresClusterSpecAnnotations {
   }
 
   public Map<String, String> getReplicasService() {
-    if (replicasService == null) {
-      replicasService = new HashMap<>();
-    }
-
     return replicasService;
   }
 

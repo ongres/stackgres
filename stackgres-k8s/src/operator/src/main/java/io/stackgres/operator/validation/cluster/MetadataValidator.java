@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.validation.cluster;
 
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -103,11 +105,13 @@ public class MetadataValidator implements ClusterValidator {
         if (maybeLabels.isPresent()) {
           final StackGresClusterSpecLabels labels = maybeLabels.get();
 
-          for (var entry : labels.getServices().entrySet()) {
+          final Map<String, String> services = Objects.requireNonNullElseGet(labels.getServices(), Map::of);
+          for (var entry : services.entrySet()) {
             checkLabel(labelServicesPath, entry.getKey(), entry.getValue());
           }
 
-          for (var entry: labels.getClusterPods().entrySet()) {
+          final Map<String, String> clusterPods = Objects.requireNonNullElseGet(labels.getClusterPods(), Map::of);
+          for (var entry: clusterPods.entrySet()) {
             checkLabel(labelClusterPodsPath, entry.getKey(), entry.getValue());
           }
         }
@@ -115,19 +119,33 @@ public class MetadataValidator implements ClusterValidator {
         if (maybeAnnotations.isPresent()) {
           final StackGresClusterSpecAnnotations annotations = maybeAnnotations.get();
 
-          for (var entry : annotations.getServices().entrySet()) {
+          final Map<String, String> services =
+            Objects.requireNonNullElseGet(annotations.getServices(), Map::of);
+          for (var entry : services.entrySet()) {
             checkAnnotation(annotationServicesPath, entry.getKey());
           }
-          for (var entry : annotations.getReplicasService().entrySet()) {
+
+          final Map<String, String> replicasService =
+            Objects.requireNonNullElseGet(annotations.getReplicasService(), Map::of);
+          for (var entry : replicasService.entrySet()) {
             checkAnnotation(annotationReplicasServicePath, entry.getKey());
           }
-          for (var entry : annotations.getPrimaryService().entrySet()) {
+
+          final Map<String, String> primaryService =
+            Objects.requireNonNullElseGet(annotations.getPrimaryService(), Map::of);
+          for (var entry : primaryService.entrySet()) {
             checkAnnotation(annotationPrimaryServicePath, entry.getKey());
           }
-          for (var entry : annotations.getClusterPods().entrySet()) {
+
+          final Map<String, String> clusterPods =
+            Objects.requireNonNullElseGet(annotations.getClusterPods(), Map::of);
+          for (var entry : clusterPods.entrySet()) {
             checkAnnotation(annotationClusterPodsPath, entry.getKey());
           }
-          for (var entry : annotations.getAllResources().entrySet()) {
+
+          final Map<String, String> allResources =
+            Objects.requireNonNullElseGet(annotations.getAllResources(), Map::of);
+          for (var entry : allResources.entrySet()) {
             checkAnnotation(annotationAllResourcesPath, entry.getKey());
           }
         }
