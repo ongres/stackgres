@@ -1,6 +1,6 @@
 ---
 Title: Run strace command inside pod container
-weight: 1
+weight: 10
 url: /runbooks/strace-pod-container
 description: How to run strace command inside StackGres cluster pod container
 ---
