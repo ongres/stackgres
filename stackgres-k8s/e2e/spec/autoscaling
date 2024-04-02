@@ -1,6 +1,12 @@
 #!/bin/sh
 
 e2e_test_install() {
+  if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -lt "$(echo "1.23" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  then
+    return
+  fi
+
   install_metric_server
   install_keda
   install_vertical_pod_autoscaler \
@@ -29,6 +35,12 @@ e2e_test_install() {
 }
 
 e2e_test_uninstall() {
+  if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -lt "$(echo "1.23" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  then
+    return
+  fi
+
   k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
   k8s_async_cleanup_namespace "$(metric_server_namespace)"
   k8s_async_cleanup_namespace "$(keda_namespace)"
@@ -36,6 +48,13 @@ e2e_test_uninstall() {
 }
 
 e2e_test() {
+  if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -lt "$(echo "1.23" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  then
+    echo "Skipping autoscaling since it is not supported for Kubernetes < 1.23"
+    return
+  fi
+
   run_test "Checking that autoscaling can be used to scale horizontally" check_horizontal_autoscaling
 
   run_test "Checking that autoscaling can be user to scale vertically" check_vertical_autoscaling

@@ -414,6 +414,10 @@ EOF
       kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml"
       kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml"
       CSI_DRIVER_HOST_PATH_PATH="$TARGET_PATH/csi-driver-host-path/deploy/kubernetes-$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)"
+      if [ "$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)" = 1.23 ]
+      then
+        CSI_DRIVER_HOST_PATH_PATH="$TARGET_PATH/csi-driver-host-path/deploy/kubernetes-1.22"
+      fi
       cat << 'EOF' > "$CSI_DRIVER_HOST_PATH_PATH/kubectlw"
 set -e
 if [ "x$1" = xapply ]
