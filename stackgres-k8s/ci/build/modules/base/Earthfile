@@ -1,0 +1,11 @@
+VERSION 0.8
+ARG --global CI_IMAGE=registry.gitlab.com/ongresinc/stackgres/ci:1.24
+ARG --global BUILD_IMAGE=registry.gitlab.com/ongresinc/stackgres/builder:1.8
+FROM "$CI_IMAGE"
+WORKDIR /project
+
+ci-image:
+  FROM "$CI_IMAGE"
+build-image:
+  FROM "$BUILD_IMAGE"
+  

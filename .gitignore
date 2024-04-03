@@ -1,4 +1,3 @@
-
 # Created by https://www.gitignore.io/api/java,eclipse,java-web,code-java
 # Edit at https://www.gitignore.io/?templates=java,eclipse,java-web,code-java
 
@@ -168,3 +167,12 @@ chartverifier
 
 # Build
 pom.xml.build
+
+#Earthly
+.git
+.earthlyignore
+*/target
+*/*/target
+*/*/*/target
+*/*/*/*/target
+*/*/*/*/*/target

@@ -1,0 +1,30 @@
+VERSION 0.8
+IMPORT ../../../../../. AS root
+IMPORT ../parent-java AS parent-java
+
+ARG --global MODULE_PATH=stackgres-k8s/src/operator-framework
+ARG --global MODULE_REPOSITORY_PATH=io/stackgres/stackgres-operator-framework
+
+
+## Build operator-framework-java module.
+build:
+  FROM parent-java+java-module-build-base \
+    --MODULE_PATH=$MODULE_PATH \
+    --MODULE_REPOSITORY_PATH=$MODULE_REPOSITORY_PATH
+  COPY (parent-java+java-module-updated-pom/pom.xml.build --MODULE_PATH="$MODULE_PATH") \
+    "$MODULE_PATH/pom.xml.build"
+  COPY parent-java+build/. .
+  COPY (root+sources/target --TARGET="$MODULE_PATH/src/main") "$MODULE_PATH/src/main"
+  DO parent-java+JAVA_MODULE_BUILD \
+    --MODULE_PATH=$MODULE_PATH \
+    --MODULE_REPOSITORY_PATH=$MODULE_REPOSITORY_PATH
+  SAVE ARTIFACT ".m2/repository/$MODULE_REPOSITORY_PATH"
+  SAVE ARTIFACT "$MODULE_PATH/target"
+
+## Test operator-framework-java module.
+test:
+  FROM +build
+  DO parent-java+JAVA_MODULE_TEST \
+    --MODULE_PATH=$MODULE_PATH
+  SAVE ARTIFACT "$MODULE_PATH/target"
+  

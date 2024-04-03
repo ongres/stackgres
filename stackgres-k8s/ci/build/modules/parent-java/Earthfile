@@ -1,0 +1,73 @@
+VERSION 0.8
+IMPORT ../../../../../. AS root
+IMPORT ../base AS base
+ARG --global MODULE_PATH=stackgres-k8s/src
+ARG --global MODULE_REPOSITORY_PATH=io/stackgres/stackgres-parent
+
+### Java Modules
+
+ARG --global MAVEN_OPTS= \
+        -Dhttps.protocols=TLSv1.2 \
+        -Dorg.slf4j.simpleLogger.showDateTime=true \
+        -Djava.awt.headless=true \
+        -XX:+UseParallelGC
+ARG --global MAVEN_CLI_OPTS= \
+        --batch-mode \
+        --errors \
+        --show-version \
+        -Dmaven.repo.local=/project/.m2/repository \
+        -Dmaven.user.home=/project/.m2 \
+        -DinstallAtEnd=true \
+        -DdeployAtEnd=true \
+        -Dsurefire.useFile=false \
+        -DtrimStackTrace=false
+
+## To redact the patch and suffix parts from the version in the pom.xml file
+##  a pom.xml.build is generated in order to be used for Maven build.
+java-module-updated-pom:
+  FROM base+ci-image
+  ARG --required MODULE_PATH
+  COPY (root+sources/target --TARGET=stackgres-k8s/ci/build/update-build-pom.sh) stackgres-k8s/ci/build/update-build-pom.sh
+  COPY (root+sources/target --TARGET=stackgres-k8s/ci/build/redact-version.sh) stackgres-k8s/ci/build/redact-version.sh
+  COPY (root+sources/target --TARGET=stackgres-k8s/ci/build/redact-version.sed) stackgres-k8s/ci/build/redact-version.sed
+  COPY (root+sources/target --TARGET="$MODULE_PATH/pom.xml") "$MODULE_PATH/pom.xml"
+  RUN sh stackgres-k8s/ci/build/update-build-pom.sh
+  SAVE ARTIFACT "$MODULE_PATH/pom.xml.build"
+
+## The java module base build with Maven wrapper.
+java-module-build-base:
+  FROM base+build-image
+  COPY (root+sources/target --TARGET=stackgres-k8s/src/mvnw) stackgres-k8s/src/mvnw
+  COPY (root+sources/target --TARGET=stackgres-k8s/src/.mvn) stackgres-k8s/src/.mvn
+## The java module build that is called after copying all required files from
+##  other java module builds.
+JAVA_MODULE_BUILD:
+  FUNCTION
+  ARG --required MODULE_PATH
+  ARG --required MODULE_REPOSITORY_PATH
+  RUN --mount type=cache,id=mvn,target=/project/.m2/repository \
+    stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS clean install -D skipTests -f "$MODULE_PATH/pom.xml.build" -N \
+    && mkdir -p "$MODULE_PATH/target/.m2/repository/$MODULE_REPOSITORY_PATH" \
+    && cp -a "/project/.m2/repository/$MODULE_REPOSITORY_PATH"/. "$MODULE_PATH/target/.m2/repository/$MODULE_REPOSITORY_PATH"/.
+  RUN mkdir -p "/project/.m2/repository/$MODULE_REPOSITORY_PATH"
+  RUN cp -a "$MODULE_PATH/target/.m2/repository/$MODULE_REPOSITORY_PATH"/. "/project/.m2/repository/$MODULE_REPOSITORY_PATH"/.
+## The java module test that is called after building the module.
+JAVA_MODULE_TEST:
+  FUNCTION
+  ARG --required MODULE_PATH
+  COPY (root+sources/target --TARGET=stackgres-k8s/src/checks) stackgres-k8s/src/checks
+  RUN --mount type=cache,id=mvn,target=/project/.m2/repository \
+    stackgres-k8s/src/mvnw $MAVEN_CLI_OPTS verify -P safer -f "$MODULE_PATH/pom.xml.build"
+
+## Build parent-java module.
+build:
+  FROM +java-module-build-base \
+    --MODULE_PATH=$MODULE_PATH \
+    --MODULE_REPOSITORY_PATH=$MODULE_REPOSITORY_PATH
+  COPY (+java-module-updated-pom/pom.xml.build \
+    --MODULE_PATH="$MODULE_PATH") \
+    "$MODULE_PATH/pom.xml.build"
+  DO +JAVA_MODULE_BUILD \
+    --MODULE_PATH=$MODULE_PATH \
+    --MODULE_REPOSITORY_PATH=$MODULE_REPOSITORY_PATH
+  SAVE ARTIFACT ".m2/repository/$MODULE_REPOSITORY_PATH"

@@ -1,0 +1,4 @@
+#!/bin/sh
+
+find -name .gitignore | xargs -I @GITIGNORE sh -c 'GITIGNORE=@GITIGNORE; cp "$GITIGNORE" "${GITIGNORE%.gitignore}.earthlyignore"'
+exec earthly "$@"
