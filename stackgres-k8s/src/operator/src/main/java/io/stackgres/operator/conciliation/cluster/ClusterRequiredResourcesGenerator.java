@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
@@ -35,6 +37,7 @@ import io.stackgres.common.crd.external.prometheus.PrometheusSpec;
 import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupConfigSpec;
+import io.stackgres.common.crd.sgbackup.StackGresBackupInformation;
 import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
@@ -239,29 +242,11 @@ public class ClusterRequiredResourcesGenerator
                 "Secret " + name + " not found"))))
         .collect(Collectors.toMap(Tuple2::v1, Tuple2::v2));
 
-    final Optional<StackGresBackup> replicationInitializationBackup =
-        getReplicationInitializationBackup(cluster);
+    final Optional<Tuple2<StackGresBackup, Map<String, Secret>>> replicationInitializationBackupAndSecrets =
+        getReplicationInitializationBackupAndSecrets(cluster);
     final Optional<StackGresBackup> replicationInitializationBackupToCreate =
         getReplicationInitializationBackupToCreate(cluster);
     final int currentInstances = countCurrentInstances(cluster);
-
-    final Map<String, Secret> replicationInitializationSecrets = replicationInitializationBackup
-        .map(StackGresBackup::getStatus)
-        .map(StackGresBackupStatus::getSgBackupConfig)
-        .map(StackGresBackupConfigSpec::getStorage)
-        .stream()
-        .flatMap(backupEnvVarFactory::streamStorageSecretReferences)
-        .map(secretKeySelector -> secretKeySelector.getName())
-        .collect(Collectors.groupingBy(Function.identity()))
-        .keySet()
-        .stream()
-        .map(name -> Tuple.tuple(
-            name,
-            secretFinder
-            .findByNameAndNamespace(name, clusterNamespace)
-            .orElseThrow(() -> new IllegalArgumentException(
-                "Secret " + name + " not found"))))
-        .collect(Collectors.toMap(Tuple2::v1, Tuple2::v2));
 
     final Optional<StackGresBackup> restoreBackup = findRestoreBackup(cluster, clusterNamespace);
 
@@ -344,9 +329,12 @@ public class ClusterRequiredResourcesGenerator
         .objectStorage(backupStorageObject)
         .poolingConfig(pooling)
         .backupSecrets(backupSecrets)
-        .replicationInitializationBackup(replicationInitializationBackup)
+        .replicationInitializationBackup(replicationInitializationBackupAndSecrets
+            .map(Tuple2::v1))
         .replicationInitializationBackupToCreate(replicationInitializationBackupToCreate)
-        .replicationInitializationSecrets(replicationInitializationSecrets)
+        .replicationInitializationSecrets(replicationInitializationBackupAndSecrets
+            .map(Tuple2::v2)
+            .orElse(Map.of()))
         .currentInstances(currentInstances)
         .restoreBackup(restoreBackup)
         .restoreSecrets(restoreSecrets)
@@ -371,17 +359,21 @@ public class ClusterRequiredResourcesGenerator
     return discoverer.generateResources(context);
   }
 
-  private Optional<StackGresBackup> getReplicationInitializationBackup(
+  private Optional<Tuple2<StackGresBackup, Map<String, Secret>>> getReplicationInitializationBackupAndSecrets(
       StackGresCluster cluster) {
     if (StackGresReplicationInitializationMode.FROM_EXISTING_BACKUP.ordinal()
         > cluster.getSpec().getReplication().getInitializationModeOrDefault().ordinal()) {
       return Optional.empty();
     }
 
-    var backupNewerThan = Optional.ofNullable(cluster.getSpec().getReplication().getInitialization())
+    final String namespace = cluster.getMetadata().getNamespace();
+    final var backupNewerThan = Optional.ofNullable(cluster.getSpec().getReplication().getInitialization())
         .map(StackGresClusterReplicationInitialization::getBackupNewerThan)
         .map(Duration::parse)
         .map(Instant.now()::minus);
+    final String postgresMajorVersion = getPostgresFlavorComponent(cluster)
+        .get(cluster)
+        .getMajorVersion(cluster.getSpec().getPostgres().getVersion());
     return Seq.seq(backupScanner.getResources(cluster.getMetadata().getNamespace()))
         .filter(backup -> backup.getSpec().getSgCluster().equals(
             cluster.getMetadata().getName()))
@@ -389,6 +381,11 @@ public class ClusterRequiredResourcesGenerator
             .map(StackGresBackupStatus::getProcess)
             .map(StackGresBackupProcess::getStatus)
             .filter(BackupStatus.COMPLETED.toString()::equals)
+            .isPresent())
+        .filter(backup -> Optional.ofNullable(backup.getStatus())
+            .map(StackGresBackupStatus::getBackupInformation)
+            .map(StackGresBackupInformation::getPostgresMajorVersion)
+            .filter(postgresMajorVersion::equals)
             .isPresent())
         .filter(backup -> Optional.ofNullable(backup.getStatus())
             .map(StackGresBackupStatus::getProcess)
@@ -403,10 +400,32 @@ public class ClusterRequiredResourcesGenerator
             .map(StackGresBackupTiming::getEnd)
             .map(Instant::parse)
             .get()))
-        .skipUntil(backup -> Optional.of(cluster)
+        .map(backup -> Tuple.tuple(
+            backup,
+            Optional.of(backup)
+            .map(StackGresBackup::getStatus)
+            .map(StackGresBackupStatus::getSgBackupConfig)
+            .map(StackGresBackupConfigSpec::getStorage)
+            .stream()
+            .flatMap(backupEnvVarFactory::streamStorageSecretReferences)
+            .map(secretKeySelector -> secretKeySelector.getName())
+            .collect(Collectors.groupingBy(Function.identity()))
+            .keySet()
+            .stream()
+            .map(name -> Tuple.tuple(
+                name,
+                secretFinder.findByNameAndNamespace(name, namespace)))
+            .collect(Collectors.toMap(Tuple2::v1, Tuple2::v2))))
+        .filter(backupAndFoundSecrets -> backupAndFoundSecrets.v2.values().stream().allMatch(Optional::isPresent))
+        .map(backupAndFoundSecrets -> backupAndFoundSecrets.map2(secrets -> secrets
+            .entrySet()
+            .stream()
+            .map(entry -> Map.entry(entry.getKey(), entry.getValue().get()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))))
+        .skipUntil(backupAndFoundSecrets -> Optional.of(cluster)
             .map(StackGresCluster::getStatus)
             .map(StackGresClusterStatus::getReplicationInitializationFailedSgBackup)
-            .map(backup.getMetadata().getName()::equals)
+            .map(backupAndFoundSecrets.v1.getMetadata().getName()::equals)
             .orElse(true))
         .skip(Optional.of(cluster)
             .map(StackGresCluster::getStatus)
@@ -422,11 +441,14 @@ public class ClusterRequiredResourcesGenerator
         cluster.getSpec().getReplication().getInitializationModeOrDefault())) {
       return Optional.empty();
     }
-    var now = Instant.now();
-    var backupNewerThan = Optional.ofNullable(cluster.getSpec().getReplication().getInitialization())
+    final var now = Instant.now();
+    final var backupNewerThan = Optional.ofNullable(cluster.getSpec().getReplication().getInitialization())
         .map(StackGresClusterReplicationInitialization::getBackupNewerThan)
         .map(Duration::parse)
         .map(now::minus);
+    final String postgresMajorVersion = getPostgresFlavorComponent(cluster)
+        .get(cluster)
+        .getMajorVersion(cluster.getSpec().getPostgres().getVersion());
     return Seq.seq(backupScanner
         .getResourcesWithLabels(
             cluster.getMetadata().getNamespace(),
@@ -440,6 +462,11 @@ public class ClusterRequiredResourcesGenerator
             .map(Instant::parse)
             .or(() -> Optional.of(now))
             .filter(end -> backupNewerThan.map(end::isAfter).orElse(true))
+            .isPresent())
+        .filter(backup -> Optional.ofNullable(backup.getStatus())
+            .map(StackGresBackupStatus::getBackupInformation)
+            .map(StackGresBackupInformation::getPostgresMajorVersion)
+            .filter(postgresMajorVersion::equals)
             .isPresent())
         .findFirst();
   }

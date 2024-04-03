@@ -104,7 +104,10 @@ public class RestoreConfigValidator
         }
 
         if (foundBackup.isPresent()) {
-          String backupMajorVersion = getMajorVersion(foundBackup.get());
+          String backupMajorVersion = foundBackup.get()
+              .getStatus()
+              .getBackupInformation()
+              .getPostgresMajorVersion();
 
           String givenPgVersion = review.getRequest().getObject().getSpec()
               .getPostgres().getVersion();
@@ -144,10 +147,6 @@ public class RestoreConfigValidator
         fail(errorConstraintViolationUri, "Cannot update SGCluster's restore configuration");
       }
     }
-  }
-
-  private String getMajorVersion(StackGresBackup backup) {
-    return backup.getStatus().getBackupInformation().getPostgresVersion().substring(0, 2);
   }
 
   @Override

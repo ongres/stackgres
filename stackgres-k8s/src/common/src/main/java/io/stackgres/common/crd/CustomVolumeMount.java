@@ -12,23 +12,12 @@ import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
 
 @RegisterForReflection
-@JsonIgnoreProperties(ignoreUnknown = true,
-    value = {"optional"})
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder",
     refs = {
-        @BuildableReference(io.fabric8.kubernetes.api.model.Container.class),
-        @BuildableReference(io.fabric8.kubernetes.api.model.EnvVar.class),
-        @BuildableReference(io.fabric8.kubernetes.api.model.EnvFromSource.class),
-        @BuildableReference(io.fabric8.kubernetes.api.model.Lifecycle.class),
-        @BuildableReference(io.fabric8.kubernetes.api.model.Probe.class),
-        @BuildableReference(io.fabric8.kubernetes.api.model.ContainerPort.class),
-        @BuildableReference(io.fabric8.kubernetes.api.model.ResourceRequirements.class),
-        @BuildableReference(io.fabric8.kubernetes.api.model.SecurityContext.class),
-        @BuildableReference(io.fabric8.kubernetes.api.model.VolumeDevice.class),
         @BuildableReference(io.fabric8.kubernetes.api.model.VolumeMount.class),
-        @BuildableReference(io.fabric8.kubernetes.api.model.ContainerResizePolicy.class),
     })
 @SuppressFBWarnings(value = "NM_SAME_SIMPLE_NAME_AS_SUPERCLASS",
     justification = "Intentional name shadowing")

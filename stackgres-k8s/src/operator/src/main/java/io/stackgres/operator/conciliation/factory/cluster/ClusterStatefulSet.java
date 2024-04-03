@@ -109,7 +109,7 @@ public class ClusterStatefulSet
         .withResources(dataStorageConfig.getResourceRequirements())
         .withStorageClassName(dataStorageConfig.getStorageClass())
         .withDataSource(context.getRestoreBackup()
-            .filter(backpup -> context.getCurrentInstances() > 0)
+            .filter(backpup -> context.getCurrentInstances() < 1)
             .or(() -> context.getReplicationInitializationBackup())
             .map(StackGresBackup::getStatus)
             .filter(status -> Optional.of(status)
@@ -160,8 +160,8 @@ public class ClusterStatefulSet
             .map(BackupStatus::fromStatus)
             .filter(BackupStatus.FAILED::equals)
             .isEmpty()
-        && Optional.of(instances).orElse(0).intValue() > context.getCurrentInstances()) {
-      instances = context.getCurrentInstances();
+        && context.getCurrentInstances() < Optional.of(instances).orElse(0).intValue()) {
+      instances = Math.max(1, context.getCurrentInstances());
       LOGGER.info("Skipping upscale while waiting for a fresh SGBackup to be created");
     }
     StatefulSet clusterStatefulSet = new StatefulSetBuilder()
