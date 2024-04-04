@@ -122,7 +122,7 @@ public abstract class AbstractClusterStatsDtoFinder<R, T extends CustomResource<
         .map(PodSpec::getVolumes)
         .flatMap(volumes -> Seq.seq(volumes)
             .filter(volumeName -> volumeName.getName().equals(
-                StackGresUtil.statefulSetDataPersistentVolumeName(cluster)))
+                StackGresUtil.statefulSetDataPersistentVolumeClaimName(cluster)))
             .findAny())
         .filter(volume -> volume.getPersistentVolumeClaim() != null)
         .map(Volume::getPersistentVolumeClaim)

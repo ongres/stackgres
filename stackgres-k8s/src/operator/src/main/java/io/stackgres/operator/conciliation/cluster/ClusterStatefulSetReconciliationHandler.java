@@ -39,7 +39,19 @@ public class ClusterStatefulSetReconciliationHandler
       ResourceScanner<Pod> podScanner,
       ResourceScanner<PersistentVolumeClaim> pvcScanner,
       PatroniCtl patroniCtl, ObjectMapper objectMapper) {
-    super(handler, labelFactory, statefulSetFinder, podScanner, pvcScanner,
+    super(handler, handler, labelFactory, statefulSetFinder, podScanner, pvcScanner,
+        patroniCtl, objectMapper);
+  }
+
+  ClusterStatefulSetReconciliationHandler(
+      ReconciliationHandler<StackGresCluster> handler,
+      ReconciliationHandler<StackGresCluster> protectHandler,
+      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      ResourceFinder<StatefulSet> statefulSetFinder,
+      ResourceScanner<Pod> podScanner,
+      ResourceScanner<PersistentVolumeClaim> pvcScanner,
+      PatroniCtl patroniCtl, ObjectMapper objectMapper) {
+    super(handler, protectHandler, labelFactory, statefulSetFinder, podScanner, pvcScanner,
         patroniCtl, objectMapper);
   }
 

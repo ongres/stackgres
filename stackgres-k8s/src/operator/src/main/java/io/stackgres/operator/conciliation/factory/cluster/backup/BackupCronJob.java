@@ -95,7 +95,7 @@ public class BackupCronJob
   }
 
   public static String backupName(StackGresClusterContext clusterContext) {
-    return StackGresUtil.statefulSetBackupPersistentVolumeName(clusterContext.getSource());
+    return StackGresUtil.cronJobBackupName(clusterContext.getSource());
   }
 
   @Override
