@@ -74,11 +74,11 @@ public class ClusterStatefulSet
   }
 
   public static String dataName(ClusterContext cluster) {
-    return StackGresUtil.statefulSetDataPersistentVolumeName(cluster);
+    return StackGresUtil.statefulSetDataPersistentVolumeClaimName(cluster);
   }
 
   public static String dataName(StackGresClusterContext clusterContext) {
-    return StackGresUtil.statefulSetDataPersistentVolumeName(clusterContext);
+    return StackGresUtil.statefulSetDataPersistentVolumeClaimName(clusterContext);
   }
 
   @Override

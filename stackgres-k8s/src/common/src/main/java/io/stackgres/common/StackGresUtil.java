@@ -70,21 +70,25 @@ public interface StackGresUtil {
           + "\\s*[=\\s]\\s*"
           + "(?:'(?<quoted>.*)'|(?<unquoted>(?:|[^'\\s#][^\\s#]*)))(?:\\s*#.*)?\\s*$");
 
-  static String statefulSetDataPersistentVolumeName(ClusterContext cluster) {
-    return ResourceUtil
-        .nameIsValidService(cluster.getCluster().getMetadata().getName() + DATA_SUFFIX);
+  static String statefulSetDataPersistentVolumeClaimName(ClusterContext cluster) {
+    return ResourceUtil.resourceName(cluster.getCluster().getMetadata().getName() + DATA_SUFFIX);
   }
 
-  static String statefulSetDataPersistentVolumeName(CustomResource<?, ?> cluster) {
-    return ResourceUtil.nameIsValidService(cluster.getMetadata().getName() + DATA_SUFFIX);
+  static String statefulSetDataPersistentVolumeClaimName(CustomResource<?, ?> cluster) {
+    return ResourceUtil.resourceName(cluster.getMetadata().getName() + DATA_SUFFIX);
   }
 
-  static String statefulSetBackupPersistentVolumeName(StackGresCluster cluster) {
-    return ResourceUtil.nameIsValidService(cluster.getMetadata().getName() + BACKUP_SUFFIX);
+  static String cronJobBackupName(StackGresCluster cluster) {
+    return ResourceUtil.resourceName(cluster.getMetadata().getName() + BACKUP_SUFFIX);
   }
 
-  static String shardedBackupPersistentVolumeName(StackGresShardedCluster cluster) {
-    return ResourceUtil.nameIsValidService(cluster.getMetadata().getName() + BACKUP_SUFFIX);
+  static String cronJobShardedBackupName(StackGresShardedCluster cluster) {
+    return ResourceUtil.resourceName(cluster.getMetadata().getName() + BACKUP_SUFFIX);
+  }
+
+  static String statefulSetPodDataPersistentVolumeClaimName(CustomResource<?, ?> cluster) {
+    return ResourceUtil.resourceName(cluster.getMetadata().getName() + DATA_SUFFIX
+        + "-" + cluster.getMetadata().getName());
   }
 
   /**

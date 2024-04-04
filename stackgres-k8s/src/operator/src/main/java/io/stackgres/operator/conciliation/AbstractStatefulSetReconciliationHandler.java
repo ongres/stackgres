@@ -22,7 +22,6 @@ import java.util.function.BooleanSupplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,6 +38,7 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresContext;
+import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.PatroniCtl;
 import io.stackgres.common.patroni.PatroniCtl.PatroniCtlInstance;
@@ -64,6 +64,8 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
 
   private final ReconciliationHandler<T> handler;
 
+  private final ReconciliationHandler<T> protectHandler;
+
   private final LabelFactoryForCluster<T> labelFactory;
 
   private final ResourceFinder<StatefulSet> statefulSetFinder;
@@ -78,6 +80,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
 
   protected AbstractStatefulSetReconciliationHandler(
       ReconciliationHandler<T> handler,
+      ReconciliationHandler<T> protectHandler,
       LabelFactoryForCluster<T> labelFactory,
       ResourceFinder<StatefulSet> statefulSetFinder,
       ResourceScanner<Pod> podScanner,
@@ -85,6 +88,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
       PatroniCtl patroniCtl,
       ObjectMapper objectMapper) {
     this.handler = handler;
+    this.protectHandler = protectHandler;
     this.labelFactory = labelFactory;
     this.statefulSetFinder = statefulSetFinder;
     this.podScanner = podScanner;
@@ -96,6 +100,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
   public AbstractStatefulSetReconciliationHandler() {
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
     this.handler = null;
+    this.protectHandler = null;
     this.labelFactory = null;
     this.statefulSetFinder = null;
     this.podScanner = null;
@@ -148,6 +153,20 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
       return (StatefulSet) handler.patch(context, requiredSts, null);
     } catch (KubernetesClientException ex) {
       if (ex.getCode() == 422) {
+        final Map<String, String> appLabel = labelFactory.appLabel();
+        var deployedStatefulSet = statefulSetFinder.findByNameAndNamespace(
+            requiredSts.getMetadata().getName(),
+            requiredSts.getMetadata().getNamespace())
+            .orElseThrow(() -> new RuntimeException(
+                HasMetadata.getKind(context.getClass()) + " "
+                + requiredSts.getMetadata().getNamespace()
+                + "." + requiredSts.getMetadata().getName()
+                + " not fount while replacing it"));
+
+        protectPodsFromStatefulSetRemoval(context, deployedStatefulSet, appLabel);
+
+        protectPvcsFromStatefulSetRemoval(context, deployedStatefulSet, appLabel);
+
         return replaceStatefulSet(context, requiredSts);
       } else {
         throw ex;
@@ -170,7 +189,9 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
             + " to be deleted");
   }
 
-  private StatefulSet concileSts(T context, HasMetadata resource,
+  private StatefulSet concileSts(
+      T context,
+      HasMetadata resource,
       BiFunction<T, StatefulSet, StatefulSet> writer) {
     final StatefulSet requiredSts;
     try {
@@ -216,7 +237,7 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
 
     fixPods(context, requiredSts, updatedSts, appLabel, patroniCtl);
 
-    fixPvcs(context, requiredSts, appLabel);
+    fixPvcs(context, requiredSts, updatedSts, appLabel);
 
     return updatedSts;
   }
@@ -326,7 +347,9 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     handler.patch(context, primaryPod, null);
   }
 
-  private long countNonDisruptablePods(T context, List<Pod> pods,
+  private long countNonDisruptablePods(
+      T context,
+      List<Pod> pods,
       int lastReplicaIndex) {
     return pods.stream()
         .filter(pod -> isNonDisruptable(context, pod))
@@ -335,8 +358,70 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
         .count();
   }
 
-  private void fixPods(final T context, final StatefulSet statefulSet,
-      final StatefulSet deployedStatefulSet, final Map<String, String> appLabel,
+  private void protectPodsFromStatefulSetRemoval(
+      final T context,
+      final StatefulSet deployedStatefulSet,
+      final Map<String, String> appLabel) {
+    var podsToProtect = findStatefulSetPods(deployedStatefulSet, appLabel);
+    var requiredOwnerReferences = List.of(
+        new OwnerReferenceBuilder()
+        .withApiVersion(deployedStatefulSet.getApiVersion())
+        .withKind(deployedStatefulSet.getKind())
+        .withName(deployedStatefulSet.getMetadata().getName())
+        .withUid(deployedStatefulSet.getMetadata().getUid())
+        .withBlockOwnerDeletion(true)
+        .withController(true)
+        .build(),
+        ResourceUtil.getOwnerReference(context));
+
+    Seq.seq(podsToProtect)
+        .filter(pod -> !Objects.equals(
+            pod.getMetadata().getOwnerReferences(),
+            requiredOwnerReferences))
+        .map(pod -> fixPodOwnerReferences(
+            requiredOwnerReferences, pod,
+            deployedStatefulSet.getMetadata().getName()))
+        .grouped(pod -> pod.getMetadata().getName()).map(Tuple2::v2).map(Seq::findFirst)
+        .map(Optional::get).forEach(pod -> protectHandler.patch(context, pod, null));
+  }
+
+  private void protectPvcsFromStatefulSetRemoval(
+      T context,
+      StatefulSet deployedStatefulSet,
+      Map<String, String> appLabel) {
+    final String namespace = deployedStatefulSet.getMetadata().getNamespace();
+    Pattern statefulSetPodDataPersistentVolumeClaimPattern = ResourceUtil.getNameWithIndexPattern(
+        StackGresUtil.statefulSetPodDataPersistentVolumeClaimName(context));
+    var pvcsToProtect = pvcScanner.findByLabelsAndNamespace(namespace, appLabel).stream()
+        .filter(pvc -> statefulSetPodDataPersistentVolumeClaimPattern.matcher(pvc.getMetadata().getName()).matches())
+        .toList();
+    var requiredOwnerReferences = List.of(
+        new OwnerReferenceBuilder()
+        .withApiVersion(deployedStatefulSet.getApiVersion())
+        .withKind(deployedStatefulSet.getKind())
+        .withName(deployedStatefulSet.getMetadata().getName())
+        .withUid(deployedStatefulSet.getMetadata().getUid())
+        .withBlockOwnerDeletion(true)
+        .withController(true)
+        .build(),
+        ResourceUtil.getOwnerReference(context));
+
+    Seq.seq(pvcsToProtect)
+        .filter(pvc -> !Objects.equals(
+            pvc.getMetadata().getOwnerReferences(),
+            requiredOwnerReferences))
+        .map(pvc -> fixPvcOwnerReferences(
+            requiredOwnerReferences, pvc,
+            deployedStatefulSet.getMetadata().getName()))
+        .grouped(pvc -> pvc.getMetadata().getName()).map(Tuple2::v2).map(Seq::findFirst)
+        .map(Optional::get).forEach(pvc -> protectHandler.patch(context, pvc, null));
+  }
+
+  private void fixPods(
+      final T context,
+      final StatefulSet statefulSet,
+      final StatefulSet deployedStatefulSet,
+      final Map<String, String> appLabel,
       PatroniCtlInstance patroniCtl) {
     var podsToFix = findStatefulSetPods(statefulSet, appLabel);
     List<Pod> disruptablePodsToPatch =
@@ -361,8 +446,11 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
         .map(Optional::get).forEach(pod -> handler.patch(context, pod, null));
   }
 
-  private List<Pod> fixNonDisruptablePods(T context, StatefulSet statefulSet,
-      PatroniCtlInstance patroniCtl, List<Pod> pods) {
+  private List<Pod> fixNonDisruptablePods(
+      T context,
+      StatefulSet statefulSet,
+      PatroniCtlInstance patroniCtl,
+      List<Pod> pods) {
     final Optional<String> latestPrimaryFromPatroni =
         PatroniUtil.getLatestPrimaryFromPatroni(patroniCtl);
     final var members = patroniCtl.list();
@@ -394,7 +482,10 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     return pod;
   }
 
-  private List<Pod> fixPodsPatroniLabels(T context, StatefulSet statefulSet, PatroniCtlInstance patroniCtl,
+  private List<Pod> fixPodsPatroniLabels(
+      T context,
+      StatefulSet statefulSet,
+      PatroniCtlInstance patroniCtl,
       List<Pod> pods) {
     var roles = patroniCtl.list()
         .stream()
@@ -493,7 +584,9 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
   }
 
   private List<Pod> fixPodsOwnerReferences(
-      T context, StatefulSet statefulSet, List<Pod> pods) {
+      T context,
+      StatefulSet statefulSet,
+      List<Pod> pods) {
     var requiredOwnerReferences = List.of(
         new OwnerReferenceBuilder()
         .withApiVersion(statefulSet.getApiVersion())
@@ -502,27 +595,16 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
         .withUid(statefulSet.getMetadata().getUid())
         .withBlockOwnerDeletion(true)
         .withController(true)
-        .build());
-    var requiredOwnerReferencesForNonDisruptiblePod = List.of(
-        ResourceUtil.getControllerOwnerReference(context));
+        .build(),
+        ResourceUtil.getOwnerReference(context));
 
-    return Stream.concat(
-        pods.stream()
-        .filter(pod -> !isNonDisruptable(context, pod))
+    return pods.stream()
         .filter(pod -> !Objects.equals(
             requiredOwnerReferences,
             pod.getMetadata().getOwnerReferences()))
         .map(pod -> fixPodOwnerReferences(
             requiredOwnerReferences, pod,
-            statefulSet.getMetadata().getName())),
-        pods.stream()
-        .filter(pod -> isNonDisruptable(context, pod))
-        .filter(pod -> !Objects.equals(
-            requiredOwnerReferencesForNonDisruptiblePod,
-            pod.getMetadata().getOwnerReferences()))
-        .map(pod -> fixPodOwnerReferences(
-            requiredOwnerReferencesForNonDisruptiblePod, pod,
-            statefulSet.getMetadata().getName())))
+            statefulSet.getMetadata().getName()))
         .toList();
   }
 
@@ -540,7 +622,9 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     return pod;
   }
 
-  private List<Pod> fixPodsSelectorMatchLabels(final T context, final StatefulSet statefulSet,
+  private List<Pod> fixPodsSelectorMatchLabels(
+      final T context,
+      final StatefulSet statefulSet,
       final List<Pod> pods) {
     final var requiredPodLabels =
         Optional.ofNullable(statefulSet.getSpec().getSelector().getMatchLabels())
@@ -578,36 +662,30 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     return pod;
   }
 
-  private void fixPvcs(T context, StatefulSet statefulSet, Map<String, String> appLabel) {
-    var pods = findStatefulSetPods(statefulSet, appLabel);
+  private void fixPvcs(
+      T context,
+      StatefulSet statefulSet,
+      final StatefulSet deployedStatefulSet,
+      Map<String, String> appLabel) {
     final String namespace = statefulSet.getMetadata().getNamespace();
-    var expectedPvcNames = Optional.of(statefulSet)
-        .map(StatefulSet::getSpec)
-        .map(StatefulSetSpec::getVolumeClaimTemplates)
-        .stream()
-        .flatMap(List::stream)
-        .map(PersistentVolumeClaim::getMetadata)
-        .map(ObjectMeta::getName)
-        .flatMap(pvcTemplateName -> pods.stream()
-            .map(Pod::getMetadata)
-            .map(ObjectMeta::getName)
-            .map(podName -> pvcTemplateName + "-" + podName))
-        .toList();
+    Pattern statefulSetPodDataPersistentVolumeClaimPattern = ResourceUtil.getNameWithIndexPattern(
+        StackGresUtil.statefulSetPodDataPersistentVolumeClaimName(context));
     var pvcsToFix = pvcScanner.findByLabelsAndNamespace(namespace, appLabel).stream()
-        .filter(pvc -> expectedPvcNames.contains(pvc.getMetadata().getName()))
+        .filter(pvc -> statefulSetPodDataPersistentVolumeClaimPattern.matcher(pvc.getMetadata().getName()).matches())
         .toList();
     List<PersistentVolumeClaim> pvcAnnotationsToPatch = fixPvcsAnnotations(
         statefulSet, pvcsToFix);
     List<PersistentVolumeClaim> pvcLabelsToPatch = fixPvcsLabels(
         statefulSet, pvcsToFix);
     List<PersistentVolumeClaim> pvcOwnerReferencesToPatch = fixPvcOwnerReferences(
-        context, statefulSet, pvcsToFix);
+        context, deployedStatefulSet, pvcsToFix);
     Seq.seq(pvcAnnotationsToPatch).append(pvcLabelsToPatch).append(pvcOwnerReferencesToPatch)
         .grouped(pvc -> pvc.getMetadata().getName()).map(Tuple2::v2).map(Seq::findFirst)
         .map(Optional::get).forEach(pvc -> handler.patch(context, pvc, null));
   }
 
-  private List<PersistentVolumeClaim> fixPvcsAnnotations(StatefulSet statefulSet,
+  private List<PersistentVolumeClaim> fixPvcsAnnotations(
+      StatefulSet statefulSet,
       List<PersistentVolumeClaim> pvcs) {
     var requiredPvcAnnotations =
         Seq.seq(statefulSet.getSpec().getVolumeClaimTemplates())
@@ -640,7 +718,8 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
         .toList();
   }
 
-  private PersistentVolumeClaim fixPvcAnnotations(Map<String, String> requiredPvcAnnotations,
+  private PersistentVolumeClaim fixPvcAnnotations(
+      Map<String, String> requiredPvcAnnotations,
       PersistentVolumeClaim pvc) {
     if (LOGGER.isDebugEnabled()) {
       final String namespace = pvc.getMetadata().getNamespace();
@@ -659,7 +738,8 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     return pvc;
   }
 
-  private List<PersistentVolumeClaim> fixPvcsLabels(StatefulSet statefulSet,
+  private List<PersistentVolumeClaim> fixPvcsLabels(
+      StatefulSet statefulSet,
       List<PersistentVolumeClaim> pvcs) {
     var requiredPvcLabels =
         Seq.seq(statefulSet.getSpec().getVolumeClaimTemplates())
@@ -692,7 +772,8 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
         .toList();
   }
 
-  private PersistentVolumeClaim fixPvcLabels(Map<String, String> requiredPvcLabels,
+  private PersistentVolumeClaim fixPvcLabels(
+      Map<String, String> requiredPvcLabels,
       PersistentVolumeClaim pvc) {
     if (LOGGER.isDebugEnabled()) {
       final String namespace = pvc.getMetadata().getNamespace();
@@ -712,9 +793,19 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
   }
 
   private List<PersistentVolumeClaim> fixPvcOwnerReferences(
-      T context, StatefulSet statefulSet, List<PersistentVolumeClaim> pvcs) {
+      T context,
+      StatefulSet statefulSet,
+      List<PersistentVolumeClaim> pvcs) {
     var requiredOwnerReferences = List.of(
-        ResourceUtil.getControllerOwnerReference(context));
+        new OwnerReferenceBuilder()
+        .withApiVersion(statefulSet.getApiVersion())
+        .withKind(statefulSet.getKind())
+        .withName(statefulSet.getMetadata().getName())
+        .withUid(statefulSet.getMetadata().getUid())
+        .withBlockOwnerDeletion(true)
+        .withController(true)
+        .build(),
+        ResourceUtil.getOwnerReference(context));
 
     return pvcs.stream()
         .filter(pvc -> !Objects.equals(
@@ -741,11 +832,12 @@ public abstract class AbstractStatefulSetReconciliationHandler<T extends CustomR
     return pvc;
   }
 
-  private List<Pod> findStatefulSetPods(final StatefulSet updatedSts,
+  private List<Pod> findStatefulSetPods(
+      final StatefulSet updatedSts,
       final Map<String, String> appLabel) {
     final String namespace = updatedSts.getMetadata().getNamespace();
     final String name = updatedSts.getMetadata().getName();
-    var stsPodNameMatcher = Pattern.compile("^" + name + "-[0-9]+$");
+    var stsPodNameMatcher = ResourceUtil.getNameWithIndexPattern(name);
     return podScanner.findByLabelsAndNamespace(namespace, appLabel).stream()
         .filter(pod -> Optional.of(pod)
             .map(Pod::getMetadata)

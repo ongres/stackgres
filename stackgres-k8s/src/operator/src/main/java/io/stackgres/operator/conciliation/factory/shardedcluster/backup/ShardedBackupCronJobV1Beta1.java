@@ -106,7 +106,7 @@ public class ShardedBackupCronJobV1Beta1
   }
 
   public static String backupName(StackGresShardedClusterContext clusterContext) {
-    return StackGresUtil.shardedBackupPersistentVolumeName(clusterContext.getSource());
+    return StackGresUtil.cronJobShardedBackupName(clusterContext.getSource());
   }
 
   @Override
