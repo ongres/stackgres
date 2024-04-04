@@ -9,6 +9,7 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,13 +34,15 @@ class DefaultBackupPathMutatorTest {
 
   private StackGresClusterReview review;
   private DefaultBackupPathMutator mutator;
+  private Instant defaultTimestamp;
 
   @BeforeEach
   void setUp() throws NoSuchFieldException, IOException {
     review = AdmissionReviewFixtures.cluster().loadCreate().get();
     review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
 
-    mutator = new DefaultBackupPathMutator();
+    defaultTimestamp = Instant.now();
+    mutator = new DefaultBackupPathMutator(defaultTimestamp);
   }
 
   @Test
@@ -68,6 +71,7 @@ class DefaultBackupPathMutatorTest {
         BackupStorageUtil.getPath(
             cluster.getMetadata().getNamespace(),
             cluster.getMetadata().getName(),
+            defaultTimestamp,
             postgresMajorVersion),
         actualCluster.getSpec().getConfigurations().getBackups().get(0).getPath());
   }

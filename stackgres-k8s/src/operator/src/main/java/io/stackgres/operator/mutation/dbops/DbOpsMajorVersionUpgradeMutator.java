@@ -7,6 +7,7 @@ package io.stackgres.operator.mutation.dbops;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,10 +27,20 @@ import jakarta.inject.Inject;
 public class DbOpsMajorVersionUpgradeMutator implements DbOpsMutator {
 
   private final CustomResourceFinder<StackGresCluster> clusterFinder;
+  private final Instant defaultTimestamp;
 
   @Inject
-  public DbOpsMajorVersionUpgradeMutator(CustomResourceFinder<StackGresCluster> clusterFinder) {
+  public DbOpsMajorVersionUpgradeMutator(
+      CustomResourceFinder<StackGresCluster> clusterFinder) {
     this.clusterFinder = clusterFinder;
+    this.defaultTimestamp = null;
+  }
+
+  DbOpsMajorVersionUpgradeMutator(
+      CustomResourceFinder<StackGresCluster> clusterFinder,
+      Instant defaultTimestamp) {
+    this.clusterFinder = clusterFinder;
+    this.defaultTimestamp = defaultTimestamp;
   }
 
   @Override
@@ -73,9 +84,11 @@ public class DbOpsMajorVersionUpgradeMutator implements DbOpsMutator {
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
         .get(cluster)
         .getMajorVersion(postgresVersion);
+    Instant timestamp = Optional.ofNullable(defaultTimestamp).orElse(Instant.now());
     return BackupStorageUtil.getPath(
         cluster.getMetadata().getNamespace(),
         cluster.getMetadata().getName(),
+        timestamp,
         postgresMajorVersion);
   }
 
