@@ -16,6 +16,7 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.CustomServicePort;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceNodePort;
 import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
 import jakarta.validation.Valid;
@@ -47,11 +48,11 @@ public class StackGresClusterPostgresService extends StackGresPostgresService {
       List<String> ipFamilies, String ipFamilyPolicy, String loadBalancerClass,
       String loadBalancerIP, List<String> loadBalancerSourceRanges, List<ServicePort> ports,
       Boolean publishNotReadyAddresses, Map<String, String> selector, String sessionAffinity,
-      SessionAffinityConfig sessionAffinityConfig, String type) {
+      SessionAffinityConfig sessionAffinityConfig, String type, StackGresPostgresServiceNodePort nodePorts) {
     super(allocateLoadBalancerNodePorts, clusterIP, clusterIPs, externalIPs, externalName,
         externalTrafficPolicy, healthCheckNodePort, internalTrafficPolicy, ipFamilies,
         ipFamilyPolicy, loadBalancerClass, loadBalancerIP, loadBalancerSourceRanges, ports,
-        publishNotReadyAddresses, selector, sessionAffinity, sessionAffinityConfig, type);
+        publishNotReadyAddresses, selector, sessionAffinity, sessionAffinityConfig, type, nodePorts);
   }
 
   public List<CustomServicePort> getCustomPorts() {

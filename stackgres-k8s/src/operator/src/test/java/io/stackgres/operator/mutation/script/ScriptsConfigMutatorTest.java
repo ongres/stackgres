@@ -177,8 +177,8 @@ class ScriptsConfigMutatorTest {
     StackGresScript expected = JsonUtil.copy(review.getRequest().getObject());
     expected.getSpec().getScripts().get(1).setId(3);
     expected.getSpec().getScripts().get(1).setVersion(0);
-    expected.getStatus().getScripts().add(1, new StackGresScriptEntryStatus());
-    expected.getStatus().getScripts().get(1).setId(3);
+    expected.getStatus().getScripts().add(new StackGresScriptEntryStatus());
+    expected.getStatus().getScripts().get(3).setId(3);
     JsonNode expectedScript = JsonUtil.toJson(expected);
 
     StackGresScript result = mutator.mutate(review, JsonUtil.copy(review.getRequest().getObject()));

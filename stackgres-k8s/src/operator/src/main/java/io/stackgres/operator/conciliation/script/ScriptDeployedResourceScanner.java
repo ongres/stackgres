@@ -55,7 +55,8 @@ public class ScriptDeployedResourceScanner
   @Override
   protected Map<Class<? extends HasMetadata>, Function<KubernetesClient,
       MixedOperation<? extends HasMetadata, ? extends KubernetesResourceList<? extends HasMetadata>,
-          ? extends Resource<? extends HasMetadata>>>> getInNamepspaceResourceOperations() {
+          ? extends Resource<? extends HasMetadata>>>> getInNamepspaceResourceOperations(
+              StackGresScript config) {
     throw new UnsupportedOperationException();
   }
 

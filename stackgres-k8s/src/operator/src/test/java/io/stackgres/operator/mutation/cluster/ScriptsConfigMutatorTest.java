@@ -115,20 +115,20 @@ class ScriptsConfigMutatorTest {
     review.getRequest().getObject().getStatus().getManagedSql().setScripts(null);
 
     StackGresCluster expected = JsonUtil.copy(review.getRequest().getObject());
-    expected.getSpec().getManagedSql().getScripts().add(new StackGresClusterManagedScriptEntry());
-    expected.getSpec().getManagedSql().getScripts().get(1)
+    expected.getSpec().getManagedSql().getScripts().add(0, new StackGresClusterManagedScriptEntry());
+    expected.getSpec().getManagedSql().getScripts().get(0)
         .setId(1);
-    expected.getSpec().getManagedSql().getScripts().get(1)
+    expected.getSpec().getManagedSql().getScripts().get(0)
         .setSgScript(ManagedSqlUtil.defaultName(expected));
     expected.getStatus().getManagedSql().setScripts(new ArrayList<>());
     expected.getStatus().getManagedSql().getScripts()
         .add(new StackGresClusterManagedScriptEntryStatus());
     expected.getStatus().getManagedSql().getScripts().get(0)
-        .setId(0);
+        .setId(1);
     expected.getStatus().getManagedSql().getScripts()
         .add(new StackGresClusterManagedScriptEntryStatus());
     expected.getStatus().getManagedSql().getScripts().get(1)
-        .setId(1);
+        .setId(0);
     JsonNode expectedCluster = JsonUtil.toJson(expected);
 
     review.getRequest().getObject().setStatus(null);

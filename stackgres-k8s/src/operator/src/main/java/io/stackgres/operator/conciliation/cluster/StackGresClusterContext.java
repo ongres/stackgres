@@ -22,11 +22,13 @@ import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.ClusterContext;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
+import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromStorage;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationInitialization;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecLabels;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
@@ -80,6 +82,8 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
   Optional<StackGresBackup> getRestoreBackup();
 
   Map<String, Secret> getRestoreSecrets();
+
+  Map<String, Secret> getReplicationInitializationSecrets();
 
   Map<String, Secret> getReplicateSecrets();
 
@@ -143,6 +147,12 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
   Optional<String> getPostgresSslCertificate();
 
   Optional<String> getPostgresSslPrivateKey();
+
+  Optional<StackGresBackup> getReplicationInitializationBackup();
+
+  Optional<StackGresBackup> getReplicationInitializationBackupToCreate();
+
+  int getCurrentInstances();
 
   default Optional<String> getBackupPath() {
     Optional<@NotNull StackGresClusterConfigurations> config = Optional.of(getCluster())
@@ -226,6 +236,32 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
   default Optional<BackupStorage> getReplicateStorage() {
     return getReplicateObjectStorageConfig()
         .map(CustomResource::getSpec);
+  }
+
+  default Optional<BackupConfiguration> getReplicationInitializationConfiguration() {
+    return getReplicationInitializationBackup()
+        .map(StackGresBackup::getStatus)
+        .map(StackGresBackupStatus::getBackupPath)
+        .map(path -> new BackupConfiguration(
+            null,
+            null,
+            null,
+            path,
+            Optional.ofNullable(getCluster().getSpec().getReplication()
+                .getInitialization())
+            .map(StackGresClusterReplicationInitialization::getBackupRestorePerformance)
+            .map(bp -> new BackupPerformance(
+                bp.getMaxNetworkBandwidth(),
+                bp.getMaxDiskBandwidth(),
+                bp.getUploadDiskConcurrency(),
+                bp.getUploadConcurrency(),
+                bp.getDownloadConcurrency()))
+            .orElse(null),
+            null,
+            null,
+            null,
+            null,
+            null));
   }
 
   default Optional<BackupConfiguration> getReplicateConfiguration() {

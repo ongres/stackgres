@@ -35,6 +35,8 @@ public class StackGresClusterReplicationGroup {
   @Positive(message = "You need at least 1 instance in the replication group")
   private Integer instances;
 
+  private Integer minInstances;
+
   public String getName() {
     return name;
   }
@@ -59,9 +61,17 @@ public class StackGresClusterReplicationGroup {
     this.instances = instances;
   }
 
+  public Integer getMinInstances() {
+    return minInstances;
+  }
+
+  public void setMinInstances(Integer minInstances) {
+    this.minInstances = minInstances;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(instances, name, role);
+    return Objects.hash(instances, minInstances, name, role);
   }
 
   @Override
@@ -73,8 +83,8 @@ public class StackGresClusterReplicationGroup {
       return false;
     }
     StackGresClusterReplicationGroup other = (StackGresClusterReplicationGroup) obj;
-    return Objects.equals(instances, other.instances) && Objects.equals(name, other.name)
-        && Objects.equals(role, other.role);
+    return Objects.equals(instances, other.instances) && Objects.equals(minInstances, other.minInstances)
+        && Objects.equals(name, other.name) && Objects.equals(role, other.role);
   }
 
   public String toString() {

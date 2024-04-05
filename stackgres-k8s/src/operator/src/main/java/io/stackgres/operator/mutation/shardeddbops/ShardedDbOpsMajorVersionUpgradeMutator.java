@@ -7,6 +7,7 @@ package io.stackgres.operator.mutation.shardeddbops;
 
 import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,11 +29,19 @@ import org.jooq.lambda.Seq;
 public class ShardedDbOpsMajorVersionUpgradeMutator implements ShardedDbOpsMutator {
 
   private final CustomResourceFinder<StackGresShardedCluster> clusterFinder;
+  private final Instant defaultTimestamp;
 
   @Inject
   public ShardedDbOpsMajorVersionUpgradeMutator(
       CustomResourceFinder<StackGresShardedCluster> clusterFinder) {
     this.clusterFinder = clusterFinder;
+    this.defaultTimestamp = null;
+  }
+
+  ShardedDbOpsMajorVersionUpgradeMutator(CustomResourceFinder<StackGresShardedCluster> clusterFinder,
+      Instant defaultTimestamp) {
+    this.clusterFinder = clusterFinder;
+    this.defaultTimestamp = defaultTimestamp;
   }
 
   @Override
@@ -87,10 +96,12 @@ public class ShardedDbOpsMajorVersionUpgradeMutator implements ShardedDbOpsMutat
     final String postgresMajorVersion = getPostgresFlavorComponent(postgresFlavor)
         .get(cluster)
         .getMajorVersion(postgresVersion);
+    Instant timestamp = Optional.ofNullable(defaultTimestamp).orElse(Instant.now());
     return Seq.range(0, getNumberOfClusters(cluster))
         .map(index -> BackupStorageUtil.getPath(
             cluster.getMetadata().getNamespace(),
             StackGresShardedClusterUtil.getClusterName(cluster, index),
+            timestamp,
             postgresMajorVersion))
         .toList();
   }

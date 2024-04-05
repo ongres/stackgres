@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
@@ -35,6 +36,9 @@ public class ClusterStatus {
   private String labelPrefix;
 
   private ClusterServiceBindingStatus binding;
+
+  @JsonProperty("replicationInitializationFailedSGBackup")
+  private String replicationInitializationFailedSgBackup;
 
   public Integer getInstances() {
     return instances;
@@ -114,6 +118,14 @@ public class ClusterStatus {
 
   public void setBinding(ClusterServiceBindingStatus binding) {
     this.binding = binding;
+  }
+
+  public String getReplicationInitializationFailedSgBackup() {
+    return replicationInitializationFailedSgBackup;
+  }
+
+  public void setReplicationInitializationFailedSgBackup(String replicationInitializationFailedSgBackup) {
+    this.replicationInitializationFailedSgBackup = replicationInitializationFailedSgBackup;
   }
 
   @Override

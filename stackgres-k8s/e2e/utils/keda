@@ -1,0 +1,55 @@
+#!/bin/sh
+
+keda_namespace() {
+  echo "$CLUSTER_NAMESPACE-keda"
+}
+
+install_keda() {
+  if [ "$E2E_ENV" = "minishift" ] || [ "$E2E_ENV" = "crc" ] || [ "$E2E_ENV" = "microshift" ]
+  then
+    if [ "$E2E_ENV" = "minishift" ]
+    then
+      eval "$(minishift oc-env)"
+    fi
+    if [ "$E2E_ENV" = "crc" ]
+    then
+      eval "$(crc oc-env)"
+    fi
+    if [ "$E2E_ENV" = "microshift" ]
+    then
+      alias oc="docker exec -ti '$K8S_NAME' oc"
+    fi
+    kubectl create ns "$(keda_namespace)"
+    oc adm policy add-scc-to-user anyuid -n "$(keda_namespace)" -z default
+  fi
+
+  kubectl get crd -o name | grep -F '.keda.sh' \
+    | xargs -I @ kubectl delete --wait=false --ignore-not-found @
+  kubectl get crd -o name | grep -F '.keda.sh' \
+    | while read CRD
+      do
+        kubectl get "${CRD#*/}" -A -o name | wc -l | grep -qxF 0 \
+          || kubectl get "${CRD#*/}" -A -o json \
+            | kubectl patch -f - --type merge -p '{"metadata":{"finalizers":null}}'
+      done
+  wait_until eval 'kubectl get crd -o name | grep -F ".keda.sh" | wc -l | grep -qxF 0'
+  if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -ge "$(echo "1.23" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  then
+    KEDA_VERSION=2.13.2
+  else
+    KEDA_VERSION=2.8.4
+  fi
+  helm install keda "$E2E_PATH/helm/keda-$KEDA_VERSION.tgz" \
+    --create-namespace \
+    --namespace "$(keda_namespace)" \
+    --set-string auth.rbac.rootPassword=test \
+    "$@"
+
+  wait_pods_running "$(keda_namespace)" 2
+}
+
+uninstall_keda() {
+  helm_cleanup_chart keda "$(keda_namespace)"
+  k8s_async_cleanup_namespace "$(keda_namespace)"
+}

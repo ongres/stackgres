@@ -40,6 +40,7 @@ public interface StackGresContext {
   String BACKUP_NAME_KEY = "backup-name";
   String BACKUP_UID_KEY = "backup-uid";
   String BACKUP_NAMESPACE_KEY = "backup-namespace";
+  String RECONCILIATION_INITIALIZATION_BACKUP_KEY = "reconciliation-init";
   String SHARDEDCLUSTER_APP_NAME = "StackGresShardedCluster";
   String SHARDEDCLUSTER_NAME_KEY = "shardedcluster-name";
   String SHARDEDCLUSTER_UID_KEY = "shardedcluster-uid";

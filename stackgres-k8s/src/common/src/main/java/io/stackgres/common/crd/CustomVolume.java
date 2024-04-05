@@ -41,12 +41,11 @@ import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
 
 @RegisterForReflection
-@JsonIgnoreProperties(ignoreUnknown = true, value = { "optional" })
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder",
     refs = {
-      @BuildableReference(io.fabric8.kubernetes.api.model.Volume.class),
       @BuildableReference(io.fabric8.kubernetes.api.model.Volume.class),
       @BuildableReference(io.fabric8.kubernetes.api.model.AWSElasticBlockStoreVolumeSource.class),
       @BuildableReference(io.fabric8.kubernetes.api.model.AzureDiskVolumeSource.class),

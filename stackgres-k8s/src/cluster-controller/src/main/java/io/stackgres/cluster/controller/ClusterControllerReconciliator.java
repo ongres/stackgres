@@ -39,8 +39,10 @@ public class ClusterControllerReconciliator
   private final PatroniReconciliator patroniReconciliator;
   private final ManagedSqlReconciliator managedSqlReconciliator;
   private final PostgresSslReconciliator postgresSslReconciliator;
-  private final PatroniResetReconciliator patroniStandbyHistoryReconciliator;
+  private final PatroniStandbyReconciliator patroniStandbyReconciliator;
   private final PatroniConfigReconciliator patroniConfigReconciliator;
+  private final PatroniMajorVersionUpgradeReconciliator patroniMajorVersionUpgradeReconciliator;
+  private final PatroniBackupFailoverRestartReconciliator patroniBackupFailoverRestartReconciliator;
   private final ClusterControllerPropertyContext propertyContext;
   private final String podName;
 
@@ -54,8 +56,10 @@ public class ClusterControllerReconciliator
     this.patroniReconciliator = parameters.patroniReconciliator;
     this.managedSqlReconciliator = parameters.managedSqlReconciliator;
     this.postgresSslReconciliator = parameters.postgresSslReconciliator;
-    this.patroniStandbyHistoryReconciliator = parameters.patroniStandbyHistoryReconciliator;
+    this.patroniStandbyReconciliator = parameters.patroniStandbyReconciliator;
     this.patroniConfigReconciliator = parameters.patroniConfigReconciliator;
+    this.patroniMajorVersionUpgradeReconciliator = parameters.patroniMajorVersionUpgradeReconciliator;
+    this.patroniBackupFailoverRestartReconciliator = parameters.patroniBackupFailoverRestartReconciliator;
     this.propertyContext = parameters.propertyContext;
     this.podName = parameters.propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME);
@@ -72,8 +76,10 @@ public class ClusterControllerReconciliator
     this.patroniReconciliator = null;
     this.managedSqlReconciliator = null;
     this.postgresSslReconciliator = null;
-    this.patroniStandbyHistoryReconciliator = null;
+    this.patroniStandbyReconciliator = null;
     this.patroniConfigReconciliator = null;
+    this.patroniMajorVersionUpgradeReconciliator = null;
+    this.patroniBackupFailoverRestartReconciliator = null;
     this.propertyContext = null;
     this.podName = null;
   }
@@ -116,10 +122,14 @@ public class ClusterControllerReconciliator
         managedSqlReconciliator.reconcile(client, context);
     ReconciliationResult<Void> postgresSslReconciliationResult =
         postgresSslReconciliator.reconcile(client, context);
-    ReconciliationResult<Void> patroniStandbyHistoryReconciliatorResult =
-        patroniStandbyHistoryReconciliator.reconcile(client, context);
+    ReconciliationResult<Void> patroniStandbyReconciliatorResult =
+        patroniStandbyReconciliator.reconcile(client, context);
     ReconciliationResult<Void> patroniConfigReconciliationResult =
         patroniConfigReconciliator.reconcile(client, context);
+    ReconciliationResult<Void> patroniMajorVersionUpgradeReconciliatorResult =
+        patroniMajorVersionUpgradeReconciliator.reconcile(client, context);
+    ReconciliationResult<Void> patroniBackupFailoverRestartReconciliatorResult =
+        patroniBackupFailoverRestartReconciliator.reconcile(client, context);
 
     if (podStatusMissing
         || postgresBootstrapReconciliatorResult.result().orElse(false)
@@ -155,8 +165,10 @@ public class ClusterControllerReconciliator
         .join(patroniReconciliationResult)
         .join(managedSqlReconciliationResult)
         .join(postgresSslReconciliationResult)
-        .join(patroniStandbyHistoryReconciliatorResult)
+        .join(patroniStandbyReconciliatorResult)
         .join(patroniConfigReconciliationResult)
+        .join(patroniMajorVersionUpgradeReconciliatorResult)
+        .join(patroniBackupFailoverRestartReconciliatorResult)
         .join(pvcSizeReconciliatorResult);
   }
 
@@ -203,8 +215,10 @@ public class ClusterControllerReconciliator
     @Inject PatroniReconciliator patroniReconciliator;
     @Inject ManagedSqlReconciliator managedSqlReconciliator;
     @Inject PostgresSslReconciliator postgresSslReconciliator;
-    @Inject PatroniResetReconciliator patroniStandbyHistoryReconciliator;
+    @Inject PatroniStandbyReconciliator patroniStandbyReconciliator;
     @Inject PatroniConfigReconciliator patroniConfigReconciliator;
+    @Inject PatroniMajorVersionUpgradeReconciliator patroniMajorVersionUpgradeReconciliator;
+    @Inject PatroniBackupFailoverRestartReconciliator patroniBackupFailoverRestartReconciliator;
   }
 
 }

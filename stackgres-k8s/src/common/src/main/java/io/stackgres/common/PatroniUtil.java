@@ -49,6 +49,10 @@ import org.slf4j.LoggerFactory;
 
 public interface PatroniUtil {
 
+  String PATRONI_READ_ONLY_SERVICE_NAME = "PATRONI_READ_ONLY_SERVICE_NAME";
+  String REPLICATION_SERVICE_PORT_ENV = "REPLICATION_SERVICE_PORT";
+  String REPLICATION_INITIALIZATION_BACKUP = "REPLICATION_INITIALIZATION_BACKUP";
+
   String LEADER_KEY = "leader";
   String INITIALIZE_KEY = "initialize";
   String CONFIG_KEY = "config";

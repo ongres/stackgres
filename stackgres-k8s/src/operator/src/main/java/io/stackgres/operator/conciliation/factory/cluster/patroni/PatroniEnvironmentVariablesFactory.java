@@ -19,14 +19,17 @@ import java.util.function.Function;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterInitialData;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFrom;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplication;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestorePitr;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
+import io.stackgres.common.crd.sgcluster.StackGresReplicationInitializationMode;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfigSpec;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
@@ -43,6 +46,29 @@ public class PatroniEnvironmentVariablesFactory
     StackGresCluster cluster = context.getSource();
 
     List<EnvVar> additionalEnvVars = new ArrayList<>();
+
+    additionalEnvVars.add(new EnvVarBuilder()
+        .withName(PatroniUtil.PATRONI_READ_ONLY_SERVICE_NAME)
+        .withValue(PatroniUtil.readOnlyName(cluster))
+        .build());
+    additionalEnvVars.add(new EnvVarBuilder()
+        .withName(PatroniUtil.REPLICATION_SERVICE_PORT_ENV)
+        .withValue(String.valueOf(PatroniUtil.REPLICATION_SERVICE_PORT))
+        .build());
+    var replication = Optional.ofNullable(cluster.getSpec())
+        .map(StackGresClusterSpec::getReplication);
+    appendEnvVarIfPresent("REPLICATION_INITIALIZATION_FROM_BACKUP",
+        replication, additionalEnvVars,
+        Function.<StackGresClusterReplication>identity()
+        .andThen(StackGresClusterReplication::getInitializationModeOrDefault)
+        .andThen(mode -> StackGresReplicationInitializationMode.FROM_EXISTING_BACKUP.ordinal() >= mode.ordinal()),
+        Object::toString);
+    appendEnvVarIfPresent("REPLICATION_INITIALIZATION_FROM_REPLICA",
+        replication, additionalEnvVars,
+        Function.<StackGresClusterReplication>identity()
+        .andThen(StackGresClusterReplication::getInitializationModeOrDefault)
+        .andThen(mode -> StackGresReplicationInitializationMode.FROM_REPLICA.ordinal() >= mode.ordinal()),
+        Object::toString);
 
     var replicateFrom = Optional.ofNullable(cluster.getSpec())
         .map(StackGresClusterSpec::getReplicateFrom);
@@ -98,6 +124,7 @@ public class PatroniEnvironmentVariablesFactory
             + " " + DateTimeFormatter.ISO_LOCAL_TIME
             .withZone(ZoneId.from(ZoneOffset.UTC))
             .format(restoreToTimestamp)));
+
     appendEnvVarIfPresent("INITDB_AUTH_HOST",
         Optional.of(context.getPostgresConfig()),
         additionalEnvVars,
@@ -150,4 +177,5 @@ public class PatroniEnvironmentVariablesFactory
             .build())
         .ifPresent(additionalEnvVars::add);
   }
+
 }

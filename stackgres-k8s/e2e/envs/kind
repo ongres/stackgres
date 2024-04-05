@@ -155,6 +155,17 @@ EOF
   cat << EOF > "$TARGET_PATH/kind-config.yaml"
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
+featureGates:
+  HPAContainerMetrics: true
+$(
+  if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -ge "$(echo "1.27" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  then
+    cat << INNER_INNER_EOF
+  InPlacePodVerticalScaling: true
+INNER_INNER_EOF
+  fi
+)
 $(
   if [ -n "$KIND_CONTAINERD_CACHE_PATH" ] || \
     docker system info 2> /dev/null | grep -q "Backing Filesystem: \(zfs\|btrfs\)"
@@ -403,6 +414,10 @@ EOF
       kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/deploy/kubernetes/snapshot-controller/rbac-snapshot-controller.yaml"
       kubectl create -f "https://raw.githubusercontent.com/kubernetes-csi/external-snapshotter/${SNAPSHOTTER_VERSION}/deploy/kubernetes/snapshot-controller/setup-snapshot-controller.yaml"
       CSI_DRIVER_HOST_PATH_PATH="$TARGET_PATH/csi-driver-host-path/deploy/kubernetes-$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)"
+      if [ "$(printf %s "$K8S_VERSION" | cut -d . -f 1-2)" = 1.23 ]
+      then
+        CSI_DRIVER_HOST_PATH_PATH="$TARGET_PATH/csi-driver-host-path/deploy/kubernetes-1.22"
+      fi
       cat << 'EOF' > "$CSI_DRIVER_HOST_PATH_PATH/kubectlw"
 set -e
 if [ "x$1" = xapply ]

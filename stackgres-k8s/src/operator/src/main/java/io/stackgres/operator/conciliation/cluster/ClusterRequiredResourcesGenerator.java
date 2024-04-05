@@ -5,7 +5,12 @@
 
 package io.stackgres.operator.conciliation.cluster;
 
+import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
+
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -19,16 +24,24 @@ import java.util.stream.Stream;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.SecretKeySelector;
+import io.stackgres.common.crd.external.prometheus.Prometheus;
+import io.stackgres.common.crd.external.prometheus.PrometheusInstallation;
+import io.stackgres.common.crd.external.prometheus.PrometheusSpec;
+import io.stackgres.common.crd.sgbackup.BackupStatus;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupConfigSpec;
+import io.stackgres.common.crd.sgbackup.StackGresBackupInformation;
+import io.stackgres.common.crd.sgbackup.StackGresBackupProcess;
 import io.stackgres.common.crd.sgbackup.StackGresBackupSpec;
 import io.stackgres.common.crd.sgbackup.StackGresBackupStatus;
+import io.stackgres.common.crd.sgbackup.StackGresBackupTiming;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
@@ -41,25 +54,27 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromInstance;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromStorage;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUserSecretKeyRef;
 import io.stackgres.common.crd.sgcluster.StackGresClusterReplicateFromUsers;
+import io.stackgres.common.crd.sgcluster.StackGresClusterReplicationInitialization;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestore;
 import io.stackgres.common.crd.sgcluster.StackGresClusterRestoreFromBackup;
 import io.stackgres.common.crd.sgcluster.StackGresClusterServiceBinding;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSsl;
+import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import io.stackgres.common.crd.sgcluster.StackGresClusterUserSecretKeyRef;
 import io.stackgres.common.crd.sgcluster.StackGresClusterUsersCredentials;
+import io.stackgres.common.crd.sgcluster.StackGresReplicationInitializationMode;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgobjectstorage.StackGresObjectStorage;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgpooling.StackGresPoolingConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
+import io.stackgres.common.labels.LabelFactoryForCluster;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
-import io.stackgres.common.prometheus.Prometheus;
-import io.stackgres.common.prometheus.PrometheusInstallation;
-import io.stackgres.common.prometheus.PrometheusSpec;
 import io.stackgres.common.resource.CustomResourceFinder;
 import io.stackgres.common.resource.CustomResourceScanner;
 import io.stackgres.common.resource.ResourceFinder;
+import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operator.common.PrometheusContext;
 import io.stackgres.operator.conciliation.RequiredResourceGenerator;
 import io.stackgres.operator.conciliation.ResourceGenerationDiscoverer;
@@ -69,6 +84,7 @@ import io.stackgres.operator.configuration.OperatorPropertyContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
@@ -103,6 +119,10 @@ public class ClusterRequiredResourcesGenerator
 
   private final CustomResourceScanner<StackGresBackup> backupScanner;
 
+  private final LabelFactoryForCluster<StackGresCluster> labelFactory;
+
+  private final ResourceScanner<Pod> podScanner;
+
   private final BackupEnvVarFactory backupEnvVarFactory;
 
   private final OperatorPropertyContext operatorContext;
@@ -122,6 +142,8 @@ public class ClusterRequiredResourcesGenerator
       ResourceFinder<Secret> secretFinder,
       CustomResourceScanner<Prometheus> prometheusScanner,
       CustomResourceScanner<StackGresBackup> backupScanner,
+      LabelFactoryForCluster<StackGresCluster> labelFactory,
+      ResourceScanner<Pod> podScanner,
       BackupEnvVarFactory backupEnvVarFactory,
       OperatorPropertyContext operatorContext,
       ResourceGenerationDiscoverer<StackGresClusterContext> discoverer) {
@@ -136,6 +158,8 @@ public class ClusterRequiredResourcesGenerator
     this.secretFinder = secretFinder;
     this.prometheusScanner = prometheusScanner;
     this.backupScanner = backupScanner;
+    this.labelFactory = labelFactory;
+    this.podScanner = podScanner;
     this.backupEnvVarFactory = backupEnvVarFactory;
     this.operatorContext = operatorContext;
     this.discoverer = discoverer;
@@ -159,7 +183,7 @@ public class ClusterRequiredResourcesGenerator
     final String clusterName = metadata.getName();
     final String clusterNamespace = metadata.getNamespace();
 
-    VersionInfo kubernetesVersion = kubernetesVersionSupplier.get();
+    final VersionInfo kubernetesVersion = kubernetesVersionSupplier.get();
 
     final StackGresConfig config = configScanner.findResources()
         .stream()
@@ -199,7 +223,7 @@ public class ClusterRequiredResourcesGenerator
 
     final Set<String> clusterBackupNamespaces = getClusterBackupNamespaces(clusterNamespace);
 
-    Optional<Secret> databaseSecret =
+    final Optional<Secret> databaseSecret =
         secretFinder.findByNameAndNamespace(clusterName, clusterNamespace);
 
     final Map<String, Secret> backupSecrets = backupStorageObject
@@ -217,6 +241,12 @@ public class ClusterRequiredResourcesGenerator
             .orElseThrow(() -> new IllegalArgumentException(
                 "Secret " + name + " not found"))))
         .collect(Collectors.toMap(Tuple2::v1, Tuple2::v2));
+
+    final Optional<Tuple2<StackGresBackup, Map<String, Secret>>> replicationInitializationBackupAndSecrets =
+        getReplicationInitializationBackupAndSecrets(cluster);
+    final Optional<StackGresBackup> replicationInitializationBackupToCreate =
+        getReplicationInitializationBackupToCreate(cluster);
+    final int currentInstances = countCurrentInstances(cluster);
 
     final Optional<StackGresBackup> restoreBackup = findRestoreBackup(cluster, clusterNamespace);
 
@@ -299,14 +329,19 @@ public class ClusterRequiredResourcesGenerator
         .objectStorage(backupStorageObject)
         .poolingConfig(pooling)
         .backupSecrets(backupSecrets)
+        .replicationInitializationBackup(replicationInitializationBackupAndSecrets
+            .map(Tuple2::v1))
+        .replicationInitializationBackupToCreate(replicationInitializationBackupToCreate)
+        .replicationInitializationSecrets(replicationInitializationBackupAndSecrets
+            .map(Tuple2::v2)
+            .orElse(Map.of()))
+        .currentInstances(currentInstances)
         .restoreBackup(restoreBackup)
         .restoreSecrets(restoreSecrets)
-        .replicateSecrets(replicateSecrets)
-        .prometheusContext(getPrometheusContext(cluster))
-        .clusterBackupNamespaces(clusterBackupNamespaces)
         .databaseSecret(databaseSecret)
         .replicateCluster(replicateCluster)
         .replicateObjectStorageConfig(replicateObjectStorage)
+        .replicateSecrets(replicateSecrets)
         .superuserUsername(credentials.superuserUsername)
         .superuserPassword(credentials.superuserPassword)
         .replicationUsername(credentials.replicationUsername)
@@ -317,9 +352,135 @@ public class ClusterRequiredResourcesGenerator
         .userPasswordForBinding(userPasswordForBinding)
         .postgresSslCertificate(postgresSsl.certificate)
         .postgresSslPrivateKey(postgresSsl.privateKey)
+        .prometheusContext(getPrometheusContext(cluster))
+        .clusterBackupNamespaces(clusterBackupNamespaces)
         .build();
 
     return discoverer.generateResources(context);
+  }
+
+  private Optional<Tuple2<StackGresBackup, Map<String, Secret>>> getReplicationInitializationBackupAndSecrets(
+      StackGresCluster cluster) {
+    if (StackGresReplicationInitializationMode.FROM_EXISTING_BACKUP.ordinal()
+        > cluster.getSpec().getReplication().getInitializationModeOrDefault().ordinal()) {
+      return Optional.empty();
+    }
+
+    final String namespace = cluster.getMetadata().getNamespace();
+    final var backupNewerThan = Optional.ofNullable(cluster.getSpec().getReplication().getInitialization())
+        .map(StackGresClusterReplicationInitialization::getBackupNewerThan)
+        .map(Duration::parse)
+        .map(Instant.now()::minus);
+    final String postgresMajorVersion = getPostgresFlavorComponent(cluster)
+        .get(cluster)
+        .getMajorVersion(cluster.getSpec().getPostgres().getVersion());
+    return Seq.seq(backupScanner.getResources(cluster.getMetadata().getNamespace()))
+        .filter(backup -> backup.getSpec().getSgCluster().equals(
+            cluster.getMetadata().getName()))
+        .filter(backup -> Optional.ofNullable(backup.getStatus())
+            .map(StackGresBackupStatus::getProcess)
+            .map(StackGresBackupProcess::getStatus)
+            .filter(BackupStatus.COMPLETED.toString()::equals)
+            .isPresent())
+        .filter(backup -> Optional.ofNullable(backup.getStatus())
+            .map(StackGresBackupStatus::getBackupInformation)
+            .map(StackGresBackupInformation::getPostgresMajorVersion)
+            .filter(postgresMajorVersion::equals)
+            .isPresent())
+        .filter(backup -> Optional.ofNullable(backup.getStatus())
+            .map(StackGresBackupStatus::getProcess)
+            .map(StackGresBackupProcess::getTiming)
+            .map(StackGresBackupTiming::getEnd)
+            .map(Instant::parse)
+            .filter(end -> backupNewerThan.map(end::isAfter).orElse(true))
+            .isPresent())
+        .sorted(Comparator.comparing(backup -> Optional.ofNullable(backup.getStatus())
+            .map(StackGresBackupStatus::getProcess)
+            .map(StackGresBackupProcess::getTiming)
+            .map(StackGresBackupTiming::getEnd)
+            .map(Instant::parse)
+            .get()))
+        .map(backup -> Tuple.tuple(
+            backup,
+            Optional.of(backup)
+            .map(StackGresBackup::getStatus)
+            .map(StackGresBackupStatus::getSgBackupConfig)
+            .map(StackGresBackupConfigSpec::getStorage)
+            .stream()
+            .flatMap(backupEnvVarFactory::streamStorageSecretReferences)
+            .map(secretKeySelector -> secretKeySelector.getName())
+            .collect(Collectors.groupingBy(Function.identity()))
+            .keySet()
+            .stream()
+            .map(name -> Tuple.tuple(
+                name,
+                secretFinder.findByNameAndNamespace(name, namespace)))
+            .collect(Collectors.toMap(Tuple2::v1, Tuple2::v2))))
+        .filter(backupAndFoundSecrets -> backupAndFoundSecrets.v2.values().stream().allMatch(Optional::isPresent))
+        .map(backupAndFoundSecrets -> backupAndFoundSecrets.map2(secrets -> secrets
+            .entrySet()
+            .stream()
+            .map(entry -> Map.entry(entry.getKey(), entry.getValue().get()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))))
+        .skipUntil(backupAndFoundSecrets -> Optional.of(cluster)
+            .map(StackGresCluster::getStatus)
+            .map(StackGresClusterStatus::getReplicationInitializationFailedSgBackup)
+            .map(backupAndFoundSecrets.v1.getMetadata().getName()::equals)
+            .orElse(true))
+        .skip(Optional.of(cluster)
+            .map(StackGresCluster::getStatus)
+            .map(StackGresClusterStatus::getReplicationInitializationFailedSgBackup)
+            .map(ignore -> 1)
+            .orElse(0))
+        .findFirst();
+  }
+
+  private Optional<StackGresBackup> getReplicationInitializationBackupToCreate(
+      StackGresCluster cluster) {
+    if (!StackGresReplicationInitializationMode.FROM_NEWLY_CREATED_BACKUP.equals(
+        cluster.getSpec().getReplication().getInitializationModeOrDefault())) {
+      return Optional.empty();
+    }
+    final var now = Instant.now();
+    final var backupNewerThan = Optional.ofNullable(cluster.getSpec().getReplication().getInitialization())
+        .map(StackGresClusterReplicationInitialization::getBackupNewerThan)
+        .map(Duration::parse)
+        .map(now::minus);
+    final String postgresMajorVersion = getPostgresFlavorComponent(cluster)
+        .get(cluster)
+        .getMajorVersion(cluster.getSpec().getPostgres().getVersion());
+    return Seq.seq(backupScanner
+        .getResourcesWithLabels(
+            cluster.getMetadata().getNamespace(),
+            labelFactory.replicationInitializationBackupLabels(cluster)))
+        .filter(backup -> backup.getSpec().getSgCluster().equals(
+            cluster.getMetadata().getName()))
+        .filter(backup -> Optional.ofNullable(backup.getStatus())
+            .map(StackGresBackupStatus::getProcess)
+            .map(StackGresBackupProcess::getTiming)
+            .map(StackGresBackupTiming::getEnd)
+            .map(Instant::parse)
+            .or(() -> Optional.of(now))
+            .filter(end -> backupNewerThan.map(end::isAfter).orElse(true))
+            .isPresent())
+        .filter(backup -> Optional.ofNullable(backup.getStatus())
+            .map(StackGresBackupStatus::getBackupInformation)
+            .map(StackGresBackupInformation::getPostgresMajorVersion)
+            .filter(postgresMajorVersion::equals)
+            .isPresent())
+        .findFirst();
+  }
+
+  private int countCurrentInstances(StackGresCluster cluster) {
+    var clusterLabels = labelFactory.clusterLabels(cluster);
+    return (int) podScanner.findByLabelsAndNamespace(
+        cluster.getMetadata().getNamespace(),
+        clusterLabels)
+        .stream()
+        .filter(pod -> Optional.ofNullable(pod.getMetadata())
+            .map(ObjectMeta::getDeletionTimestamp)
+            .isEmpty())
+        .count();
   }
 
   record Credentials(

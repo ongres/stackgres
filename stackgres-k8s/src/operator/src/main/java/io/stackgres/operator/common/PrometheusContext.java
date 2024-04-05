@@ -7,7 +7,7 @@ package io.stackgres.operator.common;
 
 import java.util.List;
 
-import io.stackgres.common.prometheus.PrometheusInstallation;
+import io.stackgres.common.crd.external.prometheus.PrometheusInstallation;
 
 public class PrometheusContext {
 

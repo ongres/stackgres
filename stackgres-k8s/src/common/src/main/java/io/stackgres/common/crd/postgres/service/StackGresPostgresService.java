@@ -38,6 +38,8 @@ public class StackGresPostgresService extends ServiceSpec {
       message = "type must be one of ClusterIP, LoadBalancer or NodePort")
   protected String type;
 
+  protected StackGresPostgresServiceNodePort nodePorts;
+
   public StackGresPostgresService() {
     super();
   }
@@ -48,12 +50,13 @@ public class StackGresPostgresService extends ServiceSpec {
       List<String> ipFamilies, String ipFamilyPolicy, String loadBalancerClass,
       String loadBalancerIP, List<String> loadBalancerSourceRanges, List<ServicePort> ports,
       Boolean publishNotReadyAddresses, Map<String, String> selector, String sessionAffinity,
-      SessionAffinityConfig sessionAffinityConfig, String type) {
+      SessionAffinityConfig sessionAffinityConfig, String type, StackGresPostgresServiceNodePort nodePorts) {
     super(allocateLoadBalancerNodePorts, clusterIP, clusterIPs, externalIPs, externalName,
         externalTrafficPolicy, healthCheckNodePort, internalTrafficPolicy, ipFamilies,
         ipFamilyPolicy, loadBalancerClass, loadBalancerIP, loadBalancerSourceRanges, ports,
         publishNotReadyAddresses, selector, sessionAffinity, sessionAffinityConfig, null);
     this.type = type;
+    this.nodePorts = nodePorts;
   }
 
   public Boolean getEnabled() {
@@ -254,11 +257,19 @@ public class StackGresPostgresService extends ServiceSpec {
     super.setSessionAffinityConfig(sessionAffinityConfig);
   }
 
+  public StackGresPostgresServiceNodePort getNodePorts() {
+    return nodePorts;
+  }
+
+  public void setNodePorts(StackGresPostgresServiceNodePort nodePorts) {
+    this.nodePorts = nodePorts;
+  }
+
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = super.hashCode();
-    result = prime * result + Objects.hash(enabled, type);
+    result = prime * result + Objects.hash(enabled, type, nodePorts);
     return result;
   }
 
@@ -270,11 +281,12 @@ public class StackGresPostgresService extends ServiceSpec {
     if (!super.equals(obj)) {
       return false;
     }
-    if (!(obj instanceof StackGresPostgresService)) {
+    if (!(obj instanceof StackGresPostgresService other)) {
       return false;
     }
-    StackGresPostgresService other = (StackGresPostgresService) obj;
-    return Objects.equals(enabled, other.enabled) && Objects.equals(type, other.type);
+    return Objects.equals(enabled, other.enabled)
+      && Objects.equals(type, other.type)
+      && Objects.equals(nodePorts, other.nodePorts);
   }
 
   @Override

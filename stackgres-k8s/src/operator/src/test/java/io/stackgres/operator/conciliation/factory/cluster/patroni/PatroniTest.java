@@ -35,6 +35,7 @@ import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContex
 import io.stackgres.operator.conciliation.factory.cluster.HugePagesMounts;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresExtensionMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ReplicateVolumeMounts;
+import io.stackgres.operator.conciliation.factory.cluster.ReplicationInitializationVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.RestoreVolumeMounts;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,6 +63,8 @@ class PatroniTest {
   @Mock
   BackupVolumeMounts backupMounts;
   @Mock
+  ReplicationInitializationVolumeMounts replicationInitializationVolumeMounts;
+  @Mock
   ReplicateVolumeMounts replicateMounts;
   @Mock
   PatroniVolumeMounts patroniMounts;
@@ -87,6 +90,7 @@ class PatroniTest {
   void setUp() {
     patroni = new Patroni(patroniEnvironmentVariables,
         postgresSocket, postgresExtensions, localBinMounts, restoreMounts, backupMounts,
+        replicationInitializationVolumeMounts,
         replicateMounts, patroniMounts, hugePagesMounts, patroniConfigMap);
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(POSTGRES_VERSION);

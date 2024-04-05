@@ -573,7 +573,7 @@ public interface StackGresShardedClusterForDdpUtil extends StackGresShardedClust
         .withRetryOnError(true)
         .withDatabase(cluster.getSpec().getDatabase())
         .withNewScriptFrom()
-        .withNewCrdSecretKeyRef()
+        .withNewSecretKeyRef()
         .withName(getUpdateShardsSecretName(cluster))
         .withKey("ddp-update-shards.sql")
         .endCrdSecretKeyRef()

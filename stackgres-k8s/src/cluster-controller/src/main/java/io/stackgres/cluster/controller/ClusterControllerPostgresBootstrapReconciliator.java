@@ -5,10 +5,6 @@
 
 package io.stackgres.cluster.controller;
 
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
-
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.cluster.common.ClusterBootstrapEventReason;
 import io.stackgres.cluster.configuration.ClusterControllerPropertyContext;
@@ -37,12 +33,6 @@ public class ClusterControllerPostgresBootstrapReconciliator
     super(parameters.patroniCtl, parameters.propertyContext
         .getString(ClusterControllerProperty.CLUSTER_CONTROLLER_POD_NAME));
     this.eventController = parameters.eventController;
-  }
-
-  public static ClusterControllerPostgresBootstrapReconciliator create(
-      Consumer<Parameters> consumer) {
-    Stream<Parameters> parameters = Optional.of(new Parameters()).stream().peek(consumer);
-    return new ClusterControllerPostgresBootstrapReconciliator(parameters.findAny().get());
   }
 
   @Override

@@ -32,6 +32,10 @@ import io.stackgres.common.ManagedSqlUtil;
 import io.stackgres.common.PatroniUtil;
 import io.stackgres.common.StackGresShardedClusterUtil;
 import io.stackgres.common.crd.SecretKeySelector;
+import io.stackgres.common.crd.external.shardingsphere.ComputeNode;
+import io.stackgres.common.crd.external.shardingsphere.ComputeNodeBuilder;
+import io.stackgres.common.crd.external.shardingsphere.ComputeNodePortBindingBuilder;
+import io.stackgres.common.crd.external.shardingsphere.ComputeNodeUserBuilder;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfigurationBuilder;
@@ -77,10 +81,6 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardingSphereRepositoryType;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
-import io.stackgres.common.shardingsphere.ComputeNode;
-import io.stackgres.common.shardingsphere.ComputeNodeBuilder;
-import io.stackgres.common.shardingsphere.ComputeNodePortBindingBuilder;
-import io.stackgres.common.shardingsphere.ComputeNodeUserBuilder;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterDefaultScripts;
 import io.stackgres.operator.conciliation.shardedcluster.StackGresShardedClusterContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
@@ -704,7 +704,7 @@ public interface StackGresShardedClusterForShardingSphereUtil extends StackGresS
         .withRetryOnError(true)
         .withDatabase(cluster.getSpec().getDatabase())
         .withNewScriptFrom()
-        .withNewCrdSecretKeyRef()
+        .withNewSecretKeyRef()
         .withName(getInitSecretName(cluster))
         .withKey("shardingsphere-init.sql")
         .endCrdSecretKeyRef()
@@ -745,7 +745,7 @@ public interface StackGresShardedClusterForShardingSphereUtil extends StackGresS
         .withRetryOnError(true)
         .withDatabase(cluster.getSpec().getDatabase())
         .withNewScriptFrom()
-        .withNewCrdSecretKeyRef()
+        .withNewSecretKeyRef()
         .withName(getUpdateShardsSecretName(cluster))
         .withKey("shardingsphere-update-shards.sql")
         .endCrdSecretKeyRef()

@@ -72,6 +72,7 @@ class ClusterResourceGenerationDiscovererTest
         .poolingConfig(pooling)
         .prometheusContext(new PrometheusContext(false, null))
         .databaseSecret(secret)
+        .currentInstances(0)
         .build();
   }
 

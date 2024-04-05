@@ -11,6 +11,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -48,6 +49,7 @@ class ShardedDbOpsMajorVersionUpgradeMutatorTest {
   private ShardedDbOpsReview review;
   private StackGresShardedCluster cluster;
   private ShardedDbOpsMajorVersionUpgradeMutator mutator;
+  private Instant defaultTimestamp;
 
   @BeforeEach
   void setUp() throws NoSuchFieldException, IOException {
@@ -56,7 +58,8 @@ class ShardedDbOpsMajorVersionUpgradeMutatorTest {
     cluster.getMetadata().setNamespace(
         review.getRequest().getObject().getMetadata().getNamespace());
 
-    mutator = new ShardedDbOpsMajorVersionUpgradeMutator(clusterFinder);
+    defaultTimestamp = Instant.now();
+    mutator = new ShardedDbOpsMajorVersionUpgradeMutator(clusterFinder, defaultTimestamp);
   }
 
   @Test
@@ -107,6 +110,7 @@ class ShardedDbOpsMajorVersionUpgradeMutatorTest {
             .map(index -> BackupStorageUtil.getPath(
                 cluster.getMetadata().getNamespace(),
                 StackGresShardedClusterUtil.getClusterName(cluster, index),
+                defaultTimestamp,
                 postgresMajorVersion))
         .toList(),
         actualDbOps.getSpec().getMajorVersionUpgrade().getBackupPaths());
@@ -144,6 +148,7 @@ class ShardedDbOpsMajorVersionUpgradeMutatorTest {
             .map(index -> BackupStorageUtil.getPath(
                 cluster.getMetadata().getNamespace(),
                 StackGresShardedClusterUtil.getClusterName(cluster, index),
+                defaultTimestamp,
                 postgresMajorVersion)))
         .toList(),
         actualDbOps.getSpec().getMajorVersionUpgrade().getBackupPaths());

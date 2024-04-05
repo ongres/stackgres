@@ -11,6 +11,10 @@ spec:
   instances: {{ .Values.cluster.instances }}
   postgres:
     {{- toYaml .Values.cluster.postgres | nindent 4 }}
+  {{- with .Values.cluster.autoscaling }}
+  autoscaling:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   {{- with .Values.cluster.replication }}
   replication:
     {{- toYaml . | nindent 4 }}

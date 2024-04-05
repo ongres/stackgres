@@ -33,6 +33,8 @@ public interface LabelFactoryForCluster<T extends CustomResource<?, ?>>
 
   Map<String, String> clusterCrossNamespaceLabels(T resource);
 
+  Map<String, String> replicationInitializationBackupLabels(T resource);
+
   String resourceScope(@NotNull T resource);
 
   @Override

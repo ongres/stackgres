@@ -52,6 +52,9 @@ public enum ClusterPath implements EnvVarPathSource<StackGresCluster> {
   PG_BASE_PATH("/var/lib/postgresql"),
   PG_DATA_PATH(PG_BASE_PATH, "data"),
   PG_EXTENSIONS_BASE_PATH(PG_BASE_PATH, "extensions"),
+  PG_REPLICATION_BASE_PATH(PG_BASE_PATH, "replication"),
+  PG_REPLICATION_INITIALIZATION_FAILED_BACKUP_PATH(
+      PG_REPLICATION_BASE_PATH, "initialization-failed-backup"),
   PG_EXTENSIONS_PATH(PG_EXTENSIONS_BASE_PATH,
       ClusterEnvVar.POSTGRES_MAJOR_VERSION.substVar(),
       ClusterEnvVar.BUILD_MAJOR_VERSION.substVar()),
@@ -100,6 +103,8 @@ public enum ClusterPath implements EnvVarPathSource<StackGresCluster> {
   BACKUP_SECRET_PATH(BASE_SECRET_PATH, ClusterEnvVar.BACKUP_ENV.substVar()),
   RESTORE_ENV_PATH(BASE_ENV_PATH, ClusterEnvVar.RESTORE_ENV.substVar()),
   RESTORE_SECRET_PATH(BASE_SECRET_PATH, ClusterEnvVar.RESTORE_ENV.substVar()),
+  REPLICATION_INITIALIZATION_ENV_PATH(BASE_ENV_PATH, ClusterEnvVar.REPLICATION_INITIALIZATION_ENV.substVar()),
+  REPLICATION_INITIALIZATION_SECRET_PATH(BASE_SECRET_PATH, ClusterEnvVar.REPLICATION_INITIALIZATION_ENV.substVar()),
   REPLICATE_ENV_PATH(BASE_ENV_PATH, ClusterEnvVar.REPLICATE_ENV.substVar()),
   REPLICATE_SECRET_PATH(BASE_SECRET_PATH, ClusterEnvVar.REPLICATE_ENV.substVar()),
   SSL_PATH("/etc/ssl"),

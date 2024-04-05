@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,14 +19,14 @@ import io.stackgres.common.StackGresUtil;
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true,
-    value = {"annotations", "clusterName", "creationTimestamp", "deletionGracePeriodSeconds",
-        "deletionTimestamp", "finalizers", "generateName", "generation", "labels", "managedFields",
-        "ownerReferences", "resourceVersion", "selfLink"})
+    value = {"clusterName", "deletionGracePeriodSeconds",
+        "generateName", "generation", "managedFields",
+        "selfLink"})
 public class Metadata {
 
-  private Map<String, String> annotations;
+  private Map<String, String> annotations = new LinkedHashMap<>();
 
-  private Map<String, String> labels;
+  private Map<String, String> labels = new LinkedHashMap<>();
 
   private String creationTimestamp;
 
@@ -32,7 +34,7 @@ public class Metadata {
 
   private String deletionTimestamp;
 
-  private List<String> finalizers;
+  private List<String> finalizers = new ArrayList<>();
 
   private String generateName;
 
@@ -42,7 +44,7 @@ public class Metadata {
 
   private String namespace;
 
-  private List<OwnerReference> ownerReferences;
+  private List<OwnerReference> ownerReferences = new ArrayList<>();
 
   private String resourceVersion;
 

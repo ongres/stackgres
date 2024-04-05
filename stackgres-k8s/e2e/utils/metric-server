@@ -1,0 +1,38 @@
+#!/bin/sh
+
+metric_server_namespace() {
+  echo "$CLUSTER_NAMESPACE-metric-server"
+}
+
+install_metric_server() {
+  if [ "$E2E_ENV" = "minishift" ] || [ "$E2E_ENV" = "crc" ] || [ "$E2E_ENV" = "microshift" ]
+  then
+    if [ "$E2E_ENV" = "minishift" ]
+    then
+      eval "$(minishift oc-env)"
+    fi
+    if [ "$E2E_ENV" = "crc" ]
+    then
+      eval "$(crc oc-env)"
+    fi
+    if [ "$E2E_ENV" = "microshift" ]
+    then
+      alias oc="docker exec -ti '$K8S_NAME' oc"
+    fi
+    kubectl create ns "$(metric_server_namespace)"
+    oc adm policy add-scc-to-user anyuid -n "$(metric_server_namespace)" -z default
+  fi
+
+  helm install metrics-server "$E2E_PATH/helm/metrics-server-3.12.0.tgz" \
+    --create-namespace \
+    --namespace "$(metric_server_namespace)" \
+    --set-string args[0]=--kubelet-insecure-tls \
+    "$@"
+
+  wait_pods_running "$(metric_server_namespace)" 1
+}
+
+uninstall_metric_server() {
+  helm_cleanup_chart metric-server "$(metric_server_namespace)"
+  k8s_async_cleanup_namespace "$(metric_server_namespace)"
+}

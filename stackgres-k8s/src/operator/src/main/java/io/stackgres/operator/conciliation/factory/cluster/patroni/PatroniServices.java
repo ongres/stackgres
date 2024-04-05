@@ -24,6 +24,7 @@ import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresPort;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
+import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceNodePort;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresServiceType;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPostgresService;
@@ -164,12 +165,22 @@ public class PatroniServices implements
         .editSpec()
         .addAllToPorts(List.of(
             new ServicePortBuilder()
+                .withNodePort(Optional
+                        .of(cluster.getSpec().getPostgresServices().getPrimary())
+                        .map(StackGresPostgresService::getNodePorts)
+                        .map(StackGresPostgresServiceNodePort::getPgport)
+                        .orElse(null))
                 .withProtocol("TCP")
                 .withName(EnvoyUtil.POSTGRES_PORT_NAME)
                 .withPort(PatroniUtil.POSTGRES_SERVICE_PORT)
                 .withTargetPort(new IntOrString(EnvoyUtil.POSTGRES_PORT_NAME))
                 .build(),
             new ServicePortBuilder()
+                .withNodePort(Optional
+                        .of(cluster.getSpec().getPostgresServices().getPrimary())
+                        .map(StackGresPostgresService::getNodePorts)
+                        .map(StackGresPostgresServiceNodePort::getReplicationport)
+                        .orElse(null))
                 .withProtocol("TCP")
                 .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
                 .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
@@ -177,6 +188,11 @@ public class PatroniServices implements
                 .build()))
         .addAllToPorts(Seq.of(
             new ServicePortBuilder()
+               .withNodePort(Optional
+                       .of(cluster.getSpec().getPostgresServices().getPrimary())
+                       .map(StackGresPostgresService::getNodePorts)
+                       .map(StackGresPostgresServiceNodePort::getBabelfish)
+                       .orElse(null))
                 .withProtocol("TCP")
                 .withName(EnvoyUtil.BABELFISH_PORT_NAME)
                 .withPort(PatroniUtil.BABELFISH_SERVICE_PORT)
@@ -243,12 +259,22 @@ public class PatroniServices implements
         .withSelector(labelFactory.clusterReplicaLabels(cluster))
         .addAllToPorts(List.of(
             new ServicePortBuilder()
+                .withNodePort(Optional
+                            .of(cluster.getSpec().getPostgresServices().getReplicas())
+                            .map(StackGresPostgresService::getNodePorts)
+                            .map(StackGresPostgresServiceNodePort::getPgport)
+                            .orElse(null))
                 .withProtocol("TCP")
                 .withName(EnvoyUtil.POSTGRES_PORT_NAME)
                 .withPort(PatroniUtil.POSTGRES_SERVICE_PORT)
                 .withTargetPort(new IntOrString(EnvoyUtil.POSTGRES_PORT_NAME))
                 .build(),
             new ServicePortBuilder()
+                .withNodePort(Optional
+                        .of(cluster.getSpec().getPostgresServices().getReplicas())
+                        .map(StackGresPostgresService::getNodePorts)
+                        .map(StackGresPostgresServiceNodePort::getReplicationport)
+                        .orElse(null))
                 .withProtocol("TCP")
                 .withName(EnvoyUtil.POSTGRES_REPLICATION_PORT_NAME)
                 .withPort(PatroniUtil.REPLICATION_SERVICE_PORT)
@@ -256,6 +282,11 @@ public class PatroniServices implements
                 .build()))
         .addAllToPorts(Seq.of(
             new ServicePortBuilder()
+                .withNodePort(Optional
+                        .of(cluster.getSpec().getPostgresServices().getReplicas())
+                        .map(StackGresPostgresService::getNodePorts)
+                        .map(StackGresPostgresServiceNodePort::getBabelfish)
+                        .orElse(null))
                 .withProtocol("TCP")
                 .withName(EnvoyUtil.BABELFISH_PORT_NAME)
                 .withPort(PatroniUtil.BABELFISH_SERVICE_PORT)

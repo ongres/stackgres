@@ -12,6 +12,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -45,6 +46,7 @@ class DbOpsMajorVersionUpgradeMutatorTest {
   private DbOpsReview review;
   private StackGresCluster cluster;
   private DbOpsMajorVersionUpgradeMutator mutator;
+  private Instant defaultTimestamp;
 
   @BeforeEach
   void setUp() throws NoSuchFieldException, IOException {
@@ -53,7 +55,8 @@ class DbOpsMajorVersionUpgradeMutatorTest {
     cluster.getMetadata().setNamespace(
         review.getRequest().getObject().getMetadata().getNamespace());
 
-    mutator = new DbOpsMajorVersionUpgradeMutator(clusterFinder);
+    defaultTimestamp = Instant.now();
+    mutator = new DbOpsMajorVersionUpgradeMutator(clusterFinder, defaultTimestamp);
   }
 
   @Test
@@ -103,6 +106,7 @@ class DbOpsMajorVersionUpgradeMutatorTest {
         BackupStorageUtil.getPath(
             dbOps.getMetadata().getNamespace(),
             dbOps.getSpec().getSgCluster(),
+            defaultTimestamp,
             postgresMajorVersion),
         actualDbOps.getSpec().getMajorVersionUpgrade().getBackupPath());
   }

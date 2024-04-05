@@ -6,17 +6,24 @@
 package io.stackgres.testutil;
 
 import java.io.IOException;
+import java.util.Comparator;
+import java.util.Objects;
+import java.util.Optional;
 
+import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import junit.framework.AssertionFailedError;
-import org.json.JSONException;
-import org.skyscreamer.jsonassert.JSONAssert;
-import org.skyscreamer.jsonassert.JSONCompareMode;
+import org.jooq.lambda.Seq;
+import org.jooq.lambda.Unchecked;
 
 public class JsonUtil {
 
@@ -83,26 +90,115 @@ public class JsonUtil {
     assertJsonEquals(expected, actual, null);
   }
 
-  public static void assertJsonEquals(JsonNode expected, JsonNode actual, String message) {
-    assertJsonEquals(expected.toString(), actual.toString(), message);
+  public static void assertJsonEquals(String expected, String actual, String message) {
+    assertJsonEquals(
+        Optional.ofNullable(expected)
+        .map(Unchecked.function(JSON_MAPPER::readTree))
+        .orElse(null),
+        Optional.ofNullable(actual)
+        .map(Unchecked.function(JSON_MAPPER::readTree))
+        .orElse(null),
+        message);
   }
 
   public static void assertJsonEquals(String expected, String actual) {
     assertJsonEquals(expected, actual, null);
   }
 
-  public static void assertJsonEquals(String expected, String actual, String message) {
+  public static void assertJsonEquals(JsonNode expected, JsonNode actual, String message) {
     try {
-      JSONAssert.assertEquals(
-          expected, actual, JSONCompareMode.NON_EXTENSIBLE);
-    } catch (JSONException ex) {
-      throw new RuntimeException(ex);
+      assertAnyJsonEquals(JsonPointer.empty(), expected, actual);
     } catch (AssertionError ex) {
       if (message != null) {
         throw new AssertionFailedError(message + "\n\n" + ex.getMessage());
       }
       throw new AssertionFailedError(ex.getMessage());
     }
+  }
+
+  @SuppressWarnings("resource")
+  private static void assertJsonEquals(JsonPointer pointer, ObjectNode expected, ObjectNode actual) {
+    for (var expectedField : Seq.seq(expected.fields()).toList()) {
+      if (!actual.has(expectedField.getKey())) {
+        throw new AssertionFailedError(
+            "At pointer " + pointer
+            + " actual has no expected field " + expectedField.getKey());
+      }
+      assertAnyJsonEquals(
+          pointer.appendProperty(expectedField.getKey()),
+          expectedField.getValue(),
+          actual.get(expectedField.getKey()));
+    }
+    for (var actualField : Seq.seq(actual.fields()).toList()) {
+      if (!expected.has(actualField.getKey())) {
+        throw new AssertionFailedError(
+            "At pointer " + pointer
+            + " actual has unexpected field " + actualField.getKey());
+      }
+    }
+  }
+
+  @SuppressWarnings("resource")
+  private static void assertJsonEquals(JsonPointer pointer, ArrayNode expected, ArrayNode actual) {
+    if (expected.size() != actual.size()) {
+      throw new AssertionFailedError(
+          "At pointer " + pointer
+          + " expected an array of " + expected.size() + " elements"
+          + " but was of " + actual.size() + " elements ");
+    }
+    int index = 0;
+    for (var expectedElement : Seq.seq(expected.elements()).toList()) {
+      if (!actual.has(index)) {
+        throw new AssertionFailedError(
+            "At pointer " + pointer
+            + " actual has no expected element " + index);
+      }
+      assertAnyJsonEquals(
+          pointer.appendIndex(index),
+          expectedElement,
+          actual.get(index));
+      index++;
+    }
+  }
+
+  public static void assertAnyJsonEquals(JsonPointer pointer, JsonNode expected, JsonNode actual) {
+    JsonNodeType expectedType = Optional.ofNullable(expected).map(JsonNode::getNodeType).orElse(null);
+    JsonNodeType actualType = Optional.ofNullable(actual).map(JsonNode::getNodeType).orElse(null);
+    if (!Objects.equals(expectedType, actualType)) {
+      throw new AssertionFailedError(
+          "At pointer " + pointer
+          + " expected " + expectedType
+          + " but was " + actualType);
+    }
+    if (expected instanceof ObjectNode expectedObject
+        && actual instanceof ObjectNode actualObject) {
+      assertJsonEquals(pointer, expectedObject, actualObject);
+    }
+    if (expected instanceof ArrayNode expectedArray
+        && actual instanceof ArrayNode actualArray) {
+      assertJsonEquals(pointer, expectedArray, actualArray);
+    }
+    if (!Objects.equals(expected, actual)) {
+      throw new AssertionFailedError(
+          "At pointer " + pointer
+          + " expected " + expected
+          + " but was " + actual);
+    }
+  }
+
+  public static void sortArray(JsonNode jsonNode) {
+    if (jsonNode instanceof ArrayNode arrayNode) {
+      if (Seq.seq(arrayNode.elements()).allMatch(TextNode.class::isInstance)) {
+        var elements = Seq.seq(arrayNode.elements())
+            .sorted(Comparator.comparing(element -> TextNode.class.cast(element).asText()))
+            .toList();
+        arrayNode.removeAll();
+        arrayNode.addAll(elements);
+        return;
+      }
+      throw new RuntimeException("ArrayNode do not container only TextNode elements");
+    }
+    throw new RuntimeException("Class " + jsonNode.getClass().getSimpleName() + " is not instance of ArrayNode");
   }
 
   private JsonUtil() {

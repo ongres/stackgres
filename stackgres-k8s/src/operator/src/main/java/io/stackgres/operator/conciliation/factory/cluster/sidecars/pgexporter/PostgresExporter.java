@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 OnGres, Inc.
+ * Copyright (C) 2024 OnGres, Inc.
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
@@ -7,12 +7,16 @@ package io.stackgres.operator.conciliation.factory.cluster.sidecars.pgexporter;
 
 import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
@@ -21,15 +25,16 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.Volume;
-import io.fabric8.kubernetes.api.model.VolumeBuilder;
-import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterPath;
 import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.StackGresComponent;
 import io.stackgres.common.StackGresContainer;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresVolume;
+import io.stackgres.common.YamlMapperProvider;
+import io.stackgres.common.crd.Volume;
+import io.stackgres.common.crd.VolumeBuilder;
+import io.stackgres.common.crd.VolumeMountBuilder;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterPods;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
@@ -50,6 +55,7 @@ import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
+import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,28 +65,32 @@ import org.slf4j.LoggerFactory;
 @OperatorVersionBinder
 @RunningContainer(StackGresContainer.POSTGRES_EXPORTER)
 public class PostgresExporter implements ContainerFactory<ClusterContainerContext>,
-    VolumeFactory<StackGresClusterContext> {
+        VolumeFactory<StackGresClusterContext> {
 
   public static final String POSTGRES_EXPORTER_PORT_NAME = "pgexporter";
+  public static final String POSTGRES_EXPORTER_PGBOUNCER_QUERIES_PREFIX = "pgbouncer";
   public static final int POSTGRES_EXPORTER_PORT = 9187;
 
   private static final Logger POSTGRES_EXPORTER_LOGGER = LoggerFactory.getLogger(
       "io.stackgres.prometheus-postgres-exporter");
+  public static final String QUERIES_YAML = "queries.yaml";
 
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
   private final ContainerUserOverrideMounts containerUserOverrideMounts;
   private final PostgresSocketMount postgresSocket;
   private final ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts;
+  protected final YamlMapperProvider yamlMapperProvider;
 
   @Inject
   public PostgresExporter(LabelFactoryForCluster<StackGresCluster> labelFactory,
       ContainerUserOverrideMounts containerUserOverrideMounts, PostgresSocketMount postgresSocket,
-      ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts) {
+      ScriptTemplatesVolumeMounts scriptTemplatesVolumeMounts, YamlMapperProvider yamlMapperProvider) {
     super();
     this.labelFactory = labelFactory;
     this.containerUserOverrideMounts = containerUserOverrideMounts;
     this.postgresSocket = postgresSocket;
     this.scriptTemplatesVolumeMounts = scriptTemplatesVolumeMounts;
+    this.yamlMapperProvider = yamlMapperProvider;
   }
 
   public static String configName(StackGresClusterContext clusterContext) {
@@ -190,20 +200,55 @@ public class PostgresExporter implements ContainerFactory<ClusterContainerContex
 
   private HasMetadata buildSource(StackGresClusterContext context) {
 
-    return new ConfigMapBuilder()
-        .withNewMetadata()
-        .withName(configName(context))
-        .withNamespace(context.getSource().getMetadata().getNamespace())
-        .withLabels(labelFactory.genericLabels(context.getSource()))
-        .endMetadata()
-        .withData(Map.of("queries.yaml",
-            Unchecked.supplier(() -> Resources
-                .asCharSource(Objects.requireNonNull(PostgresExporter.class.getResource(
-                    "/prometheus-postgres-exporter/queries.yaml")),
-                    StandardCharsets.UTF_8)
-                .read()).get()))
-        .build();
+    final ConfigMapBuilder builder = new ConfigMapBuilder()
+            .withNewMetadata()
+            .withName(configName(context))
+            .withNamespace(context.getSource().getMetadata().getNamespace())
+            .withLabels(labelFactory.genericLabels(context.getSource()))
+            .endMetadata();
 
+    final boolean pgBouncerIsDisabled = Optional.of(context)
+            .map(StackGresClusterContext::getCluster)
+            .map(StackGresCluster::getSpec)
+            .map(StackGresClusterSpec::getPods)
+            .map(StackGresClusterPods::getDisableConnectionPooling)
+            .orElse(false);
+
+    if (pgBouncerIsDisabled) {
+      final YAMLMapper yamlMapper = yamlMapperProvider.get();
+      final ObjectNode queries;
+      final String data;
+      try {
+        queries = (ObjectNode) yamlMapper
+                .readTree(PostgresExporter.class.getResource("/prometheus-postgres-exporter/queries.yaml"));
+
+        var fieldNames = Seq.seq(queries.fieldNames()).toList();
+        for (var fieldName : fieldNames) {
+          if (fieldName.startsWith(POSTGRES_EXPORTER_PGBOUNCER_QUERIES_PREFIX)) {
+            queries.remove(fieldName);
+          }
+        }
+
+        data = yamlMapper.writeValueAsString(queries);
+
+        builder.withData(Map.of(QUERIES_YAML, data));
+
+        return builder.build();
+      } catch (JsonProcessingException e) {
+        throw new RuntimeException("couldn't serialize prometheus postgres exporter queries to a string", e);
+      } catch (IOException e) {
+        throw new RuntimeException("couldn't read prometheus postgres exporter queries file", e);
+      }
+    }
+
+    return builder
+            .withData(Map.of(QUERIES_YAML,
+                    Unchecked.supplier(() ->
+                            Resources
+                                    .asCharSource(Objects.requireNonNull(PostgresExporter.class.getResource(
+                                            "/prometheus-postgres-exporter/queries.yaml")),
+                                            StandardCharsets.UTF_8).read()).get()))
+            .build();
   }
 
 }

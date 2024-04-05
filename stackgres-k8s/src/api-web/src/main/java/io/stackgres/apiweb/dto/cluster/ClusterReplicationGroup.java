@@ -19,6 +19,8 @@ public class ClusterReplicationGroup {
 
   private Integer instances;
 
+  private Integer minInstances;
+
   public String getName() {
     return name;
   }
@@ -41,6 +43,14 @@ public class ClusterReplicationGroup {
 
   public void setInstances(Integer instances) {
     this.instances = instances;
+  }
+
+  public Integer getMinInstances() {
+    return minInstances;
+  }
+
+  public void setMinInstances(Integer minInstances) {
+    this.minInstances = minInstances;
   }
 
   public String toString() {

@@ -9,6 +9,7 @@ import static io.stackgres.common.StackGresUtil.getPostgresFlavorComponent;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ class DefaultBackupPathsMutatorTest {
 
   private StackGresShardedClusterReview review;
   private DefaultBackupPathsMutator mutator;
+  private Instant defaultTimestamp;
 
   @BeforeEach
   void setUp() throws NoSuchFieldException, IOException {
@@ -44,7 +46,8 @@ class DefaultBackupPathsMutatorTest {
         .setConfigurations(new StackGresShardedClusterConfigurations());
     review.getRequest().getObject().getSpec().getPostgres().setVersion(POSTGRES_VERSION);
 
-    mutator = new DefaultBackupPathsMutator();
+    defaultTimestamp = Instant.now();
+    mutator = new DefaultBackupPathsMutator(defaultTimestamp);
   }
 
   @Test
@@ -74,6 +77,7 @@ class DefaultBackupPathsMutatorTest {
         .map(index -> BackupStorageUtil.getPath(
             cluster.getMetadata().getNamespace(),
             StackGresShardedClusterUtil.getClusterName(cluster, index),
+            defaultTimestamp,
             postgresMajorVersion))
         .toList(),
         actualCluster.getSpec().getConfigurations().getBackups().get(0).getPaths());
@@ -112,6 +116,7 @@ class DefaultBackupPathsMutatorTest {
             .map(index -> BackupStorageUtil.getPath(
                 cluster.getMetadata().getNamespace(),
                 StackGresShardedClusterUtil.getClusterName(cluster, index),
+                defaultTimestamp,
                 postgresMajorVersion)))
         .toList(),
         actualCluster.getSpec().getConfigurations().getBackups().get(0).getPaths());

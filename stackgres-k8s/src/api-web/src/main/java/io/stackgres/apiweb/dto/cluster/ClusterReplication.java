@@ -8,9 +8,11 @@ package io.stackgres.apiweb.dto.cluster;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
 
+@JsonDeserialize
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class ClusterReplication {
@@ -22,6 +24,8 @@ public class ClusterReplication {
   private Integer syncInstances;
 
   private List<ClusterReplicationGroup> groups;
+
+  private ClusterReplicationInitialization initialization;
 
   public String getMode() {
     return mode;
@@ -53,6 +57,14 @@ public class ClusterReplication {
 
   public void setGroups(List<ClusterReplicationGroup> groups) {
     this.groups = groups;
+  }
+
+  public ClusterReplicationInitialization getInitialization() {
+    return initialization;
+  }
+
+  public void setInitialization(ClusterReplicationInitialization initialization) {
+    this.initialization = initialization;
   }
 
   public String toString() {

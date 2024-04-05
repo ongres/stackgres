@@ -8,25 +8,15 @@ package io.stackgres.apiweb.transformer;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
-import java.util.stream.Stream;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.apiweb.dto.Metadata;
 import io.stackgres.apiweb.dto.ResourceDto;
@@ -143,14 +133,14 @@ public class TransformerTestUtil {
     try {
 
       if (targetClazz == sourceClazz) {
-        if (isValueType(targetClazz) && isValueType(sourceClazz)) {
-          Object value = generateRandomValue(targetClazz);
+        if (ModelTestUtil.isValueType(targetClazz) && ModelTestUtil.isValueType(sourceClazz)) {
+          Object value = ModelTestUtil.generateRandomValue(targetClazz);
           return new TransformerTuple<>((T) value, (S) value);
         }
       }
 
-      Field[] targetFields = getRepresentativeFields(targetClazz);
-      Field[] sourceFields = getRepresentativeFields(sourceClazz);
+      List<Field> targetFields = ModelTestUtil.getRepresentativeFields(targetClazz);
+      List<Field> sourceFields = ModelTestUtil.getRepresentativeFields(sourceClazz);
 
       T targetInstance = targetClazz.getDeclaredConstructor().newInstance();
       S sourceInstance = sourceClazz.getDeclaredConstructor().newInstance();
@@ -169,85 +159,18 @@ public class TransformerTestUtil {
 
   }
 
-  public static Field[] getRepresentativeFields(Class<?> clazz) {
-    if (clazz != null && clazz != Object.class) {
-      Field[] declaredFields = clazz.getDeclaredFields();
-      Field[] parentFields = getRepresentativeFields(clazz.getSuperclass());
-      return Stream.concat(Arrays.stream(declaredFields),
-          Arrays.stream(parentFields)
-          .filter(parentField -> Arrays.stream(declaredFields)
-              .map(TransformerTestUtil::getJsonFieldName)
-              .noneMatch(getJsonFieldName(parentField)::equals)))
-          .filter(field -> !clazz.isAnnotationPresent(JsonIgnoreProperties.class)
-              || Stream.of(clazz.getAnnotation(JsonIgnoreProperties.class).value())
-              .noneMatch(getJsonFieldName(field)::equals))
-          .filter(field -> !field.isAnnotationPresent(JsonIgnore.class))
-          .filter(field -> !Modifier.isStatic(field.getModifiers()))
-          .filter(field -> !Modifier.isFinal(field.getModifiers()))
-          .toArray(Field[]::new);
-    } else {
-      return new Field[0];
-    }
-  }
-
-  static final String[] QUANTITY_UNITS = new String[] {
-      "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "n",
-      "u", "m", "k", "M", "G", "T", "P", "E", "" };
-
-  private static Object generateRandomValue(Class<?> valueClass) {
-    if (valueClass.isPrimitive()) {
-      switch (valueClass.getName()) {
-        case "long":
-          return RANDOM.nextLong();
-        case "int":
-          return RANDOM.nextInt();
-        case "boolean":
-          return RANDOM.nextBoolean();
-        case "char":
-          return (char) RANDOM.nextInt();
-        case "float":
-          return RANDOM.nextFloat();
-        case "double":
-          return RANDOM.nextDouble();
-        default:
-          throw new RuntimeException("Unsupported primitive type " + valueClass.getName());
-      }
-    } else if (Quantity.class.isAssignableFrom(valueClass)) {
-      return new Quantity(String.valueOf(RANDOM.nextInt()),
-          QUANTITY_UNITS[RANDOM.nextInt(QUANTITY_UNITS.length)]);
-    } else if (IntOrString.class.isAssignableFrom(valueClass)) {
-      return new IntOrString(RANDOM.nextInt());
-    } else if (valueClass == String.class || valueClass == Object.class) {
-      return StringUtils.getRandomString(10);
-    } else if (valueClass == Boolean.class) {
-      return RANDOM.nextBoolean();
-    } else if (Number.class.isAssignableFrom(valueClass)) {
-      int value = RANDOM.nextInt(10) + 1;
-      if (Integer.class.isAssignableFrom(valueClass)) {
-        return value;
-      } else if (Long.class.isAssignableFrom(valueClass)) {
-        return Integer.toUnsignedLong(value);
-      } else if (BigDecimal.class.isAssignableFrom(valueClass)) {
-        return BigDecimal.valueOf(Integer.toUnsignedLong(value));
-      } else if (BigInteger.class.isAssignableFrom(valueClass)) {
-        return BigInteger.valueOf(Integer.toUnsignedLong(value));
-      }
-    }
-    throw new IllegalArgumentException("Value class " + valueClass.getName() + " not supported");
-  }
-
   private static List<TransformerTuple<Field, Field>> getCommonFields(
-      Field[] targetFields,
-      Field[] sourceFields) {
+      List<Field> targetFields,
+      List<Field> sourceFields) {
 
     List<TransformerTuple<Field, Field>> commonFields = new ArrayList<>();
 
     // If the performance becomes a problem this could be improved by using quick select, but is
     // unlikely
     for (Field targetField : targetFields) {
-      String targetFieldName = getJsonFieldName(targetField);
+      String targetFieldName = ModelTestUtil.getJsonFieldName(targetField);
       for (Field sourceField : sourceFields) {
-        String sourceFieldName = getJsonFieldName(sourceField);
+        String sourceFieldName = ModelTestUtil.getJsonFieldName(sourceField);
         if (Objects.equals(targetFieldName, sourceFieldName)) {
           commonFields.add(
               new TransformerTuple<>(targetField, sourceField)
@@ -381,30 +304,6 @@ public class TransformerTestUtil {
     }
 
     return new TransformerTuple<>(targetMap, sourceMap);
-  }
-
-  private static String getJsonFieldName(Field field) {
-    if (field.isAnnotationPresent(JsonProperty.class)) {
-      JsonProperty jsonProperty = field.getAnnotation(JsonProperty.class);
-      final String configuredFieldName = jsonProperty.value();
-      if (configuredFieldName.isEmpty()) {
-        return field.getName();
-      } else {
-        return configuredFieldName;
-      }
-    } else {
-      return field.getName();
-    }
-  }
-
-  private static boolean isValueType(Class<?> type) {
-    return Quantity.class.isAssignableFrom(type)
-        || IntOrString.class.isAssignableFrom(type)
-        || String.class == type
-        || Number.class.isAssignableFrom(type)
-        || Boolean.class == type
-        || type.isPrimitive()
-        || Object.class == type;
   }
 
 }

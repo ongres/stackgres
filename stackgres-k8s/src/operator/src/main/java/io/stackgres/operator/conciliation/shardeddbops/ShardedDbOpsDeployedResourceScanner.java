@@ -65,7 +65,8 @@ public class ShardedDbOpsDeployedResourceScanner
   protected Map<Class<? extends HasMetadata>,
       Function<KubernetesClient, MixedOperation<? extends HasMetadata,
           ? extends KubernetesResourceList<? extends HasMetadata>,
-              ? extends Resource<? extends HasMetadata>>>> getInNamepspaceResourceOperations() {
+              ? extends Resource<? extends HasMetadata>>>> getInNamepspaceResourceOperations(
+                  StackGresShardedDbOps config) {
     return IN_NAMESPACE_RESOURCE_OPERATIONS;
   }
 

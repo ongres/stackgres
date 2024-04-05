@@ -37,6 +37,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import io.fabric8.kubernetes.api.model.AnyType;
 import io.fabric8.kubernetes.api.model.Quantity;
 
 public class ModelTestUtil {
@@ -408,16 +409,18 @@ public class ModelTestUtil {
     }
   }
 
-  private static boolean isValueType(Class<?> type) {
+  public static boolean isValueType(Class<?> type) {
     return Quantity.class.isAssignableFrom(type)
+        || AnyType.class.isAssignableFrom(type)
         || String.class == type
         || Number.class.isAssignableFrom(type)
         || Boolean.class == type
         || type.isPrimitive()
-        || Object.class == type;
+        || Object.class == type
+        || Void.class == type;
   }
 
-  private static List<Field> getRepresentativeFields(Class<?> clazz) {
+  public static List<Field> getRepresentativeFields(Class<?> clazz) {
     if (clazz != null) {
       Field[] declaredFields = clazz.getDeclaredFields();
       List<Field> parentFields = getRepresentativeFields(clazz.getSuperclass());
@@ -430,31 +433,33 @@ public class ModelTestUtil {
           .concat(
               Arrays.stream(declaredFields),
               parentFields.stream()
-              .filter(parentField -> Optional.ofNullable(parentField.getAnnotation(JsonProperty.class))
-                  .map(JsonProperty::value)
-                  .filter(Predicate.not(JsonProperty.USE_DEFAULT_NAME::equals))
+              .filter(parentField -> getOverriddenJsonFieldName(parentField)
                   .or(() -> Optional.of(parentField.getName()))
                   .stream()
                   .noneMatch(parentFieldName -> Arrays.stream(declaredFields)
                       .filter(field -> !Modifier.isStatic(field.getModifiers()))
                       .filter(field -> !Modifier.isFinal(field.getModifiers()))
-                      .map(field -> Optional.ofNullable(field.getAnnotation(JsonProperty.class))
-                          .map(JsonProperty::value)
-                          .filter(Predicate.not(JsonProperty.USE_DEFAULT_NAME::equals))
-                          .orElse(field.getName()))
+                      .map(field -> getJsonFieldName(field))
                       .anyMatch(parentFieldName::equals))))
           .filter(field -> !Modifier.isStatic(field.getModifiers()))
           .filter(field -> !Modifier.isFinal(field.getModifiers()))
           .filter(field -> !field.isAnnotationPresent(JsonIgnore.class))
-          .filter(field -> !ignoredFields.contains(
-              Optional.ofNullable(field.getAnnotation(JsonProperty.class))
-              .map(JsonProperty::value)
-              .filter(Predicate.not(JsonProperty.USE_DEFAULT_NAME::equals))
-              .orElse(field.getName())))
+          .filter(field -> !ignoredFields.contains(getJsonFieldName(field)))
           .toList();
     } else {
       return List.of();
     }
+  }
+
+  public static String getJsonFieldName(Field field) {
+    return getOverriddenJsonFieldName(field)
+    .orElse(field.getName());
+  }
+
+  public static Optional<String> getOverriddenJsonFieldName(Field field) {
+    return Optional.ofNullable(field.getAnnotation(JsonProperty.class))
+    .map(JsonProperty::value)
+    .filter(Predicate.not(JsonProperty.USE_DEFAULT_NAME::equals));
   }
 
   static final String[] QUANTITY_UNITS = new String[] {
@@ -487,7 +492,7 @@ public class ModelTestUtil {
     } else if (Quantity.class.isAssignableFrom(valueClass)) {
       return new Quantity(String.valueOf(RANDOM.nextInt()),
           QUANTITY_UNITS[RANDOM.nextInt(QUANTITY_UNITS.length)]);
-    } else if (valueClass == String.class || valueClass == Object.class) {
+    } else if (valueClass == String.class) {
       return "rnd-" + StringUtils.getRandomString(10).toLowerCase(Locale.US);
     } else if (valueClass == Boolean.class) {
       return RANDOM.nextBoolean();
@@ -502,6 +507,10 @@ public class ModelTestUtil {
       } else if (BigInteger.class.isAssignableFrom(valueClass)) {
         return BigInteger.valueOf(value);
       }
+    } else if (Void.class.isAssignableFrom(valueClass)
+        || Object.class.isAssignableFrom(valueClass)
+        || AnyType.class.isAssignableFrom(valueClass)) {
+      return null;
     }
     throw new IllegalArgumentException("Value class " + valueClass.getName() + " not supported");
   }

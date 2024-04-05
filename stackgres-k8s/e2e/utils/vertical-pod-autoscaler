@@ -1,0 +1,48 @@
+#!/bin/sh
+
+vertical_pod_autoscaler_namespace() {
+  echo "$CLUSTER_NAMESPACE-vertical-pod-autoscaler"
+}
+
+install_vertical_pod_autoscaler() {
+  if [ "$E2E_ENV" = "minishift" ] || [ "$E2E_ENV" = "crc" ] || [ "$E2E_ENV" = "microshift" ]
+  then
+    if [ "$E2E_ENV" = "minishift" ]
+    then
+      eval "$(minishift oc-env)"
+    fi
+    if [ "$E2E_ENV" = "crc" ]
+    then
+      eval "$(crc oc-env)"
+    fi
+    if [ "$E2E_ENV" = "microshift" ]
+    then
+      alias oc="docker exec -ti '$K8S_NAME' oc"
+    fi
+    kubectl create ns "$(vertical_pod_autoscaler_namespace)"
+    oc adm policy add-scc-to-user anyuid -n "$(vertical_pod_autoscaler_namespace)" -z default
+  fi
+
+  kubectl get crd -o name | grep -F '.autoscaling.k8s.io' \
+    | xargs -I @ kubectl --wait=false delete --ignore-not-found @
+  kubectl get crd -o name | grep -F '.autoscaling.k8s.io' \
+    | while read CRD
+      do
+        kubectl get "${CRD#*/}" -A -o name | wc -l | grep -qxF 0 \
+          || kubectl get "${CRD#*/}" -A -o json \
+            | kubectl patch -f - --type merge -p '{"metadata":{"finalizers":null}}'
+      done
+  wait_until eval 'kubectl get crd -o name | grep -F ".autoscaling.k8s.io" | wc -l | grep -qxF 0'
+  helm install vertical-pod-autoscaler "$E2E_PATH/helm/vertical-pod-autoscaler-9.6.0.tgz" \
+    --create-namespace \
+    --namespace "$(vertical_pod_autoscaler_namespace)" \
+    --set-string auth.rbac.rootPassword=test \
+    "$@"
+
+  wait_pods_running "$(vertical_pod_autoscaler_namespace)" 3
+}
+
+uninstall_vertical_pod_autoscaler() {
+  helm_cleanup_chart vertical-pod-autoscaler "$(vertical_pod_autoscaler_namespace)"
+  k8s_async_cleanup_namespace "$(vertical_pod_autoscaler_namespace)"
+}
