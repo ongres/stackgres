@@ -758,6 +758,7 @@ check_cluster_before_security_upgrade() {
     PGBOUNCER_CONFIG="$(kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-connection-pooling-config" --template '{{ index .data "pgbouncer.ini" }}')"
     PGBOUNCER_CONFIG="$(printf '%s' "$PGBOUNCER_CONFIG")"
     cat "$PREVIOUS_PGBOUNCER_CONFIG_PATH" \
+      | sed 's/auth_query = SELECT usename, passwd FROM pg_shadow WHERE usename=\$1/auth_query = SELECT p_user, p_password FROM public.lookup(\$1)/' \
       | sed '/server_check_query = ;/d' \
       | sed 's/stats_users = /server_check_query = ;\nstats_users = /' > "$LOG_PATH/previous-pgbouncer-config-filtered.ini"
     PREVIOUS_PGBOUNCER_CONFIG="$(cat "$LOG_PATH/previous-pgbouncer-config-filtered.ini")"
