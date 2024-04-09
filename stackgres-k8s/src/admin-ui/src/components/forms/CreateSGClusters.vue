@@ -3431,6 +3431,26 @@
                             </select>
                             <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disableClusterPodAntiAffinity').replace('Set this property to true','Disable this property')"></span>
                         </div>
+
+                        <div class="col">
+                            <label for="spec.nonProductionOptions.disablePatroniResourceRequirements">Patroni Resource Requirements</label>  
+                            <select v-model="patroniResourceRequirements" data-field="spec.nonProductionOptions.disablePatroniResourceRequirements">
+                                <option selected :value="null">Default</option>
+                                <option :value="false">Enable</option>
+                                <option :value="true">Disable</option>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disablePatroniResourceRequirements').replace('Set this property to true','Disable this property')"></span>
+                        </div>
+
+                        <div class="col">
+                            <label for="spec.nonProductionOptions.disableClusterResourceRequirements">Cluster Resource Requirements</label>  
+                            <select v-model="clusterResourceRequirements" data-field="spec.nonProductionOptions.disableClusterResourceRequirements">
+                                <option selected :value="null">Default</option>
+                                <option :value="false">Enable</option>
+                                <option :value="true">Disable</option>
+                            </select>
+                            <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.nonProductionOptions.disableClusterResourceRequirements').replace('Set this property to true','Disable this property')"></span>
+                        </div>
                     </div>
                 </div>
             </fieldset>
@@ -3531,7 +3551,9 @@
                 },
                 postgresServicesPrimaryAnnotations: [],
                 postgresServicesReplicasAnnotations: [],
-                clusterPodAntiAffinity: null
+                clusterPodAntiAffinity: null,
+                patroniResourceRequirements: null,
+                clusterResourceRequirements: null
             }
 
         },
@@ -3606,6 +3628,8 @@
                             vm.replication = vm.hasProp(c, 'data.spec.replication') && c.data.spec.replication;
                             vm.prometheusAutobind =  (typeof c.data.spec.prometheusAutobind !== 'undefined') ? c.data.spec.prometheusAutobind : false;
                             vm.clusterPodAntiAffinity = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterPodAntiAffinity') ? c.data.spec.nonProductionOptions.disableClusterPodAntiAffinity : null;
+                            vm.patroniResourceRequirements = vm.hasProp(c, 'data.spec.nonProductionOptions.disablePatroniResourceRequirements') ? c.data.spec.nonProductionOptions.disablePatroniResourceRequirements : null;
+                            vm.clusterResourceRequirements = vm.hasProp(c, 'data.spec.nonProductionOptions.disableClusterResourceRequirements') ? c.data.spec.nonProductionOptions.disableClusterResourceRequirements : null;
                             vm.metricsExporter = vm.hasProp(c, 'data.spec.pods.disableMetricsExporter') ? !c.data.spec.pods.disableMetricsExporter : true ;
                             vm.enableMonitoring = ( (!vm.hasProp(c, 'data.spec.pods.disableMetricsExporter')) && (typeof c.data.spec.prometheusAutobind !== 'undefined') ) ? true : false;
                             vm.postgresUtil = vm.hasProp(c, 'data.spec.pods.disablePostgresUtil') ? !c.data.spec.pods.disablePostgresUtil : true ;
@@ -3962,10 +3986,12 @@
                             }) )
                         },
                         ...(this.prometheusAutobind && ( {"prometheusAutobind": this.prometheusAutobind }) ),
-                        ...((this.hasProp(previous, 'spec.nonProductionOptions') || (this.clusterPodAntiAffinity != null) || (this.flavor == 'babelfish' && this.babelfishFeatureGates)) && ( {
+                        ...((this.hasProp(previous, 'spec.nonProductionOptions') || (this.clusterPodAntiAffinity != null) || (this.patroniResourceRequirements != null) || (this.clusterResourceRequirements != null) || (this.flavor == 'babelfish' && this.babelfishFeatureGates)) && ( {
                             "nonProductionOptions": { 
                                 ...(this.hasProp(previous, 'spec.nonProductionOptions') && previous.spec.nonProductionOptions),
                                 ...((this.clusterPodAntiAffinity != null) && {"disableClusterPodAntiAffinity": this.clusterPodAntiAffinity} || {"disableClusterPodAntiAffinity": null} ),
+                                ...((this.patroniResourceRequirements != null) && {"disablePatroniResourceRequirements": this.patroniResourceRequirements} || {"disablePatroniResourceRequirements": null} ),
+                                ...((this.clusterResourceRequirements != null) && {"disableClusterResourceRequirements": this.clusterResourceRequirements} || {"disableClusterResourceRequirements": null} ),
                                 ...((this.flavor == 'babelfish' && this.babelfishFeatureGates) && {"enabledFeatureGates": ['babelfish-flavor'] } || {"enabledFeatureGates": null} )
                                 } 
                             }) ),
