@@ -511,7 +511,7 @@ remove_sharded_cluster() {
   echo "Deleting release $RELEASE" 
   helm get manifest "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
     | yq 'select(.kind == "SGShardedCluster")' \
-    | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
+    | kubectl delete --namespace "$NAMESPACE" --ignore-not-found --wait=true -f -
   helm get manifest "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
     | kubectl delete --namespace "$NAMESPACE" --ignore-not-found -f -
   helm get hooks "$RELEASE" --namespace "$NAMESPACE" 2>/dev/null \
