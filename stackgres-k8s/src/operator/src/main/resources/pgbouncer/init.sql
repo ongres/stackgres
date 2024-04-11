@@ -5,6 +5,6 @@ CREATE OR REPLACE FUNCTION public.lookup (
       LANGUAGE sql SECURITY DEFINER SET search_path = pg_catalog AS
       $$SELECT usename, passwd FROM pg_shadow WHERE usename = p_user$$;
 
--- make sure only "pgbouncer" can use the function
+-- make sure only "authenticator" can use the function
 REVOKE EXECUTE ON FUNCTION public.lookup(name) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.lookup(name) TO pgbouncer
+GRANT EXECUTE ON FUNCTION public.lookup(name) TO %$1s

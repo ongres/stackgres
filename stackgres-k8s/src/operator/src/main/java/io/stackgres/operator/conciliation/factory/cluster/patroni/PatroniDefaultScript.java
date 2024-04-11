@@ -38,10 +38,11 @@ public class PatroniDefaultScript implements ResourceGenerator<StackGresClusterC
 
   @Override
   public Stream<HasMetadata> generateResource(StackGresClusterContext context) {
-    return Stream.of(getDefaultScript(context.getSource()));
+    return Stream.of(getDefaultScript(context));
   }
 
-  private StackGresScript getDefaultScript(StackGresCluster cluster) {
+  private StackGresScript getDefaultScript(StackGresClusterContext context) {
+    final var cluster = context.getCluster();
     StackGresScript defaultScript = new StackGresScript();
     defaultScript.setMetadata(new ObjectMeta());
     defaultScript.getMetadata().setNamespace(cluster.getMetadata().getNamespace());
@@ -49,7 +50,7 @@ public class PatroniDefaultScript implements ResourceGenerator<StackGresClusterC
     defaultScript.getMetadata().setLabels(labelFactory.genericLabels(cluster));
     defaultScript.setSpec(new StackGresScriptSpec());
     defaultScript.getSpec().setScripts(new ArrayList<>());
-    defaultScript.getSpec().getScripts().addAll(patroniDefaultScripts.getDefaultScripts(cluster));
+    defaultScript.getSpec().getScripts().addAll(patroniDefaultScripts.getDefaultScripts(context));
     return defaultScript;
   }
 

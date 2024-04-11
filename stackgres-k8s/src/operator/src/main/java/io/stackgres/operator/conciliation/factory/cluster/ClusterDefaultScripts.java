@@ -17,6 +17,7 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.common.crd.sgscript.StackGresScriptFrom;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
+import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.cluster.patroni.PatroniSecret;
 import jakarta.inject.Singleton;
 import org.jooq.lambda.Seq;
@@ -25,15 +26,15 @@ import org.jooq.lambda.Unchecked;
 @Singleton
 public class ClusterDefaultScripts {
 
-  public List<StackGresScriptEntry> getDefaultScripts(StackGresCluster cluster) {
-    return Seq.of(getPgBouncerUserAuthenticatorScript())
+  public List<StackGresScriptEntry> getDefaultScripts(StackGresClusterContext context) {
+    return Seq.of(getPgBouncerUserAuthenticatorScript(context))
         .append(getPostgresExporterInitScript())
         .append(Seq.of(
-            getBabelfishUserScript(cluster),
+            getBabelfishUserScript(context.getCluster()),
             getBabelfishDatabaseScript(),
             getBabelfishInitDatabaseScript())
             .filter(
-                script -> getPostgresFlavorComponent(cluster) == StackGresComponent.BABELFISH))
+                script -> getPostgresFlavorComponent(context.getCluster()) == StackGresComponent.BABELFISH))
         .toList();
   }
 
@@ -81,7 +82,7 @@ public class ClusterDefaultScripts {
     return script;
   }
 
-  private StackGresScriptEntry getPgBouncerUserAuthenticatorScript() {
+  private StackGresScriptEntry getPgBouncerUserAuthenticatorScript(StackGresClusterContext context) {
     final StackGresScriptEntry script = new StackGresScriptEntry();
     script.setName("pgbouncer-user-authenticator");
     script.setRetryOnError(true);
@@ -89,7 +90,8 @@ public class ClusterDefaultScripts {
         .asCharSource(ClusterDefaultScripts.class.getResource(
             "/pgbouncer/init.sql"),
             StandardCharsets.UTF_8)
-        .read()).get());
+        .read()).get()
+        .formatted(PatroniSecret.getAuthenticatorCredentials(context).v1));
     return script;
   }
 
