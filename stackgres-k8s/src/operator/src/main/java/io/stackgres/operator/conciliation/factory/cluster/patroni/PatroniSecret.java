@@ -177,26 +177,26 @@ public class PatroniSecret
   }
 
   public static Tuple2<String, String> getAuthenticatorCredentials(
-    StackGresClusterContext context) {
+      StackGresClusterContext context) {
     final Map<String, String> previousSecretData = context.getDatabaseSecret()
-      .map(Secret::getData)
-      .map(ResourceUtil::decodeSecret)
-      .orElse(Map.of());
+        .map(Secret::getData)
+        .map(ResourceUtil::decodeSecret)
+        .orElse(Map.of());
 
     return getAuthenticatorCredentials(context, previousSecretData).limit2();
   }
 
   private static Tuple3<String, String, String> getAuthenticatorCredentials(
-    StackGresClusterContext context,
-    Map<String, String> previousSecretData
+      StackGresClusterContext context,
+      Map<String, String> previousSecretData
   ) {
     final String authenticatorUsername = context.getAuthenticatorUsername()
-      .orElse(previousSecretData
+        .orElse(previousSecretData
         .getOrDefault(AUTHENTICATOR_USERNAME_KEY, previousSecretData
           .getOrDefault(AUTHENTICATOR_USERNAME_ENV, AUTHENTICATOR_USERNAME)));
 
     final String authenticatorPasswordEnv = AUTHENTICATOR_PASSWORD_ENV
-      .replace(AUTHENTICATOR_USERNAME, authenticatorUsername);
+        .replace(AUTHENTICATOR_USERNAME, authenticatorUsername);
 
     final String authenticatorPassword = context.getAuthenticatorPassword()
         .orElse(previousSecretData
@@ -205,7 +205,6 @@ public class PatroniSecret
 
     return Tuple.tuple(authenticatorUsername, authenticatorPassword, authenticatorPasswordEnv);
   }
-
 
   private void setBabelfishCredentials(
       StackGresClusterContext context,

@@ -7,4 +7,4 @@ CREATE OR REPLACE FUNCTION public.lookup (
 
 -- make sure only "authenticator" can use the function
 REVOKE EXECUTE ON FUNCTION public.lookup(name) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.lookup(name) TO %$1s
+GRANT EXECUTE ON FUNCTION public.lookup(name) TO %1$s
