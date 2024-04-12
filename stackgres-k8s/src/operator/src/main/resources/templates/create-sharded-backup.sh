@@ -278,6 +278,7 @@ EOF
 }
 
 create_backup_restore_point() {
+  echo "Creating restore point $SHARDED_BACKUP_NAME"
   cat << EOF | { set +e; kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
       -- sh -e $SHELL_XTRACE 2>&1; printf %s "$?" > /tmp/backup-restore-point-exit-code; } | tee /tmp/backup-restore-point
 psql -d "$SHARDED_CLUSTER_DATABASE" -v ON_ERROR_STOP=1 \
@@ -285,16 +286,12 @@ $(
   if [ "$SHARDING_TYPE" = citus ]
   then
     cat << INNER_EOF
-  -c "SELECT citus_create_restore_point('$SHARDED_BACKUP_NAME')" \
-  -c "SELECT pg_switch_wal()" \
-  -c "SELECT run_command_on_workers(\\\$\\\$ SELECT pg_switch_wal() \\\$\\\$)"
+  -c "SELECT citus_create_restore_point('$SHARDED_BACKUP_NAME')"
 INNER_EOF
   elif [ "$SHARDING_TYPE" = ddp ]
   then
     cat << INNER_EOF
-  -c "SELECT ddp_create_restore_point('$SHARDED_BACKUP_NAME')" \
-  -c "SELECT pg_switch_wal()" \
-  -c "SELECT result FROM pg_foreign_server, LATERAL (SELECT * FROM dblink(srvname, 'SELECT pg_switch_wal()') AS (result text)) AS _"
+  -c "SELECT ddp_create_restore_point('$SHARDED_BACKUP_NAME')"
 INNER_EOF
   fi
 )
@@ -307,6 +304,117 @@ EOF
       ]'
     exit 1
   fi
+
+  echo "Retrieving latest LSNs"
+  cat << EOF | { set +e; kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
+      -- sh -e $SHELL_XTRACE 2>&1; printf %s "$?" > /tmp/backup-restore-point-lsns-exit-code; } | tee /tmp/backup-restore-point-lsns
+psql -d "$SHARDED_CLUSTER_DATABASE" -t -A -v ON_ERROR_STOP=1 \
+$(
+  if [ "$SHARDING_TYPE" = citus ]
+  then
+    cat << INNER_EOF
+  -c "SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r" \
+  -c "SELECT run_command_on_workers(\\\$\\\$ SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r \\\$\\\$)"
+INNER_EOF
+  elif [ "$SHARDING_TYPE" = ddp ]
+  then
+    cat << INNER_EOF
+  -c "SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r" \
+  -c "SELECT result FROM pg_foreign_server, LATERAL (SELECT * FROM dblink(srvname, 'SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r') AS (result text)) AS _"
+INNER_EOF
+  fi
+)
+EOF
+  if [ "$(cat /tmp/backup-restore-point-lsns-exit-code)" != 0 ]
+  then
+    cat /tmp/backup-restore-point-lsns > /tmp/backup-push
+    kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
+      {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed:\n'; cat /tmp/backup-restore-point-lsns; } | to_json_string)"'}
+      ]'
+    exit 1
+  fi
+
+  echo "Creating checkpoint and rotate the WALs"
+  cat << EOF | { set +e; kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
+      -- sh -e $SHELL_XTRACE 2>&1; printf %s "$?" > /tmp/backup-restore-point-checkpoint-exit-code; } | tee /tmp/backup-restore-point-checkpoint
+psql -d "$SHARDED_CLUSTER_DATABASE" -v ON_ERROR_STOP=1 \
+$(
+  if [ "$SHARDING_TYPE" = citus ]
+  then
+    cat << INNER_EOF
+  -c "CHECKPOINT" \
+  -c "SELECT run_command_on_workers(\\\$\\\$ CHECKPOINT \\\$\\\$)" \
+  -c "SELECT pg_switch_wal()" \
+  -c "SELECT run_command_on_workers(\\\$\\\$ SELECT pg_switch_wal() \\\$\\\$)"
+INNER_EOF
+  elif [ "$SHARDING_TYPE" = ddp ]
+  then
+    cat << INNER_EOF
+  -c "SELECT CHECKPOINT" \
+  -c "SELECT result FROM pg_foreign_server, LATERAL (SELECT * FROM dblink(srvname, 'CHECKPOINT') AS (result text)) AS _" \
+  -c "SELECT pg_switch_wal()" \
+  -c "SELECT result FROM pg_foreign_server, LATERAL (SELECT * FROM dblink(srvname, 'SELECT pg_switch_wal()') AS (result text)) AS _"
+INNER_EOF
+  fi
+)
+EOF
+  if [ "$(cat /tmp/backup-restore-point-checkpoint-exit-code)" != 0 ]
+  then
+    cat /tmp/backup-restore-point-checkpoint > /tmp/backup-push
+    kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
+      {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed:\n'; cat /tmp/backup-restore-point-checkpoint; } | to_json_string)"'}
+      ]'
+    exit 1
+  fi
+
+  echo "Waiting for LSNs to change from:"
+  echo
+  cat /tmp/backup-restore-point-lsns
+  echo
+  while true
+  do
+    cat << EOF | { set +e; kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-primary)" -c "$PATRONI_CONTAINER_NAME" \
+        -- sh -e $SHELL_XTRACE 2>&1; printf %s "$?" > /tmp/backup-restore-point-current-lnss-exit-code; } | tee /tmp/backup-restore-point-current-lnss
+psql -d "$SHARDED_CLUSTER_DATABASE" -t -A -v ON_ERROR_STOP=1 \
+$(
+  if [ "$SHARDING_TYPE" = citus ]
+  then
+    cat << INNER_EOF
+  -c "SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r" \
+  -c "SELECT run_command_on_workers(\\\$\\\$ SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r \\\$\\\$)"
+INNER_EOF
+  elif [ "$SHARDING_TYPE" = ddp ]
+  then
+    cat << INNER_EOF
+  -c "SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r" \
+  -c "SELECT result FROM pg_foreign_server, LATERAL (SELECT * FROM dblink(srvname, 'SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r') AS (result text)) AS _"
+INNER_EOF
+  fi
+)
+EOF
+    if [ "$(cat /tmp/backup-restore-point-current-lnss-exit-code)" != 0 ]
+    then
+      cat /tmp/backup-restore-point-current-lnss > /tmp/backup-push
+      kubectl patch "$SHARDED_BACKUP_CRD_NAME" -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" --type json --patch '[
+        {"op":"replace","path":"/status/process/failure","value":'"$({ printf 'Backup failed:\n'; cat /tmp/backup-restore-point-current-lnss; } | to_json_string)"'}
+        ]'
+      exit 1
+    fi
+    PREVIOUS_LSNS_CHANGED=true
+    while read -r PREVIOUS_LSN
+    do
+      if grep -qxF "$PREVIOUS_LSN" /tmp/backup-restore-point-current-lnss
+      then
+        PREVIOUS_LSNS_CHANGED=false
+        break
+      fi
+    done < /tmp/backup-restore-point-lsns
+    if [ "$PREVIOUS_LSNS_CHANGED" = true ]
+    then
+      break
+    fi
+    sleep 5
+  done
 }
 
 set_backup_completed() {
