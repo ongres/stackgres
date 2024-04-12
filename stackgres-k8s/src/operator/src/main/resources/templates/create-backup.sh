@@ -769,15 +769,24 @@ exec-with-env "$BACKUP_ENV" \\
       fi
     done
 
-# for each existing backup sorted by backup name ascending (this also mean sorted by creation date ascending)
+# for each existing backup sorted by backup time ascending (this also mean sorted by creation date ascending)
 exec-with-env "$BACKUP_ENV" \\
   -- $(get_timeout_command RECONCILIATION) wal-g backup-list --detail --json \\
   | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\\n' \\
   | grep '"backup_name"' \\
   | sort -r -t , -k 2 \\
-  | (RETAIN="$RETAIN"
+  | (
+    RETAIN="$RETAIN"
+    TO_REMOVE_BACKUP_NAME=
     while read BACKUP
     do
+      if [ -n "\$TO_REMOVE_BACKUP_NAME" ]
+      then
+        echo "Deleting backup \$TO_REMOVE_BACKUP_NAME"
+        exec-with-env "$BACKUP_ENV" \\
+          -- $(get_timeout_command RECONCILIATION) wal-g delete target FIND_FULL "\$TO_REMOVE_BACKUP_NAME" --confirm
+      fi
+      TO_REMOVE_BACKUP_NAME=
       BACKUP_NAME="\$(echo "\$BACKUP" | tr -d '{}\\42' | tr ',' '\\n' \\
           | grep 'backup_name' | cut -d : -f 2-)"
       echo "Check if backup \$BACKUP_NAME has to be retained and will retain \$RETAIN backups"
@@ -788,13 +797,13 @@ exec-with-env "$BACKUP_ENV" \\
         | grep -v '^\$' \\
         | grep -q "^\$BACKUP_NAME\$"
       then
-        echo "Deleting \$BACKUP_NAME since no associated SGBackup exists and will retain \$RETAIN backups"
-        exec-with-env "$BACKUP_ENV" \\
-          -- $(get_timeout_command RECONCILIATION) wal-g delete target FIND_FULL "\$BACKUP_NAME" --confirm
+        echo "Deleting backup \$BACKUP_NAME since no associated SGBackup exists and will retain \$RETAIN backups"
+        TO_REMOVE_BACKUP_NAME="\$BACKUP_NAME"
       # if is inside the retain window, retain it and decrease RETAIN counter
-      elif [ "\$RETAIN" -gt 1 ]
+      elif { [ "$BACKUP_IS_PERMANENT" = true ] && [ "\$RETAIN" -ge 1 ]; } \
+       || { [ "$BACKUP_IS_PERMANENT" != true ] && [ "\$RETAIN" -gt 1 ]; }
       then
-        echo "Retaining \$BACKUP_NAME and will retain \$((RETAIN-1)) more backups"
+        echo "Retaining backup \$BACKUP_NAME and will retain \$((RETAIN-1)) more backups"
         RETAIN="\$((RETAIN-1))"
       # if is outside the retain window and has a managed lifecycle, delete it
       elif [ "\$RETAIN" -eq 1 ] \\
@@ -804,15 +813,25 @@ exec-with-env "$BACKUP_ENV" \\
           | grep -v '^\$' \\
           | grep -q "^\$BACKUP_NAME\$"
       then
-        echo "Deleting WAL files and backups with managed lifecycle older than \$BACKUP_NAME"
-        exec-with-env "$BACKUP_ENV" \\
-          -- $(get_timeout_command RECONCILIATION) wal-g delete before FIND_FULL "\$BACKUP_NAME" --confirm
+        echo "Deleting backup with managed lifecycle \$BACKUP_NAME"
         RETAIN="\$((RETAIN-1))"
+        TO_REMOVE_BACKUP_NAME="\$BACKUP_NAME"
       # or retain it
       else
-        echo "Retaining \$BACKUP_NAME with unmanaged lifecycle"
+        echo "Retaining backup \$BACKUP_NAME with unmanaged lifecycle"
       fi
-    done)
+    done
+    if [ -n "\$TO_REMOVE_BACKUP_NAME" ]
+    then
+      echo "Deleting latest backup \$TO_REMOVE_BACKUP_NAME and previous WAL files"
+      exec-with-env "$BACKUP_ENV" \\
+        -- $(get_timeout_command RECONCILIATION) wal-g delete target FIND_FULL "\$TO_REMOVE_BACKUP_NAME" --confirm
+    else
+      echo "Deleting WAL files older than latest backup \$BACKUP_NAME"
+      exec-with-env "$BACKUP_ENV" \\
+        -- $(get_timeout_command RECONCILIATION) wal-g delete before "\$BACKUP_NAME" --confirm
+    fi
+    )
 
 exec-with-env "$BACKUP_ENV" \\
   -- $(get_timeout_command RECONCILIATION) wal-g wal-verify integrity
