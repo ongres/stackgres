@@ -57,7 +57,9 @@ public class ShardedBackupStatusManager {
         JobUtil.isJobCompleteOrFailed(backupJob);
     Optional<Boolean> isShardedBackupJobActive = JobUtil.isJobActive(backupJob);
     if (isShardedBackupJobCompletedOrFailed.isPresent()) {
-      if (Boolean.TRUE.equals(isShardedBackupJobCompletedOrFailed.get())) {
+      if (Boolean.TRUE.equals(isShardedBackupJobCompletedOrFailed.get())
+              && source.getStatus().getBackupInformation() != null
+              && source.getStatus().getSgBackups() != null) {
         setStatus(source, ShardedBackupStatus.COMPLETED);
       } else {
         setStatus(source, ShardedBackupStatus.FAILED);
