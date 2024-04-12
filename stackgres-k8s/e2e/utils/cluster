@@ -83,6 +83,8 @@ wait_cluster() {
       | grep -q "^Switchover failed"'
     wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$LEADER" \
       --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
+    wait_until eval 'kubectl get endpoints --namespace "$NAMESPACE" "$RELEASE" \
+      --template="{{ .metadata.annotations.leader }}" | grep -q "^$RELEASE-[0-9]\+"'
   fi
 }
 
@@ -124,6 +126,9 @@ wait_cluster_external_dcs() {
     then
       wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$LEADER" \
         --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
+      wait_until eval '[ "$(kubectl get endpoints --namespace "$NAMESPACE" "$SCOPE" \
+        --template="{{ range .subsets }}{{ range .addresses }}{{ printf \"%s\n\" .ip }}{{ end }}{{ end }}" 2>/dev/null \
+        | wc -l)" -ge 1 ]'
     fi
   fi
 }
@@ -318,6 +323,9 @@ wait_sharded_cluster() {
         | grep -q "^Switchover failed"'
       wait_until eval '[ "$(kubectl get pod -n "$NAMESPACE" "$LEADER" \
         --template="{{ .metadata.labels.role }}" 2>/dev/null)" = replica ]'
+      wait_until eval '[ "$(kubectl get endpoints --namespace "$NAMESPACE" "$ENDPOINTS" \
+        --template="{{ range .subsets }}{{ range .addresses }}{{ printf \"%s\n\" .ip }}{{ end }}{{ end }}" 2>/dev/null \
+        | wc -l)" -ge 1 ]'
     fi
     INDEX="$((INDEX + 1))"
   done
