@@ -206,7 +206,7 @@ public class ClusterRequiredResourcesGenerator
             "SGCluster " + clusterNamespace + "." + clusterName + " have a non existent "
                 + StackGresProfile.KIND + " " + spec.getSgInstanceProfile()));
 
-    final Optional<StackGresObjectStorage> backupStorageObject = Optional
+    final Optional<StackGresObjectStorage> backupObjectStorage = Optional
         .ofNullable(clusterConfiguration.getBackups())
         .map(Collection::stream)
         .flatMap(Stream::findFirst)
@@ -226,7 +226,7 @@ public class ClusterRequiredResourcesGenerator
     final Optional<Secret> databaseSecret =
         secretFinder.findByNameAndNamespace(clusterName, clusterNamespace);
 
-    final Map<String, Secret> backupSecrets = backupStorageObject
+    final Map<String, Secret> backupSecrets = backupObjectStorage
         .map(StackGresObjectStorage::getSpec)
         .stream()
         .flatMap(backupEnvVarFactory::streamStorageSecretReferences)
@@ -243,9 +243,9 @@ public class ClusterRequiredResourcesGenerator
         .collect(Collectors.toMap(Tuple2::v1, Tuple2::v2));
 
     final Optional<Tuple2<StackGresBackup, Map<String, Secret>>> replicationInitializationBackupAndSecrets =
-        getReplicationInitializationBackupAndSecrets(cluster);
+        getReplicationInitializationBackupAndSecrets(cluster, backupObjectStorage);
     final Optional<StackGresBackup> replicationInitializationBackupToCreate =
-        getReplicationInitializationBackupToCreate(cluster);
+        getReplicationInitializationBackupToCreate(cluster, backupObjectStorage);
     final int currentInstances = countCurrentInstances(cluster);
 
     final Optional<StackGresBackup> restoreBackup = findRestoreBackup(cluster, clusterNamespace);
@@ -326,7 +326,7 @@ public class ClusterRequiredResourcesGenerator
         .source(cluster)
         .postgresConfig(pgConfig)
         .profile(profile)
-        .objectStorage(backupStorageObject)
+        .objectStorage(backupObjectStorage)
         .poolingConfig(pooling)
         .backupSecrets(backupSecrets)
         .replicationInitializationBackup(replicationInitializationBackupAndSecrets
@@ -360,7 +360,8 @@ public class ClusterRequiredResourcesGenerator
   }
 
   private Optional<Tuple2<StackGresBackup, Map<String, Secret>>> getReplicationInitializationBackupAndSecrets(
-      StackGresCluster cluster) {
+      StackGresCluster cluster,
+      Optional<StackGresObjectStorage> backupObjectStorage) {
     if (StackGresReplicationInitializationMode.FROM_EXISTING_BACKUP.ordinal()
         > cluster.getSpec().getReplication().getInitializationModeOrDefault().ordinal()) {
       return Optional.empty();
@@ -382,6 +383,16 @@ public class ClusterRequiredResourcesGenerator
             .map(StackGresBackupProcess::getStatus)
             .filter(BackupStatus.COMPLETED.toString()::equals)
             .isPresent())
+        .filter(backup -> Optional.ofNullable(backup.getStatus())
+            .map(StackGresBackupStatus::getSgBackupConfig)
+            .equals(backupObjectStorage.map(StackGresObjectStorage::getSpec)))
+        .filter(backup -> Optional.ofNullable(backup.getStatus())
+            .map(StackGresBackupStatus::getBackupPath)
+            .equals(Optional
+                .ofNullable(cluster.getSpec().getConfigurations().getBackups())
+                .map(Collection::stream)
+                .flatMap(Stream::findFirst)
+                .map(StackGresClusterBackupConfiguration::getPath)))
         .filter(backup -> Optional.ofNullable(backup.getStatus())
             .map(StackGresBackupStatus::getBackupInformation)
             .map(StackGresBackupInformation::getPostgresMajorVersion)
@@ -436,7 +447,8 @@ public class ClusterRequiredResourcesGenerator
   }
 
   private Optional<StackGresBackup> getReplicationInitializationBackupToCreate(
-      StackGresCluster cluster) {
+      StackGresCluster cluster,
+      Optional<StackGresObjectStorage> backupObjectStorage) {
     if (!StackGresReplicationInitializationMode.FROM_NEWLY_CREATED_BACKUP.equals(
         cluster.getSpec().getReplication().getInitializationModeOrDefault())) {
       return Optional.empty();
@@ -455,6 +467,16 @@ public class ClusterRequiredResourcesGenerator
             labelFactory.replicationInitializationBackupLabels(cluster)))
         .filter(backup -> backup.getSpec().getSgCluster().equals(
             cluster.getMetadata().getName()))
+        .filter(backup -> Optional.ofNullable(backup.getStatus())
+            .map(StackGresBackupStatus::getSgBackupConfig)
+            .equals(backupObjectStorage.map(StackGresObjectStorage::getSpec)))
+        .filter(backup -> Optional.ofNullable(backup.getStatus())
+            .map(StackGresBackupStatus::getBackupPath)
+            .equals(Optional
+                .ofNullable(cluster.getSpec().getConfigurations().getBackups())
+                .map(Collection::stream)
+                .flatMap(Stream::findFirst)
+                .map(StackGresClusterBackupConfiguration::getPath)))
         .filter(backup -> Optional.ofNullable(backup.getStatus())
             .map(StackGresBackupStatus::getProcess)
             .map(StackGresBackupProcess::getTiming)
