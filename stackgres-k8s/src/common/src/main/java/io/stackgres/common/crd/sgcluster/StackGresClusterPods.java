@@ -61,10 +61,10 @@ public class StackGresClusterPods {
   private List<CustomContainer> customInitContainers;
 
   @Valid
-  private Map<String, CustomVolumeMount> customVolumeMounts;
+  private Map<String, List<CustomVolumeMount>> customVolumeMounts;
 
   @Valid
-  private Map<String, CustomVolumeMount> customInitVolumeMounts;
+  private Map<String, List<CustomVolumeMount>> customInitVolumeMounts;
 
   @ReferencedField("persistentVolume")
   interface PersistentVolume extends FieldReference {
@@ -157,19 +157,19 @@ public class StackGresClusterPods {
     this.customInitContainers = customInitContainers;
   }
 
-  public Map<String, CustomVolumeMount> getCustomVolumeMounts() {
+  public Map<String, List<CustomVolumeMount>> getCustomVolumeMounts() {
     return customVolumeMounts;
   }
 
-  public void setCustomVolumeMounts(Map<String, CustomVolumeMount> customVolumeMounts) {
+  public void setCustomVolumeMounts(Map<String, List<CustomVolumeMount>> customVolumeMounts) {
     this.customVolumeMounts = customVolumeMounts;
   }
 
-  public Map<String, CustomVolumeMount> getCustomInitVolumeMounts() {
+  public Map<String, List<CustomVolumeMount>> getCustomInitVolumeMounts() {
     return customInitVolumeMounts;
   }
 
-  public void setCustomInitVolumeMounts(Map<String, CustomVolumeMount> customInitVolumeMounts) {
+  public void setCustomInitVolumeMounts(Map<String, List<CustomVolumeMount>> customInitVolumeMounts) {
     this.customInitVolumeMounts = customInitVolumeMounts;
   }
 
