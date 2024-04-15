@@ -103,6 +103,10 @@ spec:
     customInitContainers:
       {{- toYaml . | nindent 6 }}
     {{- end }}
+    {{- with .Values.cluster.pods.customVolumeMounts }}
+    customVolumeMounts:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
   {{- if .Values.distributedLogs.enabled }}
   {{- with .Values.cluster.distributedLogs }}
   distributedLogs:
