@@ -42,9 +42,9 @@ public class ClusterPods {
 
   private List<CustomContainer> customInitContainers;
 
-  private Map<String, CustomVolumeMount> customVolumeMounts;
+  private Map<String, List<CustomVolumeMount>> customVolumeMounts;
 
-  private Map<String, CustomVolumeMount> customInitVolumeMounts;
+  private Map<String, List<CustomVolumeMount>> customInitVolumeMounts;
 
   public ClusterPodPersistentVolume getPersistentVolume() {
     return persistentVolume;
@@ -126,19 +126,19 @@ public class ClusterPods {
     this.customInitContainers = customInitContainers;
   }
 
-  public Map<String, CustomVolumeMount> getCustomVolumeMounts() {
+  public Map<String, List<CustomVolumeMount>> getCustomVolumeMounts() {
     return customVolumeMounts;
   }
 
-  public void setCustomVolumeMounts(Map<String, CustomVolumeMount> customVolumeMounts) {
+  public void setCustomVolumeMounts(Map<String, List<CustomVolumeMount>> customVolumeMounts) {
     this.customVolumeMounts = customVolumeMounts;
   }
 
-  public Map<String, CustomVolumeMount> getCustomInitVolumeMounts() {
+  public Map<String, List<CustomVolumeMount>> getCustomInitVolumeMounts() {
     return customInitVolumeMounts;
   }
 
-  public void setCustomInitVolumeMounts(Map<String, CustomVolumeMount> customInitVolumeMounts) {
+  public void setCustomInitVolumeMounts(Map<String, List<CustomVolumeMount>> customInitVolumeMounts) {
     this.customInitVolumeMounts = customInitVolumeMounts;
   }
 
