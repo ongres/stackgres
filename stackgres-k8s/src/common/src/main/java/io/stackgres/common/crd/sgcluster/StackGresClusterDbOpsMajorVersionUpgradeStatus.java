@@ -8,11 +8,15 @@ package io.stackgres.common.crd.sgcluster;
 import java.util.List;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.validation.FieldReference;
+import io.stackgres.common.validation.FieldReference.ReferencedField;
 import io.sundr.builder.annotations.Buildable;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 
 @RegisterForReflection
@@ -55,6 +59,28 @@ public class StackGresClusterDbOpsMajorVersionUpgradeStatus extends ClusterDbOps
   private Boolean check;
 
   private Boolean rollback;
+
+  @ReferencedField("primaryInstance")
+  interface PrimaryInstance extends FieldReference {
+  }
+
+  @ReferencedField("initialInstances")
+  interface InitialInstances extends FieldReference {
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "primaryInstance is required",
+      payload = { PrimaryInstance.class })
+  public boolean isPrimaryInstanceSectionPresent() {
+    return getPrimaryInstance() != null;
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "initialInstances is required",
+      payload = { InitialInstances.class })
+  public boolean isInitialInstancesSectionPresent() {
+    return getInitialInstances() != null;
+  }
 
   public String getSourcePostgresVersion() {
     return sourcePostgresVersion;
