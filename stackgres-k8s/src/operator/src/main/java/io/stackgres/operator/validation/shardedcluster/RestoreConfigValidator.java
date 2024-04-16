@@ -138,8 +138,11 @@ public class RestoreConfigValidator
         }
         break;
       case UPDATE:
-        StackGresShardedClusterRestore oldRestoreConfig = review.getRequest()
-            .getOldObject().getSpec().getInitialData().getRestore();
+        StackGresShardedClusterRestore oldRestoreConfig =
+            Optional.of(review.getRequest().getOldObject().getSpec())
+            .map(StackGresShardedClusterSpec::getInitialData)
+            .map(StackGresShardedClusterInitialData::getRestore)
+            .orElse(null);
 
         final String message = "Cannot update SGShardedCluster's restore configuration";
         if (!Objects.equals(restoreConfig, oldRestoreConfig)) {
