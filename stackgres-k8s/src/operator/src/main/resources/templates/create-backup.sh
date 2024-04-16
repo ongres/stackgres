@@ -789,32 +789,35 @@ exec-with-env "$BACKUP_ENV" \\
       TO_REMOVE_BACKUP_NAME=
       BACKUP_NAME="\$(echo "\$BACKUP" | tr -d '{}\\42' | tr ',' '\\n' \\
           | grep 'backup_name' | cut -d : -f 2-)"
-      echo "Check if backup \$BACKUP_NAME has to be retained and will retain \$RETAIN backups"
+      echo "Check if backup \$BACKUP_NAME has to be retained and will retain \$RETAIN more backups"
       # if is not the created backup and is not in backup CR list, delete it
       if [ "\$BACKUP_NAME" != "$CURRENT_BACKUP_NAME" ] \\
-        && ! echo '$(cat /tmp/backups)' \\
-        | cut -d : -f 5 \\
-        | grep -v '^\$' \\
+        && ! echo '$(cat /tmp/backups \
+          | cut -d : -f 5 \
+          | grep -v '^\$')' \\
         | grep -q "^\$BACKUP_NAME\$"
       then
         echo "Deleting backup \$BACKUP_NAME since no associated SGBackup exists and will retain \$RETAIN backups"
         TO_REMOVE_BACKUP_NAME="\$BACKUP_NAME"
       # if is inside the retain window, retain it and decrease RETAIN counter
-      elif { [ "$BACKUP_IS_PERMANENT" = true ] && [ "\$RETAIN" -ge 1 ]; } \
-       || { [ "$BACKUP_IS_PERMANENT" != true ] && [ "\$RETAIN" -gt 1 ]; }
+      elif [ "\$RETAIN" -ge 1 ] \\
+        && echo '$(cat /tmp/backups \
+            | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \
+            | cut -d : -f 5 \
+            | grep -v '^\$')' \\
+          | grep -q "^\$BACKUP_NAME\$"
       then
-        echo "Retaining backup \$BACKUP_NAME and will retain \$((RETAIN-1)) more backups"
+        echo "Retaining backup \$BACKUP_NAME"
         RETAIN="\$((RETAIN-1))"
       # if is outside the retain window and has a managed lifecycle, delete it
-      elif [ "\$RETAIN" -eq 1 ] \\
-        && echo '$(cat /tmp/backups)' \\
-          | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
-          | cut -d : -f 5 \\
-          | grep -v '^\$' \\
+      elif [ "\$RETAIN" -eq 0 ] \\
+        && echo '$(cat /tmp/backups \
+            | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \
+            | cut -d : -f 5 \
+            | grep -v '^\$')' \\
           | grep -q "^\$BACKUP_NAME\$"
       then
         echo "Deleting backup with managed lifecycle \$BACKUP_NAME"
-        RETAIN="\$((RETAIN-1))"
         TO_REMOVE_BACKUP_NAME="\$BACKUP_NAME"
       # or retain it
       else
@@ -939,9 +942,9 @@ reconcile_backup_crs() {
       --template="{{ .status.sgBackupConfig.storage }}")"
     BACKUP_PATH="$(kubectl get "$BACKUP_CRD_NAME" -n "$BACKUP_CR_NAMESPACE" "$BACKUP_CR_NAME" \
       --template="{{ .status.backupPath }}")"
-    # if backup CR has backup internal name, is marked as completed, uses the same current
+    # if backup CR has backup internal name, uses the same current
     # backup config and backup path but is not found in the storage, delete it
-    if [ -n "$BACKUP_NAME" ] && [ "$BACKUP_PHASE" = "$BACKUP_PHASE_COMPLETED" ] \
+    if [ -n "$BACKUP_NAME" ] \
       && [ "$BACKUP_CONFIG" = "$CURRENT_BACKUP_CONFIG" ] \
       && [ "$BACKUP_PATH" = "$CLUSTER_BACKUP_PATH" ] \
       && ! grep -q "\"backup_name\":\"$BACKUP_NAME\"" /tmp/existing-backups
