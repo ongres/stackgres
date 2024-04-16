@@ -7,17 +7,18 @@ package io.stackgres.apiweb.rest;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import io.stackgres.apiweb.dto.ResourceDto;
-import org.jetbrains.annotations.NotNull;
 
 public interface ResourceRestService<T extends ResourceDto> {
 
-  @NotNull List<@NotNull T> list();
+  @Nonnull List<T> list();
 
-  T create(@NotNull T resource, Boolean dryRun);
+  T create(@Nonnull T resource, Boolean dryRun);
 
-  void delete(@NotNull T resource, Boolean dryRun);
+  void delete(@Nonnull T resource, Boolean dryRun);
 
-  T update(@NotNull T resource, Boolean dryRun);
+  T update(@Nonnull T resource, Boolean dryRun);
 
 }

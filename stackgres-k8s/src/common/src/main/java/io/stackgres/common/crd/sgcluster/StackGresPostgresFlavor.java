@@ -5,25 +5,25 @@
 
 package io.stackgres.common.crd.sgcluster;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 public enum StackGresPostgresFlavor {
 
   VANILLA("vanilla"),
   BABELFISH("babelfish");
 
-  private final @NotNull String type;
+  private final @Nonnull String type;
 
-  StackGresPostgresFlavor(@NotNull String type) {
+  StackGresPostgresFlavor(@Nonnull String type) {
     this.type = type;
   }
 
   @Override
-  public @NotNull String toString() {
+  public @Nonnull String toString() {
     return type;
   }
 
-  public static @NotNull StackGresPostgresFlavor fromString(@NotNull String value) {
+  public static @Nonnull StackGresPostgresFlavor fromString(@Nonnull String value) {
     for (StackGresPostgresFlavor role : StackGresPostgresFlavor.values()) {
       if (role.toString().equals(value)) {
         return role;

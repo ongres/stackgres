@@ -9,6 +9,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.io.Resources;
 import io.stackgres.common.crd.postgres.service.StackGresPostgresService;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -31,7 +33,6 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsNonProduction;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpec;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogsSpecMetadata;
-import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Unchecked;
 
 public interface StackGresDistributedLogsUtil {
@@ -53,7 +54,7 @@ public interface StackGresDistributedLogsUtil {
         .getBuildMajorVersion(POSTGRESQL_VERSION);
   }
 
-  static @NotNull StackGresComponent getPostgresFlavorComponent(
+  static @Nonnull StackGresComponent getPostgresFlavorComponent(
       StackGresDistributedLogs distribtuedLogs) {
     return StackGresComponent.POSTGRESQL;
   }

@@ -8,6 +8,8 @@ package io.stackgres.apiweb.transformer;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.Nonnull;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.stackgres.apiweb.config.WebApiProperty;
@@ -20,7 +22,6 @@ import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterStatus;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jooq.lambda.Seq;
 
@@ -44,7 +45,7 @@ public class ClusterTransformer
 
   @Override
   public StackGresCluster toCustomResource(
-      @NotNull ClusterDto source,
+      @Nonnull ClusterDto source,
       @Nullable StackGresCluster original) {
     StackGresCluster transformation = Optional.ofNullable(original)
         .map(o -> mapper.convertValue(original, StackGresCluster.class))
@@ -72,7 +73,7 @@ public class ClusterTransformer
     return transformation;
   }
 
-  public ClusterDto toResourceWithPods(@NotNull StackGresCluster source, @Nullable List<Pod> pods) {
+  public ClusterDto toResourceWithPods(@Nonnull StackGresCluster source, @Nullable List<Pod> pods) {
     ClusterDto clusterDto = toDto(source);
 
     clusterDto.setPods(Seq.seq(pods)

@@ -7,18 +7,19 @@ package io.stackgres.apiweb.rest;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import io.stackgres.apiweb.dto.ResourceDto;
 import jakarta.validation.Valid;
-import org.jetbrains.annotations.NotNull;
 
 public interface ValidatedResourceRestService<T extends ResourceDto> {
 
-  @NotNull List<@NotNull T> list();
+  @Nonnull List<T> list();
 
-  T create(@Valid @NotNull T resource, Boolean dryRun);
+  T create(@Valid @Nonnull T resource, Boolean dryRun);
 
-  void delete(@Valid @NotNull T resource, Boolean dryRun);
+  void delete(@Valid @Nonnull T resource, Boolean dryRun);
 
-  T update(@Valid @NotNull T resource, Boolean dryRun);
+  T update(@Valid @Nonnull T resource, Boolean dryRun);
 
 }

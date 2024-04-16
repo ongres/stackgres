@@ -7,6 +7,8 @@ package io.stackgres.operator.conciliation.factory.shardeddbops;
 
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
@@ -17,7 +19,6 @@ import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operator.conciliation.shardeddbops.StackGresShardedDbOpsContext;
 import jakarta.enterprise.context.ApplicationScoped;
-import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped
 public class ShardedDbOpsTemplatesVolumeFactory
@@ -29,7 +30,7 @@ public class ShardedDbOpsTemplatesVolumeFactory
   }
 
   @Override
-  public @NotNull Stream<VolumePair> buildVolumes(StackGresShardedDbOpsContext context) {
+  public @Nonnull Stream<VolumePair> buildVolumes(StackGresShardedDbOpsContext context) {
     return Stream.of(
         ImmutableVolumePair.builder()
             .volume(buildVolume(context))

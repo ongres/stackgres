@@ -17,6 +17,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.base.Preconditions;
 import com.google.common.net.InternetDomainName;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -25,7 +27,6 @@ import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.ObjectReferenceBuilder;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.fabric8.kubernetes.api.model.OwnerReferenceBuilder;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,7 +127,7 @@ public interface ResourceUtil {
     return name;
   }
 
-  static @NotNull String labelKey(@NotNull String name) {
+  static @Nonnull String labelKey(@Nonnull String name) {
     String label = name;
     if (name.indexOf('/') != -1) {
       Preconditions.checkArgument(
@@ -160,7 +161,7 @@ public interface ResourceUtil {
     return name;
   }
 
-  static @NotNull String labelValue(@NotNull String name) {
+  static @Nonnull String labelValue(@Nonnull String name) {
     if (!name.isBlank()) {
       Preconditions.checkArgument(VALID_VALUE.matcher(name).matches(),
           "Label value not compliant with pattern %s, was %s", VALID_VALUE.pattern(), name);
@@ -187,7 +188,7 @@ public interface ResourceUtil {
     return Pattern.compile(getNameWithIndexPatternString(name));
   }
 
-  static String getNameWithIndexPatternString(@NotNull String name) {
+  static String getNameWithIndexPatternString(@Nonnull String name) {
     return "^" + Pattern.quote(name) + "-([0-9]+)$";
   }
 
@@ -195,11 +196,11 @@ public interface ResourceUtil {
     return Pattern.compile(getNameWithHashPatternString(name));
   }
 
-  static String getNameWithHashPatternString(@NotNull String name) {
+  static String getNameWithHashPatternString(@Nonnull String name) {
     return "^" + Pattern.quote(name) + "-([a-z0-9]+){10}-([a-z0-9]+){5}$";
   }
 
-  static String getNameFromIndexedNamePatternString(@NotNull String name) {
+  static String getNameFromIndexedNamePatternString(@Nonnull String name) {
     return "^" + Pattern.quote(name) + "-([a-z0-9]+){10}-([a-z0-9]+){5}$";
   }
 

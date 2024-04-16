@@ -12,6 +12,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.io.Resources;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -26,7 +28,6 @@ import io.stackgres.operator.conciliation.config.StackGresConfigContext;
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pgexporter.PostgresExporter;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Unchecked;
 
 @Singleton
@@ -49,7 +50,7 @@ public class AdminuiNginxConfigMap
    * Create the Secret for Web Console.
    */
   @Override
-  public @NotNull Stream<HasMetadata> generateResource(StackGresConfigContext context) {
+  public @Nonnull Stream<HasMetadata> generateResource(StackGresConfigContext context) {
     if (!Optional.ofNullable(context.getSource().getSpec())
         .map(StackGresConfigSpec::getDeploy)
         .map(StackGresConfigDeploy::getRestapi)

@@ -18,6 +18,8 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusCause;
@@ -27,7 +29,6 @@ import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped
 public class PodExecutor {
@@ -37,7 +38,7 @@ public class PodExecutor {
   /**
    * Execute a command inside a container of a pod.
    */
-  public List<String> exec(@NotNull Pod pod, @NotNull String container, @NotNull String... args) {
+  public List<String> exec(@Nonnull Pod pod, @Nonnull String container, @Nonnull String... args) {
     CompletableFuture<Void> completableFuture = new CompletableFuture<>();
     try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         ByteArrayOutputStream errorStream = new ByteArrayOutputStream();

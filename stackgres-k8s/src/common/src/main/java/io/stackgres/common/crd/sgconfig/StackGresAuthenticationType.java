@@ -5,25 +5,25 @@
 
 package io.stackgres.common.crd.sgconfig;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 public enum StackGresAuthenticationType {
 
   JWT("jwt"),
   OIDC("oidc");
 
-  private final @NotNull String type;
+  private final @Nonnull String type;
 
-  StackGresAuthenticationType(@NotNull String type) {
+  StackGresAuthenticationType(@Nonnull String type) {
     this.type = type;
   }
 
   @Override
-  public @NotNull String toString() {
+  public @Nonnull String toString() {
     return type;
   }
 
-  public static @NotNull StackGresAuthenticationType fromString(@NotNull String name) {
+  public static @Nonnull StackGresAuthenticationType fromString(@Nonnull String name) {
     return switch (name) {
       case "jwt" -> JWT;
       case "oidc" -> OIDC;

@@ -40,7 +40,7 @@ class PostgresDefaultValuesTest {
 
   @Test
   void throwNpeOnNull() {
-    assertThrows(IllegalArgumentException.class, () -> PostgresDefaultValues.getDefaultValues(null));
+    assertThrows(NullPointerException.class, () -> PostgresDefaultValues.getDefaultValues(null));
   }
 
 }

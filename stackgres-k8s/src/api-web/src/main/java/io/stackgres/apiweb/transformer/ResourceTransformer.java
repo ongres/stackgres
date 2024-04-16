@@ -5,14 +5,15 @@
 
 package io.stackgres.apiweb.transformer;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.apiweb.dto.ResourceDto;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface ResourceTransformer<T extends ResourceDto, R extends HasMetadata>
     extends DtoTransformer<T, R> {
 
-  R toCustomResource(@NotNull T resource, @Nullable R originalResource);
+  R toCustomResource(@Nonnull T resource, @Nullable R originalResource);
 
 }

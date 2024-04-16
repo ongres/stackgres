@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -52,7 +54,6 @@ import io.stackgres.operator.conciliation.factory.cluster.sidecars.fluentbit.Flu
 import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,7 +139,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
   }
 
   @Override
-  public @NotNull Stream<VolumePair> buildVolumes(StackGresDistributedLogsContext context) {
+  public @Nonnull Stream<VolumePair> buildVolumes(StackGresDistributedLogsContext context) {
     return Stream.of(
         ImmutableVolumePair.builder()
             .volume(buildVolume(context))
@@ -147,7 +148,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
     );
   }
 
-  public @NotNull Volume buildVolume(StackGresDistributedLogsContext context) {
+  public @Nonnull Volume buildVolume(StackGresDistributedLogsContext context) {
     return new VolumeBuilder()
         .withName(StackGresVolume.FLUENTD_CONFIG.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
@@ -158,7 +159,7 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
         .build();
   }
 
-  public @NotNull HasMetadata buildSource(StackGresDistributedLogsContext context) {
+  public @Nonnull HasMetadata buildSource(StackGresDistributedLogsContext context) {
     final StackGresDistributedLogs cluster = context.getSource();
     final String namespace = cluster.getMetadata().getNamespace();
 

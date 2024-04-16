@@ -7,7 +7,7 @@ package io.stackgres.common.crd.sgscript;
 
 import java.sql.Connection;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 public enum StackGresScriptTransactionIsolationLevel {
 
@@ -16,26 +16,26 @@ public enum StackGresScriptTransactionIsolationLevel {
   SERIALIZABLE(Connection.TRANSACTION_SERIALIZABLE, "SERIALIZABLE", "serializable");
 
   private final int jdbcConstant;
-  private final @NotNull String sqlString;
-  private final @NotNull String type;
+  private final @Nonnull String sqlString;
+  private final @Nonnull String type;
 
-  StackGresScriptTransactionIsolationLevel(int jdbcConstant, @NotNull String sqlString,
-      @NotNull String type) {
+  StackGresScriptTransactionIsolationLevel(int jdbcConstant, @Nonnull String sqlString,
+      @Nonnull String type) {
     this.jdbcConstant = jdbcConstant;
     this.sqlString = sqlString;
     this.type = type;
   }
 
-  public @NotNull int toJdbcConstant() {
+  public int toJdbcConstant() {
     return jdbcConstant;
   }
 
-  public @NotNull String toSqlString() {
+  public @Nonnull String toSqlString() {
     return sqlString;
   }
 
   @Override
-  public @NotNull String toString() {
+  public @Nonnull String toString() {
     return type;
   }
 

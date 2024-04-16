@@ -13,6 +13,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -55,7 +57,6 @@ import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.param
 import io.stackgres.operator.conciliation.factory.cluster.sidecars.pooling.parameters.PgBouncerDefaultValues;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import org.jetbrains.annotations.NotNull;
 
 @Sidecar(StackGresContainer.PGBOUNCER)
 @Singleton
@@ -136,7 +137,7 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
   }
 
   @Override
-  public @NotNull Stream<VolumePair> buildVolumes(@NotNull StackGresClusterContext context) {
+  public @Nonnull Stream<VolumePair> buildVolumes(@Nonnull StackGresClusterContext context) {
     return Stream.of(
         ImmutableVolumePair.builder()
             .volume(buildVolume(context))
@@ -160,7 +161,7 @@ public class PgBouncerPooling implements ContainerFactory<ClusterContainerContex
         .build();
   }
 
-  private HasMetadata buildSource(@NotNull StackGresClusterContext context) {
+  private HasMetadata buildSource(@Nonnull StackGresClusterContext context) {
     final StackGresCluster sgCluster = context.getSource();
 
     String configFile = getConfigFile(context);

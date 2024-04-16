@@ -7,31 +7,32 @@ package io.stackgres.common.resource;
 
 import java.util.function.Consumer;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.client.CustomResource;
-import org.jetbrains.annotations.NotNull;
 
 public interface CustomResourceScheduler<T extends CustomResource<?, ?>> {
 
-  default T create(@NotNull T resource) {
+  default T create(@Nonnull T resource) {
     return create(resource, false);
   }
 
-  T create(@NotNull T resource, boolean dryRun);
+  T create(@Nonnull T resource, boolean dryRun);
 
-  default T update(@NotNull T resource) {
+  default T update(@Nonnull T resource) {
     return update(resource, false);
   }
 
-  T update(@NotNull T resource, boolean dryRun);
+  T update(@Nonnull T resource, boolean dryRun);
 
-  T update(@NotNull T resource, @NotNull Consumer<T> setter);
+  T update(@Nonnull T resource, @Nonnull Consumer<T> setter);
 
-  <S> T updateStatus(@NotNull T resource, @NotNull Consumer<T> setter);
+  <S> T updateStatus(@Nonnull T resource, @Nonnull Consumer<T> setter);
 
-  default void delete(@NotNull T resource) {
+  default void delete(@Nonnull T resource) {
     delete(resource, false);
   }
 
-  void delete(@NotNull T resource, boolean dryRun);
+  void delete(@Nonnull T resource, boolean dryRun);
 
 }

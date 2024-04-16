@@ -41,7 +41,6 @@ import io.stackgres.operator.conciliation.GenerationContext;
 import io.stackgres.operator.conciliation.backup.BackupConfiguration;
 import io.stackgres.operator.conciliation.backup.BackupPerformance;
 import org.immutables.value.Value;
-import org.jetbrains.annotations.NotNull;
 
 @Value.Immutable
 public interface StackGresClusterContext extends GenerationContext<StackGresCluster>,
@@ -145,7 +144,7 @@ public interface StackGresClusterContext extends GenerationContext<StackGresClus
   Optional<String> getPostgresSslPrivateKey();
 
   default Optional<String> getBackupPath() {
-    Optional<@NotNull StackGresClusterConfigurations> config = Optional.of(getCluster())
+    Optional<StackGresClusterConfigurations> config = Optional.of(getCluster())
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getConfigurations);
 

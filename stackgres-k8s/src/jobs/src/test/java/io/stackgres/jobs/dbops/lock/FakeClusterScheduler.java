@@ -7,13 +7,14 @@ package io.stackgres.jobs.dbops.lock;
 
 import java.util.function.Consumer;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.quarkus.test.Mock;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 
 @Mock
 @ApplicationScoped
@@ -27,23 +28,23 @@ public class FakeClusterScheduler implements CustomResourceScheduler<StackGresCl
   }
 
   @Override
-  public StackGresCluster create(@NotNull StackGresCluster resource, boolean dryRun) {
+  public StackGresCluster create(@Nonnull StackGresCluster resource, boolean dryRun) {
     return kubeDb.addOrReplaceCluster(resource);
   }
 
   @Override
-  public void delete(@NotNull StackGresCluster resource, boolean dryRun) {
+  public void delete(@Nonnull StackGresCluster resource, boolean dryRun) {
     kubeDb.delete(resource);
   }
 
   @Override
-  public StackGresCluster update(@NotNull StackGresCluster resource, boolean dryRun) {
+  public StackGresCluster update(@Nonnull StackGresCluster resource, boolean dryRun) {
     return kubeDb.addOrReplaceCluster(resource);
   }
 
   @Override
-  public StackGresCluster update(@NotNull StackGresCluster resource,
-      @NotNull Consumer<StackGresCluster> setter) {
+  public StackGresCluster update(@Nonnull StackGresCluster resource,
+      @Nonnull Consumer<StackGresCluster> setter) {
     final ObjectMeta metadata = resource.getMetadata();
     var cluster = kubeDb.getCluster(metadata.getName(), metadata.getNamespace());
     setter.accept(cluster);
@@ -51,8 +52,8 @@ public class FakeClusterScheduler implements CustomResourceScheduler<StackGresCl
   }
 
   @Override
-  public <S> StackGresCluster updateStatus(@NotNull StackGresCluster resource,
-      @NotNull Consumer<StackGresCluster> setter) {
+  public <S> StackGresCluster updateStatus(@Nonnull StackGresCluster resource,
+      @Nonnull Consumer<StackGresCluster> setter) {
     final ObjectMeta metadata = resource.getMetadata();
     var cluster = kubeDb.getCluster(metadata.getName(), metadata.getNamespace());
     setter.accept(cluster);

@@ -7,15 +7,16 @@ package io.stackgres.common.labels;
 
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
-import org.jetbrains.annotations.NotNull;
 
 public interface LabelFactoryForConfig
     extends LabelFactory<StackGresConfig> {
 
-  Map<String, String> restapiLabels(@NotNull StackGresConfig resource);
+  Map<String, String> restapiLabels(@Nonnull StackGresConfig resource);
 
-  Map<String, String> grafanaIntegrationLabels(@NotNull StackGresConfig resource);
+  Map<String, String> grafanaIntegrationLabels(@Nonnull StackGresConfig resource);
 
   @Override
   LabelMapperForConfig labelMapper();

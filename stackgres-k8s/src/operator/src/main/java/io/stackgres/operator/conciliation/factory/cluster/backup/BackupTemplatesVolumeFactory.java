@@ -7,6 +7,8 @@ package io.stackgres.operator.conciliation.factory.cluster.backup;
 
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
@@ -17,7 +19,6 @@ import io.stackgres.operator.conciliation.factory.ImmutableVolumePair;
 import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import jakarta.enterprise.context.ApplicationScoped;
-import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped
 public class BackupTemplatesVolumeFactory implements VolumeFactory<StackGresClusterContext> {
@@ -28,7 +29,7 @@ public class BackupTemplatesVolumeFactory implements VolumeFactory<StackGresClus
   }
 
   @Override
-  public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
+  public @Nonnull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
     return Stream.of(
         ImmutableVolumePair.builder()
             .volume(buildVolume(context))

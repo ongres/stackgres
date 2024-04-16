@@ -14,6 +14,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 
+import javax.annotation.Nonnull;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -42,7 +44,6 @@ import io.stackgres.common.patroni.PatroniCtl.PatroniCtlInstance;
 import io.stackgres.common.patroni.PatroniHistoryEntry;
 import io.stackgres.common.patroni.PatroniMember;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
 import org.slf4j.LoggerFactory;
@@ -116,7 +117,7 @@ public interface PatroniUtil {
     return deprecatedReadWriteName(name);
   }
 
-  static String deprecatedReadWriteName(@NotNull String clusterName) {
+  static String deprecatedReadWriteName(@Nonnull String clusterName) {
     return ResourceUtil.nameIsValidService(clusterName + DEPRECATED_READ_WRITE_SERVICE);
   }
 
@@ -125,7 +126,7 @@ public interface PatroniUtil {
     return readOnlyName(name);
   }
 
-  static String readOnlyName(@NotNull String clusterName) {
+  static String readOnlyName(@Nonnull String clusterName) {
     return ResourceUtil.nameIsValidService(clusterName + READ_ONLY_SERVICE);
   }
 

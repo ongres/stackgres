@@ -15,11 +15,12 @@ import java.util.Random;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresBlocklist;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -30,7 +31,7 @@ class PgConfigBlocklistValidatorTest extends AbstractPgConfigReview {
   private static String[] BLOCKLISTED_PROPERTIES =
       PostgresBlocklist.getBlocklistParameters().toArray(new String[0]);
 
-  private @NotNull PgConfigValidator validator = new PgConfigBlocklistValidator();
+  private @Nonnull PgConfigValidator validator = new PgConfigBlocklistValidator();
 
   @Test
   void givenValidConfigurationCreation_shouldNotFail() {

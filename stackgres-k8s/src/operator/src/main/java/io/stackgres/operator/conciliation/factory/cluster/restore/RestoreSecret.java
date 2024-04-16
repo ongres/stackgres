@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
@@ -34,7 +36,6 @@ import io.stackgres.operator.conciliation.factory.cluster.backup.BackupEnvVarFac
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder
@@ -51,7 +52,7 @@ public class RestoreSecret
   }
 
   @Override
-  public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
+  public @Nonnull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
     return Stream.of(
         ImmutableVolumePair.builder()
             .volume(buildVolume(context))

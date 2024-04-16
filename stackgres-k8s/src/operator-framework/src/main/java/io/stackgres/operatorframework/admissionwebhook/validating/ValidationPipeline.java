@@ -7,8 +7,9 @@ package io.stackgres.operatorframework.admissionwebhook.validating;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class ValidationPipeline<T extends AdmissionReview<?>> {
 
@@ -18,7 +19,7 @@ public abstract class ValidationPipeline<T extends AdmissionReview<?>> {
     this.validators = validators;
   }
 
-  public void validate(@NotNull T review) throws ValidationFailed {
+  public void validate(@Nonnull T review) throws ValidationFailed {
     for (var validator : this.validators) {
       validator.validate(review);
     }

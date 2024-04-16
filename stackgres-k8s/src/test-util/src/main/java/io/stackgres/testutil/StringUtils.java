@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Random;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 public class StringUtils {
 
@@ -38,7 +38,7 @@ public class StringUtils {
     return s.toLowerCase(Locale.ENGLISH).replaceAll("^\\d", "a");
   }
 
-  @NotNull
+  @Nonnull
   public static String getRandomNamespace() {
     String namespace = sanitize(getRandomString());
     namespace = namespace.replaceAll("^\\d", "a");
@@ -48,7 +48,7 @@ public class StringUtils {
     return namespace;
   }
 
-  @NotNull
+  @Nonnull
   public static String getRandomResourceName() {
     String clusterName = sanitize(getRandomString());
     clusterName = clusterName.replaceAll("^\\d", "a");
@@ -58,7 +58,7 @@ public class StringUtils {
     return clusterName;
   }
 
-  @NotNull
+  @Nonnull
   public static String getRandomResourceName(int size) {
     String clusterName = sanitize(sanitize(getRandomString(size)));
     clusterName = clusterName.replaceAll("^\\d", "a");
@@ -68,7 +68,7 @@ public class StringUtils {
     return clusterName;
   }
 
-  @NotNull
+  @Nonnull
   public static String getRandomResourceNameWithExactlySize(int size) {
     String clusterName = sanitize(sanitize(getRandomString(size)));
     clusterName = clusterName.replaceAll("^\\d", "a");

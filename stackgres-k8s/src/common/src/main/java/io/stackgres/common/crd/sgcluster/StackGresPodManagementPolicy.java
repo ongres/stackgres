@@ -5,21 +5,21 @@
 
 package io.stackgres.common.crd.sgcluster;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 public enum StackGresPodManagementPolicy {
 
   ORDERED_READY("OrderedReady"),
   PARALLEL("Parallel");
 
-  private final @NotNull String type;
+  private final @Nonnull String type;
 
-  StackGresPodManagementPolicy(@NotNull String type) {
+  StackGresPodManagementPolicy(@Nonnull String type) {
     this.type = type;
   }
 
   @Override
-  public @NotNull String toString() {
+  public @Nonnull String toString() {
     return type;
   }
 }

@@ -8,6 +8,8 @@ package io.stackgres.operator.conciliation.factory;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.common.PatroniUtil;
@@ -17,7 +19,6 @@ import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecAnnotations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpecMetadata;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractClusterAnnotationDecorator<T>
     extends AbstractAnnotationDecorator<T> {
@@ -25,8 +26,8 @@ public abstract class AbstractClusterAnnotationDecorator<T>
   protected abstract StackGresCluster getCluster(T context);
 
   @Override
-  protected @NotNull Map<String, String> getAllResourcesAnnotations(
-      @NotNull T context) {
+  protected @Nonnull Map<String, String> getAllResourcesAnnotations(
+      @Nonnull T context) {
     var allResourcesAnnotations = Optional.ofNullable(getCluster(context).getSpec())
         .map(StackGresClusterSpec::getMetadata)
         .map(StackGresClusterSpecMetadata::getAnnotations)
@@ -45,8 +46,8 @@ public abstract class AbstractClusterAnnotationDecorator<T>
   }
 
   @Override
-  protected @NotNull Map<String, String> getServiceAnnotations(
-      @NotNull T context) {
+  protected @Nonnull Map<String, String> getServiceAnnotations(
+      @Nonnull T context) {
     Map<String, String> servicesSpecificAnnotations =
         Optional.ofNullable(getCluster(context).getSpec())
         .map(StackGresClusterSpec::getMetadata)
@@ -60,8 +61,8 @@ public abstract class AbstractClusterAnnotationDecorator<T>
         .build();
   }
 
-  protected @NotNull Map<String, String> getPrimaryServiceAnnotations(
-      @NotNull T context) {
+  protected @Nonnull Map<String, String> getPrimaryServiceAnnotations(
+      @Nonnull T context) {
     Map<String, String> primaryServiceAnnotations =
         Optional.ofNullable(getCluster(context).getSpec())
         .map(StackGresClusterSpec::getMetadata)
@@ -75,8 +76,8 @@ public abstract class AbstractClusterAnnotationDecorator<T>
         .build();
   }
 
-  protected @NotNull Map<String, String> getReplicasServiceAnnotations(
-      @NotNull T context) {
+  protected @Nonnull Map<String, String> getReplicasServiceAnnotations(
+      @Nonnull T context) {
     Map<String, String> replicaServiceAnnotations =
         Optional.ofNullable(getCluster(context).getSpec())
         .map(StackGresClusterSpec::getMetadata)
@@ -91,8 +92,8 @@ public abstract class AbstractClusterAnnotationDecorator<T>
   }
 
   @Override
-  protected void decorateService(@NotNull T context,
-      @NotNull HasMetadata service) {
+  protected void decorateService(@Nonnull T context,
+      @Nonnull HasMetadata service) {
     Map<String, String> customServiceAnnotations;
 
     final String serviceName = service.getMetadata().getName();
@@ -108,8 +109,8 @@ public abstract class AbstractClusterAnnotationDecorator<T>
   }
 
   @Override
-  protected @NotNull Map<String, String> getPodAnnotations(
-      @NotNull T context) {
+  protected @Nonnull Map<String, String> getPodAnnotations(
+      @Nonnull T context) {
     Map<String, String> podSpecificAnnotations =
         Optional.ofNullable(getCluster(context).getSpec())
         .map(StackGresClusterSpec::getMetadata)

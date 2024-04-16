@@ -5,7 +5,7 @@
 
 package io.stackgres.common.crd.postgres.service;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 public enum StackGresPostgresServiceType {
 
@@ -13,14 +13,14 @@ public enum StackGresPostgresServiceType {
   LOAD_BALANCER("LoadBalancer"),
   NODE_PORT("NodePort");
 
-  private final @NotNull String type;
+  private final @Nonnull String type;
 
-  StackGresPostgresServiceType(@NotNull String type) {
+  StackGresPostgresServiceType(@Nonnull String type) {
     this.type = type;
   }
 
   @Override
-  public @NotNull String toString() {
+  public @Nonnull String toString() {
     return type;
   }
 }

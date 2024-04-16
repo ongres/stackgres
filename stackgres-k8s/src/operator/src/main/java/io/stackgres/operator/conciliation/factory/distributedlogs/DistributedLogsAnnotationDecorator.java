@@ -8,6 +8,8 @@ package io.stackgres.operator.conciliation.factory.distributedlogs;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.StackGresProperty;
@@ -18,7 +20,6 @@ import io.stackgres.operator.conciliation.OperatorVersionBinder;
 import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.AbstractAnnotationDecorator;
 import jakarta.inject.Singleton;
-import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder
@@ -26,8 +27,8 @@ public class DistributedLogsAnnotationDecorator
     extends AbstractAnnotationDecorator<StackGresDistributedLogsContext> {
 
   @Override
-  protected @NotNull Map<String, String> getAllResourcesAnnotations(
-      @NotNull StackGresDistributedLogsContext context) {
+  protected @Nonnull Map<String, String> getAllResourcesAnnotations(
+      @Nonnull StackGresDistributedLogsContext context) {
     var allResourcesAnnotations = Optional.ofNullable(context.getSource().getSpec())
         .map(StackGresDistributedLogsSpec::getMetadata)
         .map(StackGresDistributedLogsSpecMetadata::getAnnotations)
@@ -46,8 +47,8 @@ public class DistributedLogsAnnotationDecorator
   }
 
   @Override
-  protected @NotNull Map<String, String> getServiceAnnotations(
-      @NotNull StackGresDistributedLogsContext context) {
+  protected @Nonnull Map<String, String> getServiceAnnotations(
+      @Nonnull StackGresDistributedLogsContext context) {
     Map<String, String> servicesSpecificAnnotations =
         Optional.ofNullable(context.getSource().getSpec())
         .map(StackGresDistributedLogsSpec::getMetadata)
@@ -62,8 +63,8 @@ public class DistributedLogsAnnotationDecorator
   }
 
   @Override
-  protected @NotNull Map<String, String> getPodAnnotations(
-      @NotNull StackGresDistributedLogsContext context) {
+  protected @Nonnull Map<String, String> getPodAnnotations(
+      @Nonnull StackGresDistributedLogsContext context) {
     return Optional.ofNullable(context.getSource().getSpec())
         .map(StackGresDistributedLogsSpec::getMetadata)
         .map(StackGresDistributedLogsSpecMetadata::getAnnotations)

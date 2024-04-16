@@ -8,6 +8,8 @@ package io.stackgres.operator.validation.cluster;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.stackgres.common.ErrorType;
@@ -24,7 +26,6 @@ import io.stackgres.operator.validation.ValidationType;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @ValidationType(ErrorType.FORBIDDEN_CLUSTER_UPDATE)
@@ -50,7 +51,7 @@ public class ClusterPersistentVolumeSizeExpansionValidator
   }
 
   @Override
-  protected @NotNull String getVolumeSize(StackGresCluster cluster) {
+  protected @Nonnull String getVolumeSize(StackGresCluster cluster) {
     return cluster.getSpec().getPods().getPersistentVolume().getSize();
   }
 

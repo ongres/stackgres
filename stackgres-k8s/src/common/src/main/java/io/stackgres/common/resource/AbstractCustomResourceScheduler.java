@@ -7,6 +7,8 @@ package io.stackgres.common.resource;
 
 import java.util.function.Consumer;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -15,23 +17,22 @@ import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
 import jakarta.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractCustomResourceScheduler<T extends CustomResource<?, ?>,
     L extends DefaultKubernetesResourceList<T>>
     implements CustomResourceScheduler<T> {
 
-  @NotNull
+  @Nonnull
   private final Class<T> customResourceClass;
-  @NotNull
+  @Nonnull
   private final Class<L> customResourceListClass;
 
   @Inject
   KubernetesClient client;
 
   protected AbstractCustomResourceScheduler(
-      @NotNull Class<T> customResourceClass,
-      @NotNull Class<L> customResourceListClass) {
+      @Nonnull Class<T> customResourceClass,
+      @Nonnull Class<L> customResourceListClass) {
     this.customResourceClass = customResourceClass;
     this.customResourceListClass = customResourceListClass;
   }

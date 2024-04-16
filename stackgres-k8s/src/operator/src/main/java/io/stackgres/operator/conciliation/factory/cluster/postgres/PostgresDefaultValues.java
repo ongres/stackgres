@@ -9,10 +9,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.collect.Maps;
 import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVersion;
-import org.jetbrains.annotations.NotNull;
 
 public interface PostgresDefaultValues {
 
@@ -27,21 +28,21 @@ public interface PostgresDefaultValues {
     PG_13_VALUES_V_1_8("/v1.8/postgresql-default-values-pg13-v1.8.properties"),
     PG_12_VALUES_V_1_8("/v1.8/postgresql-default-values-pg12-v1.8.properties");
 
-    private final @NotNull Properties properties;
+    private final @Nonnull Properties properties;
 
-    PostgresDefaulValuesProperties(@NotNull String file) {
+    PostgresDefaulValuesProperties(@Nonnull String file) {
       this.properties = StackGresUtil.loadProperties(file);
     }
   }
 
-  static @NotNull Properties getProperties(
-      @NotNull String pgVersion) {
+  static @Nonnull Properties getProperties(
+      @Nonnull String pgVersion) {
     return getProperties(StackGresVersion.LATEST, pgVersion);
   }
 
-  static @NotNull Properties getProperties(
-      @NotNull StackGresVersion version,
-      @NotNull String pgVersion) {
+  static @Nonnull Properties getProperties(
+      @Nonnull StackGresVersion version,
+      @Nonnull String pgVersion) {
     Objects.requireNonNull(version, "operatorVersion parameter is null");
     Objects.requireNonNull(pgVersion, "pgVersion parameter is null");
     int majorVersion = Integer.parseInt(pgVersion.split("\\.")[0]);
@@ -75,14 +76,14 @@ public interface PostgresDefaultValues {
     return PostgresDefaulValuesProperties.PG_14_VALUES.properties;
   }
 
-  static @NotNull Map<String, String> getDefaultValues(
-      @NotNull String pgVersion) {
+  static @Nonnull Map<String, String> getDefaultValues(
+      @Nonnull String pgVersion) {
     return getDefaultValues(StackGresVersion.LATEST, pgVersion);
   }
 
-  static @NotNull Map<String, String> getDefaultValues(
-      @NotNull StackGresVersion version,
-      @NotNull String pgVersion) {
+  static @Nonnull Map<String, String> getDefaultValues(
+      @Nonnull StackGresVersion version,
+      @Nonnull String pgVersion) {
     return Maps.fromProperties(getProperties(version, pgVersion));
   }
 

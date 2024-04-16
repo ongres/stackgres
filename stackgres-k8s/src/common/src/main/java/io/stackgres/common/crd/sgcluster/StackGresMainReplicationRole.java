@@ -5,21 +5,21 @@
 
 package io.stackgres.common.crd.sgcluster;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 public enum StackGresMainReplicationRole {
 
   HA(StackGresReplicationRole.HA),
   HA_READ(StackGresReplicationRole.HA_READ);
 
-  private final @NotNull StackGresReplicationRole role;
+  private final @Nonnull StackGresReplicationRole role;
 
-  StackGresMainReplicationRole(@NotNull StackGresReplicationRole role) {
+  StackGresMainReplicationRole(@Nonnull StackGresReplicationRole role) {
     this.role = role;
   }
 
   @Override
-  public @NotNull String toString() {
+  public @Nonnull String toString() {
     return role.toString();
   }
 

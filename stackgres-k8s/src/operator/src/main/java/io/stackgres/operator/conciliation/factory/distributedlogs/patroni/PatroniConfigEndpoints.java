@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.EndpointsBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -26,7 +28,6 @@ import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresBlock
 import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresDefaultValues;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder
@@ -70,7 +71,7 @@ public class PatroniConfigEndpoints
         .build());
   }
 
-  @NotNull
+  @Nonnull
   public Map<String, String> getPostgresConfigValues(StackGresDistributedLogsContext context) {
     final String version = StackGresDistributedLogsUtil.getPostgresVersion(context.getSource());
     Map<String, String> params = new HashMap<>(PostgresDefaultValues.getDefaultValues(

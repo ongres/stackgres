@@ -7,9 +7,10 @@ package io.stackgres.operatorframework.admissionwebhook.mutating;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.operatorframework.admissionwebhook.AdmissionReview;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class MutationPipeline<R extends HasMetadata, T extends AdmissionReview<R>> {
 
@@ -19,8 +20,8 @@ public abstract class MutationPipeline<R extends HasMetadata, T extends Admissio
     this.mutators = mutators;
   }
 
-  @NotNull
-  public R mutate(@NotNull T review, R resource) {
+  @Nonnull
+  public R mutate(@Nonnull T review, R resource) {
     for (var mutator : mutators) {
       resource = mutator.mutate(review, resource);
     }

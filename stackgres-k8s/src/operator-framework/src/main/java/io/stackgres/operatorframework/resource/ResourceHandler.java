@@ -8,9 +8,10 @@ package io.stackgres.operatorframework.resource;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.jetbrains.annotations.NotNull;
 
 public interface ResourceHandler<T extends ResourceHandlerContext> {
 
@@ -45,13 +46,13 @@ public interface ResourceHandler<T extends ResourceHandlerContext> {
 
   void registerKind();
 
-  Stream<HasMetadata> getResources(@NotNull KubernetesClient client, @NotNull T context);
+  Stream<HasMetadata> getResources(@Nonnull KubernetesClient client, @Nonnull T context);
 
-  Optional<HasMetadata> find(@NotNull KubernetesClient client, @NotNull HasMetadata resource);
+  Optional<HasMetadata> find(@Nonnull KubernetesClient client, @Nonnull HasMetadata resource);
 
-  HasMetadata create(@NotNull KubernetesClient client, @NotNull HasMetadata resource);
+  HasMetadata create(@Nonnull KubernetesClient client, @Nonnull HasMetadata resource);
 
-  HasMetadata patch(@NotNull KubernetesClient client, @NotNull HasMetadata resource);
+  HasMetadata patch(@Nonnull KubernetesClient client, @Nonnull HasMetadata resource);
 
-  boolean delete(@NotNull KubernetesClient client, @NotNull HasMetadata resource);
+  boolean delete(@Nonnull KubernetesClient client, @Nonnull HasMetadata resource);
 }

@@ -14,6 +14,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.AffinityBuilder;
@@ -57,7 +59,6 @@ import io.stackgres.operator.conciliation.factory.cluster.ClusterEnvironmentVari
 import io.stackgres.operator.conciliation.factory.cluster.ClusterEnvironmentVariablesFactoryDiscoverer;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -425,7 +426,7 @@ public class BackupCronJob
         .build();
   }
 
-  @NotNull
+  @Nonnull
   private String getStorageTemplatePath(StackGresClusterContext context) {
     return context.getObjectStorage().isPresent() ? "spec" : "spec.storage";
   }

@@ -5,11 +5,12 @@
 
 package io.stackgres.operator.initialization;
 
+import javax.annotation.Nonnull;
+
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
-import org.jetbrains.annotations.NotNull;
 
 public interface PostgresConfigurationFactory
     extends DefaultCustomResourceFactory<StackGresPostgresConfig> {
 
-  @NotNull String getPostgresVersion();
+  @Nonnull String getPostgresVersion();
 }

@@ -5,21 +5,21 @@
 
 package io.stackgres.common.crd.sgdbops;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 public enum DbOpsMethodType {
 
   IN_PLACE("InPlace"),
   REDUCED_IMPACT("ReducedImpact");
 
-  private final @NotNull String type;
+  private final @Nonnull String type;
 
-  DbOpsMethodType(@NotNull String type) {
+  DbOpsMethodType(@Nonnull String type) {
     this.type = type;
   }
 
   @Override
-  public @NotNull String toString() {
+  public @Nonnull String toString() {
     return type;
   }
 

@@ -8,12 +8,13 @@ package io.stackgres.common.labels;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.annotation.Nonnull;
+
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterSpec;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped
 public class ClusterLabelFactory extends AbstractLabelFactoryForCluster<StackGresCluster> {
@@ -71,7 +72,7 @@ public class ClusterLabelFactory extends AbstractLabelFactoryForCluster<StackGre
   }
 
   @Override
-  public String resourceScope(@NotNull StackGresCluster resource) {
+  public String resourceScope(@Nonnull StackGresCluster resource) {
     return Optional.of(resource)
         .map(StackGresCluster::getSpec)
         .map(StackGresClusterSpec::getConfigurations)

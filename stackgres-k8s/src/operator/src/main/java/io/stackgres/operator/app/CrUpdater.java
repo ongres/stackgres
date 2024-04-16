@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.app;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionVersion;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -14,7 +16,6 @@ import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +49,7 @@ public class CrUpdater {
   }
 
   private void updateExistingCustomResources(
-      @NotNull CustomResourceDefinition customResourceDefinition) {
+      @Nonnull CustomResourceDefinition customResourceDefinition) {
     ResourceDefinitionContext context = new ResourceDefinitionContext.Builder()
         .withGroup(customResourceDefinition.getSpec().getGroup())
         .withVersion(customResourceDefinition.getSpec().getVersions().stream()

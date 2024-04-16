@@ -5,16 +5,17 @@
 
 package io.stackgres.apiweb.transformer;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.apiweb.dto.Metadata;
 import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.apiweb.transformer.util.TransformerUtil;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractDtoTransformer<T extends ResourceDto, R extends HasMetadata>
     implements DtoTransformer<T, R> {
 
-  protected Metadata getDtoMetadata(@NotNull R source) {
+  protected Metadata getDtoMetadata(@Nonnull R source) {
     return TransformerUtil.fromResource(source.getMetadata());
   }
 

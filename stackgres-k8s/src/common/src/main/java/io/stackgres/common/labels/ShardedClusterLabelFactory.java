@@ -9,12 +9,13 @@ import static io.stackgres.operatorframework.resource.ResourceUtil.labelValue;
 
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.collect.ImmutableMap;
 import io.stackgres.common.StackGresContext;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped
 public class ShardedClusterLabelFactory
@@ -29,21 +30,21 @@ public class ShardedClusterLabelFactory
   }
 
   @Override
-  public Map<String, String> coordinatorLabels(@NotNull StackGresShardedCluster resource) {
+  public Map<String, String> coordinatorLabels(@Nonnull StackGresShardedCluster resource) {
     return ImmutableMap.<String, String>builder().putAll(coordinatorLabelsWithoutUid(resource))
         .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
         .build();
   }
 
   @Override
-  public Map<String, String> coordinatorLabelsWithoutUid(@NotNull StackGresShardedCluster resource) {
+  public Map<String, String> coordinatorLabelsWithoutUid(@Nonnull StackGresShardedCluster resource) {
     return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
         .put(labelMapper().coordinatorKey(resource), StackGresContext.RIGHT_VALUE)
         .build();
   }
 
   @Override
-  public Map<String, String> shardsLabels(@NotNull StackGresShardedCluster resource) {
+  public Map<String, String> shardsLabels(@Nonnull StackGresShardedCluster resource) {
     return ImmutableMap.<String, String>builder().putAll(genericLabels(resource))
         .put(labelMapper().resourceUidKey(resource), labelValue(resourceUid(resource)))
         .put(labelMapper().shardsKey(resource), StackGresContext.RIGHT_VALUE)

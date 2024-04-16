@@ -5,7 +5,7 @@
 
 package io.stackgres.common.crd.sgcluster;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 public enum StackGresReplicationRole {
 
@@ -14,14 +14,14 @@ public enum StackGresReplicationRole {
   READONLY("readonly"),
   NONE("none");
 
-  private final @NotNull String type;
+  private final @Nonnull String type;
 
-  StackGresReplicationRole(@NotNull String type) {
+  StackGresReplicationRole(@Nonnull String type) {
     this.type = type;
   }
 
   @Override
-  public @NotNull String toString() {
+  public @Nonnull String toString() {
     return type;
   }
 

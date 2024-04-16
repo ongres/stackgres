@@ -10,6 +10,8 @@ import static io.stackgres.common.StackGresShardedClusterUtil.getShardClusterNam
 
 import java.util.Optional;
 
+import javax.annotation.Nonnull;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.apiweb.config.WebApiProperty;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterDto;
@@ -21,7 +23,6 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterSpec;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterStatus;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jooq.lambda.Seq;
 
@@ -42,7 +43,7 @@ public class ShardedClusterTransformer
 
   @Override
   public StackGresShardedCluster toCustomResource(
-      @NotNull ShardedClusterDto source,
+      @Nonnull ShardedClusterDto source,
       @Nullable StackGresShardedCluster original) {
     StackGresShardedCluster transformation = Optional.ofNullable(original)
         .map(o -> mapper.convertValue(original, StackGresShardedCluster.class))
@@ -54,7 +55,7 @@ public class ShardedClusterTransformer
 
   @Override
   public ShardedClusterDto toDto(
-      @NotNull StackGresShardedCluster source) {
+      @Nonnull StackGresShardedCluster source) {
     ShardedClusterDto transformation = new ShardedClusterDto();
     transformation.setMetadata(getDtoMetadata(source));
     transformation.setSpec(getResourceSpec(source.getSpec()));

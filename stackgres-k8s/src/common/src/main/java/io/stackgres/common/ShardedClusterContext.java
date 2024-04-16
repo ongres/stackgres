@@ -8,12 +8,13 @@ package io.stackgres.common;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.stackgres.common.crd.sgcluster.StackGresClusterNonProduction;
 import io.stackgres.common.crd.sgcluster.StackGresClusterProfile;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import org.immutables.value.Value;
-import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 
 public interface ShardedClusterContext extends EnvVarContext<StackGresShardedCluster> {
@@ -59,7 +60,7 @@ public interface ShardedClusterContext extends EnvVarContext<StackGresShardedClu
   }
 
   @Value.Lazy
-  default @NotNull StackGresClusterProfile getClusterProfile() {
+  default @Nonnull StackGresClusterProfile getClusterProfile() {
     return Optional.ofNullable(getShardedCluster().getSpec().getProfile())
         .map(StackGresClusterProfile::fromString)
         .orElse(StackGresClusterProfile.PRODUCTION);

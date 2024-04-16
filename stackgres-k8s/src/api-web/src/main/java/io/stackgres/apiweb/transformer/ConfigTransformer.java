@@ -7,6 +7,8 @@ package io.stackgres.apiweb.transformer;
 
 import java.util.Optional;
 
+import javax.annotation.Nonnull;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stackgres.apiweb.dto.config.ConfigDto;
 import io.stackgres.apiweb.dto.config.ConfigSpec;
@@ -16,7 +18,6 @@ import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.common.crd.sgconfig.StackGresConfigStatus;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @ApplicationScoped
@@ -32,7 +33,7 @@ public class ConfigTransformer
 
   @Override
   public StackGresConfig toCustomResource(
-      @NotNull ConfigDto source,
+      @Nonnull ConfigDto source,
       @Nullable StackGresConfig original) {
     StackGresConfig transformation = Optional.ofNullable(original)
         .map(o -> mapper.convertValue(original, StackGresConfig.class))

@@ -8,6 +8,8 @@ package io.stackgres.apiweb.rest;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.client.CustomResource;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.ResourceDto;
@@ -23,7 +25,6 @@ import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.QueryParam;
-import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 
 @Authenticated
@@ -64,7 +65,7 @@ public abstract class AbstractCustomResourceService
    */
   @POST
   @Override
-  public T create(@NotNull T resource, @Nullable @QueryParam("dryRun") Boolean dryRun) {
+  public T create(@Nonnull T resource, @Nullable @QueryParam("dryRun") Boolean dryRun) {
     return transformer.toDto(
         scheduler.create(transformer.toCustomResource(resource, null),
         Optional.ofNullable(dryRun).orElse(false)));
@@ -77,7 +78,7 @@ public abstract class AbstractCustomResourceService
    */
   @DELETE
   @Override
-  public void delete(@NotNull T resource, @Nullable @QueryParam("dryRun") Boolean dryRun) {
+  public void delete(@Nonnull T resource, @Nullable @QueryParam("dryRun") Boolean dryRun) {
     scheduler.delete(transformer.toCustomResource(resource, null),
         Optional.ofNullable(dryRun).orElse(false));
   }
@@ -89,7 +90,7 @@ public abstract class AbstractCustomResourceService
    */
   @PUT
   @Override
-  public T update(@NotNull T resource, @Nullable @QueryParam("dryRun") Boolean dryRun) {
+  public T update(@Nonnull T resource, @Nullable @QueryParam("dryRun") Boolean dryRun) {
     R transformedResource = transformer.toCustomResource(
         resource,
         finder.findByNameAndNamespace(

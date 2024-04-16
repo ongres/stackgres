@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
@@ -33,7 +35,6 @@ import io.stackgres.operator.conciliation.factory.VolumePair;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder
@@ -59,7 +60,7 @@ public class PostgresSslSecret
   }
 
   @Override
-  public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
+  public @Nonnull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
     return Stream.of(
         ImmutableVolumePair.builder()
             .volume(buildVolume(context))
@@ -68,7 +69,7 @@ public class PostgresSslSecret
     );
   }
 
-  public @NotNull Volume buildVolume(StackGresClusterContext context) {
+  public @Nonnull Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
         .withName(StackGresVolume.POSTGRES_SSL.getName())
         .withSecret(new SecretVolumeSourceBuilder()
@@ -78,7 +79,7 @@ public class PostgresSslSecret
         .build();
   }
 
-  public @NotNull Secret buildSource(StackGresClusterContext context) {
+  public @Nonnull Secret buildSource(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
     final String name = name(cluster);
     final String namespace = cluster.getMetadata().getNamespace();

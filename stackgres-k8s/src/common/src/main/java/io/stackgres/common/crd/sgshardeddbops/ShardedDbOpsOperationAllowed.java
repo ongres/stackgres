@@ -5,7 +5,7 @@
 
 package io.stackgres.common.crd.sgshardeddbops;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 public enum ShardedDbOpsOperationAllowed {
 
@@ -13,14 +13,14 @@ public enum ShardedDbOpsOperationAllowed {
   RESTART("restart"),
   SECURITY_UPGRADE("securityUpgrade");
 
-  private final @NotNull String type;
+  private final @Nonnull String type;
 
-  ShardedDbOpsOperationAllowed(@NotNull String type) {
+  ShardedDbOpsOperationAllowed(@Nonnull String type) {
     this.type = type;
   }
 
   @Override
-  public @NotNull String toString() {
+  public @Nonnull String toString() {
     return type;
   }
 

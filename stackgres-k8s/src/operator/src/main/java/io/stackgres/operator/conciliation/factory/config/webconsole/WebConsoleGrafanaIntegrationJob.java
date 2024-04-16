@@ -11,6 +11,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarSourceBuilder;
@@ -44,7 +46,6 @@ import io.stackgres.operator.conciliation.config.StackGresConfigContext;
 import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.jooq.lambda.tuple.Tuple2;
@@ -76,7 +77,7 @@ public class WebConsoleGrafanaIntegrationJob
    * Create the Secret for Web Console.
    */
   @Override
-  public @NotNull Stream<HasMetadata> generateResource(StackGresConfigContext context) {
+  public @Nonnull Stream<HasMetadata> generateResource(StackGresConfigContext context) {
     if (!Optional.ofNullable(context.getSource().getSpec())
         .map(StackGresConfigSpec::getDeploy)
         .map(StackGresConfigDeploy::getRestapi)

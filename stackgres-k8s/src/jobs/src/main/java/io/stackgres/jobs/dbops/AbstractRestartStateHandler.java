@@ -15,6 +15,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -45,7 +47,6 @@ import io.stackgres.jobs.dbops.clusterrestart.ClusterRestartState;
 import io.stackgres.jobs.dbops.clusterrestart.PatroniApiHandler;
 import io.stackgres.jobs.dbops.clusterrestart.RestartEvent;
 import jakarta.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -300,7 +301,7 @@ public abstract class AbstractRestartStateHandler implements ClusterRestartState
     return Uni.createFrom().voidItem();
   }
 
-  private @NotNull Uni<Optional<StatefulSet>> getClusterStatefulSet(StackGresCluster cluster) {
+  private @Nonnull Uni<Optional<StatefulSet>> getClusterStatefulSet(StackGresCluster cluster) {
     return executorService.itemAsync(
         () -> statefulSetFinder.findByNameAndNamespace(
             cluster.getMetadata().getName(), cluster.getMetadata().getNamespace()));

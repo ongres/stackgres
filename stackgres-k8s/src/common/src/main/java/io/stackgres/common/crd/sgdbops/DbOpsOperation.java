@@ -5,7 +5,7 @@
 
 package io.stackgres.common.crd.sgdbops;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 public enum DbOpsOperation {
 
@@ -17,14 +17,14 @@ public enum DbOpsOperation {
   MINOR_VERSION_UPGRADE("minorVersionUpgrade"),
   SECURITY_UPGRADE("securityUpgrade");
 
-  private final @NotNull String type;
+  private final @Nonnull String type;
 
-  DbOpsOperation(@NotNull String type) {
+  DbOpsOperation(@Nonnull String type) {
     this.type = type;
   }
 
   @Override
-  public @NotNull String toString() {
+  public @Nonnull String toString() {
     return type;
   }
 

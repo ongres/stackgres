@@ -5,11 +5,12 @@
 
 package io.stackgres.apiweb.rest;
 
+import javax.annotation.Nonnull;
+
 import io.stackgres.apiweb.dto.ResourceDto;
-import org.jetbrains.annotations.NotNull;
 
 public interface ResourceNamespacedRestService<T extends ResourceDto> {
 
-  @NotNull T get(@NotNull String namespace, @NotNull String name);
+  @Nonnull T get(@Nonnull String namespace, @Nonnull String name);
 
 }

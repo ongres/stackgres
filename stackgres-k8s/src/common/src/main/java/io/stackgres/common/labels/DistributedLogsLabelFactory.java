@@ -7,10 +7,11 @@ package io.stackgres.common.labels;
 
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped
 public class DistributedLogsLabelFactory
@@ -54,7 +55,7 @@ public class DistributedLogsLabelFactory
   }
 
   @Override
-  public String resourceScope(@NotNull StackGresDistributedLogs resource) {
+  public String resourceScope(@Nonnull StackGresDistributedLogs resource) {
     return resourceName(resource);
   }
 

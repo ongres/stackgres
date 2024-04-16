@@ -5,25 +5,25 @@
 
 package io.stackgres.common.crd.sgshardedcluster;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 public enum StackGresShardingSphereModeType {
 
   STANDALONE("Standalone"),
   CLUSTER("Cluster");
 
-  private final @NotNull String type;
+  private final @Nonnull String type;
 
-  StackGresShardingSphereModeType(@NotNull String type) {
+  StackGresShardingSphereModeType(@Nonnull String type) {
     this.type = type;
   }
 
   @Override
-  public @NotNull String toString() {
+  public @Nonnull String toString() {
     return type;
   }
 
-  public static @NotNull StackGresShardingSphereModeType fromString(@NotNull String value) {
+  public static @Nonnull StackGresShardingSphereModeType fromString(@Nonnull String value) {
     for (StackGresShardingSphereModeType type : StackGresShardingSphereModeType.values()) {
       if (type.toString().equals(value)) {
         return type;

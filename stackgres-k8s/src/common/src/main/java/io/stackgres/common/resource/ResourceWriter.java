@@ -7,44 +7,45 @@ package io.stackgres.common.resource;
 
 import java.util.function.Consumer;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import org.jetbrains.annotations.NotNull;
 
 public interface ResourceWriter<T extends HasMetadata> {
 
-  default T create(@NotNull T resource) {
+  default T create(@Nonnull T resource) {
     return create(resource, false);
   }
 
-  T create(@NotNull T resource, boolean dryRun);
+  T create(@Nonnull T resource, boolean dryRun);
 
-  default T update(@NotNull T resource) {
+  default T update(@Nonnull T resource) {
     return update(resource, false);
   }
 
-  T update(@NotNull T resource, boolean dryRun);
+  T update(@Nonnull T resource, boolean dryRun);
 
   default T update(T resource, String patch) {
     return update(resource, patch, false);
   }
 
-  T update(@NotNull T resource, @NotNull Consumer<T> setter);
+  T update(@Nonnull T resource, @Nonnull Consumer<T> setter);
 
   default T update(T resource, String patch, boolean dryRun) {
     throw new UnsupportedOperationException();
   }
 
-  default void delete(@NotNull T resource) {
+  default void delete(@Nonnull T resource) {
     delete(resource, false);
   }
 
-  void delete(@NotNull T resource, boolean dryRun);
+  void delete(@Nonnull T resource, boolean dryRun);
 
-  default void deleteWithoutCascading(@NotNull T resource) {
+  default void deleteWithoutCascading(@Nonnull T resource) {
     deleteWithoutCascading(resource, false);
   }
 
-  default void deleteWithoutCascading(@NotNull T resource, boolean dryRun) {
+  default void deleteWithoutCascading(@Nonnull T resource, boolean dryRun) {
     throw new UnsupportedOperationException();
   }
 

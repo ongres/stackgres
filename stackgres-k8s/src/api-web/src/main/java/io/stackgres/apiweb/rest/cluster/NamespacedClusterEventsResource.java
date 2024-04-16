@@ -14,6 +14,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.event.EventDto;
@@ -35,7 +37,6 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.Seq;
 
 @Path("namespaces/{namespace:[a-z0-9]([-a-z0-9]*[a-z0-9])?}/sgclusters")
@@ -98,7 +99,7 @@ public class NamespacedClusterEventsResource {
         .toList();
   }
 
-  private boolean isClusterEvent(EventDto event, String namespace, @NotNull String name,
+  private boolean isClusterEvent(EventDto event, String namespace, @Nonnull String name,
       Map<String, List<ObjectMeta>> relatedResources) {
     Pattern namePattern = ResourceUtil.getNameWithIndexPattern(name);
     ObjectReference involvedObject = event.getInvolvedObject();

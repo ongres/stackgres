@@ -7,6 +7,8 @@ package io.stackgres.apiweb.rest.sgconfig;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.config.ConfigDto;
 import io.stackgres.apiweb.exception.ErrorResponse;
@@ -21,7 +23,6 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-import org.jetbrains.annotations.NotNull;
 
 @Path("sgconfigs")
 @RequestScoped
@@ -57,7 +58,7 @@ public class ConfigResource extends AbstractCustomResourceService<ConfigDto, Sta
       * sgconfigs list
       """)
   @Override
-  public @NotNull List<ConfigDto> list() {
+  public @Nonnull List<ConfigDto> list() {
     return super.list();
   }
 
@@ -73,7 +74,7 @@ public class ConfigResource extends AbstractCustomResourceService<ConfigDto, Sta
       * sgconfigs create
       """)
   @Override
-  public ConfigDto create(@NotNull ConfigDto resource, @Nullable Boolean dryRun) {
+  public ConfigDto create(@Nonnull ConfigDto resource, @Nullable Boolean dryRun) {
     return super.create(resource, dryRun);
   }
 
@@ -89,7 +90,7 @@ public class ConfigResource extends AbstractCustomResourceService<ConfigDto, Sta
       * sgconfigs patch
       """)
   @Override
-  public ConfigDto update(@NotNull ConfigDto resource, @Nullable Boolean dryRun) {
+  public ConfigDto update(@Nonnull ConfigDto resource, @Nullable Boolean dryRun) {
     return super.update(resource, dryRun);
   }
 
@@ -102,7 +103,7 @@ public class ConfigResource extends AbstractCustomResourceService<ConfigDto, Sta
       * sgconfigs delete
       """)
   @Override
-  public void delete(@NotNull ConfigDto resource, @Nullable Boolean dryRun) {
+  public void delete(@Nonnull ConfigDto resource, @Nullable Boolean dryRun) {
     super.delete(resource, dryRun);
   }
 

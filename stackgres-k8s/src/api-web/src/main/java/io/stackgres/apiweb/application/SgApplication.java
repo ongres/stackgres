@@ -7,23 +7,23 @@ package io.stackgres.apiweb.application;
 
 import java.util.Objects;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 public abstract class SgApplication {
 
-  private final @NotNull String publisher;
-  private final @NotNull String name;
+  private final @Nonnull String publisher;
+  private final @Nonnull String name;
 
-  protected SgApplication(@NotNull String publisher, @NotNull String name) {
+  protected SgApplication(@Nonnull String publisher, @Nonnull String name) {
     this.publisher = Objects.requireNonNull(publisher, "publisher");
     this.name = Objects.requireNonNull(name, "name");
   }
 
-  public @NotNull String publisher() {
+  public @Nonnull String publisher() {
     return publisher;
   }
 
-  public @NotNull String appName() {
+  public @Nonnull String appName() {
     return name;
   }
 

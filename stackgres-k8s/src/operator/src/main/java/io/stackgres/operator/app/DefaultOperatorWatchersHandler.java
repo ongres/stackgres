@@ -14,6 +14,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.fabric8.kubernetes.api.model.Endpoints;
 import io.fabric8.kubernetes.api.model.EndpointsList;
@@ -63,7 +65,6 @@ import io.stackgres.operator.conciliation.shardeddbops.ShardedDbOpsReconciliator
 import io.stackgres.operatorframework.resource.WatcherMonitor;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped
 public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
@@ -229,8 +230,8 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
 
   private <T extends CustomResource<?, ?>,
       L extends DefaultKubernetesResourceList<T>> WatcherMonitor<T> createCustomResourceWatcher(
-      @NotNull Class<T> crClass, @NotNull Class<L> listClass,
-      @NotNull BiConsumer<Action, T> consumer) {
+      @Nonnull Class<T> crClass, @Nonnull Class<L> listClass,
+      @Nonnull BiConsumer<Action, T> consumer) {
 
     return new WatcherMonitor<>(crClass.getSimpleName(),
         watcherListener -> client
@@ -241,8 +242,8 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
 
   private <T extends HasMetadata,
       L extends KubernetesResourceList<T>> WatcherMonitor<T> createWatcher(
-      @NotNull Class<T> crClass, @NotNull Class<L> listClass,
-      @NotNull BiConsumer<Action, T> consumer) {
+      @Nonnull Class<T> crClass, @Nonnull Class<L> listClass,
+      @Nonnull BiConsumer<Action, T> consumer) {
     return new WatcherMonitor<>(crClass.getSimpleName(),
         watcherListener -> client
         .resources(crClass, listClass)

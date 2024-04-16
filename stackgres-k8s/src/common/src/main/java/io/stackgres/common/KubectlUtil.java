@@ -8,6 +8,8 @@ package io.stackgres.common;
 import java.util.EnumMap;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.stackgres.common.component.Component;
@@ -17,7 +19,6 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +45,7 @@ public class KubectlUtil {
     this.cache = new EnumMap<>(StackGresVersion.class);
   }
 
-  public String getImageName(@NotNull StackGresVersion sgversion) {
+  public String getImageName(@Nonnull StackGresVersion sgversion) {
     return cache.computeIfAbsent(sgversion, value -> {
       Component kubectl = StackGresComponent.KUBECTL.getOrThrow(sgversion);
       final String imageName = kubectl.streamOrderedVersions()
@@ -60,19 +61,19 @@ public class KubectlUtil {
     });
   }
 
-  public String getImageName(@NotNull StackGresCluster cluster) {
+  public String getImageName(@Nonnull StackGresCluster cluster) {
     return getImageName(StackGresVersion.getStackGresVersion(cluster));
   }
 
-  public String getImageName(@NotNull StackGresDbOps dbOps) {
+  public String getImageName(@Nonnull StackGresDbOps dbOps) {
     return getImageName(StackGresVersion.getStackGresVersion(dbOps));
   }
 
-  public String getImageName(@NotNull StackGresDistributedLogs distributedLogs) {
+  public String getImageName(@Nonnull StackGresDistributedLogs distributedLogs) {
     return getImageName(StackGresVersion.getStackGresVersion(distributedLogs));
   }
 
-  public String getImageName(@NotNull StackGresShardedCluster cluster) {
+  public String getImageName(@Nonnull StackGresShardedCluster cluster) {
     return getImageName(StackGresVersion.getStackGresVersion(cluster));
   }
 

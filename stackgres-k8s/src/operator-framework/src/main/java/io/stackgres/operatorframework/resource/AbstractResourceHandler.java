@@ -9,13 +9,14 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.operatorframework.resource.visitor.ResourcePairVisitor;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractResourceHandler<T extends ResourceHandlerContext>
     implements ResourceHandler<T> {
@@ -34,13 +35,13 @@ public abstract class AbstractResourceHandler<T extends ResourceHandlerContext>
   public void registerKind() {}
 
   @Override
-  public Stream<HasMetadata> getResources(@NotNull KubernetesClient client,  @NotNull T context) {
+  public Stream<HasMetadata> getResources(@Nonnull KubernetesClient client,  @Nonnull T context) {
     return Stream.empty();
   }
 
   @Override
-  public Optional<HasMetadata> find(@NotNull KubernetesClient client,
-      @NotNull HasMetadata resource) {
+  public Optional<HasMetadata> find(@Nonnull KubernetesClient client,
+      @Nonnull HasMetadata resource) {
     return Optional.ofNullable(getResourceOperation(client, resource)
         .inNamespace(resource.getMetadata().getNamespace())
         .withName(resource.getMetadata().getName())
@@ -48,7 +49,7 @@ public abstract class AbstractResourceHandler<T extends ResourceHandlerContext>
   }
 
   @Override
-  public HasMetadata create(@NotNull KubernetesClient client, @NotNull HasMetadata resource) {
+  public HasMetadata create(@Nonnull KubernetesClient client, @Nonnull HasMetadata resource) {
     return getResourceOperation(client, resource)
         .inNamespace(resource.getMetadata().getNamespace())
         .resource(resource)
@@ -56,7 +57,7 @@ public abstract class AbstractResourceHandler<T extends ResourceHandlerContext>
   }
 
   @Override
-  public HasMetadata patch(@NotNull KubernetesClient client, @NotNull HasMetadata resource) {
+  public HasMetadata patch(@Nonnull KubernetesClient client, @Nonnull HasMetadata resource) {
     return getResourceOperation(client, resource)
         .inNamespace(resource.getMetadata().getNamespace())
         .withName(resource.getMetadata().getName())
@@ -71,7 +72,7 @@ public abstract class AbstractResourceHandler<T extends ResourceHandlerContext>
   @SuppressWarnings("unchecked")
   private <M extends HasMetadata> MixedOperation<M, ? extends KubernetesResourceList<M>,
       ? extends Resource<M>> getResourceOperation(
-          @NotNull KubernetesClient client, @NotNull M resource) {
+          @Nonnull KubernetesClient client, @Nonnull M resource) {
     return (MixedOperation<M, ? extends KubernetesResourceList<M>, ? extends Resource<M>>)
         Optional.ofNullable(getResourceOperations(resource))
           .map(function -> function.apply(client))

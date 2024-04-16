@@ -5,7 +5,7 @@
 
 package io.stackgres.common.crd.sgcluster;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 public enum StackGresClusterProfile {
 
@@ -48,11 +48,11 @@ public enum StackGresClusterProfile {
   }
 
   @Override
-  public @NotNull String toString() {
+  public @Nonnull String toString() {
     return profile;
   }
 
-  public static @NotNull StackGresClusterProfile fromString(@NotNull String name) {
+  public static @Nonnull StackGresClusterProfile fromString(@Nonnull String name) {
     return switch (name) {
       case "production" -> PRODUCTION;
       case "testing" -> TESTING;

@@ -12,6 +12,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -24,15 +26,14 @@ import io.fabric8.kubernetes.api.model.batch.v1.CronJobSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.JobTemplateSpec;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractAnnotationDecorator<T> implements Decorator<T> {
 
-  protected abstract @NotNull Map<String, String> getAllResourcesAnnotations(@NotNull T context);
+  protected abstract @Nonnull Map<String, String> getAllResourcesAnnotations(@Nonnull T context);
 
-  protected abstract @NotNull Map<String, String> getServiceAnnotations(@NotNull T context);
+  protected abstract @Nonnull Map<String, String> getServiceAnnotations(@Nonnull T context);
 
-  protected abstract @NotNull Map<String, String> getPodAnnotations(@NotNull T context);
+  protected abstract @Nonnull Map<String, String> getPodAnnotations(@Nonnull T context);
 
   @Override
   public HasMetadata decorate(T context, HasMetadata resource) {
@@ -43,12 +44,12 @@ public abstract class AbstractAnnotationDecorator<T> implements Decorator<T> {
     return resource;
   }
 
-  protected void defaultDecorator(@NotNull T context, @NotNull HasMetadata resource) {
+  protected void defaultDecorator(@Nonnull T context, @Nonnull HasMetadata resource) {
     decorateResource(resource, getAllResourcesAnnotations(context));
   }
 
-  protected void decorateResource(@NotNull HasMetadata resource,
-      @NotNull Map<String, String> customAnnotations) {
+  protected void decorateResource(@Nonnull HasMetadata resource,
+      @Nonnull Map<String, String> customAnnotations) {
     var metadata = Objects.requireNonNull(resource.getMetadata());
 
     Map<String, String> resourceAnnotations = Optional.of(metadata)
@@ -60,7 +61,7 @@ public abstract class AbstractAnnotationDecorator<T> implements Decorator<T> {
     resource.getMetadata().setAnnotations(resourceAnnotations);
   }
 
-  protected @NotNull Map<Class<?>, BiConsumer<T, HasMetadata>> getCustomDecorators() {
+  protected @Nonnull Map<Class<?>, BiConsumer<T, HasMetadata>> getCustomDecorators() {
     return Map.of(
         Service.class, this::decorateService,
         Pod.class, this::decoratePod,
@@ -71,16 +72,16 @@ public abstract class AbstractAnnotationDecorator<T> implements Decorator<T> {
         this::decorateCronJobV1Beta1);
   }
 
-  protected void decorateService(@NotNull T context, @NotNull HasMetadata service) {
+  protected void decorateService(@Nonnull T context, @Nonnull HasMetadata service) {
     decorateResource(service, getServiceAnnotations(context));
   }
 
-  protected void decoratePod(@NotNull T context, @NotNull HasMetadata pod) {
+  protected void decoratePod(@Nonnull T context, @Nonnull HasMetadata pod) {
     decorateResource(pod, getPodAnnotations(context));
   }
 
-  protected void decorateSts(@NotNull T context,
-      @NotNull HasMetadata resource) {
+  protected void decorateSts(@Nonnull T context,
+      @Nonnull HasMetadata resource) {
     StatefulSet sts = (StatefulSet) resource;
 
     Map<String, String> jobPodTemplateAnnotations = Optional
@@ -111,8 +112,8 @@ public abstract class AbstractAnnotationDecorator<T> implements Decorator<T> {
     decorateResource(sts, getAllResourcesAnnotations(context));
   }
 
-  protected void decorateJob(@NotNull T context,
-      @NotNull HasMetadata resource) {
+  protected void decorateJob(@Nonnull T context,
+      @Nonnull HasMetadata resource) {
     Job job = (Job) resource;
 
     Map<String, String> jobPodTemplateAnnotations = Optional
@@ -137,8 +138,8 @@ public abstract class AbstractAnnotationDecorator<T> implements Decorator<T> {
     decorateResource(job, getAllResourcesAnnotations(context));
   }
 
-  protected void decorateCronJob(@NotNull T context,
-      @NotNull HasMetadata resource) {
+  protected void decorateCronJob(@Nonnull T context,
+      @Nonnull HasMetadata resource) {
     CronJob cronJob = (CronJob) resource;
 
     Map<String, String> cronJobTemplateAnnotations = Optional.ofNullable(cronJob.getSpec())
@@ -183,8 +184,8 @@ public abstract class AbstractAnnotationDecorator<T> implements Decorator<T> {
     decorateResource(cronJob, getAllResourcesAnnotations(context));
   }
 
-  protected void decorateCronJobV1Beta1(@NotNull T context,
-      @NotNull HasMetadata resource) {
+  protected void decorateCronJobV1Beta1(@Nonnull T context,
+      @Nonnull HasMetadata resource) {
     io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob cronJob =
         (io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob) resource;
 

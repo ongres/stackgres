@@ -12,6 +12,8 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
@@ -30,7 +32,6 @@ import io.stackgres.operator.conciliation.ResourceGenerator;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder
@@ -52,7 +53,7 @@ public class PrometheusIntegration implements ResourceGenerator<StackGresCluster
     return podMonitors.stream().flatMap(Function.identity());
   }
 
-  @NotNull
+  @Nonnull
   private Stream<HasMetadata> getPodMonitors(
       StackGresClusterContext context,
       PrometheusContext prometheusConfig) {

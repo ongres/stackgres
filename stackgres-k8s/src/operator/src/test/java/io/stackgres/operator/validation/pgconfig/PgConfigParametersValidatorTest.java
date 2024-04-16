@@ -11,12 +11,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusCause;
 import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.operator.common.PgConfigReview;
 import io.stackgres.operatorframework.admissionwebhook.validating.ValidationFailed;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -24,7 +25,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 class PgConfigParametersValidatorTest extends AbstractPgConfigReview {
 
-  private @NotNull PgConfigValidator validator = new PgConfigParametersValidator();
+  private @Nonnull PgConfigValidator validator = new PgConfigParametersValidator();
 
   @Test
   void givenValidConfigurationCreation_shouldNotFail() {

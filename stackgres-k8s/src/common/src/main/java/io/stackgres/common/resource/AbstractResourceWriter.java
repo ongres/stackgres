@@ -7,12 +7,13 @@ package io.stackgres.common.resource;
 
 import java.util.function.Consumer;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.stackgres.common.CdiUtil;
 import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
-import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractResourceWriter<T extends HasMetadata>
     implements ResourceWriter<T> {
@@ -56,7 +57,7 @@ public abstract class AbstractResourceWriter<T extends HasMetadata>
   }
 
   @Override
-  public T update(@NotNull T resource, @NotNull Consumer<T> setter) {
+  public T update(@Nonnull T resource, @Nonnull Consumer<T> setter) {
     return KubernetesClientUtil.retryOnConflict(
         () -> {
           T resourceToUpdate = getResourceEndpoints(client)

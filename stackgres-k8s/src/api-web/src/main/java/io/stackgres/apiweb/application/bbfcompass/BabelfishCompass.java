@@ -20,6 +20,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Quantity;
@@ -42,7 +44,6 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +73,7 @@ public class BabelfishCompass extends SgApplication {
     return config.babelfishCompass().enabled();
   }
 
-  public Map<String, String> run(@NotNull String reportName, @NotNull List<FileUpload> files) {
+  public Map<String, String> run(@Nonnull String reportName, @Nonnull List<FileUpload> files) {
     final String namespace = Optional.ofNullable(client.getNamespace()).orElse("default");
     final String name = ResourceUtil.nameIsValidDnsSubdomainForJob("bbf-"
         + StringUtil.generateRandom(16).toLowerCase(Locale.ROOT));

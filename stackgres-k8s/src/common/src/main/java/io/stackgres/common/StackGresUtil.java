@@ -31,6 +31,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -49,7 +51,6 @@ import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardingType;
 import io.stackgres.operatorframework.resource.ResourceUtil;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jooq.lambda.Seq;
 import org.jooq.lambda.Unchecked;
@@ -245,7 +246,7 @@ public interface StackGresUtil {
    * @return                      the loaded file
    * @throws UncheckedIOException if cannot load the properties file
    */
-  static @NotNull Properties loadProperties(@NotNull String path) {
+  static @Nonnull Properties loadProperties(@Nonnull String path) {
     try (InputStream is = StackGresUtil.class.getResourceAsStream(path)) {
       if (is == null) {
         throw new IOException("Cannot load the properties file: " + path);
@@ -258,7 +259,7 @@ public interface StackGresUtil {
     }
   }
 
-  @NotNull
+  @Nonnull
   static String toPrettyYaml(Object pojoObject) {
     YamlMapperProvider yamlProvider = null;
     ArcContainer container = Arc.container();
@@ -282,8 +283,8 @@ public interface StackGresUtil {
    * @return                       String fqdn of the provided service.
    * @throws IllegalStateException if the service is invalid.
    */
-  @NotNull
-  static String getServiceDnsName(@NotNull Service service) {
+  @Nonnull
+  static String getServiceDnsName(@Nonnull Service service) {
     String serviceDns = null;
     ServiceStatus status = service.getStatus();
     if (status != null && "LoadBalancer".equals(service.getSpec().getType())) {
@@ -557,15 +558,15 @@ public interface StackGresUtil {
             postgresVersion));
   }
 
-  static @NotNull StackGresComponent getPostgresFlavorComponent(StackGresCluster cluster) {
+  static @Nonnull StackGresComponent getPostgresFlavorComponent(StackGresCluster cluster) {
     return getPostgresFlavorComponent(cluster.getSpec().getPostgres().getFlavor());
   }
 
-  static @NotNull StackGresComponent getPostgresFlavorComponent(StackGresShardedCluster cluster) {
+  static @Nonnull StackGresComponent getPostgresFlavorComponent(StackGresShardedCluster cluster) {
     return getPostgresFlavorComponent(cluster.getSpec().getPostgres().getFlavor());
   }
 
-  static @NotNull StackGresComponent getPostgresFlavorComponent(@Nullable String flavor) {
+  static @Nonnull StackGresComponent getPostgresFlavorComponent(@Nullable String flavor) {
     final StackGresPostgresFlavor postgresFlavor = getPostgresFlavor(flavor);
     return switch (postgresFlavor) {
       case VANILLA -> StackGresComponent.POSTGRESQL;
@@ -574,11 +575,11 @@ public interface StackGresUtil {
     };
   }
 
-  static StackGresPostgresFlavor getPostgresFlavor(@NotNull StackGresCluster cluster) {
+  static StackGresPostgresFlavor getPostgresFlavor(@Nonnull StackGresCluster cluster) {
     return getPostgresFlavor(cluster.getSpec().getPostgres().getFlavor());
   }
 
-  static StackGresPostgresFlavor getPostgresFlavor(@NotNull StackGresShardedCluster cluster) {
+  static StackGresPostgresFlavor getPostgresFlavor(@Nonnull StackGresShardedCluster cluster) {
     return getPostgresFlavor(cluster.getSpec().getPostgres().getFlavor());
   }
 

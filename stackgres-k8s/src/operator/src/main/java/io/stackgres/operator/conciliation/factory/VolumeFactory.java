@@ -7,13 +7,14 @@ package io.stackgres.operator.conciliation.factory;
 
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.stackgres.common.StackGresGroupKind;
-import org.jetbrains.annotations.NotNull;
 
 public interface VolumeFactory<T> {
 
-  @NotNull Stream<VolumePair> buildVolumes(@NotNull T context);
+  @Nonnull Stream<VolumePair> buildVolumes(@Nonnull T context);
 
   default StackGresGroupKind kind() {
     return StackGresGroupKind.CLUSTER;

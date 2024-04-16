@@ -8,13 +8,13 @@ package io.stackgres.common.resource;
 import java.util.List;
 import java.util.Map;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 public interface ResourceScanner<T> {
 
-  @NotNull List<T> findResources();
+  @Nonnull List<T> findResources();
 
-  @NotNull List<T> findResourcesInNamespace(String namespace);
+  @Nonnull List<T> findResourcesInNamespace(String namespace);
 
   default List<T> findByLabels(Map<String, String> labels) {
     throw new UnsupportedOperationException();

@@ -8,6 +8,8 @@ package io.stackgres.operator.conciliation.distributedlogs;
 import java.util.List;
 import java.util.Optional;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.Secret;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -19,7 +21,6 @@ import io.stackgres.common.crd.sgpgconfig.StackGresPostgresConfig;
 import io.stackgres.common.crd.sgprofile.StackGresProfile;
 import io.stackgres.operator.conciliation.GenerationContext;
 import org.immutables.value.Value;
-import org.jetbrains.annotations.NotNull;
 
 @Value.Immutable
 public interface StackGresDistributedLogsContext
@@ -66,7 +67,7 @@ public interface StackGresDistributedLogsContext
   }
 
   @Value.Lazy
-  default @NotNull StackGresClusterProfile getClusterProfile() {
+  default @Nonnull StackGresClusterProfile getClusterProfile() {
     return Optional.ofNullable(getSource().getSpec().getProfile())
         .map(StackGresClusterProfile::fromString)
         .orElse(StackGresClusterProfile.PRODUCTION);

@@ -7,12 +7,13 @@ package io.stackgres.jobs.dbops.lock;
 
 import java.util.function.Consumer;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.quarkus.test.Mock;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
 import io.stackgres.common.resource.CustomResourceScheduler;
 import jakarta.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 
 @Mock
 public class FakeDbOpsScheduler implements CustomResourceScheduler<StackGresDbOps> {
@@ -25,23 +26,23 @@ public class FakeDbOpsScheduler implements CustomResourceScheduler<StackGresDbOp
   }
 
   @Override
-  public StackGresDbOps create(@NotNull StackGresDbOps resource, boolean dryRun) {
+  public StackGresDbOps create(@Nonnull StackGresDbOps resource, boolean dryRun) {
     return kubeDb.addOrReplaceDbOps(resource);
   }
 
   @Override
-  public void delete(@NotNull StackGresDbOps resource, boolean dryRun) {
+  public void delete(@Nonnull StackGresDbOps resource, boolean dryRun) {
     kubeDb.delete(resource);
   }
 
   @Override
-  public StackGresDbOps update(@NotNull StackGresDbOps resource, boolean dryRun) {
+  public StackGresDbOps update(@Nonnull StackGresDbOps resource, boolean dryRun) {
     return kubeDb.addOrReplaceDbOps(resource);
   }
 
   @Override
-  public StackGresDbOps update(@NotNull StackGresDbOps resource,
-      @NotNull Consumer<StackGresDbOps> setter) {
+  public StackGresDbOps update(@Nonnull StackGresDbOps resource,
+      @Nonnull Consumer<StackGresDbOps> setter) {
     final ObjectMeta metadata = resource.getMetadata();
     var dbOps = kubeDb.getDbOps(metadata.getName(), metadata.getNamespace());
     setter.accept(dbOps);
@@ -49,8 +50,8 @@ public class FakeDbOpsScheduler implements CustomResourceScheduler<StackGresDbOp
   }
 
   @Override
-  public <S> StackGresDbOps updateStatus(@NotNull StackGresDbOps resource,
-      @NotNull Consumer<StackGresDbOps> setter) {
+  public <S> StackGresDbOps updateStatus(@Nonnull StackGresDbOps resource,
+      @Nonnull Consumer<StackGresDbOps> setter) {
     final ObjectMeta metadata = resource.getMetadata();
     var dbOps = kubeDb.getDbOps(metadata.getName(), metadata.getNamespace());
     setter.accept(dbOps);

@@ -7,11 +7,12 @@ package io.stackgres.jobs.dbops.lock;
 
 import java.util.Optional;
 
+import javax.annotation.Nonnull;
+
 import io.quarkus.test.Mock;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import jakarta.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 
 @Mock
 public class FakeClusterFinder implements CustomResourceFinder<StackGresCluster> {
@@ -24,7 +25,7 @@ public class FakeClusterFinder implements CustomResourceFinder<StackGresCluster>
   }
 
   @Override
-  public @NotNull Optional<StackGresCluster> findByNameAndNamespace(String name, String namespace) {
+  public @Nonnull Optional<StackGresCluster> findByNameAndNamespace(String name, String namespace) {
     return Optional.ofNullable(kubeDb.getCluster(name, namespace));
   }
 }

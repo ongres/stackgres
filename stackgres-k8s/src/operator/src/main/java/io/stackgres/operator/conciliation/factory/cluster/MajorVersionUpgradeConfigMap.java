@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -26,7 +28,6 @@ import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import org.jetbrains.annotations.NotNull;
 
 @Singleton
 @OperatorVersionBinder
@@ -40,7 +41,7 @@ public class MajorVersionUpgradeConfigMap implements VolumeFactory<StackGresClus
   }
 
   @Override
-  public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
+  public @Nonnull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
     return Stream.of(
         ImmutableVolumePair.builder()
             .volume(buildVolume(context))
@@ -49,7 +50,7 @@ public class MajorVersionUpgradeConfigMap implements VolumeFactory<StackGresClus
     );
   }
 
-  public @NotNull Volume buildVolume(StackGresClusterContext context) {
+  public @Nonnull Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
         .withName(StackGresVolume.POSTGRES_CONFIG.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
@@ -59,7 +60,7 @@ public class MajorVersionUpgradeConfigMap implements VolumeFactory<StackGresClus
         .build();
   }
 
-  public @NotNull HasMetadata buildSource(StackGresClusterContext context) {
+  public @Nonnull HasMetadata buildSource(StackGresClusterContext context) {
     Map<String, String> data = new HashMap<>();
 
     data.put("postgresql.conf",

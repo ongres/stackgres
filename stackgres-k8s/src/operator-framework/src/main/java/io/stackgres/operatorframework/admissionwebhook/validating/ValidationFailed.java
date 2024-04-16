@@ -8,10 +8,11 @@ package io.stackgres.operatorframework.admissionwebhook.validating;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
 import jakarta.validation.ConstraintViolation;
-import org.jetbrains.annotations.NotNull;
 
 public class ValidationFailed extends Exception {
 
@@ -19,19 +20,19 @@ public class ValidationFailed extends Exception {
 
   private final Status result;
 
-  public ValidationFailed(@NotNull Status status) {
+  public ValidationFailed(@Nonnull Status status) {
     super(status.getMessage());
     this.result = status;
   }
 
-  public ValidationFailed(@NotNull String message, int code) {
+  public ValidationFailed(@Nonnull String message, int code) {
     this(new StatusBuilder()
         .withCode(code)
         .withMessage(message)
         .build());
   }
 
-  public ValidationFailed(@NotNull String message) {
+  public ValidationFailed(@Nonnull String message) {
     this(message, 400);
   }
 

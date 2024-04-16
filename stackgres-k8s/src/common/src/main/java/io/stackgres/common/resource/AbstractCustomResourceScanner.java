@@ -9,11 +9,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.common.CdiUtil;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractCustomResourceScanner<T extends CustomResource<?, ?>,
@@ -81,7 +82,7 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource<?, 
   }
 
   @Override
-  public @NotNull List<@NotNull T> getResourcesWithLabels(Map<String, String> labels) {
+  public @Nonnull List<T> getResourcesWithLabels(Map<String, String> labels) {
     return client.resources(customResourceClass, customResourceListClass)
         .inAnyNamespace()
         .withLabels(labels)
@@ -90,7 +91,7 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource<?, 
   }
 
   @Override
-  public @NotNull List<@NotNull T> getResourcesWithLabels(
+  public @Nonnull List<T> getResourcesWithLabels(
       String namespace, Map<String, String> labels) {
     return client.resources(customResourceClass, customResourceListClass)
         .inNamespace(namespace)

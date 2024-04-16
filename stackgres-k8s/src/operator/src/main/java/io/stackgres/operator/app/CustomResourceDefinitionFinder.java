@@ -7,6 +7,8 @@ package io.stackgres.operator.app;
 
 import java.util.Optional;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
@@ -15,7 +17,6 @@ import io.stackgres.common.resource.AbstractUnamespacedResourceWriter;
 import io.stackgres.common.resource.ResourceFinder;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped
 public class CustomResourceDefinitionFinder
@@ -32,7 +33,7 @@ public class CustomResourceDefinitionFinder
   }
 
   @Override
-  public @NotNull Optional<CustomResourceDefinition> findByName(String name) {
+  public @Nonnull Optional<CustomResourceDefinition> findByName(String name) {
     return Optional.ofNullable(client.apiextensions().v1()
         .customResourceDefinitions()
         .withName(name)
@@ -40,7 +41,7 @@ public class CustomResourceDefinitionFinder
   }
 
   @Override
-  public @NotNull Optional<CustomResourceDefinition> findByNameAndNamespace(
+  public @Nonnull Optional<CustomResourceDefinition> findByNameAndNamespace(
       String name, String namespace) {
     return findByName(name);
   }

@@ -5,6 +5,8 @@
 
 package io.stackgres.common.resource;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetList;
@@ -13,7 +15,6 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.RollableScalableResource;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 
 @ApplicationScoped
 public class StatefulSetWriter
@@ -28,7 +29,7 @@ public class StatefulSetWriter
   }
 
   @Override
-  public void deleteWithoutCascading(@NotNull StatefulSet resource, boolean dryRun) {
+  public void deleteWithoutCascading(@Nonnull StatefulSet resource, boolean dryRun) {
     client.apps().statefulSets()
         .resource(resource)
         .dryRun(dryRun)

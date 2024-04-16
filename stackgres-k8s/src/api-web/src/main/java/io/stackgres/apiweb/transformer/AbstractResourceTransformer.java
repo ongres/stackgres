@@ -5,17 +5,18 @@
 
 package io.stackgres.apiweb.transformer;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.apiweb.dto.ResourceDto;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractResourceTransformer
     <T extends ResourceDto, R extends HasMetadata>
     extends AbstractDtoTransformer<T, R> implements ResourceTransformer<T, R> {
 
-  public ObjectMeta getCustomResourceMetadata(@NotNull T source, @Nullable R original) {
+  public ObjectMeta getCustomResourceMetadata(@Nonnull T source, @Nullable R original) {
     ObjectMeta metadata = original != null ? original.getMetadata() : new ObjectMeta();
     if (source.getMetadata() != null) {
       metadata.setNamespace(source.getMetadata().getNamespace());

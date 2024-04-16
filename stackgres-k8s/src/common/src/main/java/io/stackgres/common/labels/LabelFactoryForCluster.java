@@ -7,8 +7,9 @@ package io.stackgres.common.labels;
 
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.client.CustomResource;
-import org.jetbrains.annotations.NotNull;
 
 public interface LabelFactoryForCluster<T extends CustomResource<?, ?>>
     extends LabelFactory<T> {
@@ -33,7 +34,7 @@ public interface LabelFactoryForCluster<T extends CustomResource<?, ?>>
 
   Map<String, String> clusterCrossNamespaceLabels(T resource);
 
-  String resourceScope(@NotNull T resource);
+  String resourceScope(@Nonnull T resource);
 
   @Override
   LabelMapperForCluster<T> labelMapper();

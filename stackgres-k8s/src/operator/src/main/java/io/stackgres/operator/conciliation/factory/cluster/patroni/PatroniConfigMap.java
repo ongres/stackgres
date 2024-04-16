@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -41,7 +43,6 @@ import io.stackgres.operator.conciliation.factory.VolumeFactory;
 import io.stackgres.operator.conciliation.factory.VolumePair;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,7 +79,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
   }
 
   @Override
-  public @NotNull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
+  public @Nonnull Stream<VolumePair> buildVolumes(StackGresClusterContext context) {
     return Stream.of(
         ImmutableVolumePair.builder()
             .volume(buildVolume(context))
@@ -87,7 +88,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
     );
   }
 
-  public @NotNull Volume buildVolume(StackGresClusterContext context) {
+  public @Nonnull Volume buildVolume(StackGresClusterContext context) {
     return new VolumeBuilder()
         .withName(StackGresVolume.PATRONI_ENV.getName())
         .withConfigMap(new ConfigMapVolumeSourceBuilder()
@@ -97,7 +98,7 @@ public class PatroniConfigMap implements VolumeFactory<StackGresClusterContext> 
         .build();
   }
 
-  public @NotNull ConfigMap buildSource(StackGresClusterContext context) {
+  public @Nonnull ConfigMap buildSource(StackGresClusterContext context) {
     final StackGresCluster cluster = context.getSource();
     final String pgVersion = getPostgresFlavorComponent(cluster).get(cluster).getVersion(
         cluster.getSpec().getPostgres().getVersion());

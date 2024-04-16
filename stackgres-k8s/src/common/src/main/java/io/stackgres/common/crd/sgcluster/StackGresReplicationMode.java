@@ -5,7 +5,7 @@
 
 package io.stackgres.common.crd.sgcluster;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 public enum StackGresReplicationMode {
 
@@ -15,14 +15,14 @@ public enum StackGresReplicationMode {
   SYNC_ALL("sync-all"),
   STRICT_SYNC_ALL("strict-sync-all");
 
-  private final @NotNull String type;
+  private final @Nonnull String type;
 
-  StackGresReplicationMode(@NotNull String type) {
+  StackGresReplicationMode(@Nonnull String type) {
     this.type = type;
   }
 
   @Override
-  public @NotNull String toString() {
+  public @Nonnull String toString() {
     return type;
   }
 }

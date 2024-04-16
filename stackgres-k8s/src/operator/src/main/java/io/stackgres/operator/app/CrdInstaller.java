@@ -11,6 +11,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionVersion;
@@ -29,7 +31,6 @@ import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceWriter;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 import org.jooq.lambda.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,7 +109,7 @@ public class CrdInstaller {
         .forEach(this::installCrd);
   }
 
-  protected void installCrd(@NotNull CustomResourceDefinition currentCrd) {
+  protected void installCrd(@Nonnull CustomResourceDefinition currentCrd) {
     String name = currentCrd.getMetadata().getName();
     LOGGER.info("Installing CRD {}", name);
     Optional<CustomResourceDefinition> installedCrdOpt = crdResourceFinder
@@ -225,7 +226,7 @@ public class CrdInstaller {
         .forEach(this::checkCrd);
   }
 
-  protected void checkCrd(@NotNull CustomResourceDefinition currentCrd) {
+  protected void checkCrd(@Nonnull CustomResourceDefinition currentCrd) {
     String name = currentCrd.getMetadata().getName();
     Optional<CustomResourceDefinition> installedCrdOpt = crdResourceFinder
         .findByName(name);

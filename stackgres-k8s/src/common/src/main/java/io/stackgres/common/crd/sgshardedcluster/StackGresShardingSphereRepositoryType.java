@@ -5,7 +5,7 @@
 
 package io.stackgres.common.crd.sgshardedcluster;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 public enum StackGresShardingSphereRepositoryType {
 
@@ -13,18 +13,18 @@ public enum StackGresShardingSphereRepositoryType {
   ZOO_KEEPER("ZooKeeper"),
   ETCD("Etcd");
 
-  private final @NotNull String type;
+  private final @Nonnull String type;
 
-  StackGresShardingSphereRepositoryType(@NotNull String type) {
+  StackGresShardingSphereRepositoryType(@Nonnull String type) {
     this.type = type;
   }
 
   @Override
-  public @NotNull String toString() {
+  public @Nonnull String toString() {
     return type;
   }
 
-  public static @NotNull StackGresShardingSphereRepositoryType fromString(@NotNull String value) {
+  public static @Nonnull StackGresShardingSphereRepositoryType fromString(@Nonnull String value) {
     for (StackGresShardingSphereRepositoryType type : StackGresShardingSphereRepositoryType.values()) {
       if (type.toString().equals(value)) {
         return type;

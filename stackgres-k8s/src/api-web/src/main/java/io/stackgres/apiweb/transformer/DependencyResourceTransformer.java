@@ -7,16 +7,17 @@ package io.stackgres.apiweb.transformer;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.stackgres.apiweb.dto.ResourceDto;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface DependencyResourceTransformer
     <T extends ResourceDto, R extends HasMetadata> {
 
-  R toCustomResource(@NotNull T resource, @Nullable R originalResource);
+  R toCustomResource(@Nonnull T resource, @Nullable R originalResource);
 
-  T toResource(@NotNull R customResource, @NotNull List<String> clusters);
+  T toResource(@Nonnull R customResource, @Nonnull List<String> clusters);
 
 }

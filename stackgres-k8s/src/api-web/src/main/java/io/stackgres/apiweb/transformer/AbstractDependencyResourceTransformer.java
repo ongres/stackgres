@@ -5,24 +5,25 @@
 
 package io.stackgres.apiweb.transformer;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.stackgres.apiweb.dto.Metadata;
 import io.stackgres.apiweb.dto.ResourceDto;
 import io.stackgres.apiweb.transformer.util.TransformerUtil;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractDependencyResourceTransformer<T extends ResourceDto,
     R extends HasMetadata> implements DependencyResourceTransformer<T, R> {
 
-  protected ObjectMeta getCustomResourceMetadata(@NotNull T source, @Nullable R original) {
+  protected ObjectMeta getCustomResourceMetadata(@Nonnull T source, @Nullable R original) {
     return TransformerUtil.fromDto(
         source.getMetadata(),
         original != null ? original.getMetadata() : null);
   }
 
-  protected Metadata getResourceMetadata(@NotNull R source) {
+  protected Metadata getResourceMetadata(@Nonnull R source) {
     return TransformerUtil.fromResource(source.getMetadata());
   }
 

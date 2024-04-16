@@ -10,6 +10,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresComponent;
@@ -21,13 +23,12 @@ import io.stackgres.operator.conciliation.factory.cluster.postgres.PostgresDefau
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 
 @Dependent
 public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackGresPostgresConfig>
     implements PostgresConfigurationFactory {
 
-  private @NotNull String postgresVersion;
+  private @Nonnull String postgresVersion;
 
   @Inject
   public DefaultPostgresFactory(StackGresPropertyContext<OperatorProperty> context) {
@@ -88,7 +89,7 @@ public class DefaultPostgresFactory extends AbstractCustomResourceFactory<StackG
     return postgresVersion;
   }
 
-  public void setPostgresVersion(@NotNull String postgresVersion) {
+  public void setPostgresVersion(@Nonnull String postgresVersion) {
     this.postgresVersion = postgresVersion;
   }
 }

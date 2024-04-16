@@ -5,7 +5,7 @@
 
 package io.stackgres.common.crd.sgshardedcluster;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 public enum StackGresShardingType {
 
@@ -13,18 +13,18 @@ public enum StackGresShardingType {
   DDP("ddp"),
   SHARDING_SPHERE("shardingsphere");
 
-  private final @NotNull String type;
+  private final @Nonnull String type;
 
-  StackGresShardingType(@NotNull String type) {
+  StackGresShardingType(@Nonnull String type) {
     this.type = type;
   }
 
   @Override
-  public @NotNull String toString() {
+  public @Nonnull String toString() {
     return type;
   }
 
-  public static @NotNull StackGresShardingType fromString(@NotNull String value) {
+  public static @Nonnull StackGresShardingType fromString(@Nonnull String value) {
     for (StackGresShardingType type : StackGresShardingType.values()) {
       if (type.toString().equals(value)) {
         return type;

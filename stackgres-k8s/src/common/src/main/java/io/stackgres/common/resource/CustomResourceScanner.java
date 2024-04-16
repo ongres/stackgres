@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
 
 /*
  * Look for resources T in the kubernetes cluster
@@ -21,7 +21,7 @@ public interface CustomResourceScanner<T> {
    *
    * @return {@code List<T>} if the resource was found or throws an exception.
    */
-  @NotNull List<@NotNull T> getResources();
+  @Nonnull List<T> getResources();
 
   /**
    * scans the cluster for resources T in the given namespace.
@@ -29,14 +29,14 @@ public interface CustomResourceScanner<T> {
    * @param namespace the namespace to look into
    * @return {@code List<T>} if the resource was found or throws an exception.
    */
-  @NotNull List<@NotNull T> getResources(String namespace);
+  @Nonnull List<T> getResources(String namespace);
 
   /**
    * scans the cluster for resource <code>T</code> in all namespaces for the given labels.
    *
    * @return {@code List<T>} if the resource was found or throws an exception.
    */
-  @NotNull List<@NotNull T> getResourcesWithLabels(Map<String, String> labels);
+  @Nonnull List<T> getResourcesWithLabels(Map<String, String> labels);
 
   /**
    * scans the cluster for resources T in the given namespace for the given labels.
@@ -44,7 +44,7 @@ public interface CustomResourceScanner<T> {
    * @param namespace the namespace to look into
    * @return {@code List<T>} if the resource was found or throws an exception.
    */
-  @NotNull List<@NotNull T> getResourcesWithLabels(
+  @Nonnull List<T> getResourcesWithLabels(
       String namespace, Map<String, String> labels);
 
   /**
@@ -52,7 +52,7 @@ public interface CustomResourceScanner<T> {
    *
    * @return {@code List<T>} if the resource was found or empty otherwise
    */
-  @NotNull Optional<List<@NotNull T>> findResources();
+  @Nonnull Optional<List<T>> findResources();
 
   /**
    * scans the cluster for resources T in the given namespace.
@@ -60,6 +60,6 @@ public interface CustomResourceScanner<T> {
    * @param namespace the namespace to look into
    * @return {@code List<T>} if the resource was found or empty otherwise
    */
-  @NotNull Optional<List<@NotNull T>> findResources(String namespace);
+  @Nonnull Optional<List<T>> findResources(String namespace);
 
 }

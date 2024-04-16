@@ -18,7 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import org.jetbrains.annotations.NotNull;
+import javax.annotation.Nonnull;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +42,7 @@ public final class ResolvConfResolverConfig {
     return ".svc.cluster.local";
   }
 
-  public static @NotNull List<@NotNull String> getSearchPath(@NotNull String path) {
+  public static @Nonnull List<String> getSearchPath(@Nonnull String path) {
     Path resolvConf = Paths.get(path);
     if (Files.exists(resolvConf)) {
       try (InputStream in = Files.newInputStream(resolvConf, StandardOpenOption.READ)) {
@@ -55,7 +56,7 @@ public final class ResolvConfResolverConfig {
     return List.of();
   }
 
-  private static List<String> parseResolvConf(InputStream in) throws IOException {
+  private static @Nonnull List<String> parseResolvConf(InputStream in) throws IOException {
     var searchDomains = new ArrayList<String>(3);
     try (InputStreamReader isr = new InputStreamReader(in, StandardCharsets.UTF_8);
         BufferedReader br = new BufferedReader(isr)) {
