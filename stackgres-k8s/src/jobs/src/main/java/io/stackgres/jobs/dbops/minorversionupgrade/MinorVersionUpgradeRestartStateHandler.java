@@ -157,8 +157,7 @@ public class MinorVersionUpgradeRestartStateHandler extends AbstractRestartState
     return Optional.ofNullable(cluster.getStatus())
         .map(StackGresClusterStatus::getDbOps)
         .map(StackGresClusterDbOpsStatus::getMinorVersionUpgrade)
-        .filter(status -> status.getPrimaryInstance() != null
-            && status.getSourcePostgresVersion() != null
+        .filter(status -> status.getSourcePostgresVersion() != null
             && status.getTargetPostgresVersion() != null)
         .isPresent();
   }

@@ -79,8 +79,7 @@ public class ClusterRestartStateHandler extends AbstractRestartStateHandler {
         .map(StackGresClusterStatus::getDbOps)
         .map(StackGresClusterDbOpsStatus::getRestart)
         .filter(status -> status.getInitialInstances() != null
-            && !status.getInitialInstances().isEmpty()
-            && status.getPrimaryInstance() != null)
+            && !status.getInitialInstances().isEmpty())
         .isPresent();
   }
 

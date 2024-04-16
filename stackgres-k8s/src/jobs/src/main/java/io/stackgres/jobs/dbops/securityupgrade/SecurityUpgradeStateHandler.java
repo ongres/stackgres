@@ -79,8 +79,7 @@ public class SecurityUpgradeStateHandler extends AbstractRestartStateHandler {
         .map(StackGresClusterStatus::getDbOps)
         .map(StackGresClusterDbOpsStatus::getSecurityUpgrade)
         .filter(status -> status.getInitialInstances() != null
-            && !status.getInitialInstances().isEmpty()
-            && status.getPrimaryInstance() != null)
+            && !status.getInitialInstances().isEmpty())
         .isPresent();
   }
 
