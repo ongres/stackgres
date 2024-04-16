@@ -13,7 +13,7 @@ import io.stackgres.common.StackGresUtil;
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ConfigShardingSphereServiceAccount {
+public class ShardingSphereServiceAccount {
 
   private String namespace;
 

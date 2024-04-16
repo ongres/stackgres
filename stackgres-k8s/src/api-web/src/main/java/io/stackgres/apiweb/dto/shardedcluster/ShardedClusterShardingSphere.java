@@ -5,11 +5,10 @@
 
 package io.stackgres.apiweb.dto.shardedcluster;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.stackgres.apiweb.dto.config.ShardingSphereServiceAccount;
 import io.stackgres.common.StackGresUtil;
 
 @RegisterForReflection
@@ -21,7 +20,7 @@ public class ShardedClusterShardingSphere {
 
   private ShardedClusterShardingSphereAuthority authority;
 
-  private Map<String, String> properties;
+  private ShardingSphereServiceAccount serviceAccount;
 
   public ShardedClusterShardingSphereMode getMode() {
     return mode;
@@ -39,12 +38,12 @@ public class ShardedClusterShardingSphere {
     this.authority = authority;
   }
 
-  public Map<String, String> getProperties() {
-    return properties;
+  public ShardingSphereServiceAccount getServiceAccount() {
+    return serviceAccount;
   }
 
-  public void setProperties(Map<String, String> properties) {
-    this.properties = properties;
+  public void setServiceAccount(ShardingSphereServiceAccount serviceAccount) {
+    this.serviceAccount = serviceAccount;
   }
 
   @Override

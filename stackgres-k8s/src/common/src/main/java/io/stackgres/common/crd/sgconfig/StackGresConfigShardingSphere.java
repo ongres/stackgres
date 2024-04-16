@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.ShardingSphereServiceAccount;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
@@ -21,13 +22,13 @@ import io.sundr.builder.annotations.Buildable;
     builderPackage = "io.fabric8.kubernetes.api.builder")
 public class StackGresConfigShardingSphere {
 
-  private StackGresConfigShardingSphereServiceAccount serviceAccount;
+  private ShardingSphereServiceAccount serviceAccount;
 
-  public StackGresConfigShardingSphereServiceAccount getServiceAccount() {
+  public ShardingSphereServiceAccount getServiceAccount() {
     return serviceAccount;
   }
 
-  public void setServiceAccount(StackGresConfigShardingSphereServiceAccount serviceAccount) {
+  public void setServiceAccount(ShardingSphereServiceAccount serviceAccount) {
     this.serviceAccount = serviceAccount;
   }
 

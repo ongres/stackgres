@@ -672,11 +672,14 @@ spec:
               shardingSphere:
                 type: object
                 description: Section to configure integration with ShardingSphere operator
-                required: [serviceAccount]
                 properties:
                   serviceAccount:
                     type: object
-                    description: Section to configure ServiceAccount used by ShardingSphere operator
+                    description: |
+                      Section to configure ServiceAccount used by ShardingSphere operator.
+                      
+                      You may configure a specific value for a sharded cluster under section
+                       `SGShardedCluster.speccoordinator.configurations.shardingSphere.serviceAccount`.
                     required: [namespace,name]
                     properties:
                       namespace:
