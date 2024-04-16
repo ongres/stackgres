@@ -37,9 +37,63 @@ spec:
     {{- end }}
     {{- end }}
     {{- end }}
+    {{- if .Values.credentials }}
+    credentials:
+      {{- with .patroni }}
+      patroni:
+        {{- with .restApiPassword }}
+        restApiPassword:
+          name: {{ .Release.Name }}-users
+          key: restapi-password
+        {{- end }}
+      {{- end }}
+      {{- with .users }}
+      users:
+        {{- with .superuser }}
+        superuser:
+          {{- with .username }}
+          username:
+            name: {{ .Release.Name }}-users
+            key: superuser-username
+          {{- end }}
+          {{- with .password }}
+          password:
+            name: {{ .Release.Name }}-users
+            key: superuser-password
+          {{- end }}
+        {{- end }}
+        {{- with .replication }}
+        replication:
+          {{- with .username }}
+          username:
+            name: {{ .Release.Name }}-users
+            key: replication-username
+          {{- end }}
+          {{- with .password }}
+          password:
+            name: {{ .Release.Name }}-users
+            key: replication-password
+          {{- end }}
+        {{- end }}
+        {{- with .authenticator }}
+        authenticator:
+          {{- with .username }}
+          username:
+            name: {{ .Release.Name }}-users
+            key: authenticator-username
+          {{- end }}
+          {{- with .password }}
+          password:
+            name: {{ .Release.Name }}-users
+            key: authenticator-password
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- else }}
     {{- with ((.Values.shardedCluster.configurations).credentials) }}
     credentials:
       {{- toYaml . | nindent 6 }}
+    {{- end }}
     {{- end }}
   {{- end }}
   {{- with .Values.cluster.initialData }}

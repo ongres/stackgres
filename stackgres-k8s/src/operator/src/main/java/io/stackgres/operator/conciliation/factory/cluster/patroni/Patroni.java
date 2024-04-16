@@ -8,7 +8,6 @@ package io.stackgres.operator.conciliation.factory.cluster.patroni;
 import static io.stackgres.common.StackGresUtil.getDefaultPullPolicy;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -42,11 +41,11 @@ import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
 import io.stackgres.operator.conciliation.factory.LocalBinMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
-import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.cluster.BackupVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.HugePagesMounts;
+import io.stackgres.operator.conciliation.factory.cluster.PostgresEnvironmentVariables;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresExtensionMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ReplicateVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ReplicationInitializationVolumeMounts;
@@ -59,8 +58,8 @@ import jakarta.inject.Singleton;
 @RunningContainer(StackGresContainer.PATRONI)
 public class Patroni implements ContainerFactory<ClusterContainerContext> {
 
-  private final ResourceFactory<StackGresClusterContext, List<EnvVar>> patroniEnvironmentVariables;
-
+  private final PatroniEnvironmentVariables patroniEnvironmentVariables;
+  private final PostgresEnvironmentVariables postgresEnvironmentVariables;
   private final PostgresSocketMount postgresSocket;
   private final PostgresExtensionMounts postgresExtensions;
   private final LocalBinMounts localBinMounts;
@@ -74,7 +73,8 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
 
   @Inject
   public Patroni(
-      ResourceFactory<StackGresClusterContext, List<EnvVar>> patroniEnvironmentVariables,
+      PatroniEnvironmentVariables patroniEnvironmentVariables,
+      PostgresEnvironmentVariables postgresEnvironmentVariables,
       PostgresSocketMount postgresSocket,
       PostgresExtensionMounts postgresExtensions,
       LocalBinMounts localBinMounts,
@@ -88,6 +88,7 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
       PatroniConfigMap patroniConfigMap) {
     super();
     this.patroniEnvironmentVariables = patroniEnvironmentVariables;
+    this.postgresEnvironmentVariables = postgresEnvironmentVariables;
     this.postgresSocket = postgresSocket;
     this.postgresExtensions = postgresExtensions;
     this.localBinMounts = localBinMounts;
@@ -214,9 +215,10 @@ public class Patroni implements ContainerFactory<ClusterContainerContext> {
   private ImmutableList<EnvVar> getEnvVars(ClusterContainerContext context) {
     final StackGresClusterContext clusterContext = context.getClusterContext();
     return ImmutableList.<EnvVar>builder()
+        .addAll(patroniEnvironmentVariables.getEnvVars(clusterContext))
+        .addAll(postgresEnvironmentVariables.getEnvVars(clusterContext))
         .addAll(localBinMounts.getDerivedEnvVars(context))
         .addAll(postgresExtensions.getDerivedEnvVars(context))
-        .addAll(patroniEnvironmentVariables.createResource(clusterContext))
         .addAll(patroniMounts.getDerivedEnvVars(context))
         .addAll(backupMounts.getDerivedEnvVars(context))
         .addAll(replicationInitMounts.getDerivedEnvVars(context))
