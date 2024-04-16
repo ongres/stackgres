@@ -33,12 +33,9 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.StackGresVolume;
 import io.stackgres.common.crd.sgdistributedlogs.StackGresDistributedLogs;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
-import io.stackgres.operator.conciliation.distributedlogs.StackGresDistributedLogsContext;
 import io.stackgres.operator.conciliation.factory.ContainerFactory;
-import io.stackgres.operator.conciliation.factory.FactoryName;
 import io.stackgres.operator.conciliation.factory.LocalBinMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
-import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.distributedlogs.DistributedLogsContainerContext;
 import io.stackgres.operator.conciliation.factory.distributedlogs.HugePagesMounts;
@@ -51,8 +48,7 @@ import jakarta.inject.Singleton;
 @RunningContainer(StackGresContainer.PATRONI)
 public class Patroni implements ContainerFactory<DistributedLogsContainerContext> {
 
-  private final ResourceFactory<StackGresDistributedLogsContext, List<EnvVar>> envVarFactory;
-
+  private final PatroniEnvironmentVariables patroniEnvironmentVariables;
   private final PostgresSocketMount postgresSocket;
   private final PostgresExtensionMounts postgresExtensions;
   private final LocalBinMounts localBinMounts;
@@ -60,13 +56,12 @@ public class Patroni implements ContainerFactory<DistributedLogsContainerContext
 
   @Inject
   public Patroni(
-      @FactoryName(DistributedLogsPatroniEnvironmentVariablesFactory.LATEST_PATRONI_ENV_VAR_FACTORY)
-      ResourceFactory<StackGresDistributedLogsContext, List<EnvVar>> envVarFactory,
+      PatroniEnvironmentVariables patroniEnvironmentVariables,
       PostgresSocketMount postgresSocket,
       PostgresExtensionMounts postgresExtensions,
       LocalBinMounts localBinMounts,
       HugePagesMounts hugePagesMounts) {
-    this.envVarFactory = envVarFactory;
+    this.patroniEnvironmentVariables = patroniEnvironmentVariables;
     this.postgresSocket = postgresSocket;
     this.postgresExtensions = postgresExtensions;
     this.localBinMounts = localBinMounts;
@@ -174,8 +169,8 @@ public class Patroni implements ContainerFactory<DistributedLogsContainerContext
     final List<EnvVar> localBinMountsEnvVars = localBinMounts.getDerivedEnvVars(context);
     final List<EnvVar> postgresExtensionsEnvVars = postgresExtensions
         .getDerivedEnvVars(context);
-    final List<EnvVar> resource = envVarFactory
-        .createResource(context.getDistributedLogsContext());
+    final List<EnvVar> resource = patroniEnvironmentVariables
+        .getEnvVars(context.getDistributedLogsContext());
     return ImmutableList.<EnvVar>builder()
         .addAll(localBinMountsEnvVars)
         .addAll(postgresExtensionsEnvVars)

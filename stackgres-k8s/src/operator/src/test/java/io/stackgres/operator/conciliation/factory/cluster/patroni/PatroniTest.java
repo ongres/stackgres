@@ -16,7 +16,6 @@ import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.stackgres.common.ClusterPath;
@@ -29,10 +28,10 @@ import io.stackgres.common.fixture.Fixtures;
 import io.stackgres.operator.conciliation.cluster.StackGresClusterContext;
 import io.stackgres.operator.conciliation.factory.LocalBinMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
-import io.stackgres.operator.conciliation.factory.ResourceFactory;
 import io.stackgres.operator.conciliation.factory.cluster.BackupVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
 import io.stackgres.operator.conciliation.factory.cluster.HugePagesMounts;
+import io.stackgres.operator.conciliation.factory.cluster.PostgresEnvironmentVariables;
 import io.stackgres.operator.conciliation.factory.cluster.PostgresExtensionMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ReplicateVolumeMounts;
 import io.stackgres.operator.conciliation.factory.cluster.ReplicationInitializationVolumeMounts;
@@ -51,7 +50,9 @@ class PatroniTest {
       StackGresComponent.POSTGRESQL.getLatest().streamOrderedVersions().findFirst().get();
 
   @Mock
-  ResourceFactory<StackGresClusterContext, List<EnvVar>> patroniEnvironmentVariables;
+  PatroniEnvironmentVariables patroniEnvironmentVariables;
+  @Mock
+  PostgresEnvironmentVariables postgresEnvironmentVariables;
   @Mock
   PostgresSocketMount postgresSocket;
   @Mock
@@ -88,14 +89,15 @@ class PatroniTest {
 
   @BeforeEach
   void setUp() {
-    patroni = new Patroni(patroniEnvironmentVariables,
+    patroni = new Patroni(patroniEnvironmentVariables, postgresEnvironmentVariables,
         postgresSocket, postgresExtensions, localBinMounts, restoreMounts, backupMounts,
         replicationInitializationVolumeMounts,
         replicateMounts, patroniMounts, hugePagesMounts, patroniConfigMap);
     cluster = Fixtures.cluster().loadDefault().get();
     cluster.getSpec().getPostgres().setVersion(POSTGRES_VERSION);
     when(clusterContainerContext.getClusterContext()).thenReturn(clusterContext);
-    when(patroniEnvironmentVariables.createResource(clusterContext)).thenReturn(List.of());
+    when(patroniEnvironmentVariables.getEnvVars(clusterContext)).thenReturn(List.of());
+    when(postgresEnvironmentVariables.getEnvVars(clusterContext)).thenReturn(List.of());
     when(patroniConfigMap.buildSource(clusterContext))
         .thenReturn(new ConfigMapBuilder()
                 .withData(Map.of(StackGresUtil.MD5SUM_KEY, "test"))
@@ -137,7 +139,8 @@ class PatroniTest {
     verify(replicateMounts, times(1)).getDerivedEnvVars(any());
     verify(postgresExtensions, times(1)).getDerivedEnvVars(any());
     verify(hugePagesMounts, times(1)).getDerivedEnvVars(any());
-    verify(patroniEnvironmentVariables, times(1)).createResource(any());
+    verify(patroniEnvironmentVariables, times(1)).getEnvVars(any());
+    verify(postgresEnvironmentVariables, times(1)).getEnvVars(any());
     verify(restoreMounts, times(1)).getDerivedEnvVars(any());
   }
 

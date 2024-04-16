@@ -38,8 +38,8 @@ class PatroniEnvVarFactoryTest {
 
   private StackGresPostgresConfig postgresConfig;
 
-  private final PatroniEnvironmentVariablesFactory factory =
-      new PatroniEnvironmentVariablesFactory();
+  private final PatroniEnvironmentVariables factory =
+      new PatroniEnvironmentVariables();
 
   @BeforeEach
   void setUp() {
@@ -268,7 +268,7 @@ class PatroniEnvVarFactoryTest {
   private EnvVar getEnvVar(String envVarName) {
     when(context.getSource()).thenReturn(cluster);
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
-    Stream<EnvVar> envVars = factory.createResource(context).stream();
+    Stream<EnvVar> envVars = factory.getEnvVars(context).stream();
 
     var envVarFound = envVars.filter(envVar -> envVar.getName().equals(envVarName))
         .findFirst();
@@ -279,7 +279,7 @@ class PatroniEnvVarFactoryTest {
   private void assertNotPresent(String envVarName) {
     when(context.getSource()).thenReturn(cluster);
     when(context.getPostgresConfig()).thenReturn(postgresConfig);
-    Stream<EnvVar> envVars = factory.createResource(context).stream();
+    Stream<EnvVar> envVars = factory.getEnvVars(context).stream();
 
     var envVarFound = envVars.filter(envVar -> envVar.getName().equals(envVarName))
         .findFirst();

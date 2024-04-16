@@ -38,9 +38,63 @@ spec:
     patroni:
       {{- toYaml . | nindent 6 }}
     {{- end }}
+    {{- if .Values.credentials }}
+    credentials:
+      {{- with .Values.credentials.patroni }}
+      patroni:
+        {{- with .restApiPassword }}
+        restApiPassword:
+          name: {{ $.Release.Name }}-users
+          key: restapi-password
+        {{- end }}
+      {{- end }}
+      {{- with .Values.credentials.users }}
+      users:
+        {{- with .superuser }}
+        superuser:
+          {{- with .username }}
+          username:
+            name: {{ $.Release.Name }}-users
+            key: superuser-username
+          {{- end }}
+          {{- with .password }}
+          password:
+            name: {{ $.Release.Name }}-users
+            key: superuser-password
+          {{- end }}
+        {{- end }}
+        {{- with .replication }}
+        replication:
+          {{- with .username }}
+          username:
+            name: {{ $.Release.Name }}-users
+            key: replication-username
+          {{- end }}
+          {{- with .password }}
+          password:
+            name: {{ $.Release.Name }}-users
+            key: replication-password
+          {{- end }}
+        {{- end }}
+        {{- with .authenticator }}
+        authenticator:
+          {{- with .username }}
+          username:
+            name: {{ $.Release.Name }}-users
+            key: authenticator-username
+          {{- end }}
+          {{- with .password }}
+          password:
+            name: {{ $.Release.Name }}-users
+            key: authenticator-password
+          {{- end }}
+        {{- end }}
+      {{- end }}
+    {{- else }}
     {{- with .Values.cluster.configurations.credentials }}
     credentials:
       {{- toYaml . | nindent 6 }}
+    {{- end }}
     {{- end }}
   sgInstanceProfile: {{ quote .Values.cluster.sgInstanceProfile }}
   {{- with .Values.cluster.initialData }}
