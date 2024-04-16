@@ -209,14 +209,14 @@ check_restore_sharded_backup_is_working() {
 
   kubectl get secret -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq "del(.metadata.ownerReferences) | del(.metadata.labels) | .metadata.name = \"$CLUSTER_NAME-back\"" \
-    | kubectl create -f -
+    | kubectl replace --force -f -
 
   remove_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   # Remove this when patroni fix citus integration so that superuser password is changed based on PATRONI_SUPERUSER_PASSWORD
   kubectl get secret -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-back" -o json \
     | jq ".metadata.name = \"$CLUSTER_NAME\"" \
-    | kubectl create -f -
+    | kubectl replace --force -f -
 
   create_or_replace_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" "2" \
     --set-string cluster.initialData.restore.fromBackup.name="$SHARDED_BACKUP_NAME_FOR_RESTORE"
@@ -242,14 +242,14 @@ check_restore_sharded_backup_is_working() {
 check_restore_sharded_backup_with_pitr_is_working() {
   kubectl get secret -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq "del(.metadata.ownerReferences) | del(.metadata.labels) | .metadata.name = \"$CLUSTER_NAME-back\"" \
-    | kubectl create -f -
+    | kubectl replace --force -f -
 
   remove_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
   # Remove this when patroni fix citus integration so that superuser password is changed based on PATRONI_SUPERUSER_PASSWORD
   kubectl get secret -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-back" -o json \
     | jq ".metadata.name = \"$CLUSTER_NAME\"" \
-    | kubectl create -f -
+    | kubectl replace --force -f -
 
   create_or_replace_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" "2" \
     --set-string cluster.initialData.restore.fromBackup.name="$SHARDED_BACKUP_NAME" \
