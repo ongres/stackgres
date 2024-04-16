@@ -859,6 +859,7 @@ aside {
 }
 
 #main {
+    position: relative;
     margin-left: 350px;
     float: left;
     width: calc(100% - 350px);
@@ -1630,7 +1631,7 @@ header .actions a {
     margin-left: 15px;
 }
 
-.crdActionLinks a:not(:first-of-type).lastItem {
+.crdActionLinks > *:not(:first-child).lastItem {
     border-left: 1px solid var(--borderColor);
     padding-left: 15px;
 }
