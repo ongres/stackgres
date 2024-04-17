@@ -196,7 +196,20 @@
                                 Restart
                             </a>
                         </template>
-                        
+
+                        <template v-if="
+                            isStandbyCluster &&
+                            ($route.meta.componentName == 'SGCluster')
+                        ">
+                            <a
+                                class="plain lastItem"
+                                @click="promoteCluster"
+                                data-field="promote-sgcluster"
+                            >
+                                Promote
+                            </a>
+                        </template>
+
                         <router-link :to="'/' + $route.params.namespace + '/' + kind" :title="$route.meta.hasOwnProperty('customComponentName') ? 'Go to ' + $route.meta.customComponentName +'s List' : 'Go to ' + $route.meta.componentName + 's List'" class="lastItem">
                             Go to {{ $route.meta.hasOwnProperty('customComponentName') ? $route.meta.customComponentName : $route.meta.componentName }}s List
                         </router-link>
@@ -232,6 +245,7 @@
 </template>
 
 <script>
+import sgApi from '../../api/sgApi';
     import store from '../../store'
 	import { mixin } from '../mixins/mixin'
 
@@ -304,6 +318,14 @@
                 let cluster = store.state[vc.kind].find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name) && c.data.hasOwnProperty('grafanaEmbedded') && c.data.grafanaEmbedded)
 
                 return (typeof cluster !== 'undefined');
+            },
+
+            isStandbyCluster() {
+                const vc = this;
+
+                let cluster = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name) && c.data.spec.hasOwnProperty('replicateFrom') && (c.data.spec.replicateFrom !== null))
+
+                return (typeof cluster !== 'undefined');
             }
 		}, 
 
@@ -332,6 +354,34 @@
                 let script = store.state.sgscripts.find( s => (s.data.metadata.namespace == vc.$route.params.namespace) && (s.data.metadata.name == scriptName) );
 
                 return ( (typeof script != 'undefined') && ( script.data.status.clusters.length && (script.name == (script.data.status.clusters[0] + '-default') ) ) )
+            },
+
+            promoteCluster() {
+                const vc = this;
+
+                let cluster = store.state.sgclusters.find(c => (c.data.metadata.namespace == vc.$route.params.namespace) && (c.name == vc.$route.params.name) && c.data.spec.hasOwnProperty('replicateFrom') && (c.data.spec.replicateFrom !== null))
+
+                if(typeof cluster !== 'undefined') {
+                    const promotedCluster = JSON.parse(JSON.stringify(cluster.data));
+                    promotedCluster.spec.replicateFrom = null;
+
+                    store.commit('loading', true);
+
+                    sgApi
+                    .update('sgclusters', promotedCluster)
+                    .then( (response) => {
+                        vc.notify('Cluster "' + promotedCluster.metadata.name + '" promoted successfully');
+                        vc.fetchAPI('sgclusters');
+                        store.commit('loading', false);
+                    })
+                    .catch(function(err) {
+                        console.log(err);
+                        vc.checkAuthError(err);
+                        vc.notify('Cluster "' + promotedCluster.metadata.name + '" could not be promoted');
+                        store.commit('loading', false);
+                    });
+                }
+                cluster
             }
         }
 	}

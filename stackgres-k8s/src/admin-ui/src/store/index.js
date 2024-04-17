@@ -11,6 +11,7 @@ export default new Vuex.Store({
     authType: 'JWT',
     showLogs: false,
     notFound: false,
+    isLoading: false,
     currentPath: {
       namespace: '',
       name: '',
@@ -73,6 +74,10 @@ export default new Vuex.Store({
 
     notFound (state, notFound) {
       state.notFound = notFound;
+    },
+
+    loading (state, isLoading) {
+      state.isLoading = isLoading;
     },
     
     setPermissions (state, permissions) {
