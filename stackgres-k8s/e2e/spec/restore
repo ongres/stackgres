@@ -362,7 +362,7 @@ EOF
   wait_until is_backup_phase "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_NEW_NAME" "Completed"
 
   BACKUP_LIST="$(kubectl exec -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_CLUSTER_NAME-0" -c patroni -- \
-    exec-with-env backup -- wal-g backup-list --json)"
+    exec-with-env backup -- wal-g backup-list --json 2>/dev/null)"
   if echo "$BACKUP_LIST" | jq -r '.[].backup_name' | grep -qxF "$BACKUP_INTERNAL_NAME"
   then
     echo "SUCCESS. Backup was not removed when a copy still exists"
@@ -392,7 +392,7 @@ EOF
   wait_until is_backup_phase "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_NEW_NAME" "Completed"
 
   BACKUP_LIST="$(kubectl exec -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_CLUSTER_NAME-0" -c patroni -- \
-    exec-with-env backup -- wal-g backup-list --json)"
+    exec-with-env backup -- wal-g backup-list --json 2>/dev/null)"
   if echo "$BACKUP_LIST" | jq -r '.[].backup_name' | grep -qxF "$BACKUP_INTERNAL_NAME"
   then
     echo "FAIL. Backup was not removed when no copy exists"
