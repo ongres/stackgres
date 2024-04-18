@@ -5,55 +5,26 @@
 
 package io.stackgres.common.resource;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import io.fabric8.kubernetes.api.model.Endpoints;
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
-public class EndpointsFinder implements
-    ResourceFinder<Endpoints>,
-    ResourceScanner<Endpoints> {
-
-  private KubernetesClient client;
-
-  @Override
-  public Optional<Endpoints> findByName(String name) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Optional<Endpoints> findByNameAndNamespace(String name, String namespace) {
-    return Optional.ofNullable(client.endpoints().inNamespace(namespace).withName(name).get());
-  }
-
-  @Override
-  public List<Endpoints> findResources() {
-    return client.endpoints().inAnyNamespace().list().getItems();
-  }
-
-  public List<Endpoints> findResourcesWithLabels(Map<String, String> labels) {
-    return client.endpoints().inAnyNamespace().withLabels(labels).list().getItems();
-  }
-
-  @Override
-  public List<Endpoints> findResourcesInNamespace(String namespace) {
-    return client.endpoints().inNamespace(namespace).list().getItems();
-  }
-
-  @Override
-  public List<Endpoints> findByLabelsAndNamespace(String namespace, Map<String, String> labels) {
-    return client.endpoints().inNamespace(namespace).withLabels(labels).list().getItems().stream()
-        .collect(Collectors.toUnmodifiableList());
-  }
+public class EndpointsFinder extends AbstractResourceFinderAndScanner<Endpoints> {
 
   @Inject
-  public void setClient(KubernetesClient client) {
-    this.client = client;
+  public EndpointsFinder(KubernetesClient client) {
+    super(client);
   }
+
+  @Override
+  protected MixedOperation<Endpoints, ? extends KubernetesResourceList<Endpoints>, ? extends Resource<Endpoints>>
+      getOperation(KubernetesClient client) {
+    return client.endpoints();
+  }
+
 }

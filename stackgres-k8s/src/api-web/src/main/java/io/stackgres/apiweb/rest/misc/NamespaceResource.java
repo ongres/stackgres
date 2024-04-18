@@ -73,7 +73,7 @@ public class NamespaceResource {
       """)
   @GET
   public List<String> get() {
-    return namespaceScanner.findResources().stream()
+    return namespaceScanner.getResources().stream()
         .map(namespace -> namespace.getMetadata().getName())
         .toList();
   }

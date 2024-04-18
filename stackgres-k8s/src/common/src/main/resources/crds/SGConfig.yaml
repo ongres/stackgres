@@ -47,7 +47,6 @@ spec:
           spec:
             description: Spec defines the desired state of SGConfig
             type: object
-            x-kubernetes-preserve-unknown-fields: true
             properties:
               containerRegistry:
                 type: string
@@ -57,6 +56,12 @@ spec:
                 type: string
                 default: "IfNotPresent"
                 description: Image pull policy used for images loaded by the Operator
+              allowedNamespaces:
+                type: array
+                description: Section to configure Operator allowed namespaces that the operator is allowed to use. If empty all namespaces will be allowed (default). 
+                items:
+                  type: string
+                  description: A namespace that the operator is allowed to use. 
               serviceAccount:
                 type: object
                 description: Section to configure Operator Installation ServiceAccount

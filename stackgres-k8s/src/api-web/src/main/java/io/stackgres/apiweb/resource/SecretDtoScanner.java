@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.resource;
 
 import java.util.List;
+import java.util.Map;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.apiweb.dto.secret.SecretDto;
@@ -25,14 +26,21 @@ public class SecretDtoScanner implements ResourceScanner<SecretDto> {
   }
 
   @Override
-  public List<SecretDto> findResources() {
+  public List<SecretDto> getResources() {
     return client.secrets().list().getItems().stream()
         .map(SecretMapper::map)
         .toList();
   }
 
   @Override
-  public List<SecretDto> findResourcesInNamespace(String namespace) {
+  public List<SecretDto> getResourcesWithLabels(Map<String, String> labels) {
+    return client.secrets().withLabels(labels).list().getItems().stream()
+        .map(SecretMapper::map)
+        .toList();
+  }
+
+  @Override
+  public List<SecretDto> getResourcesInNamespace(String namespace) {
     return client.secrets().inNamespace(namespace).list().getItems().stream()
         .map(SecretMapper::map)
         .toList();

@@ -168,7 +168,7 @@ class ShardedClusterResourceMockedTest extends
     when(clusterScanner.getResourcesWithLabels(any(), any()))
         .thenReturn(List.of(Fixtures.cluster().loadDefault().get()));
     podList = Fixtures.cluster().podList().loadDefault().get();
-    when(podFinder.findByLabelsAndNamespace(anyString(), any()))
+    when(podFinder.getResourcesInNamespaceWithLabels(anyString(), any()))
         .thenReturn(podList.getItems());
     when(persistentVolumeClaimFinder.findByNameAndNamespace(anyString(), anyString()))
         .thenReturn(Optional.of(new PersistentVolumeClaimBuilder()

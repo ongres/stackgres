@@ -12,15 +12,13 @@ import org.jetbrains.annotations.NotNull;
 
 public interface ResourceScanner<T> {
 
-  @NotNull List<T> findResources();
+  @NotNull List<T> getResources();
 
-  @NotNull List<T> findResourcesInNamespace(String namespace);
+  @NotNull List<T> getResourcesWithLabels(Map<String, String> labels);
 
-  default List<T> findByLabels(Map<String, String> labels) {
-    throw new UnsupportedOperationException();
-  }
+  @NotNull List<T> getResourcesInNamespace(String namespace);
 
-  default List<T> findByLabelsAndNamespace(String namespace, Map<String, String> labels) {
+  default List<T> getResourcesInNamespaceWithLabels(String namespace, Map<String, String> labels) {
     throw new UnsupportedOperationException();
   }
 

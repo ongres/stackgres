@@ -62,7 +62,7 @@ public class RoleResource
   @Override
   public List<RoleDto> list() {
     return scanner
-        .findByLabels(
+        .getResourcesWithLabels(
             Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE))
         .stream()
         .map(transformer::toDto)

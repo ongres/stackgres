@@ -49,7 +49,7 @@ class NamespaceResourceTest {
   @Test
   void getShouldReturnAllNamespacesNames() {
     final List<Namespace> listNamespaces = namespaces.getItems();
-    when(scanner.findResources()).thenReturn(listNamespaces);
+    when(scanner.getResources()).thenReturn(listNamespaces);
 
     final List<String> namespaces = resource.get();
 

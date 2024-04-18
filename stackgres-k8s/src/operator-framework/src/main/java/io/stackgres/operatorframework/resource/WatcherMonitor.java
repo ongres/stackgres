@@ -121,7 +121,11 @@ public class WatcherMonitor<T> implements AutoCloseable {
 
     @Override
     public void watcherError(WatcherException ex) {
-      LOGGER.warn("An error occurred in watcher {}", name, ex);
+      if (ex.isHttpGone()) {
+        LOGGER.warn("An error occurred in watcher {}: {}", name, ex.getMessage());
+      } else {
+        LOGGER.warn("An error occurred in watcher {}", name, ex);
+      }
       onWatcherClosed();
     }
 

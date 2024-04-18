@@ -56,14 +56,14 @@ public class SecretVerificationTest {
 
   @Test
   void login_shouldSucceedTest() throws Exception {
-    when(secretScanner.findByLabelsAndNamespace(eq("stackgres"), any()))
+    when(secretScanner.getResourcesInNamespaceWithLabels(eq("stackgres"), any()))
         .thenReturn(List.of(secret));
     assertEquals("test", secretVerification.verifyCredentials("test", "test"));
   }
 
   @Test
   void wrongPasswordLogin_shouldFailTest() throws Exception {
-    when(secretScanner.findByLabelsAndNamespace(eq("stackgres"), any()))
+    when(secretScanner.getResourcesInNamespaceWithLabels(eq("stackgres"), any()))
         .thenReturn(List.of(secret));
     assertThrows(AuthenticationFailedException.class,
         () -> secretVerification.verifyCredentials("test", "wrong"));
@@ -71,7 +71,7 @@ public class SecretVerificationTest {
 
   @Test
   void secretWithoutLabelsLogin_shouldFailTest() throws Exception {
-    when(secretScanner.findByLabelsAndNamespace(eq("stackgres"), any()))
+    when(secretScanner.getResourcesInNamespaceWithLabels(eq("stackgres"), any()))
         .thenReturn(List.of());
     assertThrows(AuthenticationFailedException.class,
         () -> secretVerification.verifyCredentials("test", "test"));
@@ -79,7 +79,7 @@ public class SecretVerificationTest {
 
   @Test
   void secretWithoutPasswordLogin_shouldFailTest() throws Exception {
-    when(secretScanner.findByLabelsAndNamespace(eq("stackgres"), any()))
+    when(secretScanner.getResourcesInNamespaceWithLabels(eq("stackgres"), any()))
         .thenReturn(List.of(new SecretBuilder(secret)
             .withData(Map.of(
                 StackGresContext.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("test")))
@@ -90,7 +90,7 @@ public class SecretVerificationTest {
 
   @Test
   void secretWithoutK8sUsernameLogin_shouldFailTest() throws Exception {
-    when(secretScanner.findByLabelsAndNamespace(eq("stackgres"), any()))
+    when(secretScanner.getResourcesInNamespaceWithLabels(eq("stackgres"), any()))
         .thenReturn(List.of(new SecretBuilder(secret)
             .withData(Map.of(
                 StackGresContext.REST_PASSWORD_KEY,
@@ -102,7 +102,7 @@ public class SecretVerificationTest {
 
   @Test
   void secretWithEmptyPasswordHashLogin_shouldFailTest() throws Exception {
-    when(secretScanner.findByLabelsAndNamespace(eq("stackgres"), any()))
+    when(secretScanner.getResourcesInNamespaceWithLabels(eq("stackgres"), any()))
         .thenReturn(List.of(new SecretBuilder(secret)
             .withData(Map.of(
                 StackGresContext.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("test"),
@@ -114,7 +114,7 @@ public class SecretVerificationTest {
 
   @Test
   void secretWithEmptyK8sUsernameLogin_shouldFailTest() throws Exception {
-    when(secretScanner.findByLabelsAndNamespace(eq("stackgres"), any()))
+    when(secretScanner.getResourcesInNamespaceWithLabels(eq("stackgres"), any()))
         .thenReturn(List.of(new SecretBuilder(secret)
             .withData(Map.of(
                 StackGresContext.REST_K8SUSER_KEY, ResourceUtil.encodeSecret(""),
@@ -127,7 +127,7 @@ public class SecretVerificationTest {
 
   @Test
   void secretWithApiUsernameLogin_shouldSucceedTest() throws Exception {
-    when(secretScanner.findByLabelsAndNamespace(eq("stackgres"), any()))
+    when(secretScanner.getResourcesInNamespaceWithLabels(eq("stackgres"), any()))
         .thenReturn(List.of(new SecretBuilder(secret)
             .withData(Map.of(
                 StackGresContext.REST_K8SUSER_KEY, ResourceUtil.encodeSecret("test2"),

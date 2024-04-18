@@ -72,7 +72,7 @@ public class ClusterRoleResource
   @Override
   public List<ClusterRoleDto> list() {
     return clusterRoleScanner
-        .findByLabels(
+        .getResourcesWithLabels(
             Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE))
         .stream()
         .map(transformer::toDto)

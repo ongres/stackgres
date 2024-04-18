@@ -114,7 +114,7 @@ public class ClusterInstanceManager {
   private List<Pod> geClusterPods(StackGresCluster cluster) {
     Map<String, String> podLabels = labelFactory.clusterLabelsWithoutUidAndScope(cluster);
     final String namespace = cluster.getMetadata().getNamespace();
-    return podScanner.findByLabelsAndNamespace(namespace, podLabels);
+    return podScanner.getResourcesInNamespaceWithLabels(namespace, podLabels);
   }
 
   @SuppressWarnings("null")

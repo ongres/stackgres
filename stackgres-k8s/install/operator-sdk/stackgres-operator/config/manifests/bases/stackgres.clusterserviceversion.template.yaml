@@ -52,6 +52,10 @@ $(
       deployments: null
     strategy: ""
   installModes:
+$(
+  if [ "$CREATE_CONVERSION_WEBHOOKS" = true ]
+  then
+    cat << EOF
   - supported: false
     type: OwnNamespace
   - supported: false
@@ -60,6 +64,20 @@ $(
     type: MultiNamespace
   - supported: true
     type: AllNamespaces
+EOF
+ else
+    cat << EOF
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: true
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+EOF
+ fi
+)
   keywords:
   - postgresql
   - postgres

@@ -6,6 +6,7 @@
 package io.stackgres.apiweb.resource;
 
 import java.util.List;
+import java.util.Map;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.stackgres.apiweb.dto.event.EventDto;
@@ -25,14 +26,21 @@ public class EventDtoScanner implements ResourceScanner<EventDto> {
   }
 
   @Override
-  public List<EventDto> findResources() {
+  public List<EventDto> getResources() {
     return client.v1().events().list().getItems().stream()
         .map(EventMapper::map)
         .toList();
   }
 
   @Override
-  public List<EventDto> findResourcesInNamespace(String namespace) {
+  public List<EventDto> getResourcesWithLabels(Map<String, String> labels) {
+    return client.v1().events().withLabels(labels).list().getItems().stream()
+        .map(EventMapper::map)
+        .toList();
+  }
+
+  @Override
+  public List<EventDto> getResourcesInNamespace(String namespace) {
     return client.v1().events().inNamespace(namespace).list().getItems().stream()
         .map(EventMapper::map)
         .toList();

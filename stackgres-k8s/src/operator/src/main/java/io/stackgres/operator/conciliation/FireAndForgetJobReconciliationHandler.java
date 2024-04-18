@@ -145,7 +145,7 @@ public abstract class FireAndForgetJobReconciliationHandler<T extends CustomReso
 
   private void fixPods(T context, Job requiredJob,
       final Map<String, String> labels, final String namespace) {
-    var podsToFix = podScanner.findByLabelsAndNamespace(namespace, labels).stream()
+    var podsToFix = podScanner.getResourcesInNamespaceWithLabels(namespace, labels).stream()
         .sorted(Comparator.comparing(pod -> pod.getMetadata().getName()))
         .toList();
     List<Pod> podAnnotationsToPatch = fixPodsAnnotations(requiredJob, podsToFix);

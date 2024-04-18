@@ -5,6 +5,8 @@
 
 package io.stackgres.common;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 public enum OperatorProperty implements StackGresPropertyReader {
@@ -31,10 +33,12 @@ public enum OperatorProperty implements StackGresPropertyReader {
   INSTALL_CERTS("stackgres.installCerts"),
   INSTALL_CRDS("stackgres.installCrds"),
   INSTALL_WEBHOOKS("stackgres.installWebhooks"),
+  INSTALL_CONVERSION_WEBHOOKS("stackgres.installConversionWebhooks"),
   CERTIFICATE_TIMEOUT("stackgres.certificateTimeout"),
   OPERATOR_CERT_SECRET_NAME("stackgres.operatorCertSecretName"),
   DISABLE_RESTAPI_SERVICE_ACCOUNT_IF_NOT_EXISTS("stackgres.disableRestapiServiceAccountIfNotExists"),
-  PATRONI_CTL_TIMEOUT("stackgres.patroniCtlTimeout");
+  PATRONI_CTL_TIMEOUT("stackgres.patroniCtlTimeout"),
+  ALLOWED_NAMESPACES("stackgres.allowedNamespaces");
 
   private static final Properties APPLICATION_PROPERTIES =
       StackGresPropertyReader.readApplicationProperties(OperatorProperty.class);
@@ -59,4 +63,12 @@ public enum OperatorProperty implements StackGresPropertyReader {
   public Properties getApplicationProperties() {
     return APPLICATION_PROPERTIES;
   }
+
+  public static List<String> getAllowedNamespaces() {
+    return ALLOWED_NAMESPACES.get()
+        .map(allowedNamespaces -> allowedNamespaces.split(","))
+        .map(Arrays::asList)
+        .orElse(List.of());
+  }
+
 }

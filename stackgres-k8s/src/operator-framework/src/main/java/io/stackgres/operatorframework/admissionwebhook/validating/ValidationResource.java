@@ -5,6 +5,7 @@
 
 package io.stackgres.operatorframework.admissionwebhook.validating;
 
+import java.util.List;
 import java.util.UUID;
 
 import io.fabric8.kubernetes.api.model.Status;
@@ -18,9 +19,13 @@ import org.slf4j.LoggerFactory;
 
 public abstract class ValidationResource<T extends AdmissionReview<?>> {
 
+  private final List<String> allowedNamespaces;
   private final ValidationPipeline<T> pipeline;
 
-  protected ValidationResource(ValidationPipeline<T> pipeline) {
+  protected ValidationResource(
+      List<String> allowedNamespaces,
+      ValidationPipeline<T> pipeline) {
+    this.allowedNamespaces = allowedNamespaces;
     this.pipeline = pipeline;
   }
 
@@ -39,9 +44,6 @@ public abstract class ValidationResource<T extends AdmissionReview<?>> {
     AdmissionRequest<?> request = admissionReview.getRequest();
     UUID requestUid = request.getUid();
 
-    getLogger().debug("Validating admission review uid {} of kind {} for resource {}.{}",
-        requestUid, request.getKind().getKind(), request.getNamespace(), request.getName());
-
     AdmissionResponse response = new AdmissionResponse();
     response.setUid(requestUid);
 
@@ -51,7 +53,12 @@ public abstract class ValidationResource<T extends AdmissionReview<?>> {
     reviewResponse.setApiVersion(admissionReview.getApiVersion());
 
     try {
-      pipeline.validate(admissionReview);
+      if (allowedNamespaces.isEmpty()
+          || allowedNamespaces.contains(admissionReview.getRequest().getNamespace())) {
+        getLogger().debug("Validating admission review uid {} of kind {} for resource {}.{}",
+            requestUid, request.getKind().getKind(), request.getNamespace(), request.getName());
+        pipeline.validate(admissionReview);
+      }
       response.setAllowed(true);
     } catch (ValidationFailed validationFailed) {
       Status result = validationFailed.getResult();

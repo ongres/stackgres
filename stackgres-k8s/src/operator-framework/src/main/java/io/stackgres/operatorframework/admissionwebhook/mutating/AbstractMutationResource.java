@@ -7,6 +7,7 @@ package io.stackgres.operatorframework.admissionwebhook.mutating;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -25,12 +26,15 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractMutationResource<
       R extends HasMetadata, T extends AdmissionReview<R>> {
 
+  private final List<String> allowedNamespaces;
   private final ObjectMapper objectMapper;
   private final MutationPipeline<R, T> pipeline;
 
   protected AbstractMutationResource(
+      List<String> allowedNamespaces,
       ObjectMapper objectMapper,
       MutationPipeline<R, T> pipeline) {
+    this.allowedNamespaces = allowedNamespaces;
     this.objectMapper = objectMapper;
     this.pipeline = pipeline;
   }
@@ -48,9 +52,6 @@ public abstract class AbstractMutationResource<
     AdmissionRequest<?> request = admissionReview.getRequest();
     UUID requestUid = request.getUid();
 
-    getLogger().debug("Mutating admission review uid {} of kind {} for resource {}.{}",
-        requestUid, request.getKind().getKind(), request.getNamespace(), request.getName());
-
     AdmissionResponse response = new AdmissionResponse();
     response.setUid(requestUid);
 
@@ -60,18 +61,23 @@ public abstract class AbstractMutationResource<
     reviewResponse.setApiVersion(admissionReview.getApiVersion());
 
     try {
-      R resourceCopy = copyResource(admissionReview.getRequest().getObject());
-      R resourceResult = pipeline.mutate(admissionReview, resourceCopy);
-      final JsonNode resourceJson;
-      final JsonNode resourceResultJson;
-      resourceJson = objectMapper.valueToTree(admissionReview.getRequest().getObject());
-      resourceResultJson = objectMapper.valueToTree(resourceResult);
-      JsonNode patch = JsonDiff.asJson(resourceJson, resourceResultJson);
-      if (!patch.isEmpty()) {
-        response.setPatchType("JSONPatch");
-        String base64Path = Base64.getEncoder()
-            .encodeToString(patch.toString().getBytes(StandardCharsets.UTF_8));
-        response.setPatch(base64Path);
+      if (allowedNamespaces.isEmpty()
+          || allowedNamespaces.contains(admissionReview.getRequest().getNamespace())) {
+        getLogger().debug("Mutating admission review uid {} of kind {} for resource {}.{}",
+            requestUid, request.getKind().getKind(), request.getNamespace(), request.getName());
+        R resourceCopy = copyResource(admissionReview.getRequest().getObject());
+        R resourceResult = pipeline.mutate(admissionReview, resourceCopy);
+        final JsonNode resourceJson;
+        final JsonNode resourceResultJson;
+        resourceJson = objectMapper.valueToTree(admissionReview.getRequest().getObject());
+        resourceResultJson = objectMapper.valueToTree(resourceResult);
+        JsonNode patch = JsonDiff.asJson(resourceJson, resourceResultJson);
+        if (!patch.isEmpty()) {
+          response.setPatchType("JSONPatch");
+          String base64Path = Base64.getEncoder()
+              .encodeToString(patch.toString().getBytes(StandardCharsets.UTF_8));
+          response.setPatch(base64Path);
+        }
       }
       response.setAllowed(true);
     } catch (Exception ex) {

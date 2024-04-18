@@ -5,57 +5,27 @@
 
 package io.stackgres.common.resource;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
-public class ClusterRoleBindingFinder implements
-    ResourceFinder<ClusterRoleBinding>,
-    ResourceScanner<ClusterRoleBinding> {
-
-  final KubernetesClient client;
+public class ClusterRoleBindingFinder extends AbstractUnamespacedResourceFinderAndScanner<ClusterRoleBinding> {
 
   @Inject
   public ClusterRoleBindingFinder(KubernetesClient client) {
-    this.client = client;
+    super(client);
   }
 
   @Override
-  public Optional<ClusterRoleBinding> findByName(String name) {
-    return Optional.ofNullable(client.rbac().clusterRoleBindings()
-        .withName(name).get());
-  }
-
-  @Override
-  public Optional<ClusterRoleBinding> findByNameAndNamespace(String name, String namespace) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public List<ClusterRoleBinding> findResources() {
-    return client.rbac().clusterRoleBindings().list().getItems();
-  }
-
-  @Override
-  public List<ClusterRoleBinding> findResourcesInNamespace(String namespace) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public List<ClusterRoleBinding> findByLabels(Map<String, String> labels) {
-    return client.rbac().clusterRoleBindings().withLabels(labels).list().getItems();
-  }
-
-  @Override
-  public List<ClusterRoleBinding> findByLabelsAndNamespace(
-      String namespace, Map<String, String> labels) {
-    throw new UnsupportedOperationException();
+  protected NonNamespaceOperation<ClusterRoleBinding,
+          ? extends KubernetesResourceList<ClusterRoleBinding>, ? extends Resource<ClusterRoleBinding>>
+      getOperation(KubernetesClient client) {
+    return client.rbac().clusterRoleBindings();
   }
 
 }

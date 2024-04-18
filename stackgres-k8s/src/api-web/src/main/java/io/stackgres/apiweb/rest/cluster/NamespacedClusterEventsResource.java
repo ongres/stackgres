@@ -92,7 +92,7 @@ public class NamespacedClusterEventsResource {
             .filter(dbOps -> Objects.equals(dbOps.getSpec().getSgCluster(), name))
             .map(StackGresDbOps::getMetadata)
             .toList());
-    return Seq.seq(scanner.findResourcesInNamespace(namespace))
+    return Seq.seq(scanner.getResourcesInNamespace(namespace))
         .filter(event -> isClusterEvent(event, namespace, name, relatedResources))
         .sorted(this::orderByLastTimestamp)
         .toList();

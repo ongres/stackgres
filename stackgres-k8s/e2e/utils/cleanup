@@ -7,7 +7,7 @@ excluded_namespaces() {
 }
 
 env_excluded_namespaces() {
-  echo "$K8S_EXCLUDED_NAMESPACES" | tr ' ' '\n'
+  echo "$K8S_EXCLUDED_NAMESPACES" | tr ' ' '\n' | grep -v '^$' | cat
 }
 
 excluded_validatingwebhookconfigurations() {
@@ -15,7 +15,7 @@ excluded_validatingwebhookconfigurations() {
 }
 
 env_excluded_validatingwebhookconfigurations() {
-  echo "$K8S_EXCLUDED_VALIDATING_WEBHOOK" | tr ' ' '\n'
+  echo "$K8S_EXCLUDED_VALIDATING_WEBHOOK" | tr ' ' '\n' | grep -v '^$' | cat
 }
 
 excluded_mutatingwebhookconfigurations() {
@@ -23,7 +23,7 @@ excluded_mutatingwebhookconfigurations() {
 }
 
 env_excluded_mutatingwebhookconfigurations() {
-  echo "$K8S_EXCLUDED_MUTATING_WEBHOOK" | tr ' ' '\n'
+  echo "$K8S_EXCLUDED_MUTATING_WEBHOOK" | tr ' ' '\n' | grep -v '^$' | cat
 }
 
 excluded_customresourcedefinitions() {
@@ -31,7 +31,7 @@ excluded_customresourcedefinitions() {
 }
 
 env_excluded_customresourcedefinitions() {
-  echo "$K8S_EXCLUDED_CRDS" | tr ' ' '\n'
+  echo "$K8S_EXCLUDED_CRDS" | tr ' ' '\n' | grep -v '^$' | cat
 }
 
 excluded_podsecuritypolicies() {
@@ -39,7 +39,7 @@ excluded_podsecuritypolicies() {
 }
 
 env_excluded_podsecuritypolicies() {
-  echo "$K8S_EXCLUDED_POD_SECURITY_POLICIES" | tr ' ' '\n'
+  echo "$K8S_EXCLUDED_POD_SECURITY_POLICIES" | tr ' ' '\n' | grep -v '^$' | cat
 }
 
 excluded_clusterroles() {
@@ -47,7 +47,7 @@ excluded_clusterroles() {
 }
 
 env_excluded_clusterroles() {
-  echo "$K8S_EXCLUDED_CLUSTER_ROLES" | tr ' ' '\n'
+  echo "$K8S_EXCLUDED_CLUSTER_ROLES" | tr ' ' '\n' | grep -v '^$' | cat
 }
 
 excluded_clusterrolebindings() {
@@ -55,7 +55,7 @@ excluded_clusterrolebindings() {
 }
 
 env_excluded_clusterrolebindings() {
-  echo "$K8S_EXCLUDED_CLUSTER_ROLES_BINDINGS" | tr ' ' '\n'
+  echo "$K8S_EXCLUDED_CLUSTER_ROLES_BINDINGS" | tr ' ' '\n' | grep -v '^$' | cat
 }
 
 helm_cleanup() {
@@ -80,13 +80,15 @@ traceable_k8s_cleanup() {
   echo "Cleanup of k8s"
   traceable_k8s_unnamespaced_cleanup
   kubectl get namespace -o name \
-    | grep -v "^[^/]\+/\(default\|kube-.*\)$" \
+    | grep -v "^[^/]\+/\(default\|kube-.*$(
+      [ "x$E2E_ALLOWED_NAMESPACES" = x ] || { printf '\|'; printf %s "$E2E_ALLOWED_NAMESPACES" | sed 's/ /\\|/g'; })\)$" \
     | grep -v "^[^/]\+/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | cut -d / -f 2 \
     | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete namespace % --timeout="$((1 + E2E_TIMEOUT / 10))s" \
     || kubectl get namespace -o name \
-      | grep -v "^[^/]\+/\(default\|kube-.*\)$" \
+      | grep -v "^[^/]\+/\(default\|kube-.*$(
+        [ "x$E2E_ALLOWED_NAMESPACES" = x ] || { printf '\|'; printf %s "$E2E_ALLOWED_NAMESPACES" | sed 's/ /\\|/g'; })\)$" \
       | grep -v "^[^/]\+/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | grep -v "^[^/]\+/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | cut -d / -f 2 \
@@ -102,7 +104,8 @@ traceable_k8s_async_cleanup() {
   echo "Async cleanup of k8s"
   traceable_k8s_unnamespaced_cleanup
   kubectl get namespace -o name \
-    | grep -v "^[^/]\+/\(default\|kube-.*\)$" \
+    | grep -v "^[^/]\+/\(default\|kube-.*$(
+      [ "x$E2E_ALLOWED_NAMESPACES" = x ] || { printf '\|'; printf %s "$E2E_ALLOWED_NAMESPACES" | sed 's/ /\\|/g'; })\)$" \
     | grep -v "^[^/]\+/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | cut -d / -f 2 \
@@ -210,13 +213,15 @@ traceable_k8s_cleanup_but_operator() {
     | grep -v "^[^/]\+/\($(env_excluded_customresourcedefinitions | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete --ignore-not-found %
   kubectl get namespace -o name \
-    | grep -v "^[^/]\+/\(default\|kube-.*\|$OPERATOR_NAMESPACE\)$" \
+    | grep -v "^[^/]\+/\(default\|kube-.*\|$OPERATOR_NAMESPACE$(
+      [ "x$E2E_ALLOWED_NAMESPACES" = x ] || { printf '\|'; printf %s "$E2E_ALLOWED_NAMESPACES" | sed 's/ /\\|/g'; })\)$" \
     | grep -v "^[^/]\+/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | cut -d / -f 2 \
     | xargs -r -I % -P "$E2E_PARALLELISM" kubectl delete namespace % --timeout="$((1 + E2E_TIMEOUT / 10))s" \
     || kubectl get namespace -o name \
-      | grep -v "^[^/]\+/\(default\|kube-.*\|$OPERATOR_NAMESPACE\)$" \
+      | grep -v "^[^/]\+/\(default\|kube-.*\|$OPERATOR_NAMESPACE$(
+        [ "x$E2E_ALLOWED_NAMESPACES" = x ] || { printf '\|'; printf %s "$E2E_ALLOWED_NAMESPACES" | sed 's/ /\\|/g'; })\)$" \
       | grep -v "^[^/]\+/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | grep -v "^[^/]\+/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
       | cut -d / -f 2 \
@@ -236,7 +241,8 @@ k8s_async_cleanup_but_operator() {
 traceable_k8s_async_cleanup_but_operator() {
   echo "Async cleanup of k8s excluding operator"
   kubectl get namespace -o name \
-    | grep -v "^[^/]\+/\(default\|kube-.*\|$OPERATOR_NAMESPACE\)$" \
+    | grep -v "^[^/]\+/\(default\|kube-.*\|$OPERATOR_NAMESPACE$(
+      [ "x$E2E_ALLOWED_NAMESPACES" = x ] || { printf '\|'; printf %s "$E2E_ALLOWED_NAMESPACES" | sed 's/ /\\|/g'; })\)$" \
     | grep -v "^[^/]\+/\($(excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | grep -v "^[^/]\+/\($(env_excluded_namespaces | tr '\n' ' ' | sed 's/ /\\|/g')\)$" \
     | cut -d / -f 2 \

@@ -1,4 +1,8 @@
 {{- if .Values.deploy.operator }}
+{{- $allowedNamespaces := list }}
+{{- if .Values.allowedNamespaces }}
+  {{- $allowedNamespaces = append .Values.allowedNamespaces .Release.Namespace }}
+{{- end }}
 apiVersion: "apps/v1"
 kind: "Deployment"
 metadata:
@@ -75,6 +79,8 @@ spec:
             value: "true"
           - name: INSTALL_WEBHOOKS
             value: "true"
+          - name: INSTALL_CONVERSION_WEBHOOKS
+            value: "{{ if .Values.allowedNamespaces }}false{{ else }}true{{ end }}"
           {{- if not .Values.cert.certManager.autoConfigure }}
           - name: INSTALL_CERTS
             value: "true"
@@ -148,6 +154,8 @@ spec:
           - name: OPERATOR_VERSION
             value: {{ . | quote }}
           {{- end }}
+          - name: ALLOWED_NAMESPACES
+            value: "{{ range $index, $element := $allowedNamespaces }}{{ if $index }},{{ end }}{{ $element }}{{ end }}"
         ports:
         - containerPort: 8080
           name: "http"

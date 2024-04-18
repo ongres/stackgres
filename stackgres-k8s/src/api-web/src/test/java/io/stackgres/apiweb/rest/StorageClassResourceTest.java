@@ -41,7 +41,7 @@ class StorageClassResourceTest {
 
   @Test
   void getShouldReturnAllStorageClassesNames() {
-    when(scanner.findResources()).thenReturn(storageClasses.getItems());
+    when(scanner.getResources()).thenReturn(storageClasses.getItems());
 
     List<String> storageClasses = resource.get();
 

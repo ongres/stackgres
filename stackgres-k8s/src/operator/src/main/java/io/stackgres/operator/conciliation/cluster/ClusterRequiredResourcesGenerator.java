@@ -497,7 +497,7 @@ public class ClusterRequiredResourcesGenerator
 
   private int countCurrentInstances(StackGresCluster cluster) {
     var clusterLabels = labelFactory.clusterLabels(cluster);
-    return (int) podScanner.findByLabelsAndNamespace(
+    return (int) podScanner.getResourcesInNamespaceWithLabels(
         cluster.getMetadata().getNamespace(),
         clusterLabels)
         .stream()

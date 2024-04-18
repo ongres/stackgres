@@ -133,7 +133,7 @@ public abstract class PersistentVolumeSizeExpansionValidator<T extends Admission
                 String clusterNamespace = cluster.getMetadata().getNamespace();
                 Map<String, String> clusterLabels = getLabelFactory().clusterLabels(cluster);
                 List<PersistentVolumeClaim> pvcs = getPvcScanner()
-                    .findByLabelsAndNamespace(clusterNamespace, clusterLabels);
+                    .getResourcesInNamespaceWithLabels(clusterNamespace, clusterLabels);
                 return pvcs.stream()
                     .map(pvc -> pvc.getSpec().getStorageClassName())
                     .distinct()

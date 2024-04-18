@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionVersion;
@@ -19,6 +20,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.impl.BaseClient;
 import io.stackgres.common.CrdLoader;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresVersion;
 import io.stackgres.common.YamlMapperProvider;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -30,6 +32,7 @@ import io.stackgres.common.resource.ResourceWriter;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
+import org.jooq.lambda.Seq;
 import org.jooq.lambda.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +47,8 @@ public class CrdInstaller {
   private static final long V_1_9 = StackGresVersion.V_1_9.getVersionAsNumber();
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CrdInstaller.class);
+
+  private final List<String> allowedNamespaces = OperatorProperty.getAllowedNamespaces();
 
   private final ResourceFinder<CustomResourceDefinition> crdResourceFinder;
   private final ResourceWriter<CustomResourceDefinition> crdResourceWriter;
@@ -66,11 +71,7 @@ public class CrdInstaller {
     var resourcesRequiringUpgrade = crdLoader.scanCrds().stream()
         .map(crd -> crdResourceFinder.findByName(crd.getMetadata().getName()))
         .flatMap(Optional::stream)
-        .flatMap(crd -> client
-          .genericKubernetesResources(CustomResourceDefinitionContext.fromCrd(crd))
-          .inAnyNamespace()
-          .list()
-          .getItems()
+        .flatMap(crd -> listCrdResources(crd)
           .stream()
           .map(resource -> Tuple.tuple(resource, Optional.of(resource)
               .map(StackGresVersion::getStackGresVersionFromResourceAsNumber)
@@ -98,6 +99,25 @@ public class CrdInstaller {
               + t.v1.getMetadata().getName() + ": " + t.v3)
           .collect(Collectors.joining("\n")));
     }
+  }
+
+  List<GenericKubernetesResource> listCrdResources(CustomResourceDefinition crd) {
+    var genericKubernetesResources =
+        client.genericKubernetesResources(CustomResourceDefinitionContext.fromCrd(crd));
+    return Optional.of(allowedNamespaces)
+        .filter(Predicate.not(List::isEmpty))
+        .map(allowedNamespaces -> allowedNamespaces.stream()
+            .flatMap(allowedNamespace -> Optional
+                .ofNullable(genericKubernetesResources
+                    .inNamespace(allowedNamespace)
+                    .list()
+                    .getItems()).stream())
+            .reduce(Seq.<GenericKubernetesResource>of(), (seq, items) -> seq.append(items), (u, v) -> v)
+            .toList())
+        .orElseGet(() -> genericKubernetesResources
+            .inAnyNamespace()
+            .list()
+            .getItems());
   }
 
   public void installCustomResourceDefinitions() {

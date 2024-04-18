@@ -9,6 +9,7 @@ VERSION = $(shell echo $(STACKGRES_VERSION) | tr A-Z a-z)
 IMAGE_TAG ?= $(VERSION)
 OPERATOR_BASE_IMAGE ?= quay.io/operator-framework/operator:v1.30.0
 BUNDLE_BASE_IMAGE ?= scratch
+CREATE_CONVERSION_WEBHOOKS ?= false
 
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
@@ -117,7 +118,7 @@ ifeq ($(CHANNELS),)
 endif
 	rm -rf bundle
 	cp -a "$(PROJECT_PATH)/stackgres-k8s/src/common/src/main/resources/crds/." config/crd/bases/.
-	VERSION="$(VERSION)" IMAGE_TAG="$(IMAGE_TAG)" PROJECT_PATH="$(PROJECT_PATH)" \
+	VERSION="$(VERSION)" IMAGE_TAG="$(IMAGE_TAG)" PROJECT_PATH="$(PROJECT_PATH)" CREATE_CONVERSION_WEBHOOKS="$(CREATE_CONVERSION_WEBHOOKS)" \
       sh eval-template.sh config/manifests/bases/stackgres.clusterserviceversion.template.yaml \
       > config/manifests/bases/stackgres.clusterserviceversion.yaml
 	VERSION="$(VERSION)" STACKGRES_VERSION="$(STACKGRES_VERSION)" OPENSHIFT_BUNDLE="$(OPENSHIFT_BUNDLE)" \
@@ -129,7 +130,7 @@ endif
 	VERSION="$(VERSION)" PROJECT_PATH="$(PROJECT_PATH)" \
       sh eval-template.sh config/rbac/role.template.yaml \
       > config/rbac/role.yaml
-	VERSION="$(VERSION)" \
+	VERSION="$(VERSION)" CREATE_CONVERSION_WEBHOOKS="$(CREATE_CONVERSION_WEBHOOKS)" \
       sh eval-template.sh config/crd/kustomization.template.yaml \
       > config/crd/kustomization.yaml
 	VERSION="$(VERSION)" PROJECT_PATH="$(PROJECT_PATH)" \
@@ -141,7 +142,7 @@ endif
 	$(OPERATOR_SDK) generate kustomize manifests -q
 	cd config/operator && $(KUSTOMIZE) edit set image operator=$(IMG)
 	$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle $(BUNDLE_GEN_FLAGS)
-	sh fix-crds.sh
+	CREATE_CONVERSION_WEBHOOKS="$(CREATE_CONVERSION_WEBHOOKS)" sh fix-crds.sh
 	$(OPERATOR_SDK) bundle validate ./bundle
 
 .PHONY: bundle-openshift
