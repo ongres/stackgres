@@ -680,7 +680,7 @@ EOF
   CURRENT_BACKUP_NAME=
   if grep -q " Wrote backup with name " /tmp/backup-push
   then
-    CURRENT_BACKUP_NAME="$(grep " Wrote backup with name " /tmp/backup-push | sed 's/.* \([^ ]\+\)$/\1/')"
+    CURRENT_BACKUP_NAME="$(grep " Wrote backup with name " /tmp/backup-push | sed -E 's/.*name ([^ ]+) *(to storage [^ ]+)?/\1/')"
   fi
   if [ -z "$CURRENT_BACKUP_NAME" ]
   then
@@ -735,7 +735,7 @@ retain_backups() {
 
 # for each existing backup
 exec-with-env "$BACKUP_ENV" \\
-  -- $(get_timeout_command RECONCILIATION) wal-g backup-list --detail --json \\
+  -- $(get_timeout_command RECONCILIATION) wal-g backup-list --detail --json 2>/dev/null \\
   | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\\n' \\
   | grep '"backup_name"' \\
   | while read BACKUP
@@ -771,7 +771,7 @@ exec-with-env "$BACKUP_ENV" \\
 
 # for each existing backup sorted by backup time ascending (this also mean sorted by creation date ascending)
 exec-with-env "$BACKUP_ENV" \\
-  -- $(get_timeout_command RECONCILIATION) wal-g backup-list --detail --json \\
+  -- $(get_timeout_command RECONCILIATION) wal-g backup-list --detail --json 2>/dev/null \\
   | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\\n' \\
   | grep '"backup_name"' \\
   | sort -r -t , -k 2 \\
@@ -848,7 +848,7 @@ list_backups() {
   cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c "$PATRONI_CONTAINER_NAME" \
     -- sh -e $SHELL_XTRACE > /tmp/backup-list
 WALG_LOG_LEVEL= exec-with-env "$BACKUP_ENV" \\
-  -- $(get_timeout_command BACKUP) wal-g backup-list --detail --json
+  -- $(get_timeout_command BACKUP) wal-g backup-list --detail --json 2>/dev/null
 EOF
 }
 
@@ -856,7 +856,7 @@ list_backups_for_reconciliation() {
   cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c "$PATRONI_CONTAINER_NAME" \
     -- sh -e $SHELL_XTRACE > /tmp/backup-list
 WALG_LOG_LEVEL= exec-with-env "$BACKUP_ENV" \\
-  -- $(get_timeout_command RECONCILIATION) wal-g backup-list --detail --json
+  -- $(get_timeout_command RECONCILIATION) wal-g backup-list --detail --json 2>/dev/null
 EOF
 }
 
