@@ -33,13 +33,6 @@ public abstract class FireAndForgetReconciliationHandler<T extends CustomResourc
 
   @Override
   public final HasMetadata create(T context, HasMetadata resource) {
-    if (canForget(context, resource)) {
-      LOGGER.debug("Skipping creating {} {}.{}",
-          HasMetadata.getKind(resource.getClass()),
-          resource.getMetadata().getNamespace(),
-          resource.getMetadata().getName());
-      return resource;
-    }
     return doCreate(context, resource);
   }
 

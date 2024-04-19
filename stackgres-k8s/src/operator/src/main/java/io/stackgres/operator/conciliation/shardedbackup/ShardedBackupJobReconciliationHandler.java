@@ -15,7 +15,6 @@ import io.stackgres.common.crd.sgshardedbackup.ShardedBackupStatus;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupProcess;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupStatus;
-import io.stackgres.common.labels.LabelFactoryForShardedBackup;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operator.conciliation.FireAndForgetJobReconciliationHandler;
@@ -33,10 +32,9 @@ public class ShardedBackupJobReconciliationHandler
   public ShardedBackupJobReconciliationHandler(
       @ReconciliationScope(value = StackGresShardedBackup.class, kind = "HasMetadata")
       ReconciliationHandler<StackGresShardedBackup> handler,
-      LabelFactoryForShardedBackup labelFactory,
       ResourceFinder<Job> jobFinder,
       ResourceScanner<Pod> podScanner) {
-    super(handler, labelFactory, jobFinder, podScanner);
+    super(handler, jobFinder, podScanner);
   }
 
   @Override
