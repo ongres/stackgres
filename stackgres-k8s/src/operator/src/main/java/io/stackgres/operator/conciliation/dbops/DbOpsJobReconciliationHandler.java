@@ -10,7 +10,6 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.DbOpsUtil;
 import io.stackgres.common.crd.sgdbops.StackGresDbOps;
-import io.stackgres.common.labels.LabelFactoryForDbOps;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.operator.conciliation.FireAndForgetJobReconciliationHandler;
@@ -28,10 +27,9 @@ public class DbOpsJobReconciliationHandler
   public DbOpsJobReconciliationHandler(
       @ReconciliationScope(value = StackGresDbOps.class, kind = "HasMetadata")
       ReconciliationHandler<StackGresDbOps> handler,
-      LabelFactoryForDbOps labelFactory,
       ResourceFinder<Job> jobFinder,
       ResourceScanner<Pod> podScanner) {
-    super(handler, labelFactory, jobFinder, podScanner);
+    super(handler, jobFinder, podScanner);
   }
 
   @Override
