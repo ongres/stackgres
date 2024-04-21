@@ -5,4 +5,4 @@
 
 package io.stackgres.apiweb.transformer;
 
-public record TransformerTuple<T, S> (T target, S source) {}
+public record TransformerTuple<T, S>(T target, S source) {}
