@@ -27,6 +27,7 @@ import io.stackgres.operator.conciliation.factory.ContainerUserOverrideMounts;
 import io.stackgres.operator.conciliation.factory.PostgresSocketMount;
 import io.stackgres.operator.conciliation.factory.RunningContainer;
 import io.stackgres.operator.conciliation.factory.cluster.ClusterContainerContext;
+import io.stackgres.operator.conciliation.factory.cluster.PostgresEnvironmentVariables;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
@@ -36,8 +37,19 @@ import jakarta.inject.Singleton;
 @RunningContainer(StackGresContainer.POSTGRES_UTIL)
 public class PostgresUtil implements ContainerFactory<ClusterContainerContext> {
 
-  private PostgresSocketMount postgresSocket;
-  private ContainerUserOverrideMounts containerUserOverrideMounts;
+  private final PostgresEnvironmentVariables postgresEnvironmentVariables;
+  private final PostgresSocketMount postgresSocket;
+  private final ContainerUserOverrideMounts containerUserOverrideMounts;
+
+  @Inject
+  public PostgresUtil(
+      PostgresEnvironmentVariables postgresEnvironmentVariables,
+      PostgresSocketMount postgresSocket,
+      ContainerUserOverrideMounts containerUserOverrideMounts) {
+    this.postgresEnvironmentVariables = postgresEnvironmentVariables;
+    this.postgresSocket = postgresSocket;
+    this.containerUserOverrideMounts = containerUserOverrideMounts;
+  }
 
   @Override
   public boolean isActivated(ClusterContainerContext context) {
@@ -77,19 +89,8 @@ public class PostgresUtil implements ContainerFactory<ClusterContainerContext> {
                 .build()
         )
         .addAllToVolumeMounts(containerUserOverrideMounts.getVolumeMounts(context))
+        .addAllToEnv(postgresEnvironmentVariables.getEnvVars(context.getClusterContext()))
         .build();
-  }
-
-  @Inject
-  public void setPostgresSocket(
-      PostgresSocketMount postgresSocket) {
-    this.postgresSocket = postgresSocket;
-  }
-
-  @Inject
-  public void setContainerUserOverrideMounts(
-      ContainerUserOverrideMounts containerUserOverrideMounts) {
-    this.containerUserOverrideMounts = containerUserOverrideMounts;
   }
 
 }

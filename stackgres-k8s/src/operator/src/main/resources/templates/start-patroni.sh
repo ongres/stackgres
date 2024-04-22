@@ -59,6 +59,11 @@ then
   then
     mv "$PG_DATA_PATH".backup "$PG_DATA_PATH"
   fi
+  if ! [ -d "$PG_DATA_PATH" ]
+  then
+    echo "Path $PG_DATA_PATH was not found, can not restore from the volume snapshot"
+    exit 1
+  fi
   printf %s "$RESTORE_BACKUP_LABEL" | base64 -d > "$PG_DATA_PATH"/backup_label
   chmod 600 "$PG_DATA_PATH"/backup_label
   if [ "x$RESTORE_TABLESPACE_MAP" != x ]

@@ -54,8 +54,8 @@ run_query() {
   then
     if [ -z "$USERNAME" ]
     then
-      USERNAME="postgres:$(kubectl -n "$NAMESPACE" get secrets "$NAME" \
-        -o jsonpath='{.data.superuser-password}' | base64 -d)"
+      USERNAME="$(kubectl -n "$NAMESPACE" get secrets "$NAME" \
+        --template '{{ index .data "superuser-username" | base64decode }}:{{ index .data "superuser-password" | base64decode }}')"
     fi
     PASSWORD="${USERNAME#*:}"
     USERNAME="${USERNAME%:*}"

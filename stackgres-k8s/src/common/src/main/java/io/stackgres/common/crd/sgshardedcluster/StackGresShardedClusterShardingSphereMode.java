@@ -5,6 +5,7 @@
 
 package io.stackgres.common.crd.sgshardedcluster;
 
+import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -26,6 +27,8 @@ public class StackGresShardedClusterShardingSphereMode {
       message = "supported types are standalone and cluster")
   private String type;
 
+  private Map<String, String> properties;
+
   private StackGresShardedClusterShardingSphereRepository repository;
 
   public String getType() {
@@ -34,6 +37,14 @@ public class StackGresShardedClusterShardingSphereMode {
 
   public void setType(String type) {
     this.type = type;
+  }
+
+  public Map<String, String> getProperties() {
+    return properties;
+  }
+
+  public void setProperties(Map<String, String> properties) {
+    this.properties = properties;
   }
 
   public StackGresShardedClusterShardingSphereRepository getRepository() {

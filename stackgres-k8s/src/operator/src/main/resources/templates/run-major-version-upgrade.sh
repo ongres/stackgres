@@ -141,10 +141,20 @@ EOF
     SOURCE_BACKUP_PATH="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
       --template='{{ if .status.dbOps.majorVersionUpgrade.sourceBackupPath }}{{ .status.dbOps.majorVersionUpgrade.sourceBackupPath }}{{ end }}')"
     INITIAL_INSTANCES="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-      --template='{{ .status.dbOps.majorVersionUpgrade.initialInstances }}')"
+      --template='{{ with .status.dbOps.majorVersionUpgrade.initialInstances }}{{ . }}{{ end }}')"
     INITIAL_INSTANCES="$(printf '%s' "$INITIAL_INSTANCES" | tr -d '[]' | tr ' ' '\n')"
+    if [ "x$INITIAL_INSTANCES" = "x" ]
+    then
+      echo "FAILURE=$NORMALIZED_OP_NAME failed. Initial instances was not set!" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+      return 1
+    fi
     PRIMARY_INSTANCE="$(kubectl get "$CLUSTER_CRD_NAME.$CRD_GROUP" -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
-      --template='{{ .status.dbOps.majorVersionUpgrade.primaryInstance }}')"
+      --template='{{ with .status.dbOps.majorVersionUpgrade.primaryInstance }}{{ . }}{{ end }}')"
+    if [ "x$PRIMARY_INSTANCE" = "x" ]
+    then
+      echo "FAILURE=$NORMALIZED_OP_NAME failed. Primary instance was not set!" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"
+      return 1
+    fi
 
     PHASE="pre-upgrade"
     echo "PHASE=$PHASE" >> "$SHARED_PATH/$KEBAB_OP_NAME.out"

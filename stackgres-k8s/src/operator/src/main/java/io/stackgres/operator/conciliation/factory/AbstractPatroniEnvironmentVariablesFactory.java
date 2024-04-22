@@ -17,7 +17,7 @@ import io.stackgres.common.EnvoyUtil;
 import io.stackgres.common.patroni.StackGresPasswordKeys;
 
 public abstract class AbstractPatroniEnvironmentVariablesFactory<T>
-    implements ResourceFactory<T, List<EnvVar>> {
+    implements EnvVarProvider<T> {
 
   protected List<EnvVar> createPatroniEnvVars(HasMetadata cluster) {
     return List.of(

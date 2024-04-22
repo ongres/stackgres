@@ -5,13 +5,13 @@
 
 package io.stackgres.common.crd.sgshardedcluster;
 
-import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import io.stackgres.common.crd.ShardingSphereServiceAccount;
 import io.sundr.builder.annotations.Buildable;
 
 @RegisterForReflection
@@ -26,7 +26,7 @@ public class StackGresShardedClusterShardingSphere {
 
   private StackGresShardedClusterShardingSphereAuthority authority;
 
-  private Map<String, String> properties;
+  private ShardingSphereServiceAccount serviceAccount;
 
   public StackGresShardedClusterShardingSphereMode getMode() {
     return mode;
@@ -44,17 +44,17 @@ public class StackGresShardedClusterShardingSphere {
     this.authority = authority;
   }
 
-  public Map<String, String> getProperties() {
-    return properties;
+  public ShardingSphereServiceAccount getServiceAccount() {
+    return serviceAccount;
   }
 
-  public void setProperties(Map<String, String> properties) {
-    this.properties = properties;
+  public void setServiceAccount(ShardingSphereServiceAccount serviceAccount) {
+    this.serviceAccount = serviceAccount;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(authority, mode, properties);
+    return Objects.hash(authority, mode, serviceAccount);
   }
 
   @Override
@@ -67,7 +67,7 @@ public class StackGresShardedClusterShardingSphere {
     }
     StackGresShardedClusterShardingSphere other = (StackGresShardedClusterShardingSphere) obj;
     return Objects.equals(authority, other.authority) && Objects.equals(mode, other.mode)
-        && Objects.equals(properties, other.properties);
+        && Objects.equals(serviceAccount, other.serviceAccount);
   }
 
   @Override

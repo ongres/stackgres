@@ -15,13 +15,13 @@ import io.stackgres.common.StackGresUtil;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ConfigShardingSphere {
 
-  private ConfigShardingSphereServiceAccount serviceAccount;
+  private ShardingSphereServiceAccount serviceAccount;
 
-  public ConfigShardingSphereServiceAccount getServiceAccount() {
+  public ShardingSphereServiceAccount getServiceAccount() {
     return serviceAccount;
   }
 
-  public void setServiceAccount(ConfigShardingSphereServiceAccount serviceAccount) {
+  public void setServiceAccount(ShardingSphereServiceAccount serviceAccount) {
     this.serviceAccount = serviceAccount;
   }
 

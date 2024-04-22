@@ -5,6 +5,8 @@
 
 package io.stackgres.apiweb.dto.shardedcluster;
 
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -17,6 +19,8 @@ public class ShardedClusterShardingSphereMode {
 
   private String type;
 
+  private Map<String, String> properties;
+
   private ShardedClusterShardingSphereRepository repository;
 
   public String getType() {
@@ -25,6 +29,14 @@ public class ShardedClusterShardingSphereMode {
 
   public void setType(String type) {
     this.type = type;
+  }
+
+  public Map<String, String> getProperties() {
+    return properties;
+  }
+
+  public void setProperties(Map<String, String> properties) {
+    this.properties = properties;
   }
 
   public ShardedClusterShardingSphereRepository getRepository() {

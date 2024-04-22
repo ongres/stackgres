@@ -9,15 +9,12 @@ import java.util.List;
 import java.util.Objects;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import jakarta.validation.constraints.NotNull;
 
 @RegisterForReflection
 public abstract class ClusterDbOpsRestartStatus {
 
-  @NotNull
   private List<String> initialInstances;
 
-  @NotNull
   private String primaryInstance;
 
   public List<String> getInitialInstances() {

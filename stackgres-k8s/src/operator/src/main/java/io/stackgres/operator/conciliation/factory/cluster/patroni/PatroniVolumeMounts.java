@@ -25,19 +25,19 @@ public class PatroniVolumeMounts implements VolumeMountsProvider<ClusterContaine
   public List<VolumeMount> getVolumeMounts(ClusterContainerContext context) {
     return List.of(
         new VolumeMountBuilder()
-            .withName(StackGresVolume.PATRONI_ENV.getName())
-            .withMountPath(ClusterPath.PATRONI_ENV_PATH
-                .path(context.getClusterContext()))
-            .build(),
+        .withName(StackGresVolume.PATRONI_ENV.getName())
+        .withMountPath(ClusterPath.PATRONI_ENV_PATH
+            .path(context.getClusterContext()))
+        .build(),
         new VolumeMountBuilder()
-            .withName(StackGresVolume.PATRONI_CREDENTIALS.getName())
-            .withMountPath(ClusterPath.PATRONI_SECRET_ENV_PATH
-                .path(context.getClusterContext()))
-            .build(),
+        .withName(StackGresVolume.PATRONI_CREDENTIALS.getName())
+        .withMountPath(ClusterPath.PATRONI_SECRET_ENV_PATH
+            .path(context.getClusterContext()))
+        .build(),
         new VolumeMountBuilder()
-            .withName(StackGresVolume.PATRONI_CONFIG.getName())
-            .withMountPath(ClusterPath.PATRONI_CONFIG_PATH.path())
-            .build()
+        .withName(StackGresVolume.PATRONI_CONFIG.getName())
+        .withMountPath(ClusterPath.PATRONI_CONFIG_PATH.path())
+        .build()
     );
   }
 

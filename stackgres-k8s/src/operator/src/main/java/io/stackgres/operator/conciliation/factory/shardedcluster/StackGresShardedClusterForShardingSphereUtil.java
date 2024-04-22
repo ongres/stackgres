@@ -66,6 +66,8 @@ import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntryBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinator;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinatorConfigurations;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresCoordinatorServices;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresServices;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterPostgresShardsServices;
@@ -73,6 +75,7 @@ import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShard;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardingSphere;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardingSphereAuthority;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardingSphereEtcd;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardingSphereMode;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardingSpherePrivilege;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardingSphereRepository;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardingSphereZooKeeper;
@@ -563,7 +566,8 @@ public interface StackGresShardedClusterForShardingSphereUtil extends StackGresS
             Map.entry("proxy-default-port", "5432")))
             .flatMap(map -> Seq.seq(map)
                 .append(Optional.of(shardingSphere)
-                    .map(StackGresShardedClusterShardingSphere::getProperties)
+                    .map(StackGresShardedClusterShardingSphere::getMode)
+                    .map(StackGresShardedClusterShardingSphereMode::getProperties)
                     .stream()
                     .map(Map::entrySet)
                     .flatMap(Set::stream)
@@ -812,12 +816,17 @@ public interface StackGresShardedClusterForShardingSphereUtil extends StackGresS
   static RoleBinding getShardingSphereOperatorRoleBinding(
       StackGresShardedClusterContext context) {
     StackGresShardedCluster cluster = context.getShardedCluster();
-    var shardingSphereServiceAccount = Optional.of(context.getConfig().getSpec())
-        .map(StackGresConfigSpec::getShardingSphere)
-        .map(StackGresConfigShardingSphere::getServiceAccount)
+    var shardingSphereServiceAccount = Optional.of(context.getShardedCluster().getSpec().getCoordinator())
+        .map(StackGresShardedClusterCoordinator::getConfigurationsForCoordinator)
+        .map(StackGresShardedClusterCoordinatorConfigurations::getShardingSphere)
+        .map(StackGresShardedClusterShardingSphere::getServiceAccount)
+        .or(() -> Optional.of(context.getConfig().getSpec())
+            .map(StackGresConfigSpec::getShardingSphere)
+            .map(StackGresConfigShardingSphere::getServiceAccount))
         .orElseThrow(() -> new IllegalArgumentException(
-            "You must configure the ShardingSphere operator"
-                + " section in order to use shardingsphere sharding technology"));
+            "You must configure any of the SGShardedCluster.spec.shardingSphere or SGConfig.spec.shardingSphere "
+                + " section specifying the service account used by the ShardingSphere operator"
+                + " in order to use shardingsphere sharding technology"));
     return
         new RoleBindingBuilder()
         .withMetadata(new ObjectMetaBuilder()

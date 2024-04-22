@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.common.crd.sgconfig;
+package io.stackgres.common.crd;
 
 import java.util.Objects;
 
@@ -19,7 +19,7 @@ import io.sundr.builder.annotations.Buildable;
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = false,
     lazyCollectionInitEnabled = false, lazyMapInitEnabled = false,
     builderPackage = "io.fabric8.kubernetes.api.builder")
-public class StackGresConfigShardingSphereServiceAccount {
+public class ShardingSphereServiceAccount {
 
   private String namespace;
 
@@ -51,10 +51,10 @@ public class StackGresConfigShardingSphereServiceAccount {
     if (this == obj) {
       return true;
     }
-    if (!(obj instanceof StackGresConfigShardingSphereServiceAccount)) {
+    if (!(obj instanceof ShardingSphereServiceAccount)) {
       return false;
     }
-    StackGresConfigShardingSphereServiceAccount other = (StackGresConfigShardingSphereServiceAccount) obj;
+    ShardingSphereServiceAccount other = (ShardingSphereServiceAccount) obj;
     return Objects.equals(name, other.name) && Objects.equals(namespace, other.namespace);
   }
 

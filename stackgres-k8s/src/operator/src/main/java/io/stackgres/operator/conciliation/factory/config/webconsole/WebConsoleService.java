@@ -18,6 +18,8 @@ import io.stackgres.common.crd.sgconfig.StackGresConfigAdminui;
 import io.stackgres.common.crd.sgconfig.StackGresConfigAdminuiService;
 import io.stackgres.common.crd.sgconfig.StackGresConfigCert;
 import io.stackgres.common.crd.sgconfig.StackGresConfigDeploy;
+import io.stackgres.common.crd.sgconfig.StackGresConfigRestapi;
+import io.stackgres.common.crd.sgconfig.StackGresConfigService;
 import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.common.labels.LabelFactoryForConfig;
 import io.stackgres.operator.conciliation.OperatorVersionBinder;
@@ -64,6 +66,11 @@ public class WebConsoleService
         .withNamespace(namespace)
         .withName(WebConsoleDeployment.name(config))
         .withLabels(labels)
+        .withAnnotations(Optional.of(config.getSpec())
+            .map(StackGresConfigSpec::getRestapi)
+            .map(StackGresConfigRestapi::getService)
+            .map(StackGresConfigService::getAnnotations)
+            .orElse(null))
         .endMetadata()
         .withNewSpec()
         .withType(Optional.of(config.getSpec())

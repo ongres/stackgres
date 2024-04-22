@@ -38,11 +38,11 @@ import io.stackgres.operator.conciliation.factory.AbstractPatroniEnvironmentVari
 import jakarta.inject.Singleton;
 
 @Singleton
-public class PatroniEnvironmentVariablesFactory
+public class PatroniEnvironmentVariables
     extends AbstractPatroniEnvironmentVariablesFactory<StackGresClusterContext> {
 
   @Override
-  public List<EnvVar> createResource(StackGresClusterContext context) {
+  public List<EnvVar> getEnvVars(StackGresClusterContext context) {
     StackGresCluster cluster = context.getSource();
 
     List<EnvVar> additionalEnvVars = new ArrayList<>();
