@@ -16,6 +16,7 @@ export const sgclusterform = {
             currentStep: null,
             errorStep: [],
             editReady: false,
+            dryRun: false,
             nullVal: null,
             name: vc.$route.params.hasOwnProperty('name') ? vc.$route.params.name : '',
             namespace: vc.$route.params.hasOwnProperty('namespace') ? vc.$route.params.namespace : '',
@@ -994,7 +995,7 @@ export const sgclusterform = {
                     this.pushElement(parent[prop], pathSplit.join('.'), el);
                 }
             }
-        }
+        },
 
     },
 

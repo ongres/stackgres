@@ -59,9 +59,30 @@
             <button class="btn border" @click="cancel()">Cancel</button>
             
             <button type="button" class="btn floatRight" @click="createBackup(true)">View Summary</button>
+            <button
+                type="button"
+                class="btn border floatRight"
+                title="Dry run mode helps to evaluate a request through the typical request stages without any storage persistance or resource allocation."
+                @click="
+                    dryRun = true;
+                    createBackup();
+                "
+            >
+                Dry Run
+            </button>
         </form>
-       
-        <CRDSummary :crd="previewCRD" kind="SGBackup" v-if="showSummary" @closeSummary="showSummary = false"></CRDSummary>
+
+        <CRDSummary
+            v-if="showSummary"
+            :crd="previewCRD"
+            :dryRun="dryRun"
+            kind="SGBackup"
+            @closeSummary="
+                showSummary = false;
+                dryRun = false;
+                previewCRD = {};
+            "
+        ></CRDSummary>
     </div>
 </template>
 
@@ -88,6 +109,7 @@
             return {
                 editMode: vm.$route.name.includes('Edit'),
                 editReady: false,
+                dryRun: false,
                 advancedMode: false,
                 previewCRD: {},
                 showSummary: false,
@@ -146,32 +168,44 @@
             createBackup(preview = false) {
                 const vc = this;
 
-                if(vc.checkRequired()) {
+                if(!vc.checkRequired()) {
+                    vc.dryRun = false;
+                    vc.showSummary = false;
+                    return;
+                }
 
-                    let backup = {
-                        "metadata": {
-                            "name": this.backupName,
-                            "namespace": this.backupNamespace
-                        },
-                        "spec": {
-                            "sgCluster": this.backupCluster,
-                            "managedLifecycle": this.managedLifecycle
-                        },
-                        "status": {}
-                    };
+                store.commit('loading', true);
 
-                    if(preview) {
+                let backup = {
+                    "metadata": {
+                        "name": this.backupName,
+                        "namespace": this.backupNamespace
+                    },
+                    "spec": {
+                        "sgCluster": this.backupCluster,
+                        "managedLifecycle": this.managedLifecycle
+                    },
+                    "status": {}
+                };
 
-                        vc.previewCRD = {};
-                        vc.previewCRD['data'] = backup;
-                        vc.showSummary = true;
+                if(preview) {
 
-                    } else {
+                    vc.previewCRD = {};
+                    vc.previewCRD['data'] = backup;
+                    vc.showSummary = true;
+                    store.commit('loading', false);
 
-                        if(this.editMode) {
-                            sgApi
-                            .update('sgbackups', backup)
-                            .then(function (response) {
+                } else {
+
+                    if(this.editMode) {
+                        sgApi
+                        .update('sgbackups', backup, vc.dryRun)
+                        .then(function (response) {
+
+                            if(vc.dryRun) {
+                                vc.showSummary = true;
+                                vc.validateDryRun(response.data);
+                            } else {
                                 vc.notify('Backup <strong>"'+backup.metadata.name+'"</strong> updated successfully', 'message', 'sgbackups');
 
                                 vc.fetchAPI('sgbackup');
@@ -192,17 +226,25 @@
                                         router.push('/' + backup.metadata.namespace + '/sgbackup/');
                                     }
                                 }
-                            })
-                            .catch(function (error) {
-                                console.log(error.response);
-                                vc.notify(error.response.data,'error', 'sgbackups');
-                            });
+                            }
 
-                        } else {
-                            sgApi
-                            .create('sgbackups', backup)
-                            .then(function (response) {
+                            store.commit('loading', false);
+                        })
+                        .catch(function (error) {
+                            console.log(error.response);
+                            vc.notify(error.response.data,'error', 'sgbackups');
+                            store.commit('loading', false);
+                        });
 
+                    } else {
+                        sgApi
+                        .create('sgbackups', backup, vc.dryRun)
+                        .then(function (response) {
+
+                            if(vc.dryRun) {
+                                vc.showSummary = true;
+                                vc.validateDryRun(response.data);
+                            } else {
                                 var urlParams = new URLSearchParams(window.location.search);
                                 if(urlParams.has('newtab')) {
                                     opener.fetchParentAPI('sgbackups');
@@ -213,14 +255,16 @@
 
                                 vc.fetchAPI('sgbackup');
                                 router.push('/' + backup.metadata.namespace + '/sgbackups');
-                            })
-                            .catch(function (error) {
-                                console.log(error.response);
-                                vc.notify(error.response.data,'error', 'sgbackups');
-                            });
-                        }
+                            }
+                            
+                            store.commit('loading', false);
+                        })
+                        .catch(function (error) {
+                            console.log(error.response);
+                            vc.notify(error.response.data,'error', 'sgbackups');
+                            store.commit('loading', false);
+                        });
                     }
-
                 }
 
             }

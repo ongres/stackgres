@@ -727,9 +727,30 @@
             <button @click="cancel()" class="btn border">Cancel</button>
         
             <button type="button" class="btn floatRight" @click="createDbOps(true)">View Summary</button>
+            <button
+                type="button"
+                class="btn border floatRight"
+                title="Dry run mode helps to evaluate a request through the typical request stages without any storage persistance or resource allocation."
+                @click="
+                    dryRun = true;
+                    createDbOps();
+                "
+            >
+                Dry Run
+            </button>
         </form>
 
-        <CRDSummary :crd="previewCRD" kind="SGDbOps" v-if="showSummary" @closeSummary="showSummary = false"></CRDSummary>
+        <CRDSummary
+            v-if="showSummary"
+            :crd="previewCRD"
+            :dryRun="dryRun"
+            kind="SGDbOps"
+            @closeSummary="
+                showSummary = false;
+                dryRun = false;
+                previewCRD = {};
+            "
+        ></CRDSummary>
     </div>
 </template>
 
@@ -756,6 +777,7 @@
             return {
                 previewCRD: {},
                 showSummary: false,
+                dryRun: false,
                 name: 'op' + vc.getDateString(),
                 sgCluster: '',
                 runAt: '',
@@ -942,113 +964,126 @@
 
                 }
                     
-                if(isValid) {
+                if(!isValid) {
+                    vc.dryRun = false;
+                    vc.showSummary = false;
+                    return;
+                }
 
-                    let dbOps = {
-                        metadata: {
-                            name: vc.name,
-                            namespace: vc.$route.params.namespace
-                        },
-                        spec: {
-                            sgCluster: vc.sgCluster,
-                            op: vc.op,
-                            ...(vc.runAt.length && ( { runAt: vc.runAt }) ), 
-                            ...(vc.getIsoDuration(vc.timeout) && ( { timeout: vc.getIsoDuration(vc.timeout) }) ),
-                            maxRetries: vc.maxRetries,
-                            ...(this.hasTolerations() && ({
-                                "scheduling": {
-                                    ...(this.hasTolerations() && ({"tolerations": this.tolerations}))
-                                }
-                            })) 
+                store.commit('loading', true);
+
+                let dbOps = {
+                    metadata: {
+                        name: vc.name,
+                        namespace: vc.$route.params.namespace
+                    },
+                    spec: {
+                        sgCluster: vc.sgCluster,
+                        op: vc.op,
+                        ...(vc.runAt.length && ( { runAt: vc.runAt }) ), 
+                        ...(vc.getIsoDuration(vc.timeout) && ( { timeout: vc.getIsoDuration(vc.timeout) }) ),
+                        maxRetries: vc.maxRetries,
+                        ...(this.hasTolerations() && ({
+                            "scheduling": {
+                                ...(this.hasTolerations() && ({"tolerations": this.tolerations}))
+                            }
+                        })) 
+                    }
+                }
+
+                switch(vc.op) {
+                    case 'vacuum':
+                        if(vc.vacuumPerDbs) {
+                            vc.vacuumDbs.forEach(function(db){
+                                Object.keys(db).forEach(function(key){
+                                    if(db[key] == 'inherit')
+                                        db[key] = vc.vacuum[key]
+                                })
+                            })
+                            vc.vacuum['databases'] = [...vc.vacuumDbs]
                         }
-                    }
 
-                    switch(vc.op) {
-                        case 'vacuum':
-                            if(vc.vacuumPerDbs) {
-                                vc.vacuumDbs.forEach(function(db){
-                                    Object.keys(db).forEach(function(key){
-                                        if(db[key] == 'inherit')
-                                            db[key] = vc.vacuum[key]
-                                    })
-                                })
-                                vc.vacuum['databases'] = [...vc.vacuumDbs]
-                            }
+                        dbOps.spec['vacuum'] = vc.vacuum
+                        break;
 
-                            dbOps.spec['vacuum'] = vc.vacuum
-                            break;
+                    case 'repack':
+                        let repack = {
+                            noOrder: vc.repack.noOrder,
+                            waitTimeout: vc.getIsoDuration(vc.repack.waitTimeout),
+                            noKillBackend: vc.repack.noKillBackend,
+                            noAnalyze: vc.repack.noAnalyze,
+                            excludeExtension: vc.repack.excludeExtension,
+                        }
 
-                        case 'repack':
-                            let repack = {
-                                noOrder: vc.repack.noOrder,
-                                waitTimeout: vc.getIsoDuration(vc.repack.waitTimeout),
-                                noKillBackend: vc.repack.noKillBackend,
-                                noAnalyze: vc.repack.noAnalyze,
-                                excludeExtension: vc.repack.excludeExtension,
-                            }
+                        if(vc.repackPerDbs) {
+                            let repackDbs = []
 
-                            if(vc.repackPerDbs) {
-                                let repackDbs = []
+                            vc.repackDbs.forEach(function(db, index){
+                                repackDbs.push({
+                                    name: db.name,
+                                    noOrder: ((db.noOrder == 'inherit') ? vc.repack.noOrder : db.noOrder),
+                                    waitTimeout: (db.inheritTimeout ? vc.getIsoDuration(vc.repack.waitTimeout) : vc.getIsoDuration(db.waitTimeout)),
+                                    noKillBackend: ((db.noKillBackend == 'inherit') ? vc.repack.noKillBackend : db.noKillBackend),
+                                    noAnalyze: ((db.noAnalyze == 'inherit') ? vc.repack.noAnalyze : db.noAnalyze),
+                                    excludeExtension: ((db.excludeExtension == 'inherit') ? vc.repack.excludeExtension : db.excludeExtension),
+                                }) 
+                            })
+                            repack['databases'] = repackDbs
+                        }
 
-                                vc.repackDbs.forEach(function(db, index){
-                                    repackDbs.push({
-                                        name: db.name,
-                                        noOrder: ((db.noOrder == 'inherit') ? vc.repack.noOrder : db.noOrder),
-                                        waitTimeout: (db.inheritTimeout ? vc.getIsoDuration(vc.repack.waitTimeout) : vc.getIsoDuration(db.waitTimeout)),
-                                        noKillBackend: ((db.noKillBackend == 'inherit') ? vc.repack.noKillBackend : db.noKillBackend),
-                                        noAnalyze: ((db.noAnalyze == 'inherit') ? vc.repack.noAnalyze : db.noAnalyze),
-                                        excludeExtension: ((db.excludeExtension == 'inherit') ? vc.repack.excludeExtension : db.excludeExtension),
-                                    }) 
-                                })
-                                repack['databases'] = repackDbs
-                            }
+                        dbOps.spec['repack'] = repack
+                        break;
 
-                            dbOps.spec['repack'] = repack
-                            break;
+                    case 'benchmark':
+                        let benchmark = {
+                            type: vc.benchmark.type,
+                            connectionType: vc.benchmark.connectionType
+                        }
 
-                        case 'benchmark':
-                            let benchmark = {
-                                type: vc.benchmark.type,
-                                connectionType: vc.benchmark.connectionType
-                            }
+                        benchmark[vc.benchmark.type] = {
+                            databaseSize: vc.benchmark[vc.benchmark.type].databaseSize.size + vc.benchmark[vc.benchmark.type].databaseSize.unit,
+                            duration: vc.getIsoDuration(vc.benchmark[vc.benchmark.type].duration),
+                            usePreparedStatements: vc.benchmark[vc.benchmark.type].usePreparedStatements,
+                            concurrentClients: vc.benchmark[vc.benchmark.type].concurrentClients,
+                            threads: vc.benchmark[vc.benchmark.type].threads
+                        }
+                        dbOps.spec['benchmark'] = benchmark
+                        break;
 
-                            benchmark[vc.benchmark.type] = {
-                                databaseSize: vc.benchmark[vc.benchmark.type].databaseSize.size + vc.benchmark[vc.benchmark.type].databaseSize.unit,
-                                duration: vc.getIsoDuration(vc.benchmark[vc.benchmark.type].duration),
-                                usePreparedStatements: vc.benchmark[vc.benchmark.type].usePreparedStatements,
-                                concurrentClients: vc.benchmark[vc.benchmark.type].concurrentClients,
-                                threads: vc.benchmark[vc.benchmark.type].threads
-                            }
-                            dbOps.spec['benchmark'] = benchmark
-                            break;
+                    default:
+                        dbOps.spec[vc.op] = vc[vc.op]
+                        break;
+                }
 
-                        default:
-                            dbOps.spec[vc.op] = vc[vc.op]
-                            break;
-                    }
+                if(preview) {
 
-                    if(preview) {
+                    vc.previewCRD = {};
+                    vc.previewCRD['data'] = dbOps;
+                    vc.showSummary = true;
+                    store.commit('loading', false);
 
-                        vc.previewCRD = {};
-                        vc.previewCRD['data'] = dbOps;
-                        vc.showSummary = true;
+                } else {
+                    sgApi
+                    .create('sgdbops', dbOps, vc.dryRun)
+                    .then(function (response) {
 
-                    } else {
-                        sgApi
-                        .create('sgdbops', dbOps)
-                        .then(function (response) {
+                        if(vc.dryRun) {
+                            vc.showSummary = true;
+                            vc.validateDryRun(response.data);
+                        } else {
                             vc.notify('Database operation "' + dbOps.metadata.name + '" created successfully', 'message', 'sgdbops');
 
                             vc.fetchAPI('sgdbops');
                             router.push('/' + vc.$route.params.namespace + '/sgdbops');
-                            
-                        })
-                        .catch(function (error) {
-                            console.log(error.response);
-                            vc.notify(error.response.data,'error','sgdbops');
-                        });
-                    }
+                        }
 
+                        store.commit('loading', false);                        
+                    })
+                    .catch(function (error) {
+                        console.log(error.response);
+                        vc.notify(error.response.data,'error','sgdbops');
+                        store.commit('loading', false);
+                    });
                 }
             },
 

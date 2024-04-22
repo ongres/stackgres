@@ -1,5 +1,9 @@
 <template>
-	<div id="crdSummary" class="visible" :class="details ? 'crdDetails' : 'contentTooltip'">
+	<div
+        id="crdSummary"
+        class="visible loadingContainer"
+        :class="details ? 'crdDetails' : 'contentTooltip'"
+    >
         <div v-if="!details" class="close" @click="closeSummary()"></div>
         
         <div class="info">
@@ -8,8 +12,14 @@
             
             <div class="content">
                 <div v-if="!details" class="header">
-                    <h2>Summary</h2>
-                    <label for="showDefaults" class="switch floatRight upper">
+                    <template v-if="dryRun">
+                        <h2>Dry Run Results</h2>
+                    </template>
+                    <template v-else>
+                        <h2>Summary</h2>
+                    </template>
+                    <label
+                        v-if="!dryRun" for="showDefaults" class="switch floatRight upper">
                         <span>Show Default Values</span>
                         <input type="checkbox" id="showDefaults" class="switch" v-model="showDefaults">
                     </label>
@@ -3980,12 +3990,16 @@
             details: {
                 type: Boolean,
                 default: false
+            },
+            dryRun: {
+                type: Boolean,
+                default: false
             }
         },
 
         data() {
             return {
-                showDefaults: this.details,
+                showDefaults: this.dryRun || this.details
             }
         },
 

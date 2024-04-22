@@ -636,7 +636,7 @@ form.form .helpTooltip {
     padding-top: 25px;
     position: sticky;
     top: 90px;
-    z-index: 3;
+    z-index: 2;
 }
 
 ul.steps {
