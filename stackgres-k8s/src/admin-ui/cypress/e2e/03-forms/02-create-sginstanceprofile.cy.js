@@ -183,6 +183,18 @@ describe('Create SGInstanceProfile', () => {
         cy.get('input[data-field="spec.requests.initContainers[1].cpu"]')
             .type('1')
             
+        // Test Dry Run
+        cy.get('form#createProfile button[data-field="dryRun"]')
+            .click()
+
+        cy.get('#crdSummary')
+            .should('be.visible')
+
+        cy.get('#crdSummary span.close')
+            .click()
+        
+        cy.get('#crdSummary')
+            .should('not.exist')
 
         // Test Submit form
         cy.get('form#createProfile button[type="submit"]')

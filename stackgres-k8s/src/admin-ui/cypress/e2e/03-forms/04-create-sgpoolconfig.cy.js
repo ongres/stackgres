@@ -45,6 +45,19 @@ describe('Create SGPoolingConfig', () => {
         cy.get('[data-field="spec.pgBouncer.pgbouncer\\\\.ini"]')
             .type('max_client_conn = 1001')
 
+        // Test Dry Run
+        cy.get('form#createPoolConfig button[data-field="dryRun"]')
+            .click()
+
+        cy.get('#crdSummary')
+            .should('be.visible')
+
+        cy.get('#crdSummary span.close')
+            .click()
+        
+        cy.get('#crdSummary')
+            .should('not.exist')
+
         // Test Submit form
         cy.get('form#createPoolConfig button[type="submit"]')
             .click()

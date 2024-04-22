@@ -57,6 +57,19 @@ describe('Create SGScripts', () => {
         // Test Entry script textarea
         cy.get('[data-field="spec.scripts[0].script"]')
             .type(resourceName)
+
+        // Test Dry Run
+        cy.get('form#createScripts button[data-field="dryRun"]')
+            .click()
+
+        cy.get('#crdSummary')
+            .should('be.visible')
+
+        cy.get('#crdSummary span.close')
+            .click()
+        
+        cy.get('#crdSummary')
+            .should('not.exist')
         
         // Test Submit form
         cy.get('form#createScripts button[type="submit"]')

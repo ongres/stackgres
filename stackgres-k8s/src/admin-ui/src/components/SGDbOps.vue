@@ -770,7 +770,7 @@
             },
 
             hasTimedOut(op) {
-                if( op.data.hasOwnProperty('status') ) {
+                if( this.hasProp(op, 'data.status.conditions') ) {
                     let failedOp = op.data.status.conditions.find(c => (c.status === 'True') && (c.type == 'Failed') && (c.reason == 'OperationTimedOut' ) )
 
                     if( typeof failedOp !== 'undefined' )

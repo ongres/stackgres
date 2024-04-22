@@ -717,6 +717,7 @@
         
             <button type="button" class="btn floatRight" @click="createDbOps(true)">View Summary</button>
             <button
+                data-field="dryRun"
                 type="button"
                 class="btn border floatRight"
                 title="Dry run mode helps to evaluate a request through the typical request stages without any storage persistance or resource allocation."
