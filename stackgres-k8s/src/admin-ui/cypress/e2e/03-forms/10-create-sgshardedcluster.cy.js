@@ -2140,6 +2140,19 @@ describe('Create SGShardedCluster', () => {
             .clear()
             .type('10')
 
+        // Test Dry Run
+        cy.get('form#createShardedCluster button[data-field="dryRun"]')
+            .click()
+
+        cy.get('#crdSummary')
+            .should('be.visible')
+
+        cy.get('#crdSummary span.close')
+            .click()
+        
+        cy.get('#crdSummary')
+            .should('not.exist')
+
         // Setup get and put mock to check resource is not found and all fields are correctly set
         cy.intercept('GET', '/stackgres/namespaces/' + namespace + '/sgshardedclusters/advanced-' + resourceName)
             .as('getCluster')

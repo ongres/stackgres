@@ -196,6 +196,19 @@ describe('Create SGDistributedLog', () => {
         cy.get('select[data-field="spec.nonProductionOptions.disableClusterResourceRequirements"]')
             .select('Disable')
 
+        // Test Dry Run
+        cy.get('form#createLogsServer button[data-field="dryRun"]')
+            .click()
+
+        cy.get('#crdSummary')
+            .should('be.visible')
+
+        cy.get('#crdSummary span.close')
+            .click()
+        
+        cy.get('#crdSummary')
+            .should('not.exist')
+
         // Test Submit form
         cy.get('form#createLogsServer button[type="submit"]')
             .click()

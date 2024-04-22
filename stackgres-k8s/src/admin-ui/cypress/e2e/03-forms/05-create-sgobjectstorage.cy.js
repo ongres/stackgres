@@ -82,6 +82,19 @@ describe('Create SGObjectStorage', () => {
 
         cy.get('[data-field="spec.s3.awsCredentials.secretKeySelectors.secretAccessKey"]')
             .type(resourceName)
+
+        // Test Dry Run
+        cy.get('form#createObjectStorage button[data-field="dryRun"]')
+            .click()
+
+        cy.get('#crdSummary')
+            .should('be.visible')
+
+        cy.get('#crdSummary span.close')
+            .click()
+        
+        cy.get('#crdSummary')
+            .should('not.exist')
         
         // Submit
         cy.get('form#createObjectStorage button[type="submit"]')
@@ -130,6 +143,19 @@ describe('Create SGObjectStorage', () => {
 
         cy.get('#enablePathStyleAddressing')
             .click()
+
+        // Test Dry Run
+        cy.get('form#createObjectStorage button[data-field="dryRun"]')
+            .click()
+
+        cy.get('#crdSummary')
+            .should('be.visible')
+
+        cy.get('#crdSummary span.close')
+            .click()
+        
+        cy.get('#crdSummary')
+            .should('not.exist')
         
         // Submit
         cy.get('form#createObjectStorage button[type="submit"]')
@@ -162,6 +188,19 @@ describe('Create SGObjectStorage', () => {
 
         cy.get('#fetchGCSCredentials')
             .click()
+
+        // Test Dry Run
+        cy.get('form#createObjectStorage button[data-field="dryRun"]')
+            .click()
+
+        cy.get('#crdSummary')
+            .should('be.visible')
+
+        cy.get('#crdSummary span.close')
+            .click()
+        
+        cy.get('#crdSummary')
+            .should('not.exist')
         
         // Submit
         cy.get('form#createObjectStorage button[type="submit"]')
@@ -197,6 +236,19 @@ describe('Create SGObjectStorage', () => {
 
         cy.get('[data-field="spec.azureBlob.azureCredentials.secretKeySelectors.accessKey"]')
             .type(resourceName)
+        
+        // Test Dry Run
+        cy.get('form#createObjectStorage button[data-field="dryRun"]')
+            .click()
+
+        cy.get('#crdSummary')
+            .should('be.visible')
+
+        cy.get('#crdSummary span.close')
+            .click()
+        
+        cy.get('#crdSummary')
+            .should('not.exist')
         
         // Submit
         cy.get('form#createObjectStorage button[type="submit"]')
