@@ -1505,6 +1505,17 @@ export const mixin = {
         }
       },
 
+      validateDryRun(data) {
+        const vc = this;
+        if(vc.showSummary) {
+            vc.previewCRD = {};
+            vc.previewCRD['data'] = data;
+        } else {
+            vc.dryRun = false;
+        }
+        store.commit('loading', false);
+      }
+
     },
       
   

@@ -19,7 +19,12 @@
 
                 <div class="col">
                     <label for="spec.postgresVersion">Postgres Version <span class="req">*</span></label>
-                    <select v-model="pgConfigVersion" :disabled="(editMode)" required data-field="spec.postgresVersion">
+                    <select
+                        v-model="pgConfigVersion"
+                        :disabled="(editMode)"
+                        required data-field="spec.postgresVersion"
+                        @change="loadingDefaults = true; dryRun = true; createPGConfig();"
+                    >
                         <option disabled value="">Select Major Postgres Version</option>
                         <option v-for="version in postgresVersions">{{ version }}</option>
                     </select>
@@ -43,9 +48,9 @@
                 <div class="paramDetails">
                     <hr/>
                     <h2>Default Parameters</h2><br/>
-                    <p>StackGres has set some default parameters to your configuration. If no value is specifically set for them, they will remain with the following default values:</p><br/><br/>
+                    <p>StackGres sets some default parameters for your configuration. If no value is specifically set for them, they will remain with the following default values:</p><br/><br/>
                 
-                    <table class="defaultParams">
+                    <table class="defaultParams loadingContainer" :class="loadingDefaults && 'loading'">
                         <tbody>
                             <tr v-for="param in pgConfigParamsObj" v-if="(defaultParams.hasOwnProperty(param.parameter) && (defaultParams[param.parameter] == param.value) )">
                                 <td class="label">
@@ -78,8 +83,29 @@
             <button class="btn border" @click="cancel()">Cancel</button>
 
             <button type="button" class="btn floatRight" @click="createPGConfig(true)">View Summary</button>
+            <button
+                type="button"
+                class="btn border floatRight"
+                title="Dry run mode helps to evaluate a request through the typical request stages without any storage persistance or resource allocation."
+                @click="
+                    dryRun = true;
+                    createPGConfig();
+                "
+            >
+                Dry Run
+            </button>
         </form>
-        <CRDSummary :crd="previewConfig" kind="SGPostgresConfig" v-if="showSummary" @closeSummary="showSummary = false"></CRDSummary>
+        <CRDSummary
+            v-if="showSummary"
+            :crd="previewConfig"
+            :dryRun="dryRun"
+            kind="SGPostgresConfig"
+            @closeSummary="
+                showSummary = false;
+                dryRun = false;
+                previewConfig = {};
+            "
+        ></CRDSummary>
     </div>
 </template>
 
@@ -106,6 +132,7 @@
             return {
                 editMode: (vm.$route.name === 'EditPgConfig'),
                 editReady: false,
+                dryRun: false,
                 previewConfig: {},
                 showSummary: false,
                 pgConfigName: vm.$route.params.hasOwnProperty('name') ? vm.$route.params.name : '',
@@ -113,6 +140,7 @@
                 pgConfigParams: '',
                 pgConfigParamsObj: null,
                 defaultParams: {},
+                loadingDefaults: false,
                 pgConfigVersion: '',
                 configClusters: []
             }
@@ -164,9 +192,11 @@
             createPGConfig(preview = false, previous) {
                 const vc = this;
 
-                if (!vc.checkRequired()) {
+                if (!vc.loadingDefaults && !vc.checkRequired()) {
                     return;
                 }
+
+                store.commit('loading', !vc.loadingDefaults);
 
                 if (!previous) {
                     sgApi
@@ -203,40 +233,57 @@
                     vc.previewConfig = {};
                     vc.previewConfig['data'] = config;
                     vc.showSummary = true;
+                    store.commit('loading', false);
 
                 } else {
 
                     if(this.editMode) {
                         sgApi
-                        .update('sgpgconfigs', config)
+                        .update('sgpgconfigs', config, vc.dryRun)
                         .then(function (response) {
-                            vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message', 'sgpgconfigs');
+                            if(vc.dryRun) {
+                                vc.showSummary = !vc.loadingDefaults;
+                                vc.validateDryRun(response.data);
+                            } else {
+                                vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> updated successfully', 'message', 'sgpgconfigs');
 
-                            vc.fetchAPI('sgpgconfig');
-                            router.push('/' + config.metadata.namespace + '/sgpgconfig/' + config.metadata.name);
+                                vc.fetchAPI('sgpgconfig');
+                                router.push('/' + config.metadata.namespace + '/sgpgconfig/' + config.metadata.name);
+                            }
+                            store.commit('loading', false);
                         })
                         .catch(function (error) {
                             console.log(error.response);
                             vc.notify(error.response.data,'error', 'sgpgconfigs');
+                            store.commit('loading', false);
                         });
                     } else {
-                        sgApi
-                        .create('sgpgconfigs', config)
-                        .then(function (response) {
-                            var urlParams = new URLSearchParams(window.location.search);
-                            if(urlParams.has('newtab')) {
-                                opener.fetchParentAPI('sgpgconfigs');
-                                vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your configuration from the list.', 'message','sgpgconfigs');
-                            } else {
-                                vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message', 'sgpgconfigs');
-                            }
 
-                            vc.fetchAPI('sgpgconfigs');
-                            router.push('/' + config.metadata.namespace + '/sgpgconfigs');
+                        sgApi
+                        .create('sgpgconfigs', config, vc.dryRun)
+                        .then(function (response) {
+
+                            if(vc.dryRun) {
+                                vc.showSummary = !vc.loadingDefaults;
+                                vc.validateDryRun(response.data);
+                            } else {
+                                var urlParams = new URLSearchParams(window.location.search);
+                                if(urlParams.has('newtab')) {
+                                    opener.fetchParentAPI('sgpgconfigs');
+                                    vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your configuration from the list.', 'message','sgpgconfigs');
+                                } else {
+                                    vc.notify('Postgres configuration <strong>"'+config.metadata.name+'"</strong> created successfully', 'message', 'sgpgconfigs');
+                                }
+
+                                vc.fetchAPI('sgpgconfigs');
+                                router.push('/' + config.metadata.namespace + '/sgpgconfigs');
+                            }
+                            store.commit('loading', false);
                         })
                         .catch(function (error) {
                             console.log(error.response);
                             vc.notify(error.response.data,'error', 'sgpgconfigs');
+                            store.commit('loading', false);
                         });
                     }
                 }
@@ -303,6 +350,22 @@
                 });
 
                 return finalParamsArr.join('\n')
+            },
+
+            validateDryRun(data) {
+                const vc = this;
+
+                vc.defaultParams = data.status.defaultParameters;
+                vc.pgConfigParamsObj = data.status['postgresql.conf'];
+                vc.loadingDefaults = false;
+
+                if(vc.showSummary) {
+                    vc.previewConfig = {};
+                    vc.previewConfig['data'] = data;
+                } else {
+                    vc.dryRun = false;
+                }
+                store.commit('loading', false);
             }
         }
     }
@@ -311,5 +374,9 @@
 <style scoped>
     form.form label + .helpTooltip {
         transform: translate(20px, 15px);
+    }
+
+    .defaultParams.loadingContainer.loading:after {
+        position: absolute;
     }
 </style>

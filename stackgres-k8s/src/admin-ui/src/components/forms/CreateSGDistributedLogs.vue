@@ -525,9 +525,31 @@
             <button @click="cancel()" class="btn border">Cancel</button>
 
             <button type="button" class="btn floatRight" @click="createCluster(true)">View Summary</button>
+            <button
+                type="button"
+                class="btn border floatRight"
+                title="Dry run mode helps to evaluate a request through the typical request stages without any storage persistance or resource allocation."
+                @click="
+                    dryRun = true;
+                    createCluster();
+                "
+            >
+                Dry Run
+            </button>
+
         </form>
 
-        <CRDSummary :crd="previewCRD" kind="SGDistributedLogs" v-if="showSummary" @closeSummary="showSummary = false"></CRDSummary>
+        <CRDSummary
+            v-if="showSummary"
+            :crd="previewCRD"
+            :dryRun="dryRun"
+            kind="SGDistributedLogs"
+            @closeSummary="
+                showSummary = false;
+                dryRun = false;
+                previewCRD = {};
+            "
+        ></CRDSummary>
     </div>
 </template>
 
@@ -554,6 +576,7 @@
             return {
                 editMode: (vm.$route.name === 'EditLogsServer'),
                 editReady: false,
+                dryRun: false,
                 previewCRD: {},
                 showSummary: false,
                 nullVal: null,
@@ -699,8 +722,12 @@
                 const vc = this;
 
                 if(!vc.checkRequired()) {
+                    vc.dryRun = false;
+                    vc.showSummary = false;
                     return
                 }
+
+                store.commit('loading', true);
 
                 if (!previous) {
                     sgApi
@@ -800,47 +827,61 @@
                     vc.previewCRD = {};
                     vc.previewCRD['data'] = cluster;
                     vc.showSummary = true;
+                    store.commit('loading', false);
 
                 } else {
                 
                     if(this.editMode) {
                         sgApi
-                        .update('sgdistributedlogs', cluster)
+                        .update('sgdistributedlogs', cluster, vc.dryRun)
                         .then(function (response) {
-                            vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgdistributedlogs');
 
-                            vc.fetchAPI('sgdistributedlogs');
-                            router.push('/' + cluster.metadata.namespace + '/sgdistributedlog/' + cluster.metadata.name);
+                            if(vc.dryRun) {
+                                vc.showSummary = true;
+                                vc.validateDryRun(response.data);
+                            } else {
+                                vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgdistributedlogs');
+
+                                vc.fetchAPI('sgdistributedlogs');
+                                router.push('/' + cluster.metadata.namespace + '/sgdistributedlog/' + cluster.metadata.name);
+                            }
+                            store.commit('loading', false);
                             
                         })
                         .catch(function (error) {
                             console.log(error.response);
                             vc.notify(error.response.data,'error', 'sgdistributedlogs');
-
-                            vc.checkValidSteps(vc._data, 'submit')
+                            vc.checkValidSteps(vc._data, 'submit');
+                            store.commit('loading', false);
                         });
                     } else {
                         sgApi
-                        .create('sgdistributedlogs', cluster)
+                        .create('sgdistributedlogs', cluster, vc.dryRun)
                         .then(function (response) {
                             
-                            var urlParams = new URLSearchParams(window.location.search);
-                            if(urlParams.has('newtab')) {
-                                opener.fetchParentAPI('sgdistributedlogs');
-                                vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your server from the list.', 'message','sgdistributedlogs');
+                            if(vc.dryRun) {
+                                vc.showSummary = true;
+                                vc.validateDryRun(response.data);
                             } else {
-                                vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgdistributedlogs');
-                            }
+                                var urlParams = new URLSearchParams(window.location.search);
+                                if(urlParams.has('newtab')) {
+                                    opener.fetchParentAPI('sgdistributedlogs');
+                                    vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> created successfully.<br/><br/> You may now close this window and choose your server from the list.', 'message','sgdistributedlogs');
+                                } else {
+                                    vc.notify('Logs server <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgdistributedlogs');
+                                }
 
-                            vc.fetchAPI('sgdistributedlogs');
-                            router.push('/' + cluster.metadata.namespace + '/sgdistributedlogs')
+                                vc.fetchAPI('sgdistributedlogs');
+                                router.push('/' + cluster.metadata.namespace + '/sgdistributedlogs')
+                            }
+                            store.commit('loading', false);
                             
                         })
                         .catch(function (error) {
                             console.log(error);
                             vc.notify(error.response.data,'error','sgdistributedlogs');
-
                             vc.checkValidSteps(vc._data, 'submit')
+                            store.commit('loading', false);
                         });
                     }
 

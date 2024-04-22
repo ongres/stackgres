@@ -3465,19 +3465,41 @@
                 <hr/>
             
                 <template v-if="editMode">
-                    <button type="submit" class="btn" @click="createCluster(false)">Update Cluster</button>
+                    <button type="submit" class="btn" @click="createCluster()">Update Cluster</button>
                 </template>
                 <template v-else>
-                    <button type="submit" class="btn" @click="createCluster(false)">Create Cluster</button>
+                    <button type="submit" class="btn" @click="createCluster()">Create Cluster</button>
                 </template>
 
-                <button type="button" class="btn floatRight" @click="createCluster(true)">View Summary</button>
-
                 <button type="button" @click="setupTemplate(true)" class="btn border">Cancel</button>
+                
+                <button type="button" class="btn floatRight" @click="createCluster(true)">View Summary</button>
+                <button
+                    type="button"
+                    class="btn border floatRight"
+                    title="Dry run mode helps to evaluate a request through the typical request stages without any storage persistance or resource allocation."
+                    @click="
+                        dryRun = true;
+                        createCluster();
+                    "
+                >
+                    Dry Run
+                </button>
+                
             </template>
         </form>
         
-        <ClusterSummary :cluster="previewCRD" :extensionsList="extensionsList[flavor][postgresVersion]" v-if="showSummary" @closeSummary="showSummary = false"></ClusterSummary>
+        <ClusterSummary
+            v-if="showSummary"
+            :cluster="previewCRD"
+            :extensionsList="extensionsList[flavor][postgresVersion]"
+            :dryRun="dryRun"
+            @closeSummary="
+                showSummary = false;
+                dryRun = false;
+                previewCRD = {};
+            "
+        ></ClusterSummary>
     </div>
 </template>
 
@@ -3838,8 +3860,12 @@
                 const vc = this;
 
                 if(!vc.checkRequired()) {
-                  return;
+                    vc.dryRun = false;
+                    vc.showSummary = false;
+                    return;
                 }
+
+                store.commit('loading', true);
 
                 if (!previous) {
                     sgApi
@@ -4071,36 +4097,53 @@
                     vc.previewCRD = {};
                     vc.previewCRD['data'] = cluster;
                     vc.showSummary = true;
+                    store.commit('loading', false);
 
                 } else {
-                    
+
                     if(this.editMode) {
                         sgApi
-                        .update('sgclusters', cluster)
+                        .update('sgclusters', cluster, vc.dryRun)
                         .then(function (response) {
-                            vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgclusters');
+                            
+                            if(vc.dryRun) {
+                                vc.showSummary = true;
+                                vc.validateDryRun(response.data);
+                            } else {
+                                vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> updated successfully', 'message', 'sgclusters');
 
-                            vc.fetchAPI('sgclusters');
-                            router.push('/' + cluster.metadata.namespace + '/sgcluster/' + cluster.metadata.name);
+                                vc.fetchAPI('sgclusters');
+                                router.push('/' + cluster.metadata.namespace + '/sgcluster/' + cluster.metadata.name);
+                            }
+                            store.commit('loading', false);
                             
                         })
                         .catch(function (error) {
                             console.log(error.response);
                             vc.notify(error.response.data,'error', 'sgclusters');
+                            store.commit('loading', false);
                         });
                     } else {
                         sgApi
-                        .create('sgclusters', cluster)
+                        .create('sgclusters', cluster, vc.dryRun)
                         .then(function (response) {
-                            vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgclusters');
 
-                            vc.fetchAPI('sgclusters');
-                            router.push('/' + cluster.metadata.namespace + '/sgclusters');
+                            if(vc.dryRun) {
+                                vc.showSummary = true;
+                                vc.validateDryRun(response.data);
+                            } else {
+                                vc.notify('Cluster <strong>"'+cluster.metadata.name+'"</strong> created successfully', 'message', 'sgclusters');
+
+                                vc.fetchAPI('sgclusters');
+                                router.push('/' + cluster.metadata.namespace + '/sgclusters');
+                            }
+                            store.commit('loading', false);
                             
                         })
                         .catch(function (error) {
                             console.log(error.response);
                             vc.notify(error.response.data,'error','sgclusters');
+                            store.commit('loading', false);
                         });
                     }
                     

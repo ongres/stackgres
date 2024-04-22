@@ -33,16 +33,16 @@ export default {
     return axios.get(baseURL + resources[resource])
   },
 
-  create(resource, data) {
-    return axios.post(baseURL + resources[resource], data)
+  create(resource, data, dryRun = false) {
+    return axios.post(baseURL + resources[resource] + (dryRun ? '?dryRun=true' : ''), data)
   },
 
-  update(resource, data) {
-    return axios.put(baseURL + resources[resource], data)
+  update(resource, data, dryRun = false) {
+    return axios.put(baseURL + resources[resource] + (dryRun ? '?dryRun=true' : ''), data)
   },
 
-  delete(resource, data) {
-    return axios.delete(baseURL + resources[resource], data)
+  delete(resource, data, dryRun = false) {
+    return axios.delete(baseURL + resources[resource] + (dryRun ? '?dryRun=true' : ''), data)
   },
 
   getResourceDetails(resource, namespace, name, details = '', query = '') {
