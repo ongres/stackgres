@@ -42,6 +42,8 @@ import io.stackgres.common.crd.sgscript.StackGresScriptBuilder;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntry;
 import io.stackgres.common.crd.sgscript.StackGresScriptEntryBuilder;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinator;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterCoordinatorConfigurations;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardingSphere;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardingSphereAuthority;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterShardingSphereEtcd;
