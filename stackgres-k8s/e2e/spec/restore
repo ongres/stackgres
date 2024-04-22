@@ -13,7 +13,7 @@ e2e_test_install() {
     -f "$SPEC_FILE.backup.values.yaml" \
     --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION" \
     --set-string "configurations.objectstorage.s3Compatible.endpoint=$BACKUP_ENDPOINT" \
-    --set cluster.configurations.backups.useVolumeSnapshot=true
+    --set cluster.configurations.backups.useVolumeSnapshot=false
 
   wait_pods_running "$BACKUP_CLUSTER_NAMESPACE" 2
   wait_cluster "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE"
@@ -47,7 +47,7 @@ EOF
       -f "$SPEC_FILE.backup.values.yaml" \
       --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION" \
       --set-string "configurations.objectstorage.s3Compatible.endpoint=$BACKUP_ENDPOINT" \
-      --set cluster.configurations.backups.useVolumeSnapshot=false
+      --set cluster.configurations.backups.useVolumeSnapshot=true
   
     wait_until eval 'kubectl get cronjob -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_CLUSTER_NAME" -o json \
       | jq ".spec.template.spec.containers[0].env | any(.name == \"USE_VOLUME_SNAPSHOT\" and .value == \"true\")"'
@@ -64,6 +64,15 @@ spec:
 EOF
 
     wait_until is_backup_phase "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_VOLUME_SNAPSHOT_NAME" "Completed"
+
+    create_or_replace_cluster_only "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE" 1 \
+      -f "$SPEC_FILE.backup.values.yaml" \
+      --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION" \
+      --set-string "configurations.objectstorage.s3Compatible.endpoint=$BACKUP_ENDPOINT" \
+      --set cluster.configurations.backups.useVolumeSnapshot=false
+  
+    wait_until eval 'kubectl get cronjob -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_CLUSTER_NAME" -o json \
+      | jq ".spec.template.spec.containers[0].env | any(.name == \"USE_VOLUME_SNAPSHOT\" and .value == \"false\")"'
   fi
 
   rotate_wal_file
