@@ -820,12 +820,21 @@ form#login .warning {
     position: fixed;
     z-index: 2;
     top: 0;
-    left: 0;
-    width: 100%;
+    left: 350px;
+    width: calc(100% - 350px);
     height: 100%;
+    background: url(../img/loader.gif) center no-repeat rgba(255,255,255,0.8);
+    background-size: 30px !important;
+}
+
+body.darkmode .loadingContainer.loading:after {
     background: url(../img/loader.gif) center no-repeat rgba(0, 0, 0, .35);
-    background-size: 30px;
-  }
+}
+
+body.collapsed .loadingContainer.loading:after {
+    left: 50px;
+    width: calc(100% - 50px);
+}
 
 /* Dark mode - Log in */
 
