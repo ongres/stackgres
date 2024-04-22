@@ -255,6 +255,13 @@ public class BackupCronJobV1Beta1
                             .orElse("false"))
                         .build(),
                         new EnvVarBuilder()
+                        .withName("RETAIN_WALS_FOR_UNMANAGED_LIFECYCLE")
+                        .withValue(Optional.of(backupConfig)
+                            .map(BackupConfiguration::retainWalsForUnmanagedLifecycle)
+                            .map(String::valueOf)
+                            .orElse("false"))
+                        .build(),
+                        new EnvVarBuilder()
                         .withName("VOLUME_SNAPSHOT_CRD_NAME")
                         .withValue(VolumeSnapshotUtil.VOLUME_SNAPSHOT_CRD_NAME)
                         .build(),

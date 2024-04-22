@@ -677,6 +677,10 @@ spec:
                             
                             Failure of reconciliation will not make the backup fail and will be re-tried the next time a SGBackup
                              or shecduled backup Job take place.
+                        retainWalsForUnmanagedLifecycle:
+                          type: boolean
+                          description: |
+                            If specified, WAL created after any unmanaged lifecycle backups will be retained.
                   credentials:
                     type: object
                     description: |

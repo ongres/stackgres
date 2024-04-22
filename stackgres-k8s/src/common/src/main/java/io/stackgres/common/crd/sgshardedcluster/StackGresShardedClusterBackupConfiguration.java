@@ -52,6 +52,8 @@ public class StackGresShardedClusterBackupConfiguration {
 
   private Integer reconciliationTimeout;
 
+  private Boolean retainWalsForUnmanagedLifecycle;
+
   public Integer getRetention() {
     return retention;
   }
@@ -140,10 +142,19 @@ public class StackGresShardedClusterBackupConfiguration {
     this.reconciliationTimeout = reconciliationTimeout;
   }
 
+  public Boolean getRetainWalsForUnmanagedLifecycle() {
+    return retainWalsForUnmanagedLifecycle;
+  }
+
+  public void setRetainWalsForUnmanagedLifecycle(Boolean retainWalsForUnmanagedLifecycle) {
+    this.retainWalsForUnmanagedLifecycle = retainWalsForUnmanagedLifecycle;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(compression, cronSchedule, fastVolumeSnapshot, paths, performance, reconciliationTimeout,
-        retention, sgObjectStorage, timeout, useVolumeSnapshot, volumeSnapshotClass);
+    return Objects.hash(compression, cronSchedule, fastVolumeSnapshot, paths, performance,
+        reconciliationTimeout, retainWalsForUnmanagedLifecycle, retention, sgObjectStorage, timeout,
+        useVolumeSnapshot, volumeSnapshotClass);
   }
 
   @Override
@@ -155,12 +166,16 @@ public class StackGresShardedClusterBackupConfiguration {
       return false;
     }
     StackGresShardedClusterBackupConfiguration other = (StackGresShardedClusterBackupConfiguration) obj;
-    return Objects.equals(compression, other.compression) && Objects.equals(cronSchedule, other.cronSchedule)
-        && Objects.equals(fastVolumeSnapshot, other.fastVolumeSnapshot) && Objects.equals(paths, other.paths)
-        && Objects.equals(performance, other.performance)
+    return Objects.equals(compression, other.compression)
+        && Objects.equals(cronSchedule, other.cronSchedule)
+        && Objects.equals(fastVolumeSnapshot, other.fastVolumeSnapshot)
+        && Objects.equals(paths, other.paths) && Objects.equals(performance, other.performance)
         && Objects.equals(reconciliationTimeout, other.reconciliationTimeout)
-        && Objects.equals(retention, other.retention) && Objects.equals(sgObjectStorage, other.sgObjectStorage)
-        && Objects.equals(timeout, other.timeout) && Objects.equals(useVolumeSnapshot, other.useVolumeSnapshot)
+        && Objects.equals(retainWalsForUnmanagedLifecycle, other.retainWalsForUnmanagedLifecycle)
+        && Objects.equals(retention, other.retention)
+        && Objects.equals(sgObjectStorage, other.sgObjectStorage)
+        && Objects.equals(timeout, other.timeout)
+        && Objects.equals(useVolumeSnapshot, other.useVolumeSnapshot)
         && Objects.equals(volumeSnapshotClass, other.volumeSnapshotClass);
   }
 
