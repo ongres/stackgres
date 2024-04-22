@@ -350,7 +350,7 @@ INNER_EOF
   elif [ "$SHARDING_TYPE" = ddp ]
   then
     cat << INNER_EOF
-  -c "SELECT CHECKPOINT" \
+  -c "CHECKPOINT" \
   -c "SELECT result FROM pg_foreign_server, LATERAL (SELECT * FROM dblink(srvname, 'CHECKPOINT') AS (result text)) AS _" \
   -c "SELECT pg_switch_wal()" \
   -c "SELECT result FROM pg_foreign_server, LATERAL (SELECT * FROM dblink(srvname, 'SELECT pg_switch_wal()') AS (result text)) AS _"

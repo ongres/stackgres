@@ -782,7 +782,7 @@ exec-with-env "$BACKUP_ENV" \\
     do
       if [ -n "\$TO_REMOVE_BACKUP_NAME" ]
       then
-        if [ "$RETAIN_WALS_FOR_UNMANAGED_LIFECYCLE" = true ]
+        if [ "$RETAIN_WALS_FOR_UNMANAGED_LIFECYCLE" = true ] || [ "\$RETAIN" -ge 1 ]
         then
           echo "Deleting backup \$TO_REMOVE_BACKUP_NAME"
           exec-with-env "$BACKUP_ENV" \\
@@ -790,7 +790,9 @@ exec-with-env "$BACKUP_ENV" \\
         else
           echo "Deleting backup \$TO_REMOVE_BACKUP_NAME and previous WAL files"
           exec-with-env "$BACKUP_ENV" \\
-            -- $(get_timeout_command RECONCILIATION) wal-g delete before FIND_FULL "\$TO_REMOVE_BACKUP_NAME" --confirm
+            -- $(get_timeout_command RECONCILIATION) wal-g delete before "\$TO_REMOVE_BACKUP_NAME" --confirm
+          exec-with-env "$BACKUP_ENV" \\
+            -- $(get_timeout_command RECONCILIATION) wal-g delete target FIND_FULL "\$TO_REMOVE_BACKUP_NAME" --confirm
         fi
       fi
       TO_REMOVE_BACKUP_NAME=
@@ -835,7 +837,9 @@ exec-with-env "$BACKUP_ENV" \\
     then
       echo "Deleting latest backup \$TO_REMOVE_BACKUP_NAME and previous WAL files"
       exec-with-env "$BACKUP_ENV" \\
-        -- $(get_timeout_command RECONCILIATION) wal-g delete before FIND_FULL "\$TO_REMOVE_BACKUP_NAME" --confirm
+        -- $(get_timeout_command RECONCILIATION) wal-g delete before "\$TO_REMOVE_BACKUP_NAME" --confirm
+      exec-with-env "$BACKUP_ENV" \\
+        -- $(get_timeout_command RECONCILIATION) wal-g delete target FIND_FULL "\$TO_REMOVE_BACKUP_NAME" --confirm
     else
       echo "Deleting WAL files older than latest backup \$BACKUP_NAME"
       exec-with-env "$BACKUP_ENV" \\

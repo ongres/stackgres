@@ -201,16 +201,7 @@ check_restore_sharded_backup_is_working() {
     --template '{{ range .items }}{{ printf "%s %s\n" .status.process.status .metadata.name }}{{ end }}' \
     | grep "^Completed " | cut -d ' ' -f 2 | grep -vxF "$SHARDED_BACKUP_NAME" | head -n 1)"
 
-  kubectl get secret -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
-    | jq "del(.metadata.ownerReferences) | del(.metadata.labels) | .metadata.name = \"$CLUSTER_NAME-back\"" \
-    | kubectl create -f -
-
   remove_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
-
-  # Remove this when patroni fix citus integration so that superuser password is changed based on PATRONI_SUPERUSER_PASSWORD
-  kubectl get secret -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-back" -o json \
-    | jq ".metadata.name = \"$CLUSTER_NAME\"" \
-    | kubectl create -f -
 
   create_or_replace_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" "2" \
     --set-string cluster.initialData.restore.fromBackup.name="$SHARDED_BACKUP_NAME_FOR_RESTORE"
@@ -234,37 +225,40 @@ check_restore_sharded_backup_is_working() {
 }
 
 create_mock_data() {
-  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "citus" -q "CREATE TABLE fibonacci(num integer, PRIMARY KEY (num));"
-  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "citus" -q "SELECT create_distributed_table('fibonacci', 'num');"
-  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci(num) VALUES (1);"
-  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci(num) VALUES (2);"
-  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci(num) VALUES (3);"
-  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci(num) VALUES (1 + 134217728);"
-  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci(num) VALUES (2 + 134217728);"
-  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci(num) VALUES (3 + 134217728);"
+  wait_until run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "SELECT 1"
+  wait_until run_query -x "$CLUSTER_NAME-shard0-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "SELECT 1"
+  wait_until run_query -x "$CLUSTER_NAME-shard1-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "SELECT 1"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "CREATE TABLE fibonacci(num integer, PRIMARY KEY (num));"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "SELECT ddp_create_vs('public','fibonacci','num',array ['ddp_shard_0','ddp_shard_1']);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (1);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (2);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (3);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (1 - 35791402);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (2 - 35791402);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (3 - 35791402);"
 }
 
 create_more_mock_data() {
-  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci(num) VALUES (5);"
-  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci(num) VALUES (8);"
-  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci(num) VALUES (13);"
-  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci(num) VALUES (5 + 134217728);"
-  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci(num) VALUES (8 + 134217728);"
-  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "citus" -q "INSERT INTO fibonacci(num) VALUES (13 + 134217728);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (5);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (8);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (13);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (5 - 35791402);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (8 - 35791402);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (13 - 35791402);"
 }
 
 rotate_wal_file() {
   local POD
   for POD in "$CLUSTER_NAME-coord-0" "$CLUSTER_NAME-shard0-0" "$CLUSTER_NAME-shard1-0"
   do
-    run_query -x "$POD" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "citus" \
+    run_query -x "$POD" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" \
       -q "SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r" > "$LOG_PATH/$POD-current-wal-file"
-    run_query -x "$POD" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "citus" -q "CHECKPOINT;"
+    run_query -x "$POD" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "CHECKPOINT;"
   done
   for POD in "$CLUSTER_NAME-coord-0" "$CLUSTER_NAME-shard0-0" "$CLUSTER_NAME-shard1-0"
   do
     CURRENT_WAL_FILE="$(cat "$LOG_PATH/$POD-current-wal-file")"
-    wait_until -t "$((E2E_TIMEOUT / 5))" eval '[ "$(run_query -x "$POD" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "citus" \
+    wait_until -t "$((E2E_TIMEOUT / 5))" eval '[ "$(run_query -x "$POD" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" \
       -q "SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r")" != "$CURRENT_WAL_FILE" ]'
     wait_until -t "$((E2E_TIMEOUT / 5))" timeout -s KILL "$((E2E_TIMEOUT / 20))" \
       kubectl exec -n "$CLUSTER_NAMESPACE" "$POD" -c patroni -- \
@@ -274,11 +268,11 @@ rotate_wal_file() {
 
 check_init_data_after_restore() {
   local RESULT
-  RESULT="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "citus" \
+  RESULT="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "ddp" \
     -q "SELECT num FROM fibonacci ORDER BY num;")"
   if printf '%s' "$RESULT" \
     | tr -d '\n' \
-    | grep -q "^1235813134217729134217730134217731134217733134217736134217741$"
+    | grep -q "^-35791401-35791400-35791399-35791397-35791394-357913891235813$"
   then
     echo "SUCCESS: restore primary db restored successfully"
   else
@@ -289,11 +283,11 @@ check_init_data_after_restore() {
 
 check_init_data_after_pitr() {
   local RESULT
-  RESULT="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "citus" \
+  RESULT="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "ddp" \
     -q "SELECT num FROM fibonacci ORDER BY num;")"
   if printf '%s' "$RESULT" \
     | tr -d '\n' \
-    | grep -q "^123134217729134217730134217731$"
+    | grep -q "^-35791401-35791400-35791399123$"
   then
     echo "SUCCESS: restore primary db restored with PITR successfully"
   else
