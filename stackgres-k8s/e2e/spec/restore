@@ -145,9 +145,9 @@ rotate_wal_file() {
   CURRENT_WAL_FILE="$(run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" \
     -q "SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r")"
   run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "CHECKPOINT;"
-  wait_until -t "$((E2E_TIMEOUT / 10))" eval '[ "$(run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" \
+  wait_until -t "$((E2E_TIMEOUT / 5))" eval '[ "$(run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" \
     -q "SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r")" != "$CURRENT_WAL_FILE" ]'
-  wait_until -t "$((E2E_TIMEOUT / 10))" timeout -s KILL "$((E2E_TIMEOUT / 20))" \
+  wait_until -t "$((E2E_TIMEOUT / 5))" timeout -s KILL "$((E2E_TIMEOUT / 20))" \
     kubectl exec -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_CLUSTER_NAME-0" -c patroni -- \
     exec-with-env backup -- wal-g wal-fetch "$CURRENT_WAL_FILE" "/tmp/$CURRENT_WAL_FILE"
 }
