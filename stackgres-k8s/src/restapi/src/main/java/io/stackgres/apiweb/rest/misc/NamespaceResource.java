@@ -16,12 +16,14 @@ import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.common.resource.ResourceWriter;
+import jakarta.annotation.Nullable;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -99,13 +101,14 @@ public class NamespaceResource {
       """)
   @Path("{name}")
   @POST
-  public void create(@PathParam("name") String name) {
+  public void create(@PathParam("name") String name, @Nullable @QueryParam("dryRun") Boolean dryRun) {
     namespaceWriter.create(
         new NamespaceBuilder()
             .withNewMetadata()
             .withName(name)
             .endMetadata()
-            .build());
+            .build(),
+            Optional.ofNullable(dryRun).orElse(false));
   }
 
 }

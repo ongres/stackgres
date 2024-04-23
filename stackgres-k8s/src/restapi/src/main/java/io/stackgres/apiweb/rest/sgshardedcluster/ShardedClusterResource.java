@@ -160,9 +160,7 @@ public class ShardedClusterResource
       """)
   @Override
   public ShardedClusterDto create(ShardedClusterDto resource, @Nullable Boolean dryRun) {
-    if (!Optional.ofNullable(dryRun).orElse(false)) {
-      createOrUpdateScripts(resource);
-    }
+    createOrUpdateScripts(resource, Optional.ofNullable(dryRun).orElse(false));
     return super.create(resource, dryRun);
   }
 
@@ -181,9 +179,7 @@ public class ShardedClusterResource
       """)
   @Override
   public ShardedClusterDto update(ShardedClusterDto resource, @Nullable Boolean dryRun) {
-    if (!Optional.ofNullable(dryRun).orElse(false)) {
-      createOrUpdateScripts(resource);
-    }
+    createOrUpdateScripts(resource, Optional.ofNullable(dryRun).orElse(false));
     return super.update(resource, dryRun);
   }
 
@@ -296,7 +292,7 @@ public class ShardedClusterResource
         .forEach(t -> t.v2.accept(t.v1));
   }
 
-  void createOrUpdateScripts(ShardedClusterDto resource) {
+  void createOrUpdateScripts(ShardedClusterDto resource, boolean dryRun) {
     createOrUpdateScripts(
         resource,
         "coordinator",
@@ -308,7 +304,8 @@ public class ShardedClusterResource
         .map(ClusterManagedSql::getScripts)
         .stream()
         .flatMap(List::stream)
-        .toList());
+        .toList(),
+        dryRun);
     createOrUpdateScripts(
         resource,
         "shards",
@@ -320,14 +317,16 @@ public class ShardedClusterResource
         .map(ClusterManagedSql::getScripts)
         .stream()
         .flatMap(List::stream)
-        .toList());
+        .toList(),
+        dryRun);
     getScriptEntriesForShardsOverride(resource)
         .forEach(override -> createOrUpdateScripts(
             resource,
             "shards override " + (override.v1.intValue() + 1),
             "shard" + override.v1.intValue(),
             "spec.shards.overrides[" + override.v1.intValue() + "]",
-            override.v2));
+            override.v2,
+            dryRun));
   }
 
   void createOrUpdateScripts(
@@ -335,7 +334,8 @@ public class ShardedClusterResource
       String section,
       String prefix,
       String path,
-      List<ClusterManagedScriptEntry> scripts) {
+      List<ClusterManagedScriptEntry> scripts,
+      boolean dryRun) {
     var scriptsToCreate = getScriptsToCreate(resource, prefix, scripts)
         .stream()
         .filter(t -> isNotDefaultScript(t.v2))
@@ -395,25 +395,27 @@ public class ShardedClusterResource
     configMapsToCreate.stream()
         .filter(t -> t.v2.isEmpty())
         .map(Tuple2::v1)
-        .forEach(configMapWriter::create);
+        .forEach(configMap -> configMapWriter.create(configMap, dryRun));
     configMapsToCreate.stream()
         .filter(t -> t.v2.isPresent())
         .map(Tuple2::v1)
-        .forEach(configMapWriter::update);
+        .forEach(configMap -> configMapWriter.update(configMap, dryRun));
     secretsToCreate.stream()
         .filter(t -> t.v2.isEmpty())
         .map(Tuple2::v1)
-        .forEach(secretWriter::create);
+        .forEach(secret -> secretWriter.create(secret, dryRun));
     secretsToCreate.stream()
         .filter(t -> t.v2.isPresent())
         .map(Tuple2::v1)
-        .forEach(secretWriter::update);
+        .forEach(secret -> secretWriter.update(secret, dryRun));
     scriptsToCreate.stream()
         .filter(t -> t.v3.isEmpty())
-        .forEach(t -> addFieldPrefixOnScriptValidationError(path, t.v1, t.v2, scriptScheduler::create));
+        .forEach(t -> addFieldPrefixOnScriptValidationError(
+            path, t.v1, t.v2, script -> scriptScheduler.create(script, dryRun)));
     scriptsToCreate.stream()
         .filter(t -> t.v3.isPresent())
-        .forEach(t -> addFieldPrefixOnScriptValidationError(path, t.v1, t.v2, scriptScheduler::update));
+        .forEach(t -> addFieldPrefixOnScriptValidationError(
+            path, t.v1, t.v2, script -> scriptScheduler.update(script, dryRun)));
   }
 
   boolean isNotDefaultScript(StackGresScript script) {

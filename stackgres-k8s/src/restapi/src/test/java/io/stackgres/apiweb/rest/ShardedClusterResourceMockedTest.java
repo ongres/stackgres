@@ -232,12 +232,12 @@ class ShardedClusterResourceMockedTest extends
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(1)).create(any(), anyBoolean());
     verify(scheduler, times(0)).update(any(), any());
-    verify(scriptScheduler, times(0)).create(any());
-    verify(scriptScheduler, times(0)).update(any());
-    verify(secretWriter, times(0)).create(any());
-    verify(secretWriter, times(0)).update(any());
-    verify(configMapWriter, times(0)).create(any());
-    verify(configMapWriter, times(0)).update(any());
+    verify(scriptScheduler, times(0)).create(any(), anyBoolean());
+    verify(scriptScheduler, times(0)).update(any(), anyBoolean());
+    verify(secretWriter, times(0)).create(any(), anyBoolean());
+    verify(secretWriter, times(0)).update(any(), anyBoolean());
+    verify(configMapWriter, times(0)).create(any(), anyBoolean());
+    verify(configMapWriter, times(0)).update(any(), anyBoolean());
   }
 
   @Test
@@ -251,14 +251,14 @@ class ShardedClusterResourceMockedTest extends
     verify(scanner, times(0)).getResources();
     verify(scanner, times(0)).getResources(any());
     verify(finder, times(1)).findByNameAndNamespace(any(), any());
-    verify(scheduler, times(0)).create(any());
+    verify(scheduler, times(0)).create(any(), anyBoolean());
     verify(scheduler, times(1)).update(any(), any());
-    verify(scriptScheduler, times(0)).create(any());
-    verify(scriptScheduler, times(0)).update(any());
-    verify(secretWriter, times(0)).create(any());
-    verify(secretWriter, times(0)).update(any());
-    verify(configMapWriter, times(0)).create(any());
-    verify(configMapWriter, times(0)).update(any());
+    verify(scriptScheduler, times(0)).create(any(), anyBoolean());
+    verify(scriptScheduler, times(0)).update(any(), anyBoolean());
+    verify(secretWriter, times(0)).create(any(), anyBoolean());
+    verify(secretWriter, times(0)).update(any(), anyBoolean());
+    verify(configMapWriter, times(0)).create(any(), anyBoolean());
+    verify(configMapWriter, times(0)).update(any(), anyBoolean());
   }
 
   @Test
@@ -280,12 +280,12 @@ class ShardedClusterResourceMockedTest extends
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(1)).create(any(), anyBoolean());
     verify(scheduler, times(0)).update(any(), any());
-    verify(scriptScheduler, times(0)).create(any());
-    verify(scriptScheduler, times(1)).update(any());
-    verify(secretWriter, times(0)).create(any());
-    verify(secretWriter, times(0)).update(any());
-    verify(configMapWriter, times(0)).create(any());
-    verify(configMapWriter, times(0)).update(any());
+    verify(scriptScheduler, times(0)).create(any(), anyBoolean());
+    verify(scriptScheduler, times(1)).update(any(), anyBoolean());
+    verify(secretWriter, times(0)).create(any(), anyBoolean());
+    verify(secretWriter, times(0)).update(any(), anyBoolean());
+    verify(configMapWriter, times(0)).create(any(), anyBoolean());
+    verify(configMapWriter, times(0)).update(any(), anyBoolean());
   }
 
   @Test
@@ -304,12 +304,12 @@ class ShardedClusterResourceMockedTest extends
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(1)).create(any(), anyBoolean());
     verify(scheduler, times(0)).update(any(), any());
-    verify(scriptScheduler, times(1)).create(any());
-    verify(scriptScheduler, times(0)).update(any());
-    verify(secretWriter, times(0)).create(any());
-    verify(secretWriter, times(0)).update(any());
-    verify(configMapWriter, times(0)).create(any());
-    verify(configMapWriter, times(0)).update(any());
+    verify(scriptScheduler, times(1)).create(any(), anyBoolean());
+    verify(scriptScheduler, times(0)).update(any(), anyBoolean());
+    verify(secretWriter, times(0)).create(any(), anyBoolean());
+    verify(secretWriter, times(0)).update(any(), anyBoolean());
+    verify(configMapWriter, times(0)).create(any(), anyBoolean());
+    verify(configMapWriter, times(0)).update(any(), anyBoolean());
   }
 
   @Test
@@ -329,12 +329,12 @@ class ShardedClusterResourceMockedTest extends
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(1)).create(any(), anyBoolean());
     verify(scheduler, times(0)).update(any(), any());
-    verify(scriptScheduler, times(1)).create(any());
-    verify(scriptScheduler, times(0)).update(any());
-    verify(secretWriter, times(0)).create(any());
-    verify(secretWriter, times(0)).update(any());
-    verify(configMapWriter, times(0)).create(any());
-    verify(configMapWriter, times(0)).update(any());
+    verify(scriptScheduler, times(1)).create(any(), anyBoolean());
+    verify(scriptScheduler, times(0)).update(any(), anyBoolean());
+    verify(secretWriter, times(0)).create(any(), anyBoolean());
+    verify(secretWriter, times(0)).update(any(), anyBoolean());
+    verify(configMapWriter, times(0)).create(any(), anyBoolean());
+    verify(configMapWriter, times(0)).update(any(), anyBoolean());
   }
 
   @Test
@@ -348,7 +348,7 @@ class ShardedClusterResourceMockedTest extends
 
     ArgumentCaptor<Secret> secretArgument = ArgumentCaptor.forClass(Secret.class);
 
-    verify(secretWriter).create(secretArgument.capture());
+    verify(secretWriter).create(secretArgument.capture(), anyBoolean());
 
     Secret createdSecret = secretArgument.getValue();
     assertEquals(dto.getMetadata().getNamespace(),
@@ -370,12 +370,12 @@ class ShardedClusterResourceMockedTest extends
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(1)).create(any(), anyBoolean());
     verify(scheduler, times(0)).update(any(), any());
-    verify(scriptScheduler, times(1)).create(any());
-    verify(scriptScheduler, times(0)).update(any());
-    verify(secretWriter, times(1)).create(any());
-    verify(secretWriter, times(0)).update(any());
-    verify(configMapWriter, times(0)).create(any());
-    verify(configMapWriter, times(0)).update(any());
+    verify(scriptScheduler, times(1)).create(any(), anyBoolean());
+    verify(scriptScheduler, times(0)).update(any(), anyBoolean());
+    verify(secretWriter, times(1)).create(any(), anyBoolean());
+    verify(secretWriter, times(0)).update(any(), anyBoolean());
+    verify(configMapWriter, times(0)).create(any(), anyBoolean());
+    verify(configMapWriter, times(0)).update(any(), anyBoolean());
   }
 
   @Test
@@ -392,7 +392,7 @@ class ShardedClusterResourceMockedTest extends
 
     ArgumentCaptor<Secret> secretArgument = ArgumentCaptor.forClass(Secret.class);
 
-    verify(secretWriter).update(secretArgument.capture());
+    verify(secretWriter).update(secretArgument.capture(), anyBoolean());
 
     Secret createdSecret = secretArgument.getValue();
     assertEquals(dto.getMetadata().getNamespace(),
@@ -414,12 +414,12 @@ class ShardedClusterResourceMockedTest extends
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(1)).create(any(), anyBoolean());
     verify(scheduler, times(0)).update(any(), any());
-    verify(scriptScheduler, times(1)).create(any());
-    verify(scriptScheduler, times(0)).update(any());
-    verify(secretWriter, times(0)).create(any());
-    verify(secretWriter, times(1)).update(any());
-    verify(configMapWriter, times(0)).create(any());
-    verify(configMapWriter, times(0)).update(any());
+    verify(scriptScheduler, times(1)).create(any(), anyBoolean());
+    verify(scriptScheduler, times(0)).update(any(), anyBoolean());
+    verify(secretWriter, times(0)).create(any(), anyBoolean());
+    verify(secretWriter, times(1)).update(any(), anyBoolean());
+    verify(configMapWriter, times(0)).create(any(), anyBoolean());
+    verify(configMapWriter, times(0)).update(any(), anyBoolean());
   }
 
   @Test
@@ -434,7 +434,7 @@ class ShardedClusterResourceMockedTest extends
 
     ArgumentCaptor<Secret> secretArgument = ArgumentCaptor.forClass(Secret.class);
 
-    verify(secretWriter).create(secretArgument.capture());
+    verify(secretWriter).create(secretArgument.capture(), anyBoolean());
 
     Secret createdSecret = secretArgument.getValue();
     assertEquals(dto.getMetadata().getNamespace(),
@@ -456,12 +456,12 @@ class ShardedClusterResourceMockedTest extends
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(1)).create(any(), anyBoolean());
     verify(scheduler, times(0)).update(any(), any());
-    verify(scriptScheduler, times(1)).create(any());
-    verify(scriptScheduler, times(0)).update(any());
-    verify(secretWriter, times(1)).create(any());
-    verify(secretWriter, times(0)).update(any());
-    verify(configMapWriter, times(0)).create(any());
-    verify(configMapWriter, times(0)).update(any());
+    verify(scriptScheduler, times(1)).create(any(), anyBoolean());
+    verify(scriptScheduler, times(0)).update(any(), anyBoolean());
+    verify(secretWriter, times(1)).create(any(), anyBoolean());
+    verify(secretWriter, times(0)).update(any(), anyBoolean());
+    verify(configMapWriter, times(0)).create(any(), anyBoolean());
+    verify(configMapWriter, times(0)).update(any(), anyBoolean());
   }
 
   @Test
@@ -475,7 +475,7 @@ class ShardedClusterResourceMockedTest extends
 
     ArgumentCaptor<ConfigMap> secretArgument = ArgumentCaptor.forClass(ConfigMap.class);
 
-    verify(configMapWriter).create(secretArgument.capture());
+    verify(configMapWriter).create(secretArgument.capture(), anyBoolean());
 
     ConfigMap createdConfigMap = secretArgument.getValue();
     assertEquals(dto.getMetadata().getNamespace(),
@@ -495,12 +495,12 @@ class ShardedClusterResourceMockedTest extends
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(1)).create(any(), anyBoolean());
     verify(scheduler, times(0)).update(any(), any());
-    verify(scriptScheduler, times(1)).create(any());
-    verify(scriptScheduler, times(0)).update(any());
-    verify(secretWriter, times(0)).create(any());
-    verify(secretWriter, times(0)).update(any());
-    verify(configMapWriter, times(1)).create(any());
-    verify(configMapWriter, times(0)).update(any());
+    verify(scriptScheduler, times(1)).create(any(), anyBoolean());
+    verify(scriptScheduler, times(0)).update(any(), anyBoolean());
+    verify(secretWriter, times(0)).create(any(), anyBoolean());
+    verify(secretWriter, times(0)).update(any(), anyBoolean());
+    verify(configMapWriter, times(1)).create(any(), anyBoolean());
+    verify(configMapWriter, times(0)).update(any(), anyBoolean());
   }
 
   @Test
@@ -517,7 +517,7 @@ class ShardedClusterResourceMockedTest extends
 
     ArgumentCaptor<ConfigMap> secretArgument = ArgumentCaptor.forClass(ConfigMap.class);
 
-    verify(configMapWriter).update(secretArgument.capture());
+    verify(configMapWriter).update(secretArgument.capture(), anyBoolean());
 
     ConfigMap createdConfigMap = secretArgument.getValue();
     assertEquals(dto.getMetadata().getNamespace(),
@@ -537,12 +537,12 @@ class ShardedClusterResourceMockedTest extends
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(1)).create(any(), anyBoolean());
     verify(scheduler, times(0)).update(any(), any());
-    verify(scriptScheduler, times(1)).create(any());
-    verify(scriptScheduler, times(0)).update(any());
-    verify(secretWriter, times(0)).create(any());
-    verify(secretWriter, times(0)).update(any());
-    verify(configMapWriter, times(0)).create(any());
-    verify(configMapWriter, times(1)).update(any());
+    verify(scriptScheduler, times(1)).create(any(), anyBoolean());
+    verify(scriptScheduler, times(0)).update(any(), anyBoolean());
+    verify(secretWriter, times(0)).create(any(), anyBoolean());
+    verify(secretWriter, times(0)).update(any(), anyBoolean());
+    verify(configMapWriter, times(0)).create(any(), anyBoolean());
+    verify(configMapWriter, times(1)).update(any(), anyBoolean());
   }
 
   @Test
@@ -557,7 +557,7 @@ class ShardedClusterResourceMockedTest extends
 
     ArgumentCaptor<ConfigMap> secretArgument = ArgumentCaptor.forClass(ConfigMap.class);
 
-    verify(configMapWriter).create(secretArgument.capture());
+    verify(configMapWriter).create(secretArgument.capture(), anyBoolean());
 
     ConfigMap createdConfigMap = secretArgument.getValue();
     assertEquals(dto.getMetadata().getNamespace(),
@@ -577,12 +577,12 @@ class ShardedClusterResourceMockedTest extends
     verify(finder, times(0)).findByNameAndNamespace(any(), any());
     verify(scheduler, times(1)).create(any(), anyBoolean());
     verify(scheduler, times(0)).update(any(), any());
-    verify(scriptScheduler, times(1)).create(any());
-    verify(scriptScheduler, times(0)).update(any());
-    verify(secretWriter, times(0)).create(any());
-    verify(secretWriter, times(0)).update(any());
-    verify(configMapWriter, times(1)).create(any());
-    verify(configMapWriter, times(0)).update(any());
+    verify(scriptScheduler, times(1)).create(any(), anyBoolean());
+    verify(scriptScheduler, times(0)).update(any(), anyBoolean());
+    verify(secretWriter, times(0)).create(any(), anyBoolean());
+    verify(secretWriter, times(0)).update(any(), anyBoolean());
+    verify(configMapWriter, times(1)).create(any(), anyBoolean());
+    verify(configMapWriter, times(0)).update(any(), anyBoolean());
   }
 
   private ScriptSpec buildInlineScriptSpec() {
