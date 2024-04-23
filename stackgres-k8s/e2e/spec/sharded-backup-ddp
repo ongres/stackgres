@@ -25,11 +25,11 @@ e2e_test_install() {
 
   wait_sharded_backup_is_completed "$SHARDED_BACKUP_NAME"
 
-  rotate_wal_file
+  rotate_wal_file_sharded_cluster
 
   create_more_mock_data
 
-  rotate_wal_file
+  rotate_wal_file_sharded_cluster
 }
 
 e2e_test() {
@@ -247,7 +247,7 @@ create_more_mock_data() {
   run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (13 - 35791402);"
 }
 
-rotate_wal_file() {
+rotate_wal_file_sharded_cluster() {
   local POD
   for POD in "$CLUSTER_NAME-coord-0" "$CLUSTER_NAME-shard0-0" "$CLUSTER_NAME-shard1-0"
   do
