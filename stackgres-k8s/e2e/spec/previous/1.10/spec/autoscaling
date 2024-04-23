@@ -1,0 +1,260 @@
+#!/bin/sh
+
+e2e_test_install() {
+  if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -lt "$(echo "1.23" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  then
+    return
+  fi
+
+  install_metric_server
+  install_keda
+  install_vertical_pod_autoscaler \
+    --set-string updater.extraArgs.in-recommendation-bounds-eviction-lifetime-threshold=2s
+
+  kubectl create namespace "$CLUSTER_NAMESPACE"
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string instanceProfiles[0].name=size-s \
+    --set-string instanceProfiles[0].cpu=500m \
+    --set-string instanceProfiles[0].memory=2Gi \
+    --set nonProductionOptions.disablePatroniResourceRequirements=false \
+    --set nonProductionOptions.disableClusterResourceRequirements=true \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections=104' \
+    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100' \
+    --set-string 'cluster.autoscaling.mode=none'
+
+  deploy_psql_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" 3
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  PGPASSWORD="$(kubectl get secret -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" \
+    --template '{{ (index .data "superuser-password") | base64decode }}')"
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -i -h $CLUSTER_NAME"
+}
+
+e2e_test_uninstall() {
+  if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -lt "$(echo "1.23" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  then
+    return
+  fi
+
+  k8s_async_cleanup_namespace "$CLUSTER_NAMESPACE"
+  k8s_async_cleanup_namespace "$(metric_server_namespace)"
+  k8s_async_cleanup_namespace "$(keda_namespace)"
+  k8s_async_cleanup_namespace "$(vertical_pod_autoscaler_namespace)"
+}
+
+e2e_test() {
+  if [ "$(echo "$K8S_VERSION" | tr . '\n' | head -n 2 | xargs -I @ printf '%05d' @)" \
+      -lt "$(echo "1.23" | tr . '\n' | xargs -I @ printf '%05d' @)" ]
+  then
+    echo "Skipping autoscaling since it is not supported for Kubernetes < 1.23"
+    return
+  fi
+
+  run_test "Checking that autoscaling can be used to scale horizontally" check_horizontal_autoscaling
+
+  run_test "Checking that autoscaling can be user to scale vertically" check_vertical_autoscaling
+
+  # run_test "Checking that autoscaling can be user to scale horizontally and vertically" check_all_autoscaling
+}
+
+check_horizontal_autoscaling() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string instanceProfiles[0].name=size-s \
+    --set-string instanceProfiles[0].cpu=500m \
+    --set-string instanceProfiles[0].memory=2Gi \
+    --set nonProductionOptions.disablePatroniResourceRequirements=false \
+    --set nonProductionOptions.disableClusterResourceRequirements=true \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections=104' \
+    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100' \
+    --set-string 'cluster.autoscaling.mode=horizontal' \
+    --set 'cluster.autoscaling.minInstances=2' \
+    --set 'cluster.autoscaling.maxInstances=3' \
+    --set 'cluster.autoscaling.horizontal.pollingInterval=2' \
+    --set 'cluster.autoscaling.horizontal.cooldownPeriod=2' \
+    --set-string 'cluster.autoscaling.horizontal.replicasConnectionsUsageTarget=0.05'
+
+  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c "PGPASSWORD=$PGPASSWORD psql -h $CLUSTER_NAME-replicas -c 'SELECT 1'"
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c "echo 'SELECT pg_sleep(10)' > /tmp/pgsleep.sql"
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -C -c 10 -j 10 -h $CLUSTER_NAME-replicas -f /tmp/pgsleep.sql" > "$LOG_PATH/horizontal-bench" 2>&1 &
+  BENCH_PID="$!"
+  trap_kill "$BENCH_PID"
+  if wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=replica" -o name \
+    | wc -l | grep -qxF 2'
+  then
+    echo "SUCCESS: KEDA can scale the cluster based on connections"
+  else
+    echo "FAIL: KEDA can not scale the cluster based on connections"
+    kill "$BENCH_PID" || true
+    kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+      -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+    return 1
+  fi
+  kill "$BENCH_PID" || true
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string instanceProfiles[0].name=size-s \
+    --set-string instanceProfiles[0].cpu=500m \
+    --set-string instanceProfiles[0].memory=2Gi \
+    --set nonProductionOptions.disablePatroniResourceRequirements=false \
+    --set nonProductionOptions.disableClusterResourceRequirements=true \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections=104' \
+    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100' \
+    --set-string 'cluster.autoscaling.mode=none'
+  kubectl scale --replicas=2 sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME"
+}
+
+check_vertical_autoscaling() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string instanceProfiles[0].name=size-s \
+    --set-string instanceProfiles[0].cpu=500m \
+    --set-string instanceProfiles[0].memory=2Gi \
+    --set nonProductionOptions.disablePatroniResourceRequirements=false \
+    --set nonProductionOptions.disableClusterResourceRequirements=true \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections=104' \
+    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100' \
+    --set-string 'cluster.autoscaling.mode=vertical' \
+    --set-string 'cluster.autoscaling.minAllowed.patroni.cpu=500m' \
+    --set-string 'cluster.autoscaling.maxAllowed.patroni.cpu=2'
+
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -C -c 10 -j 10 -h $CLUSTER_NAME" > "$LOG_PATH/vertical-bench" 2>&1 &
+  BENCH_PID="$!"
+  trap_kill "$BENCH_PID"
+  cat "$SPEC_PATH/abstract/quantity.jq" > "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq"
+  echo '.items[]|select(.spec.containers|any(.name == "patroni" and (.resources.limits.cpu | quantity) > 0.5))|.metadata.name' \
+    >> "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq"
+  if wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=master" -o json \
+    | jq -f "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq" \
+    | wc -l | grep -qxF 1'
+  then
+    echo "SUCCESS: VerticalPodAutoscaler can scale vertically the primary of the cluster based on CPU"
+  else
+    echo "FAIL: VerticalPodAutoscaler can not scale vertically the primary of the cluster based on CPU"
+    kubectl top pod --containers -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" || true
+    kill "$BENCH_PID" || true
+    kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+      -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+    return 1
+  fi
+  kill "$BENCH_PID" || true
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c "PGPASSWORD=$PGPASSWORD psql -h autoscaling-replicas -c 'SELECT 1'"
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -C -c 10 -j 10 -h $CLUSTER_NAME-replicas -S" >> "$LOG_PATH/vertical-bench-2" 2>&1 &
+  BENCH_PID="$!"
+  trap_kill "$BENCH_PID"
+  if wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=replica" -o json \
+    | jq -f "$LOG_PATH/get-pod-name-with-patroni-container-more-than-500m-cpu.jq" \
+    | wc -l | grep -qxF 1'
+  then
+    echo "SUCCESS: VerticalPodAutoscaler can scale vertically the replicas of the cluster based on CPU"
+  else
+    echo "FAIL: VerticalPodAutoscaler can not scale vertically the replicas of the cluster based on CPU"
+    kubectl top pod --containers -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" || true
+    kill "$BENCH_PID" || true
+    kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+      -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+    return 1
+  fi
+  kill "$BENCH_PID" || true
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string instanceProfiles[0].name=size-s \
+    --set-string instanceProfiles[0].cpu=500m \
+    --set-string instanceProfiles[0].memory=2Gi \
+    --set nonProductionOptions.disablePatroniResourceRequirements=false \
+    --set nonProductionOptions.disableClusterResourceRequirements=true \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections=104' \
+    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100' \
+    --set-string 'cluster.autoscaling.mode=none'
+  kubectl delete pod -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true"
+  cat "$SPEC_PATH/abstract/quantity.jq" > "$LOG_PATH/get-pod-name-with-patroni-container-that-has-500m-cpu.jq"
+  echo '.items[]|select(.spec.containers|any(.name == "patroni" and (.resources.limits.cpu | quantity) == 0.5))|.metadata.name' \
+    >> "$LOG_PATH/get-pod-name-with-patroni-container-that-has-500m-cpu.jq"
+  wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" -o json \
+    | jq -f "$LOG_PATH/get-pod-name-with-patroni-container-that-has-500m-cpu.jq" \
+    | wc -l | grep -qxF 2'
+}
+
+check_all_autoscaling() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string instanceProfiles[0].name=size-s \
+    --set-string instanceProfiles[0].cpu=500m \
+    --set-string instanceProfiles[0].memory=2Gi \
+    --set nonProductionOptions.disablePatroniResourceRequirements=false \
+    --set nonProductionOptions.disableClusterResourceRequirements=true \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections=104' \
+    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100' \
+    --set-string 'cluster.autoscaling.mode=all' \
+    --set 'cluster.autoscaling.minInstances=2' \
+    --set 'cluster.autoscaling.maxInstances=3' \
+    --set 'cluster.autoscaling.horizontal.pollingInterval=2' \
+    --set 'cluster.autoscaling.horizontal.cooldownPeriod=2' \
+    --set-string 'cluster.autoscaling.horizontal.replicasConnectionsUsageTarget=0.05' \
+    --set-string 'cluster.autoscaling.minAllowed.patroni.cpu=500m' \
+    --set-string 'cluster.autoscaling.maxAllowed.patroni.cpu=2'
+
+  wait_until kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c "PGPASSWORD=$PGPASSWORD psql -h $CLUSTER_NAME-replicas -c 'SELECT 1'"
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c "PGPASSWORD=$PGPASSWORD pgbench -T '$((E2E_TIMEOUT * 2))' -C -c 25 -j 25 -h $CLUSTER_NAME-replicas -S" > "$LOG_PATH/all-bench" 2>&1 &
+  BENCH_PID="$!"
+  trap_kill "$BENCH_PID"
+  cat "$SPEC_PATH/abstract/quantity.jq" > "$LOG_PATH/get-pod-name-with-patroni-container-more-than-600m-cpu.jq"
+  echo '.items[]|select(.spec.containers|any(.name == "patroni" and (.resources.limits.cpu | quantity) > 0.6))|.metadata.name' \
+    >> "$LOG_PATH/get-pod-name-with-patroni-container-more-than-600m-cpu.jq"
+  if wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=replica" -o name \
+    | wc -l | grep -qxF 2'
+  then
+    echo "SUCCESS: KEDA can scale the cluster based on connections"
+  else
+    echo "FAIL: KEDA can not scale the cluster based on connections"
+    kill "$BENCH_PID" || true
+    kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+      -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+    return 1
+  fi
+  if wait_until eval 'kubectl get pod -n "$CLUSTER_NAMESPACE" \
+    -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,role=replica" -o json \
+    | jq -f "$LOG_PATH/get-pod-name-with-patroni-container-more-than-600m-cpu.jq" \
+    | wc -l | grep -qxF 2'
+  then
+    echo "SUCCESS: VerticalPodAutoscaler can scale vertically the replicas of the cluster based on CPU"
+  else
+    echo "FAIL: VerticalPodAutoscaler can not scale vertically the replicas of the cluster based on CPU"
+    kubectl top pod --containers -n "$CLUSTER_NAMESPACE" -l "app=StackGresCluster,stackgres.io/cluster-name=$CLUSTER_NAME,stackgres.io/cluster=true" || true
+    kill "$BENCH_PID" || true
+    kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+      -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+    return 1
+  fi
+  kill "$BENCH_PID" || true
+  kubectl exec -n "$CLUSTER_NAMESPACE" psql \
+    -- bash -c 'ps -ef | grep "[p]gbench" | tr -s " " | cut -d " " -f 2 | while read PID; do kill "$PID"; done' || true
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" 2 \
+    --set-string instanceProfiles[0].name=size-s \
+    --set-string instanceProfiles[0].cpu=500m \
+    --set-string instanceProfiles[0].memory=2Gi \
+    --set nonProductionOptions.disablePatroniResourceRequirements=false \
+    --set nonProductionOptions.disableClusterResourceRequirements=true \
+    --set-string 'configurations.postgresconfig.postgresql\.conf.max_connections=104' \
+    --set-string 'configurations.poolingconfig.pgBouncer.pgbouncer\.ini.default_pool_size=100' \
+    --set-string 'cluster.autoscaling.mode=none'
+}

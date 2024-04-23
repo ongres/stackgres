@@ -99,8 +99,8 @@ EOF
   kubectl delete sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME"
   kubectl create -f "$LOG_PATH/sgdbops.yaml"
 
-  if [ "$(kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --template "{{ .spec.majorVersionUpgrade.backupPath }}")" \
-    = "sgbackups.stackgres.io/$CLUSTER_NAMESPACE/$CLUSTER_NAME/${E2E_MAJOR_TARGET_POSTGRES_VERSION%.*}" ]
+  if kubectl get sgdbops -n "$CLUSTER_NAMESPACE" "$DBOPS_NAME" --template "{{ .spec.majorVersionUpgrade.backupPath }}" \
+    | grep -q "^sgbackups\.stackgres\.io/$CLUSTER_NAMESPACE/$CLUSTER_NAME/[^/]\+/${E2E_MAJOR_TARGET_POSTGRES_VERSION%.*}$"
   then
     echo "SUCCESS. DbOps path was added to spec"
   else
@@ -110,8 +110,8 @@ EOF
 
   check_major_version_upgrade
 
-  if [ "$(kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath='{ .spec.configurations.backups[0].path }')" \
-    = "sgbackups.stackgres.io/$CLUSTER_NAMESPACE/$CLUSTER_NAME/${E2E_MAJOR_TARGET_POSTGRES_VERSION%.*}" ]
+  if kubectl get sgcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o=jsonpath='{ .spec.configurations.backups[0].path }' \
+    | grep -q "^sgbackups\.stackgres\.io/$CLUSTER_NAMESPACE/$CLUSTER_NAME/[^/]\+/${E2E_MAJOR_TARGET_POSTGRES_VERSION%.*}$"
   then
     echo "SUCCESS. Backup path was added to cluster backup configuration after major version upgrade"
   else

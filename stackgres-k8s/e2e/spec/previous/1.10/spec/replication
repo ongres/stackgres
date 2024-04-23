@@ -1,0 +1,229 @@
+#!/bin/sh
+
+. "$SPEC_PATH/abstract/metrics"
+
+e2e_test_extra_hash() {
+  "$SHELL" "$PROJECT_PATH/stackgres-k8s/ci/build/build-functions.sh" path_hash \
+    "$(realpath --relative-to "$PROJECT_PATH" "$SPEC_PATH/abstract/metrics")"
+}
+
+e2e_test_install() {
+  BACKUP_NAME="$(get_sgbackup_name "${SPEC_NAME}")"
+
+  install_minio
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
+    --set-string cluster.replication.initialization.mode=FromPrimary
+
+  deploy_curl_pod "$CLUSTER_NAMESPACE"
+
+  wait_pods_running "$CLUSTER_NAMESPACE" "4"
+  wait_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+}
+
+e2e_test() {
+  run_test "Checking that replication is working" check_replication_is_working
+
+  run_test "Checking that replication is working from replica" check_replication_is_working_from_replica
+
+  run_test "Checking that replication is working from backup" check_replication_is_working_from_backup
+
+  run_test "Checking that replication is working from newly created backup" check_replication_is_working_from_newly_created_backup
+
+  run_test "Checking that metrics are exported" check_metrics
+}
+
+check_replication_is_working() {
+  wait_until check_connectivity -i 0
+
+  local SYNCHRONOUS_STANDBY_NAMES
+  SYNCHRONOUS_STANDBY_NAMES="$(kubectl exec -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-0" -c postgres-util -- \
+    psql -At -c 'SHOW synchronous_standby_names')"
+  if echo "$SYNCHRONOUS_STANDBY_NAMES" | grep -q '^$'
+  then
+    echo "SUCCESS: async replication is set for primary"
+  else
+    echo "FAIL: async replication is not set for primary"
+    return 1
+  fi
+
+  local RESULT EXIT_CODE
+  try_function run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE DATABASE test;"
+  if "$RESULT"
+  then
+    echo "SUCCESS: It's possible to create a database in the primary node"
+  else
+    echo "FAIL: It should be possible to create a database in the primary node" 
+    return 1
+  fi
+
+  wait_until check_connectivity -i 1
+  try_function run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "CREATE TABLE fibonacci(num integer);" -d test > "${LOG_PATH}/test1.log"
+  if "$RESULT"
+  then
+    echo "FAIL: It's possible to create a table in the replica node"
+    return 1
+  else
+    echo "SUCCESS: Good it is not possible to create a table in the replica node" 
+  fi
+
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "CREATE TABLE fibonacci(num integer);" -d test
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "INSERT INTO fibonacci(num) VALUES (1);" -d test
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "INSERT INTO fibonacci(num) VALUES (2);" -d test
+  run_query -p 5432 -h "$CLUSTER_NAME" -i 1 -q "INSERT INTO fibonacci(num) VALUES (3);" -d test
+
+  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
+
+  if [ "$(echo "$PRIMARY_RESPONSE" | tr -d '\n')" = "123" ]
+  then
+    echo "SUCCESS: inserts on the primary where sucessful."
+  else
+    echo "FAIL: inserts on the primary where not sucessful."
+    return 1
+  fi
+
+  try_function wait_until eval '
+    REPLICA_RESPONSE="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
+    [ "$(echo "$PRIMARY_RESPONSE" | tr -d "\n")" = "$(echo "$REPLICA_RESPONSE" | tr -d "\n")" ]
+    '
+  if "$RESULT"
+  then
+    echo "SUCCESS: replication is working"
+  else
+    echo "FAIL: replication is not working. The records don't match between primary and replica for the fibonacci table"
+    return 1
+  fi
+
+  if kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c patroni | grep -q "^[^ ]\+ [^ ]\+ INFO: replica has been created using basebackup$"
+  then
+    echo "SUCCESS: replication has bootstrapped from basebackup"
+  else
+    kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c patroni | grep "^[^ ]\+ [^ ]\+ INFO: replica has been created using" || true
+    echo
+    echo "FAIL: replication has not bootstrapped from basebackup"
+    return 1
+  fi
+}
+
+check_replication_is_working_from_replica() {
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" \
+    --set-string cluster.replication.initialization.mode=FromReplica
+
+  wait_pods_running "$CLUSTER_NAMESPACE" "3" "$CLUSTER_NAME-[0-9]"
+
+  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
+  try_function wait_until eval '
+    REPLICA_RESPONSE="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
+    [ "$(echo "$PRIMARY_RESPONSE" | tr -d "\n")" = "$(echo "$REPLICA_RESPONSE" | tr -d "\n")" ]
+    '
+  if "$RESULT"
+  then
+    echo "SUCCESS: replication is working"
+  else
+    echo "FAIL: replication is not working. The records don't match between primary and replica for the fibonacci table"
+    return 1
+  fi
+
+  if kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2" -c patroni | grep -q "^[^ ]\+ [^ ]\+ INFO: replica has been created using replica_basebackup$"
+  then
+    echo "SUCCESS: replication has bootstrapped from replica_basebackup"
+  else
+    kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-2" -c patroni | grep "^[^ ]\+ [^ ]\+ INFO: replica has been created using" || true
+    echo
+    echo "FAIL: replication has not bootstrapped from replica_basebackup"
+    return 1
+  fi
+}
+
+check_replication_is_working_from_backup() {
+  cat << EOF | kubectl create -f -
+apiVersion: stackgres.io/v1
+kind: SGBackup
+metadata:
+  namespace: $CLUSTER_NAMESPACE
+  name: $BACKUP_NAME
+spec:
+  sgCluster: $CLUSTER_NAME
+EOF
+  wait_until eval 'kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o json \
+    | jq ".status.process.status" -r | grep -qxF Completed'
+
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
+    --set-string cluster.replication.initialization.mode=FromExistingBackup
+  wait_pods_terminated "$CLUSTER_NAMESPACE" "5"
+  wait_until kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-replication-init" -o json \
+    | jq '.data.REPLICATION_INITIALIZATION_BACKUP' -r \
+    | grep -q .
+
+  kubectl delete -n "$CLUSTER_NAMESPACE" pvc/"$CLUSTER_NAME-data-$CLUSTER_NAME-1" pod/"$CLUSTER_NAME-1" --wait=false
+  wait_pods_running "$CLUSTER_NAMESPACE" "2" "$CLUSTER_NAME-[0-9]"
+
+  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
+  try_function wait_until eval '
+    REPLICA_RESPONSE="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
+    [ "$(echo "$PRIMARY_RESPONSE" | tr -d "\n")" = "$(echo "$REPLICA_RESPONSE" | tr -d "\n")" ]
+    '
+  if "$RESULT"
+  then
+    echo "SUCCESS: replication is working"
+  else
+    echo "FAIL: replication is not working. The records don't match between primary and replica for the fibonacci table"
+    return 1
+  fi
+
+  if kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c patroni | grep -q "^[^ ]\+ [^ ]\+ INFO: replica has been created using backup$"
+  then
+    echo "SUCCESS: replication has bootstrapped from backup"
+  else
+    kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c patroni | grep "^[^ ]\+ [^ ]\+ INFO: replica has been created using" || true
+    echo
+    echo "FAIL: replication has not bootstrapped from backup"
+    return 1
+  fi
+}
+
+check_replication_is_working_from_newly_created_backup() {
+  BACKUP_END_TIMESTAMP="$(kubectl get sgbackup -n "$CLUSTER_NAMESPACE" "$BACKUP_NAME" -o json \
+    | jq '.status.process.timing.end' -r \
+    | date -d "$(cat)" +%s)"
+  NOW="$(date +%s)"
+  create_or_replace_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "2" \
+    --set-string cluster.replication.initialization.mode=FromNewlyCreatedBackup \
+    --set-string cluster.replication.initialization.backupNewerThan="PT$(( NOW - BACKUP_END_TIMESTAMP ))S"
+
+  kubectl delete -n "$CLUSTER_NAMESPACE" pvc/"$CLUSTER_NAME-data-$CLUSTER_NAME-1" pod/"$CLUSTER_NAME-1" --wait=false
+  wait_pods_running "$CLUSTER_NAMESPACE" "2" "$CLUSTER_NAME-[0-9]"
+
+  PRIMARY_RESPONSE="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
+  try_function wait_until eval '
+    REPLICA_RESPONSE="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -q "SELECT num FROM fibonacci ORDER BY num;" -d "test")"
+    [ "$(echo "$PRIMARY_RESPONSE" | tr -d "\n")" = "$(echo "$REPLICA_RESPONSE" | tr -d "\n")" ]
+    '
+  if "$RESULT"
+  then
+    echo "SUCCESS: replication is working"
+  else
+    echo "FAIL: replication is not working. The records don't match between primary and replica for the fibonacci table"
+    return 1
+  fi
+
+  if kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c patroni | grep -q "^[^ ]\+ [^ ]\+ INFO: replica has been created using backup$"
+  then
+    echo "SUCCESS: replication has bootstrapped from backup"
+  else
+    kubectl logs -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-1" -c patroni | grep "^[^ ]\+ [^ ]\+ INFO: replica has been created using" || true
+    echo
+    echo "FAIL: replication has not bootstrapped from backup"
+    return 1
+  fi
+
+  if kubectl get configmap -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-replication-init" -o json \
+    | jq '.data.REPLICATION_INITIALIZATION_BACKUP' -r \
+    | grep -qxF "$CLUSTER_NAME"
+  then
+    echo "FAIL: replication has not bootstrapped from newly created backup"
+    return 1
+  else
+    echo "SUCCESS: replication has bootstrapped from newly created backup"
+  fi
+}

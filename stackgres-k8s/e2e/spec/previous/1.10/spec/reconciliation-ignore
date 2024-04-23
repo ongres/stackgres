@@ -160,15 +160,15 @@ resume_sgdistributedlogs_reconciliation(){
 }
 
 has_logs_generated_resources(){
-  wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME"
+  kubectl get sts -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME"
 }
 
 get_cluster_replicas() {
-  wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.replicas}'
+  kubectl get sts -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o jsonpath='{.spec.replicas}'
 }
 
 get_sgdistributedlogs_replicas() {
-  wait_until kubectl get sts -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o jsonpath='{.spec.replicas}'
+  kubectl get sts -n "$CLUSTER_NAMESPACE" "$DISTRIBUTEDLOGS_NAME" -o jsonpath='{.spec.replicas}'
 }
 
 patch_sgcluster_instances(){
