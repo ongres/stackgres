@@ -54,10 +54,24 @@ check_operator_upgrade() {
 
 check_operator_delete() {
   delete_operator_only
+
+
+  for app in operator restapi; do
+    if wait_until eval 'kubectl get -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}" -o name | wc -l | grep -qxF 0'
+    then
+      echo "SUCCESS. Deployment 'stackgres-${app}' was deleted."
+    else
+      echo "FAILED. Deployment 'stackgres-${app}' was not deleted."
+    fi
+  done
 }
 
 check_operator_install_outside() {
   delete_operator_only
+
+  for app in operator restapi; do
+    wait_until eval 'kubectl get -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}" -o name | wc -l | grep -qxF 0'
+  done
 
   install_operator_only --set-string service.type=NodePort --set service.nodePort=31111
 
@@ -67,6 +81,10 @@ check_operator_install_outside() {
 check_operator_install_load_balancer() {
   delete_operator_only
 
+  for app in operator restapi; do
+    wait_until eval 'kubectl get -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}" -o name | wc -l | grep -qxF 0'
+  done
+
   install_operator_only --set service.loadBalancer.enabled=true
 
   check_operator_installed
@@ -74,6 +92,10 @@ check_operator_install_load_balancer() {
 
 check_operator_install_with_wait() {
   delete_operator_only
+
+  for app in operator restapi; do
+    wait_until eval 'kubectl get -n "$OPERATOR_NAMESPACE" "deployment/stackgres-${app}" -o name | wc -l | grep -qxF 0'
+  done
 
   install_operator_only  --wait
 

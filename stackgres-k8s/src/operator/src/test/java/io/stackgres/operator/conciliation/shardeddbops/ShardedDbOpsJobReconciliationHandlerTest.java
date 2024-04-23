@@ -36,7 +36,6 @@ import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.fixture.Fixtures;
-import io.stackgres.common.labels.LabelFactoryForShardedDbOps;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.testutil.StringUtils;
@@ -62,9 +61,6 @@ class ShardedDbOpsJobReconciliationHandlerTest {
   private ShardedDbOpsDefaultReconciliationHandler defaultHandler;
 
   @Mock
-  private LabelFactoryForShardedDbOps labelFactory;
-
-  @Mock
   private ResourceScanner<Pod> podScanner;
 
   @Mock
@@ -83,7 +79,7 @@ class ShardedDbOpsJobReconciliationHandlerTest {
   @BeforeEach
   void setUp() {
     handler = new ShardedDbOpsJobReconciliationHandler(
-        defaultHandler, labelFactory, jobFinder, podScanner);
+        defaultHandler, jobFinder, podScanner);
     requiredJob = Fixtures.job().loadRequired().get();
 
     dbOps = new StackGresShardedDbOps();
@@ -181,12 +177,11 @@ class ShardedDbOpsJobReconciliationHandlerTest {
         .map(t -> t.map1(pod -> pod.getMetadata().getName()))
         .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2));
 
-    when(defaultHandler.replace(any(), any(Job.class))).thenReturn(requiredJob);
+    when(defaultHandler.replace(any(), any(Job.class))).thenReturn(deployedJob);
 
     handler.patch(dbOps, requiredJob, deployedJob);
 
     verify(defaultHandler, times(1)).replace(any(), any(Job.class));
-
     verify(defaultHandler, times(1)).patch(any(), any(Pod.class), any());
     ArgumentCaptor<HasMetadata> podArgumentCaptor = ArgumentCaptor.forClass(HasMetadata.class);
     verify(defaultHandler, atLeastOnce()).patch(any(), podArgumentCaptor.capture(), any());
@@ -241,7 +236,7 @@ class ShardedDbOpsJobReconciliationHandlerTest {
 
   private void addPod() {
     final Map<String, String> podLabels = new HashMap<>(
-        requiredJob.getSpec().getTemplate().getMetadata().getLabels());
+        deployedJob.getSpec().getSelector().getMatchLabels());
     podList.add(new PodBuilder()
         .withNewMetadata()
         .withGenerateName(requiredJob.getMetadata().getName() + "-")

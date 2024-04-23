@@ -129,7 +129,7 @@ public class PatroniBackupFailoverRestartReconciliator {
             pvcWriter.delete(new PersistentVolumeClaimBuilder()
                 .withNewMetadata()
                 .withNamespace(context.getCluster().getMetadata().getNamespace())
-                .withName(StackGresUtil.statefulSetDataPersistentVolumeName(context.getCluster()) + "-" + podName)
+                .withName(StackGresUtil.statefulSetDataPersistentVolumeClaimName(context.getCluster()) + "-" + podName)
                 .endMetadata()
                 .build());
           } catch (KubernetesClientException ex) {

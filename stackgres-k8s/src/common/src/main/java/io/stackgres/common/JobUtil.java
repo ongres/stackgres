@@ -6,10 +6,13 @@
 package io.stackgres.common;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
+import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobCondition;
+import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
 
 public interface JobUtil {
@@ -45,6 +48,13 @@ public interface JobUtil {
         .map(Job::getStatus)
         .map(JobStatus::getActive)
         .map(active -> active > 0);
+  }
+
+  static Optional<Map<String, String>> getJobPodsMatchLabels(Job job) {
+    return Optional.ofNullable(job)
+        .map(Job::getSpec)
+        .map(JobSpec::getSelector)
+        .map(LabelSelector::getMatchLabels);
   }
 
 }

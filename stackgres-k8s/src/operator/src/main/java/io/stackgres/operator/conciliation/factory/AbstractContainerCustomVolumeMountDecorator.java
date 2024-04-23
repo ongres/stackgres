@@ -55,6 +55,10 @@ public abstract class AbstractContainerCustomVolumeMountDecorator {
         .filter(entry -> Objects.equals(
             container.getName(),
             getKind().getName(entry.getKey())))
+        .flatMap(entry -> Optional.ofNullable(entry.getValue())
+            .stream()
+            .flatMap(List::stream)
+            .map(value -> Map.entry(entry.getKey(), value)))
         .forEach(entry -> setCustomVolumeMount(
             podSpecSupplier, container, entry));
   }
@@ -71,6 +75,10 @@ public abstract class AbstractContainerCustomVolumeMountDecorator {
         .filter(entry -> Objects.equals(
             container.getName(),
             getKind().getName(entry.getKey())))
+        .flatMap(entry -> Optional.ofNullable(entry.getValue())
+            .stream()
+            .flatMap(List::stream)
+            .map(value -> Map.entry(entry.getKey(), value)))
         .forEach(entry -> setCustomVolumeMount(
             podSpecSupplier, container, entry));
   }

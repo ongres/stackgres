@@ -57,7 +57,9 @@ public class DefaultBackupPathsMutator implements ShardedClusterMutator {
                 .map(StackGresShardedClusterBackupConfiguration::getPaths)
                 .orElseGet(() -> getDefaultBackupPaths(resource));
             backup.v1.setPaths(backupsPaths);
-          } else if (backup.v1.getPaths().size() < getNumberOfClusters(resource)) {
+          } 
+          
+          if (backup.v1.getPaths().size() < getNumberOfClusters(resource)) {
             final List<String> backupsPaths = getDefaultBackupPaths(resource);
             backup.v1.setPaths(Seq.seq(backup.v1.getPaths())
                 .append(backupsPaths.stream().skip(backup.v1.getPaths().size()))
