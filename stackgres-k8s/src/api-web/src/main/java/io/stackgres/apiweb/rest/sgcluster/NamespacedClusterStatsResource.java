@@ -3,14 +3,11 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.rest.cluster;
-
-import java.util.List;
+package io.stackgres.apiweb.rest.sgcluster;
 
 import io.quarkus.security.Authenticated;
+import io.stackgres.apiweb.dto.cluster.ClusterStatsDto;
 import io.stackgres.apiweb.exception.ErrorResponse;
-import io.stackgres.common.StackGresUtil;
-import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.CustomResourceFinder;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
@@ -19,7 +16,6 @@ import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import org.eclipse.microprofile.openapi.annotations.Operation;
-import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
@@ -45,38 +41,40 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
     content = {@Content(
         mediaType = "application/json",
         schema = @Schema(implementation = ErrorResponse.class))})
-public class NamespacedClusterPostgresVersionResource {
+public class NamespacedClusterStatsResource {
 
-  private final CustomResourceFinder<StackGresCluster> clusterFinder;
+  private final CustomResourceFinder<ClusterStatsDto> clusterResourceStatsFinder;
 
   @Inject
-  public NamespacedClusterPostgresVersionResource(
-      CustomResourceFinder<StackGresCluster> clusterFinder) {
-    this.clusterFinder = clusterFinder;
+  public NamespacedClusterStatsResource(
+      CustomResourceFinder<ClusterStatsDto> clusterResourceStatsFinder) {
+    this.clusterResourceStatsFinder = clusterResourceStatsFinder;
   }
 
+  /**
+   * Return a {@code ClusterStatus}.
+   */
   @APIResponse(responseCode = "200", description = "OK",
       content = {@Content(
           mediaType = "application/json",
-          schema = @Schema(type = SchemaType.ARRAY, implementation = String.class))})
-  @Operation(summary = "Get versions available for an already existing sgcluster", description = """
-      Get versions available for an already existing sgcluster taking into account the version
-       set.
+          schema = @Schema(implementation = ClusterStatsDto.class))})
+  @Operation(summary = "Get a sgcluster's stats", description = """
+      Get a sgcluster's stats.
 
       ### RBAC permissions required
 
-      * sgcluster get
+      * sgclusters get
+      * pod list
+      * services list
+      * pod/exec create
+      * persistentvolume list
       """)
   @GET
-  @Path("{name}/version/postgresql")
-  public List<String> list(@PathParam("namespace") String namespace,
+  @Path("{name}/stats")
+  public ClusterStatsDto stats(@PathParam("namespace") String namespace,
       @PathParam("name") String name) {
-    var cluster = clusterFinder.findByNameAndNamespace(name, namespace)
+    return clusterResourceStatsFinder.findByNameAndNamespace(name, namespace)
         .orElseThrow(NotFoundException::new);
-    return StackGresUtil.getPostgresFlavorComponent(cluster)
-        .get(cluster)
-        .streamOrderedVersions()
-        .toList();
   }
 
 }

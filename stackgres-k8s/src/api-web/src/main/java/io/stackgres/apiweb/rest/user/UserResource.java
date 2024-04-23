@@ -173,16 +173,16 @@ public class UserResource {
         Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
     var clusterRoleBindings = clusterRoleBindingScanner.getResourcesWithLabels(
         Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
-    if (!Optional.ofNullable(dryRun).orElse(false)) {
-      Optional.ofNullable(resource.getRoles()).stream()
-          .flatMap(List::stream)
-          .forEach(userRoleRef -> setRoleBinding(
-              resource, userRoleRef, roleBindings));
-      Optional.ofNullable(resource.getClusterRoles()).stream()
-          .flatMap(List::stream)
-          .forEach(userRoleRef -> setClusterRoleBinding(
-              resource, userRoleRef, clusterRoleBindings));
-    }
+    Optional.ofNullable(resource.getRoles()).stream()
+        .flatMap(List::stream)
+        .forEach(userRoleRef -> setRoleBinding(
+            resource, userRoleRef, roleBindings,
+            Optional.ofNullable(dryRun).orElse(false)));
+    Optional.ofNullable(resource.getClusterRoles()).stream()
+        .flatMap(List::stream)
+        .forEach(userRoleRef -> setClusterRoleBinding(
+            resource, userRoleRef, clusterRoleBindings,
+            Optional.ofNullable(dryRun).orElse(false)));
     return transformer.toDto(writer
         .create(
             transformer.toCustomResource(resource, null),
@@ -224,11 +224,13 @@ public class UserResource {
       Optional.ofNullable(foundResource.getRoles()).stream()
           .flatMap(List::stream)
           .forEach(userRoleRef -> unsetRoleBinding(
-              foundResource, userRoleRef, roleBindings));
+              foundResource, userRoleRef, roleBindings,
+              Optional.ofNullable(dryRun).orElse(false)));
       Optional.ofNullable(foundResource.getClusterRoles()).stream()
           .flatMap(List::stream)
           .forEach(userRoleRef -> unsetClusterRoleBinding(
-              foundResource, userRoleRef, clusterRoleBindings));
+              foundResource, userRoleRef, clusterRoleBindings,
+              Optional.ofNullable(dryRun).orElse(false)));
     }
   }
 
@@ -266,37 +268,39 @@ public class UserResource {
         finder.findByNameAndNamespace(
             resource.getMetadata().getName(), resource.getMetadata().getNamespace())
             .orElseThrow(NotFoundException::new));
-    if (!Optional.ofNullable(dryRun).orElse(false)) {
-      var foundResource = finder.findByNameAndNamespace(
-          resource.getMetadata().getName(),
-          resource.getMetadata().getNamespace())
-          .map(found -> transformer.toDto(found, roleBindings, clusterRoleBindings))
-          .orElse(null);
-      if (foundResource != null) {
-        Optional.ofNullable(resource.getRoles()).stream()
-            .flatMap(List::stream)
-            .forEach(userRoleRef -> setRoleBinding(
-                resource, userRoleRef, roleBindings));
-        Optional.ofNullable(resource.getClusterRoles()).stream()
-            .flatMap(List::stream)
-            .forEach(userRoleRef -> setClusterRoleBinding(
-                resource, userRoleRef, clusterRoleBindings));
-        Optional.ofNullable(foundResource.getRoles()).stream()
-            .flatMap(List::stream)
-            .filter(foundUserRoleRef -> Optional.ofNullable(resource.getRoles()).stream()
-                .flatMap(List::stream)
-                .noneMatch(userRoleRef -> userRoleRef.getName().equals(foundUserRoleRef.getName())
-                    && userRoleRef.getNamespace().equals(foundUserRoleRef.getNamespace())))
-            .forEach(removedUserRoleRef -> unsetRoleBinding(
-                resource, removedUserRoleRef, roleBindings));
-        Optional.ofNullable(foundResource.getClusterRoles()).stream()
-            .flatMap(List::stream)
-            .filter(foundUserRoleRef -> Optional.ofNullable(resource.getClusterRoles()).stream()
-                .flatMap(List::stream)
-                .noneMatch(userRoleRef -> userRoleRef.getName().equals(foundUserRoleRef.getName())))
-            .forEach(removedUserRoleRef -> unsetClusterRoleBinding(
-                resource, removedUserRoleRef, clusterRoleBindings));
-      }
+    var foundResource = finder.findByNameAndNamespace(
+        resource.getMetadata().getName(),
+        resource.getMetadata().getNamespace())
+        .map(found -> transformer.toDto(found, roleBindings, clusterRoleBindings))
+        .orElse(null);
+    if (foundResource != null) {
+      Optional.ofNullable(resource.getRoles()).stream()
+          .flatMap(List::stream)
+          .forEach(userRoleRef -> setRoleBinding(
+              resource, userRoleRef, roleBindings,
+              Optional.ofNullable(dryRun).orElse(false)));
+      Optional.ofNullable(resource.getClusterRoles()).stream()
+          .flatMap(List::stream)
+          .forEach(userRoleRef -> setClusterRoleBinding(
+              resource, userRoleRef, clusterRoleBindings,
+              Optional.ofNullable(dryRun).orElse(false)));
+      Optional.ofNullable(foundResource.getRoles()).stream()
+          .flatMap(List::stream)
+          .filter(foundUserRoleRef -> Optional.ofNullable(resource.getRoles()).stream()
+              .flatMap(List::stream)
+              .noneMatch(userRoleRef -> userRoleRef.getName().equals(foundUserRoleRef.getName())
+                  && userRoleRef.getNamespace().equals(foundUserRoleRef.getNamespace())))
+          .forEach(removedUserRoleRef -> unsetRoleBinding(
+              resource, removedUserRoleRef, roleBindings,
+              Optional.ofNullable(dryRun).orElse(false)));
+      Optional.ofNullable(foundResource.getClusterRoles()).stream()
+          .flatMap(List::stream)
+          .filter(foundUserRoleRef -> Optional.ofNullable(resource.getClusterRoles()).stream()
+              .flatMap(List::stream)
+              .noneMatch(userRoleRef -> userRoleRef.getName().equals(foundUserRoleRef.getName())))
+          .forEach(removedUserRoleRef -> unsetClusterRoleBinding(
+              resource, removedUserRoleRef, clusterRoleBindings,
+              Optional.ofNullable(dryRun).orElse(false)));
     }
     if (Optional.ofNullable(dryRun).orElse(false)) {
       return transformer.toDto(
@@ -318,7 +322,7 @@ public class UserResource {
   }
 
   private void setRoleBinding(
-      UserDto user, UserRoleRef userRoleRef, List<RoleBinding> roleBindings) {
+      UserDto user, UserRoleRef userRoleRef, List<RoleBinding> roleBindings, boolean dryRun) {
     String namespace = userRoleRef.getNamespace();
     Subject userSubject = user.getSubject();
     if (roleBindings.stream()
@@ -338,13 +342,13 @@ public class UserResource {
         .build();
     if (roleBindings.stream()
         .anyMatch(roleBinding -> roleBinding.getMetadata().getName().equals(name))) {
-      roleBindingWriter.update(userRoleBinding);
+      roleBindingWriter.update(userRoleBinding, dryRun);
     } else {
       try {
-        roleBindingWriter.create(userRoleBinding);
+        roleBindingWriter.create(userRoleBinding, dryRun);
       } catch (KubernetesClientException ex) {
         if (ex.getCode() == 409) {
-          roleBindingWriter.update(userRoleBinding);
+          roleBindingWriter.update(userRoleBinding, dryRun);
         } else {
           throw ex;
         }
@@ -354,7 +358,7 @@ public class UserResource {
   }
 
   private void unsetRoleBinding(
-      UserDto user, UserRoleRef roleRef, List<RoleBinding> roleBindings) {
+      UserDto user, UserRoleRef roleRef, List<RoleBinding> roleBindings, boolean dryRun) {
     String namespace = roleRef.getNamespace();
     Subject userSubject = user.getSubject();
     if (roleBindings.stream()
@@ -370,13 +374,13 @@ public class UserResource {
         .forEach(roleBinding -> {
           if (roleBinding.getSubjects().size() == 1) {
             roleBindings.remove(roleBinding);
-            roleBindingWriter.delete(roleBinding);
+            roleBindingWriter.delete(roleBinding, dryRun);
           } else {
             roleBinding.setSubjects(new ArrayList<>(
                 roleBinding.getSubjects().stream()
                     .filter(userSubject::equals)
                     .toList()));
-            roleBindingWriter.update(roleBinding);
+            roleBindingWriter.update(roleBinding, dryRun);
           }
         });
   }
@@ -404,7 +408,7 @@ public class UserResource {
   }
 
   private void setClusterRoleBinding(
-      UserDto user, UserRoleRef roleRef, List<ClusterRoleBinding> clusterRoleBindings) {
+      UserDto user, UserRoleRef roleRef, List<ClusterRoleBinding> clusterRoleBindings, boolean dryRun) {
     Subject userSubject = user.getSubject();
     if (clusterRoleBindings.stream()
         .anyMatch(clusterRoleBinding -> clusterRoleMatchUserRoleRef(
@@ -422,13 +426,13 @@ public class UserResource {
         .build();
     if (clusterRoleBindings.stream()
         .anyMatch(clusterRoleBinding -> clusterRoleBinding.getMetadata().getName().equals(name))) {
-      clusterRoleBindingWriter.update(userClusterRoleBinding);
+      clusterRoleBindingWriter.update(userClusterRoleBinding, dryRun);
     } else {
       try {
-        clusterRoleBindingWriter.create(userClusterRoleBinding);
+        clusterRoleBindingWriter.create(userClusterRoleBinding, dryRun);
       } catch (KubernetesClientException ex) {
         if (ex.getCode() == 409) {
-          clusterRoleBindingWriter.update(userClusterRoleBinding);
+          clusterRoleBindingWriter.update(userClusterRoleBinding, dryRun);
         } else {
           throw ex;
         }
@@ -438,7 +442,7 @@ public class UserResource {
   }
 
   private void unsetClusterRoleBinding(
-      UserDto user, UserRoleRef roleRef, List<ClusterRoleBinding> clusterRoleBindings) {
+      UserDto user, UserRoleRef roleRef, List<ClusterRoleBinding> clusterRoleBindings, boolean dryRun) {
     Subject userSubject = user.getSubject();
     if (clusterRoleBindings.stream()
         .noneMatch(clusterRoleBinding -> clusterRoleMatchUserRoleRef(
@@ -453,13 +457,13 @@ public class UserResource {
         .forEach(clusterRoleBinding -> {
           if (clusterRoleBinding.getSubjects().size() == 1) {
             clusterRoleBindings.remove(clusterRoleBinding);
-            clusterRoleBindingWriter.delete(clusterRoleBinding);
+            clusterRoleBindingWriter.delete(clusterRoleBinding, dryRun);
           } else {
             clusterRoleBinding.setSubjects(new ArrayList<>(
                 clusterRoleBinding.getSubjects().stream()
                     .filter(userSubject::equals)
                     .toList()));
-            clusterRoleBindingWriter.update(clusterRoleBinding);
+            clusterRoleBindingWriter.update(clusterRoleBinding, dryRun);
           }
         });
   }
