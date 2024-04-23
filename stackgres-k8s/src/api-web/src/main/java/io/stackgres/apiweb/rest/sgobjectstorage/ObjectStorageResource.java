@@ -103,9 +103,7 @@ public class ObjectStorageResource
   @Override
   public ObjectStorageDto create(@Nonnull ObjectStorageDto resource, @Nullable Boolean dryRun) {
     setSecretKeySelectors(resource);
-    if (!Optional.ofNullable(dryRun).orElse(false)) {
-      createOrUpdateSecret(resource);
-    }
+    createOrUpdateSecret(resource, Optional.ofNullable(dryRun).orElse(false));
     return super.create(resource, dryRun);
   }
 
@@ -127,9 +125,7 @@ public class ObjectStorageResource
   @Override
   public ObjectStorageDto update(@Nonnull ObjectStorageDto resource, @Nullable Boolean dryRun) {
     setSecretKeySelectors(resource);
-    if (!Optional.ofNullable(dryRun).orElse(false)) {
-      createOrUpdateSecret(resource);
-    }
+    createOrUpdateSecret(resource, Optional.ofNullable(dryRun).orElse(false));
     return super.update(resource, dryRun);
   }
 
@@ -177,7 +173,7 @@ public class ObjectStorageResource
         .forEach(t -> t.v2.v4.accept(new SecretKeySelector(t.v1, name)));
   }
 
-  private void createOrUpdateSecret(ObjectStorageDto resource) {
+  private void createOrUpdateSecret(ObjectStorageDto resource, boolean dryRun) {
     final ImmutableMap<String, String> secrets = BackupStorageDtoUtil
         .extractSecretInfo(resource.getSpec())
         .filter(t -> t.v2.v1 != null)
@@ -187,7 +183,7 @@ public class ObjectStorageResource
     secretFinder.findByNameAndNamespace(name, namespace)
         .map(secret -> {
           secret.setStringData(secrets);
-          secretWriter.update(secret);
+          secretWriter.update(secret, dryRun);
           return secret;
         })
         .orElseGet(() -> {
@@ -202,7 +198,7 @@ public class ObjectStorageResource
                   .orElse(ImmutableList.of()))
               .endMetadata()
               .withStringData(secrets)
-              .build());
+              .build(), dryRun);
           return null;
         });
   }

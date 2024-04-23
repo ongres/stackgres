@@ -73,15 +73,18 @@ public class ScriptResource
   public static final String DEFAULT_SCRIPT_KEY = "script";
 
   private final ResourceWriter<Secret> secretWriter;
+  private final ResourceFinder<Secret> secretFinder;
   private final ResourceWriter<ConfigMap> configMapWriter;
   private final ResourceFinder<ConfigMap> configMapFinder;
 
   @Inject
   public ScriptResource(ResourceWriter<Secret> secretWriter,
+      ResourceFinder<Secret> secretFinder,
       ResourceWriter<ConfigMap> configMapWriter,
       ResourceFinder<ConfigMap> configMapFinder) {
     super();
     this.secretWriter = secretWriter;
+    this.secretFinder = secretFinder;
     this.configMapWriter = configMapWriter;
     this.configMapFinder = configMapFinder;
   }
@@ -134,11 +137,8 @@ public class ScriptResource
       """)
   @Override
   public ScriptDto create(ScriptDto resource, @Nullable Boolean dryRun) {
-    List<Secret> secretsToCreate = getSecretsToCreate(resource);
-    List<ConfigMap> configMapsToCreate = getConfigMapsToCreate(resource);
-
-    secretsToCreate.forEach(secretWriter::create);
-    configMapsToCreate.forEach(configMapWriter::create);
+    createOrUpdateSecret(resource, Optional.ofNullable(dryRun).orElse(false));
+    createOrUpdateConfigMap(resource, Optional.ofNullable(dryRun).orElse(false));
     return super.create(resource, dryRun);
   }
 
@@ -170,13 +170,8 @@ public class ScriptResource
       """)
   @Override
   public ScriptDto update(ScriptDto resource, @Nullable Boolean dryRun) {
-    List<Secret> secretsToCreate = getSecretsToCreate(resource);
-    List<ConfigMap> configMapsToCreate = getConfigMapsToCreate(resource);
-
-    if (!Optional.ofNullable(dryRun).orElse(false)) {
-      secretsToCreate.forEach(secretWriter::create);
-      configMapsToCreate.forEach(configMapWriter::create);
-    }
+    createOrUpdateSecret(resource, Optional.ofNullable(dryRun).orElse(false));
+    createOrUpdateConfigMap(resource, Optional.ofNullable(dryRun).orElse(false));
     return super.update(resource, dryRun);
   }
 
@@ -205,65 +200,99 @@ public class ScriptResource
     return resource;
   }
 
-  private List<ConfigMap> getConfigMapsToCreate(ScriptDto resource) {
-    return Seq.seq(Optional.ofNullable(resource.getSpec())
+  private void createOrUpdateConfigMap(ScriptDto resource, boolean dryRun) {
+    String namespace = resource.getMetadata().getNamespace();
+    Seq.seq(Optional.ofNullable(resource.getSpec())
         .map(ScriptSpec::getScripts)
         .stream()
         .flatMap(List::stream))
         .zipWithIndex()
         .filter(t -> t.v1.getScriptFrom() != null)
         .filter(t -> t.v1.getScriptFrom().getConfigMapScript() != null)
-        .map(t -> {
+        .forEach(t -> {
           ScriptFrom clusterScriptFrom = t.v1.getScriptFrom();
           final String configMapScript = clusterScriptFrom.getConfigMapScript();
           if (clusterScriptFrom.getConfigMapKeyRef() == null) {
-            String configMapName = scriptEntryResourceName(resource, t.v2.intValue());
+            String name = scriptEntryResourceName(resource, t.v2.intValue());
             ConfigMapKeySelector configMapKeyRef = new ConfigMapKeySelector();
-            configMapKeyRef.setName(configMapName);
+            configMapKeyRef.setName(name);
             configMapKeyRef.setKey(DEFAULT_SCRIPT_KEY);
             clusterScriptFrom.setConfigMapKeyRef(configMapKeyRef);
           }
-          return new ConfigMapBuilder()
-              .withNewMetadata()
-              .withName(clusterScriptFrom.getConfigMapKeyRef().getName())
-              .withNamespace(resource.getMetadata().getNamespace())
-              .endMetadata()
-              .withData(Map.of(clusterScriptFrom.getConfigMapKeyRef().getKey(),
-                  configMapScript))
-              .build();
-        })
-        .toList();
+          String name = clusterScriptFrom.getConfigMapKeyRef().getName();
+          var configMaps = Map.of(
+              clusterScriptFrom.getConfigMapKeyRef().getKey(),
+              configMapScript);
+          configMapFinder.findByNameAndNamespace(name, namespace)
+              .map(configMap -> {
+                configMap.setData(configMaps);
+                configMapWriter.update(configMap, dryRun);
+                return configMap;
+              })
+              .orElseGet(() -> {
+                configMapWriter.create(new ConfigMapBuilder()
+                    .withNewMetadata()
+                    .withNamespace(namespace)
+                    .withName(name)
+                    .withOwnerReferences(finder.findByNameAndNamespace(
+                        resource.getMetadata().getName(), resource.getMetadata().getNamespace())
+                        .map(ResourceUtil::getOwnerReference)
+                        .map(List::of)
+                        .orElse(List.of()))
+                    .endMetadata()
+                    .withData(configMaps)
+                    .build(), dryRun);
+                return null;
+              });
+        });
   }
 
-  private List<Secret> getSecretsToCreate(ScriptDto resource) {
-    return Seq.seq(Optional.ofNullable(resource.getSpec())
+  private void createOrUpdateSecret(ScriptDto resource, boolean dryRun) {
+    String namespace = resource.getMetadata().getNamespace();
+    Seq.seq(Optional.ofNullable(resource.getSpec())
         .map(ScriptSpec::getScripts)
         .stream()
         .flatMap(List::stream))
         .zipWithIndex()
         .filter(t -> t.v1.getScriptFrom() != null)
         .filter(t -> t.v1.getScriptFrom().getSecretScript() != null)
-        .map(t -> {
+        .forEach(t -> {
           ScriptFrom clusterScriptFrom = t.v1.getScriptFrom();
           final String secretScript = ResourceUtil
               .encodeSecret(clusterScriptFrom.getSecretScript());
           if (clusterScriptFrom.getSecretKeyRef() == null) {
-            String secretName = scriptEntryResourceName(resource, t.v2.intValue());
+            String name = scriptEntryResourceName(resource, t.v2.intValue());
             SecretKeySelector secretKeyRef = new SecretKeySelector();
-            secretKeyRef.setName(secretName);
+            secretKeyRef.setName(name);
             secretKeyRef.setKey(DEFAULT_SCRIPT_KEY);
             clusterScriptFrom.setSecretKeyRef(secretKeyRef);
           }
-          return new SecretBuilder()
-              .withNewMetadata()
-              .withName(clusterScriptFrom.getSecretKeyRef().getName())
-              .withNamespace(resource.getMetadata().getNamespace())
-              .endMetadata()
-              .withData(Map.of(clusterScriptFrom.getSecretKeyRef().getKey(),
-                  secretScript))
-              .build();
-        })
-        .toList();
+          String name = clusterScriptFrom.getSecretKeyRef().getName();
+          var secrets = Map.of(
+              clusterScriptFrom.getSecretKeyRef().getKey(),
+              secretScript);
+          secretFinder.findByNameAndNamespace(name, namespace)
+              .map(secret -> {
+                secret.setData(secrets);
+                secretWriter.update(secret, dryRun);
+                return secret;
+              })
+              .orElseGet(() -> {
+                secretWriter.create(new SecretBuilder()
+                    .withNewMetadata()
+                    .withNamespace(namespace)
+                    .withName(name)
+                    .withOwnerReferences(finder.findByNameAndNamespace(
+                        resource.getMetadata().getName(), resource.getMetadata().getNamespace())
+                        .map(ResourceUtil::getOwnerReference)
+                        .map(List::of)
+                        .orElse(List.of()))
+                    .endMetadata()
+                    .withData(secrets)
+                    .build(), dryRun);
+                return null;
+              });
+        });
   }
 
   private

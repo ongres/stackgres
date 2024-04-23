@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-package io.stackgres.apiweb.rest.cluster;
+package io.stackgres.apiweb.rest.sgcluster;
 
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_PASSWORD_KEY;
 import static io.stackgres.common.patroni.StackGresPasswordKeys.SUPERUSER_USERNAME;
@@ -166,7 +166,7 @@ public class ClusterResource
       """)
   @Override
   public ClusterDto create(ClusterDto resource, @Nullable Boolean dryRun) {
-    createOrUpdateScripts(resource);
+    createOrUpdateScripts(resource, Optional.ofNullable(dryRun).orElse(false));
     return super.create(resource, dryRun);
   }
 
@@ -185,7 +185,7 @@ public class ClusterResource
       """)
   @Override
   public ClusterDto update(ClusterDto resource, @Nullable Boolean dryRun) {
-    createOrUpdateScripts(resource);
+    createOrUpdateScripts(resource, Optional.ofNullable(dryRun).orElse(false));
     return super.update(resource, dryRun);
   }
 
@@ -278,7 +278,7 @@ public class ClusterResource
     return resource;
   }
 
-  private void createOrUpdateScripts(ClusterDto resource) {
+  private void createOrUpdateScripts(ClusterDto resource, boolean dryRun) {
     var scriptsToCreate = getScriptsToCreate(resource)
         .stream()
         .filter(t -> isNotDefaultScript(t.v2))
@@ -305,32 +305,36 @@ public class ClusterResource
     configMapsToCreate.stream()
         .filter(t -> t.v2.isEmpty())
         .map(Tuple2::v1)
-        .forEach(configMapWriter::create);
+        .forEach(configMap -> configMapWriter.create(configMap, dryRun));
     configMapsToCreate.stream()
         .filter(t -> t.v2.isPresent())
         .map(Tuple2::v1)
-        .forEach(configMapWriter::update);
+        .forEach(configMap -> configMapWriter.update(configMap, dryRun));
     secretsToCreate.stream()
         .filter(t -> t.v2.isEmpty())
         .map(Tuple2::v1)
-        .forEach(secretWriter::create);
+        .forEach(secret -> secretWriter.create(secret, dryRun));
     secretsToCreate.stream()
         .filter(t -> t.v2.isPresent())
         .map(Tuple2::v1)
-        .forEach(secretWriter::update);
+        .forEach(secret -> secretWriter.update(secret, dryRun));
     scriptsToCreate.stream()
         .filter(t -> t.v3.isEmpty())
-        .forEach(t -> addFieldPrefixOnScriptValidationError(t.v1, t.v2, scriptScheduler::create));
+        .forEach(t -> addFieldPrefixOnScriptValidationError(
+            t.v1, t.v2, script -> scriptScheduler.create(script, dryRun)));
     scriptsToCreate.stream()
         .filter(t -> t.v3.isPresent())
-        .forEach(t -> addFieldPrefixOnScriptValidationError(t.v1, t.v2, scriptScheduler::update));
+        .forEach(t -> addFieldPrefixOnScriptValidationError(
+            t.v1, t.v2, script -> scriptScheduler.update(script, dryRun)));
   }
 
   private boolean isNotDefaultScript(StackGresScript script) {
     return !script.getMetadata().getName().endsWith(ManagedSqlUtil.DEFAULT_SCRIPT_NAME_SUFFIX);
   }
 
-  private void addFieldPrefixOnScriptValidationError(Integer sgScriptIndex, StackGresScript script,
+  private void addFieldPrefixOnScriptValidationError(
+      Integer sgScriptIndex,
+      StackGresScript script,
       Consumer<StackGresScript> consumer) {
     try {
       consumer.accept(script);

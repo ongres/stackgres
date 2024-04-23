@@ -9,6 +9,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -63,9 +64,9 @@ class NamespaceResourceTest {
 
   @Test
   void postShouldCreateANamespace() {
-    resource.create("test");
+    resource.create("test", false);
 
-    verify(writer).create(any());
+    verify(writer).create(any(), anyBoolean());
   }
 
 }
