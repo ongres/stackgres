@@ -16,8 +16,8 @@ import static org.mockito.Mockito.when;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.List;
 
-import com.google.common.collect.ImmutableList;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
@@ -200,8 +200,7 @@ class ScriptResourceQuarkusTest implements AuthenticatedResourceTest {
     ScriptEntry secretScriptEntry = getSecretScriptEntry();
     ScriptEntry configMapScriptEntry = getConfigMapScriptEntry();
 
-    script.getSpec().setScripts(ImmutableList
-        .of(secretScriptEntry, configMapScriptEntry));
+    script.getSpec().setScripts(List.of(secretScriptEntry, configMapScriptEntry));
 
     final Metadata metadata = script.getMetadata();
     metadata.setNamespace("test");
