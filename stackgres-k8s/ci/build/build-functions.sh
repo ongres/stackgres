@@ -390,13 +390,23 @@ build_image() {
   echo "Image $IMAGE_NAME"
   echo "Source image $SOURCE_IMAGE_NAME"
   echo
-  if [ "$DO_BUILD" != true ] && grep -q "^$IMAGE_NAME=" stackgres-k8s/ci/build/target/image-digests
+  if {
+      [ "$DO_BUILD" != true ] \
+        && [ "$(eval "printf %s \"\$DO_BUILD_$MODULE\"")" != true ] \
+        && grep -q "^$IMAGE_NAME=" stackgres-k8s/ci/build/target/image-digests
+    }
   then
-    echo "Already exists. Skipping ..."
+    echo "Already exists on remote repository. Just extracting..."
+    copy_from_image "$SOURCE_IMAGE_NAME"
   else
-    if [ "$DO_BUILD" != true ] && docker_inspect "$IMAGE_NAME" >/dev/null 2>&1
+    if {
+        [ "$DO_BUILD" != true ] \
+          && [ "$(eval "printf %s \"\$DO_BUILD_$MODULE\"")" != true ] \
+          && docker_inspect "$IMAGE_NAME" >/dev/null 2>&1
+      }
     then
-      echo "Already exists locally. Skipping build ..."
+      echo "Already exists locally. Just extracting ..."
+      copy_from_image "$SOURCE_IMAGE_NAME"
     else
       echo "Building $MODULE ..."
       build_module_image "$MODULE" "$SOURCE_IMAGE_NAME" "$IMAGE_NAME"
@@ -646,8 +656,9 @@ retrieve_image_manifest() {
       then
         echo "Using a local image registry to calculate digest for $IMAGE_NAME" >&2
         REGISTRY_CONTAINER_ID="$(docker_run -d -p 5000 --stop-timeout 300 registry:2)"
+        REGISTRY_IP="$(docker_inspect "$REGISTRY_CONTAINER_ID" | jq '.[0].NetworkSettings.IPAddress' -r)"
         REGISTRY_PORT="$(docker_inspect "$REGISTRY_CONTAINER_ID" | jq '.[0].NetworkSettings.Ports["5000/tcp"][0].HostPort' -r)"
-        REGISTRY_IMAGE_NAME="localhost:$REGISTRY_PORT/$(printf %s "${IMAGE_NAME%:*}" | tr '/:' '_'):${IMAGE_NAME##*:}"
+        REGISTRY_IMAGE_NAME="$REGISTRY_IP:$REGISTRY_PORT/$(printf %s "${IMAGE_NAME%:*}" | tr '/:' '_'):${IMAGE_NAME##*:}"
         docker_tag "$IMAGE_NAME" "$REGISTRY_IMAGE_NAME"
         docker_push "$REGISTRY_IMAGE_NAME"
         docker_inspect "$REGISTRY_IMAGE_NAME" \
