@@ -40,6 +40,24 @@ The process is performed by the `build.sh` shell script that accept as parameter
 
 If you pass the `hashes` keywork the command will just output the hashes of images and module types.
 
+Environment variables:
+
+* DO_BUILD: if set to `true` will run the build despite having it in the registry or docker cache
+* SKIP_PUSH: if set to `true` skip pushing docker images to remote registry
+* SKIP_REMOTE_MANIFEST: if set to `true` will not use remote registry to check for cache, just docker.
+
+## ciw
+
+You can use ciw as a wrapper to execute the build.sh script or other commands that require ci tools with proper versions.
+
+It will require Docker Engine or Docker Desktop to run.
+
+Here a sample usage:
+
+```
+sh stackgres-k8s/ci/build/ciw sh stackgres-k8s/ci/build/build.sh hashes
+```
+
 ## config.yml
 
 | Field | Description |
