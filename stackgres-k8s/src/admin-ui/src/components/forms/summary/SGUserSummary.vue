@@ -53,6 +53,18 @@
                                 : {{ crd.data.apiUsername }}
                         </span>
                     </li>
+                    <li v-if="crd.data.hasOwnProperty('apiUsernameNotBlank') && !isNull(crd.data.apiUsernameNotBlank)">
+                        <strong class="label">
+                            Mandatory API Username
+                        </strong>
+                        <span
+                            class="helpTooltip"
+                            :data-tooltip="getTooltip('sguser.apiUsernameNotBlank')"
+                        ></span>
+                        <span class="value">
+                                : {{ isEnabled(crd.data.apiUsernameNotBlank) }}
+                        </span>
+                    </li>
                 </ul>
             </li>
         </ul>

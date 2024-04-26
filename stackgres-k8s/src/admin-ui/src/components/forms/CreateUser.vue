@@ -42,7 +42,7 @@
 
                 <div class="col">
                     <label for="apiUsernameNotBlank">
-                        Blank API Username
+                        Mandatory API Username
                     </label>  
                     <label for="apiUsernameNotBlank" class="switch yes-no" data-field="apiUsernameNotBlank">
                         Enable
