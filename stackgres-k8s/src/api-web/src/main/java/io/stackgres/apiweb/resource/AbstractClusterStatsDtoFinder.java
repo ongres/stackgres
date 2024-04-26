@@ -34,8 +34,7 @@ import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class AbstractClusterStatsDtoFinder<R, T extends CustomResource<?, ?>>
-    implements CustomResourceFinder<R> {
+public abstract class AbstractClusterStatsDtoFinder<R, T extends CustomResource<?, ?>> {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractClusterStatsDtoFinder.class);
 
@@ -60,7 +59,6 @@ public abstract class AbstractClusterStatsDtoFinder<R, T extends CustomResource<
     this.persistentVolumeClaimFinder = null;
   }
 
-  @Override
   public Optional<R> findByNameAndNamespace(
       String name, String namespace) {
     return clusterFinder.findByNameAndNamespace(name, namespace)

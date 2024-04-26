@@ -17,30 +17,60 @@ import io.stackgres.common.StackGresUtil;
 import io.stackgres.common.validation.FieldReference;
 import io.stackgres.common.validation.FieldReference.ReferencedField;
 import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotBlank;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class UserDto extends ResourceDto {
 
-  @NotBlank(message = "k8sUsername is required and can not be blank")
   private String k8sUsername;
 
   private String apiUsername;
 
-  @NotBlank(message = "password is required and can not be blank", groups = ValidationGroups.Post.class)
   private String password;
 
   private List<UserRoleRef> roles;
 
   private List<UserRoleRef> clusterRoles;
 
+  @ReferencedField("k8sUsername")
+  interface K8sUsername extends FieldReference { }
+
   @ReferencedField("apiUsername")
   interface ApiUsername extends FieldReference { }
 
-  @AssertTrue(message = "apiUsername can not be blank", payload = { ApiUsername.class })
+  @ReferencedField("password")
+  interface Password extends FieldReference { }
+
+  @JsonIgnore
+  @AssertTrue(message = "k8sUsername is required and can not be blank",
+      payload = { K8sUsername.class },
+      groups = { ValidationGroups.Post.class, ValidationGroups.Put.class })
+  public boolean isK8sUsernameRequiredAndNotBlank() {
+    return k8sUsername != null && !k8sUsername.isBlank();
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "apiUsername can not be blank",
+      payload = { ApiUsername.class },
+      groups = { ValidationGroups.Post.class, ValidationGroups.Put.class })
   public boolean isApiUsernameNotBlank() {
     return apiUsername == null || !apiUsername.isBlank();
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "password is required and can not be blank",
+      payload = { Password.class },
+      groups = { ValidationGroups.Post.class })
+  public boolean isPasswordRequiredAndNotBlank() {
+    return password != null && !password.isBlank();
+  }
+
+  @JsonIgnore
+  @AssertTrue(message = "password can not be blank",
+      payload = { Password.class },
+      groups = { ValidationGroups.Put.class })
+  public boolean isPasswordNotBlank() {
+    return password == null || !password.isBlank();
   }
 
   @JsonIgnore

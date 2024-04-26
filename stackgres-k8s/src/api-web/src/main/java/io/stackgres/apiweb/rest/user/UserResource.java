@@ -166,9 +166,7 @@ public class UserResource {
   @POST
   public UserDto create(@Valid @ConvertGroup(to = ValidationGroups.Post.class) UserDto resource,
       @Nullable @QueryParam("dryRun") Boolean dryRun) {
-    if (resource.getMetadata() != null) {
-      resource.getMetadata().setNamespace(namespace);
-    }
+    resource.getMetadata().setNamespace(namespace);
     var roleBindings = roleBindingScanner.findByLabels(
         Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
     var clusterRoleBindings = clusterRoleBindingScanner.findByLabels(
@@ -205,10 +203,9 @@ public class UserResource {
       * clusterrolebinding delete
       """)
   @DELETE
-  public void delete(@Valid UserDto resource, @Nullable @QueryParam("dryRun") Boolean dryRun) {
-    if (resource.getMetadata() != null) {
-      resource.getMetadata().setNamespace(namespace);
-    }
+  public void delete(@Valid @ConvertGroup(to = ValidationGroups.Delete.class) UserDto resource,
+      @Nullable @QueryParam("dryRun") Boolean dryRun) {
+    resource.getMetadata().setNamespace(namespace);
     var roleBindings = roleBindingScanner.findByLabels(
         Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
     var clusterRoleBindings = clusterRoleBindingScanner.findByLabels(
@@ -220,7 +217,7 @@ public class UserResource {
         .orElse(null);
     writer.delete(transformer.toCustomResource(resource, null),
         Optional.ofNullable(dryRun).orElse(false));
-    if (!Optional.ofNullable(dryRun).orElse(false) && foundResource != null) {
+    if (foundResource != null) {
       Optional.ofNullable(foundResource.getRoles()).stream()
           .flatMap(List::stream)
           .forEach(userRoleRef -> unsetRoleBinding(
@@ -255,10 +252,9 @@ public class UserResource {
       * clusterrolebinding delete
       """)
   @PUT
-  public UserDto update(@Valid UserDto resource, @Nullable @QueryParam("dryRun") Boolean dryRun) {
-    if (resource.getMetadata() != null) {
-      resource.getMetadata().setNamespace(namespace);
-    }
+  public UserDto update(@Valid @ConvertGroup(to = ValidationGroups.Put.class) UserDto resource,
+      @Nullable @QueryParam("dryRun") Boolean dryRun) {
+    resource.getMetadata().setNamespace(namespace);
     var roleBindings = roleBindingScanner.findByLabels(
         Map.of(StackGresContext.AUTH_KEY, StackGresContext.AUTH_USER_VALUE));
     var clusterRoleBindings = clusterRoleBindingScanner.findByLabels(

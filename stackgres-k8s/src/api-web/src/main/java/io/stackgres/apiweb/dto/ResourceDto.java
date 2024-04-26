@@ -7,6 +7,7 @@ package io.stackgres.apiweb.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import jakarta.validation.Valid;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class ResourceDto {
@@ -15,6 +16,7 @@ public abstract class ResourceDto {
 
   private String kind;
 
+  @Valid
   private Metadata metadata = new Metadata();
 
   protected ResourceDto() {

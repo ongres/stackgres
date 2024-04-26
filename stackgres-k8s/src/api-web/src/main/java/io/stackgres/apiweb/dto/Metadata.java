@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.fabric8.kubernetes.api.model.OwnerReference;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.stackgres.common.StackGresUtil;
+import jakarta.validation.constraints.NotNull;
 
 @RegisterForReflection
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
@@ -40,6 +41,7 @@ public class Metadata {
 
   private Long generation;
 
+  @NotNull(message = "name is required")
   private String name;
 
   private String namespace;

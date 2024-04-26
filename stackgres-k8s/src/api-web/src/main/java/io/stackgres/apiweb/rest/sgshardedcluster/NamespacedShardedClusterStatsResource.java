@@ -8,7 +8,7 @@ package io.stackgres.apiweb.rest.sgshardedcluster;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.dto.shardedcluster.ShardedClusterStatsDto;
 import io.stackgres.apiweb.exception.ErrorResponse;
-import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.apiweb.resource.ShardedClusterStatsDtoFinder;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -43,11 +43,11 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
         schema = @Schema(implementation = ErrorResponse.class))})
 public class NamespacedShardedClusterStatsResource {
 
-  private final CustomResourceFinder<ShardedClusterStatsDto> shardedClusterResourceStatsFinder;
+  private final ShardedClusterStatsDtoFinder shardedClusterResourceStatsFinder;
 
   @Inject
   public NamespacedShardedClusterStatsResource(
-      CustomResourceFinder<ShardedClusterStatsDto> shardedClusterResourceStatsFinder) {
+      ShardedClusterStatsDtoFinder shardedClusterResourceStatsFinder) {
     this.shardedClusterResourceStatsFinder = shardedClusterResourceStatsFinder;
   }
 

@@ -298,7 +298,7 @@ class UserResourceQuarkusTest implements AuthenticatedResourceTest {
   }
 
   @Test
-  void givenADeletionWithoutPassword_shouldNotFail() {
+  void givenADeletionWithoutPasswordAndK8sUsername_shouldNotFail() {
     mockServer.getClient()
         .resource(user)
         .createOr(Replaceable::update);
@@ -310,6 +310,7 @@ class UserResourceQuarkusTest implements AuthenticatedResourceTest {
         .createOr(Replaceable::update);
     var userDto = JsonUtil.copy(this.userDto);
     userDto.setPassword(null);
+    userDto.setK8sUsername(null);
     given()
         .header(AUTHENTICATION_HEADER)
         .body(userDto)
