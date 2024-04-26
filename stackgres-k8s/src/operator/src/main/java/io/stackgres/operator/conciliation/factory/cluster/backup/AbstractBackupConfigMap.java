@@ -124,7 +124,14 @@ public abstract class AbstractBackupConfigMap {
               null,
               null,
               null,
-              null
+              null,
+              Optional.of(context.getCluster().getSpec())
+              .map(StackGresClusterSpec::getConfigurations)
+              .map(StackGresClusterConfigurations::getBackups)
+              .filter(Predicates.not(List::isEmpty))
+              .map(backups -> backups.get(0))
+              .map(StackGresClusterBackupConfiguration::getRetainWalsForUnmanagedLifecycle)
+              .orElse(false)
           ))
       );
     }

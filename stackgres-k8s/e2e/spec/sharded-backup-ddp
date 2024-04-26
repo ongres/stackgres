@@ -16,6 +16,20 @@ e2e_test_install() {
 
   wait_pods_running "$CLUSTER_NAMESPACE" 7
   wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
+
+  create_mock_data
+
+  SHARDED_BACKUP_NAME="$(get_sgshardedbackup_name "${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
+
+  create_sharded_backup "$SHARDED_BACKUP_NAME" false
+
+  wait_sharded_backup_is_completed "$SHARDED_BACKUP_NAME"
+
+  rotate_wal_file_sharded_cluster
+
+  create_more_mock_data
+
+  rotate_wal_file_sharded_cluster
 }
 
 e2e_test() {
@@ -42,9 +56,9 @@ check_backup_is_working() {
 }
 
 check_sharded_backup_is_working() {
-  SHARDED_BACKUP_NAME="$(get_sgshardedbackup_name "${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
+  SHARDED_BACKUP_NAME_0="$(get_sgshardedbackup_name "${CLUSTER_NAME}-$(shuf -i 0-65535 -n 1)")"
 
-  create_sharded_backup "$SHARDED_BACKUP_NAME" true
+  create_sharded_backup "$SHARDED_BACKUP_NAME_0" true
 
   local BACKUP_NAME
   local SHARDED_CLUSTER_NAME="$CLUSTER_NAME"
@@ -54,15 +68,15 @@ check_sharded_backup_is_working() {
   for SUFFIX in coord shard0 shard1
   do
     CLUSTER_NAME="$SHARDED_CLUSTER_NAME-$SUFFIX"
-    BACKUP_NAME="$SHARDED_BACKUP_NAME-$SUFFIX"
+    BACKUP_NAME="$SHARDED_BACKUP_NAME_0-$SUFFIX"
     wait_backup_is_completed "$BACKUP_NAME" "$NODE"
   done
 
-  wait_sharded_backup_is_completed "$SHARDED_BACKUP_NAME"
+  wait_sharded_backup_is_completed "$SHARDED_BACKUP_NAME_0"
 
-  if kubectl get sgshardedbackup -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" \
+  if kubectl get sgshardedbackup -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME_0" \
     --template='{{ range .status.sgBackups }}{{ . }} {{ end }}' \
-    | grep -qFx "$SHARDED_BACKUP_NAME-coord $SHARDED_BACKUP_NAME-shard0 $SHARDED_BACKUP_NAME-shard1 "
+    | grep -qFx "$SHARDED_BACKUP_NAME_0-coord $SHARDED_BACKUP_NAME_0-shard0 $SHARDED_BACKUP_NAME_0-shard1 "
   then
     echo "SUCCESS: Backups are referenced correctly in the sharded backup"
   else
@@ -78,7 +92,7 @@ check_sharded_backup_is_working() {
   create_sharded_backup "$SHARDED_BACKUP_NAME_2" true
   wait_sharded_backup_is_completed "$SHARDED_BACKUP_NAME_2"
 
-  if ! kubectl get sgshardedbackup -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME" >/dev/null 2>&1
+  if ! kubectl get sgshardedbackup -n "$CLUSTER_NAMESPACE" "$SHARDED_BACKUP_NAME_0" >/dev/null 2>&1
   then
     echo "SUCCESS: Sharded backups retention policy is working"
   else
@@ -172,7 +186,7 @@ enable_sharded_cluster_cron_schedule() {
 
 disable_sharded_cluster_cron_schedule() {
   # Sets the value At 05:00 on day-of-month 31 in February.
-  kubectl patch sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
+  wait_until kubectl patch sgshardedcluster -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" --type json \
     --patch '[{"op":"replace","path":"/spec/configurations/backups/0/cronSchedule","value":"0 5 31 2 *"}]'
 }
 
@@ -183,9 +197,9 @@ is_automatic_sharded_backup_cr_completed() {
 }
 
 check_restore_sharded_backup_is_working() {
-  SHARDED_BACKUP_NAME="$(kubectl get sgshardedbackup -n "$CLUSTER_NAMESPACE" \
+  SHARDED_BACKUP_NAME_FOR_RESTORE="$(kubectl get sgshardedbackup -n "$CLUSTER_NAMESPACE" \
     --template '{{ range .items }}{{ printf "%s %s\n" .status.process.status .metadata.name }}{{ end }}' \
-    | grep "^Completed " | head -n 1 | cut -d ' ' -f 2)"
+    | grep "^Completed " | cut -d ' ' -f 2 | grep -vxF "$SHARDED_BACKUP_NAME" | head -n 1)"
 
   kubectl get secret -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME" -o json \
     | jq "del(.metadata.ownerReferences) | del(.metadata.labels) | .metadata.name = \"$CLUSTER_NAME-back\"" \
@@ -193,16 +207,16 @@ check_restore_sharded_backup_is_working() {
 
   remove_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
 
+  # Remove this when patroni fix citus integration so that superuser password is changed based on PATRONI_SUPERUSER_PASSWORD
   kubectl get secret -n "$CLUSTER_NAMESPACE" "$CLUSTER_NAME-back" -o json \
     | jq ".metadata.name = \"$CLUSTER_NAME\"" \
     | kubectl create -f -
 
   create_or_replace_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE" "3" "2" \
-    --set-string cluster.initialData.restore.fromBackup.name="$SHARDED_BACKUP_NAME"
+    --set-string cluster.initialData.restore.fromBackup.name="$SHARDED_BACKUP_NAME_FOR_RESTORE"
 
   local RESULT EXIT_CODE
   try_function wait_pods_running "$CLUSTER_NAMESPACE" 7
-
   if "$RESULT"
   then
     try_function wait_sharded_cluster "$CLUSTER_NAME" "$CLUSTER_NAMESPACE"
@@ -213,6 +227,80 @@ check_restore_sharded_backup_is_working() {
     echo "SUCCESS. The sharded cluster has been recovered from the sharded backup"
   else
     echo "FAIL. The sharded cluster has not been recovered from the sharded backup"
+    return 1
+  fi
+
+  check_init_data_after_restore
+}
+
+create_mock_data() {
+  wait_until run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "SELECT 1"
+  wait_until run_query -x "$CLUSTER_NAME-shard0-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "SELECT 1"
+  wait_until run_query -x "$CLUSTER_NAME-shard1-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "SELECT 1"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "CREATE TABLE fibonacci(num integer, PRIMARY KEY (num));"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "SELECT ddp_create_vs('public','fibonacci','num',array ['ddp_shard_0','ddp_shard_1']);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (1);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (2);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (3);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (1 - 35791402);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (2 - 35791402);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (3 - 35791402);"
+}
+
+create_more_mock_data() {
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (5);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (8);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (13);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (5 - 35791402);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (8 - 35791402);"
+  run_query -x "$CLUSTER_NAME-coord-0" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "INSERT INTO fibonacci(num) VALUES (13 - 35791402);"
+}
+
+rotate_wal_file_sharded_cluster() {
+  local POD
+  for POD in "$CLUSTER_NAME-coord-0" "$CLUSTER_NAME-shard0-0" "$CLUSTER_NAME-shard1-0"
+  do
+    run_query -x "$POD" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" \
+      -q "SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r" > "$LOG_PATH/$POD-current-wal-file"
+    run_query -x "$POD" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" -q "CHECKPOINT;"
+  done
+  for POD in "$CLUSTER_NAME-coord-0" "$CLUSTER_NAME-shard0-0" "$CLUSTER_NAME-shard1-0"
+  do
+    CURRENT_WAL_FILE="$(cat "$LOG_PATH/$POD-current-wal-file")"
+    wait_until -t "$((E2E_TIMEOUT / 5))" eval '[ "$(run_query -x "$POD" -p 5432 -i 0 -n "$CLUSTER_NAMESPACE" -c "$CLUSTER_NAME" -d "ddp" \
+      -q "SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r")" != "$CURRENT_WAL_FILE" ]'
+    wait_until -t "$((E2E_TIMEOUT / 5))" timeout -s KILL "$((E2E_TIMEOUT / 20))" \
+      kubectl exec -n "$CLUSTER_NAMESPACE" "$POD" -c patroni -- \
+      exec-with-env backup -- wal-g wal-fetch "$CURRENT_WAL_FILE" "/tmp/$CURRENT_WAL_FILE"
+  done
+}
+
+check_init_data_after_restore() {
+  local RESULT
+  RESULT="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "ddp" \
+    -q "SELECT num FROM fibonacci ORDER BY num;")"
+  if printf '%s' "$RESULT" \
+    | tr -d '\n' \
+    | grep -q "^-35791401-35791400-35791399-35791397-35791394-357913891235813$"
+  then
+    echo "SUCCESS: restore primary db restored successfully"
+  else
+    echo "FAIL: primary db not restored successfully"
+    return 1
+  fi
+}
+
+check_init_data_after_pitr() {
+  local RESULT
+  RESULT="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "ddp" \
+    -q "SELECT num FROM fibonacci ORDER BY num;")"
+  if printf '%s' "$RESULT" \
+    | tr -d '\n' \
+    | grep -q "^-35791401-35791400-35791399123$"
+  then
+    echo "SUCCESS: restore primary db restored with PITR successfully"
+  else
+    echo "FAIL: primary db not restored with PITR successfully"
     return 1
   fi
 }

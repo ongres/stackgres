@@ -121,6 +121,11 @@ cluster:
         mountPath: /etc/gshadow
         subPath: etc/gshadow
         readOnly: true
+    customVolumeMounts:
+      patroni:
+      - name: custom-pgadmin-config
+        mountPath: /pgadmin4/config_distro.py
+        subPath: config_distro.py
   configurations:
     sgBackupConfig: null
   prometheusAutobind: false

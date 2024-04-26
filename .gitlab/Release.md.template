@@ -79,6 +79,7 @@ EOF
     > Red Hat Image project ids (using JSON format `{"<image name without tag e.g. quay.io/stackgres/operator>":"<Red Hat image project id>"}`) must be present at path `~/.openshift-certification-projects.json` 
 
     ```
+    cd stackgres-k8s/install/operator-sdk/openshift-certification/
     STACKGRES_VERSION="${VERSION}" IMAGE_TAG="\$(git rev-parse --short=8 HEAD)" sh get-images.sh | grep -F quay.io/stackgres/ | sed 's#quay\.io/stackgres/#registry.gitlab.com/ongresinc/stackgres/stackgres/#' | xargs -I % sh preflight.sh %
     ```
 
@@ -202,6 +203,7 @@ $(
     * [ ] Edit file `stackgres-k8s/src/operator/src/main/java/io/stackgres/operator/conciliation/factory/cluster/patroni/parameters/PostgresDefaultValues.java` to add version ${NEXT_MINOR_VERSION} and fix the failing code and tests
     * [ ] Edit file `stackgres-k8s/install/helm/stackgres-operator/templates/check-upgrade.yaml` to add support for upgrade from version ${NEXT_MINOR_VERSION} and remove support to upgrade from version ${TO_REMOVE_MINOR_VERSION}
     * [ ] Update the e2e test `stackgres-k8s/e2e/spec/operator-helm` to check support for upgrade from version ${MINOR_VERSION} and remove check for support to upgrade from version ${TO_REMOVE_MINOR_VERSION}.
+    * [ ] Update the e2e utils `stackgres-k8s/e2e/utils/operator` changing the `STACKGRES_PREVIOUS_VERSION` default value to the previous minor version (`$PREVIOUS_MINOR_VERSION.?`).
     * [ ] Add support for previous version ${MINOR_VERSION} in e2e tests
         ```
         mkdir -p stackgres-k8s/e2e/spec/previous/${MINOR_VERSION}/spec
@@ -275,11 +277,18 @@ $(
     ```
     git checkout development && git pull
     ```
-1. [ ] Set `STACKGRES_REFS` in `.gitlab-ci.yml` by setting `main-${MINOR_VERSION}` as the first value.
-1. [ ] Set `STACKGRES_FULL_VERSIONS` in `.gitlab-ci.yml` by setting `${VERSION}` as the first value.
-1. [ ] Set `STACKGRES_STABLE_VERSION_INDEX` to `0`
-1. [ ] Commit changes with message `version: ${VERSION}`: `git commit -a -m 'version: ${VERSION}'`
-1. [ ] Push development to origin: `git push`
+1. [ ] Edit `.gitlab-ci.yml`:
+  * Change `STACKGRES_REFS` by setting `main-${MINOR_VERSION}` as the first value
+  * Change `STACKGRES_FULL_VERSIONS` by setting `${VERSION}` as the first value.
+  * Change `STACKGRES_STABLE_VERSION_INDEX` to `0`
+1. [ ] Commit changes with message `version: ${VERSION}`:
+    ```
+    git commit -a -m 'version: ${VERSION}'
+    ```
+1. [ ] Push development to origin:
+    ```
+    git push
+    ```
 1. [ ] Check staging Web: `https://ongresinc.gitlab.io/web/stackgres/`
 1. [ ] Merge `development` branch into `master`:
     ```
@@ -305,9 +314,16 @@ EOF
     ```
     git checkout development && git pull
     ```
-1. [ ] Set `STACKGRES_FULL_VERSIONS` in `.gitlab-ci.yml` by setting `${VERSION}` as the first value.
-1. [ ] Commit changes with message `version: ${VERSION}`: `git commit -a -m 'version: ${VERSION}'`
-1. [ ] Push development to origin: `git push`
+1. [ ] Edit `.gitlab-ci.yml`:
+  * Change `STACKGRES_FULL_VERSIONS` by setting `${VERSION}` as the first value.
+1. [ ] Commit changes with message `version: ${VERSION}`:
+    ```
+    git commit -a -m 'version: ${VERSION}'
+    ```
+1. [ ] Push development to origin:
+    ```
+    git push
+    ```
 1. [ ] Check staging Web: `https://ongresinc.gitlab.io/web/stackgres/`
 1. [ ] Merge `development` branch into `master`:
     ```

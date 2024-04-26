@@ -95,7 +95,7 @@ public class BackupCronJobV1Beta1
   }
 
   public static String backupName(StackGresClusterContext clusterContext) {
-    return StackGresUtil.statefulSetBackupPersistentVolumeName(clusterContext.getSource());
+    return StackGresUtil.cronJobBackupName(clusterContext.getSource());
   }
 
   @Override
@@ -251,6 +251,13 @@ public class BackupCronJobV1Beta1
                         .withName("FAST_VOLUME_SNAPSHOT")
                         .withValue(Optional.of(backupConfig)
                             .map(BackupConfiguration::fastVolumeSnapshot)
+                            .map(String::valueOf)
+                            .orElse("false"))
+                        .build(),
+                        new EnvVarBuilder()
+                        .withName("RETAIN_WALS_FOR_UNMANAGED_LIFECYCLE")
+                        .withValue(Optional.of(backupConfig)
+                            .map(BackupConfiguration::retainWalsForUnmanagedLifecycle)
                             .map(String::valueOf)
                             .orElse("false"))
                         .build(),

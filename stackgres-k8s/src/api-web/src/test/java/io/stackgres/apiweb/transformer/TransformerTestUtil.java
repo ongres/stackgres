@@ -8,13 +8,18 @@ package io.stackgres.apiweb.transformer;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -117,139 +122,6 @@ public class TransformerTestUtil {
     return new TransformerTuple<>(dtoMetadata, crdMetadata);
   }
 
-  /**
-   * Creates a tuple of objects whose classes with the same random data in the common fields.
-   *
-   * @param targetClazz the target class of the object to be put into tuple
-   * @param sourceClazz the source of the object to be put into the tuple
-   * @param <T>         the target generic type
-   * @param <S>         the source generic type
-   * @return the created tuple
-   */
-  @SuppressWarnings("unchecked")
-  public static <T, S> TransformerTuple<T, S> fillTupleWithRandomData(
-      Class<T> targetClazz, Class<S> sourceClazz) {
-
-    try {
-
-      if (targetClazz == sourceClazz) {
-        if (ModelTestUtil.isValueType(targetClazz) && ModelTestUtil.isValueType(sourceClazz)) {
-          Object value = ModelTestUtil.generateRandomValue(targetClazz);
-          return new TransformerTuple<>((T) value, (S) value);
-        }
-      }
-
-      List<Field> targetFields = ModelTestUtil.getRepresentativeFields(targetClazz);
-      List<Field> sourceFields = ModelTestUtil.getRepresentativeFields(sourceClazz);
-
-      T targetInstance = targetClazz.getDeclaredConstructor().newInstance();
-      S sourceInstance = sourceClazz.getDeclaredConstructor().newInstance();
-
-      List<TransformerTuple<Field, Field>> commonFields = getCommonFields(
-          targetFields, sourceFields);
-
-      commonFields.forEach(
-          fieldTuple -> setRandomDataForFields(fieldTuple, targetInstance, sourceInstance)
-      );
-
-      return new TransformerTuple<>(targetInstance, sourceInstance);
-    } catch (ReflectiveOperationException e) {
-      throw new RuntimeException(e);
-    }
-
-  }
-
-  private static List<TransformerTuple<Field, Field>> getCommonFields(
-      List<Field> targetFields,
-      List<Field> sourceFields) {
-
-    List<TransformerTuple<Field, Field>> commonFields = new ArrayList<>();
-
-    // If the performance becomes a problem this could be improved by using quick select, but is
-    // unlikely
-    for (Field targetField : targetFields) {
-      String targetFieldName = ModelTestUtil.getJsonFieldName(targetField);
-      for (Field sourceField : sourceFields) {
-        String sourceFieldName = ModelTestUtil.getJsonFieldName(sourceField);
-        if (Objects.equals(targetFieldName, sourceFieldName)) {
-          commonFields.add(
-              new TransformerTuple<>(targetField, sourceField)
-          );
-        }
-      }
-    }
-
-    return commonFields;
-  }
-
-  private static <T, S> void setRandomDataForFields(
-      TransformerTuple<Field, Field> fieldTuple, T target, S source) {
-
-    try {
-
-      Field sourceField = fieldTuple.source();
-      Field targetField = fieldTuple.target();
-      sourceField.setAccessible(true);
-      targetField.setAccessible(true);
-
-      if (List.class.isAssignableFrom(sourceField.getType())
-          && List.class.isAssignableFrom(targetField.getType())) {
-        var sourceParameterType = ModelTestUtil.getParameterFromGenericType(
-            sourceField.getType(), sourceField.getGenericType(), 0);
-        var targetParameterType = ModelTestUtil.getParameterFromGenericType(
-            targetField.getType(), targetField.getGenericType(), 0);
-        var listTuple = generateRandomListTuple(
-            targetParameterType,
-            sourceParameterType
-        );
-        sourceField.set(source,
-            sourceField.getType() != List.class
-            ? sourceField.getType().getDeclaredConstructor(List.class)
-                .newInstance(listTuple.source()) : listTuple.source());
-        targetField.set(target,
-            targetField.getType() != List.class
-            ? targetField.getType().getDeclaredConstructor(List.class)
-                .newInstance(listTuple.target()) : listTuple.target());
-      } else if (Map.class.isAssignableFrom(sourceField.getType())
-          && Map.class.isAssignableFrom(targetField.getType())) {
-        var targetKeyType = ModelTestUtil.getParameterFromGenericType(
-            targetField.getType(), targetField.getGenericType(), 0);
-        var targetValueType = ModelTestUtil.getParameterFromGenericType(
-            targetField.getType(), targetField.getGenericType(), 1);
-        var sourceKeyType = ModelTestUtil.getParameterFromGenericType(
-            sourceField.getType(), sourceField.getGenericType(), 0);
-        var sourceValueType = ModelTestUtil.getParameterFromGenericType(
-            sourceField.getType(), sourceField.getGenericType(), 1);
-
-        var mapTuple = generateRandomMapTuple(
-            targetKeyType, targetValueType,
-            sourceKeyType, sourceValueType
-        );
-        sourceField.set(source,
-            sourceField.getType() != Map.class
-            ? sourceField.getType().getDeclaredConstructor(Map.class)
-                .newInstance(mapTuple.source()) : mapTuple.source());
-        targetField.set(target,
-            targetField.getType() != Map.class
-            ? targetField.getType().getDeclaredConstructor(Map.class)
-                .newInstance(mapTuple.target()) : mapTuple.target());
-      } else {
-        var valueTuple = fillTupleWithRandomData(
-            targetField.getType(),
-            sourceField.getType()
-        );
-        sourceField.set(source, valueTuple.source());
-        targetField.set(target, valueTuple.target());
-      }
-
-      sourceField.setAccessible(false);
-      targetField.setAccessible(false);
-
-    } catch (ReflectiveOperationException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   public static TransformerTuple<List<String>, List<String>> generateRandomListTuple() {
     int desiredListSize = RANDOM.nextInt(10) + 1; //More than this could be counter-productive
 
@@ -287,7 +159,9 @@ public class TransformerTestUtil {
       Class<K1> targetKeyType,
       Class<V1> targetValueType,
       Class<K2> sourceKeyType,
-      Class<V2> sourceValueType) {
+      Class<V2> sourceValueType,
+      Type targetGenericValueType,
+      Type sourceGenericValueType) {
 
     int desiredMapSize = RANDOM.nextInt(10) + 1; //More than this could be counter-productive
 
@@ -304,6 +178,259 @@ public class TransformerTestUtil {
     }
 
     return new TransformerTuple<>(targetMap, sourceMap);
+  }
+
+  public static <T, S> TransformerTuple<T, S> fillTupleWithRandomData(
+      Class<T> targetClazz, Class<S> sourceClazz) {
+    return visit(new RandomDataVisitor<>(), targetClazz, sourceClazz);
+  }
+
+  public static class RandomDataVisitor<T, S> implements ResourceVisitor<T, S> {
+    @Override
+    @SuppressWarnings("unchecked")
+    public     TransformerTuple<T, S> onObject(
+        Class<?> targetClazz,
+        Class<?> sourceClazz,
+        List<TransformerTuple<Field, Field>> commonFields) {
+      T targetInstance;
+      try {
+        targetInstance = (T) targetClazz.getDeclaredConstructor().newInstance();
+      } catch (ReflectiveOperationException ex) {
+        throw new RuntimeException(ex);
+      }
+      T sourceInstance;
+      try {
+        sourceInstance = (T) sourceClazz.getDeclaredConstructor().newInstance();
+      } catch (ReflectiveOperationException ex) {
+        throw new RuntimeException(ex);
+      }
+      for (TransformerTuple<Field, Field> field : commonFields) {
+        setFieldWithRandomData(field, targetInstance, sourceInstance);
+      }
+      return new TransformerTuple<T, S>((T) targetInstance, (S) sourceInstance);
+    }
+
+    private void setFieldWithRandomData(
+        TransformerTuple<Field, Field> field, Object target, Object source) {
+      try {
+        TransformerTuple<Object, Object> value = visit(new RandomDataVisitor<>(),
+            field.target().getType(), field.target().getGenericType(),
+            field.source().getType(), field.source().getGenericType());
+        field.target().setAccessible(true);
+        field.target().set(target, value.target());
+        field.target().setAccessible(false);
+        field.source().setAccessible(true);
+        field.source().set(source, value.source());
+        field.source().setAccessible(false);
+      } catch (ReflectiveOperationException ex) {
+        throw new RuntimeException(ex);
+      }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public TransformerTuple<T, S> onList(
+        Class<?> targetClazz, Class<?> targetElementClazz,
+        Class<?> sourceClazz, Class<?> sourceElementClazz) {
+      int desiredListSize = RANDOM.nextInt(3) + 1; //More than this could be counter-productive
+
+      List<Object> targetList = new ArrayList<>(desiredListSize);
+      if (targetClazz != List.class) {
+        try {
+          var constructor = Arrays.stream(targetClazz.getConstructors())
+              .filter(c -> c.getParameterTypes().length == 1
+                  && c.getParameterTypes()[0] == List.class)
+              .findAny()
+              .orElseThrow();
+          targetList = (List<Object>) constructor.newInstance(targetList);
+        } catch (SecurityException | InvocationTargetException | IllegalAccessException
+            | InstantiationException ex) {
+          throw new RuntimeException(ex);
+        }
+      }
+
+      List<Object> sourceList = new ArrayList<>(desiredListSize);
+      if (sourceClazz != List.class) {
+        try {
+          var constructor = Arrays.stream(sourceClazz.getConstructors())
+              .filter(c -> c.getParameterTypes().length == 1
+                  && c.getParameterTypes()[0] == List.class)
+              .findAny()
+              .orElseThrow();
+          sourceList = (List<Object>) constructor.newInstance(sourceList);
+        } catch (SecurityException | InvocationTargetException | IllegalAccessException
+            | InstantiationException ex) {
+          throw new RuntimeException(ex);
+        }
+      }
+
+      for (int i = 0; i < desiredListSize; i++) {
+        TransformerTuple<Object, Object> item = visit(new RandomDataVisitor<>(),
+            targetElementClazz, sourceElementClazz);
+        targetList.add(item.target());
+        sourceList.add(item.source());
+      }
+
+      return new TransformerTuple<T, S>((T) targetList, (S) sourceList);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public TransformerTuple<T, S> onMap(
+        Class<?> targetClazz, Class<?> targetKeyClazz, Class<?> targetValueClazz, Type targetValueType,
+        Class<?> sourceClazz, Class<?> sourceKeyClazz, Class<?> sourceValueClazz, Type sourceValueType) {
+      int desiredMapSize = RANDOM.nextInt(3) + 1; //More than this could be counter-productive
+
+      Map<Object, Object> targetMap = new HashMap<>(desiredMapSize);
+      if (targetClazz != Map.class) {
+        try {
+          var constructor = Arrays.stream(targetClazz.getConstructors())
+              .filter(c -> c.getParameterTypes().length == 1
+                  && c.getParameterTypes()[0] == Map.class)
+              .findAny()
+              .orElseThrow();
+          targetMap = (Map<Object, Object>) constructor.newInstance(targetMap);
+        } catch (SecurityException | InvocationTargetException | IllegalAccessException
+            | InstantiationException ex) {
+          throw new RuntimeException(ex);
+        }
+      }
+
+      Map<Object, Object> sourceMap = new HashMap<>(desiredMapSize);
+      if (sourceClazz != Map.class) {
+        try {
+          var constructor = Arrays.stream(sourceClazz.getConstructors())
+              .filter(c -> c.getParameterTypes().length == 1
+                  && c.getParameterTypes()[0] == Map.class)
+              .findAny()
+              .orElseThrow();
+          sourceMap = (Map<Object, Object>) constructor.newInstance(sourceMap);
+        } catch (SecurityException | InvocationTargetException | IllegalAccessException
+            | InstantiationException ex) {
+          throw new RuntimeException(ex);
+        }
+      }
+
+      for (int i = 0; i < desiredMapSize; i++) {
+        TransformerTuple<Object, Object> key = visit(new RandomDataVisitor<>(),
+            targetKeyClazz, sourceKeyClazz);
+        TransformerTuple<Object, Object> value = visit(new RandomDataVisitor<>(),
+            targetValueClazz, targetValueType, sourceValueClazz, sourceValueType);
+        targetMap.put(key.target(), value.target());
+        sourceMap.put(key.source(), value.source());
+      }
+
+      return new TransformerTuple<T, S>((T) targetMap, (S) sourceMap);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public TransformerTuple<T, S> onValue(
+        Class<?> targetClazz,
+        Class<?> sourceClazz) {
+      Object value = ModelTestUtil.generateRandomValue(targetClazz);
+      return new TransformerTuple<>((T) value, (S) value);
+    }
+  }
+
+  public interface ResourceVisitor<T, S> {
+    TransformerTuple<T, S> onObject(
+        Class<?> targetClazz,
+        Class<?> sourceClazz,
+        List<TransformerTuple<Field, Field>> commonFields);
+
+    TransformerTuple<T, S> onList(
+        Class<?> targetClazz, Class<?> targetElementClazz,
+        Class<?> sourceClazz, Class<?> sourceElementClazz);
+
+    TransformerTuple<T, S> onMap(
+        Class<?> targetClazz, Class<?> targetKeyClazz, Class<?> targetValueClazz, Type targetGenericType,
+        Class<?> sourceClazz, Class<?> sourceKeyClazz, Class<?> sourceValueClazz, Type sourceGenericType);
+
+    TransformerTuple<T, S> onValue(
+        Class<?> targetClazz,
+        Class<?> sourceClazz);
+  }
+
+  public static <T, S> TransformerTuple<T, S> visit(ResourceVisitor<T, S> visitor,
+      Class<?> targetClazz, Class<?> sourceClazz) {
+    return visit(visitor, targetClazz, null, sourceClazz, null);
+  }
+
+  @SuppressFBWarnings(value = "SA_LOCAL_SELF_COMPARISON",
+      justification = "False positive")
+  public static <T, S> TransformerTuple<T, S> visit(
+      ResourceVisitor<T, S> visitor,
+      Class<?> targetClazz, Type targetGenericType,
+      Class<?> sourceClazz, Type sourceGenericType) {
+    if (ModelTestUtil.isValueType(targetClazz)) {
+      if (!ModelTestUtil.isValueType(sourceClazz)) {
+        throw new RuntimeException(targetClazz.getSimpleName() + " and "
+            + sourceClazz.getSimpleName() + " are incompatible");
+      }
+      return visitor.onValue(targetClazz, sourceClazz);
+    } else if (List.class.isAssignableFrom(targetClazz)) {
+      if (!List.class.isAssignableFrom(sourceClazz)) {
+        throw new RuntimeException(targetClazz.getSimpleName() + " and "
+            + sourceClazz.getSimpleName() + " are incompatible");
+      }
+      var targetElementClazz = ModelTestUtil.getParameterFromGenericType(targetClazz, targetGenericType, 0);
+      var sourceElementClazz = ModelTestUtil.getParameterFromGenericType(sourceClazz, sourceGenericType, 0);
+      return visitor.onList(targetClazz, targetElementClazz, sourceClazz, sourceElementClazz);
+    } else if (Map.class.isAssignableFrom(targetClazz)) {
+      if (!Map.class.isAssignableFrom(sourceClazz)) {
+        throw new RuntimeException(targetClazz.getSimpleName() + " and "
+            + sourceClazz.getSimpleName() + " are incompatible");
+      }
+      var targetKeyClazz = ModelTestUtil.getParameterFromGenericType(targetClazz, targetGenericType, 0);
+      var targetValueClazz = ModelTestUtil.getParameterFromGenericType(targetClazz, targetGenericType, 1);
+      var sourceKeyClazz = ModelTestUtil.getParameterFromGenericType(sourceClazz, sourceGenericType, 0);
+      var sourceValueClazz = ModelTestUtil.getParameterFromGenericType(sourceClazz, sourceGenericType, 1);
+      Type targetGenericOrParameterizedType = targetGenericType;
+      if (targetGenericType instanceof ParameterizedType targetParameterizedValueType) {
+        targetGenericOrParameterizedType = targetParameterizedValueType
+            .getActualTypeArguments()[1];
+      }
+      Type sourceGenericOrParameterizedType = sourceGenericType;
+      if (sourceGenericType instanceof ParameterizedType sourceParameterizedValueType) {
+        sourceGenericOrParameterizedType = sourceParameterizedValueType
+            .getActualTypeArguments()[1];
+      }
+      return visitor.onMap(
+          targetClazz, targetKeyClazz, targetValueClazz,
+          targetGenericOrParameterizedType,
+          sourceClazz, sourceKeyClazz, sourceValueClazz,
+          sourceGenericOrParameterizedType);
+    }
+
+    List<TransformerTuple<Field, Field>> commonFields = getCommonFields(
+        ModelTestUtil.getRepresentativeFields(targetClazz),
+        ModelTestUtil.getRepresentativeFields(sourceClazz));
+
+    return visitor.onObject(targetClazz, sourceClazz, commonFields);
+  }
+
+  private static List<TransformerTuple<Field, Field>> getCommonFields(
+      List<Field> targetFields,
+      List<Field> sourceFields) {
+
+    List<TransformerTuple<Field, Field>> commonFields = new ArrayList<>();
+
+    // If the performance becomes a problem this could be improved by using quick select, but is
+    // unlikely
+    for (Field targetField : targetFields) {
+      String targetFieldName = ModelTestUtil.getJsonFieldName(targetField);
+      for (Field sourceField : sourceFields) {
+        String sourceFieldName = ModelTestUtil.getJsonFieldName(sourceField);
+        if (Objects.equals(targetFieldName, sourceFieldName)) {
+          commonFields.add(
+              new TransformerTuple<>(targetField, sourceField)
+          );
+        }
+      }
+    }
+
+    return commonFields;
   }
 
 }

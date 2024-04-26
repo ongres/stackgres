@@ -57,7 +57,7 @@ public class DistributedLogsStatefulSet
   }
 
   public static String dataName(StackGresDistributedLogs cluster) {
-    return StackGresUtil.statefulSetDataPersistentVolumeName(cluster);
+    return StackGresUtil.statefulSetDataPersistentVolumeClaimName(cluster);
   }
 
   @Override

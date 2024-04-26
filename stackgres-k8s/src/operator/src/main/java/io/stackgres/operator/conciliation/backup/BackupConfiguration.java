@@ -15,6 +15,7 @@ public record BackupConfiguration(
     String volumeSnapshotStorageClass,
     Boolean fastVolumeSnapshot,
     Integer timeout,
-    Integer reconciliationTimeout
+    Integer reconciliationTimeout,
+    Boolean retainWalsForUnmanagedLifecycle
 ) {
 }

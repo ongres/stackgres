@@ -172,6 +172,7 @@ cluster:
       useVolumeSnapshot: false
     # volumeSnapshotClass:
     # fastVolumeSnapshot: true
+      retainWalsForUnmanagedLifecycle: true
   distributedLogs:
     sgDistributedLogs: distributedlogs
     retention: 7 days

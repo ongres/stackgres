@@ -36,6 +36,8 @@ public class ClusterBackupConfiguration {
 
   private Integer reconciliationTimeout;
 
+  private Boolean retainWalsForUnmanagedLifecycle;
+
   public Integer getRetention() {
     return retention;
   }
@@ -122,6 +124,14 @@ public class ClusterBackupConfiguration {
 
   public void setReconciliationTimeout(Integer reconciliationTimeout) {
     this.reconciliationTimeout = reconciliationTimeout;
+  }
+
+  public Boolean getRetainWalsForUnmanagedLifecycle() {
+    return retainWalsForUnmanagedLifecycle;
+  }
+
+  public void setRetainWalsForUnmanagedLifecycle(Boolean retainWalsForUnmanagedLifecycle) {
+    this.retainWalsForUnmanagedLifecycle = retainWalsForUnmanagedLifecycle;
   }
 
   @Override

@@ -36,7 +36,6 @@ import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.stackgres.common.StringUtil;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.fixture.Fixtures;
-import io.stackgres.common.labels.LabelFactoryForBackup;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.testutil.StringUtils;
@@ -62,9 +61,6 @@ class BackupJobReconciliationHandlerTest {
   private BackupDefaultReconciliationHandler defaultHandler;
 
   @Mock
-  private LabelFactoryForBackup labelFactory;
-
-  @Mock
   private ResourceScanner<Pod> podScanner;
 
   @Mock
@@ -83,7 +79,7 @@ class BackupJobReconciliationHandlerTest {
   @BeforeEach
   void setUp() {
     handler = new BackupJobReconciliationHandler(
-        defaultHandler, labelFactory, jobFinder, podScanner);
+        defaultHandler, jobFinder, podScanner);
     requiredJob = Fixtures.job().loadRequired().get();
 
     backup = new StackGresBackup();
@@ -181,7 +177,7 @@ class BackupJobReconciliationHandlerTest {
         .map(t -> t.map1(pod -> pod.getMetadata().getName()))
         .collect(ImmutableMap.toImmutableMap(Tuple2::v1, Tuple2::v2));
 
-    when(defaultHandler.replace(any(), any(Job.class))).thenReturn(requiredJob);
+    when(defaultHandler.replace(any(), any(Job.class))).thenReturn(deployedJob);
 
     handler.patch(backup, requiredJob, deployedJob);
 
@@ -241,7 +237,7 @@ class BackupJobReconciliationHandlerTest {
 
   private void addPod() {
     final Map<String, String> podLabels = new HashMap<>(
-        requiredJob.getSpec().getTemplate().getMetadata().getLabels());
+        deployedJob.getSpec().getSelector().getMatchLabels());
     podList.add(new PodBuilder()
         .withNewMetadata()
         .withGenerateName(requiredJob.getMetadata().getName() + "-")

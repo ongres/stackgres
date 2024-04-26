@@ -680,7 +680,7 @@ EOF
   CURRENT_BACKUP_NAME=
   if grep -q " Wrote backup with name " /tmp/backup-push
   then
-    CURRENT_BACKUP_NAME="$(grep " Wrote backup with name " /tmp/backup-push | sed 's/.* \([^ ]\+\)$/\1/')"
+    CURRENT_BACKUP_NAME="$(grep " Wrote backup with name " /tmp/backup-push | sed -E 's/.*name ([^ ]+) *(to storage [^ ]+)?/\1/')"
   fi
   if [ -z "$CURRENT_BACKUP_NAME" ]
   then
@@ -735,7 +735,7 @@ retain_backups() {
 
 # for each existing backup
 exec-with-env "$BACKUP_ENV" \\
-  -- $(get_timeout_command RECONCILIATION) wal-g backup-list --detail --json \\
+  -- $(get_timeout_command RECONCILIATION) wal-g backup-list --detail --json 2>/dev/null \\
   | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\\n' \\
   | grep '"backup_name"' \\
   | while read BACKUP
@@ -769,50 +769,83 @@ exec-with-env "$BACKUP_ENV" \\
       fi
     done
 
-# for each existing backup sorted by backup name ascending (this also mean sorted by creation date ascending)
+# for each existing backup sorted by backup time ascending (this also mean sorted by creation date ascending)
 exec-with-env "$BACKUP_ENV" \\
-  -- $(get_timeout_command RECONCILIATION) wal-g backup-list --detail --json \\
+  -- $(get_timeout_command RECONCILIATION) wal-g backup-list --detail --json 2>/dev/null \\
   | tr -d '[]' | sed 's/},{/}|{/g' | tr '|' '\\n' \\
   | grep '"backup_name"' \\
   | sort -r -t , -k 2 \\
-  | (RETAIN="$RETAIN"
+  | (
+    RETAIN="$RETAIN"
+    TO_REMOVE_BACKUP_NAME=
     while read BACKUP
     do
+      if [ -n "\$TO_REMOVE_BACKUP_NAME" ]
+      then
+        if [ "$RETAIN_WALS_FOR_UNMANAGED_LIFECYCLE" = true ] || [ "\$RETAIN" -ge 1 ]
+        then
+          echo "Deleting backup \$TO_REMOVE_BACKUP_NAME"
+          exec-with-env "$BACKUP_ENV" \\
+            -- $(get_timeout_command RECONCILIATION) wal-g delete target FIND_FULL "\$TO_REMOVE_BACKUP_NAME" --confirm
+        else
+          echo "Deleting backup \$TO_REMOVE_BACKUP_NAME and previous WAL files"
+          exec-with-env "$BACKUP_ENV" \\
+            -- $(get_timeout_command RECONCILIATION) wal-g delete before "\$TO_REMOVE_BACKUP_NAME" --confirm
+          exec-with-env "$BACKUP_ENV" \\
+            -- $(get_timeout_command RECONCILIATION) wal-g delete target FIND_FULL "\$TO_REMOVE_BACKUP_NAME" --confirm
+        fi
+      fi
+      TO_REMOVE_BACKUP_NAME=
       BACKUP_NAME="\$(echo "\$BACKUP" | tr -d '{}\\42' | tr ',' '\\n' \\
           | grep 'backup_name' | cut -d : -f 2-)"
-      echo "Check if backup \$BACKUP_NAME has to be retained and will retain \$RETAIN backups"
+      echo "Check if backup \$BACKUP_NAME has to be retained and will retain \$RETAIN more backups"
       # if is not the created backup and is not in backup CR list, delete it
       if [ "\$BACKUP_NAME" != "$CURRENT_BACKUP_NAME" ] \\
-        && ! echo '$(cat /tmp/backups)' \\
-        | cut -d : -f 5 \\
-        | grep -v '^\$' \\
+        && ! echo '$(cat /tmp/backups \
+          | cut -d : -f 5 \
+          | grep -v '^\$')' \\
         | grep -q "^\$BACKUP_NAME\$"
       then
-        echo "Deleting \$BACKUP_NAME since no associated SGBackup exists and will retain \$RETAIN backups"
-        exec-with-env "$BACKUP_ENV" \\
-          -- $(get_timeout_command RECONCILIATION) wal-g delete target FIND_FULL "\$BACKUP_NAME" --confirm
+        echo "Deleting backup \$BACKUP_NAME since no associated SGBackup exists and will retain \$RETAIN backups"
+        TO_REMOVE_BACKUP_NAME="\$BACKUP_NAME"
       # if is inside the retain window, retain it and decrease RETAIN counter
-      elif [ "\$RETAIN" -gt 1 ]
-      then
-        echo "Retaining \$BACKUP_NAME and will retain \$((RETAIN-1)) more backups"
-        RETAIN="\$((RETAIN-1))"
-      # if is outside the retain window and has a managed lifecycle, delete it
-      elif [ "\$RETAIN" -eq 1 ] \\
-        && echo '$(cat /tmp/backups)' \\
-          | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \\
-          | cut -d : -f 5 \\
-          | grep -v '^\$' \\
+      elif [ "\$RETAIN" -ge 1 ] \\
+        && echo '$(cat /tmp/backups \
+            | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \
+            | cut -d : -f 5 \
+            | grep -v '^\$')' \\
           | grep -q "^\$BACKUP_NAME\$"
       then
-        echo "Deleting WAL files and backups with managed lifecycle older than \$BACKUP_NAME"
-        exec-with-env "$BACKUP_ENV" \\
-          -- $(get_timeout_command RECONCILIATION) wal-g delete before FIND_FULL "\$BACKUP_NAME" --confirm
+        echo "Retaining backup \$BACKUP_NAME"
         RETAIN="\$((RETAIN-1))"
+      # if is outside the retain window and has a managed lifecycle, delete it
+      elif [ "\$RETAIN" -eq 0 ] \\
+        && echo '$(cat /tmp/backups \
+            | grep '^[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:[^:]*:true' \
+            | cut -d : -f 5 \
+            | grep -v '^\$')' \\
+          | grep -q "^\$BACKUP_NAME\$"
+      then
+        echo "Deleting backup with managed lifecycle \$BACKUP_NAME"
+        TO_REMOVE_BACKUP_NAME="\$BACKUP_NAME"
       # or retain it
       else
-        echo "Retaining \$BACKUP_NAME with unmanaged lifecycle"
+        echo "Retaining backup \$BACKUP_NAME with unmanaged lifecycle"
       fi
-    done)
+    done
+    if [ -n "\$TO_REMOVE_BACKUP_NAME" ]
+    then
+      echo "Deleting latest backup \$TO_REMOVE_BACKUP_NAME and previous WAL files"
+      exec-with-env "$BACKUP_ENV" \\
+        -- $(get_timeout_command RECONCILIATION) wal-g delete before "\$TO_REMOVE_BACKUP_NAME" --confirm
+      exec-with-env "$BACKUP_ENV" \\
+        -- $(get_timeout_command RECONCILIATION) wal-g delete target FIND_FULL "\$TO_REMOVE_BACKUP_NAME" --confirm
+    else
+      echo "Deleting WAL files older than latest backup \$BACKUP_NAME"
+      exec-with-env "$BACKUP_ENV" \\
+        -- $(get_timeout_command RECONCILIATION) wal-g delete before "\$BACKUP_NAME" --confirm
+    fi
+    )
 
 exec-with-env "$BACKUP_ENV" \\
   -- $(get_timeout_command RECONCILIATION) wal-g wal-verify integrity
@@ -826,7 +859,7 @@ list_backups() {
   cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c "$PATRONI_CONTAINER_NAME" \
     -- sh -e $SHELL_XTRACE > /tmp/backup-list
 WALG_LOG_LEVEL= exec-with-env "$BACKUP_ENV" \\
-  -- $(get_timeout_command BACKUP) wal-g backup-list --detail --json
+  -- $(get_timeout_command BACKUP) wal-g backup-list --detail --json 2>/dev/null
 EOF
 }
 
@@ -834,7 +867,7 @@ list_backups_for_reconciliation() {
   cat << EOF | kubectl exec -i -n "$CLUSTER_NAMESPACE" "$(cat /tmp/current-replica-or-primary)" -c "$PATRONI_CONTAINER_NAME" \
     -- sh -e $SHELL_XTRACE > /tmp/backup-list
 WALG_LOG_LEVEL= exec-with-env "$BACKUP_ENV" \\
-  -- $(get_timeout_command RECONCILIATION) wal-g backup-list --detail --json
+  -- $(get_timeout_command RECONCILIATION) wal-g backup-list --detail --json 2>/dev/null
 EOF
 }
 
@@ -920,9 +953,9 @@ reconcile_backup_crs() {
       --template="{{ .status.sgBackupConfig.storage }}")"
     BACKUP_PATH="$(kubectl get "$BACKUP_CRD_NAME" -n "$BACKUP_CR_NAMESPACE" "$BACKUP_CR_NAME" \
       --template="{{ .status.backupPath }}")"
-    # if backup CR has backup internal name, is marked as completed, uses the same current
+    # if backup CR has backup internal name, uses the same current
     # backup config and backup path but is not found in the storage, delete it
-    if [ -n "$BACKUP_NAME" ] && [ "$BACKUP_PHASE" = "$BACKUP_PHASE_COMPLETED" ] \
+    if [ -n "$BACKUP_NAME" ] \
       && [ "$BACKUP_CONFIG" = "$CURRENT_BACKUP_CONFIG" ] \
       && [ "$BACKUP_PATH" = "$CLUSTER_BACKUP_PATH" ] \
       && ! grep -q "\"backup_name\":\"$BACKUP_NAME\"" /tmp/existing-backups

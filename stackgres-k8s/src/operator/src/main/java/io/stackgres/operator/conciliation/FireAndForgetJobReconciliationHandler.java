@@ -19,8 +19,8 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.JobUtil;
 import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
-import io.stackgres.common.labels.LabelFactory;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.common.resource.ResourceScanner;
 import org.jooq.lambda.Seq;
@@ -36,20 +36,16 @@ public abstract class FireAndForgetJobReconciliationHandler<T extends CustomReso
 
   private final ReconciliationHandler<T> handler;
 
-  private final LabelFactory<T> labelFactory;
-
   private final ResourceFinder<Job> jobFinder;
 
   private final ResourceScanner<Pod> podScanner;
 
   protected FireAndForgetJobReconciliationHandler(
       ReconciliationHandler<T> handler,
-      LabelFactory<T> labelFactory,
       ResourceFinder<Job> jobFinder,
       ResourceScanner<Pod> podScanner) {
     super(handler);
     this.handler = handler;
-    this.labelFactory = labelFactory;
     this.jobFinder = jobFinder;
     this.podScanner = podScanner;
   }
@@ -57,7 +53,6 @@ public abstract class FireAndForgetJobReconciliationHandler<T extends CustomReso
   public FireAndForgetJobReconciliationHandler() {
     CdiUtil.checkPublicNoArgsConstructorIsCalledToCreateProxy(getClass());
     this.handler = null;
-    this.labelFactory = null;
     this.jobFinder = null;
     this.podScanner = null;
   }
@@ -104,13 +99,13 @@ public abstract class FireAndForgetJobReconciliationHandler<T extends CustomReso
   private Job concileJob(T context, HasMetadata resource,
       BiFunction<T, Job, Job> writer) {
     final Job requiredJob = safeCast(resource);
-    final Map<String, String> labels = labelFactory.genericLabels(context);
 
     final String namespace = resource.getMetadata().getNamespace();
 
     Job updatedJob = writer.apply(context, requiredJob);
 
-    fixPods(context, requiredJob, labels, namespace);
+    JobUtil.getJobPodsMatchLabels(updatedJob)
+        .ifPresent(labels -> fixPods(context, requiredJob, labels, namespace));
 
     return updatedJob;
   }

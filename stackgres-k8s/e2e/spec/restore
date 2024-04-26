@@ -13,7 +13,7 @@ e2e_test_install() {
     -f "$SPEC_FILE.backup.values.yaml" \
     --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION" \
     --set-string "configurations.objectstorage.s3Compatible.endpoint=$BACKUP_ENDPOINT" \
-    --set cluster.configurations.backups.useVolumeSnapshot=true
+    --set cluster.configurations.backups.useVolumeSnapshot=false
 
   wait_pods_running "$BACKUP_CLUSTER_NAMESPACE" 2
   wait_cluster "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE"
@@ -33,13 +33,13 @@ apiVersion: stackgres.io/v1
 kind: SGBackup
 metadata:
   namespace: "$BACKUP_CLUSTER_NAMESPACE"
-  name: "$BACKUP_SOURCE_VOLUME_SNAPSHOT_NAME"
+  name: "$BACKUP_SOURCE_NAME"
 spec:
   sgCluster: "$BACKUP_CLUSTER_NAME"
   managedLifecycle: false
 EOF
   
-  wait_until is_backup_phase "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_VOLUME_SNAPSHOT_NAME" "Completed"
+  wait_until is_backup_phase "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_NAME" "Completed"
 
   if [ "$K8S_DISABLE_VOLUME_SNAPSHOT" != true ]
   then
@@ -47,7 +47,7 @@ EOF
       -f "$SPEC_FILE.backup.values.yaml" \
       --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION" \
       --set-string "configurations.objectstorage.s3Compatible.endpoint=$BACKUP_ENDPOINT" \
-      --set cluster.configurations.backups.useVolumeSnapshot=false
+      --set cluster.configurations.backups.useVolumeSnapshot=true
   
     wait_until eval 'kubectl get cronjob -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_CLUSTER_NAME" -o json \
       | jq ".spec.template.spec.containers[0].env | any(.name == \"USE_VOLUME_SNAPSHOT\" and .value == \"true\")"'
@@ -57,19 +57,33 @@ apiVersion: stackgres.io/v1
 kind: SGBackup
 metadata:
   namespace: "$BACKUP_CLUSTER_NAMESPACE"
-  name: "$BACKUP_SOURCE_NAME"
+  name: "$BACKUP_SOURCE_VOLUME_SNAPSHOT_NAME"
 spec:
   sgCluster: "$BACKUP_CLUSTER_NAME"
   managedLifecycle: false
 EOF
 
-    wait_until is_backup_phase "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_NAME" "Completed"
+    wait_until is_backup_phase "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_SOURCE_VOLUME_SNAPSHOT_NAME" "Completed"
+
+    create_or_replace_cluster_only "$BACKUP_CLUSTER_NAME" "$BACKUP_CLUSTER_NAMESPACE" 1 \
+      -f "$SPEC_FILE.backup.values.yaml" \
+      --set-string "cluster.postgres.version=$E2E_POSTGRES_VERSION" \
+      --set-string "configurations.objectstorage.s3Compatible.endpoint=$BACKUP_ENDPOINT" \
+      --set cluster.configurations.backups.useVolumeSnapshot=false
+  
+    wait_until eval 'kubectl get cronjob -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_CLUSTER_NAME" -o json \
+      | jq ".spec.template.spec.containers[0].env | any(.name == \"USE_VOLUME_SNAPSHOT\" and .value == \"false\")"'
   fi
 
+  rotate_wal_file
+
   BACKUP_PITR_DATE="$(date +%Y-%m-%dT%H:%M:%SZ --utc)"
-  sleep 2
+
+  rotate_wal_file
 
   create_more_mock_data
+
+  rotate_wal_file
 
   kubectl create ns "$CLUSTER_NAMESPACE"
 }
@@ -125,12 +139,15 @@ create_more_mock_data() {
   run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (5);"
   run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (8);"
   run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "INSERT INTO fibonacci(num) VALUES (13);"
+}
+
+rotate_wal_file() {
   CURRENT_WAL_FILE="$(run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" \
     -q "SELECT r.file_name from pg_walfile_name_offset(pg_current_wal_lsn()) as r")"
   run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" -q "CHECKPOINT;"
-  wait_until -t "$((E2E_TIMEOUT / 10))" eval '[ "$(run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" \
+  wait_until -t "$((E2E_TIMEOUT / 5))" eval '[ "$(run_query -p 5432 -i 0 -n "$BACKUP_CLUSTER_NAMESPACE" -c "$BACKUP_CLUSTER_NAME" -d "test" \
     -q "SELECT r.file_name from pg_walfile_name_offset(pg_switch_wal()) as r")" != "$CURRENT_WAL_FILE" ]'
-  wait_until -t "$((E2E_TIMEOUT / 10))" timeout -s KILL "$((E2E_TIMEOUT / 20))" \
+  wait_until -t "$((E2E_TIMEOUT / 5))" timeout -s KILL "$((E2E_TIMEOUT / 20))" \
     kubectl exec -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_CLUSTER_NAME-0" -c patroni -- \
     exec-with-env backup -- wal-g wal-fetch "$CURRENT_WAL_FILE" "/tmp/$CURRENT_WAL_FILE"
 }
@@ -233,7 +250,7 @@ check_volume_snapshot_backup_can_be_restored() {
 check_init_data_after_restore() {
   local RESULT
   RESULT="$(run_query -p 5432 -i 1 -h "$CLUSTER_NAME" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" \
-    -q " SELECT num FROM fibonacci ORDER BY num;")"
+    -q "SELECT num FROM fibonacci ORDER BY num;")"
   if printf '%s' "$RESULT" \
     | tr -d '\n' \
     | grep -q "^1235813$"
@@ -252,7 +269,7 @@ check_replica_data_after_restore() {
   if "$RESULT"
   then
     QUERY_RESULT="$(run_query -p 5432 -i 0 -h "$CLUSTER_NAME-replicas" -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" \
-      -q " SELECT num FROM fibonacci ORDER BY num;")"
+      -q "SELECT num FROM fibonacci ORDER BY num;")"
   fi
   if "$RESULT" && printf '%s' "$QUERY_RESULT" \
     | tr -d '\n' \
@@ -330,7 +347,7 @@ check_restore_using_pitr() {
 
   local RESULT
   RESULT="$(run_query -p 5432 -i 0 -c "$CLUSTER_NAME" -n "$CLUSTER_NAMESPACE" -d "test" \
-    -q " SELECT num FROM fibonacci ORDER BY num;")"
+    -q "SELECT num FROM fibonacci ORDER BY num;")"
   if printf '%s' "$RESULT" \
     | tr -d '\n' \
     | grep -q "^123$"
@@ -362,7 +379,7 @@ EOF
   wait_until is_backup_phase "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_NEW_NAME" "Completed"
 
   BACKUP_LIST="$(kubectl exec -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_CLUSTER_NAME-0" -c patroni -- \
-    exec-with-env backup -- wal-g backup-list --json)"
+    exec-with-env backup -- wal-g backup-list --json 2>/dev/null)"
   if echo "$BACKUP_LIST" | jq -r '.[].backup_name' | grep -qxF "$BACKUP_INTERNAL_NAME"
   then
     echo "SUCCESS. Backup was not removed when a copy still exists"
@@ -392,7 +409,7 @@ EOF
   wait_until is_backup_phase "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_NEW_NAME" "Completed"
 
   BACKUP_LIST="$(kubectl exec -n "$BACKUP_CLUSTER_NAMESPACE" "$BACKUP_CLUSTER_NAME-0" -c patroni -- \
-    exec-with-env backup -- wal-g backup-list --json)"
+    exec-with-env backup -- wal-g backup-list --json 2>/dev/null)"
   if echo "$BACKUP_LIST" | jq -r '.[].backup_name' | grep -qxF "$BACKUP_INTERNAL_NAME"
   then
     echo "FAIL. Backup was not removed when no copy exists"

@@ -310,6 +310,13 @@ public class BackupJob
                         .orElse("false"))
                     .build(),
                     new EnvVarBuilder()
+                    .withName("RETAIN_WALS_FOR_UNMANAGED_LIFECYCLE")
+                    .withValue(Optional.of(backupConfig)
+                        .map(BackupConfiguration::retainWalsForUnmanagedLifecycle)
+                        .map(String::valueOf)
+                        .orElse("false"))
+                    .build(),
+                    new EnvVarBuilder()
                     .withName("BACKUP_TIMEOUT")
                     .withValue(Optional.of(backupConfig)
                         .map(BackupConfiguration::timeout)
