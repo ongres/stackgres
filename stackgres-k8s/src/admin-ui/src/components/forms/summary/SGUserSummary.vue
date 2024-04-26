@@ -7,18 +7,6 @@
                     Metadata
                 </strong>
                 <ul>
-                    <li v-if="showDefaults">
-                        <strong class="label">
-                            Namespace
-                        </strong>
-                        <span
-                            class="helpTooltip"
-                            :data-tooltip="getTooltip('sguser.metadata.namespace')"
-                        ></span>
-                        <span class="value">
-                             : {{ crd.data.metadata.namespace }}
-                        </span>
-                    </li>
                     <li>
                         <strong class="label">
                             Name
@@ -63,6 +51,18 @@
                         ></span>
                         <span class="value">
                                 : {{ crd.data.apiUsername }}
+                        </span>
+                    </li>
+                    <li v-if="crd.data.hasOwnProperty('apiUsernameNotBlank') && !isNull(crd.data.apiUsernameNotBlank)">
+                        <strong class="label">
+                            Mandatory API Username
+                        </strong>
+                        <span
+                            class="helpTooltip"
+                            :data-tooltip="getTooltip('sguser.apiUsernameNotBlank')"
+                        ></span>
+                        <span class="value">
+                                : {{ isEnabled(crd.data.apiUsernameNotBlank) }}
                         </span>
                     </li>
                 </ul>

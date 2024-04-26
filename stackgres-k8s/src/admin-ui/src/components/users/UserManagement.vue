@@ -47,7 +47,7 @@
                             <template v-if="!rolesList.length">
                                 <tr class="no-results">
                                     <td colspan="999">
-                                        <template v-if="iCan('create', 'roles', $route.params.namespace)">
+                                        <template v-if="iCan('create', 'roles', 'any')">
                                             No Roles have been found, would you like to <router-link to="/manage/roles/new" title="Add New Role">create a new one?</router-link>
                                         </template>
                                         <template v-else>

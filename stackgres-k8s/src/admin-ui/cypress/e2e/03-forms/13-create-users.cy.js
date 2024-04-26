@@ -4,7 +4,6 @@ describe('Create Users', () => {
     });
 
     let resourceName;
-    const namespace = Cypress.env('k8s_namespace')
     
     before( () => {
         cy.login()
@@ -43,9 +42,6 @@ describe('Create Users', () => {
         cy.get('input[data-field="metadata.name"]')
             .clear()
             .type('user-' + resourceName)
-
-        cy.get('select[data-field="metadata.namespace"]')
-            .select(namespace)
 
         cy.get('input[data-field="k8sUsername"]')
             .clear()
