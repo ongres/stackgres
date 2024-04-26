@@ -7,18 +7,6 @@
                     Metadata
                 </strong>
                 <ul>
-                    <li v-if="showDefaults">
-                        <strong class="label">
-                            Namespace
-                        </strong>
-                        <span
-                            class="helpTooltip"
-                            :data-tooltip="getTooltip('sguser.metadata.namespace')"
-                        ></span>
-                        <span class="value">
-                             : {{ crd.data.metadata.namespace }}
-                        </span>
-                    </li>
                     <li>
                         <strong class="label">
                             Name
