@@ -13,30 +13,10 @@
                     <input v-model="user.metadata.name" :disabled="(editMode)" required data-field="metadata.name" autocomplete="off">
                     <span class="helpTooltip" :data-tooltip="getTooltip('sgrole.metadata.name')"></span>
                 </div>
-                <div class="col">
-                    <label for="metadata.name">User Namespace <span class="req">*</span></label>
-                    <select
-                        required
-                        autocomplete="off"
-                        :disabled="(editMode)"
-                        data-field="metadata.namespace"
-                        v-model="user.metadata.namespace" 
-                    >
-                        <option value="" disabled>
-                            Choose one...
-                        </option>
-                        <template v-for="namespace in namespaces">
-                            <option :key="'user-namespace-' + namespace">
-                                {{ namespace }}
-                            </option>
-                        </template>
-                    </select>
-                    <span class="helpTooltip" :data-tooltip="getTooltip('sgrole.metadata.namespace')"></span>
-                </div>
             </div>
 
             <span class="warning topLeft" v-if="nameColission && !editMode">
-                There's already a <strong>User</strong> with the same name on this namespace. Please specify a different name or create the user on another namespace
+                There's already a <strong>User</strong> with the same name on this instance, please specify a different name for this user.
             </span>
 
             <div class="header">
@@ -61,6 +41,17 @@
                 </div>
 
                 <div class="col">
+                    <label for="apiUsernameNotBlank">
+                        Mandatory API Username
+                    </label>  
+                    <label for="apiUsernameNotBlank" class="switch yes-no" data-field="apiUsernameNotBlank">
+                        Enable
+                        <input type="checkbox" id="apiUsernameNotBlank" :value="!user.apiUsernameNotBlank" data-switch="NO" @change="user.apiUsernameNotBlank = !user.apiUsernameNotBlank">
+                    </label>
+                    <span class="helpTooltip" :data-tooltip="getTooltip('sguser.apiUsernameNotBlank')"></span>
+                </div>
+
+                <div class="col">
                     <label for="apiUsername">
                         API Username
                         <template v-if="user.apiUsernameNotBlank">
@@ -69,17 +60,6 @@
                     </label>
                     <input v-model="user.apiUsername" :required="user.apiUsernameNotBlank" data-field="apiUsername" autocomplete="off">
                     <span class="helpTooltip" :data-tooltip="getTooltip('sguser.apiUsername')"></span>
-                </div>
-
-                <div class="col">
-                    <label for="apiUsernameNotBlank">
-                        Blank API Username
-                    </label>  
-                    <label for="apiUsernameNotBlank" class="switch yes-no" data-field="apiUsernameNotBlank">
-                        Enable
-                        <input type="checkbox" id="apiUsernameNotBlank" :value="!user.apiUsernameNotBlank" data-switch="NO" @change="user.apiUsernameNotBlank = !user.apiUsernameNotBlank">
-                    </label>
-                    <span class="helpTooltip" :data-tooltip="getTooltip('sguser.apiUsernameNotBlank')"></span>
                 </div>
             </div>
 
@@ -259,8 +239,7 @@
 
             userData() {
                 return store.state.users.find( user => (
-                        (user.metadata.name === this.user.metadata.name) &&
-                        (user.metadata.namespace === this.user.metadata.namespace)
+                        (user.metadata.name === this.user.metadata.name)
                     ))
             },
 
