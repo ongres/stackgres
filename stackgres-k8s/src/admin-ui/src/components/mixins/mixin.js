@@ -196,7 +196,7 @@ export const mixin = {
 
       },
 
-      fetchAPI  (kind = '') {
+      fetchAPI(kind = '') {
 
         const vc = this
 
@@ -206,13 +206,17 @@ export const mixin = {
   
           $('#reload').addClass('active');
     
-          if(!store.state.permissions.allowed.namespaced.length) {
+          if(!store.state.permissions.allowed.namespaced.length || (kind === 'can_i')) {
             // Read and set user permissions first
             sgApi
             .get('can_i')
             .then( function(response) {
               store.commit('setPermissions', response.data);
-              vc.fetchAPI();
+
+              if(kind !== 'can_i') {
+                vc.fetchAPI();
+              }
+
             })
             .catch(function(err) {
               console.log(err);
@@ -230,6 +234,12 @@ export const mixin = {
                   router.push('/')
                   vc.notify('The namespace you were browsing has been deleted from the server')
                 }
+
+                // Read user permissions again if response differs from curren namespaces list
+                if(store.state.allNamespaces.length && (store.state.allNamespaces.toString() !== response.data.toString()) ) {
+                  vc.fetchAPI('can_i');
+                }
+
                 store.commit('addNamespaces', response.data);
     
               }).catch(function(err) {

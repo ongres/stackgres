@@ -15,7 +15,7 @@
                 </div>
             </div>
 
-             <span class="warning topLeft" v-if="nameColission && !editMode">
+             <span class="warning topLeft" v-if="nameColission">
                 There's already a <strong>Namespace</strong> with the same name you specified, please choose a different name.
             </span>
 
