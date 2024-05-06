@@ -128,6 +128,9 @@ endif
       sh eval-template.sh config/operator/kustomization.template.yaml \
       > config/operator/kustomization.yaml
 	VERSION="$(VERSION)" PROJECT_PATH="$(PROJECT_PATH)" \
+      sh eval-template.sh config/rbac/clusterrole.template.yaml \
+      > config/rbac/clusterrole.yaml
+	VERSION="$(VERSION)" PROJECT_PATH="$(PROJECT_PATH)" \
       sh eval-template.sh config/rbac/role.template.yaml \
       > config/rbac/role.yaml
 	VERSION="$(VERSION)" CREATE_CONVERSION_WEBHOOKS="$(CREATE_CONVERSION_WEBHOOKS)" \

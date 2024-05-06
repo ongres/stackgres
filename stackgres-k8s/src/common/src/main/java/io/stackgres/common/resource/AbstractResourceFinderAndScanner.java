@@ -5,6 +5,8 @@
 
 package io.stackgres.common.resource;
 
+import static io.stackgres.common.kubernetesclient.KubernetesClientUtil.listOrEmptyOnForbidden;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,11 +55,11 @@ public abstract class AbstractResourceFinderAndScanner<T extends HasMetadata>
     return Optional.of(allowedNamespaces)
         .filter(Predicate.not(List::isEmpty))
         .map(allowedNamespaces -> allowedNamespaces.stream()
-            .flatMap(allowedNamespace -> Optional
-                .ofNullable(getOperation(client)
-                    .inNamespace(allowedNamespace)
-                    .list()
-                    .getItems()).stream())
+            .map(allowedNamespace -> listOrEmptyOnForbidden(() -> getOperation(client)
+                .inNamespace(allowedNamespace)
+                .list()
+                .getItems()))
+            .flatMap(List::stream)
             .reduce(Seq.<T>of(), (seq, items) -> seq.append(items), (u, v) -> v)
             .toList())
         .orElseGet(() -> getOperation(client)
@@ -71,12 +73,11 @@ public abstract class AbstractResourceFinderAndScanner<T extends HasMetadata>
     return Optional.of(allowedNamespaces)
         .filter(Predicate.not(List::isEmpty))
         .map(allowedNamespaces -> allowedNamespaces.stream()
-            .flatMap(allowedNamespace -> Optional
-                .ofNullable(getOperation(client)
-                    .inNamespace(allowedNamespace)
-                    .withLabels(labels)
-                    .list()
-                    .getItems()).stream())
+            .map(allowedNamespace -> listOrEmptyOnForbidden(() -> getOperation(client)
+                .inNamespace(allowedNamespace)
+                .list()
+                .getItems()))
+            .flatMap(List::stream)
             .reduce(Seq.<T>of(), (seq, items) -> seq.append(items), (u, v) -> v)
             .toList())
         .orElseGet(() -> getOperation(client)

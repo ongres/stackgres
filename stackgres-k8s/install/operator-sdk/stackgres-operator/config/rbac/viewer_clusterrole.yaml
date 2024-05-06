@@ -1,25 +1,27 @@
-# permissions for end users to edit sgconfigs.
+# permissions for end users to view sgconfigs.
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   labels:
-    app.kubernetes.io/name: role
-    app.kubernetes.io/instance: editor-role
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: viewer-clusterrole
     app.kubernetes.io/component: rbac
     app.kubernetes.io/created-by: stackgres
     app.kubernetes.io/part-of: stackgres
     app.kubernetes.io/managed-by: kustomize
-  name: editor-role
+  name: viewer-clusterrole
 rules:
 - apiGroups:
   - stackgres.io
   resources:
   - '*'
   verbs:
-  - create
-  - delete
   - get
   - list
-  - patch
-  - update
   - watch
+- apiGroups:
+  - stackgres.io
+  resources:
+  - sgconfigs/status
+  verbs:
+  - get

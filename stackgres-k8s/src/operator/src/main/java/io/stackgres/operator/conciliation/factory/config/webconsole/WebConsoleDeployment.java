@@ -28,6 +28,7 @@ import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.crd.sgconfig.StackGresAuthenticationType;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
@@ -256,9 +257,19 @@ public class WebConsoleDeployment
                     .orElse("jwt"))
                 .build(),
                 new EnvVarBuilder()
-                .withName("OPERATOR_VERSION")
+                .withName(StackGresProperty.OPERATOR_VERSION.getEnvironmentVariableName())
                 .withValue(Optional.ofNullable(System.getenv(
                     StackGresProperty.OPERATOR_VERSION.getEnvironmentVariableName())).orElse(null))
+                .build(),
+                new EnvVarBuilder()
+                .withName(OperatorProperty.ALLOWED_NAMESPACES.getEnvironmentVariableName())
+                .withValue(Optional.ofNullable(System.getenv(
+                    OperatorProperty.ALLOWED_NAMESPACES.getEnvironmentVariableName())).orElse(null))
+                .build(),
+                new EnvVarBuilder()
+                .withName(OperatorProperty.CLUSTER_ROLE_DISABLED.getEnvironmentVariableName())
+                .withValue(Optional.ofNullable(System.getenv(
+                    OperatorProperty.CLUSTER_ROLE_DISABLED.getEnvironmentVariableName())).orElse(null))
                 .build())
             .addAllToEnv(
                 Optional.of(context.getSource().getSpec())

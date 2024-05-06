@@ -12,6 +12,7 @@ import java.util.Properties;
 public enum OperatorProperty implements StackGresPropertyReader {
 
   DISABLE_RECONCILIATION("stackgres.disableReconciliation"),
+  DISABLE_BOOTSTRAP("stackgres.disableBootstrap"),
   RECONCILIATION_PERIOD("stackgres.reconciliationPeriod"),
   PATRONI_RECONCILIATION_PERIOD("stackgres.patroniReconciliationPeriod"),
   OPERATOR_NAME("stackgres.operatorName"),
@@ -32,13 +33,17 @@ public enum OperatorProperty implements StackGresPropertyReader {
   INSTALL_CONFIG("stackgres.installConfig"),
   INSTALL_CERTS("stackgres.installCerts"),
   INSTALL_CRDS("stackgres.installCrds"),
+  WAIT_CRDS_UPGRADE("stackgres.waitCrdsUpgrade"),
   INSTALL_WEBHOOKS("stackgres.installWebhooks"),
   INSTALL_CONVERSION_WEBHOOKS("stackgres.installConversionWebhooks"),
   CERTIFICATE_TIMEOUT("stackgres.certificateTimeout"),
   OPERATOR_CERT_SECRET_NAME("stackgres.operatorCertSecretName"),
   DISABLE_RESTAPI_SERVICE_ACCOUNT_IF_NOT_EXISTS("stackgres.disableRestapiServiceAccountIfNotExists"),
   PATRONI_CTL_TIMEOUT("stackgres.patroniCtlTimeout"),
-  ALLOWED_NAMESPACES("stackgres.allowedNamespaces");
+  ALLOWED_NAMESPACES("stackgres.allowedNamespaces"),
+  CLUSTER_ROLE_DISABLED("stackgres.clusterRoleDisabled"),
+  FORCE_UNLOCK_OPERATOR("stackgres.forceUnlockOperator"),
+  STOP_AFTER_BOOTSTRAP("stackgres.stopAfterBootstrap");
 
   private static final Properties APPLICATION_PROPERTIES =
       StackGresPropertyReader.readApplicationProperties(OperatorProperty.class);

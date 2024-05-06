@@ -39,6 +39,7 @@ EOF
   keytool -export -keystore /tmp/tmp.jks -storepass changeit -alias app -file /tmp/tmp.pub
   java /tmp/ExportPrivateKey.java /tmp/tmp.jks jks changeit app changeit /tmp/tmp.key
   export KUBERNETES_MASTER=240.0.0.1
+  export DISABLE_BOOTSTRAP=true
   export DISABLE_RECONCILIATION=true
   java \
     -XX:ArchiveClassesAtExit="$APP_PATH"/quarkus-run.jsa \
@@ -48,8 +49,8 @@ EOF
     -Djava.util.logging.manager=org.jboss.logmanager.LogManager \
     -Dquarkus.http.ssl.certificate.files=/tmp/tmp.crt \
     -Dquarkus.http.ssl.certificate.key-files=/tmp/tmp.key \
-    $JAVA_OPTS $DEBUG_JAVA_OPTS -jar "$APP_PATH"/quarkus-run.jar \
     -Dquarkus.http.host=0.0.0.0 \
+    $JAVA_OPTS $DEBUG_JAVA_OPTS -jar "$APP_PATH"/quarkus-run.jar \
     $APP_OPTS &
   PID=$!
   until curl -s localhost:8080/q/health/ready

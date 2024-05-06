@@ -34,7 +34,7 @@ spec:
     {{- end }}
   containers:
     - name: conn-check
-      image: '{{ template "kubectl.image" . }}'
+      image: '{{ template "kubectl-image" . }}'
       imagePullPolicy: "IfNotPresent"
       command:
         - "bash"

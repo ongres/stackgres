@@ -1,20 +1,20 @@
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
+kind: ClusterRoleBinding
 metadata:
   labels:
-    app.kubernetes.io/name: rolebinding
-    app.kubernetes.io/instance: webconsole-admin-rolebinding
+    app.kubernetes.io/name: clusterrolebinding
+    app.kubernetes.io/instance: operator-clusterrolebinding
     app.kubernetes.io/component: rbac
     app.kubernetes.io/created-by: stackgres
     app.kubernetes.io/part-of: stackgres
     app.kubernetes.io/managed-by: kustomize
-  name: webconsole-admin
-  namespace: system
+  name: operator
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: webconsole-admin
+  kind: ClusterRole
+  name: operator
 subjects:
-- kind: User
-  name: admin
+- kind: ServiceAccount
+  name: operator
+  namespace: system

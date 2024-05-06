@@ -5,6 +5,8 @@
 
 package io.stackgres.operator.conciliation;
 
+import static io.stackgres.common.kubernetesclient.KubernetesClientUtil.listOrEmptyOnNotFound;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -47,11 +49,11 @@ public abstract class AbstractDeployedResourcesScanner<T extends CustomResource<
         .values()
         .stream()
         .filter(op -> !genericLabels.isEmpty())
-        .<HasMetadata>flatMap(streamList(op -> op.apply(client)
+        .<HasMetadata>flatMap(streamList(op -> listOrEmptyOnNotFound(() -> op.apply(client)
             .inNamespace(config.getMetadata().getNamespace())
             .withLabels(genericLabels)
             .list()
-            .getItems()))
+            .getItems())))
         .toList();
     final List<HasMetadata> inNamespaceRequired = requiredResources
         .stream()
@@ -79,18 +81,19 @@ public abstract class AbstractDeployedResourcesScanner<T extends CustomResource<
         .map(op -> Optional.of(allowedNamespaces)
             .filter(Predicate.not(List::isEmpty))
             .map(allowedNamespaces -> allowedNamespaces.stream()
-                .flatMap(allowedNamespace -> Optional.of(op.apply(client)
-                    .inNamespace(allowedNamespace)
-                    .withLabels(crossNamespaceLabels)
-                    .list()
-                    .getItems()).stream())
+                .flatMap(allowedNamespace -> Optional.of(
+                    listOrEmptyOnNotFound(() -> op.apply(client)
+                        .inNamespace(allowedNamespace)
+                        .withLabels(crossNamespaceLabels)
+                        .list()
+                        .getItems())).stream())
                 .reduce(Seq.<HasMetadata>of(), (seq, items) -> seq.append(items), (u, v) -> v)
                 .toList())
-            .orElseGet(() -> op.apply(client)
+            .orElseGet(() -> listOrEmptyOnNotFound(() -> op.apply(client)
                 .inAnyNamespace()
                 .withLabels(crossNamespaceLabels)
                 .list()
-                .getItems()
+                .getItems())
                 .stream()
                 .map(HasMetadata.class::cast)
                 .toList()))

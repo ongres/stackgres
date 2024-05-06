@@ -26,6 +26,8 @@ public class ConfigStatus {
 
   private ConfigStatusGrafana grafana;
 
+  private String existingCrUpdatedToVersion;
+
   public List<Condition> getConditions() {
     return conditions;
   }
@@ -56,6 +58,14 @@ public class ConfigStatus {
 
   public void setGrafana(ConfigStatusGrafana grafana) {
     this.grafana = grafana;
+  }
+
+  public String getExistingCrUpdatedToVersion() {
+    return existingCrUpdatedToVersion;
+  }
+
+  public void setExistingCrUpdatedToVersion(String existingCrUpdatedToVersion) {
+    this.existingCrUpdatedToVersion = existingCrUpdatedToVersion;
   }
 
   @Override

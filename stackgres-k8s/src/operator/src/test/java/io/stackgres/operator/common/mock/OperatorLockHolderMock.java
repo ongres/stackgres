@@ -33,4 +33,8 @@ public class OperatorLockHolderMock implements OperatorLockHolder {
   public void stop() {
   }
 
+  @Override
+  public void forceUnlockOthers() {
+  }
+
 }

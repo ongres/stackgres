@@ -7,7 +7,13 @@ resources:
 - service_account.yaml
 - role.yaml
 - role_binding.yaml
+- clusterrole.yaml
+- clusterrole_binding.yaml
+- editor_clusterrole.yaml
+- viewer_clusterrole.yaml
 - editor_role.yaml
 - viewer_role.yaml
+- restapi_clusterrole_binding.yaml
+- restapi_admin_clusterrole_binding.yaml
 - restapi_role_binding.yaml
 - restapi_admin_role_binding.yaml

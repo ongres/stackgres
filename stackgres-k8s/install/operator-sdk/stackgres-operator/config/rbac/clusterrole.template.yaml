@@ -1,9 +1,8 @@
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: operator
-  namespace: system
 rules:
 ##
 ## Base operator rules
@@ -14,7 +13,7 @@ $(
     --set-string allowedNamespaces='{system}' \
     --show-only templates/operator-cluster-role.yaml \
     "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
-    | yq -y 'select(.kind == "Role")|.rules'
+    | yq -y 'select(.kind == "ClusterRole")|.rules'
 )
 
 - apiGroups:
@@ -27,10 +26,9 @@ $(
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: restapi
-  namespace: system
 rules:
 ##
 ## Base restapi rules
@@ -41,14 +39,13 @@ $(
     --set-string allowedNamespaces='{system}' \
     --show-only templates/webapi-cluster-role.yaml \
     "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
-    | yq -y 'select(.kind == "Role")|.rules'
+    | yq -y 'select(.kind == "ClusterRole")|.rules'
 )
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: webconsole-admin
-  namespace: system
 rules:
 ##
 ## Base webconsole admin rules
@@ -59,14 +56,13 @@ $(
     --set-string allowedNamespaces='{system}' \
     --show-only templates/webapi-admin-cluster-role.yaml \
     "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
-    | yq -y 'select(.kind == "Role")|.rules'
+    | yq -y 'select(.kind == "ClusterRole")|.rules'
 )
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: webconsole-writer
-  namespace: system
 rules:
 ##
 ## Base webconsole writer rules
@@ -77,14 +73,13 @@ $(
     --set-string allowedNamespaces='{system}' \
     --show-only templates/webapi-writer-cluster-role.yaml \
     "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
-    | yq -y 'select(.kind == "Role")|.rules'
+    | yq -y 'select(.kind == "ClusterRole")|.rules'
 )
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: ClusterRole
 metadata:
   name: webconsole-reader
-  namespace: system
 rules:
 ##
 ## Base webconsole reader rules
@@ -95,7 +90,7 @@ $(
     --set-string allowedNamespaces='{system}' \
     --show-only templates/webapi-reader-cluster-role.yaml \
     "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
-    | yq -y 'select(.kind == "Role")|.rules'
+    | yq -y 'select(.kind == "ClusterRole")|.rules'
 )
 
 #+kubebuilder:scaffold:rules

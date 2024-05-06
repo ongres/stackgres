@@ -625,6 +625,14 @@ install_operator_vanilla_from() {
       then
         printf ' --set allowedNamespaces={%s}' "$(printf %s "$E2E_ALLOWED_NAMESPACES" | tr ' ' ',')"
       fi
+      if [ "x$E2E_DISABLE_CLUSTER_ROLE" = xtrue ]
+      then
+        printf ' --set disableClusterRole=true'
+      fi
+      if [ "x$E2E_ALLOW_IMPERSONATION_FOR_REST_API" = xtrue ]
+      then
+        printf ' --set allowImpersonationForRestApi=true'
+      fi
     ) \
     "$@"
   after_operator_install_or_upgrade
@@ -687,6 +695,14 @@ upgrade_operator_vanilla() {
         then
           printf ' --set allowedNamespaces={%s}' "$(printf %s "$E2E_ALLOWED_NAMESPACES" | tr ' ' ',')"
         fi
+        if [ "x$E2E_DISABLE_CLUSTER_ROLE" = xtrue ]
+        then
+          printf ' --set disableClusterRole=true'
+        fi
+        if [ "x$E2E_ALLOW_IMPERSONATION_FOR_REST_API" = xtrue ]
+        then
+          printf ' --set allowImpersonationForRestApi=true'
+        fi
       ) \
       "$@"
   else
@@ -695,6 +711,14 @@ upgrade_operator_vanilla() {
         if [ "x$E2E_ALLOWED_NAMESPACES" != x ]
         then
           printf ' --set allowedNamespaces={%s}' "$(printf %s "$E2E_ALLOWED_NAMESPACES" | tr ' ' ',')"
+        fi
+        if [ "x$E2E_DISABLE_CLUSTER_ROLE" = xtrue ]
+        then
+          printf ' --set disableClusterRole=true'
+        fi
+        if [ "x$E2E_ALLOW_IMPERSONATION_FOR_REST_API" = xtrue ]
+        then
+          printf ' --set allowImpersonationForRestApi=true'
         fi
       ) \
       "$@"

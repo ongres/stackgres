@@ -1,0 +1,233 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: operator
+rules:
+##
+## Base operator rules
+##
+- apiGroups:
+    - ''
+  resources:
+    - namespaces
+  verbs:
+    - get
+    - list
+- apiGroups:
+    - storage.k8s.io
+  resources:
+    - storageclasses
+  verbs:
+    - get
+    - list
+- apiGroups:
+    - apiextensions.k8s.io
+  resources:
+    - customresourcedefinitions
+  resourceNames:
+    - sgconfigs.stackgres.io
+    - sgclusters.stackgres.io
+    - sginstanceprofiles.stackgres.io
+    - sgpgconfigs.stackgres.io
+    - sgpoolconfigs.stackgres.io
+    - sgbackups.stackgres.io
+    - sgbackupconfigs.stackgres.io
+    - sgobjectstorages.stackgres.io
+    - sgdbops.stackgres.io
+    - sgdistributedlogs.stackgres.io
+    - sgshardedclusters.stackgres.io
+    - sgshardedbackups.stackgres.io
+    - sgshardeddbops.stackgres.io
+    - sgscripts.stackgres.io
+  verbs:
+    - get
+- apiGroups:
+    - apiextensions.k8s.io
+  resources:
+    - customresourcedefinitions
+  verbs:
+    - list
+- apiGroups:
+    - apiextensions.k8s.io
+  resources:
+    - customresourcedefinitions
+  resourceNames:
+    - prometheuses.monitoring.coreos.com
+  verbs:
+    - get
+
+- apiGroups:
+  - operators.coreos.com
+  resources:
+  - operators
+  verbs:
+  - list
+  - get
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: restapi
+rules:
+##
+## Base restapi rules
+##
+- apiGroups:
+    - authorization.k8s.io
+  resources:
+    - subjectaccessreviews
+  verbs:
+    - create
+- apiGroups:
+    - ''
+  resources:
+    - users
+    - groups
+  verbs:
+    - impersonate
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: webconsole-admin
+rules:
+##
+## Base webconsole admin rules
+##
+- apiGroups:
+    - rbac.authorization.k8s.io
+  resources:
+    - clusterroles
+    - clusterrolebindings
+  verbs:
+    - get
+    - list
+    - watch
+    - create
+    - update
+    - patch
+    - delete
+- apiGroups:
+    - apiextensions.k8s.io
+  resources:
+    - customresourcedefinitions
+  resourceNames:
+    - sgconfigs.stackgres.io
+    - sgclusters.stackgres.io
+    - sginstanceprofiles.stackgres.io
+    - sgpgconfigs.stackgres.io
+    - sgpoolconfigs.stackgres.io
+    - sgbackups.stackgres.io
+    - sgbackupconfigs.stackgres.io
+    - sgobjectstorages.stackgres.io
+    - sgdbops.stackgres.io
+    - sgdistributedlogs.stackgres.io
+    - sgshardedclusters.stackgres.io
+    - sgscripts.stackgres.io
+  verbs:
+    - get
+- apiGroups:
+    - apiextensions.k8s.io
+  resources:
+    - customresourcedefinitions
+  verbs:
+    - list
+- apiGroups:
+    - ''
+  resources:
+    - namespaces
+    - storageclasses
+  verbs:
+    - get
+    - list
+    - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: webconsole-writer
+rules:
+##
+## Base webconsole writer rules
+##
+- apiGroups:
+    - apiextensions.k8s.io
+  resources:
+    - customresourcedefinitions
+  resourceNames:
+    - sgconfigs.stackgres.io
+    - sgclusters.stackgres.io
+    - sginstanceprofiles.stackgres.io
+    - sgpgconfigs.stackgres.io
+    - sgpoolconfigs.stackgres.io
+    - sgbackups.stackgres.io
+    - sgbackupconfigs.stackgres.io
+    - sgobjectstorages.stackgres.io
+    - sgdbops.stackgres.io
+    - sgdistributedlogs.stackgres.io
+    - sgshardedclusters.stackgres.io
+    - sgscripts.stackgres.io
+  verbs:
+    - get
+- apiGroups:
+    - apiextensions.k8s.io
+  resources:
+    - customresourcedefinitions
+  verbs:
+    - list
+- apiGroups:
+    - ''
+  resources:
+    - namespaces
+    - storageclasses
+  verbs:
+    - get
+    - list
+    - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: webconsole-reader
+rules:
+##
+## Base webconsole reader rules
+##
+- apiGroups:
+    - apiextensions.k8s.io
+  resources:
+    - customresourcedefinitions
+  resourceNames:
+    - sgconfigs.stackgres.io
+    - sgclusters.stackgres.io
+    - sginstanceprofiles.stackgres.io
+    - sgpgconfigs.stackgres.io
+    - sgpoolconfigs.stackgres.io
+    - sgbackups.stackgres.io
+    - sgbackupconfigs.stackgres.io
+    - sgobjectstorages.stackgres.io
+    - sgdbops.stackgres.io
+    - sgdistributedlogs.stackgres.io
+    - sgshardedclusters.stackgres.io
+    - sgscripts.stackgres.io
+  verbs:
+    - get
+- apiGroups:
+    - apiextensions.k8s.io
+  resources:
+    - customresourcedefinitions
+  verbs:
+    - list
+- apiGroups:
+    - ''
+  resources:
+    - namespaces
+    - storageclasses
+  verbs:
+    - get
+    - list
+    - watch
+
+#+kubebuilder:scaffold:rules

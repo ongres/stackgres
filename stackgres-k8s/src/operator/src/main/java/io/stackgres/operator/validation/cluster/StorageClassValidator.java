@@ -8,6 +8,7 @@ package io.stackgres.operator.validation.cluster;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.fabric8.kubernetes.api.model.storage.StorageClass;
 import io.stackgres.common.ErrorType;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.resource.ResourceFinder;
 import io.stackgres.operator.common.StackGresClusterReview;
@@ -19,6 +20,8 @@ import jakarta.inject.Singleton;
 @Singleton
 @ValidationType(ErrorType.INVALID_STORAGE_CLASS)
 public class StorageClassValidator implements ClusterValidator {
+
+  private final boolean clusterRoleDisabled = OperatorProperty.CLUSTER_ROLE_DISABLED.getBoolean();
 
   private final ResourceFinder<StorageClass> finder;
 
@@ -54,7 +57,7 @@ public class StorageClassValidator implements ClusterValidator {
   private void checkIfStorageClassExist(String storageClass, String onError)
       throws ValidationFailed {
     if (storageClass != null && !storageClass.isEmpty()
-        && finder.findByName(storageClass).isEmpty()) {
+        && (clusterRoleDisabled || finder.findByName(storageClass).isEmpty())) {
       fail(onError);
     }
   }

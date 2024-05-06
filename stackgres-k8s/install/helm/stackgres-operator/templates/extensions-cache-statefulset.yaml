@@ -2,11 +2,7 @@
 apiVersion: "apps/v1"
 kind: "StatefulSet"
 metadata:
-  annotations:
-    meta.helm.sh/release-name: {{ .Release.Name }}
-    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/managed-by: Helm
     app: {{ .Release.Name }}-extensions-cache
     version: "{{ .Chart.Version }}"
     group:  stackgres.io
@@ -92,7 +88,7 @@ spec:
             mountPath: /opt/app-root/src
             readOnly: true
       - name: "controller"
-        image: {{ template "kubectl.image" . }}
+        image: {{ template "kubectl-image" . }}
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         securityContext:
           {{- if and (or (not (.Capabilities.APIVersions.Has "project.openshift.io/v1")) .Values.developer.disableArbitraryUser) (not .Values.extensions.cache.hostPath) }}
@@ -127,6 +123,9 @@ spec:
           - name: EXTENSIONS_CACHE_PRELOADED_EXTENSIONS
             value: {{ .Values.extensions.cache.preloadedExtensions | toJson | squote }}
           {{- end }}
+          - name: ALLOWED_NAMESPACES
+            {{- $allowedNamespaces := regexSplit " " (include "allowedNamespaces" .) -1 }}
+            value: "{{ if not ($allowedNamespaces | has "_all_namespaces_placeholder") }}{{ range $index, $namespace := $allowedNamespaces }}{{ if $index }},{{ end }}{{ $namespace }}{{ end }}{{ end }}"
         command:
           - "/bin/bash"
           - "-ec"
@@ -176,11 +175,7 @@ spec:
   {{- if not .Values.extensions.cache.hostPath }}
   volumeClaimTemplates:
   - metadata:
-      annotations:
-        meta.helm.sh/release-name: {{ .Release.Name }}
-        meta.helm.sh/release-namespace: {{ .Release.Namespace }}
       labels:
-        app.kubernetes.io/managed-by: Helm
         app: {{ .Release.Name }}-extensions-cache
         version: "{{ .Chart.Version }}"
         group:  stackgres.io

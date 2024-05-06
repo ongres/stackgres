@@ -6,11 +6,14 @@
 package io.stackgres.apiweb.rest.misc;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
 
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.quarkus.security.Authenticated;
 import io.stackgres.apiweb.exception.ErrorResponse;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.resource.ResourceScanner;
 import io.stackgres.common.resource.ResourceWriter;
 import jakarta.enterprise.context.RequestScoped;
@@ -48,6 +51,8 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
         schema = @Schema(implementation = ErrorResponse.class))})
 public class NamespaceResource {
 
+  private final List<String> allowedNamespaces = OperatorProperty.getAllowedNamespaces();
+
   private final ResourceScanner<Namespace> namespaceScanner;
 
   private final ResourceWriter<Namespace> namespaceWriter;
@@ -73,9 +78,12 @@ public class NamespaceResource {
       """)
   @GET
   public List<String> get() {
-    return namespaceScanner.getResources().stream()
-        .map(namespace -> namespace.getMetadata().getName())
-        .toList();
+    return Optional.of(allowedNamespaces)
+        .filter(Predicate.not(List::isEmpty))
+        .orElseGet(() -> namespaceScanner.getResources()
+            .stream()
+            .map(namespace -> namespace.getMetadata().getName())
+            .toList());
   }
 
   @APIResponse(responseCode = "200", description = "OK",

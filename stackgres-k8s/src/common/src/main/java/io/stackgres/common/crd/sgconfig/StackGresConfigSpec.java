@@ -5,6 +5,8 @@
 
 package io.stackgres.common.crd.sgconfig;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -24,6 +26,12 @@ public class StackGresConfigSpec {
   private String containerRegistry;
 
   private String imagePullPolicy;
+
+  private List<String> allowedNamespaces;
+
+  private Map<String, String> allowedNamespaceLabelSelector;
+
+  private Boolean disableClusterRole;
 
   private StackGresConfigOptionalServiceAccount serviceAccount;
 
@@ -65,6 +73,30 @@ public class StackGresConfigSpec {
 
   public void setImagePullPolicy(String imagePullPolicy) {
     this.imagePullPolicy = imagePullPolicy;
+  }
+
+  public List<String> getAllowedNamespaces() {
+    return allowedNamespaces;
+  }
+
+  public void setAllowedNamespaces(List<String> allowedNamespaces) {
+    this.allowedNamespaces = allowedNamespaces;
+  }
+
+  public Map<String, String> getAllowedNamespaceLabelSelector() {
+    return allowedNamespaceLabelSelector;
+  }
+
+  public void setAllowedNamespaceLabelSelector(Map<String, String> allowedNamespaceLabelSelector) {
+    this.allowedNamespaceLabelSelector = allowedNamespaceLabelSelector;
+  }
+
+  public Boolean getDisableClusterRole() {
+    return disableClusterRole;
+  }
+
+  public void setDisableClusterRole(Boolean disableClusterRole) {
+    this.disableClusterRole = disableClusterRole;
   }
 
   public StackGresConfigOptionalServiceAccount getServiceAccount() {
@@ -173,7 +205,8 @@ public class StackGresConfigSpec {
 
   @Override
   public int hashCode() {
-    return Objects.hash(adminui, authentication, cert, containerRegistry, deploy, developer, extensions, grafana,
+    return Objects.hash(adminui, allowedNamespaceLabelSelector, allowedNamespaces, authentication,
+        cert, containerRegistry, deploy, developer, disableClusterRole, extensions, grafana,
         imagePullPolicy, jobs, operator, prometheus, restapi, serviceAccount, shardingSphere);
   }
 
@@ -186,13 +219,18 @@ public class StackGresConfigSpec {
       return false;
     }
     StackGresConfigSpec other = (StackGresConfigSpec) obj;
-    return Objects.equals(adminui, other.adminui) && Objects.equals(authentication, other.authentication)
-        && Objects.equals(cert, other.cert) && Objects.equals(containerRegistry, other.containerRegistry)
+    return Objects.equals(adminui, other.adminui)
+        && Objects.equals(allowedNamespaceLabelSelector, other.allowedNamespaceLabelSelector)
+        && Objects.equals(allowedNamespaces, other.allowedNamespaces)
+        && Objects.equals(authentication, other.authentication) && Objects.equals(cert, other.cert)
+        && Objects.equals(containerRegistry, other.containerRegistry)
         && Objects.equals(deploy, other.deploy) && Objects.equals(developer, other.developer)
+        && Objects.equals(disableClusterRole, other.disableClusterRole)
         && Objects.equals(extensions, other.extensions) && Objects.equals(grafana, other.grafana)
-        && Objects.equals(imagePullPolicy, other.imagePullPolicy) && Objects.equals(jobs, other.jobs)
-        && Objects.equals(operator, other.operator) && Objects.equals(prometheus, other.prometheus)
-        && Objects.equals(restapi, other.restapi) && Objects.equals(serviceAccount, other.serviceAccount)
+        && Objects.equals(imagePullPolicy, other.imagePullPolicy)
+        && Objects.equals(jobs, other.jobs) && Objects.equals(operator, other.operator)
+        && Objects.equals(prometheus, other.prometheus) && Objects.equals(restapi, other.restapi)
+        && Objects.equals(serviceAccount, other.serviceAccount)
         && Objects.equals(shardingSphere, other.shardingSphere);
   }
 

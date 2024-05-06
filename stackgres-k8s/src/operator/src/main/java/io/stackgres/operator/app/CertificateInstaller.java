@@ -47,9 +47,8 @@ public class CertificateInstaller {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(CertificateInstaller.class);
 
-  String operatorName = OperatorProperty.OPERATOR_NAME.getString();
-
-  String operatorNamespace = OperatorProperty.OPERATOR_NAMESPACE.getString();
+  private final String operatorName = OperatorProperty.OPERATOR_NAME.getString();
+  private final String operatorNamespace = OperatorProperty.OPERATOR_NAMESPACE.getString();
 
   private final CustomResourceFinder<StackGresConfig> configFinder;
   private final ResourceFinder<Secret> secretFinder;
@@ -141,9 +140,9 @@ public class CertificateInstaller {
 
   public void waitForCertificate() {
     LOGGER.info("Waiting for certificate");
-    String certSecretName = podFinder
-        .findByNameAndNamespace(
-            OperatorProperty.OPERATOR_POD_NAME.getString(), operatorNamespace)
+    String certSecretName = OperatorProperty.OPERATOR_POD_NAME.get()
+        .flatMap(operatorPodName -> podFinder
+            .findByNameAndNamespace(operatorPodName, operatorNamespace))
         .flatMap(pod -> pod.getSpec().getContainers()
             .stream()
             .map(Container::getVolumeMounts)

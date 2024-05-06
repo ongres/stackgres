@@ -1,4 +1,4 @@
-{{- if eq "true" (include "stackgres.operator.missingSGConfigCrd" .) }}
+{{- if eq "true" (include "missingSGConfigCrd" .) }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -39,7 +39,7 @@ spec:
       {{- end }}
       containers:
       - name: "install-crd-and-sgconfig"
-        image: {{ template "kubectl.image" . }}
+        image: {{ template "kubectl-image" . }}
         imagePullPolicy: "IfNotPresent"
         {{- with .Values.jobs.resources }}
         resources:

@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReview;
 import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReviewBuilder;
 import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReviewStatus;
+import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReviewStatusBuilder;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRole;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBinding;
 import io.fabric8.kubernetes.api.model.rbac.Role;
@@ -32,6 +33,7 @@ import io.stackgres.apiweb.app.KubernetesClientProvider;
 import io.stackgres.apiweb.dto.PermissionsListDto;
 import io.stackgres.apiweb.exception.ErrorResponse;
 import io.stackgres.apiweb.rest.misc.NamespaceResource;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.CommonDefinition;
 import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
@@ -90,6 +92,8 @@ public class RbacResource {
   private static final List<String> NAMESPACED_RESOURCES = getResourcesNamespaced();
   private static final List<String> UNNAMESPACED_RESOURCES = getResourcesUnnamespaced();
 
+  private final boolean clusterRoleDisabled = OperatorProperty.CLUSTER_ROLE_DISABLED.getBoolean();
+
   @Inject
   SecurityIdentity identity;
 
@@ -118,8 +122,14 @@ public class RbacResource {
   @Path("can-i/{verb}/{resource}")
   public Response verb(@PathParam("verb") String verb, @PathParam("resource") String resource,
       @QueryParam("namespace") String namespace, @QueryParam("group") Optional<String> group) {
-
     String impersonated = k8sUsername != null ? k8sUsername : identity.getPrincipal().getName();
+    if (clusterRoleDisabled) {
+      LOGGER.debug("ClusterRole are disabled, skipping review access for User {}", impersonated);
+      return Response.ok(
+          new SubjectAccessReviewStatusBuilder()
+          .withAllowed(true)
+          .build()).build();
+    }
     LOGGER.debug("User to review access {}", impersonated);
     // Connect with the serviceaccount permissions
     try (KubernetesClient client = kubernetesClientProvider.createDefault()) {
@@ -164,7 +174,11 @@ public class RbacResource {
   @Path("can-i")
   public PermissionsListDto caniList() {
     String impersonated = k8sUsername != null ? k8sUsername : identity.getPrincipal().getName();
-    LOGGER.debug("User to review access {}", impersonated);
+    if (clusterRoleDisabled) {
+      LOGGER.debug("ClusterRole are disabled, skipping review access for User {}", impersonated);
+    } else {
+      LOGGER.debug("User to review access {}", impersonated);
+    }
     try (KubernetesClient client = kubernetesClientProvider.createDefault()) {
       return new PermissionsListDto(
           buildUnnamespacedPermissionList(client, impersonated),
@@ -190,16 +204,16 @@ public class RbacResource {
       KubernetesClient client, String user) {
     List<PermissionsListDto.Namespaced> listNamespaced = new ArrayList<>();
 
-    for (String ns : namespaces.get()) {
+    for (String namespace : namespaces.get()) {
       Map<String, List<String>> resourceNamespace = new HashMap<>();
       for (String rsNamespaced : NAMESPACED_RESOURCES) {
         String[] resource = rsNamespaced.split("\\.", 2);
-        List<String> allowed = accessReview(client, user, ns, resource[0],
+        List<String> allowed = accessReview(client, user, namespace, resource[0],
             resource.length == 2 ? resource[1] : "", getVerbs());
         resourceNamespace.put(resource[0], allowed);
       }
 
-      listNamespaced.add(new PermissionsListDto.Namespaced(ns, resourceNamespace));
+      listNamespaced.add(new PermissionsListDto.Namespaced(namespace, resourceNamespace));
     }
     return listNamespaced;
   }
@@ -244,6 +258,11 @@ public class RbacResource {
       String resource, String group, List<String> verbs) {
     List<String> allowed = new ArrayList<>();
     for (String verb : verbs) {
+      if (clusterRoleDisabled) {
+        allowed.add(verb);
+        continue;
+      }
+
       SubjectAccessReview review = new SubjectAccessReviewBuilder()
           .withNewSpec()
           .withUser(user)

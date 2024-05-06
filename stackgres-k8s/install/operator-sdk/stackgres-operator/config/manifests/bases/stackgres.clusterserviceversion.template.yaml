@@ -56,11 +56,11 @@ $(
   if [ "$CREATE_CONVERSION_WEBHOOKS" = true ]
   then
     cat << EOF
-  - supported: false
+  - supported: true
     type: OwnNamespace
-  - supported: false
+  - supported: true
     type: SingleNamespace
-  - supported: false
+  - supported: true
     type: MultiNamespace
   - supported: true
     type: AllNamespaces

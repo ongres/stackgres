@@ -1,0 +1,56 @@
+{{- if .Values.allowedNamespaces }}
+{{- $allowedNamespaces := regexSplit " " (include "allowedNamespaces" .) -1 }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: "{{ .Release.Name }}-annotate-namespaces"
+  labels:
+    app: stackgres-operator-init
+    job: annotate-namespaces
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "10"
+    {{- with .Values.jobs.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: stackgres-operator-init
+        job: annotate-namespaces
+    spec:
+      serviceAccountName: {{ .Release.Name }}-init
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 0
+      {{- with .Values.jobs.affinity}}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end}}
+      {{- with .Values.jobs.nodeSelector}}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.jobs.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: "annotate-namespaces"
+        image: {{ template "kubectl-image" . }}
+        imagePullPolicy: "IfNotPresent"
+        {{- with .Values.jobs.resources }}
+        resources:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        command:
+          - "/bin/bash"
+          - "-ecx"
+          - |
+            {{- range $namespace := $allowedNamespaces }}
+            kubectl label namespace "{{ $namespace }}" --overwrite stackgres.io/scope={{ $.Release.Namespace }}.{{ $.Release.Name }}
+            {{- end }}
+{{- end }}

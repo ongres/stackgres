@@ -35,11 +35,10 @@ public class ConfigInstaller {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(ConfigInstaller.class);
 
-  String operatorName = OperatorProperty.OPERATOR_NAME.getString();
-
-  String operatorNamespace = OperatorProperty.OPERATOR_NAMESPACE.getString();
-
-  Optional<String> sgconfig = OperatorProperty.SGCONFIG.get();
+  final String operatorName = OperatorProperty.OPERATOR_NAME.getString();
+  final String operatorNamespace = OperatorProperty.OPERATOR_NAMESPACE.getString();
+  final boolean clusterRoleDisabled = OperatorProperty.CLUSTER_ROLE_DISABLED.getBoolean();
+  final Optional<String> sgconfig = OperatorProperty.SGCONFIG.get();
 
   private final YAMLMapper yamlMapper;
   private final CrdLoader crdLoader;
@@ -67,8 +66,8 @@ public class ConfigInstaller {
     LOGGER.info("Installing SGConfig");
     var configCrd = crdLoader.getCrd(HasMetadata.getKind(StackGresConfig.class));
     String configCrdName = configCrd.getMetadata().getName();
-    var configCrdFound = crdResourceFinder.findByName(configCrdName);
-    if (configCrdFound.isEmpty()) {
+    var configCrdFound = clusterRoleDisabled || crdResourceFinder.findByName(configCrdName).isPresent();
+    if (!configCrdFound) {
       if (OperatorProperty.INSTALL_CRDS.getBoolean()) {
         LOGGER.info("CRD {} is not present, installing it", configCrdName);
         crdResourceWriter.create(configCrd);

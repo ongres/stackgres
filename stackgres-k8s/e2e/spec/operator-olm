@@ -59,6 +59,20 @@ kind: OperatorGroup
 metadata:
   name: stackgres
   namespace: $OPERATOR_NAMESPACE
+spec:
+$(
+  if [ "x$E2E_ALLOWED_NAMESPACES" != x ]
+  then
+    cat << INNER_EOF
+  targetNamespaces:
+$(printf %s "$E2E_ALLOWED_NAMESPACES" | tr ' ' '\n' | sed 's/^/  - /')
+INNER_EOF
+    if ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
+    then
+      printf '  - %s\n' "$OPERATOR_NAMESPACE"
+    fi
+  fi
+)
 EOF
   kubectl create -f "$LOG_PATH/stackgres-operator-group.yaml"
   cat << EOF > "$LOG_PATH/stackgres-subscription-$STACKGRES_VERSION.yaml"
@@ -81,6 +95,146 @@ EOF
     | grep .')"
   kubectl patch -n "$OPERATOR_NAMESPACE" installplan "$INSTALL_PLAN" --type merge -p '{"spec":{"approved":true}}'
 
+  wait_until eval 'kubectl get -n "$OPERATOR_NAMESPACE" deployment -l olm.owner="stackgres.v$BUNDLE_STACKGRES_VERSION" -o name | grep -q .'
+
+  cat << EOF > "$LOG_PATH/sgconfig-patch.yaml"
+apiVersion: stackgres.io/v1
+kind: SGConfig
+spec:
+  operator:
+    image:
+      tag: "$IMAGE_TAG"
+  restapi:
+    image:
+      tag: "$IMAGE_TAG"
+  adminui:
+    image:
+      tag: "$ADMINUI_IMAGE_TAG"
+  jobs:
+    image:
+      tag: "$IMAGE_TAG"
+  developer:
+    version: $STACKGRES_VERSION
+$(
+  if [ -n "$E2E_EXTRA_MOUNT_BUILD_PATH" ]
+  then
+    cat << INNER_EOF
+    patches:
+      restapi:
+        volumes:
+          - name: app
+            hostPath:
+              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/api-web/target/quarkus-app)"
+        volumeMounts:
+          - name: app
+            mountPath: /app/app
+            subPath: app
+          - name: app
+            mountPath: /app/lib
+            subPath: lib
+          - name: app
+            mountPath: /app/quarkus
+            subPath: quarkus
+          - name: app
+            mountPath: /app/quarkus-run.jar
+            subPath: quarkus-run.jar
+      adminui:
+        volumes:
+          - name: admin
+            hostPath:
+              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/admin-ui/target/public)"
+        volumeMounts:
+          - name: admin
+            mountPath: /opt/app-root/src/admin
+      jobs:
+        volumes:
+          - name: app
+            hostPath:
+              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/jobs/target/quarkus-app)"
+        volumeMounts:
+          - name: app
+            mountPath: /app/app
+            subPath: app
+          - name: app
+            mountPath: /app/lib
+            subPath: lib
+          - name: app
+            mountPath: /app/quarkus
+            subPath: quarkus
+          - name: app
+            mountPath: /app/quarkus-run.jar
+            subPath: quarkus-run.jar
+      clusterController:
+        volumes:
+          - name: app
+            hostPath:
+              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/cluster-controller/target/quarkus-app)"
+        volumeMounts:
+          - name: app
+            mountPath: /app/app
+            subPath: app
+          - name: app
+            mountPath: /app/lib
+            subPath: lib
+          - name: app
+            mountPath: /app/quarkus
+            subPath: quarkus
+          - name: app
+            mountPath: /app/quarkus-run.jar
+            subPath: quarkus-run.jar
+      distributedlogsController:
+        volumes:
+          - name: app
+            hostPath:
+              path: "$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/distributedlogs-controller/target/quarkus-app)"
+        volumeMounts:
+          - name: app
+            mountPath: /app/app
+            subPath: app
+          - name: app
+            mountPath: /app/lib
+            subPath: lib
+          - name: app
+            mountPath: /app/quarkus
+            subPath: quarkus
+          - name: app
+            mountPath: /app/quarkus-run.jar
+            subPath: quarkus-run.jar
+INNER_EOF
+  fi
+)
+EOF
+  cat << EOF | kubectl patch -n "$OPERATOR_NAMESPACE" subscription stackgres --type merge -p "$(cat)"
+{
+  "spec": {
+    "config": {
+      "env":[
+        $E2E_OPERATOR_BUNDLE_EXTRA_ENV_JSON
+        {"name":"SGCONFIG","value":$(yq --arg sgconfig "${E2E_OPERATOR_BUNDLE_SGCONFIG:-{\}}" '($sgconfig | fromjson) * . | tostring' "$LOG_PATH/sgconfig-patch.yaml")}]
+$(
+  if [ -n "$E2E_EXTRA_MOUNT_BUILD_PATH" ]
+  then
+    cat << INNER_EOF
+      ,
+      "volumes":[
+        {"name":"app","hostPath":{"path":"$(realpath "$E2E_EXTRA_MOUNT_BUILD_PATH"/stackgres-k8s/src/operator/target/quarkus-app)"}}],
+      "volumeMounts":[
+        {"name":"app","mountPath":"/app/app","subPath":"app"},
+        {"name":"app","mountPath":"/app/lib","subPath":"lib"},
+        {"name":"app","mountPath":"/app/quarkus","subPath":"quarkus"},
+        {"name":"app","mountPath":"/app/quarkus-run.jar","subPath":"quarkus-run.jar"}]
+INNER_EOF
+  fi
+)
+    }
+  }
+}
+EOF
+
+  wait_until -t "$((E2E_TIMEOUT * 3))" eval 'kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator -o name | wc -l | grep -xF 1'
+
+  wait_until kubectl rollout status --timeout=1s -n "$OPERATOR_NAMESPACE" deployment -l olm.owner="stackgres.v$BUNDLE_STACKGRES_VERSION"
+
   if ! wait_until eval 'kubectl get sgconfig -A -o name | wc -l | grep -qxF 1'
   then
     echo "FAILED. The StackGres SGConfig was not found."
@@ -88,6 +242,8 @@ EOF
   else
     echo "SUCCESS. The StackGres SGConfig was found."
   fi
+
+  wait_until eval 'kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=StackGresConfig,stackgres.io/restapi=true -o name | wc -l | grep -xF 1'
 
   RELEASE_NAME="$(kubectl get sgconfig -n "$OPERATOR_NAMESPACE" -o name | grep "^sgconfig.stackgres.io/")"
   RELEASE_NAME="${RELEASE_NAME#*/}"
@@ -121,6 +277,14 @@ check_operator_installed() {
     else
       echo "SUCCESS. The demo StackGres extensions cache service was available."
     fi
+  fi
+
+  local PASSWORD
+  PASSWORD="$(kubectl get sgconfig -n "$OPERATOR_NAMESPACE" stackgres-operator -o json \
+    | jq -r '.spec.authentication.password | select(. != null)' | tr -d '\n')"
+  if [ -n "$PASSWORD" ]
+  then
+    kubectl patch secret -n "$OPERATOR_NAMESPACE" stackgres-restapi-admin -p '{"data":{"clearPassword":"'"$(printf '%s' "$PASSWORD" | base64)"'"}}'
   fi
 }
 
@@ -430,6 +594,8 @@ check_namespace() {
     return 0
   else
     echo "FAIL. Namespace endpoint not return all namespaces"
+    local RETURN EXIT_CODE
+    try_function check_returned_namespaces
     return 1
   fi
 }
@@ -439,11 +605,13 @@ check_returned_namespaces() {
   local NAMESPACES_IN_K8S
 
   NAMESPACES_IN_RESPONSE="$(run_curl -r "stackgres/namespaces" -n "$CLUSTER_NAMESPACE" \
-    | jq -M -S 'sort_by(.)[]' )"
+    | jq -r -M -S 'sort_by(.)[]' )"
 
-  NAMESPACES_IN_K8S="$(kubectl get ns -o json \
-    | jq -M -S '.items[].metadata.name')"
+  NAMESPACES_IN_K8S="$(
+    [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
+      && printf '%s %s' "$E2E_ALLOWED_NAMESPACES $OPERATOR_NAMESPACE" | tr ' ' '\n' | sort | uniq \
+      || kubectl get ns -o json \
+    | jq -r -M -S '.items[].metadata.name')"
 
   [ "$NAMESPACES_IN_RESPONSE" = "$NAMESPACES_IN_K8S" ]
 }
-

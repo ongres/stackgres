@@ -5,6 +5,8 @@
 
 package io.stackgres.common.resource;
 
+import static io.stackgres.common.kubernetesclient.KubernetesClientUtil.listOrEmptyOnForbidden;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -24,6 +26,7 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource<?, 
     implements CustomResourceScanner<T> {
 
   private final List<String> allowedNamespaces = OperatorProperty.getAllowedNamespaces();
+  private final boolean clusterRoleDisabled = OperatorProperty.CLUSTER_ROLE_DISABLED.getBoolean();
 
   private final KubernetesClient client;
 
@@ -51,20 +54,29 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource<?, 
     return Optional.of(allowedNamespaces)
         .filter(Predicate.not(List::isEmpty))
         .map(allowedNamespaces -> allowedNamespaces.stream()
-            .flatMap(allowedNamespace -> Optional
-                .ofNullable(client.apiextensions().v1().customResourceDefinitions()
-                .withName(crdName)
-                .get())
-                .map(crd -> client.resources(customResourceClass, customResourceListClass)
+            .flatMap(allowedNamespace -> Optional.of(clusterRoleDisabled)
+                .filter(clusterRoleDisabled -> clusterRoleDisabled)
+                .or(() -> Optional
+                    .of(client.apiextensions().v1().customResourceDefinitions()
+                    .withName(crdName)
+                    .get() != null))
+                .filter(crdFound -> crdFound)
+                .map(crdFound -> listOrEmptyOnForbidden(() -> client
+                    .resources(customResourceClass, customResourceListClass)
                     .inNamespace(allowedNamespace)
                     .list()
-                    .getItems()).stream())
+                    .getItems()))
+                .stream())
             .reduce(Seq.<T>of(), (seq, items) -> seq.append(items), (u, v) -> v)
             .toList())
-        .or(() -> Optional.ofNullable(client.apiextensions().v1().customResourceDefinitions()
-            .withName(crdName)
-            .get())
-            .map(crd -> client.resources(customResourceClass, customResourceListClass)
+        .or(() -> Optional.of(clusterRoleDisabled)
+            .filter(clusterRoleDisabled -> clusterRoleDisabled)
+            .or(() -> Optional
+                .of(client.apiextensions().v1().customResourceDefinitions()
+                .withName(crdName)
+                .get() != null))
+            .filter(crdFound -> crdFound)
+            .map(crdFound -> client.resources(customResourceClass, customResourceListClass)
                 .inAnyNamespace()
                 .list()
                 .getItems()));
@@ -73,10 +85,14 @@ public abstract class AbstractCustomResourceScanner<T extends CustomResource<?, 
   @Override
   public Optional<List<T>> findResources(@Nullable String namespace) {
     String crdName = CustomResource.getCRDName(customResourceClass);
-    return Optional.ofNullable(client.apiextensions().v1().customResourceDefinitions()
-        .withName(crdName)
-        .get())
-        .map(crd -> client.resources(customResourceClass, customResourceListClass)
+    return Optional.of(clusterRoleDisabled)
+        .filter(clusterRoleDisabled -> clusterRoleDisabled)
+        .or(() -> Optional
+            .of(client.apiextensions().v1().customResourceDefinitions()
+            .withName(crdName)
+            .get() != null))
+        .filter(crdFound -> crdFound)
+        .map(crdFound -> client.resources(customResourceClass, customResourceListClass)
             .inNamespace(namespace)
             .list()
             .getItems());

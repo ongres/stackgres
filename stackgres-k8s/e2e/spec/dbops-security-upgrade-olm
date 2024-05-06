@@ -163,6 +163,20 @@ kind: OperatorGroup
 metadata:
   name: stackgres
   namespace: $OPERATOR_NAMESPACE
+spec:
+$(
+  if [ "x$E2E_ALLOWED_NAMESPACES" != x ]
+  then
+    cat << INNER_EOF
+  targetNamespaces:
+$(printf %s "$E2E_ALLOWED_NAMESPACES" | tr ' ' '\n' | sed 's/^/  - /')
+INNER_EOF
+    if ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
+    then
+      printf '  - %s\n' "$OPERATOR_NAMESPACE"
+    fi
+  fi
+)
 EOF
   kubectl create -f "$LOG_PATH/stackgres-operator-group.yaml"
   cat << EOF > "$LOG_PATH/stackgres-subscription-$STACKGRES_PREVIOUS_VERSION.yaml"
@@ -531,6 +545,14 @@ EOF
     else
       echo "SUCCESS. The demo StackGres extensions cache service was available."
     fi
+  fi
+
+  local PASSWORD
+  PASSWORD="$(kubectl get sgconfig -n "$OPERATOR_NAMESPACE" stackgres-operator -o json \
+    | jq -r '.spec.authentication.password | select(. != null)' | tr -d '\n')"
+  if [ -n "$PASSWORD" ]
+  then
+    kubectl patch secret -n "$OPERATOR_NAMESPACE" stackgres-restapi-admin -p '{"data":{"clearPassword":"'"$(printf '%s' "$PASSWORD" | base64)"'"}}'
   fi
 }
 

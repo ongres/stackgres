@@ -17,8 +17,14 @@ import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.dsl.base.ResourceDefinitionContext;
 import io.stackgres.common.CrdLoader;
 import io.stackgres.common.OperatorProperty;
+import io.stackgres.common.RetryUtil;
+import io.stackgres.common.StackGresProperty;
 import io.stackgres.common.YamlMapperProvider;
+import io.stackgres.common.crd.sgconfig.StackGresConfig;
+import io.stackgres.common.crd.sgconfig.StackGresConfigStatus;
 import io.stackgres.common.kubernetesclient.KubernetesClientUtil;
+import io.stackgres.common.resource.CustomResourceFinder;
+import io.stackgres.common.resource.CustomResourceScheduler;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jetbrains.annotations.NotNull;
@@ -33,19 +39,31 @@ public class CrUpdater {
 
   private final List<String> allowedNamespaces = OperatorProperty.getAllowedNamespaces();
 
+  private final String operatorName = OperatorProperty.OPERATOR_NAME.getString();
+  private final String operatorNamespace = OperatorProperty.OPERATOR_NAMESPACE.getString();
+
+  private final CustomResourceFinder<StackGresConfig> configFinder;
+  private final CustomResourceScheduler<StackGresConfig> configScheduler;
   private final KubernetesClient client;
   private final CrdLoader crdLoader;
 
   @Inject
   public CrUpdater(
+      CustomResourceFinder<StackGresConfig> configFinder,
+      CustomResourceScheduler<StackGresConfig> configScheduler,
       KubernetesClient client,
       YamlMapperProvider yamlMapperProvider) {
+    this.configFinder = configFinder;
+    this.configScheduler = configScheduler;
     this.client = client;
     this.crdLoader = new CrdLoader(yamlMapperProvider.get());
   }
 
   public void updateExistingCustomResources() {
     LOGGER.info("Updating existing custom resources");
+    var config = configFinder.findByNameAndNamespace(operatorName, operatorNamespace)
+        .orElseThrow(() -> new IllegalArgumentException(
+            "SGConfig " + operatorNamespace + "." + operatorName + " was not found"));
     crdLoader.scanCrds()
         .stream()
         .forEach(installedCrd -> {
@@ -55,6 +73,13 @@ public class CrUpdater {
           LOGGER.info("Existing custom resources for CRD {}. Patched",
               installedCrd.getSpec().getNames().getKind());
         });
+    configScheduler.updateStatus(config, foundConfig -> {
+      if (foundConfig.getStatus() == null) {
+        foundConfig.setStatus(new StackGresConfigStatus());
+      }
+      foundConfig.getStatus().setExistingCrUpdatedToVersion(
+          StackGresProperty.OPERATOR_VERSION.getString());
+    });
   }
 
   private void updateExistingCustomResources(
@@ -107,6 +132,22 @@ public class CrUpdater {
             .inAnyNamespace()
             .list()
             .getItems());
+  }
+
+  public void waitExistingCustomResourcesUpgrade() {
+    LOGGER.info("Wait existing custom resources get updated");
+    RetryUtil.retry(() -> Optional.of(
+        configFinder.findByNameAndNamespace(operatorName, operatorNamespace)
+        .orElseThrow(() -> new IllegalArgumentException(
+            "SGConfig " + operatorNamespace + "." + operatorName + " was not found")))
+        .map(StackGresConfig::getStatus)
+        .map(StackGresConfigStatus::getExistingCrUpdatedToVersion)
+        .filter(StackGresProperty.OPERATOR_VERSION.getString()::equals)
+        .orElseThrow(() -> new ExistingCrNotUpdatedExcpetion()),
+        ex -> ex instanceof ExistingCrNotUpdatedExcpetion, 2000, 2000, 500);
+  }
+
+  private static class ExistingCrNotUpdatedExcpetion extends RuntimeException {
   }
 
 }
