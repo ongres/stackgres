@@ -30,6 +30,7 @@ import io.stackgres.common.crd.sgbackup.StackGresBackup;
 import io.stackgres.common.crd.sgbackup.StackGresBackupList;
 import io.stackgres.common.crd.sgcluster.StackGresCluster;
 import io.stackgres.common.crd.sgcluster.StackGresClusterBackupConfiguration;
+import io.stackgres.common.crd.sgcluster.StackGresClusterConfigurations;
 import io.stackgres.common.crd.sgcluster.StackGresClusterList;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
 import io.stackgres.common.crd.sgconfig.StackGresConfigList;
@@ -49,6 +50,7 @@ import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackup;
 import io.stackgres.common.crd.sgshardedbackup.StackGresShardedBackupList;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedCluster;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterBackupConfiguration;
+import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterConfigurations;
 import io.stackgres.common.crd.sgshardedcluster.StackGresShardedClusterList;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOps;
 import io.stackgres.common.crd.sgshardeddbops.StackGresShardedDbOpsList;
@@ -470,18 +472,24 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
         .filter(cluster -> Objects.equals(
             cluster.getMetadata().getNamespace(),
             postgresConfig.getMetadata().getNamespace()))
-        .filter(shardedCluster -> Objects.equals(
-            shardedCluster.getSpec().getCoordinator().getConfigurations().getSgPostgresConfig(),
-            postgresConfig.getMetadata().getName())
-            || Objects.equals(
-                shardedCluster.getSpec().getShards().getConfigurations().getSgPostgresConfig(),
-                postgresConfig.getMetadata().getName())
-            || Optional.ofNullable(shardedCluster.getSpec()
-                .getShards().getOverrides()).orElse(List.of())
-            .stream().anyMatch(spec -> spec.getConfigurations() != null
-                && Objects.equals(
-                    spec.getConfigurations().getSgPostgresConfig(),
-                    postgresConfig.getMetadata().getName())))
+        .filter(shardedCluster -> {
+          return Objects.equals(
+              Optional.ofNullable(
+                  shardedCluster.getSpec().getCoordinator().getConfigurationsForCoordinator())
+              .map(StackGresClusterConfigurations::getSgPostgresConfig),
+              Optional.of(postgresConfig.getMetadata().getName()))
+              || Objects.equals(
+                  Optional.ofNullable(
+                      shardedCluster.getSpec().getShards().getConfigurations())
+                  .map(StackGresClusterConfigurations::getSgPostgresConfig),
+                  Optional.of(postgresConfig.getMetadata().getName()))
+              || Optional.ofNullable(shardedCluster.getSpec().getShards().getOverrides())
+                  .orElse(List.of())
+                  .stream().anyMatch(spec -> spec.getConfigurationsForShards() != null
+                      && Objects.equals(
+                          spec.getConfigurationsForShards().getSgPostgresConfig(),
+                          postgresConfig.getMetadata().getName()));
+        })
         .forEach(shardedCluster -> reconcileShardedCluster().accept(action, shardedCluster));
   }
 
@@ -492,19 +500,21 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             cluster.getMetadata().getNamespace(),
             poolingConfig.getMetadata().getNamespace()))
         .filter(shardedCluster -> Objects.equals(
-            shardedCluster.getSpec()
-            .getCoordinator().getConfigurations().getSgPoolingConfig(),
-            poolingConfig.getMetadata().getName())
+            Optional.ofNullable(
+                shardedCluster.getSpec().getCoordinator().getConfigurationsForCoordinator())
+            .map(StackGresClusterConfigurations::getSgPoolingConfig),
+            Optional.of(poolingConfig.getMetadata().getName()))
             || Objects.equals(
-                shardedCluster.getSpec()
-                .getShards().getConfigurations().getSgPoolingConfig(),
-                poolingConfig.getMetadata().getName())
+                Optional.ofNullable(
+                    shardedCluster.getSpec().getShards().getConfigurations())
+                .map(StackGresClusterConfigurations::getSgPoolingConfig),
+                Optional.of(poolingConfig.getMetadata().getName()))
             || Optional.ofNullable(shardedCluster.getSpec().getShards().getOverrides())
-            .orElse(List.of())
-            .stream().anyMatch(spec -> spec.getConfigurations() != null
-                && Objects.equals(
-                    spec.getConfigurations().getSgPoolingConfig(),
-                    poolingConfig.getMetadata().getName())))
+                .orElse(List.of())
+                .stream().anyMatch(spec -> spec.getConfigurationsForShards() != null
+                    && Objects.equals(
+                        spec.getConfigurationsForShards().getSgPoolingConfig(),
+                        poolingConfig.getMetadata().getName())))
         .forEach(shardedCluster -> reconcileShardedCluster().accept(action, shardedCluster));
   }
 
@@ -515,7 +525,8 @@ public class DefaultOperatorWatchersHandler implements OperatorWatchersHandler {
             cluster.getMetadata().getNamespace(),
             objectStorage.getMetadata().getNamespace()))
         .filter(shardedCluster -> Objects.equals(
-            Optional.ofNullable(shardedCluster.getSpec().getConfigurations().getBackups())
+            Optional.ofNullable(shardedCluster.getSpec().getConfigurations())
+            .map(StackGresShardedClusterConfigurations::getBackups)
             .orElse(List.of())
             .stream().findFirst()
             .map(StackGresShardedClusterBackupConfiguration::getSgObjectStorage)
