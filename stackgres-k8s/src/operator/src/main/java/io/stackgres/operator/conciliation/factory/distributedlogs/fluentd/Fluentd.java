@@ -284,10 +284,11 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
             + "        column_mapping '" + POSTGRES_TABLE_FIELDS + "'\n"
             + "      </table>\n"
             + "    </store>\n"
-            + "    <store>\n"
+            + (FLEUNTD_LOGGER.isDebugEnabled()
+            ? "    <store>\n"
             + "      @type stdout\n"
             + "      @log_level " + (FLEUNTD_LOGGER.isTraceEnabled() ? "info" : "debug") + "\n"
-            + "    </store>\n"
+            + "    </store>\n" : "")
             + "  </match>\n"
             + "\n"
             + "  <match " + FluentBit.tagName(t.v1, PATRONI_LOG_TYPE) + ".*.*>\n"
@@ -304,10 +305,11 @@ public class Fluentd implements ContainerFactory<DistributedLogsContainerContext
             + "        column_mapping '" + PATRONI_TABLE_FIELDS + "'\n"
             + "      </table>\n"
             + "    </store>\n"
-            + "    <store>\n"
+            + (FLEUNTD_LOGGER.isDebugEnabled()
+            ? "    <store>\n"
             + "      @type stdout\n"
             + "      @log_level " + (FLEUNTD_LOGGER.isTraceEnabled() ? "info" : "debug") + "\n"
-            + "    </store>\n"
+            + "    </store>\n" : "")
             + "  </match>\n"
             + "</worker>\n"
             + "\n")

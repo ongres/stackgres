@@ -46,6 +46,8 @@ import io.stackgres.operatorframework.resource.ResourceUtil;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Sidecar(StackGresContainer.FLUENT_BIT)
 @Singleton
@@ -55,6 +57,7 @@ public class FluentBit implements
     ContainerFactory<ClusterContainerContext>,
     VolumeFactory<StackGresClusterContext> {
 
+  private static final Logger FLEUNTBIT_LOGGER = LoggerFactory.getLogger("io.stackgres.fluent-bit");
   private static final String CONFIG_SUFFIX = "-fluent-bit";
 
   private final LabelFactoryForCluster<StackGresCluster> labelFactory;
@@ -198,6 +201,7 @@ public class FluentBit implements
     String fluentBitConfigFile = ""
         + "[SERVICE]\n"
         + "    Parsers_File      /etc/fluent-bit/parsers.conf\n"
+        + "    Log_Level         " + (FLEUNTBIT_LOGGER.isTraceEnabled() ? "debug" : "info")
         + "\n"
         + "[INPUT]\n"
         + "    Name              tail\n"
@@ -227,7 +231,7 @@ public class FluentBit implements
         + "    Match        " + FluentdUtil.POSTGRES_LOG_TYPE + "\n"
         + "    Rule         $message ^.*$ "
         + tagName(cluster, FluentdUtil.POSTGRES_LOG_TYPE)
-        + "." + clusterNamespace + ".${HOSTNAME} true\n"
+        + "." + clusterNamespace + ".${HOSTNAME} " + (FLEUNTBIT_LOGGER.isDebugEnabled() ? "true" : "false") + "\n"
         + "    Emitter_Name postgres_re_emitted"
         + "\n"
         + "[FILTER]\n"
@@ -235,7 +239,7 @@ public class FluentBit implements
         + "    Match        " + FluentdUtil.PATRONI_LOG_TYPE + "\n"
         + "    Rule         $message ^.*$ "
         + tagName(cluster, FluentdUtil.PATRONI_LOG_TYPE)
-        + "." + clusterNamespace + ".${HOSTNAME} true\n"
+        + "." + clusterNamespace + ".${HOSTNAME} " + (FLEUNTBIT_LOGGER.isDebugEnabled() ? "true" : "false") + "\n"
         + "    Emitter_Name patroni_re_emitted"
         + "\n"
         + "[FILTER]\n"
