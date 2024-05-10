@@ -354,6 +354,7 @@
 				}
 				
 				store.commit('setLoginToken');
+				store.commit('flushPermissions');
 				$('#signup').addClass('login').fadeIn();
 				router.push('/');
 			},

@@ -84,6 +84,16 @@ export default new Vuex.Store({
       state.permissions.allowed = permissions;
     },
 
+    flushPermissions (state) {
+      state.permissions = {
+        allowed: {
+          namespaced: [],
+          unnamespaced: {}
+        },
+        forbidden: []
+      };
+    },
+
     setNoPermissions (state, kind) {
       if(!state.permissions.forbidden.includes(kind))
         state.permissions.forbidden.push(kind)
