@@ -227,7 +227,7 @@ public class FluentBit implements
         + "    Match        " + FluentdUtil.POSTGRES_LOG_TYPE + "\n"
         + "    Rule         $message ^.*$ "
         + tagName(cluster, FluentdUtil.POSTGRES_LOG_TYPE)
-        + "." + clusterNamespace + ".${HOSTNAME} false\n"
+        + "." + clusterNamespace + ".${HOSTNAME} true\n"
         + "    Emitter_Name postgres_re_emitted"
         + "\n"
         + "[FILTER]\n"
