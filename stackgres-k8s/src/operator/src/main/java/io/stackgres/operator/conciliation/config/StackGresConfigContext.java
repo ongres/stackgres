@@ -28,8 +28,6 @@ public interface StackGresConfigContext extends GenerationContext<StackGresConfi
 
   Optional<ServiceAccount> getWebConsoleServiceAccount();
 
-  Optional<String> getWebConsoleClusterRoleName();
-
   boolean isGrafanaEmbedded();
 
   boolean isGrafanaIntegrated();

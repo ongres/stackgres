@@ -11,6 +11,7 @@ $(
   helm template -n system stackgres-operator \
     --set disableCrdsAndWebhooksUpdate=true \
     --set-string allowedNamespaces='{system}' \
+    --set-string sgConfigNamespace='other' \
     --show-only templates/operator-cluster-role.yaml \
     "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
     | yq -y 'select(.kind == "ClusterRole")|.rules'
@@ -53,7 +54,6 @@ rules:
 $(
   helm template -n system stackgres-operator \
     --set disableCrdsAndWebhooksUpdate=true \
-    --set-string allowedNamespaces='{system}' \
     --show-only templates/webapi-admin-cluster-role.yaml \
     "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
     | yq -y 'select(.kind == "ClusterRole")|.rules'
@@ -70,7 +70,6 @@ rules:
 $(
   helm template -n system stackgres-operator \
     --set disableCrdsAndWebhooksUpdate=true \
-    --set-string allowedNamespaces='{system}' \
     --show-only templates/webapi-writer-cluster-role.yaml \
     "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
     | yq -y 'select(.kind == "ClusterRole")|.rules'
@@ -87,7 +86,6 @@ rules:
 $(
   helm template -n system stackgres-operator \
     --set disableCrdsAndWebhooksUpdate=true \
-    --set-string allowedNamespaces='{system}' \
     --show-only templates/webapi-reader-cluster-role.yaml \
     "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
     | yq -y 'select(.kind == "ClusterRole")|.rules'

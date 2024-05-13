@@ -479,13 +479,44 @@ INNER_EOF
   fi
 )
 EOF
-  cat << EOF | kubectl patch -n "$OPERATOR_NAMESPACE" subscription stackgres --type merge -p "$(cat)"
+
+  SGCONFIG_NAMESPACE="$OPERATOR_NAMESPACE"
+  if [ "x$E2E_ALLOWED_NAMESPACES" != x ] \
+    && ! printf ' %s ' "$E2E_ALLOWED_NAMESPACES" | grep -qF " $OPERATOR_NAMESPACE "
+  then
+    SGCONFIG_NAMESPACE="$CLUSTER_NAMESPACE"
+  fi
+
+  EXTRA_OPTS="$(printf %s "
+        -Dquarkus.log.category.\"io.stackgres\".level=DEBUG 
+        -Dquarkus.log.category.\"io.quarkus\".level=INFO 
+        -Dquarkus.log.category.\"io.stackgres.dbops\".level=TRACE 
+        -Dquarkus.log.category.\"io.stackgres.backup\".level=TRACE 
+        -Dquarkus.log.category.\"io.stackgres.wal-g\".level=INFO 
+        -Dquarkus.log.category.\"io.stackgres.patroni\".level=TRACE 
+        -Dquarkus.log.category.\"io.stackgres.fluent-bit\".level=TRACE 
+        -Dquarkus.log.category.\"io.stackgres.fluentd\".level=TRACE 
+        -Dquarkus.log.category.\"io.stackgres.prometheus-postgres-exporter\".level=TRACE 
+        -Dquarkus.log.category.\"okhttp3.logging.HttpLoggingInterceptor\".level=$(
+          # shellcheck disable=SC2015
+          [ "$E2E_LOG_OPERATOR_HTTP" = true ] && echo TRACE || echo INFO) 
+        -Dquarkus.log.category.\"stackgres-extensions-cache\".level=DEBUG 
+        -Dquarkus.log.category.\"io.stackgres.operator.conciliation\".level=TRACE 
+    " | tr -s ' \n' ' ' | jq -s -R .)"
+
+  cat << EOF > "$LOG_PATH/subscription-patch.yaml"
 {
   "spec": {
     "config": {
       "env":[
-        $E2E_OPERATOR_BUNDLE_EXTRA_ENV_JSON
-        {"name":"SGCONFIG","value":$(yq --arg sgconfig "${E2E_OPERATOR_BUNDLE_SGCONFIG:-{\}}" '($sgconfig | fromjson) * . | tostring' "$LOG_PATH/sgconfig-patch.yaml")}]
+        {"name":"SG_IMAGE_CLUSTER_CONTROLLER","value":"${CLUSTER_CONTROLLER_IMAGE_NAME}"},
+        {"name":"SG_IMAGE_DISTRIBUTEDLOGS_CONTROLLER","value":"${DISTRIBUTEDLOGS_CONTROLLER_IMAGE_NAME}"},
+        {"name":"JAVA_OPTS","value":$EXTRA_OPTS},
+        {"name":"APP_OPTS","value":$EXTRA_OPTS},
+        {"name":"SGCONFIG","value":$(yq --arg sgconfig "${E2E_OPERATOR_BUNDLE_SGCONFIG:-{\}}" '($sgconfig | fromjson) * . | tostring' "$LOG_PATH/sgconfig-patch.yaml")}
+        ,
+        {"name":"SGCONFIG_NAMESPACE","value":"$SGCONFIG_NAMESPACE"}
+      ]
 $(
   if [ -n "$E2E_EXTRA_MOUNT_BUILD_PATH" ]
   then
@@ -506,6 +537,8 @@ INNER_EOF
 }
 EOF
 
+  kubectl patch -n "$OPERATOR_NAMESPACE" subscription stackgres --type merge --patch-file "$LOG_PATH/subscription-patch.yaml"
+
   wait_until eval 'kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=stackgres-operator \
     --template "{{ range .items }}{{ range .spec.containers }}{{ printf \"%s\n\" .image }}{{ end }}{{ end }}" \
     | grep -qF "'"/${EXPECTED_OPERATOR_IMAGE##*/}"'"'
@@ -514,11 +547,11 @@ EOF
 
   wait_until kubectl rollout status --timeout=1s -n "$OPERATOR_NAMESPACE" deployment -l olm.owner="stackgres.v$BUNDLE_STACKGRES_VERSION"
 
-  wait_until eval 'kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=StackGresConfig,stackgres.io/restapi=true \
+  wait_until eval 'kubectl get pod -n "$SGCONFIG_NAMESPACE" -l app=StackGresConfig,stackgres.io/restapi=true \
     --template "{{ range .items }}{{ range .spec.containers }}{{ printf \"%s\n\" .image }}{{ end }}{{ end }}" \
     | grep -qF "'"/${EXPECTED_RESTAPI_IMAGE##*/}"'"'
 
-  wait_until eval 'kubectl get pod -n "$OPERATOR_NAMESPACE" -l app=StackGresConfig,stackgres.io/restapi=true -o name | wc -l | grep -xF 1'
+  wait_until eval 'kubectl get pod -n "$SGCONFIG_NAMESPACE" -l app=StackGresConfig,stackgres.io/restapi=true -o name | wc -l | grep -xF 1'
 
   if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator$"
   then
@@ -528,7 +561,7 @@ EOF
     echo "SUCCESS. The StackGres operator service was available."
   fi
 
-  if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-restapi$"
+  if ! wait_services_available "$SGCONFIG_NAMESPACE" 1 "^stackgres-restapi$"
   then
     echo "FAILED. The StackGres restapi service was not available."
     return 1
@@ -536,9 +569,9 @@ EOF
     echo "SUCCESS. The StackGres restapi service was available."
   fi
 
-  if [ "$(kubectl get sgconfig -n "$OPERATOR_NAMESPACE" stackgres-operator -o json | jq .spec.extensions.cache.enabled)" = true ]
+  if [ "$(kubectl get sgconfig -n "$SGCONFIG_NAMESPACE" stackgres-operator -o json | jq .spec.extensions.cache.enabled)" = true ]
   then
-    if ! wait_services_available "$OPERATOR_NAMESPACE" 1 "^stackgres-operator-extensions-cache$"
+    if ! wait_services_available "$SGCONFIG_NAMESPACE" 1 "^stackgres-operator-extensions-cache$"
     then
       echo "FAILED. The demo StackGres extensions cache service was not available."
       return 1
@@ -548,11 +581,11 @@ EOF
   fi
 
   local PASSWORD
-  PASSWORD="$(kubectl get sgconfig -n "$OPERATOR_NAMESPACE" stackgres-operator -o json \
+  PASSWORD="$(kubectl get sgconfig -n "$SGCONFIG_NAMESPACE" stackgres-operator -o json \
     | jq -r '.spec.authentication.password | select(. != null)' | tr -d '\n')"
   if [ -n "$PASSWORD" ]
   then
-    kubectl patch secret -n "$OPERATOR_NAMESPACE" stackgres-restapi-admin -p '{"data":{"clearPassword":"'"$(printf '%s' "$PASSWORD" | base64)"'"}}'
+    kubectl patch secret -n "$SGCONFIG_NAMESPACE" stackgres-restapi-admin -p '{"data":{"clearPassword":"'"$(printf '%s' "$PASSWORD" | base64)"'"}}'
   fi
 }
 

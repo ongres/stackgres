@@ -193,8 +193,8 @@ EOF
         -Dquarkus.log.category.\"okhttp3.logging.HttpLoggingInterceptor\".level=$(
           # shellcheck disable=SC2015
           [ "$E2E_LOG_OPERATOR_HTTP" = true ] && echo TRACE || echo INFO) 
-        -Dquarkus.log.category."\stackgres-extensions-cache\".level=DEBUG 
-        -Dquarkus.log.category."\io.stackgres.operator.conciliation\".level=TRACE 
+        -Dquarkus.log.category.\"stackgres-extensions-cache\".level=DEBUG 
+        -Dquarkus.log.category.\"io.stackgres.operator.conciliation\".level=TRACE 
     " | tr -s ' \n' ' ' | jq -s -R .)"
 
   cat << EOF > "$LOG_PATH/stackgres-subscription-$STACKGRES_VERSION.yaml"
@@ -404,7 +404,7 @@ create_or_replace_cluster_from_backup() {
 check_operator_delete() {
   kubectl delete subscription -n "$OPERATOR_NAMESPACE" stackgres
 
-  kubectl delete clusterserviceversion -n "$OPERATOR_NAMESPACE" "stackgres-operator.v$BUNDLE_STACKGRES_VERSION"
+  kubectl delete clusterserviceversion -n "$OPERATOR_NAMESPACE" "stackgres.v$BUNDLE_STACKGRES_VERSION"
 
   check_operator_deleted
 }
@@ -422,19 +422,22 @@ check_operator_deleted() {
   if wait_until kubectl get service -n "$SGCONFIG_NAMESPACE" -o name | grep -c "/stackgres-restapi$" | grep -qxF 0 \
     && wait_until kubectl get deployment -n "$SGCONFIG_NAMESPACE" -o name | grep -c "/stackgres-restapi$" | grep -qxF 0
   then
-    echo "SUCCESS. The StackGres restapi service was not available."
-  else
-    echo "FAILED. The StackGres restapi service was available."
+    echo "FAILED. The StackGres restapi service was not available."
     return 1
+  else
+    echo "SUCCESS. The StackGres restapi service was available."
   fi
 
-  if wait_until kubectl get service -n "$SGCONFIG_NAMESPACE" -o name | grep -c "/stackgres-operator-extensions-cache$" | grep -qxF 0 \
-    && wait_until kubectl get statefulset -n "$SGCONFIG_NAMESPACE" -o name | grep -c "/stackgres-operator-extensions-cache$" | grep -qxF 0
+  if [ "$(kubectl get sgconfig -n "$SGCONFIG_NAMESPACE" stackgres-operator -o json | jq .spec.extensions.cache.enabled)" = true ]
   then
-    echo "SUCCESS. The demo StackGres extensions cache service was not available."
-  else
-    echo "FAILED. The demo StackGres extensions cache service was available."
-    return 1
+    if wait_until kubectl get service -n "$SGCONFIG_NAMESPACE" -o name | grep -c "/stackgres-operator-extensions-cache$" | grep -qxF 0 \
+      && wait_until kubectl get statefulset -n "$SGCONFIG_NAMESPACE" -o name | grep -c "/stackgres-operator-extensions-cache$" | grep -qxF 0
+    then
+      echo "FAILED. The demo StackGres extensions cache service was not available."
+      return 1
+    else
+      echo "SUCCESS. The demo StackGres extensions cache service was available."
+    fi
   fi
 }
 

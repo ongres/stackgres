@@ -16,4 +16,3 @@ resources:
 - restapi_clusterrole_binding.yaml
 - restapi_admin_clusterrole_binding.yaml
 - restapi_role_binding.yaml
-- restapi_admin_role_binding.yaml

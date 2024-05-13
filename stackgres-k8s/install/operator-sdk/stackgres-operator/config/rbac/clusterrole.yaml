@@ -56,6 +56,25 @@ rules:
     - prometheuses.monitoring.coreos.com
   verbs:
     - get
+- apiGroups:
+    - rbac.authorization.k8s.io
+  resources:
+    - clusterrolebindings
+  verbs:
+    - create
+    - watch
+    - list
+    - get
+    - update
+    - patch
+    - delete
+- apiGroups:
+    - ''
+  resources:
+    - users
+    - groups
+  verbs:
+    - impersonate
 
 - apiGroups:
   - operators.coreos.com
@@ -143,6 +162,101 @@ rules:
     - get
     - list
     - watch
+- apiGroups:
+    - ''
+    - batch
+  resources:
+    - pods/exec
+    - configmaps
+    - secrets
+    - jobs
+  verbs:
+    - create
+- apiGroups:
+    - ''
+  resources:
+    - pods/exec
+  verbs:
+    - get
+- apiGroups:
+    - ''
+    - batch
+  resources:
+    - configmaps
+    - secrets
+    - jobs
+  verbs:
+    - delete
+- apiGroups:
+    - ''
+  resources:
+    - configmaps
+    - secrets
+  verbs:
+    - patch
+    - update
+- apiGroups:
+    - ''
+    - batch
+    - storage.k8s.io
+  resources:
+    - pods
+    - services
+    - configmaps
+    - secrets
+    - persistentvolumes
+    - persistentvolumeclaims
+    - events
+    - jobs
+  verbs:
+    - get
+    - list
+    - watch
+- apiGroups:
+    - stackgres.io
+  resources:
+    - sgclusters
+    - sgpgconfigs
+    - sginstanceprofiles
+    - sgpoolconfigs
+    - sgbackupconfigs
+    - sgbackups
+    - sgdistributedlogs
+    - sgdbops
+    - sgobjectstorages
+    - sgscripts
+    - sgshardedclusters
+  verbs:
+    - create
+    - watch
+    - list
+    - get
+    - update
+    - patch
+    - delete
+- apiGroups:
+    - stackgres.io
+  resources:
+    - sgconfigs
+  verbs:
+    - watch
+    - list
+    - get
+    - update
+    - patch
+- apiGroups:
+    - rbac.authorization.k8s.io
+  resources:
+    - roles
+    - rolebindings
+  verbs:
+    - get
+    - list
+    - watch
+    - create
+    - update
+    - patch
+    - delete
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -186,6 +300,88 @@ rules:
     - get
     - list
     - watch
+- apiGroups:
+    - ''
+    - batch
+  resources:
+    - pods/exec
+    - configmaps
+    - secrets
+    - jobs
+  verbs:
+    - create
+- apiGroups:
+    - ''
+  resources:
+    - pods/exec
+  verbs:
+    - get
+- apiGroups:
+    - ''
+    - batch
+  resources:
+    - configmaps
+    - secrets
+    - jobs
+  verbs:
+    - delete
+- apiGroups:
+    - ''
+  resources:
+    - configmaps
+    - secrets
+  verbs:
+    - patch
+    - update
+- apiGroups:
+    - ''
+    - batch
+    - storage.k8s.io
+  resources:
+    - pods
+    - services
+    - configmaps
+    - secrets
+    - persistentvolumes
+    - persistentvolumeclaims
+    - events
+    - jobs
+  verbs:
+    - get
+    - list
+    - watch
+- apiGroups:
+    - stackgres.io
+  resources:
+    - sgclusters
+    - sgpgconfigs
+    - sginstanceprofiles
+    - sgpoolconfigs
+    - sgbackupconfigs
+    - sgbackups
+    - sgdistributedlogs
+    - sgdbops
+    - sgobjectstorages
+    - sgscripts
+    - sgshardedclusters
+  verbs:
+    - create
+    - watch
+    - list
+    - get
+    - update
+    - patch
+    - delete
+- apiGroups:
+    - stackgres.io
+  resources:
+    - sgconfigs
+  verbs:
+    - watch
+    - list
+    - get
+    - update
+    - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -229,5 +425,61 @@ rules:
     - get
     - list
     - watch
+- apiGroups:
+    - ''
+    - batch
+  resources:
+    - pods/exec
+  verbs:
+    - create
+- apiGroups:
+    - ''
+  resources:
+    - pods/exec
+  verbs:
+    - get
+- apiGroups:
+    - ''
+    - batch
+    - storage.k8s.io
+  resources:
+    - pods
+    - services
+    - configmaps
+    - secrets
+    - persistentvolumes
+    - persistentvolumeclaims
+    - events
+    - jobs
+  verbs:
+    - get
+    - list
+    - watch
+- apiGroups:
+    - stackgres.io
+  resources:
+    - sgclusters
+    - sgpgconfigs
+    - sginstanceprofiles
+    - sgpoolconfigs
+    - sgbackupconfigs
+    - sgbackups
+    - sgdistributedlogs
+    - sgdbops
+    - sgobjectstorages
+    - sgscripts
+    - sgshardedclusters
+  verbs:
+    - watch
+    - list
+    - get
+- apiGroups:
+    - stackgres.io
+  resources:
+    - sgconfigs
+  verbs:
+    - watch
+    - list
+    - get
 
 #+kubebuilder:scaffold:rules

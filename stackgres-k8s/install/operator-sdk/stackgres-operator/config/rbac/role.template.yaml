@@ -43,59 +43,5 @@ $(
     "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
     | yq -y 'select(.kind == "Role")|.rules'
 )
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: webconsole-admin
-  namespace: system
-rules:
-##
-## Base webconsole admin rules
-##
-$(
-  helm template -n system stackgres-operator \
-    --set disableCrdsAndWebhooksUpdate=true \
-    --set-string allowedNamespaces='{system}' \
-    --show-only templates/webapi-admin-cluster-role.yaml \
-    "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
-    | yq -y 'select(.kind == "Role")|.rules'
-)
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: webconsole-writer
-  namespace: system
-rules:
-##
-## Base webconsole writer rules
-##
-$(
-  helm template -n system stackgres-operator \
-    --set disableCrdsAndWebhooksUpdate=true \
-    --set-string allowedNamespaces='{system}' \
-    --show-only templates/webapi-writer-cluster-role.yaml \
-    "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
-    | yq -y 'select(.kind == "Role")|.rules'
-)
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: webconsole-reader
-  namespace: system
-rules:
-##
-## Base webconsole reader rules
-##
-$(
-  helm template -n system stackgres-operator \
-    --set disableCrdsAndWebhooksUpdate=true \
-    --set-string allowedNamespaces='{system}' \
-    --show-only templates/webapi-reader-cluster-role.yaml \
-    "$PROJECT_PATH"/stackgres-k8s/install/helm/stackgres-operator/ \
-    | yq -y 'select(.kind == "Role")|.rules'
-)
 
 #+kubebuilder:scaffold:rules

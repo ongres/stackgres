@@ -97,7 +97,7 @@ rules:
 {{- if and $.Values.sgConfigNamespace (not (eq $.Values.sgConfigNamespace $.Release.Namespace)) }}
 - apiGroups: ["rbac.authorization.k8s.io"]
   resources:
-  - custerrolebindings
+  - clusterrolebindings
   verbs:
   - create
   - watch
@@ -106,6 +106,13 @@ rules:
   - update
   - patch
   - delete
+- apiGroups:
+  - ""
+  resources:
+  - users
+  - groups
+  verbs:
+  - impersonate
 {{- end }}
 {{- end }}
 {{- if not (eq $namespace "_all_namespaces_placeholder") }}
