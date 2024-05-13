@@ -465,7 +465,7 @@ export const mixin = {
               });
             }
       
-            if ( vc.iCan('list', 'storageclasses') && ( !kind.length || (kind == 'storageclasses') )) {
+            if ( (store.state.storageClasses !== null) && (!kind.length || (kind == 'storageclasses')) ) {
               /* Storage Classes Data */
               sgApi
               .get('storageclasses')
@@ -474,6 +474,12 @@ export const mixin = {
                 store.commit('addStorageClasses', response.data);
       
               }).catch(function(err) {
+
+                // Make sure to set storageClasses to null when user has no permissions
+                if(vc.hasProp(err, 'response.status') && (err.response.status === 403)) {
+                  store.commit('addStorageClasses', null);
+                }
+
                 console.log(err);
                 vc.checkAuthError(err);
               });

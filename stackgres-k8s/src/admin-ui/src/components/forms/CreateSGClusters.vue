@@ -435,10 +435,16 @@
 
                             <div class="col">
                                 <label for="spec.pods.persistentVolume.storageClass">Storage Class</label>
-                                <select v-model="storageClass" data-field="spec.pods.persistentVolume.storageClass" :disabled="!storageClasses.length">
-                                    <option value=""> {{ storageClasses.length ? 'Select Storage Class' : 'No storage classes available' }}</option>
-                                    <option v-for="sClass in storageClasses">{{ sClass }}</option>
-                                </select>
+                                
+                                <template v-if="storageClasses === null">
+                                    <input v-model="storageClass" data-field="spec.pods.persistentVolume.storageClass" autocomplete="off">
+                                </template>
+                                <template v-else>
+                                    <select v-model="storageClass" data-field="spec.pods.persistentVolume.storageClass" :disabled="!storageClasses.length">
+                                        <option value=""> {{ storageClasses.length ? 'Select Storage Class' : 'No storage classes available' }}</option>
+                                        <option v-for="sClass in storageClasses">{{ sClass }}</option>
+                                    </select>
+                                </template>
                                 <span class="helpTooltip" :data-tooltip="getTooltip('sgcluster.spec.pods.persistentVolume.storageClass')"></span>
                             </div>
                         </div>
