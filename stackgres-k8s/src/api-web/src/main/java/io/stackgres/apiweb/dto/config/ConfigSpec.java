@@ -26,6 +26,12 @@ public class ConfigSpec {
 
   private Boolean disableClusterRole;
 
+  private Boolean disableCrdsAndWebhooksUpdate;
+
+  private Boolean allowImpersonationForRestApi;
+
+  private String sgConfigNamespace;
+
   private ConfigOptionalServiceAccount serviceAccount;
 
   private ConfigOperator operator;
@@ -90,6 +96,30 @@ public class ConfigSpec {
 
   public void setDisableClusterRole(Boolean disableClusterRole) {
     this.disableClusterRole = disableClusterRole;
+  }
+
+  public Boolean getDisableCrdsAndWebhooksUpdate() {
+    return disableCrdsAndWebhooksUpdate;
+  }
+
+  public void setDisableCrdsAndWebhooksUpdate(Boolean disableCrdsAndWebhooksUpdate) {
+    this.disableCrdsAndWebhooksUpdate = disableCrdsAndWebhooksUpdate;
+  }
+
+  public Boolean getAllowImpersonationForRestApi() {
+    return allowImpersonationForRestApi;
+  }
+
+  public void setAllowImpersonationForRestApi(Boolean allowImpersonationForRestApi) {
+    this.allowImpersonationForRestApi = allowImpersonationForRestApi;
+  }
+
+  public String getSgConfigNamespace() {
+    return sgConfigNamespace;
+  }
+
+  public void setSgConfigNamespace(String sgConfigNamespace) {
+    this.sgConfigNamespace = sgConfigNamespace;
   }
 
   public ConfigOptionalServiceAccount getServiceAccount() {

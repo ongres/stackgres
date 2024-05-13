@@ -36,7 +36,8 @@ public class ConfigInstaller {
   private static final Logger LOGGER = LoggerFactory.getLogger(ConfigInstaller.class);
 
   final String operatorName = OperatorProperty.OPERATOR_NAME.getString();
-  final String operatorNamespace = OperatorProperty.OPERATOR_NAMESPACE.getString();
+  final String sgConfigName = OperatorProperty.SGCONFIG_NAMESPACE.get()
+      .orElseGet(OperatorProperty.OPERATOR_NAMESPACE::getString);
   final boolean clusterRoleDisabled = OperatorProperty.CLUSTER_ROLE_DISABLED.getBoolean();
   final Optional<String> sgconfig = OperatorProperty.SGCONFIG.get();
 
@@ -75,14 +76,14 @@ public class ConfigInstaller {
         throw new RuntimeException("CRD " + configCrdName + " is not present, aborting!");
       }
     }
-    var configFound = configFinder.findByNameAndNamespace(operatorName, operatorNamespace);
+    var configFound = configFinder.findByNameAndNamespace(operatorName, sgConfigName);
     final StackGresConfig config = configFound
         .map(Unchecked.function(configValue -> yamlMapper.treeToValue(
             yamlMapper.valueToTree(configValue),
             StackGresConfig.class)))
         .orElseGet(() -> new StackGresConfigBuilder()
             .withNewMetadata()
-            .withNamespace(operatorNamespace)
+            .withNamespace(sgConfigName)
             .withName(operatorName)
             .endMetadata()
             .withNewSpec()

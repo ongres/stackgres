@@ -24,7 +24,8 @@ public interface KubernetesClientUtil {
       justification = "False positive")
   static boolean isConflict(Throwable ex) {
     return ex instanceof KubernetesClientException kce
-        && kce.getCode() == Response.Status.CONFLICT.getStatusCode();
+        && kce.getCode() == Response.Status.CONFLICT.getStatusCode()
+        && kce.getMessage().contains("the object has been modified");
   }
 
   /**

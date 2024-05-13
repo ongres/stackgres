@@ -94,6 +94,19 @@ rules:
   verbs:
   - get
 {{- end }}
+{{- if and $.Values.sgConfigNamespace (not (eq $.Values.sgConfigNamespace $.Release.Namespace)) }}
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources:
+  - custerrolebindings
+  verbs:
+  - create
+  - watch
+  - list
+  - get
+  - update
+  - patch
+  - delete
+{{- end }}
 {{- end }}
 {{- if not (eq $namespace "_all_namespaces_placeholder") }}
 ---

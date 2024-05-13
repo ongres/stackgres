@@ -6,6 +6,7 @@
 package io.stackgres.operator.conciliation.config;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
@@ -16,13 +17,17 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.kubernetes.api.model.rbac.ClusterRole;
+import io.fabric8.kubernetes.api.model.rbac.ClusterRoleList;
 import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.stackgres.common.CdiUtil;
+import io.stackgres.common.OperatorProperty;
 import io.stackgres.common.crd.sgconfig.StackGresConfig;
+import io.stackgres.common.crd.sgconfig.StackGresConfigSpec;
 import io.stackgres.common.labels.LabelFactoryForConfig;
 import io.stackgres.operator.conciliation.AbstractDeployedResourcesScanner;
 import io.stackgres.operator.conciliation.DeployedResourcesCache;
@@ -34,6 +39,8 @@ import jakarta.inject.Inject;
 public class ConfigDeployedResourceScanner
     extends AbstractDeployedResourcesScanner<StackGresConfig>
     implements ReconciliationOperations {
+
+  private final Optional<String> operatorNamespace = OperatorProperty.OPERATOR_NAMESPACE.get();
 
   private final KubernetesClient client;
   private final LabelFactoryForConfig labelFactory;
@@ -74,6 +81,24 @@ public class ConfigDeployedResourceScanner
     return IN_NAMESPACE_RESOURCE_OPERATIONS;
   }
 
+  @Override
+  protected Map<Class<? extends HasMetadata>,
+      Function<KubernetesClient, MixedOperation<? extends HasMetadata,
+          ? extends KubernetesResourceList<? extends HasMetadata>,
+              ? extends Resource<? extends HasMetadata>>>> getInAnyNamespaceResourceOperations(
+                  StackGresConfig config) {
+    if (!Optional.of(config)
+        .map(StackGresConfig::getSpec)
+        .map(StackGresConfigSpec::getDisableClusterRole).orElse(false)
+        && !Optional.of(config)
+        .map(StackGresConfig::getSpec)
+        .map(StackGresConfigSpec::getSgConfigNamespace)
+        .equals(operatorNamespace)) {
+      return CLUSTER_ROLE_RESOURCE_OPERATIONS;
+    }
+    return super.getInAnyNamespaceResourceOperations(config);
+  }
+
   static final Map<
       Class<? extends HasMetadata>,
       Function<
@@ -95,5 +120,22 @@ public class ConfigDeployedResourceScanner
           Map.entry(RoleBinding.class, client -> client.rbac().roleBindings()),
           Map.entry(Job.class, client -> client.batch().v1().jobs()),
           Map.entry(Deployment.class, client -> client.apps().deployments()));
+
+  static final Map<
+      Class<? extends HasMetadata>,
+      Function<
+          KubernetesClient,
+          MixedOperation<
+              ? extends HasMetadata,
+              ? extends KubernetesResourceList<? extends HasMetadata>,
+              ? extends Resource<? extends HasMetadata>>>>
+      CLUSTER_ROLE_RESOURCE_OPERATIONS =
+      Map.<Class<? extends HasMetadata>, Function<KubernetesClient,
+          MixedOperation<? extends HasMetadata,
+              ? extends KubernetesResourceList<? extends HasMetadata>,
+              ? extends Resource<? extends HasMetadata>>>>ofEntries(
+          Map.entry(ClusterRole.class, client -> client
+              .resources(ClusterRole.class, ClusterRoleList.class))
+          );
 
 }

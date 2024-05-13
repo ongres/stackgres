@@ -82,6 +82,15 @@ public class WebConsoleDeployment
         .orElse("stackgres-restapi"));
   }
 
+  public static String namespacedClusterRoleBindingName(StackGresConfig config) {
+    return ResourceUtil.resourceName(
+        Optional.of(config.getSpec())
+        .map(StackGresConfigSpec::getRestapi)
+        .map(StackGresConfigRestapi::getName)
+        .orElse("stackgres-restapi")
+        + "-" + config.getMetadata().getNamespace());
+  }
+
   @Inject
   public WebConsoleDeployment(
       LabelFactoryForConfig labelFactory,
@@ -166,7 +175,8 @@ public class WebConsoleDeployment
                 .map(StackGresConfigImage::getPullPolicy)
                 .orElse("IfNotPresent"))
             .withSecurityContext(webConsolePodSecurityContext.createRestapiSecurityContext(context))
-            .withEnv(new EnvVarBuilder()
+            .withEnv(
+                new EnvVarBuilder()
                 .withName("RESTAPI_NAMESPACE")
                 .withValueFrom(new EnvVarSourceBuilder()
                     .withFieldRef(new ObjectFieldSelectorBuilder()

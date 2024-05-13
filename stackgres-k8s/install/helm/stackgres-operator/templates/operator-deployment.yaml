@@ -94,6 +94,8 @@ spec:
           - name: INSTALL_CERTS
             value: "true"
           {{- end }}
+          - name: SGCONFIG_NAMESPACE
+            value: {{ .Values.sgConfigNamespace | default .Release.Namespace }}
           - name: PROMETHEUS_AUTOBIND
             value: "{{ .Values.prometheus.allowAutobind }}"
           {{- if and (.Capabilities.APIVersions.Has "project.openshift.io/v1") (not .Values.developer.disableArbitraryUser) }}

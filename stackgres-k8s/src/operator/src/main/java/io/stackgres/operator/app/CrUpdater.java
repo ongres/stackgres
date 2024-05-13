@@ -40,7 +40,8 @@ public class CrUpdater {
   private final List<String> allowedNamespaces = OperatorProperty.getAllowedNamespaces();
 
   private final String operatorName = OperatorProperty.OPERATOR_NAME.getString();
-  private final String operatorNamespace = OperatorProperty.OPERATOR_NAMESPACE.getString();
+  private final String sgConfigNamespace = OperatorProperty.SGCONFIG_NAMESPACE.get()
+      .orElseGet(OperatorProperty.OPERATOR_NAMESPACE::getString);
 
   private final CustomResourceFinder<StackGresConfig> configFinder;
   private final CustomResourceScheduler<StackGresConfig> configScheduler;
@@ -61,9 +62,9 @@ public class CrUpdater {
 
   public void updateExistingCustomResources() {
     LOGGER.info("Updating existing custom resources");
-    var config = configFinder.findByNameAndNamespace(operatorName, operatorNamespace)
+    var config = configFinder.findByNameAndNamespace(operatorName, sgConfigNamespace)
         .orElseThrow(() -> new IllegalArgumentException(
-            "SGConfig " + operatorNamespace + "." + operatorName + " was not found"));
+            "SGConfig " + sgConfigNamespace + "." + operatorName + " was not found"));
     crdLoader.scanCrds()
         .stream()
         .forEach(installedCrd -> {
@@ -137,9 +138,9 @@ public class CrUpdater {
   public void waitExistingCustomResourcesUpgrade() {
     LOGGER.info("Wait existing custom resources get updated");
     RetryUtil.retry(() -> Optional.of(
-        configFinder.findByNameAndNamespace(operatorName, operatorNamespace)
+        configFinder.findByNameAndNamespace(operatorName, sgConfigNamespace)
         .orElseThrow(() -> new IllegalArgumentException(
-            "SGConfig " + operatorNamespace + "." + operatorName + " was not found")))
+            "SGConfig " + sgConfigNamespace + "." + operatorName + " was not found")))
         .map(StackGresConfig::getStatus)
         .map(StackGresConfigStatus::getExistingCrUpdatedToVersion)
         .filter(StackGresProperty.OPERATOR_VERSION.getString()::equals)

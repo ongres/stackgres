@@ -200,9 +200,10 @@ public class WebConsoleGrafanaIntegrationJob
             .withImagePullPolicy("IfNotPresent")
             .withEnv(
                 new EnvVarBuilder()
-                .withName("OPERATOR_NAMESPACE")
+                .withName("SGCONFIG_NAMESPACE")
                 .withValue(Optional.ofNullable(System.getenv(
-                    OperatorProperty.OPERATOR_NAMESPACE.getEnvironmentVariableName())).orElse(null))
+                    OperatorProperty.SGCONFIG_NAMESPACE.getEnvironmentVariableName()))
+                    .orElseGet(OperatorProperty.OPERATOR_NAMESPACE::getEnvironmentVariableName))
                 .build(),
                 new EnvVarBuilder()
                 .withName("OPERATOR_NAME")

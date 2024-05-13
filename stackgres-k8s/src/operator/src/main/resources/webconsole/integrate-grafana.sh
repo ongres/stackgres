@@ -44,12 +44,12 @@ GRAFANA_API_KEY_ID="$(curl_grafana_api "$GRAFANA_HOST/api/auth/keys" | jq -r '.[
 [ -z "$GRAFANA_API_KEY_ID" ] || curl_grafana_api -X DELETE "$GRAFANA_HOST/api/auth/keys/$GRAFANA_API_KEY_ID" > /dev/null
 GRAFANA_API_KEY_TOKEN="$(curl_grafana_api -d '{"name":"stackgres", "role": "Viewer"}' "$GRAFANA_HOST/api/auth/keys" | jq -r .key)"
 [ -n "$GRAFANA_API_KEY_TOKEN" ]
-until kubectl get sgconfig -n "$OPERATOR_NAMESPACE" "$OPERATOR_NAME" -o json \
+until kubectl get sgconfig -n "$SGCONFIG_NAMESPACE" "$OPERATOR_NAME" -o json \
   | jq ".
     | .status.grafana.urls = $(printf %s "$GRAFANA_DASHBOARD_URLS" | tr ' ' '\n' | jq -R . | jq -s .)
     | .status.grafana.token = \"$GRAFANA_API_KEY_TOKEN\"
     | .status.grafana.configHash = \"$GRAFANA_CONFIG_HASH\"" \
-  | kubectl replace --raw /apis/stackgres.io/v1/namespaces/"$OPERATOR_NAMESPACE"/sgconfigs/"$OPERATOR_NAME"/status -f -
+  | kubectl replace --raw /apis/stackgres.io/v1/namespaces/"$SGCONFIG_NAMESPACE"/sgconfigs/"$OPERATOR_NAME"/status -f -
 do
   sleep 2
 done

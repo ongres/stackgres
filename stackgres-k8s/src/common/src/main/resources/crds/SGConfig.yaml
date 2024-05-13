@@ -116,6 +116,14 @@ spec:
                   It is `false` by default.
 
                   > This value can only be set in operator helm chart.
+              sgConfigNamespace:
+                type: string
+                description: |
+                  When set will indicate the namespace where the SGConfig used by the operator will be created.
+                  
+                  By default the SGConfig will be created in the same namespace as the operator.
+
+                  > This value can only be set in operator helm chart.
               serviceAccount:
                 type: object
                 description: Section to configure Operator Installation ServiceAccount
