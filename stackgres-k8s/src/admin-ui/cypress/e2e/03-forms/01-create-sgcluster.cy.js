@@ -486,7 +486,7 @@ describe('Create SGCluster', () => {
             .click()
         
         // Choose Backup (We're always assuming there's a backup with name "ui-0" on the specified namespace)
-        cy.get('#apexchartsarea-datetime .apexcharts-series-markers:last-child') 
+        cy.get('#apexchartsarea-datetime .apexcharts-series-markers > circle[rel="0"]')
             .click()
          
         // Set PITR
